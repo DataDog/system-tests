@@ -33,6 +33,31 @@ class _BaseAppSecValidation(BaseValidation):
         ]
 
 
+class _AppSecValidation(_BaseAppSecValidation):
+    """ will run an arbitrary check on appsec event. If a request is provided, only events
+        related to this request will be checked.
+
+        Validator function can :
+        * returns true => validation will be validated at the end (but trace will continue to be checked)
+        * returns False or None => nothing is done
+        * raise an exception => validation will fail
+    """
+
+    def __init__(self, request, validator):
+        super().__init__(request=request)
+        self.validator = validator
+
+    def final_check(self):
+        events = self._getRelatedAppSecEvents()
+
+        for event in events:
+            try:
+                if self.validator(event):
+                    self.is_success_on_expiry = True
+            except Exception as e:
+                self.set_failure(f"{self.message} not validated: {e}\n")
+
+
 class _NoAppsecEvent(_BaseAppSecValidation):
     def final_check(self):
         if len(self._getRelatedAppSecEvents()):

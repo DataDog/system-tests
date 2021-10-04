@@ -3,7 +3,7 @@ import threading
 from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
-from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack
+from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
 from utils.interfaces._library.miscs import _TraceIdUniqueness, _ReceiveRequestRootTrace, _SpanValidation
 from utils.interfaces._library.sampling import (
@@ -83,6 +83,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def add_span_validation(self, request=None, validator=None):
         self.append_validation(_SpanValidation(request=request, validator=validator))
+
+    def add_appsec_validation(self, request=None, validator=None):
+        self.append_validation(_AppSecValidation(request=request, validator=validator))
 
 
 class _TraceIdUniquenessExceptions:
