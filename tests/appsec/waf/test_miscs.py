@@ -18,14 +18,6 @@ class Test_404(BaseTestCase):
             address="server.request.headers.no_cookies",
         )
 
-        def check_http_code(event):
-            status_code = event["context"]["http"]["response"]["status"]
-            assert status_code == 404, f"404 should have been reported, not {status_code}"
-
-            return True
-
-        interfaces.library.add_appsec_validation(r, check_http_code)
-
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 class Test_MultipleHighlight(BaseTestCase):
