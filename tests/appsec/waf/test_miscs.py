@@ -8,6 +8,7 @@ class Test_404(BaseTestCase):
 
     def test_404(self):
         """ AppSec WAF catches attacks, even on 404"""
+
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
         assert r.status_code == 404
         interfaces.library.assert_waf_attack(
@@ -16,6 +17,14 @@ class Test_404(BaseTestCase):
             pattern="Arachni/v",
             address="server.request.headers.no_cookies",
         )
+
+        def check_http_code(event):
+            status_code = event["context"]["http"]["response"]["status"]
+            assert status_code == 404, f"404 should have been reported, not {status_code}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, check_http_code)
 
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
