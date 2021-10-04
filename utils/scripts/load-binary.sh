@@ -36,28 +36,33 @@ get_circleci_artifact() {
         echo "Trying pipeline #$i $PIPELINE_NUMBER/$PIPELINE_ID"
         WORKFLOWS=$(curl --silent https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow -H "Circle-Token: $CIRCLECI_TOKEN")
 
-        QUERY=".items[] | select(.name == \"$WORKFLOW_NAME\" and .status==\"success\") | .id"
+        QUERY=".items[] | select(.name == \"$WORKFLOW_NAME\") | .id"
         WORKFLOW_ID=$(echo $WORKFLOWS | jq -r "$QUERY")
 
         if [ ! -z "$WORKFLOW_ID" ]
         then
-            break
+            echo "=> https://app.circleci.com/pipelines/$SLUG/$PIPELINE_NUMBER/workflows/$WORKFLOW_ID"
+
+            JOBS=$(curl --silent https://circleci.com/api/v2/workflow/$WORKFLOW_ID/job -H "Circle-Token: $CIRCLECI_TOKEN")
+            QUERY=".items[] | select(.name == \"$JOB_NAME\" and .status==\"success\")"
+            JOB=$(echo $JOBS | jq "$QUERY")
+
+            if [ ! -z "$JOB" ]
+            then
+                break
+            fi
         fi
     done
 
-    if [ -z "$WORKFLOW_ID" ]
+    if [ -z "$JOB" ]
     then
         echo "Oooops, I did not found any successful pipeline"
         exit 1
     fi
 
-    echo "Workflow ID: $WORKFLOW_ID"
-    echo "Workflow URL: https://app.circleci.com/pipelines/$SLUG/$PIPELINE_NUMBER/workflows/$WORKFLOW_ID"
+    JOB_NUMBER=$(echo $JOB | jq -r ".job_number")
+    JOB_ID=$(echo $JOB | jq -r ".id")
 
-    JOBS=$(curl --silent https://circleci.com/api/v2/workflow/$WORKFLOW_ID/job -H "Circle-Token: $CIRCLECI_TOKEN")
-    QUERY=".items[] | select(.name == \"$JOB_NAME\")"
-    JOB_NUMBER=$(echo $JOBS | jq "$QUERY | .job_number")
-    JOB_ID=$(echo $JOBS | jq "$QUERY | .id")
     echo "Job number/ID: $JOB_NUMBER/$JOB_ID"
     echo "Job URL: https://app.circleci.com/pipelines/$SLUG/$PIPELINE_NUMBER/workflows/$WORKFLOW_ID/jobs/$JOB_NUMBER"
 
@@ -86,17 +91,7 @@ if [ "$TARGET" = "java" ]; then
     OWNER=DataDog
     REPO=dd-trace-java
 
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "build_test" "build" "libs/dd-java-agent-.*-SNAPSHOT.jar"
-
-    # URL=https://gitlab.ddbuild.io/api/v4/projects/$OWNER%2F$REPO/jobs/artifacts/master/download?job=build_with_cache
-    # # job is build_with_cache or build ? seems not to be stable Oo
-
-    # echo "Get $URL"
-    # curl -L --silent --header "Authorization: Bearer $GL_TOKEN" $URL --output artifacts.zip
-
-    # unzip artifacts.zip -d artifacts/
-    # mv $(ls artifacts/workspace/dd-java-agent/build/libs/*.jar) .
-    # rm -rf artifacts/ artifacts.zip
+    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*-SNAPSHOT.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
