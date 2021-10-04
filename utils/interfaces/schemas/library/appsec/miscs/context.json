@@ -1,0 +1,169 @@
+{
+  "$id": "/library/appsec/miscs/context.json",
+
+  "definitions": {
+    "host": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "hostname": { "type": "string" },
+        "os_type": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": ["context_version", "hostname", "os_type"]
+    },
+    "http": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "request": { "$ref": "#/definitions/http_request" },
+        "response": { "$ref": "#/definitions/http_response" }
+      },
+      "additionalProperties": false,
+      "required": ["context_version", "request", "response"]
+    },
+
+    "http_request": {
+      "properties": {
+        "host": { "type": "string" },
+        "method": { "type": "string" },
+        "path": { "type": "string" },
+        "port": { "type": "number" },
+        "remote_ip": { "$ref": "/miscs/ip.json" },
+        "remote_port": { "type": "number" },
+        "resource": { "type": "string" },
+        "scheme": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": [
+        "host",
+        "method",
+        "path",
+        "port",
+        "remote_ip",
+        "remote_port",
+        "resource",
+        "scheme"
+      ]
+    },
+
+    "http_response": {
+      "properties": {
+        "blocked": { "type": "boolean" },
+        "status": { "type": "number" }
+      },
+      "additionalProperties": false,
+      "required": ["blocked", "status"]
+    },
+
+    "service": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "environment": { "type": "string" },
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": ["context_version", "environment", "name", "version"]
+    },
+
+    "service_stack": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "services": {
+          "type": "array",
+          "items": {
+            "properties": {
+              "environment": { "type": "string" },
+              "name": { "type": "string" },
+              "version": { "type": "string" },
+              "when": { "type": "string", "format": "date-time" }
+            },
+            "additionalProperties": false,
+            "required": ["environment", "name", "version", "when"]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["context_version", "services"]
+    },
+
+    "span": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "id": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": ["context_version", "id"]
+    },
+
+    "trace": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "id": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": ["context_version", "id"]
+    },
+
+    "tracer": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "lib_version": { "type": "string" },
+        "runtime_type": { "type": "string" },
+        "runtime_version": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": [
+        "context_version",
+        "lib_version",
+        "runtime_type",
+        "runtime_version"
+      ]
+    },
+
+    "actor": {
+      "properties": {
+        "context_version": { "type": "string" },
+        "_id": { "type": "string" },
+        "identifiers": {
+          "properties": {
+            "email": { "type": "string" },
+            "sqreen_id": { "type": "string" }
+          },
+          "additionalProperties": false,
+          "required": ["email", "sqreen_id"]
+        },
+        "ip": {
+          "properties": {
+            "address": { "$ref": "/miscs/ip.json" }
+          },
+          "additionalProperties": false,
+          "required": ["address"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["context_version", "_id", "identifiers", "ip"]
+    }
+  },
+
+  "properties": {
+    "actor": { "$ref": "#/definitions/actor" },
+    "host": { "$ref": "#/definitions/host" },
+    "http": { "$ref": "#/definitions/http" },
+    "service": { "$ref": "#/definitions/service" },
+    "service_stack": { "$ref": "#/definitions/service_stack" },
+    "span": { "$ref": "#/definitions/span" },
+    "trace": { "$ref": "#/definitions/trace" },
+    "tracer": { "$ref": "#/definitions/tracer" }
+  },
+  "additionalProperties": false,
+  "required": [
+    "actor",
+    "host",
+    "http",
+    "service",
+    "service_stack",
+    "span",
+    "trace",
+    "tracer"
+  ]
+}

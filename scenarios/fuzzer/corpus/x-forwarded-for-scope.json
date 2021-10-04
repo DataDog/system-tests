@@ -1,0 +1,7 @@
+{
+    "method": "GET",
+    "path": "/",
+    "headers": [
+        ["X-Forwarded-For", "fe80::1ff:fe23:4567:890a%eth2"]
+    ]
+}

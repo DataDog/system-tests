@@ -1,0 +1,8 @@
+{
+    "method": "GET",
+    "path": "/",
+    "headers": [
+        ["Ã", ""],
+        ["User-Agent", "arachni/v"]
+    ]
+}

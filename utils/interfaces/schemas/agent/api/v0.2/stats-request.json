@@ -1,0 +1,4 @@
+{
+    "$id": "/agent/api/v0.2/stats-request.json",
+    "type": "object"
+  }

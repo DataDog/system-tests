@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Schemas</title>
+</head>
+<body>
+    <h1>Schemas Documentation</h1>
+    <ul id="navigation">
+    {% for item in data.schemas %}
+        <li><a href="{{ item.href }}">{{ item.caption }}</a></li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "$id": "/library/appsec/proxy/api/v2/appsecevts-request.json",
+
+  "properties": {
+    "events": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "context": {
+            "properties": {
+              "trace": {},
+              "span": {}
+            },
+            "required": ["trace", "span"]
+          }
+        },
+        "required": ["context"]
+      }
+    }
+  },
+  "required": ["events"]
+}

@@ -1,0 +1,7 @@
+{
+  "$id": "/library/v0.4/traces-request.json",
+  "type": "array",
+  "items": {
+    "$ref": "/library/v0.4/misc/trace-item.json"
+  }
+}

@@ -1,0 +1,7 @@
+{
+    "method": "GET",
+    "path": "/",
+    "headers": [
+        ["content-length", "1"]
+    ]
+}

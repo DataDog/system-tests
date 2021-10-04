@@ -1,0 +1,10 @@
+{
+    "method": "POST",
+    "path": "/",
+    "headers": [
+        ["X-Request-Id", "Hey\" injection"]
+    ],
+    "data": {
+        "a":"' OR TRUE -- "
+    }
+}

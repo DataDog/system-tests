@@ -1,0 +1,8 @@
+{
+    "method": "POST",
+    "path": "/test",
+    "data": {
+        "attack": "union select from",
+        "bypass": "m\u0000m"
+    }
+}

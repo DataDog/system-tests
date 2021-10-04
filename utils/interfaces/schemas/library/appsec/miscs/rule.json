@@ -1,0 +1,10 @@
+{
+  "$id": "/library/appsec/miscs/rule.json",
+  "properties": {
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "set": {"type": "string"}
+  },
+  "additionalProperties": false,
+  "required": ["id", "name", "set"]
+}

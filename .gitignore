@@ -1,0 +1,16 @@
+.vscode
+.idea
+.env
+__pycache__
+binaries/*
+!binaries/README.md
+
+venv
+
+# tools for http tunneling
+ngrok
+
+logs/
+logs_missing_appsec_rules/
+
+.DS_store

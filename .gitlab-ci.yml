@@ -1,0 +1,41 @@
+image: tiangolo/docker-with-compose
+
+
+# variables:
+#   AWS_REGISTRY: 486234852809.dkr.ecr.us-east-1.amazonaws.com
+#   # Update pipeline id when using a new base image
+#   CI_IMAGE: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/system-tests:built-with-pipeline-5208025
+
+
+.base_job:
+  # image: $CI_IMAGE
+  needs: []
+  before_script:
+    - apk add bash jq git unzip curl
+    - pip install pyyaml awscli
+    - aws --version && docker --version && docker-compose --version
+    - export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd_api_key --with-decryption --query "Parameter.Value" --out text)
+    - export GL_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gl_token --with-decryption --query "Parameter.Value" --out text)
+    - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
+
+cross-components:
+  extends: .base_job
+  stage: test
+  tags: ["runner:docker"]
+  only:
+    - schedules
+  parallel:
+    matrix:
+      - TEST_LIBRARY: php
+        WEBLOG_VARIANT: vanilla-poc
+  script:
+    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
+    - ./build.sh
+    - ./run.sh
+    - ./run.sh SAMPLING
+  artifacts:
+    when: always
+    paths:
+      - binaries/
+      - logs/
+      - logs_sampling_rate/

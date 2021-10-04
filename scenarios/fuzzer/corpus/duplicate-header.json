@@ -1,0 +1,14 @@
+{
+    "method": "GET",
+    "path": "/",
+    "headers": [
+        [
+            "x-test",
+            "value"
+        ],
+        [
+            "x-test",
+            "value2"
+        ]
+    ]
+}

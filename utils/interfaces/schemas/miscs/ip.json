@@ -1,0 +1,17 @@
+{
+  "$id": "/miscs/ip.json",
+
+  "description": "A valid IPv4 or IPv6 address",
+  "oneOf": [
+    {
+      "type": "string",
+      "format": "ipv4",
+      "description": "A valid IPv4 address"
+    },
+    {
+      "type": "string",
+      "format": "ipv6",
+      "description": "A valid IPv6 address"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+    "$id": "/agent/api/v0.2/traces-request.json",
+    "type": "object"
+  }

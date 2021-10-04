@@ -1,0 +1,22 @@
+from utils import BaseTestCase, context, skipif, interfaces
+
+
+@skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
+@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+class Test_StaticRuleSet(BaseTestCase):
+    """Test different way to configure AppSec"""
+
+    @skipif(context.library == "dotnet", reason="Missing feature: can't be tested has thers is no log")
+    def test_basic_hardcoded_ruleset(self):
+        """ Library has loaded a hardcoded AppSec ruleset"""
+        stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+        stdout.assert_presence(r"AppSec loaded \d+ rules from file <.*>$", level="INFO")
+
+
+@skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
+@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@skipif(context.library == "dotnet", reason="Missing feature")
+@skipif(context.library == "java", reason="Missing feature")
+class Test_FleetManagement(BaseTestCase):
+    def test_basic(self):
+        raise NotImplementedError

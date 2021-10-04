@@ -1,0 +1,4 @@
+{
+    "$id": "/agent/api/v2/appsecevts-request.json",
+    "type": "object"
+  }

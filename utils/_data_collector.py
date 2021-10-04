@@ -1,0 +1,74 @@
+import threading
+import logging
+import collections
+
+from werkzeug.serving import make_server
+from flask import Flask, request
+from utils.tools import logger
+
+
+class _DataCollector(threading.Thread):
+    """
+    The purpose of this class is to expose an HTTP entry point that collects
+    data from components, and route them to corresponding interface validators
+    """
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+        self.validated_rule_names = set()
+        self.proxy_callbacks = collections.defaultdict(list)
+
+        # monkey patch click (clean output)
+        import click
+
+        click.echo = lambda *args, **kwargs: None
+        click.secho = lambda *args, **kwargs: None
+
+        app = Flask(__name__)
+        self.app = app
+
+        logging.getLogger("werkzeug").setLevel(logging.ERROR)
+        app.logger.setLevel(logging.ERROR)
+
+        @app.route("/health", methods=["GET",])
+        def health():
+            return "Ok"
+
+        @app.route("/proxy/<interface>", methods=["POST", "GET"])
+        def messages_from_proxy(interface):
+            assert interface in ("agent", "library")
+
+            data = request.get_json()
+
+            for callback in self.proxy_callbacks[interface]:
+                try:
+                    callback(data)
+                except Exception as e:
+                    logger.error(str(e))
+
+            return "Ok"
+
+    def __str__(self):
+        return f"{self.__class__.__name__}()"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
+
+    def run(self):
+        self.server = make_server("0.0.0.0", 8081, self.app)
+        context = self.app.app_context()
+        context.push()
+
+        self.server.serve_forever()
+
+    # Main thread domain
+    def shutdown(self):
+        self.server.shutdown()
+
+
+# singleton
+data_collector = _DataCollector()
+
+if __name__ == "__main__":
+    data_collector.run()

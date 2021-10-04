@@ -1,0 +1,18 @@
+{
+    "json": {
+        "$(touch /tmp/blns.fail)":"The quic\b\b\b\b\b\bk brown fo\u0007\u0007\u0007\u0007\u0007\u0007\u0007\u0007\u0007\u0007\u0007x... [Beeeep]",
+        "<img src\\x11=x onerror=\"javascript:alert(1)\">":"<a 􏣪element1\">test</a>",
+        "\"><script>alert(123);</script x=\"":"👩񇁹🏽",
+        "-9223372036854775808/-1":"٠١٢٣٤٥٦٧٨٩",
+        "₀₁₂":"<img src\\x10=x onerror=\"javascript:alert(1)\">",
+        "%s%s%s%s%s":"<a href=\"\\xE2\\x80\\x89javascript:javascript:alert(1)\" id=\"fuzzelement1\">test</a>",
+        "evaluate":"\"`'><script>\\xE2\\x80\\x85javascript:alert(1)</script>"
+    },  
+    "headers": [
+        ["RR1", "target:8080"],
+        ["RR2", "`0.0"],
+        ["RR3", "8.0.0.0"]
+    ],
+    "method": "POST",
+    "path": "/0.0/0/%3Cimg%20src%3Dx/x10onerror%3D%22javascript%3Aalert%281%29%22%3E/%CC%97%CC%BA%CD%96%CC%B9%CC%AF%CD%93%E1%B9%AE%CC%A4%CD%8D%CC%A5%CD%87%CD%88h%CC%B2%CC%81e%CD%8F%CD%93%CC%BC%CC%97%CC%99%CC%BC%CC%A3%CD%94%20%CD%87%CC%9C%CC%B1%CC%A0%CD%93%CD%8D%CD%85N%CD%95%CD%A0e%CC%97%CC%B1z%CC%98%CC%9D%CC%9C%CC%BA%CD%99p%CC%A4%CC%BA%CC%B9%CD%8D%CC%AF%CD%9Ae%CC%A0%CC%BB%CC%A0%CD%9Cr%CC%A8%CC%A4%CD%8D%CC%BA%CC%96%CD%94%CC%96%CC%96d%CC%A0%CC%9F%CC%AD%CC%AC%CC%9D%CD%9Fi%CC%A6%CD%96%CC%A9%CD%93%CD%94%CC%A4a%CC%A0%CC%97%CC%AC%CD%89%CC%99n%CD%9A%CD%9C%20%CC%BB%CC%9E%CC%B0%CD%9A%CD%85h%CC%B5%CD%89i%CC%B3%CC%9Ev%CC%A2%CD%87%E1%B8%99%CD%8E%CD%9F-%D2%89%CC%AD%CC%A9%CC%BC%CD%94m%CC%A4%CC%AD%CC%ABi%CD%95%CD%87%CC%9D%CC%A6n%CC%97%CD%99%E1%B8%8D%CC%9F%20%CC%AF%CC%B2%CD%95%CD%9E%C7%AB%CC%9F%CC%AF%CC%B0%CC%B2%CD%99%CC%BB%CC%9Df%20%CC%AA%CC%B0%CC%B0%CC%97%CC%96%CC%AD%CC%98%CD%98c%CC%A6%CD%8D%CC%B2%CC%9E%CD%8D%CC%A9%CC%99%E1%B8%A5%CD%9Aa%CC%AE%CD%8E%CC%9F%CC%99%CD%9C%C6%A1%CC%A9%CC%B9%CD%8Es%CC%A4.%CC%9D%CC%9D%20%D2%89Z%CC%A1%CC%96%CC%9C%CD%96%CC%B0%CC%A3%CD%89%CC%9Ca%CD%96%CC%B0%CD%99%CC%AC%CD%A1l%CC%B2%CC%AB%CC%B3%CD%8D%CC%A9g%CC%A1%CC%9F%CC%BC%CC%B1%CD%9A%CC%9E%CC%AC%CD%85o%CC%97%CD%9C.%CC%9F/ABC%3Cdiv%20style%3D%22x%3A/xE2/x80/x81expression%28javascript%3Aalert%281%29%22%3EDEF/%3Cimg%20src%3Dx%20onerror%3D/x12%22javascript%3Aalert%281%29%22%3E/LPT2/%3Ciframe%20src%3Dhttp%3A/ha.ckers.org/scriptlet.html%20%3C/%3Cimg%20src/x32%3Dx%20onerror%3D%22javascript%3Aalert%281%29%22%3E/%3Ca%20href%3D%22/xE2/x80/x82javascript%3Ajavascript%3Aalert%281%29%22%20id%3D%22fuzzelement1%22%3Etest%3C/a%3E/ABC%3Cdiv%20style%3D%22x%3A/xE2/x80/x81expression%28javascript%3Aalert%281%29%22%3EDEF/%E2%80%A9test%E2%80%A9/%0D%0A/1%23INF/undef/%27%3E%3Cscript%3Ealert%28123%29%3B%3C/script%20x%3D%27/%27%3Balert%28123%29%3Bt%3D%27/ABC%3Cdiv%20style%3D%22x%3A/xE3/x80/x80expression%28javascript%3Aalert%281%29%22%3EDEF/%27/%3Cimg%20src%3Dx/x12onerror%3D%22javascript%3Aalert%281%29%22%3E/%60touch%20/tmp/blns.fail%60/%3Cimg%20/x00src%3Dx%20o"
+}

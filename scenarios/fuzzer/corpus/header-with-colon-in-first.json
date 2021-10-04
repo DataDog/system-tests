@@ -1,0 +1,7 @@
+{
+    "method": "GET",
+    "path": "/",
+    "headers": [
+        [":-weird-key", "value"]
+    ]
+}
