@@ -1,6 +1,6 @@
 from utils import BaseTestCase, context, skipif, interfaces
 
-# get the default log outpu
+# get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
@@ -48,7 +48,6 @@ class Test_Standardization(BaseTestCase):
         stdout.assert_presence(r'AppSec In-App WAF returned:.*"rule":"crs-913-110"', level="DEBUG")
 
     @skipif(context.library == "dotnet", reason="missing feature")
-    @skipif(context.library == "java", reason="known bug: rule type is logged i/o rule id?")
     def test_d06(self):
         """Log D6: WAF rule detected an attack with details"""
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160:.*", level="DEBUG")
@@ -58,6 +57,16 @@ class Test_Standardization(BaseTestCase):
     def test_d07(self):
         """Log D7: Exception in rule"""
         stdout.assert_presence(r"Rule .* failed. Error details: ", level="DEBUG")
+
+    @skipif(context.library == "dotnet", reason="missing feature")
+    def test_d09(self):
+        """Log D9: WAF start of execution"""
+        stdout.assert_presence(r"Executing AppSec In-App WAF$", level="DEBUG")
+
+    @skipif(context.library == "dotnet", reason="missing feature")
+    def test_d10(self):
+        """Log D10: WAF end of execution"""
+        stdout.assert_presence(r"Executing AppSec In-App WAF finished. Took \d+ ms\.$", level="DEBUG")
 
     @skipif(context.library == "dotnet", reason="missing feature")
     def test_i01(self):
@@ -70,19 +79,7 @@ class Test_Standardization(BaseTestCase):
         stdout.assert_presence(r"AppSec loaded \d+ rules from file .*$", level="INFO")
 
     @skipif(context.library == "dotnet", reason="missing feature")
-    @skipif(context.library == "java", reason="known bug: has be done at DEBUG => RFC to be precised")
-    def test_i03(self):
-        """Log I3: WAF start of execution"""
-        stdout.assert_presence(r"Executing AppSec In-App WAF$", level="INFO")
-
-    @skipif(context.library == "dotnet", reason="missing feature")
-    @skipif(context.library == "java", reason="known bug: has be done at DEBUG => RFC to be precised")
-    def test_i04(self):
-        """Log I4: WAF end of execution"""
-        stdout.assert_presence(r"Executing AppSec In-App WAF finished. Took \d+ ms\.$", level="INFO")
-
-    @skipif(context.library == "dotnet", reason="missing feature")
-    @skipif(context.library == "java", reason="missing feature")
+    @skipif(context.library <= "java@0.88.0", reason="missing feature: small typo")
     def test_i05(self):
         """Log I5: WAF detected an attack"""
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160$", level="INFO")
