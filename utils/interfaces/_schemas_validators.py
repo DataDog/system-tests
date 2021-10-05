@@ -42,6 +42,7 @@ def _get_schemas_store():
     for filename in _get_schemas_filenames():
         schema = json.load(open(filename))
 
+        assert "$id" in schema, filename
         assert schema["$id"] == filename[len("utils/interfaces/schemas") :], filename
 
         Draft7Validator.check_schema(schema)

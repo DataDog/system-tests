@@ -2,21 +2,23 @@
   "$id": "/library/appsec/proxy/api/v2/appsecevts-request.json",
 
   "properties": {
+    "protocol_version": {
+        "type": "integer"
+    },
+    "idempotency_key": {
+        "type": "string"
+    },
     "events": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "properties": {
-          "context": {
-            "properties": {
-              "trace": {},
-              "span": {}
-            },
-            "required": ["trace", "span"]
-          }
-        },
-        "required": ["context"]
+          "$ref": "/miscs/appsec/events/_definitions/all_events.json"
       }
     }
   },
-  "required": ["events"]
+  "required": [
+      "protocol_version",
+      "idempotency_key",
+      "events"
+  ]
 }

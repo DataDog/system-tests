@@ -1,4 +1,25 @@
 {
-    "$id": "/library/appsec/proxy/v1/input-request.json",
-    "$comments": "obsolete"
+  "$id": "/library/appsec/proxy/v1/input-request.json",
+  "$comment": "v1 is deprecated",
+
+  "properties": {
+    "protocol_version": {
+        "type": "integer"
+    },
+    "idempotency_key": {
+        "type": "string"
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+          "$ref": "/miscs/appsec/events/_definitions/all_events.json"
+      }
+    }
+  },
+  "required": [
+      "protocol_version",
+      "idempotency_key",
+      "events"
+  ]
 }
