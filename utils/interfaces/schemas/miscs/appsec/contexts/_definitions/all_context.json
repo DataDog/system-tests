@@ -32,12 +32,14 @@
       ]
     },
     "http": {
-      "oneOf": [
+      "allOf": [
         {
-          "$ref": "../http/0.1.0.json"
+            "if": { "properties": { "context_version": { "const": "0.1.0" } } },
+            "then": { "$ref": "../http/0.1.0.json" }
         },
         {
-          "$ref": "../http/1.0.0.json"
+            "if": { "properties": { "context_version": { "const": "1.0.0" } } },
+            "then": { "$ref": "../http/1.0.0.json" }
         }
       ]
     },
