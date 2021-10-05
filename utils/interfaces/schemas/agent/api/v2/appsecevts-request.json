@@ -1,4 +1,24 @@
 {
-    "$id": "/agent/api/v2/appsecevts-request.json",
-    "type": "object"
-  }
+  "$id": "/agent/api/v2/appsecevts-request.json",
+
+  "properties": {
+    "protocol_version": {
+        "type": "integer"
+    },
+    "idempotency_key": {
+        "type": "string"
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+          "$ref": "/miscs/appsec/events/_definitions/all_events.json"
+      }
+    }
+  },
+  "required": [
+      "protocol_version",
+      "idempotency_key",
+      "events"
+  ]
+}

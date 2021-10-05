@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/miscs/appsec/events/_definitions/rule/1.0.0.json",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The unique identifier of the rule that triggered the event. For example, ``ua-910-xax``."
+    },
+    "name": {
+      "type": "string",
+      "description": "The friendly name of the rule that triggered the event."
+    },
+    "tags": {
+      "type": "object",
+      "description": "The tags associated to the rule in the event rules file.",
+      "patternProperties": {
+        "^.+$": { "type": "string" }
+      }
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "tags"
+  ],
+  "additionalProperties": false
+}

@@ -4,6 +4,7 @@ import json
 from flask import Flask, send_from_directory, request, render_template
 from utils.interfaces._schemas_validators import _get_schemas_store, _get_schemas_filenames
 from json_schema_for_humans.generate import generate_from_schema, generate_from_filename
+from json_schema_for_humans.generation_configuration import GenerationConfiguration
 import json_schema_for_humans
 
 
@@ -13,15 +14,7 @@ template_folder = os.path.join(os.getcwd(), "utils/interfaces/schemas")
 app = Flask(__name__, static_url_path="/static", static_folder=static_folder, template_folder=template_folder)
 
 store = _get_schemas_store()
-
-documentations = {}
-
-for filename in _get_schemas_filenames():
-    if filename.endswith("request.json"):
-        doc = generate_from_schema(filename, store)
-        doc = doc.replace("schema_doc.css", "/static/schema_doc.css")
-        doc = doc.replace("schema_doc.min.js", "/static/schema_doc.min.js")
-        documentations[filename[len("utils/interfaces/schemas") :]] = doc
+store_config = GenerationConfiguration()
 
 
 @app.route("/", methods=["GET"])
@@ -29,12 +22,16 @@ def default():
 
     data = {"schemas": []}
 
-    for filename in documentations:
-        doc_path = filename.replace(".json", ".html")
+    for id, schema in store.items():
+        # skip some schemas
+        if not id.endswith("request.json") and not "title" in schema:
+            continue
+
+        doc_path = id.replace(".json", ".html")
         # doc_path = doc_path[len("utils/interfaces/schemas"):]
         # filename = filename[len("utils/interfaces/schemas"):]
 
-        data["schemas"].append({"href": f"{doc_path}", "caption": filename})
+        data["schemas"].append({"href": f"{doc_path}", "caption": id})
 
     return render_template("index.html", data=data)
 
@@ -43,13 +40,11 @@ def default():
 def documentation(path):
     path = f"/{path}.json"
 
-    print(path)
-    print(documentations.keys())
+    doc = generate_from_schema(path, store, config=store_config)
+    doc = doc.replace("schema_doc.css", "/static/schema_doc.css")
+    doc = doc.replace("schema_doc.min.js", "/static/schema_doc.min.js")
 
-    if path not in documentations:
-        return "File not found", 404
-
-    return documentations[path]
+    return doc
 
 
 if __name__ == "__main__":
