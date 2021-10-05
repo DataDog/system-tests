@@ -34,6 +34,9 @@
     "http": {
       "oneOf": [
         {
+          "$ref": "../http/0.1.0.json"
+        },
+        {
           "$ref": "../http/1.0.0.json"
         }
       ]
