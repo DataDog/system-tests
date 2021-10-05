@@ -4,7 +4,6 @@ from utils import BaseTestCase, interfaces
 
 
 class Test_Library(BaseTestCase):
-
     @skipif(context.library <= "java@0.87.0", reason="missing feature")
     @skipif(context.library > "java@0.87.0", reason="known bug in the http context")
     @skipif(context.library == "dotnet", reason="known bug in the http context")
@@ -14,7 +13,6 @@ class Test_Library(BaseTestCase):
 
 
 class Test_Agent(BaseTestCase):
-
     @skipif(context.library <= "java@0.87.0", reason="missing feature")
     @skipif(context.library > "java@0.87.0", reason="known bug in the http context")
     @skipif(context.library == "dotnet", reason="known bug in the http context")
