@@ -7,13 +7,12 @@ Build images used for system tests.
 ## Usage
 
 ```bash
-    ./build.sh [--library <library_name>] [--images <image_names>] [--weblog-variant <variant_name>]
+    ./build.sh <library_name> [--images <image_names>] [--weblog-variant <variant_name>]
 ```
 
 ## Options
 
-* `-l`: library to test See LIBRARIES section. Default: `nodejs`
-* `--library`: Same as `-l`
+* `<library_name>`: library to test. See LIBRARIES section.
 * `-i`: Comma separated list of images you need to build. See *Image names* section for possible values. Default: all of them
 * `--images`: Same as `-i`
 * `-w`: Name of a [weblog](../edit/weblog.md) variation
@@ -59,6 +58,6 @@ version **against** production version of other components.
 
 You can define your setup in environment variable in a `.env` file. Here is the mapping: 
 
+* `<library_name>` => `TEST_LIBRARY`
 * `-i`/`--images` => `BUILD_IMAGES`
-* `-l`/`--library` => `TEST_LIBRARY`
 * `-w`/`--weblog-variant` => `WEBLOG_VARIANT`
