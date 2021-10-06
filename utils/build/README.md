@@ -5,8 +5,9 @@ DESCRIPTION
 
 USAGE
 
-    ./build.sh [--images <image_names>] [--library <library_name>] [--weblog-variant <variant_name>]
+    ./build.sh <library_name> [--images <image_names>] [--weblog-variant <variant_name>]
 
+<library_name> can be one of cpp, dotnet, golang, java, nodejs, php, python or ruby.
 
 More info on https://github.com/DataDog/system-tests/blob/master/docs/CLI/build.md
 
