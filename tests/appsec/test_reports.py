@@ -33,12 +33,13 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, check_http_code)
 
 
+@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 class Test_HTTPHeaders(BaseTestCase):
     @staticmethod
     def _check_header_is_present(header_name):
         def inner_check(event):
             assert header_name.lower() in [
-                n.lower() for n in event["context"]["http"]["headers"].keys()
+                n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
             ], f"header {header_name} not reported"
 
         return inner_check
