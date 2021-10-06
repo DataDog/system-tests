@@ -112,15 +112,15 @@ elif [ "$TARGET" = "python" ]; then
     # sudo apt-get install unzip
     # sudo apt-get install jq
 
-    curl "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/build_deploy.yml/runs?branch=master&event=schedule&per_page=1" > workflows.json
+    curl --silent "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/build_deploy.yml/runs?branch=master&event=schedule&per_page=1" > workflows.json
 
     ARTIFACT_URL=$(jq -r '.workflow_runs[0].artifacts_url' workflows.json)
     echo "Load $ARTIFACT_URL" 
-    curl "$ARTIFACT_URL" > artifacts.json
+    curl --silent "$ARTIFACT_URL" > artifacts.json
 
     ARCHIVE_URL=$(jq -r '.artifacts[0].archive_download_url' artifacts.json)
     echo "Load $ARCHIVE_URL" 
-    curl -H "Authorization: token $GH_TOKEN" -L "$ARCHIVE_URL" --output artifacts.zip
+    curl --silent -H "Authorization: token $GH_TOKEN" -L "$ARCHIVE_URL" --output artifacts.zip
 
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
