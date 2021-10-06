@@ -34,6 +34,7 @@ class Test_StatusCode(BaseTestCase):
 
 
 class Test_HTTPHeaders(BaseTestCase):
+    @staticmethod
     def _check_header_is_present(header_name):
         def inner_check(event):
             assert header_name.lower() in [
