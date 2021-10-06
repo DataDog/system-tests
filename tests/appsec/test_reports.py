@@ -45,45 +45,47 @@ class Test_HTTPHeaders(BaseTestCase):
 
     def test_x_forwarded_for(self):
         """ AppSec reports the X-Forwarded-For HTTP header """
-        r = self.weblog_get("/", headers={"X-Forwarded-For": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"X-Forwarded-For": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded-for"))
 
     def test_x_client_ip(self):
         """ AppSec reports the X-Client-IP HTTP header """
-        r = self.weblog_get("/", headers={"X-Client-IP": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"X-Client-IP": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-client-ip"))
 
     def test_x_real_ip(self):
         """ AppSec reports the X-Real-IP HTTP header """
-        r = self.weblog_get("/", headers={"X-Real-IP": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"X-Real-IP": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-real-ip"))
 
     def test_x_forwarded(self):
         """ AppSec reports the X-Forwarded HTTP header """
-        r = self.weblog_get("/", headers={"X-Forwarded": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"X-Forwarded": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded"))
 
     def test_x_cluster_client_ip(self):
         """ AppSec reports the X-Cluster-Client-IP HTTP header """
-        r = self.weblog_get("/", headers={"X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get(
+            "/", headers={"X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"}
+        )
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-cluster-client-ip"))
 
     def test_forwarded_for(self):
         """ AppSec reports the Forwarded-For HTTP header """
-        r = self.weblog_get("/", headers={"Forwarded-For": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"Forwarded-For": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded-for"))
 
     def test_forwarded(self):
         """ AppSec reports the Forwarded HTTP header """
-        r = self.weblog_get("/", headers={"Forwarded": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"Forwarded": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded"))
 
     def test_via(self):
         """ AppSec reports the Via HTTP header """
-        r = self.weblog_get("/", headers={"Via": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"Via": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("via"))
 
     def test_true_client_ip(self):
         """ AppSec reports the True-Client-IP HTTP header """
-        r = self.weblog_get("/", headers={"True-Client-IP": "42.42.42.42, 43.43.43.43"})
+        r = self.weblog_get("/", headers={"True-Client-IP": "42.42.42.42, 43.43.43.43", "User-Agent": "Arachni/v1"})
         interfaces.library.add_appsec_validation(r, self._check_header_is_present("true-client-ip"))
