@@ -56,7 +56,7 @@ class _AppSecValidation(_BaseAppSecValidation):
                 if self.validator(event):
                     self.is_success_on_expiry = True
             except Exception as e:
-                msg = traceback.format_exception_only(e)[0]
+                msg = traceback.format_exception_only(type(e), e)[0]
                 self.set_failure(f"{self.message} not validated: {msg}\n")
 
 
