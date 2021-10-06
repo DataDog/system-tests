@@ -31,3 +31,49 @@ class Test_StatusCode(BaseTestCase):
             return True
 
         interfaces.library.add_appsec_validation(r, check_http_code)
+
+
+class Test_HTTPHeaders(BaseTestCase):
+    def _check_header_is_present(header_name):
+        def inner_check(event):
+            assert header_name.lower() in [
+                n.lower() for n in event["context"]["http"]["headers"].keys()
+            ], f"header {header_name} not reported"
+
+        return inner_check
+
+    def test_x_forwarded_for(self):
+        r = self.weblog_get("/", headers={"X-Forwarded-For": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded-for"))
+
+    def test_x_client_ip(self):
+        r = self.weblog_get("/", headers={"X-Client-IP": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-client-ip"))
+
+    def test_x_real_ip(self):
+        r = self.weblog_get("/", headers={"X-Real-IP": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-real-ip"))
+
+    def test_x_forwarded(self):
+        r = self.weblog_get("/", headers={"X-Forwarded": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded"))
+
+    def test_x_cluster_client_ip(self):
+        r = self.weblog_get("/", headers={"X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-cluster-client-ip"))
+
+    def test_forwarded_for(self):
+        r = self.weblog_get("/", headers={"Forwarded-For": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded-for"))
+
+    def test_forwarded(self):
+        r = self.weblog_get("/", headers={"Forwarded": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded"))
+
+    def test_via(self):
+        r = self.weblog_get("/", headers={"Via": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("via"))
+
+    def test_true_client_ip(self):
+        r = self.weblog_get("/", headers={"True-Client-IP": "42.42.42.42, 43.43.43.43"})
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("true-client-ip"))
