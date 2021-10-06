@@ -34,6 +34,7 @@ class Test_StatusCode(BaseTestCase):
 
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@skipif(context.library == "dotnet", reason="missing feature: request headers are not reported")
 class Test_HTTPHeaders(BaseTestCase):
     @staticmethod
     def _check_header_is_present(header_name):
