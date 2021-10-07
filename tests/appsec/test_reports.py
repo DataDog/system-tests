@@ -36,9 +36,9 @@ class Test_StatusCode(BaseTestCase):
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 @skipif(context.library == "dotnet", reason="missing feature: request headers are not reported")
 class Test_HTTPHeaders(BaseTestCase):
-    def setUp(self):
-        super().setUp()
-        self.r = self.weblog_get(
+    def test_forwarded_for(self):
+        """ AppSec reports the forwarded-for HTTP headers """
+        r = self.weblog_get(
             "/waf/",
             headers={
                 "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
@@ -53,6 +53,15 @@ class Test_HTTPHeaders(BaseTestCase):
                 "User-Agent": "Arachni/v1",
             },
         )
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded-for"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-client-ip"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-real-ip"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-cluster-client-ip"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded-for"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("via"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("true-client-ip"))
 
     @staticmethod
     def _check_header_is_present(header_name):
@@ -64,39 +73,3 @@ class Test_HTTPHeaders(BaseTestCase):
             return True
 
         return inner_check
-
-    def test_x_forwarded_for(self):
-        """ AppSec reports the X-Forwarded-For HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("x-forwarded-for"))
-
-    def test_x_client_ip(self):
-        """ AppSec reports the X-Client-IP HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("x-client-ip"))
-
-    def test_x_real_ip(self):
-        """ AppSec reports the X-Real-IP HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("x-real-ip"))
-
-    def test_x_forwarded(self):
-        """ AppSec reports the X-Forwarded HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("x-forwarded"))
-
-    def test_x_cluster_client_ip(self):
-        """ AppSec reports the X-Cluster-Client-IP HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("x-cluster-client-ip"))
-
-    def test_forwarded_for(self):
-        """ AppSec reports the Forwarded-For HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("forwarded-for"))
-
-    def test_forwarded(self):
-        """ AppSec reports the Forwarded HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("forwarded"))
-
-    def test_via(self):
-        """ AppSec reports the Via HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("via"))
-
-    def test_true_client_ip(self):
-        """ AppSec reports the True-Client-IP HTTP header """
-        interfaces.library.add_appsec_validation(self.r, self._check_header_is_present("true-client-ip"))
