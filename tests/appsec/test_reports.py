@@ -63,8 +63,6 @@ class Test_HTTPHeaders(BaseTestCase):
 
             return True
 
-            return True
-
         return inner_check
 
     def test_x_forwarded_for(self):
