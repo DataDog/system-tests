@@ -73,7 +73,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         super().wait(0)
 
     def append_data(self, data):
-        if self.system_test_error:  # important to get detail about error
+        if self.system_test_error is not None:
             return
 
         try:
@@ -82,8 +82,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
                     validation._check(data)
 
             self._check_closed_status()
-        except Exception:
-            self.system_test_error = True
+        except Exception as e:
+            self.system_test_error = e
             raise
 
     def __test__(self):

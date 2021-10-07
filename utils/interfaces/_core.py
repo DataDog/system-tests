@@ -36,9 +36,9 @@ class InterfaceValidator(object):
         self._closed.set()
         self.is_success = False
 
-        # flag that check that everything is ok on systemtests
-        # otherwise, all output is removed
-        self.system_test_error = False
+        # if there is an excpetion during test execution on any other part then test itself
+        # save it to display it on output. Very helpful when it comes to modify internals
+        self.system_test_error = None
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -52,9 +52,7 @@ class InterfaceValidator(object):
 
     # Main thread domain
     def wait(self, timeout):
-        if self.system_test_error:
-            logger.error("FATAL ERROR ON SYSTEM TESTS")
-            logger.error("Please check logs/pytest.log")
+        if self.system_test_error is not None:
             return
 
         logger.info(f"Wait for {self.name}'s interface validation for {timeout} seconds")
@@ -77,8 +75,8 @@ class InterfaceValidator(object):
                     self.is_success = False
                     return
 
-        except Exception:
-            self.system_test_error = True
+        except Exception as e:
+            self.system_test_error = e
             raise
 
         self.is_success = True
@@ -88,7 +86,7 @@ class InterfaceValidator(object):
         return self._closed.is_set()
 
     def append_validation(self, validation):
-        if self.system_test_error:
+        if self.system_test_error is not None:
             return
 
         validation._interface = self.name
@@ -108,15 +106,15 @@ class InterfaceValidator(object):
 
                 self._check_closed_status()
 
-        except Exception:
-            self.system_test_error = True
+        except Exception as e:
+            self.system_test_error = e
             raise
 
     # data collector thread domain
     def append_data(self, data):
         logger.debug(f"{self.name}'s interface receive data on [{data['host']}{data['path']}]")
 
-        if self.system_test_error:  # important to get detail about error
+        if self.system_test_error is not None:
             return
 
         try:
@@ -138,8 +136,8 @@ class InterfaceValidator(object):
                         validation._check(data)
 
                 self._check_closed_status()
-        except Exception:
-            self.system_test_error = True
+        except Exception as e:
+            self.system_test_error = e
             raise
 
         return data

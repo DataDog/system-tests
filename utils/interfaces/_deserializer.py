@@ -1,3 +1,4 @@
+import traceback
 import ast
 import msgpack
 import json
@@ -59,4 +60,5 @@ def deserialize(data, interface):
             decoded = deserialize_http_message(data["path"], data[key], content, interface)
             data[key]["content"] = decoded
         except Exception as e:
-            logger.critical(str(e))
+            msg = traceback.format_exception_only(type(e), e)[0]
+            logger.critical(msg)

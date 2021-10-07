@@ -1,6 +1,7 @@
 import threading
 import logging
 import collections
+import traceback
 
 from werkzeug.serving import make_server
 from flask import Flask, request
@@ -45,7 +46,8 @@ class _DataCollector(threading.Thread):
                 try:
                     callback(data)
                 except Exception as e:
-                    logger.error(str(e))
+                    msg = traceback.format_exception_only(type(e), e)[0]
+                    logger.critical(msg)
 
             return "Ok"
 
