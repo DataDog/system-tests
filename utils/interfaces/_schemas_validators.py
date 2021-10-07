@@ -77,7 +77,10 @@ class SchemaValidator(BaseValidation):
 
         try:
             validator = _get_schema_validator(schema_id)
-            validator.validate(data["request"]["content"])
+            if not validator.is_valid(data["request"]["content"]):
+                self.set_status(False)
+                for error in validator.iter_errors(data["request"]["content"]):
+                    self.log_error(f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path]))
 
         except FileNotFoundError as e:
             self.set_failure(e)
