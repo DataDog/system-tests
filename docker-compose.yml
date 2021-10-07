@@ -8,8 +8,8 @@ services:
       - FORWARD_TO_PORT=8081
       - PROXY_TROLLS
     volumes:
-      - ./utils/proxy/:/app/utils/proxy/
-    command:  mitmdump -p 8082 --set confdir=/app/utils/proxy/.mitmproxy -s /app/utils/proxy/forwarder.py
+      - ./utils/proxy/:/system-tests/utils/proxy/
+    command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
 
   library_proxy:
     image: mitmproxy/mitmproxy
@@ -19,8 +19,8 @@ services:
       - FORWARD_TO_PORT=8081
       - PROXY_TROLLS
     volumes:
-      - ./utils/proxy/:/app/utils/proxy/
-    command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /app/utils/proxy/forwarder.py
+      - ./utils/proxy/:/system-tests/utils/proxy/
+    command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
     image: system_tests/weblog
