@@ -1,4 +1,5 @@
 """ AppSec validations """
+import traceback
 
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_spans_related_to_rid
@@ -55,7 +56,8 @@ class _AppSecValidation(_BaseAppSecValidation):
                 if self.validator(event):
                     self.is_success_on_expiry = True
             except Exception as e:
-                self.set_failure(f"{self.message} not validated: {e}\n")
+                msg = traceback.format_exception_only(type(e), e)[0]
+                self.set_failure(f"{self.message} not validated: {msg}\n")
 
 
 class _NoAppsecEvent(_BaseAppSecValidation):

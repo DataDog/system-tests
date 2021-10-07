@@ -31,3 +31,45 @@ class Test_StatusCode(BaseTestCase):
             return True
 
         interfaces.library.add_appsec_validation(r, check_http_code)
+
+
+@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@skipif(context.library == "dotnet", reason="missing feature: request headers are not reported")
+class Test_HTTPHeaders(BaseTestCase):
+    def test_forwarded_for(self):
+        """ AppSec reports the forwarded-for HTTP headers """
+        r = self.weblog_get(
+            "/waf/",
+            headers={
+                "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
+                "X-Client-IP": "42.42.42.42, 43.43.43.43",
+                "X-Real-IP": "42.42.42.42, 43.43.43.43",
+                "X-Forwarded": "42.42.42.42, 43.43.43.43",
+                "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
+                "Forwarded-For": "42.42.42.42, 43.43.43.43",
+                "Forwarded": "42.42.42.42, 43.43.43.43",
+                "Via": "42.42.42.42, 43.43.43.43",
+                "True-Client-IP": "42.42.42.42, 43.43.43.43",
+                "User-Agent": "Arachni/v1",
+            },
+        )
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded-for"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-client-ip"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-real-ip"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-cluster-client-ip"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded-for"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("via"))
+        interfaces.library.add_appsec_validation(r, self._check_header_is_present("true-client-ip"))
+
+    @staticmethod
+    def _check_header_is_present(header_name):
+        def inner_check(event):
+            assert header_name.lower() in [
+                n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
+            ], f"header {header_name} not reported"
+
+            return True
+
+        return inner_check
