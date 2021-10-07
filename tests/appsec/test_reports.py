@@ -42,6 +42,8 @@ class Test_HTTPHeaders(BaseTestCase):
             assert header_name.lower() in [
                 n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
             ], f"header {header_name} not reported"
+            
+            return True
 
         return inner_check
 
