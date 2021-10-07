@@ -51,6 +51,9 @@ class _AppSecValidation(_BaseAppSecValidation):
     def final_check(self):
         events = self._getRelatedAppSecEvents()
 
+        if len(events) == 0 and not self.is_success_on_expiry:
+            self.set_failure(f"{self.message} not validated: Can't fin any related event")
+
         for event in events:
             try:
                 if self.validator(event):
