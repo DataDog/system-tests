@@ -16,11 +16,10 @@ class Test_Standardization(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1559")
     @skipif(context.library == "java", reason="not relevant: Cannot be implemented with cooperation from libddwaf")
     def test_d01(self):
         """Log D1: names and adresses AppSec listen to"""
-        stdout.assert_presence(r"Loaded rules:", level="DEBUG")  # TODO: should be more precise
+        stdout.assert_presence(r"Loaded rule:", level="DEBUG")  # TODO: should be more precise
 
     @skipif(context.library == "dotnet", reason="missing feature")
     @skipif(context.library == "java", reason="not relevant: IG doesn't push addresses in Java.")
