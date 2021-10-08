@@ -6,7 +6,7 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 
 @skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-class Test_Errors(BaseTestCase):
+class Test_Standardization(BaseTestCase):
     """AppSec errors logs should be standardized"""
 
     @skipif(context.library == "dotnet", reason="known bug: ERROR io CRITICAL")  # and the last sentence is missing
