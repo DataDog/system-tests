@@ -19,3 +19,9 @@ class Test_Errors(BaseTestCase):
             r"No security activities will be collected.",
             level="CRITICAL",
         )
+
+    @skipif(context.library == "dotnet", reason="known bug: ERROR io CRITICAL")
+    @skipif(context.library == "java", reason="missing feature: Partial, Cannot be fully implemented")
+    def test_c05(self):
+        """Log C5: Rules file is corrupted"""
+        stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")

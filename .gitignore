@@ -10,7 +10,6 @@ venv
 # tools for http tunneling
 ngrok
 
-logs/
-logs_missing_appsec_rules/
+logs*/
 
 .DS_store
