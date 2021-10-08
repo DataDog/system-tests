@@ -24,9 +24,14 @@ elif [ $SCENARIO = "SAMPLING" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
 elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_Errors::test_c04
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     export DD_APPSEC_RULES=/donotexists
+
+elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_Errors::test_c05
+    export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
+    export DD_APPSEC_RULES=/appsec_corrupted_rules.yml
 
 elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     export RUNNER_ARGS=scenarios/appsec_unsupported.py
