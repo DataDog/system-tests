@@ -4,7 +4,6 @@ from utils import BaseTestCase, context, skipif, interfaces
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
@@ -53,11 +52,6 @@ class Test_Standardization(BaseTestCase):
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160:.*", level="DEBUG")
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110:.*", level="DEBUG")
 
-    @skipif(True, reason="missing feature: not testable as now")
-    def test_d07(self):
-        """Log D7: Exception in rule"""
-        stdout.assert_presence(r"Rule .* failed. Error details: ", level="DEBUG")
-
     @skipif(context.library == "dotnet", reason="missing feature")
     def test_d09(self):
         """Log D9: WAF start of execution"""
@@ -95,18 +89,25 @@ class Test_Standardization(BaseTestCase):
         """Log I8: Sending AppSec events"""
         stdout.assert_presence(r"Sending \d+ AppSec events to the agent$", level="INFO")
 
-    @skipif(True, reason="missing feature: not testable as now")
+
+@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@skipif(True, reason="missing feature: not testable as now")
+class Test_StandardizationErrors(BaseTestCase):
+    """AppSec error logs should be standardized"""
+
+    def test_d07(self):
+        """Log D7: Exception in rule"""
+        stdout.assert_presence(r"Rule .* failed. Error details: ", level="DEBUG")
+
     def test_i09(self):
         """Log I9: Dropping events"""
         stdout.assert_presence(r"Dropping \d+ AppSec events because ", level="INFO")
 
-    @skipif(True, reason="missing feature: not testable as now")
     def test_i10(self):
         """Log I10: Flushing events before shutdown"""
         stdout.assert_presence(r"Reporting AppSec event batch because of process shutdown.$", level="INFO")
 
 
-@skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 @skipif(True, reason="missing feature: will need a dedicated testing scenario")
 class Test_StandardizationBlockMode(BaseTestCase):

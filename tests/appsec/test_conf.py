@@ -1,7 +1,6 @@
 from utils import BaseTestCase, context, skipif, interfaces
 
 
-@skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 class Test_StaticRuleSet(BaseTestCase):
     """Test different way to configure AppSec"""
@@ -13,7 +12,6 @@ class Test_StaticRuleSet(BaseTestCase):
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <.*>$", level="INFO")
 
 
-@skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 @skipif(context.library == "dotnet", reason="Missing feature")
 @skipif(context.library == "java", reason="Missing feature")
