@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 # Automatic generatiom from:
 #    python utils/scripts/extract_appsec_waf_rules.py > tests/appsec/waf/utils/rules.py
 
