@@ -35,9 +35,23 @@ class Test_StatusCode(BaseTestCase):
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 @skipif(context.library == "dotnet", reason="missing feature: request headers are not reported")
-class Test_HTTPHeaders(BaseTestCase):
-    def test_forwarded_for(self):
-        """ AppSec reports the forwarded-for HTTP headers """
+class Test_ActorIP(BaseTestCase):
+    def test_http_remote_ip(self):
+        """ AppSec reports the HTTP request peer IP. """
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1",}, stream=True)
+        actual_remote_ip = r.raw._connection.sock.getsockname()[0]
+        r.close()
+
+        def _check_remote_ip(event):
+            remote_ip = event["context"]["http"]["request"]["remote_ip"]
+            assert remote_ip == actual_remote_ip, f"request remote ip should be {actual_remote_ip}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, _check_remote_ip)
+
+    def test_http_request_headers(self):
+        """ AppSec reports the HTTP headers used for actor IP detection."""
         r = self.weblog_get(
             "/waf/",
             headers={
@@ -53,23 +67,40 @@ class Test_HTTPHeaders(BaseTestCase):
                 "User-Agent": "Arachni/v1",
             },
         )
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded-for"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-client-ip"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-real-ip"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-cluster-client-ip"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded-for"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("via"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("true-client-ip"))
 
-    @staticmethod
-    def _check_header_is_present(header_name):
-        def inner_check(event):
-            assert header_name.lower() in [
-                n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
-            ], f"header {header_name} not reported"
+        def _check_header_is_present(header_name):
+            def inner_check(event):
+                assert header_name.lower() in [
+                    n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
+                ], f"header {header_name} not reported"
+
+                return True
+
+            return inner_check
+
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-forwarded-for"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-client-ip"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-real-ip"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-forwarded"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-cluster-client-ip"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("forwarded-for"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("forwarded"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("via"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
+
+    @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
+    def test_actor_ip(self):
+        """ AppSec reports the correct actor ip. """
+        r = self.weblog_get(
+            "/waf/", headers={"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1", "User-Agent": "Arachni/v1",},
+        )
+
+        def _check_actor_ip(event):
+            if "actor" in event["context"]:
+                actor_ip = event["context"]["actor"]["ip"]["address"]
+
+                assert actor_ip == "43.43.43.43", "actor IP should be 43.43.43.43"
 
             return True
 
-        return inner_check
+        interfaces.library.add_appsec_validation(r, _check_actor_ip)
