@@ -13,7 +13,7 @@ from utils.tools import logger
 
 def _send_warmup_requests():
 
-    if context.library in ["php", "dotnet", "cpp"]:
+    if context.library in ["php", "dotnet", "cpp", "ruby"]:
         ok_count = 0
         for i in range(120):
             try:
