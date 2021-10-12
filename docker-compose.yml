@@ -29,6 +29,8 @@ services:
   weblog:
     image: system_tests/weblog
     environment:
+      - DD_ENV=system-tests
+      - DD_SERVICE=weblog
       - DD_AGENT_HOST=library_proxy
       - DD_TRACE_AGENT_PORT=8126
       - DD_APPSEC_ENABLED=true
@@ -51,6 +53,7 @@ services:
     image: system_tests/agent
     environment:
       - DD_API_KEY
+      - DD_ENV=system-tests
     depends_on:
       runner:
         condition: service_healthy
