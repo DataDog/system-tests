@@ -90,3 +90,20 @@ class Test_ActorIP(BaseTestCase):
             return True
 
         interfaces.library.add_appsec_validation(r, _check_actor_ip)
+
+
+@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+class Test_Info(BaseTestCase):
+    def test_service(self):
+        """ Appsec reports the service information """
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+        def _check_service(event):
+            name = event["context"]["service"]["name"]
+            environment = event["context"]["service"]["environment"]
+            assert name == "weblog", f"weblog should have been reported, not {name}"
+            assert environment == "system-tests", f"system-tests should have been reported, not {environment}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, _check_service)
