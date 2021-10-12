@@ -93,6 +93,7 @@ class Test_ActorIP(BaseTestCase):
 
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@skipif(context.library == "dotnet", reason="missing feature: none is reported")
 class Test_Info(BaseTestCase):
     def test_service(self):
         """ Appsec reports the service information """
