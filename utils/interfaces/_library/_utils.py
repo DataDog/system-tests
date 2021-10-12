@@ -23,6 +23,10 @@ def _get_rid_from_span(span):
         # try something for .NET
         user_agent = span.get("meta", {}).get("http_request_headers_user-agent", None)
 
+    return get_rid_from_user_agent(user_agent)
+
+
+def get_rid_from_user_agent(user_agent):
     if not user_agent or "rid/" not in user_agent:
         return None
 
