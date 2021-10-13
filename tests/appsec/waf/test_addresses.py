@@ -169,9 +169,10 @@ class Test_BodyUrlEncoded(BaseTestCase):
 
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@skipif(context.library == "golang", reason="missing feature: not yet released")
 @skipif(context.library == "dotnet", reason="missing feature: not yet released")
 @skipif(context.library == "java", reason="missing feature: not yet released")
+@skipif(context.library == "python", reason="missing feature: not yet released")
 class Test_BodyJson(BaseTestCase):
     """ Appsec WAF detects attackes in JSON body """
 
@@ -186,9 +187,10 @@ class Test_BodyJson(BaseTestCase):
 
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@skipif(context.library == "golang", reason="missing feature: not yet released")
 @skipif(context.library == "dotnet", reason="missing feature: not yet released")
 @skipif(context.library == "java", reason="missing feature: not yet released")
+@skipif(context.library == "python", reason="missing feature: not yet released")
 class Test_BodyXml(BaseTestCase):
     """ Appsec WAF detects attackes in XML body """
 

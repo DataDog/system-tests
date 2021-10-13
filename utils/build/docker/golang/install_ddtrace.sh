@@ -11,7 +11,8 @@ if [ -e "/binaries/dd-trace-go" ]; then
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from got get $(cat /binaries/golang-load-from-go-get)"
-    go get "$(cat binaries/golang-load-from-go-get)"
+    go get -d "$(cat /binaries/golang-load-from-go-get)"
+    go mod tidy
 
 else
     echo "Installing production dd-trace- version"
@@ -20,4 +21,4 @@ fi
 
 go build -tags appsec -v .
 
-go list -m all | grep dd-trace-go | sed 's/.* v//' > /app/SYSTEM_TESTS_LIBRARY_VERSION
+go list -m all | grep dd-trace-go | sed 's/.* v//' | sed 's/-.*//' > /app/SYSTEM_TESTS_LIBRARY_VERSION

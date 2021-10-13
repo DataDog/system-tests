@@ -18,6 +18,7 @@ class Test_StaticRuleSet(BaseTestCase):
 
 @skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
 @skipif(context.library == "dotnet", reason="Missing feature")
+@skipif(context.library == "golang", reason="missing feature")
 @skipif(context.library == "java", reason="Missing feature")
 class Test_FleetManagement(BaseTestCase):
     def test_basic(self):

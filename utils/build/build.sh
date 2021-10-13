@@ -43,7 +43,7 @@ elif [ "$TEST_LIBRARY" = "ruby" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-sinatra-poc}
 
 elif [ "$TEST_LIBRARY" = "golang" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-echo-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http-poc}
 
 elif [ "$TEST_LIBRARY" = "java" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}

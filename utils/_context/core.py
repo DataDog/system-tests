@@ -97,6 +97,9 @@ class _Context:
         if self.library.library in ("nodejs", "php", "ruby"):
             return "missing feature: not yet released"
 
+        if self.library <= "golang@1.33.0":
+            return "missing feature: release planned for 1.33.1"
+
         if self.library < "java@0.87.0":
             return "missing feature: release planned for 0.87.0"
 

@@ -47,6 +47,12 @@ class _BaseAppSecValidation(BaseValidation):
             event.get("context", {}).get("http", {}).get("request", {}).get("headers", {}).get("user-agent", [])
         )
 
+        # version 1 of appsec events schema
+        if isinstance(user_agents, str):
+            user_agents = [
+                user_agents,
+            ]
+
         for user_agent in user_agents:
             if get_rid_from_user_agent(user_agent) == self.rid:
                 return True
