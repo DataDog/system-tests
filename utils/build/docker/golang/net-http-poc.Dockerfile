@@ -33,7 +33,7 @@ func initDatadog() {\n\
 }\n' > main.go
 
 RUN go mod init example.com/hello
-RUN go mod tidy
+RUN go get -d ./...
 
 CMD ./hello
 

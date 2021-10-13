@@ -94,7 +94,7 @@ class _Context:
         if self.library == "golang" and self.weblog_variant == "echo-poc":
             return "not relevant: echo isn't instrumented"
 
-        if self.library.library in ("golang", "nodejs", "php", "ruby"):
+        if self.library.library in ("nodejs", "php", "ruby"):
             return "missing feature: not yet released"
 
         if self.library < "java@0.87.0":
