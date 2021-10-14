@@ -10,7 +10,7 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
 

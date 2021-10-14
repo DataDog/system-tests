@@ -27,12 +27,10 @@ class Test_404(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
 
-    @skipif(context.library == "dotnet", reason="known bug?")
-    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
