@@ -2,11 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, skipif
+from utils import context, BaseTestCase, interfaces, skipif, released
 from .utils import rules
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
@@ -23,7 +25,9 @@ class Test_404(BaseTestCase):
         )
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
 
@@ -37,9 +41,9 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: behavior not yet specified")
-@skipif(context.library == "java", reason="missing feature: behavior not yet specified")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
