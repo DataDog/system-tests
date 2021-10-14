@@ -2,12 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, skipif
+from utils import BaseTestCase, context, interfaces, skipif, released
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "java", reason="missing feature: response is not reported")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_StatusCode(BaseTestCase):
+    @skipif(context.library == "java", reason="missing feature: response is not reported")
     def test_basic(self):
         """ Appsec reports good status code """
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
@@ -23,8 +25,10 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, check_http_code)
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: request headers are not reported")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@skipif(context.library == "dotnet", reason="knowm bug: request headers are not reported")
 class Test_ActorIP(BaseTestCase):
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
@@ -96,8 +100,10 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_actor_ip)
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: none is reported")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@skipif(context.library == "dotnet", reason="known bug: none is reported")
 class Test_Info(BaseTestCase):
     def test_service(self):
         """ Appsec reports the service information """

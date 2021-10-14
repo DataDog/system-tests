@@ -11,6 +11,7 @@ import pytest
 from utils.tools import logger
 from utils._context.cgroup_info import CGroupInfo
 from utils._context.library_version import LibraryVersion
+from packaging.version import parse as parse_version
 
 
 class ImageInfo:
@@ -82,37 +83,56 @@ class _Context:
             "sampling_rate": self.sampling_rate,
         }
 
-    @property
-    def appsec_is_released(self):
-        return self.appsec_not_released_reason is None
-
-    @property
-    def appsec_not_released_reason(self):
-        if self.library == "cpp":
-            return "not relevant: No C++ appsec planned"
-
-        if self.library == "golang" and self.weblog_variant == "echo-poc":
-            return "not relevant: echo isn't instrumented"
-
-        if self.library.library in ("golang", "nodejs", "php", "ruby"):
-            return "missing feature: not yet released"
-
-        if self.library < "java@0.87.0":
-            return "missing feature: release planned for 0.87.0"
-
-        if self.library < "dotnet@1.28.6":
-            return "missing feature: release planned for 1.28.6"
-
-        if self.library.library == "python" and self.library != "python@0.53.0.dev70+g494e6dc0":
-            return "missing feature: release planned for 0.55"
-
-        return None
-
 
 context = _Context()
+
+
+def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=None, python=None, ruby=None):
+    def wrapper(test_class):
+        def get_wrapped_class(skip_reason):
+            @pytest.mark.skip(reason=skip_reason)
+            class Test(test_class):
+                pass
+
+            Test.__doc__ = test_class.__doc__
+
+            return Test
+
+        version = {
+            "cpp": cpp,
+            "dotnet": dotnet,
+            "golang": golang,
+            "java": java,
+            "nodejs": nodejs,
+            "php": php,
+            "python": python,
+            "ruby": ruby,
+        }[context.library.library]
+
+        if version is None:
+            return test_class
+
+        setattr(test_class, "__released__", version)
+
+        if version == "?":
+            logger.info(f"{test_class.__name__} feature will be released in a future version=> skipped")
+            return get_wrapped_class(f"missing freature: release not yet planned")
+
+        if version.startswith("not relevant"):
+            skip_reason = version
+            logger.info(f"{test_class.__name__} feature is {skip_reason} => skipped")
+            return get_wrapped_class(skip_reason)
+
+        if context.library.version >= parse_version(version):
+            logger.debug(f"{test_class.__name__} feature is released in {version} => added in test queue")
+            return test_class
+
+        logger.info(f"{test_class.__name__} feature will be released in {version} => skipped")
+        return get_wrapped_class(f"missing freature: release version is {version}")
+
+    return wrapper
+
 
 if __name__ == "__main__":
 
     print(context)
-    print(context.appsec_is_released)
-    print(context.appsec_not_released_reason)

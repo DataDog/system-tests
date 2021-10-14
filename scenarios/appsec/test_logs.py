@@ -2,14 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, skipif, interfaces
+from utils import BaseTestCase, context, skipif, interfaces, released
 
 # get the default log outpu
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@skipif(context.library == "cpp", reason="not relevant: No C++ appsec planned")
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_Standardization(BaseTestCase):
     """AppSec errors logs should be standardized"""
 

@@ -2,10 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, skipif, interfaces
+from utils import BaseTestCase, context, skipif, interfaces, released
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
     """Test different way to configure AppSec"""
 
@@ -16,9 +18,9 @@ class Test_StaticRuleSet(BaseTestCase):
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <.*>$", level="INFO")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="Missing feature")
-@skipif(context.library == "java", reason="Missing feature")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_FleetManagement(BaseTestCase):
     def test_basic(self):
         raise NotImplementedError
