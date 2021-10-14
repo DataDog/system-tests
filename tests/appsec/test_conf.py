@@ -7,7 +7,7 @@ from utils import BaseTestCase, context, skipif, interfaces, released
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
     """Test different way to configure AppSec"""
 

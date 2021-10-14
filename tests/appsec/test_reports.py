@@ -7,7 +7,7 @@ from utils import BaseTestCase, context, interfaces, skipif, released
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="?")
 class Test_StatusCode(BaseTestCase):
     @skipif(context.library == "java", reason="missing feature: response is not reported")
     def test_basic(self):
@@ -27,7 +27,7 @@ class Test_StatusCode(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 @skipif(context.library == "dotnet", reason="knowm bug: request headers are not reported")
 class Test_ActorIP(BaseTestCase):
     def test_http_remote_ip(self):
@@ -102,7 +102,7 @@ class Test_ActorIP(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 @skipif(context.library == "dotnet", reason="known bug: none is reported")
 class Test_Info(BaseTestCase):
     def test_service(self):

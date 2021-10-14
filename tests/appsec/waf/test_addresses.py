@@ -98,7 +98,7 @@ class Test_Headers(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
 
@@ -121,7 +121,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 class Test_Cookies(BaseTestCase):
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """

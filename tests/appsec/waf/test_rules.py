@@ -30,7 +30,7 @@ class Test_Scanners(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
@@ -52,7 +52,7 @@ class Test_HttpProtocol(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
 
@@ -122,7 +122,7 @@ class Test_CommandInjection(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_PhpCodeInjection(BaseTestCase):
     """ Appsec WAF tests on PHP injection rules """
 
@@ -173,7 +173,7 @@ class Test_JsInjection(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
 
@@ -221,7 +221,7 @@ class Test_XSS(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 class Test_SQLI(BaseTestCase):
     """ Appsec WAF tests on SQLI rules """
 
