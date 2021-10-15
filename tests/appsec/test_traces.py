@@ -7,12 +7,12 @@ from utils import BaseTestCase, context, interfaces, skipif, released
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="1.29.0", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_Retention(BaseTestCase):
     def test_events_retain_traces(self):
         """ AppSec retain APM traces when associated with a security event. """
 
-        MANUAL_KEEP = 2
+        APPSEC_KEEP = 4
 
         def validate_appsec_span(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
@@ -27,8 +27,8 @@ class Test_Retention(BaseTestCase):
             if "_sampling_priority_v1" not in span["metrics"]:
                 raise Exception("Metric _sampling_priority_v1 should be set on traces that are manually kept")
 
-            if span["metrics"]["_sampling_priority_v1"] != MANUAL_KEEP:
-                raise Exception(f"Trace id {span['trace_id']} , sampling priority should be {MANUAL_KEEP}")
+            if span["metrics"]["_sampling_priority_v1"] != APPSEC_KEEP:
+                raise Exception(f"Trace id {span['trace_id']} , sampling priority should be {APPSEC_KEEP}")
 
             return True
 
@@ -38,7 +38,7 @@ class Test_Retention(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="1.29.0", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_AppSecMonitoring(BaseTestCase):
     def test_events_retain_traces(self):
         """ AppSec store in APM traces some data when enabled. """
