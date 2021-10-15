@@ -7,11 +7,10 @@ from utils import BaseTestCase, context, skipif, interfaces, released
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
     """Test different way to configure AppSec"""
 
-    @skipif(context.library == "dotnet", reason="Missing feature: can't be tested has thers is no log")
     def test_basic_hardcoded_ruleset(self):
         """ Library has loaded a hardcoded AppSec ruleset"""
         stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed

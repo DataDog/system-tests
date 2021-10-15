@@ -116,7 +116,7 @@ def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=Non
 
         if version == "?":
             logger.info(f"{test_class.__name__} feature will be released in a future version=> skipped")
-            return get_wrapped_class(f"missing freature: release not yet planned")
+            return get_wrapped_class(f"missing feature: release not yet planned")
 
         if version.startswith("not relevant"):
             skip_reason = version
@@ -128,7 +128,7 @@ def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=Non
             return test_class
 
         logger.info(f"{test_class.__name__} feature will be released in {version} => skipped")
-        return get_wrapped_class(f"missing freature: release version is {version}")
+        return get_wrapped_class(f"missing feature: release version is {version}")
 
     return wrapper
 
