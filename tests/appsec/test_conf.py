@@ -9,8 +9,9 @@ from utils import BaseTestCase, context, skipif, interfaces, released
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(dotnet="1.29.0", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
-    """Test different way to configure AppSec"""
+    """Appsec loads rules from a static rules file"""
 
+    @skipif(context.library == "dotnet", reason="missing feature: can't know the number of rules")
     def test_basic_hardcoded_ruleset(self):
         """ Library has loaded a hardcoded AppSec ruleset"""
         stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed

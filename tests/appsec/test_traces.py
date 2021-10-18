@@ -40,6 +40,7 @@ class Test_Retention(BaseTestCase):
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(dotnet="1.29.0", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_AppSecMonitoring(BaseTestCase):
+    @skipif(context.library == "dotnet", reason="known bug: _dd.appsec.enabled is meta instead of metrics")
     def test_events_retain_traces(self):
         """ AppSec store in APM traces some data when enabled. """
 
@@ -52,7 +53,7 @@ class Test_AppSecMonitoring(BaseTestCase):
             if "_dd.appsec.enabled" not in span["metrics"]:
                 raise Exception("Can't find _dd.appsec.enabled in span's metrics")
 
-            if span["metrics"]["_dd.appsec.enabled"] != "true":
+            if span["metrics"]["_dd.appsec.enabled"] != "1":
                 raise Exception(
                     f'_dd.appsec.enabled in span\'s metrics should be "true", not {span["metrics"]["_dd.appsec.enabled"]}'
                 )
