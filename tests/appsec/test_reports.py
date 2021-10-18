@@ -28,7 +28,7 @@ class Test_StatusCode(BaseTestCase):
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(nodejs="?", php="?", python="?", ruby="?")
-@skipif(context.library == "dotnet", reason="knowm bug: request headers are not reported")
+@skipif(context.library == "dotnet", reason="known bug: request headers are not reported")
 class Test_ActorIP(BaseTestCase):
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
