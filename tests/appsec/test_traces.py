@@ -53,9 +53,9 @@ class Test_AppSecMonitoring(BaseTestCase):
             if "_dd.appsec.enabled" not in span["metrics"]:
                 raise Exception("Can't find _dd.appsec.enabled in span's metrics")
 
-            if span["metrics"]["_dd.appsec.enabled"] != "1":
+            if span["metrics"]["_dd.appsec.enabled"] != 1:
                 raise Exception(
-                    f'_dd.appsec.enabled in span\'s metrics should be "true", not {span["metrics"]["_dd.appsec.enabled"]}'
+                    f'_dd.appsec.enabled in span\'s metrics should be 1 or 1.0, not {span["metrics"]["_dd.appsec.enabled"]}'
                 )
 
             if "_dd.runtime_family" not in span["meta"]:
