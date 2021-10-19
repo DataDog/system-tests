@@ -24,7 +24,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="?")
 @skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQuery(BaseTestCase):
@@ -35,6 +35,7 @@ class Test_UrlQuery(BaseTestCase):
         r = self.weblog_get("/waf/", params={"attack": "appscan_fingerprint"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
+    @skipif(context.library == "golang", reason="known bug?")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
@@ -47,7 +48,7 @@ class Test_UrlQuery(BaseTestCase):
 
 
 @released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 class Test_UrlRaw(BaseTestCase):
     """Test that WAF access attacks sent threw URL"""
@@ -59,16 +60,18 @@ class Test_UrlRaw(BaseTestCase):
 
 
 @released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
+    @skipif(context.library == "golang", reason="known bug?")
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
 
+    @skipif(context.library == "golang", reason="known bug?")
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
@@ -99,7 +102,7 @@ class Test_Headers(BaseTestCase):
 
 
 @released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(php="?", python="?", ruby="?")
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
@@ -107,6 +110,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
     @skipif(context.library == "java", reason="known bug: APPSEC-1403")
     @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "golang", reason="known bug: APPSEC-1403")
     def test_header_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
 
@@ -123,7 +127,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
 
 
 @released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(php="?", python="?", ruby="?")
 @skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_Cookies(BaseTestCase):
@@ -134,6 +138,7 @@ class Test_Cookies(BaseTestCase):
 
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
     @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
+    @skipif(context.library == "golang", reason="known bug?")
     def test_cookies_with_special_chars(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})

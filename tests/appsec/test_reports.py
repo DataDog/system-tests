@@ -26,7 +26,7 @@ class Test_StatusCode(BaseTestCase):
 
 
 @released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 @skipif(context.library == "dotnet", reason="known bug: request headers are not reported")
 class Test_ActorIP(BaseTestCase):

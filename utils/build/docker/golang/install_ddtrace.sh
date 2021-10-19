@@ -15,10 +15,11 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
     go mod tidy
 
 else
-    echo "Installing production dd-trace- version"
+    echo "Installing production dd-trace-version"
     go get -d gopkg.in/DataDog/dd-trace-go.v1
 fi
 
 go build -tags appsec -v .
 
 go list -m all | grep dd-trace-go | sed 's/.* v//' | sed 's/-.*//' > /app/SYSTEM_TESTS_LIBRARY_VERSION
+echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
