@@ -71,8 +71,8 @@ class LibrarySamplingRateValidation(BaseValidation):
 
     def final_check(self):
         trace_count = sum(self.sampled_count.values())
-        # 95% confidence interval = 2 * std_dev = 2 * √(n * p (1 - p))
-        confidence_interval = 2 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
+        # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
+        confidence_interval = 3 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
         # E = n * p
         expectation = context.sampling_rate * trace_count
         if not (expectation - confidence_interval <= self.sampled_count[True] <= expectation + confidence_interval):

@@ -2,11 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, skipif
+from utils import context, BaseTestCase, interfaces, skipif, released
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(True, reason="missing feature: not yet implemented")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", php="?", python="?", ruby="?")
+@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQueryKey(BaseTestCase):
     """Test that WAF access attacks sent threw query key"""
 
@@ -21,8 +23,10 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="?")
+@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQuery(BaseTestCase):
     """Test that WAF access attacks sent threw query"""
 
@@ -42,8 +46,9 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 class Test_UrlRaw(BaseTestCase):
     """Test that WAF access attacks sent threw URL"""
 
@@ -53,7 +58,9 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
@@ -91,12 +98,15 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(php="?", python="?", ruby="?")
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
 
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
     @skipif(context.library == "java", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
     def test_header_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
 
@@ -112,7 +122,10 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
         )
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(php="?", python="?", ruby="?")
+@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_Cookies(BaseTestCase):
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
@@ -136,9 +149,9 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyRaw(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
@@ -149,9 +162,9 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
@@ -168,11 +181,9 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "golang", reason="missing feature: not yet released")
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "java", reason="missing feature: not yet released")
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyJson(BaseTestCase):
     """ Appsec WAF detects attackes in JSON body """
 
@@ -186,11 +197,9 @@ class Test_BodyJson(BaseTestCase):
         raise NotImplementedError()
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "golang", reason="missing feature: not yet released")
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "java", reason="missing feature: not yet released")
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """ Appsec WAF detects attackes in XML body """
 
@@ -207,8 +216,10 @@ class Test_BodyXml(BaseTestCase):
         raise NotImplementedError()
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(True, reason="missing feature: no rule")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", php="?", python="?", ruby="?")
+@skipif(context.library == "nodejs", reason="not relevant: not yet rule on method or client_ip")
 class Test_Misc(BaseTestCase):
     def test_method(self):
         """ Appsec WAF supports server.request.method """

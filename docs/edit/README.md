@@ -27,15 +27,16 @@ class Test_Feature(BaseTestCase):
         interfaces.library.add_span_validation(r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-And you also probably need to [skip the test for some libraries](./skip_reasons.md).
+And it's also a good idea to [provide meta info about your feature, and sometimes skip a test](./features.md).
 
 ```python
-from utils import BaseTestCase, interfaces, context, skipif
+from utils import BaseTestCase, interfaces, context, skipif, released
 
 
+@released(ruby="1.2.3")
 class Test_Feature(BaseTestCase):
 
-    @skipif(context.library == "ruby", reason="Known bug")
+    @skipif(context.library == "ruby", reason="Known bug: APPSEC-123")
     def test_feature_detail(self):
         """ tests an awesome feature """
         r = self.weblog_get("/url")

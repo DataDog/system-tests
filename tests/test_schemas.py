@@ -4,13 +4,13 @@
 
 """Test format specifications"""
 
-from utils import BaseTestCase, interfaces, context, skipif
+from utils import BaseTestCase, interfaces, context, skipif, released
 
 
 class Test_Library(BaseTestCase):
-    @skipif(context.library <= "java@0.87.0", reason="missing feature")
-    @skipif(context.library > "java@0.87.0", reason="known bug: APPSEC-1697")
+    @skipif(context.library == "java", reason="known bug: APPSEC-1697")
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1698")
+    @skipif(context.library == "nodejs", reason="known bug")
     def test_library_format(self):
         """Libraries's payload are valid regarding schemas"""
 
@@ -21,9 +21,9 @@ class Test_Library(BaseTestCase):
 
 
 class Test_Agent(BaseTestCase):
-    @skipif(context.library <= "java@0.87.0", reason="missing feature")
-    @skipif(context.library > "java@0.87.0", reason="known bug: APPSEC-1697")
+    @skipif(context.library == "java", reason="known bug: APPSEC-1697")
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1698")
+    @skipif(context.library == "nodejs", reason="known bug")
     def test_agent_format(self):
         """Agents's payload are valid regarding schemas"""
 
