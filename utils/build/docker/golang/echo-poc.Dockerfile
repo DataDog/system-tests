@@ -43,8 +43,8 @@ RUN go get github.com/labstack/echo/v4
 
 CMD ./hello
 
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* binaries/
-RUN ./binaries/install_ddtrace.sh 
+COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
 
 # Datadog setup
 ENV DD_TRACE_SAMPLE_RATE=0.5

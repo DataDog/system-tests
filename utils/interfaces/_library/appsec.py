@@ -47,6 +47,7 @@ class _BaseAppSecValidation(BaseValidation):
             event.get("context", {}).get("http", {}).get("request", {}).get("headers", {}).get("user-agent", [])
         )
 
+        # version 1 of appsec events schema
         if isinstance(user_agents, str):
             user_agents = [
                 user_agents,

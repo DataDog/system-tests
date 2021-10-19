@@ -34,6 +34,7 @@ class Test_SamplingDecisions(BaseTestCase):
         context.library == "cpp", reason="missing feature: https://github.com/DataDog/dd-opentracing-cpp/issues/173",
     )
     @skipif(context.library == "java", reason="known bug?")
+    @skipif(context.library == "golang", reason="known bug?")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
