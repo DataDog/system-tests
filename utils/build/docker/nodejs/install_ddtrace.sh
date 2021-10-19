@@ -14,4 +14,6 @@ else
     npm install "$(cat /binaries/nodejs-load-from-npm)"
 fi
 
-npm list | grep dd-trace | sed 's/.*@//' > /usr/app/SYSTEM_TESTS_LIBRARY_VERSION
+npm list | grep dd-trace | sed 's/.*@//' | sed 's/ .*//'> /usr/app/SYSTEM_TESTS_LIBRARY_VERSION
+
+echo "dd-trace version: $(cat /usr/app/SYSTEM_TESTS_LIBRARY_VERSION)"

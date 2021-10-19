@@ -38,7 +38,7 @@ class Test_Retention(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.29.0", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 class Test_AppSecMonitoring(BaseTestCase):
     @skipif(context.library == "dotnet", reason="known bug: _dd.appsec.enabled is meta instead of metrics")
     def test_events_retain_traces(self):
@@ -61,7 +61,7 @@ class Test_AppSecMonitoring(BaseTestCase):
             if "_dd.runtime_family" not in span["meta"]:
                 raise Exception("Can't find _dd.runtime_family in span's meta")
 
-            if span["metrics"]["_dd.runtime_family"] not in RUNTIME_FAMILY:
+            if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILY:
                 raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']} , should be in {RUNTIME_FAMILY}")
 
             return True
