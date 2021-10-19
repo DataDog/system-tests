@@ -27,7 +27,7 @@ class Test_StatusCode(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 @skipif(context.library == "dotnet", reason="known bug: request headers are not reported")
 class Test_ActorIP(BaseTestCase):
     def test_http_remote_ip(self):
@@ -44,6 +44,7 @@ class Test_ActorIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, _check_remote_ip)
 
+    @skipif(context.library == "nodejs", reason="missing feature: x-client-ip and true-client-ip")
     def test_http_request_headers(self):
         """ AppSec reports the HTTP headers used for actor IP detection."""
         r = self.weblog_get(
@@ -83,6 +84,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
 
     @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
+    @skipif(context.library == "nodejs", reason="known bug: if actor is present, then ip should be present")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
         r = self.weblog_get(
@@ -102,7 +104,7 @@ class Test_ActorIP(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 @skipif(context.library == "dotnet", reason="known bug: none is reported")
 class Test_Info(BaseTestCase):
     def test_service(self):

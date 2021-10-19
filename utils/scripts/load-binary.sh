@@ -162,7 +162,8 @@ elif [ "$TARGET" = "agent" ]; then
 
 elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    # echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#vdeturckheim/iaw-bindings" > nodejs-load-from-npm
 
 else
     echo "Unknown target: $1"
