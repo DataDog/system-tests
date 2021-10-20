@@ -4,87 +4,147 @@
 
 version: "2.4"
 services:
-  agent_proxy:
-    image: mitmproxy/mitmproxy
-    environment:
-      - INTERFACE_NAME=agent
-      - FORWARD_TO_HOST=runner
-      - FORWARD_TO_PORT=8081
-      - PROXY_TROLLS
-    volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
-    command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
-
-  library_proxy:
-    image: mitmproxy/mitmproxy
-    environment:
-      - INTERFACE_NAME=library
-      - FORWARD_TO_HOST=runner
-      - FORWARD_TO_PORT=8081
-      - PROXY_TROLLS
-    volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
-    command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
-
-  weblog:
-    image: system_tests/weblog
-    environment:
-      - DD_ENV=system-tests
-      - DD_SERVICE=weblog
-      - DD_AGENT_HOST=library_proxy
-      - DD_TRACE_AGENT_PORT=8126
-      - DD_APPSEC_ENABLED=true
-      - DD_TRACE_DEBUG=true
-      - DD_APPSEC_RULES
-      - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
-    volumes:
-      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
-    depends_on:
-      runner:
-        condition: service_healthy
-      agent:
-        condition: service_healthy
-      agent_proxy:
-        condition: service_started
-      library_proxy:
-        condition: service_started
 
   agent:
-    image: system_tests/agent
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/agent.Dockerfile
     environment:
-      - DD_API_KEY
-      - DD_ENV=system-tests
-    depends_on:
-      runner:
-        condition: service_healthy
-      agent_proxy:
-        condition: service_started
-      library_proxy:
-        condition: service_started
+      - DD_API_KEY=$DD_API_KEY
+      - DD_SITE=${DD_SITE:-datad0g.com}
 
-  runner:
-    image: system_tests/runner
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://runner:8081/health"]
-      interval: 5s
-      start_period: 5s
-      retries: 5
+  dotnet:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/dotnet/poc.Dockerfile
     environment:
-      - COLUMNS=${COLUMNS:-120}
-      - PYTHONPATH=/app
-      - SYSTEMTESTS_BACKEND
-      - DD_APPSEC_RULES
-    volumes:
-      - ./pytest.ini:/app/pytest.ini
-      - ./conftest.py:/app/conftest.py
-      - ./tests/:/app/tests/
-      - ./utils/:/app/utils/
-      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/:/app/logs/
-      - ./scenarios/:/app/scenarios/
-      - /var/run/docker.sock:/var/run/docker.sock
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-dotnet
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
     depends_on:
-      agent_proxy:
-        condition: service_started
-      library_proxy:
-        condition: service_started
-    command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
+      agent:
+        condition: service_healthy
+    ports:
+       - 8080:7777
+
+  golang:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/golang/net-http-poc.Dockerfile
+    environment:
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-golang
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
+    depends_on:
+      agent:
+        condition: service_healthy
+    ports:
+       - 8081:7777
+
+  java:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/java/spring-boot-poc.Dockerfile
+    environment:
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-java
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
+    depends_on:
+      agent:
+        condition: service_healthy
+    ports:
+       - 8082:7777
+
+  java:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/java/spring-boot-poc.Dockerfile
+    environment:
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-java
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
+    depends_on:
+      agent:
+        condition: service_healthy
+    ports:
+       - 8082:7777
+
+  nodejs:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/nodejs/express-poc.Dockerfile
+    environment:
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-nodejs
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
+    depends_on:
+      agent:
+        condition: service_healthy
+    ports:
+       - 8083:7777
+
+  php:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/php/vanilla-poc.Dockerfile
+    environment:
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-nodejs
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
+    depends_on:
+      agent:
+        condition: service_healthy
+    ports:
+       - 8084:7777
+
+  python:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/python/flask-poc.Dockerfile
+    environment:
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-python
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
+    depends_on:
+      agent:
+        condition: service_healthy
+    ports:
+       - 8085:7777
+
+  ruby:
+    build:
+      context: ../..
+      dockerfile: utils/build/docker/ruby/sinatra-poc.Dockerfile
+    environment:
+      - DD_AGENT_HOST=agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_APPSEC_ENABLED=1
+      - DD_SERVICE=weblog-ruby
+      - DD_TRACE_DEBUG
+      - DD_ENV=k9-weblog
+    depends_on:
+      agent:
+        condition: service_healthy
+    ports:
+       - 8086:7777

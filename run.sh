@@ -15,7 +15,7 @@ containers=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library)
 
 # Stop previous container not stopped
-docker-compose down
+docker-compose -f docker-compose.runner.yml down
 
 SCENARIO=${1:-DEFAULT}
 
@@ -63,23 +63,23 @@ echo 🔥 Starting test context.
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-docker-compose up -d
-docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
+docker-compose -f docker-compose.runner.yml up -d
+docker-compose -f docker-compose.runner.yml exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
 
 # Save docker logs
 for container in ${containers[@]}
 do
-    docker-compose logs --no-color -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
+    docker-compose -f docker-compose.runner.yml logs --no-color -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
 done
 
 # Show output. Trick: The process will end when runner ends
-docker-compose logs -f runner
+docker-compose -f docker-compose.runner.yml logs -f runner
 
 # Get runner status
-EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
+EXIT_CODE=$(docker-compose -f docker-compose.runner.yml ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
 
 # Stop all containers
-docker-compose down --remove-orphans
+docker-compose -f docker-compose.runner.yml down --remove-orphans
 
 # Exit with runner's status
 exit $EXIT_CODE
