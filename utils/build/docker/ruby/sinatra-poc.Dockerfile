@@ -10,6 +10,7 @@ WORKDIR /app
 RUN echo "source 'https://rubygems.org'\n\
 gem 'sinatra'\n\
 gem 'rack-contrib'\n\
+gem 'libddwaf'\n\
 gem 'puma'\n" > Gemfile
 
 RUN echo "require 'sinatra/base'\n\

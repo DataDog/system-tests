@@ -97,6 +97,9 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-filename"
         )
 
+    @skipif(context.library == "dotnet", reason="known bug: :x_filename is missing")
+    @skipif(context.library == "java", reason="known bug: :x_filename is missing")
+    @skipif(context.library == "nodejs", reason="known bug: :x_filename is missing")
     @skipif(context.library == "ruby", reason="known bug: x-filename is reported io x_filename")
     def test_specific_key2(self):
         """ When a specific header key is specified, other key are ignored """
@@ -105,7 +108,10 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
         )
 
-    @skipif(context.library == "golang", reason="known bug: address is missing")
+    @skipif(context.library == "dotnet", reason="known bug: :referer is missing")
+    @skipif(context.library == "java", reason="known bug: :referer is missing")
+    @skipif(context.library == "nodejs", reason="known bug: :referer is missing")
+    @skipif(context.library == "golang", reason="known bug: entire address is missing")
     def test_specific_key3(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})

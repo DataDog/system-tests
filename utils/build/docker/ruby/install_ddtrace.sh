@@ -5,12 +5,10 @@ set -eu
 if [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     echo "install prod version"
     echo "gem 'ddtrace'" >> Gemfile
-    echo "gem 'libddwaf'" >> Gemfile
 
 else
     options=$(cat /binaries/ruby-load-from-bundle-add)
     echo "install from $options"
-    echo "gem 'libddwaf'" >> Gemfile
     echo $options >> Gemfile
 fi
 
