@@ -150,7 +150,7 @@ elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
 
     # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/commits' | jq -r .[0].sha)
-    COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/julio-guerra-appsec/waf' | jq -r .commit.sha)
+    COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/v1' | jq -r .commit.sha)
 
     echo "Using gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID"
     echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
