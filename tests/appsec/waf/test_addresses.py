@@ -25,7 +25,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="?")
+@released(dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
 @skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQuery(BaseTestCase):
     """Test that WAF access attacks sent threw query"""
@@ -36,20 +36,22 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
     @skipif(context.library == "golang", reason="known bug?")
+    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
+    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
     def test_query_with_strict_regex(self):
         """ AppSec catches attacks in URL query value, even with regex containing"""
-        r = self.weblog_get("/waf", params={"value": "0000012345"})
+        r = self.weblog_get("/waf/", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
 @released(cpp="not relevant")
 @released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_UrlRaw(BaseTestCase):
     """Test that WAF access attacks sent threw URL"""
 
@@ -61,36 +63,60 @@ class Test_UrlRaw(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
-    @skipif(context.library == "golang", reason="known bug?")
+    @skipif(context.library == "dotnet", reason="known bug?")
+    @skipif(context.library == "java", reason="known bug?")
+    @skipif(context.library == "nodejs", reason="known bug?")
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="Arachni/v", address="server.request.headers.no_cookies:user-agent"
+        )
 
-    @skipif(context.library == "golang", reason="known bug?")
+    @skipif(context.library == "dotnet", reason="known bug?")
+    @skipif(context.library == "java", reason="known bug?")
+    @skipif(context.library == "nodejs", reason="known bug?")
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
+        )
 
         r = self.weblog_get("/waf/", headers={"X-File-Name": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
+        )
 
         r = self.weblog_get("/waf/", headers={"X-Filename": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-filename"
+        )
 
+    @skipif(context.library == "ruby", reason="known bug: x-filename is reported io x_filename")
+    def test_specific_key2(self):
+        """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
+        )
 
+    @skipif(context.library == "golang", reason="known bug: address is missing")
+    def test_specific_key3(self):
+        """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
-        interfaces.library.assert_waf_attack(r, pattern="<script >", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="<script >", address="server.request.headers.no_cookies:referer"
+        )
 
         r = self.weblog_get("/waf/", headers={"RefErEr": "<script >"})
-        interfaces.library.assert_waf_attack(r, pattern="<script >", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="<script >", address="server.request.headers.no_cookies:referer"
+        )
 
     def test_specific_wrong_key(self):
         """ When a specific header key is specified, other key are ignored """
@@ -103,14 +129,13 @@ class Test_Headers(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(php="?", python="?", ruby="?")
+@released(php="?", python="?", ruby="0.51.0")
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
 
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
     @skipif(context.library == "java", reason="known bug: APPSEC-1403")
     @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
-    @skipif(context.library == "golang", reason="known bug: APPSEC-1403")
     def test_header_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
 
@@ -120,6 +145,12 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
         )
 
+    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "java", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "golang", reason="known bug: address is not reported")
+    def test_header_specific_key2(self):
+        """ Appsec WAF detects attacks on specific header x-file-name """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
         interfaces.library.assert_waf_attack(
             r, pattern="<script >", address="server.request.headers.no_cookies:referer"
@@ -128,7 +159,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
 
 @released(cpp="not relevant")
 @released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(php="?", python="?", ruby="?")
+@released(php="?", python="?", ruby="0.51.0")
 @skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_Cookies(BaseTestCase):
     def test_cookies(self):
@@ -139,8 +170,9 @@ class Test_Cookies(BaseTestCase):
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
     @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
     @skipif(context.library == "golang", reason="known bug?")
+    @skipif(context.library == "ruby", reason="known bug?")
     def test_cookies_with_special_chars(self):
-        """Other SQLI patterns, to be merged once issue are corrected"""
+        """Other cookies patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})
         interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
 
@@ -150,6 +182,11 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": " var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern=" var_dump ()", address="server.request.cookies")
 
+    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
+    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
+    @skipif(context.library == "golang", reason="known bug?")
+    def test_cookies_with_special_chars2(self):
+        """Other cookies patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 

@@ -139,8 +139,9 @@ elif [ "$TARGET" = "python" ]; then
     jq '.workflow_runs[0].head_commit.timestamp' workflows.json
 
 elif [ "$TARGET" = "ruby" ]; then
-    # put a trigger file that tells install script to get package from github#master
-    touch ruby-load-from-master
+    # echo 'ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"' > ruby-load-from-bundle-add
+    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', github: 'Datadog/dd-trace-rb', branch: 'appsec'" > ruby-load-from-bundle-add
+    echo "Using $(cat ruby-load-from-bundle-add)"
 
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.apk

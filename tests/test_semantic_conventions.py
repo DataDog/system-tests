@@ -58,6 +58,7 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
+    @skipif(context.library == "ruby", reason="known bug: http.status_code is missing")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 

@@ -8,11 +8,12 @@ from .utils import rules
 
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
-    def test_404(self):
+    @skipif(context.library == "ruby", reason="not relevant")
+    def test_404_legacy(self):
         """ AppSec WAF catches attacks, even on 404"""
 
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
@@ -22,6 +23,21 @@ class Test_404(BaseTestCase):
             rule_id=rules.security_scanner.ua0_600_12x,
             pattern="Arachni/v",
             address="server.request.headers.no_cookies",
+        )
+
+    @skipif(context.library == "dotnet", reason="known bug: user-agent is missing in address")
+    @skipif(context.library == "java", reason="known bug: user-agent is missing in address")
+    @skipif(context.library == "nodejs", reason="known bug: user-agent is missing in address")
+    def test_404(self):
+        """ AppSec WAF catches attacks, even on 404"""
+
+        r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
+        assert r.status_code == 404
+        interfaces.library.assert_waf_attack(
+            r,
+            rule_id=rules.security_scanner.ua0_600_12x,
+            pattern="Arachni/v",
+            address="server.request.headers.no_cookies:user-agent",
         )
 
 

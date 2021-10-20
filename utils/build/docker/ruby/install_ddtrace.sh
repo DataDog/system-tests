@@ -1,19 +1,20 @@
 #!/bin/bash
 
 set -eu
-    
-cd /binaries
 
-if [ $(ls ruby-load-from-master | wc -l) = 0 ]; then
+if [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     echo "install prod version"
-    cd /app
-    bundle add ddtrace
-    gem list | grep ddtrace | sed  's/ddtrace (//' | sed 's/)//' > SYSTEM_TESTS_LIBRARY_VERSION
+    echo "gem 'ddtrace'" >> Gemfile
+    echo "gem 'libddwaf'" >> Gemfile
+
 else
-    echo "install from github#master"
-    cd /app
-    bundle add ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"
-    echo "DataDog/dd-trace-rb#master" > SYSTEM_TESTS_LIBRARY_VERSION
+    options=$(cat /binaries/ruby-load-from-bundle-add)
+    echo "install from $options"
+    echo "gem 'libddwaf'" >> Gemfile
+    echo $options >> Gemfile
 fi
 
-more Gemfile
+bundle install
+
+bundle list | grep ddtrace | sed -E 's/.*\(//' | sed -E 's/[ )].*//' > SYSTEM_TESTS_LIBRARY_VERSION
+echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
