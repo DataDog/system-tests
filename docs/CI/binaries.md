@@ -42,4 +42,5 @@ TODO
 
 ## Ruby library
 
-* Create an empty file `ruby-load-from-master` in `binaries/`, library will by installed for github `master` branch.
+* Create an file `ruby-load-from-bundle-add` in `binaries/`, the content will be installed by `bundle add`. Content example:
+  * `ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"`

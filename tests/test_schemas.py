@@ -12,6 +12,7 @@ class Test_Library(BaseTestCase):
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1698")
     @skipif(context.library == "nodejs", reason="known bug")
     @skipif(context.library == "golang", reason="known bug")
+    @skipif(context.library == "ruby", reason="known bug")
     def test_library_format(self):
         """Libraries's payload are valid regarding schemas"""
 
@@ -26,6 +27,7 @@ class Test_Agent(BaseTestCase):
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1698")
     @skipif(context.library == "nodejs", reason="known bug")
     @skipif(context.library == "golang", reason="known bug")
+    @skipif(context.library == "ruby", reason="known bug")
     def test_agent_format(self):
         """Agents's payload are valid regarding schemas"""
 

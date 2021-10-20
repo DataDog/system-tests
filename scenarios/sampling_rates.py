@@ -91,9 +91,8 @@ class LibrarySamplingRateValidation(BaseValidation):
 
 
 @skipif(context.library == "cpp", reason="missing feature: https://github.com/DataDog/dd-opentracing-cpp/issues/173")
-@skipif(
-    (context.library, context.weblog_variant) == ("golang", "echo-poc"), reason="not relevant: echo isn't instrumented"
-)
+@skipif(context.weblog_variant == "echo-poc", reason="not relevant: echo isn't instrumented")
+@skipif(context.library == "golang", reason="known bug?")
 class TestSamplingRates(BaseTestCase):
     TOTAL_REQUESTS = 10_000
     REQ_PER_S = 25

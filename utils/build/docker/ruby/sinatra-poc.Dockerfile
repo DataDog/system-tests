@@ -10,14 +10,20 @@ WORKDIR /app
 RUN echo "source 'https://rubygems.org'\n\
 gem 'sinatra'\n\
 gem 'rack-contrib'\n\
+gem 'libddwaf'\n\
 gem 'puma'\n" > Gemfile
-
-RUN bundle install
 
 RUN echo "require 'sinatra/base'\n\
 require 'rack'\n\
 require 'rack/contrib'\n\
-require 'ddtrace/auto_instrument'\n\
+require 'ddtrace'\n\
+Datadog.configure do |c|\n\
+  c.diagnostics.debug = true\n\
+end\n\
+Datadog.configure do |c|\n\
+  options = {}\n\
+  c.use :sinatra, options\n\
+end\n\
 Datadog.tracer.trace('init.service') do |span|\n\
 end\n\
 class MyApp < Sinatra::Base\n\
