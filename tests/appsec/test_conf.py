@@ -3,11 +3,16 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, context, skipif, interfaces, released
+import pytest
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.29.0", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+if context.weblog_variant == "echo-poc":
+    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
+elif context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
+
+@released(golang="?", dotnet="1.29.0", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
     """Appsec loads rules from a static rules file"""
 
@@ -18,9 +23,7 @@ class Test_StaticRuleSet(BaseTestCase):
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <.*>$", level="INFO")
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_FleetManagement(BaseTestCase):
     def test_basic(self):
         raise NotImplementedError

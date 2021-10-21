@@ -2,12 +2,18 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+
 from utils import context, BaseTestCase, interfaces, skipif, released, bug
+import pytest
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", php="?", python="?", ruby="?")
+if context.weblog_variant == "echo-poc":
+    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
+elif context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
+
+@released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
 @skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQueryKey(BaseTestCase):
     """Test that WAF access attacks sent threw query key"""
@@ -23,9 +29,7 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(cpp="not relevant")
-@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
 @skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQuery(BaseTestCase):
     """Test that WAF access attacks sent threw query"""
@@ -49,9 +53,9 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(cpp="not relevant")
-@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(
+    golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0"
+)
 class Test_UrlRaw(BaseTestCase):
     """Test that WAF access attacks sent threw URL"""
 
@@ -61,9 +65,9 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@released(cpp="not relevant")
-@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(
+    golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0"
+)
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
@@ -133,9 +137,7 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(cpp="not relevant")
-@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
 
@@ -163,9 +165,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
         )
 
 
-@released(cpp="not relevant")
-@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
 @skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_Cookies(BaseTestCase):
     def test_cookies(self):
@@ -197,9 +197,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyRaw(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
@@ -210,9 +208,7 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
@@ -229,9 +225,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyJson(BaseTestCase):
     """ Appsec WAF detects attackes in JSON body """
 
@@ -245,9 +239,7 @@ class Test_BodyJson(BaseTestCase):
         raise NotImplementedError()
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """ Appsec WAF detects attackes in XML body """
 
@@ -264,9 +256,7 @@ class Test_BodyXml(BaseTestCase):
         raise NotImplementedError()
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @skipif(context.library == "nodejs", reason="not relevant: not yet rule on method or client_ip")
 class Test_Misc(BaseTestCase):
     def test_method(self):

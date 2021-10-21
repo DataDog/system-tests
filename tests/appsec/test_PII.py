@@ -3,11 +3,14 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, context, released
+import pytest
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+if context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
+
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_Scrubbing(BaseTestCase):
     def test_basic(self):
         raise NotImplementedError
