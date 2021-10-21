@@ -26,6 +26,5 @@ ENV DD_INTEGRATIONS=/opt/datadog/integrations.json
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 ENV DD_TRACE_SAMPLE_RATE=0.5
 ENV DD_TAGS='env:test, aKey : aVal bKey:bVal cKey:'
-#ENV DD_TAGS='env:keyWith:  , ,   Lots:Of:Semicolons '
 
 CMD ["dotnet", "app.dll"]

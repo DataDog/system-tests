@@ -42,4 +42,3 @@ ENV DD_AGENT_HOST=agent_proxy
 ENV DD_SERVICE=weblog
 ENV DD_TRACE_SAMPLE_RATE=0.5
 ENV DD_TAGS='env:test, aKey : aVal bKey:bVal cKey:'
-#ENV DD_TAGS='env:keyWith:  , ,   Lots:Of:Semicolons '

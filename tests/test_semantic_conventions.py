@@ -101,32 +101,22 @@ class Test_Meta(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
 
-@skipif(context.library in ("java", "cpp", "python", "ruby", "dotnet"),
-        reason="known issue: inconsistent implementation across tracers;will need a dedicated testing scenario")
-class Test_Meta_DD_tags(BaseTestCase):
+@skipif(
+    context.library in ("java", "cpp", "python", "ruby", "dotnet"),
+    reason="known bug: inconsistent implementation across tracers;will need a dedicated testing scenario",
+)
+class Test_MetaDatadogTags(BaseTestCase):
     def test_meta_dd_tags(self):
         """Validates that spans carry meta tags that were set in DD_TAGS tracer environment"""
 
         def validator(span):
-
-            # env:test, aKey : aVal bKey:bVal cKey:
             if span["meta"]["env"] != "test":
                 raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
-                return
 
             if span["meta"]["aKey"] != "aVal bKey:bVal cKey:":
                 raise Exception(
-                    f'dKey tag in span\'s meta should be "aVal bKey:bVal cKey:", not {span["meta"]["aKey"]}')
-                return
-
-            # env:keyWith:  , ,   Lots:Of:Semicolons
-            # if span["meta"]["env"] != "keyWith:":
-            #     raise Exception(f'keyTag tag in span\'s meta should be "keyWith:", not {span["meta"]["env"]}')
-            #     return
-            #
-            # if span["meta"]["Lots"] != "Of:Semicolons":
-            #     raise Exception(f'dKey tag in span\'s meta should be "Of:Semicolons", not {span["meta"]["Lots"]}')
-            #     return
+                    f'dKey tag in span\'s meta should be "aVal bKey:bVal cKey:", not {span["meta"]["aKey"]}'
+                )
 
             return True
 
