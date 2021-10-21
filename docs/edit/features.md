@@ -34,6 +34,22 @@ class Test_AwesomeFeature(BaseTestCase)
 
 It means that the test will be executed starting version `1.2.3`.
 
+## Mark a class or a test case as bug
+
+The `bug` decorator will skip a test or a test class. Please provide a small explanation of the bug, or better, a JIRA ref.
+
+```python
+from utils import BaseTestCase, bug
+
+@bug(library="java", reason="APPSEC-666")
+class Test_AwesomeFeature(BaseTestCase)
+    """ Short description of Awesome feature """
+
+    @bug(library="golang@0.2", reason="APPSEC-000")
+    def test_basic(self)
+        assert P==NP
+```
+
 ## Skip special use case
 
 Sometimes, a test must be skipped for different reason. For this, use the `skipif` decorator :
@@ -62,6 +78,5 @@ class Test_AwesomeFeature(BaseTestCase)
     * `context.library == "java@4.28"`
     * `context.library < "dotnet@1.28.5"`
 2. A skip reason. It **must** start with one this:   
-    * `known bug`: please provide a JIRA ticket, or at least a small explanation
     * `not relevant`: When this test is not relevant (again, a small explanation is welcome)
     * `missing feature`: When this spcial use case is not yet implemented.

@@ -4,8 +4,10 @@
 
 """singleton exposing all about test context"""
 
+import logging
 import os
 import json
+import inspect
 import pytest
 
 from utils.tools import logger
@@ -83,20 +85,64 @@ class _Context:
             "sampling_rate": self.sampling_rate,
         }
 
+    def __str__(self):
+        return json.dumps(self.serialize(), indent=4)
+
 
 context = _Context()
 
 
+def _get_wrapped_class(klass, skip_reason):
+
+    logger.info(f"{klass.__name__} class, {skip_reason} => skipped")
+
+    @pytest.mark.skip(reason=skip_reason)
+    class Test(klass):
+        pass
+
+    Test.__doc__ = klass.__doc__
+
+    return Test
+
+
+def _get_wrapped_function(function, skip_reason):
+    logger.info(f"{function.__name__} function, {skip_reason} => skipped")
+
+    @pytest.mark.skip(reason=skip_reason)
+    def wrapper(*args, **kwargs):
+        return function(*args, **kwargs)
+
+    wrapper.__doc__ = function.__doc__
+
+    return wrapper
+
+
+def bug(library=None, reason=None):
+    """ function decorator, allow to mark a test function as a known bug """
+
+    skip = context.library == library
+
+    def decorator(function_or_class):
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "known bug" if reason is None else f"known bug: {reason}"
+
+        if inspect.isfunction(function_or_class):
+            return _get_wrapped_function(function_or_class, full_reason)
+        elif inspect.isclass(function_or_class):
+            return _get_wrapped_class(function_or_class, full_reason)
+        else:
+            raise Exception(f"Unexpexted skipped object: {function_or_class}")
+
+    return decorator
+
+
 def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=None, python=None, ruby=None):
+    """Class decorator, allow to mark a test class with a version number of a component"""
+
     def wrapper(test_class):
-        def get_wrapped_class(skip_reason):
-            @pytest.mark.skip(reason=skip_reason)
-            class Test(test_class):
-                pass
-
-            Test.__doc__ = test_class.__doc__
-
-            return Test
 
         version = {
             "cpp": cpp,
@@ -115,24 +161,34 @@ def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=Non
         setattr(test_class, "__released__", version)
 
         if version == "?":
-            logger.info(f"{test_class.__name__} feature will be released in a future version=> skipped")
-            return get_wrapped_class(f"missing feature: release not yet planned")
+            return _get_wrapped_class(test_class, f"missing feature: release not yet planned")
 
         if version.startswith("not relevant"):
-            skip_reason = version
-            logger.info(f"{test_class.__name__} feature is {skip_reason} => skipped")
-            return get_wrapped_class(skip_reason)
+            return _get_wrapped_class(test_class, "not relevant")
 
         if context.library.version >= parse_version(version):
-            logger.debug(f"{test_class.__name__} feature is released in {version} => added in test queue")
+            logger.debug(f"{test_class.__name__} feature has been released in {version} => added in test queue")
             return test_class
 
-        logger.info(f"{test_class.__name__} feature will be released in {version} => skipped")
-        return get_wrapped_class(f"missing feature: release version is {version}")
+        return _get_wrapped_class(test_class, f"missing feature: release version is {version}")
 
     return wrapper
 
 
 if __name__ == "__main__":
+    import sys
 
+    logger.handlers.append(logging.StreamHandler(stream=sys.stdout))
     print(context)
+
+    @bug(library="ruby", reason="test")
+    def test():
+        pass
+
+    @bug(library="ruby", reason="test")
+    class Test:
+        pass
+
+    @released(ruby="99.99")
+    class Test:
+        pass

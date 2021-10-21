@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, skipif, released
+from utils import context, BaseTestCase, interfaces, skipif, released, bug
 from .utils import rules
 
 
@@ -25,9 +25,9 @@ class Test_404(BaseTestCase):
             address="server.request.headers.no_cookies",
         )
 
-    @skipif(context.library == "dotnet", reason="known bug: user-agent is missing in address")
-    @skipif(context.library == "java", reason="known bug: user-agent is missing in address")
-    @skipif(context.library == "nodejs", reason="known bug: user-agent is missing in address")
+    @bug(library="dotnet", reason=" user-agent is missing in address")
+    @bug(library="java", reason=" user-agent is missing in address")
+    @bug(library="nodejs", reason=" user-agent is missing in address")
     def test_404(self):
         """ AppSec WAF catches attacks, even on 404"""
 

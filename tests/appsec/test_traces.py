@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, skipif, released
+from utils import BaseTestCase, context, interfaces, skipif, released, bug
 
 
 @released(cpp="not relevant")
@@ -41,8 +41,8 @@ class Test_Retention(BaseTestCase):
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_AppSecMonitoring(BaseTestCase):
-    @skipif(context.library == "dotnet", reason="known bug: _dd.appsec.enabled is meta instead of metrics")
-    @skipif(context.library == "ruby", reason="known bug: _dd.appsec.enabled is missing")
+    @bug(library="dotnet", reason="_dd.appsec.enabled is meta instead of metrics")
+    @bug(library="ruby", reason="_dd.appsec.enabled is missing")
     def test_events_retain_traces(self):
         """ AppSec store in APM traces some data when enabled. """
 
