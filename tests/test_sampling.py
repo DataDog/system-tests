@@ -4,7 +4,7 @@
 
 from random import randint
 
-from utils import context, BaseTestCase, interfaces, skipif
+from utils import context, BaseTestCase, interfaces, skipif, bug
 
 
 @skipif(
@@ -33,8 +33,8 @@ class Test_SamplingDecisions(BaseTestCase):
     @skipif(
         context.library == "cpp", reason="missing feature: https://github.com/DataDog/dd-opentracing-cpp/issues/173",
     )
-    @skipif(context.library == "java", reason="known bug?")
-    @skipif(context.library == "golang", reason="known bug?")
+    @bug(library="java")
+    @bug(library="golang")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -44,10 +44,8 @@ class Test_SamplingDecisions(BaseTestCase):
             assert r.status_code == 200
         interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
 
-    @skipif(
-        context.library in ("golang", "python"),
-        reason="known bug: Sampling decisions are not taken by the tracer APMRP-259",
-    )
+    @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
+    @bug(library="golang", reason="Sampling decisions are not taken by the tracer APMRP-259")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
@@ -61,14 +59,11 @@ class Test_SamplingDecisions(BaseTestCase):
             assert r.status_code == 200
         interfaces.library.assert_sampling_decisions_added(traces)
 
-    @skipif(
-        context.library in ("nodejs", "ruby", "php"),
-        reason="known bug: Sampling decision is non deterministic https://datadoghq.atlassian.net/browse/APMRP-258",
-    )
-    @skipif(
-        context.library in ("golang", "python"),
-        reason="known bug: Sampling decisions are not taken by the tracer APMRP-259",
-    )
+    @bug(library="python", reason="APMRP-259")
+    @bug(library="golang", reason="APMRP-259")
+    @bug(library="nodejs", reason="APMRP-258")
+    @bug(library="ruby", reason="APMRP-258")
+    @bug(library="php", reason="APMRP-258")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
 

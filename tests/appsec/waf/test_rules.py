@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, BaseTestCase, interfaces, skipif, released
+from utils import context, BaseTestCase, interfaces, skipif, released, bug
 from .utils import rules
 
 # dotnet: https://raw.githubusercontent.com/DataDog/dd-trace-dotnet/master/tracer/src/Datadog.Trace/AppSec/Waf/rule-set.json  # noqa
@@ -37,9 +37,9 @@ class Test_Scanners(BaseTestCase):
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407")
-    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
-    @skipif(context.library == "ruby", reason="known bug? need to be investiged")
+    @bug(library="dotnet", reason="APPSEC-1407")
+    @bug(library="java", reason="under Valentin's investigations")
+    @bug(library="ruby", reason="? need to be investiged")
     def test_http_protocol(self):
         """ AppSec catches attacks by violation of HTTP protocol"""
         r = self.weblog_get("/waf", cookies={"key": ".cookie-;domain="})
@@ -76,10 +76,10 @@ class Test_LFI(BaseTestCase):
         r = self.weblog_get("/waf/", params={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, rule_id=rules.lfi.crs_930_120)
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1405")
-    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
-    @skipif(context.library == "golang", reason="known bug? may be not supported by framework")
-    @skipif(context.library == "ruby", reason="known bug? may be not supported by framework")
+    @bug(library="dotnet", reason="APPSEC-1405")
+    @bug(library="java", reason="under Valentin's investigations")
+    @bug(library="golang", reason="? may be not supported by framework")
+    @bug(library="ruby", reason="? may be not supported by framework")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         r = self.weblog_get("/waf/..")
@@ -158,8 +158,8 @@ class Test_PhpCodeInjection(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": "rar://"})
         interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_200)
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
-    @skipif(context.library == "golang", reason="known bug?")
+    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="golang")
     def test_php_code_injection_bug(self):
         """ Appsec WAF detects other php injection rules """
         r = self.weblog_get("/waf/", cookies={"x-attack": " var_dump ()"})
@@ -227,13 +227,13 @@ class Test_XSS(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"key": "!![]"})
         interfaces.library.assert_waf_attack(r, rules.xss.crs_941_360)
 
-    @skipif(context.library == "ruby", reason="known bug: need to be investiged")
+    @bug(library="ruby", reason="need to be investiged")
     def test_xss1(self):
         """AppSec catches XSS attacks"""
         r = self.weblog_get("/waf/", cookies={"key": "+ADw->|<+AD$-"})
         interfaces.library.assert_waf_attack(r, rules.xss.crs_941_350)
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
     def test_xss2(self):
         """Other XSS patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": '<vmlframe src="xss">'})
@@ -264,7 +264,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_220)
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
     def test_sqli2(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": "alter d char set f"})
@@ -276,9 +276,9 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "union select from"})
         interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_270)
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
-    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
-    @skipif(context.library == "ruby", reason="known bug: need to be investiged")
+    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="java", reason="under Valentin's investigations")
+    @bug(library="ruby", reason="need to be investiged")
     def test_sqli3(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})

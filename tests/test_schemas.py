@@ -4,15 +4,15 @@
 
 """Test format specifications"""
 
-from utils import BaseTestCase, interfaces, context, skipif, released
+from utils import BaseTestCase, interfaces, context, skipif, released, bug
 
 
 class Test_Library(BaseTestCase):
-    @skipif(context.library == "java", reason="known bug: APPSEC-1697")
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1698")
-    @skipif(context.library == "nodejs", reason="known bug")
-    @skipif(context.library == "golang", reason="known bug")
-    @skipif(context.library == "ruby", reason="known bug")
+    @bug(library="java", reason="APPSEC-1697")
+    @bug(library="dotnet", reason="APPSEC-1698")
+    @bug(library="nodejs")
+    @bug(library="golang")
+    @bug(library="ruby")
     def test_library_format(self):
         """Libraries's payload are valid regarding schemas"""
 
@@ -23,11 +23,11 @@ class Test_Library(BaseTestCase):
 
 
 class Test_Agent(BaseTestCase):
-    @skipif(context.library == "java", reason="known bug: APPSEC-1697")
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1698")
-    @skipif(context.library == "nodejs", reason="known bug")
-    @skipif(context.library == "golang", reason="known bug")
-    @skipif(context.library == "ruby", reason="known bug")
+    @bug(library="java", reason="APPSEC-1697")
+    @bug(library="dotnet", reason="APPSEC-1698")
+    @bug(library="nodejs")
+    @bug(library="golang")
+    @bug(library="ruby")
     def test_agent_format(self):
         """Agents's payload are valid regarding schemas"""
 

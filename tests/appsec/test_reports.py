@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, skipif, released
+from utils import BaseTestCase, context, interfaces, skipif, released, bug
 
 
 @released(cpp="not relevant")
@@ -10,7 +10,7 @@ from utils import BaseTestCase, context, interfaces, skipif, released
 @released(dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
     @skipif(context.library == "java", reason="missing feature: response is not reported")
-    @skipif(context.library == "ruby", reason="known bug: status is missing")
+    @bug(library="ruby", reason="status is missing")
     def test_basic(self):
         """ Appsec reports good status code """
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
@@ -29,7 +29,7 @@ class Test_StatusCode(BaseTestCase):
 @released(cpp="not relevant")
 @released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "dotnet", reason="known bug: request headers are not reported")
+@bug(library="dotnet", reason="request headers are not reported")
 class Test_ActorIP(BaseTestCase):
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
@@ -85,8 +85,8 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
 
     @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
-    @skipif(context.library == "nodejs", reason="known bug: if actor is present, then ip should be present")
-    @skipif(context.library == "ruby", reason="known bug: ip is not the one expected")
+    @bug(library="nodejs", reason="if actor is present, then ip should be present")
+    @bug(library="ruby", reason="ip is not the one expected")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
         r = self.weblog_get(
@@ -107,9 +107,9 @@ class Test_ActorIP(BaseTestCase):
 @released(cpp="not relevant")
 @released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
 @released(java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "dotnet", reason="known bug: none is reported")
+@bug(library="dotnet", reason="none is reported")
 class Test_Info(BaseTestCase):
-    @skipif(context.library == "ruby", reason="known bug: name is sinatra io weblog")
+    @bug(library="ruby", reason="name is sinatra io weblog")
     def test_service(self):
         """ Appsec reports the service information """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})

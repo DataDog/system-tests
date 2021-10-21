@@ -124,7 +124,7 @@ class LibraryVersion:
     def serialize(self):
         return {
             "library": self.library,
-            "version": self.version,
+            "version": str(self.version),
         }
 
 

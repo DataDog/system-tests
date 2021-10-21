@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, skipif, released
+from utils import context, BaseTestCase, interfaces, skipif, released, bug
 
 
 @released(cpp="not relevant")
@@ -35,7 +35,7 @@ class Test_UrlQuery(BaseTestCase):
         r = self.weblog_get("/waf/", params={"attack": "appscan_fingerprint"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
-    @skipif(context.library == "golang", reason="known bug?")
+    @bug(library="golang")
     @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
@@ -67,9 +67,9 @@ class Test_UrlRaw(BaseTestCase):
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
-    @skipif(context.library == "dotnet", reason="known bug?")
-    @skipif(context.library == "java", reason="known bug?")
-    @skipif(context.library == "nodejs", reason="known bug?")
+    @bug(library="dotnet")
+    @bug(library="java")
+    @bug(library="nodejs")
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -77,9 +77,9 @@ class Test_Headers(BaseTestCase):
             r, pattern="Arachni/v", address="server.request.headers.no_cookies:user-agent"
         )
 
-    @skipif(context.library == "dotnet", reason="known bug?")
-    @skipif(context.library == "java", reason="known bug?")
-    @skipif(context.library == "nodejs", reason="known bug?")
+    @bug(library="dotnet")
+    @bug(library="java")
+    @bug(library="nodejs")
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
@@ -97,10 +97,10 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-filename"
         )
 
-    @skipif(context.library == "dotnet", reason="known bug: :x_filename is missing")
-    @skipif(context.library == "java", reason="known bug: :x_filename is missing")
-    @skipif(context.library == "nodejs", reason="known bug: :x_filename is missing")
-    @skipif(context.library == "ruby", reason="known bug: x-filename is reported io x_filename")
+    @bug(library="dotnet", reason="x_filename is missing")
+    @bug(library="java", reason="x_filename is missing")
+    @bug(library="nodejs", reason="x_filename is missing")
+    @bug(library="ruby", reason="x-filename is reported io x_filename")
     def test_specific_key2(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
@@ -108,10 +108,10 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
         )
 
-    @skipif(context.library == "dotnet", reason="known bug: :referer is missing")
-    @skipif(context.library == "java", reason="known bug: :referer is missing")
-    @skipif(context.library == "nodejs", reason="known bug: :referer is missing")
-    @skipif(context.library == "golang", reason="known bug: entire address is missing")
+    @bug(library="dotnet", reason="referer is missing")
+    @bug(library="java", reason="referer is missing")
+    @bug(library="nodejs", reason="referer is missing")
+    @bug(library="golang", reason="entire address is missing")
     def test_specific_key3(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
@@ -139,9 +139,9 @@ class Test_Headers(BaseTestCase):
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
-    @skipif(context.library == "java", reason="known bug: APPSEC-1403")
-    @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
+    @bug(library="dotnet", reason="APPSEC-1403")
+    @bug(library="java", reason="APPSEC-1403")
+    @bug(library="nodejs", reason="APPSEC-1403")
     def test_header_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
 
@@ -151,10 +151,10 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
         )
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
-    @skipif(context.library == "java", reason="known bug: APPSEC-1403")
-    @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
-    @skipif(context.library == "golang", reason="known bug: address is not reported")
+    @bug(library="dotnet", reason="APPSEC-1403")
+    @bug(library="java", reason="APPSEC-1403")
+    @bug(library="nodejs", reason="APPSEC-1403")
+    @bug(library="golang", reason="address is not reported")
     def test_header_specific_key2(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
@@ -173,10 +173,10 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
-    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
-    @skipif(context.library == "golang", reason="known bug?")
-    @skipif(context.library == "ruby", reason="known bug?")
+    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="java", reason="under Valentin's investigations")
+    @bug(library="golang")
+    @bug(library="ruby")
     def test_cookies_with_special_chars(self):
         """Other cookies patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})
@@ -188,9 +188,9 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": " var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern=" var_dump ()", address="server.request.cookies")
 
-    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
-    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
-    @skipif(context.library == "golang", reason="known bug?")
+    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="java", reason="under Valentin's investigations")
+    @bug(library="golang")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})

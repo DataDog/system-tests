@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import BaseTestCase, interfaces, skipif, context
+from utils import BaseTestCase, interfaces, skipif, context, bug
 
 
 class Test_TraceUniqueness(BaseTestCase):
@@ -16,9 +16,9 @@ class Test_TraceUniqueness(BaseTestCase):
 
 @skipif(context.weblog_variant == "echo-poc", reason="not relevant: echo isn't instrumented")
 class Test_TraceHeaders(BaseTestCase):
-    @skipif(context.library == "cpp", reason="known bug?")
-    @skipif(context.library == "golang", reason="known bug?")
-    @skipif(context.library == "php", reason="known bug: Php tracer submits empty traces to endpoint")
+    @bug(library="cpp")
+    @bug(library="golang")
+    @bug(library="php", reason="Php tracer submits empty traces to endpoint")
     def test_traces_header_present(self):
         """Verify that headers described in
         https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md
@@ -41,11 +41,7 @@ class Test_TraceHeaders(BaseTestCase):
         """Verify that the Datadog-Container-ID header value is right in all traces submitted to the agent"""
         interfaces.library.assert_trace_headers_container_tags_cpp()
 
-    @skipif(
-        context.library == "cpp",
-        reason="known bug: C++ tracer doesn't send Datadog-Container-ID "
-        "https://github.com/DataDog/dd-opentracing-cpp/issues/194",
-    )
+    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
     def test_trace_header_container_tags(self):
         """Verify that the Datadog-Container-ID header value is right in all traces submitted to the agent"""
         interfaces.library.assert_trace_headers_container_tags()
