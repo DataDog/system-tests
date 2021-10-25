@@ -86,7 +86,6 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_header_is_present("via"))
         interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
 
-
     @missing_feature(library="java", reason="actor ip has incorrect data")
     @not_relevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
