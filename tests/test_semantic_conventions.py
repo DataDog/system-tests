@@ -4,10 +4,10 @@
 
 from urllib.parse import urlparse
 
-from utils import context, BaseTestCase, interfaces, skipif, bug
+from utils import context, BaseTestCase, interfaces, bug, not_relevant
 
 
-@skipif(context.weblog_variant == "echo-poc", reason="not relevant: echo isn't instrumented")
+@not_relevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
 class Test_Meta(BaseTestCase):
     @bug(library="python", reason="span.kind not included, should be discussed of actually a bug or not")
     @bug(library="ruby", reason="span.kind not included, should be discussed of actually a bug or not")

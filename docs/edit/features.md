@@ -50,33 +50,32 @@ class Test_AwesomeFeature(BaseTestCase)
         assert P==NP
 ```
 
-## Skip special use case
-
-Sometimes, a test must be skipped for different reason. For this, use the `skipif` decorator :
-
+## Mark a class or a test case as not relevant
 
 ```python
-from utils import BaseTestCase, released, skipif, context
+from utils import BaseTestCase, not_relevant
 
-@released(java="1.2.3")
+
+@not_relevant(library="nodejs")
 class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 
     def test_basic(self)
         assert P==NP
 
-    @skipif(context.library=="java@1.2.4", reason="not relevant: still an hypothesis")
+    @not_relevant(library="java@1.2.4", reason="still an hypothesis")
     def test_extended(self)
         assert riemann.zetas.zeros.real == 0.5
 ```
 
-`skipif` takes two arguments:
+## Arguments
 
-1. A boolean, obviously the skip condition. The `context` object will provide all sort of information about the test context for this. Here are some example : 
-    * `context.library == "ruby"`
-    * `context.library in ("python", "nodejs"`
-    * `context.library == "java@4.28"`
-    * `context.library < "dotnet@1.28.5"`
-2. A skip reason. It **must** start with one this:   
-    * `not relevant`: When this test is not relevant (again, a small explanation is welcome)
-    * `missing feature`: When this spcial use case is not yet implemented.
+`@released` has several arguments, one per component name (`java`, `ruby`...). Simply provide a version number (the version where the feature has been implemented)
+
+`@bug` and `@not_relevant` takes several conditional arguments:
+
+* `condition`: boolean, tell if it's relevant or not. It's the first argument, si you can omit the arguement name
+* `library`: provide library. version numbers are allowed (`java@1.2.4`)
+* `weblog_variant`: if you want to skip the test for a specific weblog
+
+And then, an `reason` argument with mor details. It's very handy for `@bug`, the best is providing a JIRA tickets number.
