@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -eu
-    
+
 cd /binaries
 
 if [ $(ls nodejs-load-from-npm | wc -l) = 0 ]; then

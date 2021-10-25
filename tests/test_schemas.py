@@ -10,7 +10,6 @@ from utils import BaseTestCase, interfaces, context, skipif, released, bug
 class Test_Library(BaseTestCase):
     @bug(library="java", reason="APPSEC-1697")
     @bug(library="dotnet", reason="APPSEC-1698")
-    @bug(library="nodejs")
     @bug(library="golang")
     @bug(library="ruby")
     def test_library_format(self):
@@ -25,7 +24,6 @@ class Test_Library(BaseTestCase):
 class Test_Agent(BaseTestCase):
     @bug(library="java", reason="APPSEC-1697")
     @bug(library="dotnet", reason="APPSEC-1698")
-    @bug(library="nodejs")
     @bug(library="golang")
     @bug(library="ruby")
     def test_agent_format(self):

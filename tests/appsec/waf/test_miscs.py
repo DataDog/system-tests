@@ -32,7 +32,6 @@ class Test_404(BaseTestCase):
 
     @bug(library="dotnet", reason=" user-agent is missing in address")
     @bug(library="java", reason=" user-agent is missing in address")
-    @bug(library="nodejs", reason=" user-agent is missing in address")
     def test_404(self):
         """ AppSec WAF catches attacks, even on 404"""
 
@@ -42,7 +41,7 @@ class Test_404(BaseTestCase):
             r,
             rule_id=rules.security_scanner.ua0_600_12x,
             pattern="Arachni/v",
-            address="server.request.headers.no_cookies:user-agent",
+            address="server.request.headers.no_cookies",
         )
 
 

@@ -48,7 +48,6 @@ class Test_ActorIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, _check_remote_ip)
 
-    @skipif(context.library == "nodejs", reason="missing feature: x-client-ip and true-client-ip")
     def test_http_request_headers(self):
         """ AppSec reports the HTTP headers used for actor IP detection."""
         r = self.weblog_get(
@@ -88,7 +87,6 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
 
     @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
-    @bug(library="nodejs", reason="if actor is present, then ip should be present")
     @skipif(context.library == "ruby", reason="not relevant: neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """

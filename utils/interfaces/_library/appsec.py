@@ -47,8 +47,10 @@ class _BaseAppSecValidation(BaseValidation):
             event.get("context", {}).get("http", {}).get("request", {}).get("headers", {}).get("user-agent", [])
         )
 
+        context_version = event.get("context", {}).get("http", {}).get("request", {}).get("context_version", '')
+
         # version 1 of appsec events schema
-        if isinstance(user_agents, str):
+        if context_version === "0.1.0" && isinstance(user_agents, str):
             user_agents = [
                 user_agents,
             ]
