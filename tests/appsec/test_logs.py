@@ -3,14 +3,19 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, context, skipif, interfaces, released
+import pytest
+
+
+if context.weblog_variant == "echo-poc":
+    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
+elif context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
 
@@ -110,9 +115,7 @@ class Test_Standardization(BaseTestCase):
         stdout.assert_presence(r"Reporting AppSec event batch because of process shutdown.$", level="INFO")
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_StandardizationBlockMode(BaseTestCase):
     """AppSec blocking logs should be standardized"""
 

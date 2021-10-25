@@ -3,11 +3,16 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, context, interfaces, skipif, released, bug
+import pytest
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.29.0", java="?", nodejs="?", php="?", python="?")
+if context.weblog_variant == "echo-poc":
+    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
+elif context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
+
+@released(golang="?", dotnet="1.29.0", java="?", nodejs="?", php="?", python="?")
 @skipif(context.library == "ruby", reason="missing feature: can't report user agent with dd-trace-rb")
 class Test_Retention(BaseTestCase):
     def test_events_retain_traces(self):
@@ -37,9 +42,7 @@ class Test_Retention(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_appsec_span)
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(golang="?", dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_AppSecMonitoring(BaseTestCase):
     @bug(library="dotnet", reason="_dd.appsec.enabled is meta instead of metrics")
     @bug(library="ruby", reason="_dd.appsec.enabled is missing")

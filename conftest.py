@@ -30,6 +30,19 @@ def pytest_report_header(config):
     return f"Library: {context.library}\nWeblog variant: {context.weblog_variant}\nBackend: {context.dd_site}"
 
 
+def _get_skip_reason_from_marker(marker):
+    if marker.name == "skipif":
+        if all(marker.args):
+            return marker.kwargs.get("reason", "")
+    elif marker.name == "skip":
+        if len(marker.args):  # if un-named arguments are present, the first one is the reason
+            return marker.args[0]
+        else:  #  otherwise, search in named arguments
+            return marker.kwargs.get("reason", "")
+
+    return None
+
+
 def pytest_itemcollected(item):
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
@@ -41,24 +54,17 @@ def pytest_itemcollected(item):
     else:
         _docs[item.parent.parent.nodeid] = "Unexpected structure"
 
-    for marker in item.own_markers:
-        if marker.name == "skipif":
-            if all(marker.args):
-                _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
-        elif marker.name == "skip":
-            _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
-            break
+    markers = item.own_markers
 
-    for marker in item.parent.own_markers:
-        if marker.name == "skipif":
-            if all(marker.args):
-                _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
-        elif marker.name == "skip":
-            if len(marker.args):  # if un-named arguments are present, the first one is the reason
-                _skip_reasons[item.nodeid] = marker.args[0]
-            else:  #  otherwise, search in named arguments
-                _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
+    parent = item.parent
+    while parent is not None:
+        markers += parent.own_markers
+        parent = parent.parent
 
+    for marker in reversed(markers):
+        skip_reason = _get_skip_reason_from_marker(marker)
+        if skip_reason:
+            _skip_reasons[item.nodeid] = skip_reason
             break
 
 

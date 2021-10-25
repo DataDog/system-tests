@@ -3,14 +3,19 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, context, skipif, interfaces, released, bug
+import pytest
+
+
+if context.weblog_variant == "echo-poc":
+    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
+elif context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
 
 # get the default log outpu
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_Standardization(BaseTestCase):
     """AppSec errors logs should be standardized"""
 

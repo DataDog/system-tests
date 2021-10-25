@@ -3,11 +3,16 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, context, interfaces, skipif, released, bug
+import pytest
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
+if context.weblog_variant == "echo-poc":
+    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
+elif context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
+
+@released(golang="?", dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
     @skipif(context.library == "java", reason="missing feature: response is not reported")
     @bug(library="ruby", reason="status is missing")
@@ -26,9 +31,7 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, check_http_code)
 
 
-@released(cpp="not relevant")
-@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 @bug(library="dotnet", reason="request headers are not reported")
 class Test_ActorIP(BaseTestCase):
     def test_http_remote_ip(self):
@@ -104,9 +107,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_actor_ip)
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 @bug(library="dotnet", reason="none is reported")
 class Test_Info(BaseTestCase):
     @bug(library="ruby", reason="name is sinatra io weblog")
