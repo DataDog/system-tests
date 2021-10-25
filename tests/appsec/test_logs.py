@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, skipif, interfaces, released
+from utils import BaseTestCase, context, skipif, interfaces, released, not_relevant
 import pytest
 
 
@@ -27,13 +27,13 @@ class Test_Standardization(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @skipif(context.library == "java", reason="not relevant: Cannot be implemented with cooperation from libddwaf")
+    @not_relevant(library="java", reason="Cannot be implemented with cooperation from libddwaf")
     def test_d01(self):
         """Log D1: names and adresses AppSec listen to"""
         stdout.assert_presence(r"Loaded rule:", level="DEBUG")  # TODO: should be more precise
 
     @skipif(context.library == "dotnet", reason="missing feature")
-    @skipif(context.library == "java", reason="not relevant: IG doesn't push addresses in Java.")
+    @not_relevant(library="java", reason="IG doesn't push addresses in Java.")
     def test_d02(self):
         """Log D2: Address pushed to Instrumentation Gateway"""
         stdout.assert_presence(r"Pushing address .* to the Instrumentation Gateway.", level="DEBUG")

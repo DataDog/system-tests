@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, skipif, released, bug
+from utils import BaseTestCase, context, interfaces, skipif, released, bug, not_relevant
 import pytest
 
 
@@ -89,7 +89,7 @@ class Test_ActorIP(BaseTestCase):
 
     @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
     @bug(library="nodejs", reason="if actor is present, then ip should be present")
-    @skipif(context.library == "ruby", reason="not relevant: neither rack or puma provides this info")
+    @not_relevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
         r = self.weblog_get(

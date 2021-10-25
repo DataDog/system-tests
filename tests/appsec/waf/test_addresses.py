@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, skipif, released, bug
+from utils import context, BaseTestCase, interfaces, skipif, released, bug, not_relevant
 import pytest
 
 
@@ -257,7 +257,7 @@ class Test_BodyXml(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@skipif(context.library == "nodejs", reason="not relevant: not yet rule on method or client_ip")
+@not_relevant(library="nodejs", reason="not yet rule on method or client_ip")
 class Test_Misc(BaseTestCase):
     def test_method(self):
         """ Appsec WAF supports server.request.method """

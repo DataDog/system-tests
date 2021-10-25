@@ -117,10 +117,45 @@ def _get_wrapped_function(function, skip_reason):
     return wrapper
 
 
-def bug(library=None, reason=None):
-    """ function decorator, allow to mark a test function as a known bug """
+def _should_skip(condition=None, library=None, weblog_variant=None):
+    if condition is not None and not condition:
+        return False
 
-    skip = context.library == library
+    if weblog_variant is not None and weblog_variant != context.weblog_variant:
+        return False
+
+    if library is not None and context.library != library:
+        return False
+
+    return True
+
+
+def not_relevant(condition=None, library=None, weblog_variant=None, reason=None):
+    """ decorator, allow to mark a test function/class as not relevant """
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "not relevant" if reason is None else f"not relevant: {reason}"
+
+        if inspect.isfunction(function_or_class):
+            return _get_wrapped_function(function_or_class, full_reason)
+        elif inspect.isclass(function_or_class):
+            return _get_wrapped_class(function_or_class, full_reason)
+        else:
+            raise Exception(f"Unexpected skipped object: {function_or_class}")
+
+    return decorator
+
+
+def bug(condition=None, library=None, weblog_variant=None, reason=None):
+    """ decorator, allow to mark a test function/class as a known bug """
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
 
@@ -134,7 +169,7 @@ def bug(library=None, reason=None):
         elif inspect.isclass(function_or_class):
             return _get_wrapped_class(function_or_class, full_reason)
         else:
-            raise Exception(f"Unexpexted skipped object: {function_or_class}")
+            raise Exception(f"Unexpected skipped object: {function_or_class}")
 
     return decorator
 
