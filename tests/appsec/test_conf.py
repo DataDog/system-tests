@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, skipif, interfaces, released
+from utils import BaseTestCase, context, interfaces, released, missing_feature
 import pytest
 
 
@@ -16,7 +16,7 @@ elif context.library == "cpp":
 class Test_StaticRuleSet(BaseTestCase):
     """Appsec loads rules from a static rules file"""
 
-    @skipif(context.library == "dotnet", reason="missing feature: can't know the number of rules")
+    @missing_feature(library="dotnet", reason="can't know the number of rules")
     def test_basic_hardcoded_ruleset(self):
         """ Library has loaded a hardcoded AppSec ruleset"""
         stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
