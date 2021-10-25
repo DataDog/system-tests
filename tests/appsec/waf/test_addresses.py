@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, skipif, released, bug, not_relevant
+from utils import context, BaseTestCase, interfaces, released, bug, not_relevant, missing_feature
 import pytest
 
 
@@ -14,7 +14,7 @@ elif context.library == "cpp":
 
 
 @released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_UrlQueryKey(BaseTestCase):
     """Test that WAF access attacks sent threw query key"""
 
@@ -30,7 +30,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_UrlQuery(BaseTestCase):
     """Test that WAF access attacks sent threw query"""
 
@@ -40,13 +40,13 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
     @bug(library="golang")
-    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
+    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
-    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
+    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_query_with_strict_regex(self):
         """ AppSec catches attacks in URL query value, even with regex containing"""
         r = self.weblog_get("/waf/", params={"value": "0000012345"})
@@ -166,7 +166,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
 
 
 @released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_Cookies(BaseTestCase):
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
@@ -201,7 +201,7 @@ class Test_Cookies(BaseTestCase):
 class Test_BodyRaw(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
-    @skipif(True, reason="missing feature: no rule with body raw yet")
+    @missing_feature(True, reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
         r = self.weblog_post("/waf", data="/.adsensepostnottherenonobook")
@@ -212,13 +212,13 @@ class Test_BodyRaw(BaseTestCase):
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
-    @skipif(context.library == "java", reason="missing feature")
+    @missing_feature(library="java")
     def test_body_key(self):
         """AppSec detects attacks in URL encoded body keys"""
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
-    @skipif(context.library == "java", reason="missing feature")
+    @missing_feature(library="java")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})

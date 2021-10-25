@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, skipif, interfaces, released, bug
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
 import pytest
 
 
@@ -31,7 +31,7 @@ class Test_Standardization(BaseTestCase):
         )
 
     @bug(library="dotnet", reason="ERROR io CRITICAL")
-    @skipif(context.library == "java", reason="missing feature: Partial, Cannot be fully implemented")
+    @missing_feature(library="java", reason="Partial, Cannot be fully implemented")
     def test_c05(self):
         """Log C5: Rules file is corrupted"""
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
