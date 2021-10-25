@@ -117,7 +117,14 @@ class _WafAttack(_BaseAppSecValidation):
         for event in events:
             rules.append(event["rule"]["id"])
             patterns += event["rule_match"]["highlight"]
-            addresses += [p["name"] for p in event["rule_match"]["parameters"]]
+            event_version = event.get("event_version", "0.1.0")
+
+            if event_version == "0.1.0":
+                addresses += [p["name"] for p in event["rule_match"]["parameters"]]
+            elif event_version == "1.0.0":
+                addresses += [p["address"] for p in event["rule_match"]["parameters"]]
+            else:
+                self.set_failure(f"Unknown event version: {event_version}")
 
         if self.rule_id and self.rule_id not in rules:
             self.set_failure(f"{self.message} => I saw only {rules}")
