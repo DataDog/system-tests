@@ -4,7 +4,7 @@
 
 """Test format specifications"""
 
-from utils import BaseTestCase, interfaces, context, skipif, released, bug
+from utils import BaseTestCase, interfaces, bug
 
 
 class Test_Library(BaseTestCase):

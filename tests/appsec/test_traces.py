@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, skipif, released, bug
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
 import pytest
 
 
@@ -13,7 +13,7 @@ elif context.library == "cpp":
 
 
 @released(golang="?", dotnet="1.29.0", java="?", nodejs="?", php="?", python="?")
-@skipif(context.library == "ruby", reason="missing feature: can't report user agent with dd-trace-rb")
+@missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
 class Test_Retention(BaseTestCase):
     def test_events_retain_traces(self):
         """On traces with appsec event, meta.appsec-event and sampling prio are set"""

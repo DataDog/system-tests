@@ -5,7 +5,7 @@
 from threading import Lock
 import time
 
-from utils import BaseTestCase, interfaces, context, skipif, bug, not_relevant
+from utils import BaseTestCase, interfaces, context, bug, not_relevant, missing_feature
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans
 from utils.warmups import default_warmup
@@ -90,7 +90,7 @@ class LibrarySamplingRateValidation(BaseValidation):
             )
 
 
-@skipif(context.library == "cpp", reason="missing feature: https://github.com/DataDog/dd-opentracing-cpp/issues/173")
+@missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
 @not_relevant(context.weblog_variant == "echo-poc", reason="echo isn't instrumented")
 @bug(library="golang")
 class TestSamplingRates(BaseTestCase):

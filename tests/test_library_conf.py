@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, skipif, released, bug, not_relevant
+from utils import context, BaseTestCase, interfaces, released, bug, not_relevant, missing_feature
 
 # PHP JAVA ok
 
@@ -10,11 +10,11 @@ from utils import context, BaseTestCase, interfaces, skipif, released, bug, not_
 @not_relevant(library="cpp")
 @not_relevant(weblog_variant="echo-poc", reason="echo is not instrumented")
 @bug(library="dotnet", reason=".NET replaces dot by underscores: XXXXX")
-@skipif(context.library == "golang", reason="missing feature")
-@skipif(context.library == "nodejs", reason="missing feature")
-@skipif(context.library == "php", reason="missing feature: partial support, can't set the key")
+@missing_feature(library="golang")
+@missing_feature(library="nodejs")
+@missing_feature(library="php", reason="partial support, can't set the key")
 @released(python="0.53")
-@skipif(context.library == "ruby", reason="missing feature")
+@missing_feature(library="ruby")
 class Test_HeaderTags(BaseTestCase):
     def test_trace_header_tags(self):
         """DD_TRACE_HEADER_TAGS env var support"""

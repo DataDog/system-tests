@@ -4,7 +4,7 @@
 
 from random import randint
 
-from utils import context, BaseTestCase, interfaces, skipif, bug, not_relevant
+from utils import context, BaseTestCase, interfaces, bug, not_relevant, missing_feature
 
 
 @not_relevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
@@ -21,13 +21,11 @@ class Test_SamplingDecisions(BaseTestCase):
         cls.rid += 1
         return rid
 
-    @skipif(
+    @missing_feature(
         context.library in ("nodejs", "php", "dotnet"),
-        reason="todo tracer: sampling decision implemented differently in these tracers",
+        reason="sampling decision implemented differently in these tracers",
     )
-    @skipif(
-        context.library == "cpp", reason="missing feature: https://github.com/DataDog/dd-opentracing-cpp/issues/173",
-    )
+    @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(library="java")
     @bug(library="golang")
     def test_sampling_decision(self):

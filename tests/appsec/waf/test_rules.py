@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, BaseTestCase, interfaces, skipif, released, bug
+from utils import context, BaseTestCase, interfaces, released, bug, missing_feature
 from .utils import rules
 import pytest
 
@@ -20,7 +20,7 @@ elif context.library == "cpp":
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_Scanners(BaseTestCase):
     """ Appsec WAF tests on scanners rules """
 
@@ -37,7 +37,7 @@ class Test_Scanners(BaseTestCase):
 
 
 @released(golang="?", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
@@ -49,7 +49,7 @@ class Test_HttpProtocol(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"key": ".cookie-;domain="})
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_943_100)
 
-    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
+    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_http_protocol2(self):
         """ AppSec catches attacks by violation of HTTP protocol"""
         r = self.weblog_get("/waf", params={"key": "get e http/1"})
@@ -60,7 +60,7 @@ class Test_HttpProtocol(BaseTestCase):
 
 
 @released(golang="?", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
 
@@ -89,11 +89,11 @@ class Test_LFI(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_RFI(BaseTestCase):
     """ Appsec WAF tests on RFI rules """
 
-    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
+    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_rfi(self):
         """ Appsec WAF detects remote file injection attacks """
         r = self.weblog_get("/waf/", params={"attack": "mosConfig_absolute_path=file://"})
@@ -104,7 +104,7 @@ class Test_RFI(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
 
@@ -130,7 +130,7 @@ class Test_CommandInjection(BaseTestCase):
 
 
 @released(golang="1.33.1", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_PhpCodeInjection(BaseTestCase):
     """ Appsec WAF tests on PHP injection rules """
 
@@ -166,7 +166,7 @@ class Test_PhpCodeInjection(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_JsInjection(BaseTestCase):
     """ Appsec WAF tests on Js Injection rules """
 
@@ -175,7 +175,7 @@ class Test_JsInjection(BaseTestCase):
         r = self.weblog_get("/waf/", params={"key": "this.constructor"})
         interfaces.library.assert_waf_attack(r, rules.js_code_injection.crs_934_100)
 
-    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
+    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_js_injection1(self):
         """AppSec catches JS code injection"""
         r = self.weblog_get("/waf/", params={"key": "require('.')"})
@@ -183,7 +183,7 @@ class Test_JsInjection(BaseTestCase):
 
 
 @released(golang="?", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
 
@@ -233,7 +233,7 @@ class Test_XSS(BaseTestCase):
 
 
 @released(golang="?", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_SQLI(BaseTestCase):
     """ Appsec WAF tests on SQLI rules """
 
@@ -248,7 +248,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
         interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_500)
 
-    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
+    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_sqli1(self):
         """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf", params={"value": "0000012345"})
@@ -276,7 +276,7 @@ class Test_SQLI(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
@@ -290,7 +290,7 @@ class Test_NoSqli(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_JavaCodeInjection(BaseTestCase):
     """ Appsec WAF tests on Java code injection rules """
 
@@ -307,11 +307,11 @@ class Test_JavaCodeInjection(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
+@missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_SSRF(BaseTestCase):
     """ Appsec WAF tests on SSRF rules """
 
-    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
+    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_ssrf(self):
         """AppSec catches SSRF attacks"""
         r = self.weblog_get("/waf", params={"value": "metadata.goog/"})

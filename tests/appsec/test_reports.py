@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, skipif, released, bug, not_relevant
+from utils import BaseTestCase, context, interfaces, released, bug, not_relevant, missing_feature
 import pytest
 
 
@@ -14,7 +14,7 @@ elif context.library == "cpp":
 
 @released(golang="?", dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
-    @skipif(context.library == "java", reason="missing feature: response is not reported")
+    @missing_feature(library="java", reason="response is not reported")
     @bug(library="ruby", reason="status is missing")
     def test_basic(self):
         """ Appsec reports good status code """
@@ -48,7 +48,7 @@ class Test_ActorIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, _check_remote_ip)
 
-    @skipif(context.library == "nodejs", reason="missing feature: x-client-ip and true-client-ip")
+    @missing_feature(library="nodejs", reason="x-client-ip and true-client-ip")
     def test_http_request_headers(self):
         """ AppSec reports the HTTP headers used for actor IP detection."""
         r = self.weblog_get(
@@ -87,7 +87,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_header_is_present("via"))
         interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
 
-    @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
+    @missing_feature(library="java", reason="actor ip has incorrect data")
     @bug(library="nodejs", reason="if actor is present, then ip should be present")
     @not_relevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):

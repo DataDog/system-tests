@@ -32,25 +32,24 @@ class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 ```
 
-It means that the test will be executed starting version `1.2.3`.
+It means that the test will be executed starting version `1.2.3`. Arguments are components names, e.g. `java`, `golang`, etc... You can mix them on a single line. 
 
-## Mark a class or a test case as bug
+## Skip tests
 
-The `bug` decorator will skip a test or a test class. Please provide a small explanation of the bug, or better, a JIRA ref.
+Three decorators will helps you to skip some test function or class, depending on the skip reason:
 
-```python
-from utils import BaseTestCase, bug
+* `@not_relevant`: no need to test
+* `@missing_feature`: feature or use case is not yet implemented
+* `@bug`: known bug
 
-@bug(library="java", reason="APPSEC-666")
-class Test_AwesomeFeature(BaseTestCase)
-    """ Short description of Awesome feature """
+They takes several arguments:
 
-    @bug(library="golang@0.2", reason="APPSEC-000")
-    def test_basic(self)
-        assert P==NP
-```
+* `condition`: boolean, tell if it's relevant or not. As it's the first argument, you can omit the arguement name
+* `library`: provide library. version numbers are allowed (`java@1.2.4`)
+* `weblog_variant`: if you want to skip the test for a specific weblog
 
-## Mark a class or a test case as not relevant
+And then, an `reason` argument with mor details. It's very handy for `@bug`, the best is providing a JIRA tickets number.
+
 
 ```python
 from utils import BaseTestCase, not_relevant
@@ -60,22 +59,15 @@ from utils import BaseTestCase, not_relevant
 class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 
+    @bug(weblog_variant="echo", reason="JIRA-666")
     def test_basic(self)
         assert P==NP
 
-    @not_relevant(library="java@1.2.4", reason="still an hypothesis")
+    @missing_feature(library="java@1.2.4", reason="still an hypothesis")
     def test_extended(self)
         assert riemann.zetas.zeros.real == 0.5
+
+    @missing_feature(reason="Maybe too soon")
+    def test_full(self)
+        assert 42
 ```
-
-## Arguments
-
-`@released` has several arguments, one per component name (`java`, `ruby`...). Simply provide a version number (the version where the feature has been implemented)
-
-`@bug` and `@not_relevant` takes several conditional arguments:
-
-* `condition`: boolean, tell if it's relevant or not. It's the first argument, si you can omit the arguement name
-* `library`: provide library. version numbers are allowed (`java@1.2.4`)
-* `weblog_variant`: if you want to skip the test for a specific weblog
-
-And then, an `reason` argument with mor details. It's very handy for `@bug`, the best is providing a JIRA tickets number.

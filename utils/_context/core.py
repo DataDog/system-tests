@@ -130,6 +130,28 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
+def missing_feature(condition=None, library=None, weblog_variant=None, reason=None):
+    """ decorator, allow to mark a test function/class as missing """
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "missing feature" if reason is None else f"missing feature: {reason}"
+
+        if inspect.isfunction(function_or_class):
+            return _get_wrapped_function(function_or_class, full_reason)
+        elif inspect.isclass(function_or_class):
+            return _get_wrapped_class(function_or_class, full_reason)
+        else:
+            raise Exception(f"Unexpected skipped object: {function_or_class}")
+
+    return decorator
+
+
 def not_relevant(condition=None, library=None, weblog_variant=None, reason=None):
     """ decorator, allow to mark a test function/class as not relevant """
 
