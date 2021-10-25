@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, skipif, released, bug
+from utils import context, BaseTestCase, interfaces, skipif, released, bug, not_relevant
 from .utils import rules
 import pytest
 
@@ -17,7 +17,7 @@ elif context.library == "cpp":
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
-    @skipif(context.library == "ruby", reason="not relevant")
+    @not_relevant(library="ruby")
     def test_404_legacy(self):
         """ AppSec WAF catches attacks, even on 404"""
 

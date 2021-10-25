@@ -4,16 +4,11 @@
 
 from random import randint
 
-from utils import context, BaseTestCase, interfaces, skipif, bug
+from utils import context, BaseTestCase, interfaces, skipif, bug, not_relevant
 
 
-@skipif(
-    context.sampling_rate is None, reason="not relevant: Sampling rates should be set for this test to be meaningful"
-)
-@skipif(
-    context.library == "golang" and context.weblog_variant == "echo-poc",
-    reason="Not relevant: echo is not instrumented",
-)
+@not_relevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
+@not_relevant(weblog_variant="echo-poc", reason="echo is not instrumented")
 class Test_SamplingDecisions(BaseTestCase):
     rid = 0
 
