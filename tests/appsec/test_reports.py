@@ -89,7 +89,7 @@ class Test_ActorIP(BaseTestCase):
 
     @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
     @bug(library="nodejs", reason="if actor is present, then ip should be present")
-    @bug(library="ruby", reason="ip is not the one expected")
+    @skipif(context.library == "ruby", reason="not relevant: neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
         r = self.weblog_get(
