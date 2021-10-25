@@ -73,7 +73,6 @@ class Test_Headers(BaseTestCase):
 
     @bug(library="dotnet")
     @bug(library="java")
-    @bug(library="nodejs")
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -83,7 +82,6 @@ class Test_Headers(BaseTestCase):
 
     @bug(library="dotnet")
     @bug(library="java")
-    @bug(library="nodejs")
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
@@ -103,7 +101,6 @@ class Test_Headers(BaseTestCase):
 
     @bug(library="dotnet", reason="x_filename is missing")
     @bug(library="java", reason="x_filename is missing")
-    @bug(library="nodejs", reason="x_filename is missing")
     @bug(library="ruby", reason="x-filename is reported io x_filename")
     def test_specific_key2(self):
         """ When a specific header key is specified, other key are ignored """
@@ -114,7 +111,7 @@ class Test_Headers(BaseTestCase):
 
     @bug(library="dotnet", reason="referer is missing")
     @bug(library="java", reason="referer is missing")
-    @bug(library="nodejs", reason="referer is missing")
+    @bug(library="nodejs", reason="Highlight is [null]")
     @bug(library="golang", reason="entire address is missing")
     def test_specific_key3(self):
         """ When a specific header key is specified, other key are ignored """
@@ -143,7 +140,6 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
 
     @bug(library="dotnet", reason="APPSEC-1403")
     @bug(library="java", reason="APPSEC-1403")
-    @bug(library="nodejs", reason="APPSEC-1403")
     def test_header_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
 
@@ -155,7 +151,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
 
     @bug(library="dotnet", reason="APPSEC-1403")
     @bug(library="java", reason="APPSEC-1403")
-    @bug(library="nodejs", reason="APPSEC-1403")
+    @bug(library="nodejs", reason="Highlight is [null]")
     @bug(library="golang", reason="address is not reported")
     def test_header_specific_key2(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
@@ -166,7 +162,7 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
 
 
 @released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
