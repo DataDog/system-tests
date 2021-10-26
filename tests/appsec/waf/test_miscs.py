@@ -17,22 +17,8 @@ elif context.library == "cpp":
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
-    @not_relevant(library="ruby")
-    def test_404_legacy(self):
-        """ AppSec WAF catches attacks, even on 404"""
-
-        r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
-        assert r.status_code == 404
-        interfaces.library.assert_waf_attack(
-            r,
-            rule_id=rules.security_scanner.ua0_600_12x,
-            pattern="Arachni/v",
-            address="server.request.headers.no_cookies",
-        )
-
     @bug(library="dotnet", reason=" user-agent is missing in address")
     @bug(library="java", reason=" user-agent is missing in address")
-    @bug(library="nodejs", reason=" user-agent is missing in address")
     def test_404(self):
         """ AppSec WAF catches attacks, even on 404"""
 
@@ -54,7 +40,7 @@ class Test_MultipleHighlight(BaseTestCase):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
         interfaces.library.assert_waf_attack(
-            r, rule_id=rules.java_code_injection.crs_944_110, pattern=["processbuilder", "unmarshaller"]
+            r, rule_id=rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
         )
 
 
