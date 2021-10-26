@@ -45,7 +45,7 @@ class Test_Retention(BaseTestCase):
 @released(golang="?", dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_AppSecMonitoring(BaseTestCase):
     @bug(library="dotnet", reason="_dd.appsec.enabled is meta instead of metrics")
-    @bug(library="ruby", reason="_dd.appsec.enabled is missing")
+    @bug(library="ruby", reason="_dd.appsec.enabled is missing on user spans, maybe not a bug, TBC")
     def test_events_retain_traces(self):
         """ AppSec store in APM traces some data when enabled. """
 

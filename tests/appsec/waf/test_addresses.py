@@ -101,7 +101,7 @@ class Test_Headers(BaseTestCase):
 
     @bug(library="dotnet", reason="x_filename is missing")
     @bug(library="java", reason="x_filename is missing")
-    @bug(library="ruby", reason="x-filename is reported io x_filename")
+    @not_relevant(library="ruby", reason="Rack transforms undersocre to dashes")
     def test_specific_key2(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
