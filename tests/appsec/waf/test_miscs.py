@@ -17,7 +17,6 @@ elif context.library == "cpp":
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
-    @bug(library="dotnet", reason=" user-agent is missing in address")
     @bug(library="java", reason=" user-agent is missing in address")
     def test_404(self):
         """ AppSec WAF catches attacks, even on 404"""
