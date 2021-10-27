@@ -122,7 +122,7 @@ class _WafAttack(_BaseAppSecValidation):
             else:
                 continue
 
-            if "key_path" in parameter:
+            if "key_path" in parameter and len(parameter["key_path"]) != 0:
                 for key_path in parameter["key_path"]:
                     result.append(f"{address}:{key_path}")
             else:

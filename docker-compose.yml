@@ -54,6 +54,7 @@ services:
     environment:
       - DD_API_KEY
       - DD_ENV=system-tests
+      - DD_SITE=${DD_SITE:-datad0g.com}
     depends_on:
       runner:
         condition: service_healthy
@@ -74,6 +75,7 @@ services:
       - PYTHONPATH=/app
       - SYSTEMTESTS_BACKEND
       - DD_APPSEC_RULES
+      - DD_SITE=${DD_SITE:-datad0g.com}
     volumes:
       - ./pytest.ini:/app/pytest.ini
       - ./conftest.py:/app/conftest.py
