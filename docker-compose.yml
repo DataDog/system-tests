@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 version: "2.4"
 services:
   agent_proxy:
@@ -25,6 +29,8 @@ services:
   weblog:
     image: system_tests/weblog
     environment:
+      - DD_ENV=system-tests
+      - DD_SERVICE=weblog
       - DD_AGENT_HOST=library_proxy
       - DD_TRACE_AGENT_PORT=8126
       - DD_APPSEC_ENABLED=true
@@ -47,6 +53,7 @@ services:
     image: system_tests/agent
     environment:
       - DD_API_KEY
+      - DD_ENV=system-tests
     depends_on:
       runner:
         condition: service_healthy

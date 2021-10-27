@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 from urllib.parse import urlparse
 
 from utils import context, BaseTestCase, interfaces, skipif
@@ -54,6 +58,7 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
+    @skipif(context.library == "ruby", reason="known bug: http.status_code is missing")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 

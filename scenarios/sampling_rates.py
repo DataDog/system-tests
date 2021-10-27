@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 from threading import Lock
 import time
 
@@ -67,8 +71,8 @@ class LibrarySamplingRateValidation(BaseValidation):
 
     def final_check(self):
         trace_count = sum(self.sampled_count.values())
-        # 95% confidence interval = 2 * std_dev = 2 * √(n * p (1 - p))
-        confidence_interval = 2 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
+        # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
+        confidence_interval = 3 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
         # E = n * p
         expectation = context.sampling_rate * trace_count
         if not (expectation - confidence_interval <= self.sampled_count[True] <= expectation + confidence_interval):
@@ -87,9 +91,8 @@ class LibrarySamplingRateValidation(BaseValidation):
 
 
 @skipif(context.library == "cpp", reason="missing feature: https://github.com/DataDog/dd-opentracing-cpp/issues/173")
-@skipif(
-    (context.library, context.weblog_variant) == ("golang", "echo-poc"), reason="not relevant: echo isn't instrumented"
-)
+@skipif(context.weblog_variant == "echo-poc", reason="not relevant: echo isn't instrumented")
+@skipif(context.library == "golang", reason="known bug?")
 class TestSamplingRates(BaseTestCase):
     TOTAL_REQUESTS = 10_000
     REQ_PER_S = 25

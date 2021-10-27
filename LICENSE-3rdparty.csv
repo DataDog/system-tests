@@ -1,0 +1,17 @@
+Component,Origin,License,Copyright
+Flask,PyPI,BSD-3-Clause,Armin Ronacher
+click,PyPI,BSD-3-Clause,Armin Ronacher
+requests,PyPI,Apache-2.0,Kenneth Reitz
+Werkzeug,PyPI,BSD-3-Clause,Armin Ronacher
+pytest,PyPI,MIT,"Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Florian Bruhin and others"
+pytest-json-report,PyPI,MIT,numirias
+black,PyPI,MIT,Łukasz Langa
+flake8,PyPI,MIT,Tarek Ziade
+python-dateutil,PyPI,Apache-2.0,Gustavo Niemeyer
+packaging,PyPI,Apache-2.0,Donald Stufft and individual contributors
+msgpack,PyPI,Apache-2.0,Inada Naoki
+protobuf,PyPI,BSD-3-Clause,protobuf@googlegroups.com
+aiohttp,PyPI,Apache-2.0,Nikolay Kim
+yarl,PyPI,Apache-2.0,Andrew Svetlov
+jsonschema,PyPI,MIT,Julian Berman
+rfc3339-validator,PyPI,MIT,Nicolas Aimetti

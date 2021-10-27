@@ -1,23 +1,16 @@
-from utils import BaseTestCase, context, interfaces, skipif
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+from utils import BaseTestCase, context, interfaces, skipif, released
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-class Test_Metrics(BaseTestCase):
-    @skipif(context.library == "dotnet", reason="missing feature")
-    @skipif(context.library == "java", reason="missing feature")
-    def test_waf_eval_ms(self):
-        """ Appsec reports _dd.appsec.waf_eval_ms """
-        interfaces.library.assert_metric_existence("_dd.appsec.waf_eval_ms")
-        interfaces.agent.assert_metric_existence("_dd.appsec.waf_eval_ms")
-
-    def test_no_overbudget(self):
-        """ There is no Appsec process over time budget """
-        interfaces.library.assert_metric_absence("_dd.appsec.waf_overtime_ms")
-
-
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "java", reason="missing feature: response is not reported")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
+    @skipif(context.library == "java", reason="missing feature: response is not reported")
+    @skipif(context.library == "ruby", reason="known bug: status is missing")
     def test_basic(self):
         """ Appsec reports good status code """
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
@@ -33,11 +26,28 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, check_http_code)
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: request headers are not reported")
-class Test_HTTPHeaders(BaseTestCase):
-    def test_forwarded_for(self):
-        """ AppSec reports the forwarded-for HTTP headers """
+@released(cpp="not relevant")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@skipif(context.library == "dotnet", reason="known bug: request headers are not reported")
+class Test_ActorIP(BaseTestCase):
+    def test_http_remote_ip(self):
+        """ AppSec reports the HTTP request peer IP. """
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1",}, stream=True)
+        actual_remote_ip = r.raw._connection.sock.getsockname()[0]
+        r.close()
+
+        def _check_remote_ip(event):
+            remote_ip = event["context"]["http"]["request"]["remote_ip"]
+            assert remote_ip == actual_remote_ip, f"request remote ip should be {actual_remote_ip}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, _check_remote_ip)
+
+    @skipif(context.library == "nodejs", reason="missing feature: x-client-ip and true-client-ip")
+    def test_http_request_headers(self):
+        """ AppSec reports the HTTP headers used for actor IP detection."""
         r = self.weblog_get(
             "/waf/",
             headers={
@@ -53,23 +63,63 @@ class Test_HTTPHeaders(BaseTestCase):
                 "User-Agent": "Arachni/v1",
             },
         )
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded-for"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-client-ip"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-real-ip"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-forwarded"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("x-cluster-client-ip"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded-for"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("forwarded"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("via"))
-        interfaces.library.add_appsec_validation(r, self._check_header_is_present("true-client-ip"))
 
-    @staticmethod
-    def _check_header_is_present(header_name):
-        def inner_check(event):
-            assert header_name.lower() in [
-                n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
-            ], f"header {header_name} not reported"
+        def _check_header_is_present(header_name):
+            def inner_check(event):
+                assert header_name.lower() in [
+                    n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
+                ], f"header {header_name} not reported"
+
+                return True
+
+            return inner_check
+
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-forwarded-for"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-client-ip"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-real-ip"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-forwarded"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-cluster-client-ip"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("forwarded-for"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("forwarded"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("via"))
+        interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
+
+    @skipif(context.library == "java", reason="missing feature: actor ip has incorrect data")
+    @skipif(context.library == "nodejs", reason="known bug: if actor is present, then ip should be present")
+    @skipif(context.library == "ruby", reason="known bug: ip is not the one expected")
+    def test_actor_ip(self):
+        """ AppSec reports the correct actor ip. """
+        r = self.weblog_get(
+            "/waf/", headers={"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1", "User-Agent": "Arachni/v1",},
+        )
+
+        def _check_actor_ip(event):
+            if "actor" in event["context"]:
+                actor_ip = event["context"]["actor"]["ip"]["address"]
+
+                assert actor_ip == "43.43.43.43", "actor IP should be 43.43.43.43"
 
             return True
 
-        return inner_check
+        interfaces.library.add_appsec_validation(r, _check_actor_ip)
+
+
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@skipif(context.library == "dotnet", reason="known bug: none is reported")
+class Test_Info(BaseTestCase):
+    @skipif(context.library == "ruby", reason="known bug: name is sinatra io weblog")
+    def test_service(self):
+        """ Appsec reports the service information """
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+        def _check_service(event):
+            name = event["context"]["service"]["name"]
+            environment = event["context"]["service"]["environment"]
+            assert name == "weblog", f"weblog should have been reported, not {name}"
+            assert environment == "system-tests", f"system-tests should have been reported, not {environment}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, _check_service)

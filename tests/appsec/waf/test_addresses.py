@@ -1,8 +1,14 @@
-from utils import context, BaseTestCase, interfaces, skipif
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+from utils import context, BaseTestCase, interfaces, skipif, released
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(True, reason="missing feature: not yet implemented")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", php="?", python="?", ruby="?")
+@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQueryKey(BaseTestCase):
     """Test that WAF access attacks sent threw query key"""
 
@@ -17,8 +23,10 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_UrlQuery(BaseTestCase):
     """Test that WAF access attacks sent threw query"""
 
@@ -27,19 +35,23 @@ class Test_UrlQuery(BaseTestCase):
         r = self.weblog_get("/waf/", params={"attack": "appscan_fingerprint"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
+    @skipif(context.library == "golang", reason="known bug?")
+    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
+    @skipif(context.library == "ruby", reason="missing feature: query string is not sent as decoded map")
     def test_query_with_strict_regex(self):
         """ AppSec catches attacks in URL query value, even with regex containing"""
-        r = self.weblog_get("/waf", params={"value": "0000012345"})
+        r = self.weblog_get("/waf/", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_UrlRaw(BaseTestCase):
     """Test that WAF access attacks sent threw URL"""
 
@@ -49,34 +61,68 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
+    @skipif(context.library == "dotnet", reason="known bug?")
+    @skipif(context.library == "java", reason="known bug?")
+    @skipif(context.library == "nodejs", reason="known bug?")
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="Arachni/v", address="server.request.headers.no_cookies:user-agent"
+        )
 
+    @skipif(context.library == "dotnet", reason="known bug?")
+    @skipif(context.library == "java", reason="known bug?")
+    @skipif(context.library == "nodejs", reason="known bug?")
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
+        )
 
         r = self.weblog_get("/waf/", headers={"X-File-Name": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
+        )
 
         r = self.weblog_get("/waf/", headers={"X-Filename": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-filename"
+        )
 
+    @skipif(context.library == "dotnet", reason="known bug: :x_filename is missing")
+    @skipif(context.library == "java", reason="known bug: :x_filename is missing")
+    @skipif(context.library == "nodejs", reason="known bug: :x_filename is missing")
+    @skipif(context.library == "ruby", reason="known bug: x-filename is reported io x_filename")
+    def test_specific_key2(self):
+        """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, pattern="routing.yml", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
+        )
 
+    @skipif(context.library == "dotnet", reason="known bug: :referer is missing")
+    @skipif(context.library == "java", reason="known bug: :referer is missing")
+    @skipif(context.library == "nodejs", reason="known bug: :referer is missing")
+    @skipif(context.library == "golang", reason="known bug: entire address is missing")
+    def test_specific_key3(self):
+        """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
-        interfaces.library.assert_waf_attack(r, pattern="<script >", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="<script >", address="server.request.headers.no_cookies:referer"
+        )
 
         r = self.weblog_get("/waf/", headers={"RefErEr": "<script >"})
-        interfaces.library.assert_waf_attack(r, pattern="<script >", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(
+            r, pattern="<script >", address="server.request.headers.no_cookies:referer"
+        )
 
     def test_specific_wrong_key(self):
         """ When a specific header key is specified, other key are ignored """
@@ -87,12 +133,15 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(php="?", python="?", ruby="0.51.0")
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
 
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
     @skipif(context.library == "java", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
     def test_header_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
 
@@ -102,13 +151,22 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
         )
 
+    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "java", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "nodejs", reason="known bug: APPSEC-1403")
+    @skipif(context.library == "golang", reason="known bug: address is not reported")
+    def test_header_specific_key2(self):
+        """ Appsec WAF detects attacks on specific header x-file-name """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
         interfaces.library.assert_waf_attack(
             r, pattern="<script >", address="server.request.headers.no_cookies:referer"
         )
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="1.33.1" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(php="?", python="?", ruby="0.51.0")
+@skipif(context.library == "nodejs", reason="missing feature: query string not yet supported")
 class Test_Cookies(BaseTestCase):
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
@@ -117,8 +175,10 @@ class Test_Cookies(BaseTestCase):
 
     @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
     @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
+    @skipif(context.library == "golang", reason="known bug?")
+    @skipif(context.library == "ruby", reason="known bug?")
     def test_cookies_with_special_chars(self):
-        """Other SQLI patterns, to be merged once issue are corrected"""
+        """Other cookies patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})
         interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
 
@@ -128,13 +188,18 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": " var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern=" var_dump ()", address="server.request.cookies")
 
+    @skipif(context.library == "dotnet", reason="known bug: APPSEC-1407 and APPSEC-1408")
+    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
+    @skipif(context.library == "golang", reason="known bug?")
+    def test_cookies_with_special_chars2(self):
+        """Other cookies patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyRaw(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
@@ -145,9 +210,9 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "python", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec WAF detects attackes in regular body"""
 
@@ -164,10 +229,9 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "java", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyJson(BaseTestCase):
     """ Appsec WAF detects attackes in JSON body """
 
@@ -181,10 +245,9 @@ class Test_BodyJson(BaseTestCase):
         raise NotImplementedError()
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "python", reason="missing feature: not yet released")
-@skipif(context.library == "dotnet", reason="missing feature: not yet released")
-@skipif(context.library == "java", reason="missing feature: not yet released")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """ Appsec WAF detects attackes in XML body """
 
@@ -201,8 +264,10 @@ class Test_BodyXml(BaseTestCase):
         raise NotImplementedError()
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(True, reason="missing feature: no rule")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", php="?", python="?", ruby="?")
+@skipif(context.library == "nodejs", reason="not relevant: not yet rule on method or client_ip")
 class Test_Misc(BaseTestCase):
     def test_method(self):
         """ Appsec WAF supports server.request.method """

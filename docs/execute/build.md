@@ -40,7 +40,7 @@ Build images used for system tests.
 
 * For `cpp`: `poc` (default)
 * For `dotnet`: `poc` (default)
-* For `golang`: `echo-poc` (default), `net-http-poc`
+* For `golang`: `net-http-poc` (default), `echo-poc`
 * For `java`: `spring-boot-poc` (default)
 * For `nodejs`: `express-poc` (default)
 * For `php`: `vanilla-poc` (default)

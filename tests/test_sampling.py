@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 from random import randint
 
 from utils import context, BaseTestCase, interfaces, skipif
@@ -30,6 +34,7 @@ class Test_SamplingDecisions(BaseTestCase):
         context.library == "cpp", reason="missing feature: https://github.com/DataDog/dd-opentracing-cpp/issues/173",
     )
     @skipif(context.library == "java", reason="known bug?")
+    @skipif(context.library == "golang", reason="known bug?")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 

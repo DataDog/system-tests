@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 #!/bin/bash
 
 set -e
@@ -39,7 +43,7 @@ elif [ "$TEST_LIBRARY" = "ruby" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-sinatra-poc}
 
 elif [ "$TEST_LIBRARY" = "golang" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-echo-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http-poc}
 
 elif [ "$TEST_LIBRARY" = "java" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}

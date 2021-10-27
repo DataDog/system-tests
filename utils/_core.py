@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 import unittest
 import urllib
 import string
@@ -11,8 +15,8 @@ from utils.tools import logger, m
 class BaseTestCase(unittest.TestCase):
     _weblog_url_prefix = "http://weblog:7777"
 
-    def weblog_get(self, path="/", params=None, headers=None, cookies=None):
-        return self._weblog_request("GET", path, params=params, headers=headers, cookies=cookies)
+    def weblog_get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
+        return self._weblog_request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
 
     def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
         return self._weblog_request("POST", path, params=params, data=data, headers=headers, **kwargs)

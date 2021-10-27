@@ -37,15 +37,10 @@ func initDatadog() {\n\
     span.SetTag("whip", "done")\n\
 }\n' > main.go
 
-RUN go mod init example.com/hello
-RUN go mod tidy
-RUN go get github.com/labstack/echo/v4
+COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
 
-CMD ./hello
-
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* binaries/
-RUN ./binaries/install_ddtrace.sh 
-
+CMD ./weblog
 # Datadog setup
 ENV DD_TRACE_SAMPLE_RATE=0.5
 ENV DD_TRACE_DEBUG=true

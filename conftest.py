@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 import collections
 import pytest
 import inspect
@@ -8,6 +12,7 @@ from utils.tools import logger, o, w, m, get_log_formatter
 
 _docs = {}
 _skip_reasons = {}
+_release_versions = {}
 
 
 def pytest_sessionstart(session):
@@ -28,6 +33,8 @@ def pytest_report_header(config):
 def pytest_itemcollected(item):
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
+
+    _release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
 
     if hasattr(item.parent.parent, "obj"):
         _docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
@@ -119,6 +126,7 @@ def pytest_json_modifyreport(json_report):
         # add usefull data for reporting
         json_report["docs"] = _docs
         json_report["context"] = context.serialize()
+        json_report["release_versions"] = _release_versions
 
         # clean useless and volumetric data
         del json_report["collectors"]

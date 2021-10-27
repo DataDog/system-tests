@@ -1,3 +1,8 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+
 def _spans_with_parent(traces, parent_ids):
     for trace in traces:
         for span in trace:
@@ -18,6 +23,10 @@ def _get_rid_from_span(span):
         # try something for .NET
         user_agent = span.get("meta", {}).get("http_request_headers_user-agent", None)
 
+    return get_rid_from_user_agent(user_agent)
+
+
+def get_rid_from_user_agent(user_agent):
     if not user_agent or "rid/" not in user_agent:
         return None
 

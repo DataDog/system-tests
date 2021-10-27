@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+
 ##########################################################################################
 # The purpose of this script is to download the latest development version of a component.
 #
@@ -134,8 +139,9 @@ elif [ "$TARGET" = "python" ]; then
     jq '.workflow_runs[0].head_commit.timestamp' workflows.json
 
 elif [ "$TARGET" = "ruby" ]; then
-    # put a trigger file that tells install script to get package from github#master
-    touch ruby-load-from-master
+    # echo 'ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"' > ruby-load-from-bundle-add
+    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', github: 'Datadog/dd-trace-rb', branch: 'appsec'" > ruby-load-from-bundle-add
+    echo "Using $(cat ruby-load-from-bundle-add)"
 
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.apk
@@ -144,7 +150,10 @@ elif [ "$TARGET" = "php" ]; then
 elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
 
-    COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/commits' | jq -r .[0].sha)
+    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/commits' | jq -r .[0].sha)
+    COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/v1' | jq -r .commit.sha)
+
+    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID"
     echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
@@ -157,7 +166,8 @@ elif [ "$TARGET" = "agent" ]; then
 
 elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    touch nodejs-load-from-master
+    # echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#vdeturckheim/iaw-bindings" > nodejs-load-from-npm
 
 else
     echo "Unknown target: $1"

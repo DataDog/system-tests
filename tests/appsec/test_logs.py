@@ -1,10 +1,16 @@
-from utils import BaseTestCase, context, skipif, interfaces
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+from utils import BaseTestCase, context, skipif, interfaces, released
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(nodejs="?", php="?", python="?", ruby="?")
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
 
@@ -51,6 +57,11 @@ class Test_Standardization(BaseTestCase):
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160:.*", level="DEBUG")
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110:.*", level="DEBUG")
 
+    @skipif(True, reason="missing feature: not testable as now")
+    def test_d07(self):
+        """Log D7: Exception in rule"""
+        stdout.assert_presence(r"Rule .* failed. Error details: ", level="DEBUG")
+
     @skipif(context.library == "dotnet", reason="missing feature")
     def test_d09(self):
         """Log D9: WAF start of execution"""
@@ -88,27 +99,20 @@ class Test_Standardization(BaseTestCase):
         """Log I8: Sending AppSec events"""
         stdout.assert_presence(r"Sending \d+ AppSec events to the agent$", level="INFO")
 
-
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(True, reason="missing feature: not testable as now")
-class Test_StandardizationErrors(BaseTestCase):
-    """AppSec error logs should be standardized"""
-
-    def test_d07(self):
-        """Log D7: Exception in rule"""
-        stdout.assert_presence(r"Rule .* failed. Error details: ", level="DEBUG")
-
+    @skipif(True, reason="missing feature: not testable as now")
     def test_i09(self):
         """Log I9: Dropping events"""
         stdout.assert_presence(r"Dropping \d+ AppSec events because ", level="INFO")
 
+    @skipif(True, reason="missing feature: not testable as now")
     def test_i10(self):
         """Log I10: Flushing events before shutdown"""
         stdout.assert_presence(r"Reporting AppSec event batch because of process shutdown.$", level="INFO")
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(True, reason="missing feature: will need a dedicated testing scenario")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_StandardizationBlockMode(BaseTestCase):
     """AppSec blocking logs should be standardized"""
 

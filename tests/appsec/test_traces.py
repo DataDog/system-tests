@@ -1,14 +1,19 @@
-from utils import BaseTestCase, context, interfaces, skipif
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+from utils import BaseTestCase, context, interfaces, skipif, released
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature")
-@skipif(context.library == "java", reason="missing feature")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.29.0", java="?", nodejs="?", php="?", python="?")
+@skipif(context.library == "ruby", reason="missing feature: can't report user agent with dd-trace-rb")
 class Test_Retention(BaseTestCase):
     def test_events_retain_traces(self):
-        """ AppSec retain APM traces when associated with a security event. """
+        """On traces with appsec event, meta.appsec-event and sampling prio are set"""
 
-        MANUAL_KEEP = 2
+        APPSEC_KEEP = 4
 
         def validate_appsec_span(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
@@ -23,8 +28,8 @@ class Test_Retention(BaseTestCase):
             if "_sampling_priority_v1" not in span["metrics"]:
                 raise Exception("Metric _sampling_priority_v1 should be set on traces that are manually kept")
 
-            if span["metrics"]["_sampling_priority_v1"] != MANUAL_KEEP:
-                raise Exception(f"Trace id {span['trace_id']} , sampling priority should be {MANUAL_KEEP}")
+            if span["metrics"]["_sampling_priority_v1"] != APPSEC_KEEP:
+                raise Exception(f"Trace id {span['trace_id']} , sampling priority should be {APPSEC_KEEP}")
 
             return True
 
@@ -32,10 +37,12 @@ class Test_Retention(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_appsec_span)
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature")
-@skipif(context.library == "java", reason="missing feature")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_AppSecMonitoring(BaseTestCase):
+    @skipif(context.library == "dotnet", reason="known bug: _dd.appsec.enabled is meta instead of metrics")
+    @skipif(context.library == "ruby", reason="known bug: _dd.appsec.enabled is missing")
     def test_events_retain_traces(self):
         """ AppSec store in APM traces some data when enabled. """
 
@@ -48,15 +55,15 @@ class Test_AppSecMonitoring(BaseTestCase):
             if "_dd.appsec.enabled" not in span["metrics"]:
                 raise Exception("Can't find _dd.appsec.enabled in span's metrics")
 
-            if span["metrics"]["_dd.appsec.enabled"] != "true":
+            if span["metrics"]["_dd.appsec.enabled"] != 1:
                 raise Exception(
-                    f'_dd.appsec.enabled in span\'s metrics should be "true", not {span["metrics"]["_dd.appsec.enabled"]}'
+                    f'_dd.appsec.enabled in span\'s metrics should be 1 or 1.0, not {span["metrics"]["_dd.appsec.enabled"]}'
                 )
 
             if "_dd.runtime_family" not in span["meta"]:
                 raise Exception("Can't find _dd.runtime_family in span's meta")
 
-            if span["metrics"]["_dd.runtime_family"] not in RUNTIME_FAMILY:
+            if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILY:
                 raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']} , should be in {RUNTIME_FAMILY}")
 
             return True

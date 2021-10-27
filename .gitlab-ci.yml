@@ -1,12 +1,5 @@
 image: tiangolo/docker-with-compose
 
-
-# variables:
-#   AWS_REGISTRY: 486234852809.dkr.ecr.us-east-1.amazonaws.com
-#   # Update pipeline id when using a new base image
-#   CI_IMAGE: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/system-tests:built-with-pipeline-5208025
-
-
 .base_job:
   # image: $CI_IMAGE
   needs: []

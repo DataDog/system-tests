@@ -1,12 +1,19 @@
-from utils import context, BaseTestCase, interfaces, skipif
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+from utils import context, BaseTestCase, interfaces, skipif, released
 from .utils import rules
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
-    def test_404(self):
+    @skipif(context.library == "ruby", reason="not relevant")
+    def test_404_legacy(self):
         """ AppSec WAF catches attacks, even on 404"""
 
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
@@ -18,13 +25,28 @@ class Test_404(BaseTestCase):
             address="server.request.headers.no_cookies",
         )
 
+    @skipif(context.library == "dotnet", reason="known bug: user-agent is missing in address")
+    @skipif(context.library == "java", reason="known bug: user-agent is missing in address")
+    @skipif(context.library == "nodejs", reason="known bug: user-agent is missing in address")
+    def test_404(self):
+        """ AppSec WAF catches attacks, even on 404"""
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
+        r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
+        assert r.status_code == 404
+        interfaces.library.assert_waf_attack(
+            r,
+            rule_id=rules.security_scanner.ua0_600_12x,
+            pattern="Arachni/v",
+            address="server.request.headers.no_cookies:user-agent",
+        )
+
+
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
 
-    @skipif(context.library == "dotnet", reason="known bug?")
-    @skipif(context.library == "java", reason="known bug: under Valentin's investigations")
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
@@ -33,9 +55,9 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@skipif(not context.appsec_is_released, reason=context.appsec_not_released_reason)
-@skipif(context.library == "dotnet", reason="missing feature: behavior not yet specified")
-@skipif(context.library == "java", reason="missing feature: behavior not yet specified")
+@released(cpp="not relevant")
+@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
+@released(dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 

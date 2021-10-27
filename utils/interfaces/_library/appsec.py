@@ -1,8 +1,12 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 """ AppSec validations """
 import traceback
 
 from utils.interfaces._core import BaseValidation
-from utils.interfaces._library._utils import get_spans_related_to_rid
+from utils.interfaces._library._utils import get_spans_related_to_rid, get_rid_from_user_agent
 
 
 class _BaseAppSecValidation(BaseValidation):
@@ -24,14 +28,36 @@ class _BaseAppSecValidation(BaseValidation):
         elif data["path"] in ("/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"):
             events = data["request"]["content"]["events"]
             events = [event for event in events if "trace" in event["context"] and "span" in event["context"]]
+
             self.appSecEvents += events
 
     def _getRelatedAppSecEvents(self):
-        return [
-            event
-            for event in self.appSecEvents
-            if f'{event["context"]["trace"]["id"]}#{event["context"]["span"]["id"]}' in self.spans
-        ]
+
+        return [event for event in self.appSecEvents if self._is_related_to_spans(event) or self._is_my_rid(event)]
+
+    def _is_related_to_spans(self, event):
+        return f'{event["context"]["trace"]["id"]}#{event["context"]["span"]["id"]}' in self.spans
+
+    def _is_my_rid(self, event):
+
+        if self.rid is None:
+            return True
+
+        user_agents = (
+            event.get("context", {}).get("http", {}).get("request", {}).get("headers", {}).get("user-agent", [])
+        )
+
+        # version 1 of appsec events schema
+        if isinstance(user_agents, str):
+            user_agents = [
+                user_agents,
+            ]
+
+        for user_agent in user_agents:
+            if get_rid_from_user_agent(user_agent) == self.rid:
+                return True
+
+        return False
 
 
 class _AppSecValidation(_BaseAppSecValidation):

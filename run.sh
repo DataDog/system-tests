@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
 set -eu
 
 # set .env if exists. Allow users to keep their conf via env vars
@@ -24,9 +28,14 @@ elif [ $SCENARIO = "SAMPLING" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
 elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_Standardization::test_c04
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     export DD_APPSEC_RULES=/donotexists
+
+elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_Standardization::test_c05
+    export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
+    export DD_APPSEC_RULES=/appsec_corrupted_rules.yml
 
 elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     export RUNNER_ARGS=scenarios/appsec_unsupported.py
