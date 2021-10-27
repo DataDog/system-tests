@@ -81,7 +81,6 @@ do
 
     elif [[ $IMAGE_NAME == agent ]]; then
         docker build \
-            --build-arg DD_SITE=${DD_SITE:-datad0g.com} \
             -f utils/build/docker/agent.Dockerfile \
             -t system_tests/agent \
             .

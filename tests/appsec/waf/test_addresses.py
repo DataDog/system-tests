@@ -71,8 +71,6 @@ class Test_UrlRaw(BaseTestCase):
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
-    @bug(library="dotnet")
-    @bug(library="java")
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -80,8 +78,6 @@ class Test_Headers(BaseTestCase):
             r, pattern="Arachni/v", address="server.request.headers.no_cookies:user-agent"
         )
 
-    @bug(library="dotnet")
-    @bug(library="java")
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
@@ -99,9 +95,7 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-filename"
         )
 
-    @bug(library="dotnet", reason="x_filename is missing")
-    @bug(library="java", reason="x_filename is missing")
-    @bug(library="ruby", reason="x-filename is reported io x_filename")
+    @not_relevant(library="ruby", reason="Rack transforms undersocre to dashes")
     def test_specific_key2(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
@@ -109,8 +103,6 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
         )
 
-    @bug(library="dotnet", reason="referer is missing")
-    @bug(library="java", reason="referer is missing")
     @bug(library="nodejs", reason="Highlight is [null]")
     @bug(library="golang", reason="entire address is missing")
     def test_specific_key3(self):
@@ -138,8 +130,6 @@ class Test_Headers(BaseTestCase):
 class Test_HeadersSpecificKeyFormat(BaseTestCase):
     """ The reporting format of obj:k addresses should be obj:x"""
 
-    @bug(library="dotnet", reason="APPSEC-1403")
-    @bug(library="java", reason="APPSEC-1403")
     def test_header_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name """
 
@@ -149,8 +139,6 @@ class Test_HeadersSpecificKeyFormat(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
         )
 
-    @bug(library="dotnet", reason="APPSEC-1403")
-    @bug(library="java", reason="APPSEC-1403")
     @bug(library="nodejs", reason="Highlight is [null]")
     @bug(library="golang", reason="address is not reported")
     def test_header_specific_key2(self):
