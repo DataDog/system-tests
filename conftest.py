@@ -5,10 +5,9 @@
 import collections
 import pytest
 import inspect
-import traceback
 
 from utils import context, data_collector, interfaces
-from utils.tools import logger, o, w, m, get_log_formatter
+from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
 
 _docs = {}
 _skip_reasons = {}
@@ -159,11 +158,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             if interface.system_test_error is not None:
                 terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
                 terminalreporter.line("Traceback (most recent call last):", red=True)
-                for line in traceback.format_tb(interface.system_test_error.__traceback__):
-                    for subline in line.split("\n"):
-                        if subline.strip():
-                            terminalreporter.line(subline.replace('File "/app/', 'File "'), red=True)
-                terminalreporter.line(str(interface.system_test_error), red=True)
+                for line in get_exception_traceback(interface.system_test_error):
+                    terminalreporter.line(line, red=True)
                 return
 
             validations += interface._validations

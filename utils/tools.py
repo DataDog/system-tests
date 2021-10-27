@@ -4,6 +4,7 @@
 
 import logging
 import sys
+import traceback
 
 
 class bcolors:
@@ -58,6 +59,15 @@ def m(message):
 
 def e(message):
     return f"{bcolors.RED}{message}{bcolors.ENDC}"
+
+
+def get_exception_traceback(exception):
+
+    for line in traceback.format_tb(exception.__traceback__):
+        for subline in line.split("\n"):
+            if subline.strip():
+                yield subline.replace('File "/app/', 'File "')
+    yield str(exception)
 
 
 logger = get_logger()
