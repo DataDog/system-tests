@@ -13,7 +13,7 @@ import gc
 import json
 import re
 
-from utils.tools import get_logger, m
+from utils.tools import get_logger, m, e as format_error, get_exception_traceback
 from ._deserializer import deserialize
 
 logger = get_logger("interfaces", use_dedicated_file=True)
@@ -67,7 +67,11 @@ class InterfaceValidator(object):
                 fails = []
 
                 for validation in self._validations:
-                    validation.final_check()
+                    try:
+                        validation.final_check()
+                    except Exception as exc:
+                        traceback = "\n".join([format_error(l) for l in get_exception_traceback(exc)])
+                        validation.set_failure(f"Unexpected error for {m(validation.message)}:\n{traceback}")
 
                     if not validation.closed:
                         validation.set_expired()

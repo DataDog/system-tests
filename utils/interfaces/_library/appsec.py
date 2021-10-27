@@ -113,7 +113,7 @@ class _WafAttack(_BaseAppSecValidation):
     def _get_addresses(event):
         result = []
 
-        for parameter in event["rule_match"]["parameters"]:
+        for parameter in event.get("rule_match", {}).get("parameters", []):
             # don't care about event version, it's the schemas' job
             if "name" in parameter:
                 address = parameter["name"]
@@ -141,8 +141,9 @@ class _WafAttack(_BaseAppSecValidation):
         for event in events:
 
             addresses = self._get_addresses(event)
-            patterns = event["rule_match"]["highlight"]
+            patterns = event.get("rule_match", {}).get("highlight", [])
             event_version = event.get("event_version", "0.1.0")
+            rule_id = event.get("rule", {}).get("id")
 
             if self.address and event_version == "0.1.0" and ":" in self.address and self.address not in addresses:
                 # be nice with very first AppSec data model, do not check key_path if needed
@@ -150,8 +151,8 @@ class _WafAttack(_BaseAppSecValidation):
             else:
                 address = self.address
 
-            if self.rule_id and self.rule_id != event["rule"]["id"]:
-                self.log_info(f'{self.message} => saw {event["rule"]["id"]}')
+            if self.rule_id and self.rule_id != rule_id:
+                self.log_info(f"{self.message} => saw {rule_id}")
             elif self.pattern and self.pattern not in patterns:
                 self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
             elif address and address not in addresses:
