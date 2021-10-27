@@ -39,9 +39,7 @@ class _Context:
         if "DD_APPSEC_RULES" in os.environ:
             self.weblog_image.env["DD_APPSEC_RULES"] = os.environ["DD_APPSEC_RULES"]
 
-        if "DD_SITE" not in self.agent_image.env:
-            pytest.exit("DD_SITE should be set in agent's image")
-        self.dd_site = self.agent_image.env["DD_SITE"]
+        self.dd_site = os.environ["DD_SITE"]
 
         library = self.weblog_image.env.get("SYSTEM_TESTS_LIBRARY", None)
         version = self.weblog_image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None)
