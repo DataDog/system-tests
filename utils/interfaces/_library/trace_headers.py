@@ -33,7 +33,7 @@ class _TraceHeadersContainerTags(BaseValidation):
         request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
 
         if "datadog-container-id" not in request_headers:
-            self.set_failure(f"Datadog-Container-ID header is missing in request number {data['message_number']}")
+            self.set_failure(f"Datadog-Container-ID header is missing in request number {data['log_filename']}")
             return
 
         expected_value = context.get_weblog_container_id()
@@ -42,7 +42,7 @@ class _TraceHeadersContainerTags(BaseValidation):
             self.set_failure(
                 f"Expected Datadog-Container-ID header to be {expected_value}, "
                 f"but got {request_headers['datadog-container-id']} "
-                f"in request number {data['message_number']}"
+                f"in request number {data['log_filename']}"
             )
 
 
@@ -63,7 +63,7 @@ class _TraceHeadersContainerTagsCpp(BaseValidation):
 
         if "datadog-container-id" in request_headers:
             self.set_failure(
-                f"Datadog-Container-ID header is present in request number {data['message_number']}. "
+                f"Datadog-Container-ID header is present in request number {data['log_filename']}. "
                 f"Please remove special Datadog-Container-ID test case for C++."
             )
             return
@@ -88,7 +88,7 @@ class _TraceHeadersPresent(BaseValidation):
         request_headers = {h[0].lower() for h in data["request"]["headers"]}
         missing_headers = self.required_headers - request_headers
         if missing_headers:
-            self.set_failure(f"Headers {missing_headers} are missing in request number {data['message_number']}")
+            self.set_failure(f"Headers {missing_headers} are missing in request number {data['log_filename']}")
 
 
 class _TraceHeadersPresentPhp(_TraceHeadersPresent):
@@ -120,7 +120,7 @@ class _TraceHeadersCount(BaseValidation):
             trace_count = int(trace_count)
             if trace_count != len(data["request"]["content"]):
                 self.set_failure(
-                    f"{self.count_header} value in request {data['message_number']} didn't match the number of traces"
+                    f"{self.count_header} value in request {data['log_filename']} didn't match the number of traces"
                 )
         except ValueError:
-            self.set_failure(f"{self.count_header} value in request {data['message_number']} wasn't an integer")
+            self.set_failure(f"{self.count_header} value in request {data['log_filename']} wasn't an integer")

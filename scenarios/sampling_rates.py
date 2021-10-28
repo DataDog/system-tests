@@ -40,7 +40,7 @@ class AgentSampledFwdValidation(BaseValidation):
             self.set_failure(
                 "Detected traces that were sampled by library, but not submitted to the backed:\n"
                 "\n".join(
-                    f"\ttraceid {t_id} in library message {self.library_sampled[t_id]['message_number']}"
+                    f"\ttraceid {t_id} in library message {self.library_sampled[t_id]['log_filename']}"
                     for t_id in sampled_not_fwd
                 )
             )
@@ -63,7 +63,7 @@ class LibrarySamplingRateValidation(BaseValidation):
             sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
             if sampling_priority is None:
                 self.set_failure(
-                    f"Message: {data['message_number']}:"
+                    f"Message: {data['log_filename']}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
                 return

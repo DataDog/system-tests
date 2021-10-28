@@ -49,7 +49,7 @@ class _TracesSamplingDecision(BaseValidation):
             sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
             if sampling_priority is None:
                 self.set_failure(
-                    f"Message: {data['message_number']}:"
+                    f"Message: {data['log_filename']}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
                 return
@@ -97,14 +97,14 @@ class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation)
             expected_trace_id = self.traces[(span["parent_id"])]["trace_id"]
             if self.expect(
                 span["trace_id"] == expected_trace_id,
-                f"Message: {data['message_number']}: If parent_id matches, "
+                f"Message: {data['log_filename']}: If parent_id matches, "
                 f"trace_id should match too expected trace_id {expected_trace_id} "
                 f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
             ):
                 return
             sampling_priority = span["metrics"].get("_sampling_priority_v1")
             if self.expect(
-                sampling_priority is not None, f"Message: {data['message_number']}: sampling priority should be set",
+                sampling_priority is not None, f"Message: {data['log_filename']}: sampling priority should be set",
             ):
                 return
             self.sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
@@ -140,7 +140,7 @@ class _AddSamplingDecisionValidation(BaseValidation):
             expected_trace_id = self.traces[span["parent_id"]]["trace_id"]
             if self.expect(
                 span["trace_id"] == expected_trace_id,
-                f"Message: {data['message_number']}: If parent_id matches, "
+                f"Message: {data['log_filename']}: If parent_id matches, "
                 f"trace_id should match too expected trace_id {expected_trace_id} "
                 f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
             ):
@@ -148,7 +148,7 @@ class _AddSamplingDecisionValidation(BaseValidation):
             sampling_priority = span["metrics"].get("_sampling_priority_v1")
             if self.expect(
                 sampling_priority is not None,
-                f"Message: {data['message_number']}: sampling priority should be set on span {span['span_id']}",
+                f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
             ):
                 return
             self.count += 1

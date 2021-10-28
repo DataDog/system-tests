@@ -130,9 +130,12 @@ class InterfaceValidator(object):
                 count = self.message_counter
                 self.message_counter += 1
             deserialize(data, self.name)
-            data["message_number"] = count
 
-            self._dump(data, count, data["path"].replace("/", "_"))
+            log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
+            data["log_filename"] = log_filename
+
+            with open(log_filename, "w") as f:
+                json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             with self._lock:
 
@@ -149,11 +152,6 @@ class InterfaceValidator(object):
             raise
 
         return data
-
-    def _dump(self, data, count, filename):
-
-        with open(f"logs/interfaces/{self.name}/{count:03d}_{filename}.json", "w") as f:
-            json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
     def check(self, message):
         pass
