@@ -32,36 +32,42 @@ class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 ```
 
-It means that the test will be executed starting version `1.2.3`.
+It means that the test will be executed starting version `1.2.3`. Arguments are components names, e.g. `java`, `golang`, etc... You can mix them on a single line. 
 
-## Skip special use case
+## Skip tests
 
-Sometimes, a test must be skipped for different reason. For this, use the `skipif` decorator :
+Three decorators will helps you to skip some test function or class, depending on the skip reason:
+
+* `@not_relevant`: no need to test
+* `@missing_feature`: feature or use case is not yet implemented
+* `@bug`: known bug
+
+They takes several arguments:
+
+* `condition`: boolean, tell if it's relevant or not. As it's the first argument, you can omit the arguement name
+* `library`: provide library. version numbers are allowed (`java@1.2.4`)
+* `weblog_variant`: if you want to skip the test for a specific weblog
+
+And then, an `reason` argument with mor details. It's very handy for `@bug`, the best is providing a JIRA tickets number.
 
 
 ```python
-from utils import BaseTestCase, released, skipif, context
+from utils import BaseTestCase, not_relevant
 
-@released(java="1.2.3")
+
+@not_relevant(library="nodejs")
 class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 
+    @bug(weblog_variant="echo", reason="JIRA-666")
     def test_basic(self)
         assert P==NP
 
-    @skipif(context.library=="java@1.2.4", reason="not relevant: still an hypothesis")
+    @missing_feature(library="java@1.2.4", reason="still an hypothesis")
     def test_extended(self)
         assert riemann.zetas.zeros.real == 0.5
+
+    @missing_feature(reason="Maybe too soon")
+    def test_full(self)
+        assert 42
 ```
-
-`skipif` takes two arguments:
-
-1. A boolean, obviously the skip condition. The `context` object will provide all sort of information about the test context for this. Here are some example : 
-    * `context.library == "ruby"`
-    * `context.library in ("python", "nodejs"`
-    * `context.library == "java@4.28"`
-    * `context.library < "dotnet@1.28.5"`
-2. A skip reason. It **must** start with one this:   
-    * `known bug`: please provide a JIRA ticket, or at least a small explanation
-    * `not relevant`: When this test is not relevant (again, a small explanation is welcome)
-    * `missing feature`: When this spcial use case is not yet implemented.

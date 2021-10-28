@@ -99,11 +99,36 @@ class _NoAppsecEvent(_BaseAppSecValidation):
 
 
 class _WafAttack(_BaseAppSecValidation):
-    def __init__(self, request, rule_id=None, pattern=None, address=None):
+    def __init__(self, request, rule_id=None, pattern=None, patterns=None, address=None):
         super().__init__(request=request)
         self.rule_id = rule_id
         self.pattern = pattern
+
         self.address = address
+
+        if patterns:
+            raise NotImplementedError
+
+    @staticmethod
+    def _get_addresses(event):
+        result = []
+
+        for parameter in event.get("rule_match", {}).get("parameters", []):
+            # don't care about event version, it's the schemas' job
+            if "name" in parameter:
+                address = parameter["name"]
+            elif "address" in parameter:
+                address = parameter["address"]
+            else:
+                continue
+
+            if "key_path" in parameter and len(parameter["key_path"]) != 0:
+                for key_path in parameter["key_path"]:
+                    result.append(f"{address}:{key_path}")
+            else:
+                result.append(address)
+
+        return result
 
     def final_check(self):
         events = self._getRelatedAppSecEvents()
@@ -112,28 +137,30 @@ class _WafAttack(_BaseAppSecValidation):
             self.set_failure(f"{self.message} => nothing has been reported")
             return
 
-        rules, patterns, addresses = [], [], []
-
+        # looking for at least one event that matches all conditions
         for event in events:
-            rules.append(event["rule"]["id"])
-            patterns += event["rule_match"]["highlight"]
-            addresses += [p["name"] for p in event["rule_match"]["parameters"]]
 
-        if self.rule_id and self.rule_id not in rules:
-            self.set_failure(f"{self.message} => I saw only {rules}")
+            addresses = self._get_addresses(event)
+            patterns = event.get("rule_match", {}).get("highlight", [])
+            event_version = event.get("event_version", "0.1.0")
+            rule_id = event.get("rule", {}).get("id")
 
-        if self.pattern and isinstance(self.pattern, str) and self.pattern not in patterns:
-            self.set_failure(f"{self.message} => I saw only {patterns}")
+            if self.address and event_version == "0.1.0" and ":" in self.address and self.address not in addresses:
+                # be nice with very first AppSec data model, do not check key_path if needed
+                address, _ = self.address.split(":")
+            else:
+                address = self.address
 
-        if self.pattern and isinstance(self.pattern, (list, tuple)):
-            for pattern in self.pattern:
-                if pattern not in patterns:
-                    self.set_failure(f"{self.message} => I saw only {patterns}")
-
-        if self.address and self.address not in addresses:
-            self.set_failure(f"{self.message} => I saw only {addresses}")
+            if self.rule_id and self.rule_id != rule_id:
+                self.log_info(f"{self.message} => saw {rule_id}")
+            elif self.pattern and self.pattern not in patterns:
+                self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
+            elif address and address not in addresses:
+                self.log_info(f"{self.message} => saw {addresses}, expecting {address}")
+            else:
+                self.set_status(True)
 
         if not self.closed:
-            # the only way to be closed here is a failure
-            # so if it's not closed, it's a succes
-            self.set_status(True)
+            # the only way to be closed here is a success
+            # so if it's not closed, it's a failure
+            self.set_status(False)

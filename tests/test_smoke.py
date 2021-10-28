@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, skipif
+from utils import context, BaseTestCase, interfaces, not_relevant
 
 
 class Test_Backend(BaseTestCase):
@@ -13,7 +13,7 @@ class Test_Backend(BaseTestCase):
         interfaces.agent.assert_use_domain(context.dd_site)
 
 
-@skipif(context.weblog_variant == "echo-poc", reason="not relevant: echo isn't instrumented")
+@not_relevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
 class Test_Library(BaseTestCase):
     """Misc test around library/agent communication"""
 

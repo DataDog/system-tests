@@ -30,13 +30,13 @@ class Test_Feature(BaseTestCase):
 And it's also a good idea to [provide meta info about your feature, and sometimes skip a test](./features.md).
 
 ```python
-from utils import BaseTestCase, interfaces, context, skipif, released
+from utils import BaseTestCase, interfaces, context, released, bug
 
 
 @released(ruby="1.2.3")
 class Test_Feature(BaseTestCase):
 
-    @skipif(context.library == "ruby", reason="Known bug: APPSEC-123")
+    @bug(library="ruby", reason="APPSEC-123")
     def test_feature_detail(self):
         """ tests an awesome feature """
         r = self.weblog_get("/url")

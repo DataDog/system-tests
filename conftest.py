@@ -5,10 +5,9 @@
 import collections
 import pytest
 import inspect
-import traceback
 
 from utils import context, data_collector, interfaces
-from utils.tools import logger, o, w, m, get_log_formatter
+from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
 
 _docs = {}
 _skip_reasons = {}
@@ -30,6 +29,19 @@ def pytest_report_header(config):
     return f"Library: {context.library}\nWeblog variant: {context.weblog_variant}\nBackend: {context.dd_site}"
 
 
+def _get_skip_reason_from_marker(marker):
+    if marker.name == "skipif":
+        if all(marker.args):
+            return marker.kwargs.get("reason", "")
+    elif marker.name == "skip":
+        if len(marker.args):  # if un-named arguments are present, the first one is the reason
+            return marker.args[0]
+        else:  #  otherwise, search in named arguments
+            return marker.kwargs.get("reason", "")
+
+    return None
+
+
 def pytest_itemcollected(item):
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
@@ -41,24 +53,17 @@ def pytest_itemcollected(item):
     else:
         _docs[item.parent.parent.nodeid] = "Unexpected structure"
 
-    for marker in item.own_markers:
-        if marker.name == "skipif":
-            if all(marker.args):
-                _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
-        elif marker.name == "skip":
-            _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
-            break
+    markers = item.own_markers
 
-    for marker in item.parent.own_markers:
-        if marker.name == "skipif":
-            if all(marker.args):
-                _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
-        elif marker.name == "skip":
-            if len(marker.args):  # if un-named arguments are present, the first one is the reason
-                _skip_reasons[item.nodeid] = marker.args[0]
-            else:  #  otherwise, search in named arguments
-                _skip_reasons[item.nodeid] = marker.kwargs.get("reason", "")
+    parent = item.parent
+    while parent is not None:
+        markers += parent.own_markers
+        parent = parent.parent
 
+    for marker in reversed(markers):
+        skip_reason = _get_skip_reason_from_marker(marker)
+        if skip_reason:
+            _skip_reasons[item.nodeid] = skip_reason
             break
 
 
@@ -153,11 +158,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             if interface.system_test_error is not None:
                 terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
                 terminalreporter.line("Traceback (most recent call last):", red=True)
-                for line in traceback.format_tb(interface.system_test_error.__traceback__):
-                    for subline in line.split("\n"):
-                        if subline.strip():
-                            terminalreporter.line(subline.replace('File "/app/', 'File "'), red=True)
-                terminalreporter.line(str(interface.system_test_error), red=True)
+                for line in get_exception_traceback(interface.system_test_error):
+                    terminalreporter.line(line, red=True)
                 return
 
             validations += interface._validations

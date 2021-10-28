@@ -2,13 +2,18 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, skipif, released
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
+import pytest
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.29.0", java="?", nodejs="?", php="?", python="?")
-@skipif(context.library == "ruby", reason="missing feature: can't report user agent with dd-trace-rb")
+if context.weblog_variant == "echo-poc":
+    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
+elif context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
+
+@released(golang="?", dotnet="1.29.0", java="?", nodejs="?", php="?", python="?")
+@missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
 class Test_Retention(BaseTestCase):
     def test_events_retain_traces(self):
         """On traces with appsec event, meta.appsec-event and sampling prio are set"""
@@ -37,12 +42,10 @@ class Test_Retention(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_appsec_span)
 
 
-@released(cpp="not relevant")
-@released(golang="?" if context.weblog_variant != "echo-poc" else "not relevant: echo is not instrumented")
-@released(dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(golang="?", dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_AppSecMonitoring(BaseTestCase):
-    @skipif(context.library == "dotnet", reason="known bug: _dd.appsec.enabled is meta instead of metrics")
-    @skipif(context.library == "ruby", reason="known bug: _dd.appsec.enabled is missing")
+    @bug(library="dotnet", reason="_dd.appsec.enabled is meta instead of metrics")
+    @bug(library="ruby", reason="_dd.appsec.enabled is missing on user spans, maybe not a bug, TBC")
     def test_events_retain_traces(self):
         """ AppSec store in APM traces some data when enabled. """
 

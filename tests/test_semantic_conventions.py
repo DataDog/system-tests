@@ -4,15 +4,16 @@
 
 from urllib.parse import urlparse
 
-from utils import context, BaseTestCase, interfaces, skipif
+from utils import context, BaseTestCase, interfaces, bug, not_relevant
 
 
-@skipif(context.weblog_variant == "echo-poc", reason="not relevant: echo isn't instrumented")
+@not_relevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
 class Test_Meta(BaseTestCase):
-    @skipif(
-        context.library in ("python", "ruby", "golang", "php", "cpp",),
-        reason="known bug: span.kind not included, should be discussed of actually a bug or not",
-    )
+    @bug(library="python", reason="span.kind not included, should be discussed of actually a bug or not")
+    @bug(library="ruby", reason="span.kind not included, should be discussed of actually a bug or not")
+    @bug(library="golang", reason="span.kind not included, should be discussed of actually a bug or not")
+    @bug(library="php", reason="span.kind not included, should be discussed of actually a bug or not")
+    @bug(library="cpp", reason="span.kind not included, should be discussed of actually a bug or not")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -33,10 +34,9 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
-    @skipif(
-        context.library in ("ruby", "golang", "php"),
-        reason="known bug: http.url is not a full url, should be discussed of actually a bug or not",
-    )
+    @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
+    @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
+    @bug(library="php", reason="http.url is not a full url, should be discussed of actually a bug or not")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
@@ -58,7 +58,7 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
-    @skipif(context.library == "ruby", reason="known bug: http.status_code is missing")
+    @bug(library="ruby", reason="http.status_code is missing")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
