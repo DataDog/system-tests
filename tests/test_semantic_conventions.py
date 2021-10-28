@@ -106,7 +106,7 @@ class Test_Meta(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
 
-@skipif(
+@bug(
     context.library in ("java", "cpp", "python", "ruby", "dotnet"),
     reason="known bug: inconsistent implementation across tracers;will need a dedicated testing scenario",
 )
