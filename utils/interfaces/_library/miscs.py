@@ -27,7 +27,7 @@ class _TraceIdUniqueness(BaseValidation):
                 self.is_success_on_expiry = True
 
                 if "trace_id" not in span:
-                    self.set_failure(f"Can't find trace_id in request number {data['message_number']}")
+                    self.set_failure(f"Can't find trace_id in request number {data['log_filename']}")
                 else:
                     trace_id = span["trace_id"]
                     self.traces_ids[trace_id] += 1
