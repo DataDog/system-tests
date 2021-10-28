@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, released, bug, not_relevant
+from utils import context, BaseTestCase, interfaces, released, bug, not_relevant, missing_feature
 from .utils import rules
 import pytest
 
@@ -42,16 +42,18 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
+    @missing_feature(library="nodejs", reason="query string not yet supported")
     def test_basic(self):
         """Basic test with more than one attack"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"}, params={"key": "appscan_fingerprint"})
         interfaces.library.assert_waf_attack(r, rules.security_scanner.ua0_600_12x, pattern="Arachni/v")
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120, pattern="appscan_fingerprint")
 
+    @not_relevant(library="nodejs", reason="WAF does not return multiple security scanners")
     def test_same_source(self):
         """Test with more than one attack in headers"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1", "random-key": "acunetix-user-agreement"})
