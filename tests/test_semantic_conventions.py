@@ -115,7 +115,7 @@ class Test_MetaDatadogTags(BaseTestCase):
         """Validates that spans carry meta tags that were set in DD_TAGS tracer environment"""
 
         def validator(span):
-            if span["meta"]["env"] != "test":
+            if span["meta"]["key1"] != "val1":
                 raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
 
             if span["meta"]["aKey"] != "aVal bKey:bVal cKey:":

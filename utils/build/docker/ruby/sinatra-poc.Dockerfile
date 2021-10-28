@@ -53,7 +53,7 @@ RUN /binaries/install_ddtrace.sh
 
 # Datadog setup
 ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='env:test, aKey : aVal bKey:bVal cKey:'
+ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'
 
 # docker build -f utils/build/docker/ruby.sinatra-poc.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

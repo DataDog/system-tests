@@ -15,7 +15,7 @@ CMD ["php", "-f","index.php","-S","0.0.0.0:7777"]
 EXPOSE 7777
 
 ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='env:test, aKey : aVal bKey:bVal cKey:'
+ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'
 
 COPY utils/build/docker/php/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
