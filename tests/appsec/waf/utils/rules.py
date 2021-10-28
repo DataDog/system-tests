@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 # Automatic generatiom from:
-#    python utils/scripts/extract_appsec_waf_rules.py > tests/appsec/waf/utils/rules.py
+#    python utils/scripts/extract_appsec_waf_rules.py dotnet
 
 
 class security_scanner:
