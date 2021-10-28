@@ -108,7 +108,7 @@ class Test_Meta(BaseTestCase):
 
 @bug(
     context.library in ("java", "cpp", "python", "ruby", "dotnet"),
-    reason="known bug: inconsistent implementation across tracers;will need a dedicated testing scenario",
+    reason="Inconsistent implementation across tracers;will need a dedicated testing scenario",
 )
 class Test_MetaDatadogTags(BaseTestCase):
     def test_meta_dd_tags(self):
