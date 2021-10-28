@@ -102,7 +102,7 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
         )
 
-    @not_relevant(library="nodejs", reason="Rules set 2.1 => libxss does not report highlight")
+    @not_relevant(library="nodejs", reason="Rules set 2.1 => libinjection does not report highlight")
     @bug(library="golang", reason="entire address is missing")
     def test_specific_key3(self):
         """ When a specific header key is specified, other key are ignored """
