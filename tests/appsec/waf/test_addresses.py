@@ -65,9 +65,8 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@released(
-    golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0"
-)
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_Headers(BaseTestCase):
     """Appsec WAF access attacks sent threw headers"""
 
@@ -79,7 +78,7 @@ class Test_Headers(BaseTestCase):
         )
 
     def test_specific_key(self):
-        """ Appsec WAF detects attacks on specific header x-file-name or referer """
+        """ Appsec WAF detects attacks on specific header x-file-name or referer, and report it """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
         interfaces.library.assert_waf_attack(
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
@@ -97,13 +96,13 @@ class Test_Headers(BaseTestCase):
 
     @not_relevant(library="ruby", reason="Rack transforms undersocre to dashes")
     def test_specific_key2(self):
-        """ When a specific header key is specified, other key are ignored """
+        """ attacks on specific header X_Filename, and report it """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
         interfaces.library.assert_waf_attack(
             r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
         )
 
-    @bug(library="nodejs", reason="Highlight is [null]")
+    @not_relevant(library="nodejs", reason="Rules set 2.1 => libxss does not report highlight")
     @bug(library="golang", reason="entire address is missing")
     def test_specific_key3(self):
         """ When a specific header key is specified, other key are ignored """
@@ -117,36 +116,22 @@ class Test_Headers(BaseTestCase):
             r, pattern="<script >", address="server.request.headers.no_cookies:referer"
         )
 
-    def test_specific_wrong_key(self):
+    @not_relevant(context.library != "nodejs", reason="Rules set 2.1 => libxss does not report highlight")
+    def test_specific_key4(self):
         """ When a specific header key is specified, other key are ignored """
+        r = self.weblog_get("/waf/", headers={"referer": "<script >"})
+        interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies:referer")
+
+        r = self.weblog_get("/waf/", headers={"RefErEr": "<script >"})
+        interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies:referer")
+
+    def test_specific_wrong_key(self):
+        """ When a specific header key is specified in rules, other key are ignored """
         r = self.weblog_get("/waf/", headers={"xfilename": "routing.yml"})
         interfaces.library.assert_no_appsec_event(r)
 
         r = self.weblog_get("/waf/", headers={"not-referer": "<script >"})
         interfaces.library.assert_no_appsec_event(r)
-
-
-@released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
-class Test_HeadersSpecificKeyFormat(BaseTestCase):
-    """ The reporting format of obj:k addresses should be obj:x"""
-
-    def test_header_specific_key(self):
-        """ Appsec WAF detects attacks on specific header x-file-name """
-
-        # once the fix is merged, modify Test_Headers::test_header_specific_key and remove this class
-        r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
-        interfaces.library.assert_waf_attack(
-            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
-        )
-
-    @bug(library="nodejs", reason="Highlight is [null]")
-    @bug(library="golang", reason="address is not reported")
-    def test_header_specific_key2(self):
-        """ Appsec WAF detects attacks on specific header x-file-name """
-        r = self.weblog_get("/waf/", headers={"referer": "<script >"})
-        interfaces.library.assert_waf_attack(
-            r, pattern="<script >", address="server.request.headers.no_cookies:referer"
-        )
 
 
 @released(golang="1.33.1", php="?", python="?", ruby="0.51.0")

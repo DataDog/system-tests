@@ -15,10 +15,6 @@ elif context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-# dotnet: https://raw.githubusercontent.com/DataDog/dd-trace-dotnet/master/tracer/src/Datadog.Trace/AppSec/Waf/rule-set.json  # noqa
-# ruby  : https://raw.githubusercontent.com/DataDog/dd-trace-rb/appsec/lib/datadog/security/assets/waf_rules.json
-
-
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_Scanners(BaseTestCase):
