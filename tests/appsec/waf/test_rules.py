@@ -104,7 +104,7 @@ class Test_RFI(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
 
@@ -130,7 +130,7 @@ class Test_CommandInjection(BaseTestCase):
 
 
 @released(golang="1.33.1", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_PhpCodeInjection(BaseTestCase):
     """ Appsec WAF tests on PHP injection rules """
 
@@ -233,7 +233,7 @@ class Test_XSS(BaseTestCase):
 
 
 @released(golang="?", php="?", python="?", ruby="0.51.0")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_SQLI(BaseTestCase):
     """ Appsec WAF tests on SQLI rules """
 
@@ -276,7 +276,7 @@ class Test_SQLI(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
