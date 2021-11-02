@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "/miscs/appsec/contexts/host/0.1.0.json",
+  "title": "Host",
   "type": "object",
   "properties": {
     "context_version": {
