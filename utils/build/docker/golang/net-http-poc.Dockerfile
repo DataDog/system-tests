@@ -19,6 +19,8 @@ func main() {\n\
     mux := httptrace.NewServeMux()\n\
     mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {\n\
 		w.Write([]byte("Hello, World!\\n"))\n\
+        span, _ := tracer.SpanFromContext(r.Context())\n\
+        span.SetTag("http.request.headers.user-agent", r.UserAgent())\n\
 	})\n\
     mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {\n\
 		w.Write([]byte("OK"))\n\
