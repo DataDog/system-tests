@@ -26,7 +26,8 @@ class Test_404(BaseTestCase):
             r,
             rule_id=rules.security_scanner.ua0_600_12x,
             pattern="Arachni/v",
-            address="server.request.headers.no_cookies:user-agent",
+            address="server.request.headers.no_cookies",
+            key_path=["user-agent"],
         )
 
 
