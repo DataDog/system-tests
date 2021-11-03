@@ -104,7 +104,9 @@ class _WafAttack(_BaseAppSecValidation):
         self.rule_id = rule_id
         self.pattern = pattern
 
-        self.address = address
+        # addresses should never have semi-colon
+        self.address = address.split(":", 1)[0]
+        self.key_path = key_path
 
         if patterns:
             raise NotImplementedError
@@ -115,18 +117,14 @@ class _WafAttack(_BaseAppSecValidation):
 
         for parameter in event["rule_match"]["parameters"]:
             # don't care about event version, it's the schemas' job
-            if "name" in parameter:
-                address = parameter["name"]
-            elif "address" in parameter:
+            if "address" in parameter:
                 address = parameter["address"]
+            elif "name" in parameter:
+                address = parameter["name"].split(":", 1)[0]
             else:
                 continue
 
-            if "key_path" in parameter:
-                for key_path in parameter["key_path"]:
-                    result.append(f"{address}:{key_path}")
-            else:
-                result.append(address)
+            result.append(address)
 
         return result
 
