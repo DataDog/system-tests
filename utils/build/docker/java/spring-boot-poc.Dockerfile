@@ -21,3 +21,4 @@ CMD [ "java", "-javaagent:/app/dd-java-agent.jar", "-jar", "/app/myproject-0.0.1
 
 # Datadog setup
 ENV DD_TRACE_SAMPLE_RATE=0.5
+ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'

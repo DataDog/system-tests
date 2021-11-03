@@ -7,6 +7,7 @@ import traceback
 
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_spans_related_to_rid, get_rid_from_user_agent
+from utils.tools import m
 
 
 class _BaseAppSecValidation(BaseValidation):
@@ -16,7 +17,7 @@ class _BaseAppSecValidation(BaseValidation):
     def __init__(self, request):
         super().__init__(request=request)
         self.spans = []  # list of (trace_id, span_id) related to rid
-        self.appSecEvents = []  # list of (trace_id, span_id) where an appsec event is seen
+        self.appSecEvents = []  # list of all appsec events
 
     def check(self, data):
         if data["path"] == "/v0.4/traces":
@@ -27,13 +28,16 @@ class _BaseAppSecValidation(BaseValidation):
 
         elif data["path"] in ("/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"):
             events = data["request"]["content"]["events"]
-            events = [event for event in events if "trace" in event["context"] and "span" in event["context"]]
-
-            self.appSecEvents += events
+            for i, event in enumerate(events):
+                if "trace" in event["context"] and "span" in event["context"]:
+                    self.appSecEvents.append({"event": event, "i": i, "log_filename": data["log_filename"]})
 
     def _getRelatedAppSecEvents(self):
-
-        return [event for event in self.appSecEvents if self._is_related_to_spans(event) or self._is_my_rid(event)]
+        return [
+            event
+            for event in self.appSecEvents
+            if self._is_related_to_spans(event["event"]) or self._is_my_rid(event["event"])
+        ]
 
     def _is_related_to_spans(self, event):
         return f'{event["context"]["trace"]["id"]}#{event["context"]["span"]["id"]}' in self.spans
@@ -78,15 +82,18 @@ class _AppSecValidation(_BaseAppSecValidation):
         events = self._getRelatedAppSecEvents()
 
         if len(events) == 0 and not self.is_success_on_expiry:
-            self.set_failure(f"{self.message} not validated: Can't fin any related event")
+            self.set_failure(f"{self.message} not validated: Can't find any related event")
 
-        for event in events:
+        for event_data in events:
+            event = event_data["event"]
             try:
                 if self.validator(event):
                     self.is_success_on_expiry = True
             except Exception as e:
                 msg = traceback.format_exception_only(type(e), e)[0]
-                self.set_failure(f"{self.message} not validated: {msg}\n")
+                self.set_failure(
+                    f"{m(self.message)} not validated on {event_data['log_filename']}, event #{event_data['i']}: {msg}"
+                )
 
 
 class _NoAppsecEvent(_BaseAppSecValidation):
@@ -138,7 +145,8 @@ class _WafAttack(_BaseAppSecValidation):
             return
 
         # looking for at least one event that matches all conditions
-        for event in events:
+        for event_data in events:
+            event = event_data["event"]
 
             addresses = self._get_addresses(event)
             patterns = event.get("rule_match", {}).get("highlight", [])

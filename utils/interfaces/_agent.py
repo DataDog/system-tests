@@ -48,7 +48,7 @@ class _UseDomain(BaseValidation):
         domain = data["host"][-len(self.domain) :]
 
         if domain != self.domain:
-            self.set_failure(f"Message #{data['message_number']} uses host {domain} instead of {self.domain}")
+            self.set_failure(f"Message #{data['log_filename']} uses host {domain} instead of {self.domain}")
 
 
 class _MetricExistence(BaseValidation):

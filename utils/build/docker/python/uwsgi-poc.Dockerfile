@@ -14,6 +14,7 @@ RUN /binaries/install_ddtrace.sh
 
 # Datadog setup
 ENV DD_TRACE_SAMPLE_RATE=0.5
+ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'
 
 # docker startup
 # note, only thread mode is supported
