@@ -74,24 +74,24 @@ class Test_Headers(BaseTestCase):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(
-            r, pattern="Arachni/v", address="server.request.headers.no_cookies:user-agent"
+            r, pattern="Arachni/v", address="server.request.headers.no_cookies", key_path=["user-agent"]
         )
 
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer, and report it """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
         interfaces.library.assert_waf_attack(
-            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
+            r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-file-name"]
         )
 
         r = self.weblog_get("/waf/", headers={"X-File-Name": "routing.yml"})
         interfaces.library.assert_waf_attack(
-            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-file-name"
+            r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-file-name"]
         )
 
         r = self.weblog_get("/waf/", headers={"X-Filename": "routing.yml"})
         interfaces.library.assert_waf_attack(
-            r, pattern="routing.yml", address="server.request.headers.no_cookies:x-filename"
+            r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
         )
 
     @not_relevant(library="ruby", reason="Rack transforms undersocre to dashes")
@@ -99,7 +99,7 @@ class Test_Headers(BaseTestCase):
         """ attacks on specific header X_Filename, and report it """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
         interfaces.library.assert_waf_attack(
-            r, pattern="routing.yml", address="server.request.headers.no_cookies:x_filename"
+            r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
         )
 
     @not_relevant(library="nodejs", reason="Rules set 2.1 => libinjection does not report highlight")
@@ -108,22 +108,22 @@ class Test_Headers(BaseTestCase):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
         interfaces.library.assert_waf_attack(
-            r, pattern="<script >", address="server.request.headers.no_cookies:referer"
+            r, pattern="<script >", address="server.request.headers.no_cookies", key_path=["referer"]
         )
 
         r = self.weblog_get("/waf/", headers={"RefErEr": "<script >"})
         interfaces.library.assert_waf_attack(
-            r, pattern="<script >", address="server.request.headers.no_cookies:referer"
+            r, pattern="<script >", address="server.request.headers.no_cookies", key_path=["referer"]
         )
 
     @not_relevant(context.library != "nodejs", reason="Rules set 2.1 => libxss does not report highlight")
     def test_specific_key4(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
-        interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies:referer")
+        interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies", key_path=["referer"])
 
         r = self.weblog_get("/waf/", headers={"RefErEr": "<script >"})
-        interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies:referer")
+        interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies", key_path=["referer"])
 
     def test_specific_wrong_key(self):
         """ When a specific header key is specified in rules, other key are ignored """

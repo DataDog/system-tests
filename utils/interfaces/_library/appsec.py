@@ -106,22 +106,23 @@ class _NoAppsecEvent(_BaseAppSecValidation):
 
 
 class _WafAttack(_BaseAppSecValidation):
-    def __init__(self, request, rule_id=None, pattern=None, patterns=None, address=None):
+    def __init__(self, request, rule_id=None, pattern=None, patterns=None, address=None, key_path=None):
         super().__init__(request=request)
         self.rule_id = rule_id
         self.pattern = pattern
 
-        # addresses should never have semi-colon
-        self.address = address.split(":", 1)[0] if address is not None else None
+        self.address = address
+        self.key_path = key_path
 
         if patterns:
             raise NotImplementedError
 
     @staticmethod
-    def _get_addresses(event):
+    def _get_parameters(event):
         result = []
 
         for parameter in event.get("rule_match", {}).get("parameters", []):
+            key_path = parameter.get("key_path", [])
             # don't care about event version, it's the schemas' job
             if "address" in parameter:
                 address = parameter["address"]
@@ -130,7 +131,7 @@ class _WafAttack(_BaseAppSecValidation):
             else:
                 continue
 
-            result.append(address)
+            result.append((address, key_path))
 
         return result
 
@@ -145,23 +146,19 @@ class _WafAttack(_BaseAppSecValidation):
         for event_data in events:
             event = event_data["event"]
 
-            addresses = self._get_addresses(event)
+            parameters = self._get_parameters(event)
+            addresses = [address for address, _ in parameters]
             patterns = event.get("rule_match", {}).get("highlight", [])
-            event_version = event.get("event_version", "0.1.0")
             rule_id = event.get("rule", {}).get("id")
-
-            if self.address and event_version == "0.1.0" and ":" in self.address and self.address not in addresses:
-                # be nice with very first AppSec data model, do not check key_path if needed
-                address, _ = self.address.split(":")
-            else:
-                address = self.address
 
             if self.rule_id and self.rule_id != rule_id:
                 self.log_info(f"{self.message} => saw {rule_id}")
             elif self.pattern and self.pattern not in patterns:
                 self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
-            elif address and address not in addresses:
-                self.log_info(f"{self.message} => saw {addresses}, expecting {address}")
+            elif self.key_path is not None and (self.address, self.key_path) not in parameters:
+                self.log_info(f"{self.message} => saw {parameters}, expecting ({self.address}, {self.key_path})")
+            elif self.address and self.address not in addresses:
+                self.log_info(f"{self.message} => saw {addresses}, expecting {self.address}")
             else:
                 self.set_status(True)
 
