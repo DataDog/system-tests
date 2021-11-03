@@ -13,7 +13,7 @@ elif context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
+@released(golang="1.33.1", dotnet="?", java="?", php="?", python="?", ruby="?")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_UrlQueryKey(BaseTestCase):
     """Test that WAF access attacks sent threw query key"""

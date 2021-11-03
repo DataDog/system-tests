@@ -43,7 +43,7 @@ elif [ "$TEST_LIBRARY" = "ruby" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-sinatra-poc}
 
 elif [ "$TEST_LIBRARY" = "golang" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http}
 
 elif [ "$TEST_LIBRARY" = "java" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}
@@ -77,7 +77,7 @@ for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
 do
     echo Build $IMAGE_NAME
     if [[ $IMAGE_NAME == runner ]]; then
-        docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner .
+        docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
 
     elif [[ $IMAGE_NAME == agent ]]; then
         docker build \
@@ -86,9 +86,12 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
-        DIR=utils/build/docker/${TEST_LIBRARY}.${WEBLOG_VARIANT}
-        DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-
+        if [ "$TEST_LIBRARY" = "golang" ]; then
+          DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/Dockerfile
+          EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS} --build-arg=WEBLOG_VARIANT=${WEBLOG_VARIANT}"
+        else
+          DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+        fi
         docker build \
             --progress=plain \
             -f ${DOCKERFILE} \

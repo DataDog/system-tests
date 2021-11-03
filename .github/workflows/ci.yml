@@ -23,9 +23,9 @@ jobs:
           - library: dotnet
             weblog-variant: poc
           - library: golang
-            weblog-variant: net-http-poc
+            weblog-variant: net-http
           - library: golang
-            weblog-variant: echo-poc
+            weblog-variant: gorilla
           - library: java
             weblog-variant: spring-boot-poc
           - library: nodejs
