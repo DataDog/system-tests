@@ -11,7 +11,6 @@ class Test_Library(BaseTestCase):
     @bug(library="java", reason="APPSEC-1697")
     @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
-    @bug(library="nodejs")
     @bug(library="ruby")
     def test_library_format(self):
         """Libraries's payload are valid regarding schemas"""
@@ -26,7 +25,6 @@ class Test_Agent(BaseTestCase):
     @bug(library="java", reason="APPSEC-1697")
     @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
-    @bug(library="nodejs")
     @bug(library="ruby")
     def test_agent_format(self):
         """Agents's payload are valid regarding schemas"""

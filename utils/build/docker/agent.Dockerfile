@@ -26,9 +26,6 @@ proxy:\n\
     no_proxy_nonexact_match: false\n\
 ' >> /etc/datadog-agent/datadog.yaml
 
-ARG DD_SITE
-ENV DD_SITE=$DD_SITE
-
 # Proxy conf
 COPY utils/scripts/install_mitm_certificate.sh .
 RUN ./install_mitm_certificate.sh /usr/local/share/ca-certificates/mitm.crt

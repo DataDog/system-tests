@@ -104,3 +104,25 @@ class Test_Meta(BaseTestCase):
             return True
 
         interfaces.library.add_span_validation(validator=validator)
+
+
+@bug(
+    context.library in ("java", "cpp", "python", "ruby", "dotnet"),
+    reason="Inconsistent implementation across tracers;will need a dedicated testing scenario",
+)
+class Test_MetaDatadogTags(BaseTestCase):
+    def test_meta_dd_tags(self):
+        """Validates that spans carry meta tags that were set in DD_TAGS tracer environment"""
+
+        def validator(span):
+            if span["meta"]["key1"] != "val1":
+                raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
+
+            if span["meta"]["aKey"] != "aVal bKey:bVal cKey:":
+                raise Exception(
+                    f'dKey tag in span\'s meta should be "aVal bKey:bVal cKey:", not {span["meta"]["aKey"]}'
+                )
+
+            return True
+
+        interfaces.library.add_span_validation(validator=validator)
