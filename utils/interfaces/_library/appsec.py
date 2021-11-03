@@ -105,7 +105,7 @@ class _WafAttack(_BaseAppSecValidation):
         self.pattern = pattern
 
         # addresses should never have semi-colon
-        self.address = address.split(":", 1)[0]
+        self.address = address.split(":", 1)[0] if address is not None else None
 
         if patterns:
             raise NotImplementedError
