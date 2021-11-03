@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	tracer.Start(tracer.WithServiceName("tests"))
+	tracer.Start(tracer.WithServiceName("weblog"))
 	defer tracer.Stop()
 
 	mux := muxtrace.NewRouter()
