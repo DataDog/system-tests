@@ -127,9 +127,10 @@ class _WafAttack(_BaseAppSecValidation):
             if "address" in parameter:
                 address = parameter["address"]
             elif "name" in parameter:
-                address, raw_key_path = parameter["name"].split(":", 1)
-                if key_path is None:
-                    key_path = raw_key_path.split(".")
+                parts = parameter["name"].split(":", 1)
+                address = parts[0]
+                if key_path is None and len(parts) > 1:
+                    key_path = parts[1].split(".")
             else:
                 continue
 
