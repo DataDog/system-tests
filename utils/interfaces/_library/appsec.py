@@ -122,16 +122,18 @@ class _WafAttack(_BaseAppSecValidation):
         result = []
 
         for parameter in event.get("rule_match", {}).get("parameters", []):
-            key_path = parameter.get("key_path", [])
+            key_path = parameter.get("key_path")
             # don't care about event version, it's the schemas' job
             if "address" in parameter:
                 address = parameter["address"]
             elif "name" in parameter:
-                address = parameter["name"].split(":", 1)[0]
+                address, raw_key_path = parameter["name"].split(":", 1)
+                if key_path is None:
+                    key_path = raw_key_path.split(".")
             else:
                 continue
 
-            result.append((address, key_path))
+            result.append((address, key_path or []))
 
         return result
 
