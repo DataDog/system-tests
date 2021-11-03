@@ -106,7 +106,6 @@ class _WafAttack(_BaseAppSecValidation):
 
         # addresses should never have semi-colon
         self.address = address.split(":", 1)[0]
-        self.key_path = key_path
 
         if patterns:
             raise NotImplementedError
