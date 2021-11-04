@@ -13,7 +13,7 @@ func main() {
 
 	mux := muxtrace.NewRouter()
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/waf/", func(w http.ResponseWriter, r *http.Request) {
 		span, _ := tracer.SpanFromContext(r.Context())
 		span.SetTag("http.request.headers.user-agent", r.UserAgent())
 		w.Write([]byte("Hello, World!\\n"))
