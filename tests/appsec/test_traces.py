@@ -2,9 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
 import pytest
 
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
 
 if context.weblog_variant == "echo-poc":
     pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
@@ -15,9 +15,14 @@ elif context.library == "cpp":
 @released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_AppSecEventSpanTags(BaseTestCase):
     def test_appsec_event_span_tags(self):
-        """Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and _sampling_priority_v1 tags"""
+        """
+        Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
+        _sampling_priority_v1 tags
+        """
 
         @missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
+        @missing_feature(library="dotnet",
+                         reason="still uses the appsec_keep priority and should move back to manual_keep")
         def validate_appsec_event_span_tags(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
@@ -53,7 +58,10 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
+
 RUNTIME_FAMILY = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
+
+
 def validate_appsec_span_tags(span):
     if span.get("parent_id") not in (0, None):  # do nothing if not root span
         return
