@@ -19,8 +19,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
     """
 
     @missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
-    @missing_feature(library="dotnet",
-                     reason="still uses the appsec_keep priority and should move back to manual_keep")
+    @missing_feature(library="dotnet", reason="still uses the appsec_keep priority and should move back to manual_keep")
     def test_appsec_event_span_tags(self):
         """
         Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
