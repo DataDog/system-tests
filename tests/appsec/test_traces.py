@@ -14,15 +14,19 @@ elif context.library == "cpp":
 
 @released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_AppSecEventSpanTags(BaseTestCase):
+    """
+    AppSec should had span tags.
+    """
+
+    @missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
+    @missing_feature(library="dotnet",
+                     reason="still uses the appsec_keep priority and should move back to manual_keep")
     def test_appsec_event_span_tags(self):
         """
         Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
         _sampling_priority_v1 tags
         """
 
-        @missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
-        @missing_feature(library="dotnet",
-                         reason="still uses the appsec_keep priority and should move back to manual_keep")
         def validate_appsec_event_span_tags(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
