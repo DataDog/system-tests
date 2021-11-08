@@ -122,19 +122,17 @@ class _WafAttack(_BaseAppSecValidation):
         result = []
 
         for parameter in event.get("rule_match", {}).get("parameters", []):
-            key_path = parameter.get("key_path")
-            # don't care about event version, it's the schemas' job
-            if "address" in parameter:
+            if "address" in parameter:  # 1.0.0
                 address = parameter["address"]
-            elif "name" in parameter:
+
+            elif "name" in parameter:  # 0.1.0
                 parts = parameter["name"].split(":", 1)
                 address = parts[0]
-                if key_path is None and len(parts) > 1:
-                    key_path = parts[1].split(".")
+
             else:
                 continue
 
-            result.append((address, key_path or []))
+            result.append((address, parameter.get("key_path", [])))
 
         return result
 
@@ -149,19 +147,27 @@ class _WafAttack(_BaseAppSecValidation):
         for event_data in events:
             event = event_data["event"]
 
+            event_version = event.get("event_version", "0.1.0")
             parameters = self._get_parameters(event)
-            addresses = [address for address, _ in parameters]
             patterns = event.get("rule_match", {}).get("highlight", [])
             rule_id = event.get("rule", {}).get("id")
+            addresses = [address for address, _ in parameters]
+
+            # be nice with very first AppSec data model, do not check key_path
+            key_path = self.key_path if event_version != "0.1.0" else None
 
             if self.rule_id and self.rule_id != rule_id:
                 self.log_info(f"{self.message} => saw {rule_id}")
+
             elif self.pattern and self.pattern not in patterns:
                 self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
-            elif self.key_path is not None and (self.address, self.key_path) not in parameters:
-                self.log_info(f"{self.message} => saw {parameters}, expecting ({self.address}, {self.key_path})")
-            elif self.address and self.address not in addresses:
+
+            elif self.address and key_path is None and self.address not in addresses:
                 self.log_info(f"{self.message} => saw {addresses}, expecting {self.address}")
+
+            elif self.address and key_path and (self.address, key_path) not in parameters:
+                self.log_info(f"{self.message} => saw {parameters}, expecting {(self.address, key_path)}")
+
             else:
                 self.set_status(True)
 
