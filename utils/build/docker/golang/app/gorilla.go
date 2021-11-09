@@ -13,10 +13,14 @@ func main() {
 
 	mux := muxtrace.NewRouter()
 
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("/waf/", func(w http.ResponseWriter, r *http.Request) {
 		span, _ := tracer.SpanFromContext(r.Context())
 		span.SetTag("http.request.headers.user-agent", r.UserAgent())
-		w.Write([]byte("Hello, World!\\n"))
+		w.Write([]byte("Hello, WAF!\n"))
 	})
 
 	mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {
