@@ -12,6 +12,7 @@ from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceb
 _docs = {}
 _skip_reasons = {}
 _release_versions = {}
+_rfcs = {}
 
 
 def pytest_sessionstart(session):
@@ -47,6 +48,11 @@ def pytest_itemcollected(item):
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
 
     _release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
+
+    if hasattr(item.parent.obj, "__rfc__"):
+        _rfcs[item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
+    if hasattr(item.obj, "__rfc__"):
+        _rfcs[item.nodeid] = getattr(item.obj, "__rfc__")
 
     if hasattr(item.parent.parent, "obj"):
         _docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
@@ -132,6 +138,7 @@ def pytest_json_modifyreport(json_report):
         json_report["docs"] = _docs
         json_report["context"] = context.serialize()
         json_report["release_versions"] = _release_versions
+        json_report["rfcs"] = _rfcs
 
         # clean useless and volumetric data
         del json_report["collectors"]
