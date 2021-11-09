@@ -230,6 +230,14 @@ def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=Non
     return wrapper
 
 
+def rfc(link):
+    def wrapper(item):
+        setattr(item, "__rfc__", link)
+        return item
+
+    return wrapper
+
+
 if __name__ == "__main__":
     import sys
 

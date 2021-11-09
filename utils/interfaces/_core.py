@@ -198,6 +198,10 @@ class BaseValidation(object):
                     func_obj = gc.get_referrers(frame_info.frame.f_code)[0]
                     self.message = func_obj.__doc__
 
+                    # if the message is missing, try to get the parent class docstring
+                    if self.message is None and hasattr(func_obj, "__class__"):
+                        self.message = func_obj.__class__.__doc__
+
                 break
 
         if self.message is None:
