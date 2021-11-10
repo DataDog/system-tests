@@ -5,6 +5,61 @@
 from packaging.version import parse as parse_version
 
 
+class Version:
+    """ Version object that supports comparizon with string"""
+
+    def __init__(self, version) -> None:
+        self._version = parse_version(version)
+
+    @staticmethod
+    def __test__():
+        v = Version("1.0")
+
+        assert v == "1.0"
+        assert v != "1.1"
+
+        assert v <= "1.1"
+        assert v <= "1.0"
+        assert "1.1" >= v
+        assert "1.0" >= v
+
+        assert v < "1.1"
+        assert "1.1" > v
+
+        assert v >= "0.9"
+        assert v >= "1.0"
+        assert "0.9" <= v
+        assert "1.0" <= v
+
+        assert v > "0.9"
+        assert "0.9" < v
+
+        v = Version("0.53.0.dev70+g494e6dc0")
+
+        assert v == "0.53.0.dev70+g494e6dc0"
+
+    def __eq__(self, other):
+        return self._version == parse_version(other)
+
+    def __lt__(self, other):
+        return self._version < parse_version(other)
+
+    def __le__(self, other):
+        return self._version <= parse_version(other)
+
+    def __gt__(self, other):
+        return self._version > parse_version(other)
+
+    def __ge__(self, other):
+        return self._version >= parse_version(other)
+
+    def __str__(self):
+        return str(self._version)
+
+    def __repr__(self):
+        return repr(self._version)
+
+
 class LibraryVersion:
     def __init__(self, library, version=None):
         if library is None:
@@ -14,7 +69,7 @@ class LibraryVersion:
             raise ValueError("Library can't contains '@'")
 
         self.library = library
-        self.version = parse_version(version) if version else None
+        self.version = Version(version) if version else None
 
     @staticmethod
     def __test__():
@@ -82,7 +137,7 @@ class LibraryVersion:
             if self.version is None:
                 raise ValueError("Weblog does not provide an library version number")
 
-            return self.library == library and self.version == parse_version(version)
+            return self.library == library and self.version == version
         else:
             library = other
             return self.library == library
@@ -103,7 +158,7 @@ class LibraryVersion:
             # on other weblogs
             raise ValueError("Weblog does not provide an library version number")
 
-        return library, parse_version(version)
+        return library, version
 
     def __lt__(self, other):
         library, version = self._extract_members(other)
@@ -129,4 +184,5 @@ class LibraryVersion:
 
 
 if __name__ == "__main__":
+    Version.__test__()
     LibraryVersion.__test__()
