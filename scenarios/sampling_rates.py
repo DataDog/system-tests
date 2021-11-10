@@ -93,7 +93,9 @@ class LibrarySamplingRateValidation(BaseValidation):
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
 @irrelevant(context.weblog_variant == "echo-poc", reason="echo isn't instrumented")
 @bug(library="golang")
-class TestSamplingRates(BaseTestCase):
+class Test_SamplingRates(BaseTestCase):
+    """Rate at which traces are sampled is the actual sample rate"""
+
     TOTAL_REQUESTS = 10_000
     REQ_PER_S = 25
 
@@ -103,7 +105,7 @@ class TestSamplingRates(BaseTestCase):
             raise Exception("Sampling rate should be set on tracer with an env var for this scenario to be meaningful")
 
     def test_sampling_rates(self):
-        """Tests that the rate at which traces are sampled is the actual sample rate"""
+        """Basic test"""
         paths = []
         last_sleep = time.time()
         for i in range(self.TOTAL_REQUESTS):

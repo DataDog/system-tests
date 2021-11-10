@@ -25,5 +25,7 @@ class Test_StaticRuleSet(BaseTestCase):
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_FleetManagement(BaseTestCase):
+    """ApppSec supports Fleet management"""
+
     def test_basic(self):
         raise NotImplementedError

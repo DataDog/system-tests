@@ -14,10 +14,11 @@ elif context.library == "cpp":
 
 @released(golang="?", dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
+    """ Appsec reports good status code """
+
     @missing_feature(library="java", reason="response is not reported")
     @bug(library="ruby", reason="status is missing")
     def test_basic(self):
-        """ Appsec reports good status code """
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
         assert r.status_code == 404
         interfaces.library.assert_waf_attack(r)
@@ -34,6 +35,8 @@ class Test_StatusCode(BaseTestCase):
 @released(golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 @bug(library="dotnet", reason="request headers are not reported")
 class Test_ActorIP(BaseTestCase):
+    """ AppSec reports good actor's IP"""
+
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1",}, stream=True)

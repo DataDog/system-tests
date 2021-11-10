@@ -6,7 +6,8 @@ from utils import context, BaseTestCase, interfaces, irrelevant
 
 
 class Test_NoExceptions(BaseTestCase):
+    """There is not exception in dotnet-tracer-managed log files"""
+
     @irrelevant(context.library != "dotnet", reason="only for .NET")
     def test_dotnet(self):
-        """There is not exception in dotnet-tracer-managed log files"""
         interfaces.library_dotnet_managed.assert_absence(r"[A-Za-z]+\.[A-Za-z]*Exception")

@@ -16,7 +16,7 @@ elif context.library == "cpp":
 @released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_UrlQueryKey(BaseTestCase):
-    """Test that WAF access attacks sent threw query key"""
+    """Appsec supports keys on server.request.query"""
 
     def test_query_key(self):
         """ AppSec catches attacks in URL query key"""
@@ -31,7 +31,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
-    """Test that WAF access attacks sent threw query"""
+    """Appsec supports values on server.request.query"""
 
     def test_query_argument(self):
         """ AppSec catches attacks in URL query value"""
@@ -57,11 +57,10 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(
-    golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0"
-)
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_UrlRaw(BaseTestCase):
-    """Test that WAF access attacks sent threw URL"""
+    """Appsec supports server.request.uri.raw"""
 
     def test_path(self):
         """ AppSec catches attacks in URL path"""
@@ -72,7 +71,7 @@ class Test_UrlRaw(BaseTestCase):
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_Headers(BaseTestCase):
-    """Appsec WAF access attacks sent threw headers"""
+    """Appsec supports server.request.headers.no_cookies"""
 
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
@@ -140,6 +139,8 @@ class Test_Headers(BaseTestCase):
 @released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
+    """Appsec supports server.request.cookies"""
+
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
@@ -171,7 +172,7 @@ class Test_Cookies(BaseTestCase):
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyRaw(BaseTestCase):
-    """Appsec WAF detects attackes in regular body"""
+    """Appsec supports <body>"""
 
     @missing_feature(True, reason="no rule with body raw yet")
     def test_raw_body(self):
@@ -182,7 +183,7 @@ class Test_BodyRaw(BaseTestCase):
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
-    """Appsec WAF detects attackes in regular body"""
+    """Appsec supports <url encoded body>"""
 
     @missing_feature(library="java")
     def test_body_key(self):
@@ -199,7 +200,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyJson(BaseTestCase):
-    """ Appsec WAF detects attackes in JSON body """
+    """Appsec supports <JSON encoded body>"""
 
     def test_json_key(self):
         raise NotImplementedError()
@@ -213,7 +214,7 @@ class Test_BodyJson(BaseTestCase):
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
-    """ Appsec WAF detects attackes in XML body """
+    """Appsec supports <XML encoded body>"""
 
     def test_xml_node(self):
         raise NotImplementedError()
@@ -229,11 +230,18 @@ class Test_BodyXml(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@irrelevant(library="nodejs", reason="not yet rule on method or client_ip")
-class Test_Misc(BaseTestCase):
+@irrelevant(library="nodejs", reason="not yet rule on method")
+class Test_Method(BaseTestCase):
+    """Appsec supports server.request.method"""
+
     def test_method(self):
-        """ Appsec WAF supports server.request.method """
         raise NotImplementedError
+
+
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@irrelevant(library="nodejs", reason="not yet rule on client_ip")
+class Test_ClientIP(BaseTestCase):
+    """Appsec supports server.request.client_ip"""
 
     def test_client_ip(self):
         """ Appsec WAF supports server.request.client_ip """
