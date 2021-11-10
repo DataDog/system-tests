@@ -16,8 +16,9 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 @released(python="0.53")
 @missing_feature(library="ruby")
 class Test_HeaderTags(BaseTestCase):
+    """DD_TRACE_HEADER_TAGS env var support"""
+
     def test_trace_header_tags(self):
-        """DD_TRACE_HEADER_TAGS env var support"""
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]  # TODO: split by comma
         _, tag_name = tag_conf.split(":")
 

@@ -12,5 +12,7 @@ if context.library == "cpp":
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_Scrubbing(BaseTestCase):
+    """Appsec scrubs all sensitive data"""
+
     def test_basic(self):
         raise NotImplementedError
