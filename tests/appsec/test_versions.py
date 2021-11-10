@@ -2,13 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, rfc
-from utils._context.core import not_relevant
+from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant
 
 
 @released(dotnet="?", golang="?", java="0.90.0", nodejs="nodejs@2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
-@not_relevant(library="cpp")
-@not_relevant(context.weblog_variant == "echo-poc")
+@irrelevant(library="cpp")
+@irrelevant(context.weblog_variant == "echo-poc")
 class Test_Events(BaseTestCase):
     """AppSec events uses version 1.0"""
 
@@ -23,7 +22,7 @@ class Test_Events(BaseTestCase):
 
 @rfc("https://github.com/DataDog/appsec-event-rules/tree/1.0.0/v2/build")
 @released(dotnet="?", golang="?", java="0.90.0", nodejs="nodejs@2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
-@not_relevant(library="cpp")
+@irrelevant(library="cpp")
 class Test_LatestWafRuleSet(BaseTestCase):
     """AppSec WAF uses latest recommended rule set"""
 

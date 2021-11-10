@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, not_relevant, missing_feature
+from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature
 import pytest
 
 
@@ -87,7 +87,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
 
     @missing_feature(library="java", reason="actor ip has incorrect data")
-    @not_relevant(library="ruby", reason="neither rack or puma provides this info")
+    @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
         r = self.weblog_get(

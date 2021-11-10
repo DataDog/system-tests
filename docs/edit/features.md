@@ -39,7 +39,7 @@ Also, if a feature is not yet implemented, you can set the version as `?`. The t
 
 Three decorators will helps you to skip some test function or class, depending on the skip reason:
 
-* `@not_relevant`: no need to test
+* `@irrelevant`: no need to test
 * `@missing_feature`: feature or use case is not yet implemented
 * `@bug`: known bug
 
@@ -53,10 +53,10 @@ And then, an `reason` argument with mor details. It's very handy for `@bug`, the
 
 
 ```python
-from utils import BaseTestCase, not_relevant
+from utils import BaseTestCase, irrelevant
 
 
-@not_relevant(library="nodejs")
+@irrelevant(library="nodejs")
 class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 

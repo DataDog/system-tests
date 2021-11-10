@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, not_relevant, missing_feature
+from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature
 import pytest
 
 
@@ -39,7 +39,7 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
     @bug(library="golang")
-    @not_relevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
+    @irrelevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
     def test_query_encoded_legacy(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
@@ -98,7 +98,7 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
         )
 
-    @not_relevant(library="ruby", reason="Rack transforms undersocre to dashes")
+    @irrelevant(library="ruby", reason="Rack transforms undersocre to dashes")
     def test_specific_key2(self):
         """ attacks on specific header X_Filename, and report it """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
@@ -106,7 +106,7 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
         )
 
-    @not_relevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
+    @irrelevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
     @bug(library="golang", reason="entire address is missing")
     def test_specific_key3_legacy(self):
         """ When a specific header key is specified, other key are ignored """
@@ -229,7 +229,7 @@ class Test_BodyXml(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@not_relevant(library="nodejs", reason="not yet rule on method or client_ip")
+@irrelevant(library="nodejs", reason="not yet rule on method or client_ip")
 class Test_Misc(BaseTestCase):
     def test_method(self):
         """ Appsec WAF supports server.request.method """
