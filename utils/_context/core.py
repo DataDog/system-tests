@@ -12,8 +12,7 @@ import pytest
 
 from utils.tools import logger
 from utils._context.cgroup_info import CGroupInfo
-from utils._context.library_version import LibraryVersion
-from packaging.version import parse as parse_version
+from utils._context.library_version import LibraryVersion, Version
 
 
 class ImageInfo:
@@ -55,6 +54,15 @@ class _Context:
                 pytest.exit(f"DD_TRACE_SAMPLE_RATE should be a float, not {sampling_rate}")
         else:
             self.sampling_rate = None
+
+        if self.library == "nodejs":
+            self.waf_rule_set = Version("1.0.0")
+        elif self.library >= "java@0.90.0":
+            self.waf_rule_set = Version("1.0.0")
+        elif self.library == "java":
+            self.waf_rule_set = Version("0.0.1")
+        else:
+            self.waf_rule_set = Version("0.0.1")
 
     def get_weblog_container_id(self):
         cgroup_file = "logs/weblog.cgroup"
@@ -221,7 +229,7 @@ def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=Non
         if version.startswith("not relevant"):
             return _get_wrapped_class(test_class, "not relevant")
 
-        if context.library.version >= parse_version(version):
+        if context.library.version >= version:
             logger.debug(f"{test_class.__name__} feature has been released in {version} => added in test queue")
             return test_class
 

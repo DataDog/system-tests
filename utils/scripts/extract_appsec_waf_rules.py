@@ -11,6 +11,8 @@ def to_camel_case(input):
     return "".join(ele.title() for ele in input.split("_"))
 
 
+#  https://github.com/DataDog/appsec-event-rules/blob/main/v2/build/recommended.json
+
 sources = {
     "dotnet": "https://raw.githubusercontent.com/DataDog/dd-trace-dotnet/master/tracer/src/Datadog.Trace/AppSec/Waf/rule-set.json",
     "nodejs": "https://raw.githubusercontent.com/DataDog/dd-trace-js/vdeturckheim/iaw-bindings/packages/dd-trace/src/appsec/recommended.json",

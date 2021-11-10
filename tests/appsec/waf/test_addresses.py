@@ -29,8 +29,7 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
     """Test that WAF access attacks sent threw query"""
 
@@ -40,13 +39,18 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
     @bug(library="golang")
-    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
-    def test_query_encoded(self):
+    @not_relevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
+    def test_query_encoded_legacy(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
-    @missing_feature(library="ruby", reason="query string is not sent as decoded map")
+    @bug(library="golang")
+    def test_query_encoded(self):
+        """ AppSec catches attacks in URL query value, even encoded"""
+        r = self.weblog_get("/waf/", params={"key": "<script>"})
+        interfaces.library.assert_waf_attack(r, address="server.request.query")
+
     def test_query_with_strict_regex(self):
         """ AppSec catches attacks in URL query value, even with regex containing"""
         r = self.weblog_get("/waf/", params={"value": "0000012345"})
@@ -102,9 +106,9 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
         )
 
-    @not_relevant(library="nodejs", reason="Rules set 2.1 => libinjection does not report highlight")
+    @not_relevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
     @bug(library="golang", reason="entire address is missing")
-    def test_specific_key3(self):
+    def test_specific_key3_legacy(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
         interfaces.library.assert_waf_attack(
@@ -116,8 +120,7 @@ class Test_Headers(BaseTestCase):
             r, pattern="<script >", address="server.request.headers.no_cookies", key_path=["referer"]
         )
 
-    @not_relevant(context.library != "nodejs", reason="Rules set 2.1 => libxss does not report highlight")
-    def test_specific_key4(self):
+    def test_specific_key3(self):
         """ When a specific header key is specified, other key are ignored """
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
         interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies", key_path=["referer"])
