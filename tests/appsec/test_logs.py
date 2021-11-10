@@ -51,6 +51,7 @@ class Test_Standardization(BaseTestCase):
         stdout.assert_presence(r"Executing AppSec In-App WAF with parameters:", level="DEBUG")
 
     @bug(context.library == "java@0.90.0", reason="APPSEC-2190")
+    @bug(context.library == "java@0.91.0", reason="APPSEC-2190")
     @missing_feature(library="dotnet")
     def test_d05(self):
         """Log D5: WAF outputs"""
