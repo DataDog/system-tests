@@ -33,8 +33,7 @@ get_circleci_artifact() {
     echo "CircleCI: https://app.circleci.com/pipelines/$SLUG?branch=master"
     PIPELINES=$(curl --silent https://circleci.com/api/v2/project/$SLUG/pipeline?branch=master -H "Circle-Token: $CIRCLECI_TOKEN")
 
-    for i in {1..30}
-    do
+    for i in {1..30}; do
         PIPELINE_ID=$(echo $PIPELINES| jq -r ".items[$i].id")
         PIPELINE_NUMBER=$(echo $PIPELINES | jq -r ".items[$i].number")
 
@@ -42,25 +41,30 @@ get_circleci_artifact() {
         WORKFLOWS=$(curl --silent https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow -H "Circle-Token: $CIRCLECI_TOKEN")
 
         QUERY=".items[] | select(.name == \"$WORKFLOW_NAME\") | .id"
-        WORKFLOW_ID=$(echo $WORKFLOWS | jq -r "$QUERY")
+        WORKFLOW_IDS=$(echo $WORKFLOWS | jq -r "$QUERY")
 
-        if [ ! -z "$WORKFLOW_ID" ]
-        then
-            echo "=> https://app.circleci.com/pipelines/$SLUG/$PIPELINE_NUMBER/workflows/$WORKFLOW_ID"
+        if [ ! -z "$WORKFLOW_IDS" ]; then
 
-            JOBS=$(curl --silent https://circleci.com/api/v2/workflow/$WORKFLOW_ID/job -H "Circle-Token: $CIRCLECI_TOKEN")
-            QUERY=".items[] | select(.name == \"$JOB_NAME\" and .status==\"success\")"
-            JOB=$(echo $JOBS | jq "$QUERY")
+            for WORKFLOW_ID in $WORKFLOW_IDS; do
+                echo "=> https://app.circleci.com/pipelines/$SLUG/$PIPELINE_NUMBER/workflows/$WORKFLOW_ID"
 
-            if [ ! -z "$JOB" ]
-            then
+                JOBS=$(curl --silent https://circleci.com/api/v2/workflow/$WORKFLOW_ID/job -H "Circle-Token: $CIRCLECI_TOKEN")
+
+                QUERY=".items[] | select(.name == \"$JOB_NAME\" and .status==\"success\")"
+                JOB=$(echo $JOBS | jq "$QUERY")
+
+                if [ ! -z "$JOB" ]; then
+                    break
+                fi
+            done
+
+            if [ ! -z "$JOB" ]; then
                 break
             fi
         fi
     done
 
-    if [ -z "$JOB" ]
-    then
+    if [ -z "$JOB" ]; then
         echo "Oooops, I did not found any successful pipeline"
         exit 1
     fi
