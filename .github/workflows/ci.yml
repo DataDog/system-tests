@@ -1,6 +1,7 @@
 name: Testing the test
 
 on:
+  workflow_dispatch: {}
   pull_request:
     branches:
       - "**"
