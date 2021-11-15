@@ -7,9 +7,7 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 import pytest
 
 
-if context.weblog_variant == "echo-poc":
-    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
-elif context.library == "cpp":
+if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 

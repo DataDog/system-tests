@@ -14,7 +14,6 @@ class Test_TraceUniqueness(BaseTestCase):
 
 
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
-@irrelevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
 class Test_TraceHeaders(BaseTestCase):
     """All required headers are present in all traces submitted to the agent"""
 

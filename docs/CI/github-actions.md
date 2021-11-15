@@ -20,9 +20,9 @@ jobs:
       matrix:
         include:
           - library: golang
-            weblog-variant: net-http-poc
+            weblog-variant: net-http
           - library: golang
-            weblog-variant: echo-poc
+            weblog-variant: gorilla
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.library }}

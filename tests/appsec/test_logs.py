@@ -6,9 +6,7 @@ from utils import BaseTestCase, context, interfaces, released, irrelevant, missi
 import pytest
 
 
-if context.weblog_variant == "echo-poc":
-    pytestmark = pytest.mark.skip("not relevant: echo is not instrumented")
-elif context.library == "cpp":
+if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 # get the default log output

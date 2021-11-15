@@ -8,7 +8,6 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 
 
 @irrelevant(library="cpp")
-@irrelevant(weblog_variant="echo-poc", reason="echo is not instrumented")
 @bug(library="dotnet", reason=".NET replaces dot by underscores: XXXXX")
 @missing_feature(library="golang")
 @missing_feature(library="nodejs")

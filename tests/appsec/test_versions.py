@@ -7,7 +7,6 @@ from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant
 
 @released(dotnet="?", golang="?", java="0.90.0", nodejs="nodejs@2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 @irrelevant(library="cpp")
-@irrelevant(context.weblog_variant == "echo-poc")
 class Test_Events(BaseTestCase):
     """AppSec events uses version 1.0"""
 

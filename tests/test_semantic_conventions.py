@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 from utils import context, BaseTestCase, interfaces, bug, irrelevant
 
 
-@irrelevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
 class Test_Meta(BaseTestCase):
     """meta object in spans respect all conventions"""
 
