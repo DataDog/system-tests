@@ -63,6 +63,7 @@ class TestSecurityScanner(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
 
+
 @released(
     golang="1.34.0-rc.4",
     dotnet="1.28.6",
