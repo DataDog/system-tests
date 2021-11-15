@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/labstack/echo/v4 v4.6.1
-	gopkg.in/DataDog/dd-trace-go.v1 v1.34.0-rc.4
+	gopkg.in/DataDog/dd-trace-go.v1 v1.34.0
 )
 
 require (
