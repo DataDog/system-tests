@@ -63,15 +63,23 @@ class TestSecurityScanner(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
 
-
+@released(
+    golang="1.34.0-rc.4",
+    dotnet="1.28.6",
+    java="0.87.0",
+    nodejs="2.0.0-appsec-alpha.1",
+    ruby="0.51.0",
+    php="?",
+    python="?",
+)
 class TestAddresses(BaseTestCase):
     """
-    server.request.headers.no_cookies should not include cookies.
+    Address server.request.headers.no_cookies should not include cookies.
     """
 
     def test_no_cookies(self):
         """
-        server.request.headers.no_cookies should not include cookies
+        Address server.request.headers.no_cookies should not include cookies.
         """
         # Relying on rule crs-930-110, test the following LFI attack is caught
         # on server.request.headers.no_cookies and then retry it with the cookies
