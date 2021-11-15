@@ -10,8 +10,7 @@ WORKDIR /app
 
 RUN /binaries/install_ddtrace.sh
 
-ARG WEBLOG_VARIANT=net-http
-RUN go build -v -tags appsec -o weblog ./$WEBLOG_VARIANT.go
+RUN go build -v -tags appsec -o weblog ./gorilla.go ./common.go
 
 CMD ./weblog
 

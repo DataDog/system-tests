@@ -29,9 +29,3 @@ func main() {
 	initDatadog()
 	http.ListenAndServe(":7777", mux)
 }
-
-func initDatadog() {
-	span := tracer.StartSpan("init.service")
-	defer span.Finish()
-	span.SetTag("whip", "done")
-}

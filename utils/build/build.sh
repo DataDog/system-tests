@@ -86,12 +86,7 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
-        if [ "$TEST_LIBRARY" = "golang" ]; then
-          DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/Dockerfile
-          EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS} --build-arg=WEBLOG_VARIANT=${WEBLOG_VARIANT}"
-        else
-          DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-        fi
+        DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
         docker build \
             --progress=plain \
             -f ${DOCKERFILE} \

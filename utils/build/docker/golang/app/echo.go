@@ -34,9 +34,3 @@ func main() {
 	initDatadog()
 	r.Start(":7777")
 }
-
-func initDatadog() {
-	span := tracer.StartSpan("init.service")
-	defer span.Finish()
-	span.SetTag("whip", "done")
-}
