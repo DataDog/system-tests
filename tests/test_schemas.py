@@ -8,13 +8,13 @@ from utils import BaseTestCase, interfaces, bug
 
 
 class Test_Library(BaseTestCase):
-    @bug(library="java", reason="APPSEC-1697")
+    """Libraries's payload are valid regarding schemas"""
+
+    @bug(library="java")
     @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
     @bug(library="ruby")
     def test_library_format(self):
-        """Libraries's payload are valid regarding schemas"""
-
         # send some requests to be sure to trigger events
         self.weblog_get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
 
@@ -22,12 +22,13 @@ class Test_Library(BaseTestCase):
 
 
 class Test_Agent(BaseTestCase):
-    @bug(library="java", reason="APPSEC-1697")
+    """Agents's payload are valid regarding schemas"""
+
+    @bug(library="java")
     @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
     @bug(library="ruby")
     def test_agent_format(self):
-        """Agents's payload are valid regarding schemas"""
 
         # send some requests to be sure to trigger events
         self.weblog_get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160

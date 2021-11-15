@@ -2,13 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, released, bug, not_relevant, missing_feature
+from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature
 
 # PHP JAVA ok
 
 
-@not_relevant(library="cpp")
-@not_relevant(weblog_variant="echo-poc", reason="echo is not instrumented")
+@irrelevant(library="cpp")
+@irrelevant(weblog_variant="echo-poc", reason="echo is not instrumented")
 @bug(library="dotnet", reason=".NET replaces dot by underscores: XXXXX")
 @missing_feature(library="golang")
 @missing_feature(library="nodejs")
@@ -16,8 +16,9 @@ from utils import context, BaseTestCase, interfaces, released, bug, not_relevant
 @released(python="0.53")
 @missing_feature(library="ruby")
 class Test_HeaderTags(BaseTestCase):
+    """DD_TRACE_HEADER_TAGS env var support"""
+
     def test_trace_header_tags(self):
-        """DD_TRACE_HEADER_TAGS env var support"""
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]  # TODO: split by comma
         _, tag_name = tag_conf.split(":")
 

@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "/miscs/appsec/contexts/http/0.1.0.json",
+  "title": "Http 0.1.0",
   "definitions": {
     "HttpHeaders": {
       "type": ["object", "null"],
@@ -8,9 +9,11 @@
         "^.*$": {
           "type": "string"
         }
-      }
+      },
+      "existingJavaType" : "java.lang.String"
     },
     "HttpRequest": {
+      "title": "HttpRequest 0.1.0",
       "type": "object",
       "properties": {
         "scheme": {
@@ -58,57 +61,7 @@
           "type": "integer"
         },
         "parameters": {
-          "description": "TODO Formalize this when more context.",
-          "type": ["object", "null"],
-          "properties": {
-            "form": {
-              "type": ["object", "null"],
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "other": {
-              "type": ["object", "null"],
-              "$comment": "This is a dictionary and seems hard to describe consistently at the moment.",
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "query": {
-              "type": ["object", "null"],
-              "$comment": "This is a dictionary and seems hard to describe consistently at the moment.",
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "json": {
-              "type": ["object", "null"],
-              "$comment": "This is a dictionary and seems hard to describe consistently at the moment.",
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
+          "$ref": "parameters.json"
         },
         "headers": {
           "$ref": "#/definitions/HttpHeaders"
@@ -145,6 +98,7 @@
       ]
     },
     "HttpResponse": {
+      "title": "HttpResponse 0.1.0",
       "type": "object",
       "$comments": "FIXME May not be complete",
       "properties": {

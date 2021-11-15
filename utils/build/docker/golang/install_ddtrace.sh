@@ -1,21 +1,28 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
     go mod edit -replace gopkg.in/DataDog/dd-trace-go.v1=/binaries/dd-trace-go
+    # Read from the version file directly because go list cannot know the local
+    # directory version
+    version_file=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)/internal/version/version.go
+    # Parse and print the version string content "v.*"
+    version=$(sed -nrE 's#.*"v(.*)".*#\1#p' $version_file)
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
-    echo "Install from got get $(cat /binaries/golang-load-from-go-get)"
+    echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
     go get -d "$(cat /binaries/golang-load-from-go-get)"
+    version=$(go list -f '{{.Version}}' -m gopkg.in/DataDog/dd-trace-go.v1)
 
 else
     echo "Installing production dd-trace-version"
     go get -d gopkg.in/DataDog/dd-trace-go.v1
+    version=$(go list -f '{{.Version}}' -m gopkg.in/DataDog/dd-trace-go.v1)
 fi
 
 go mod tidy
 
-go list -m all | grep dd-trace-go | sed 's/.* v//' | sed 's/-.*//' > /app/SYSTEM_TESTS_LIBRARY_VERSION
+echo $version > /app/SYSTEM_TESTS_LIBRARY_VERSION
 echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"

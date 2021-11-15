@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 # Automatic generatiom from:
-#    python utils/scripts/extract_appsec_waf_rules.py dotnet
+#    python utils/scripts/extract_appsec_waf_rules.py nodejs
 
 
 class security_scanner:
@@ -107,7 +107,11 @@ class js_code_injection:
 
 
 class xss:
+    crs_941_100 = "crs-941-100"  # XSS Attack Detected via libinjection
     crs_941_110 = "crs-941-110"  # XSS Filter - Category 1: Script Tag Vector
+    crs_941_120 = "crs-941-120"  # XSS Filter - Category 2: Event Handler Vector
+    crs_941_140 = "crs-941-140"  # XSS Filter - Category 4: Javascript URI Vector
+    crs_941_180 = "crs-941-180"  # Node-Validator Deny List Keywords
     crs_941_200 = "crs-941-200"  # IE XSS Filters - Attack Detected via vmlframe tag
     crs_941_210 = "crs-941-210"  # IE XSS Filters - Obfuscated Attack Detected via javascript injection
     crs_941_220 = "crs-941-220"  # IE XSS Filters - Obfuscated Attack Detected via vbscript injection
@@ -121,20 +125,23 @@ class xss:
     crs_941_360 = "crs-941-360"  # JSFuck / Hieroglyphy obfuscation detected
 
 
-class sqli:
+class sql_injection:
+    crs_942_100 = "crs-942-100"  # SQL Injection Attack Detected via libinjection
     crs_942_140 = "crs-942-140"  # SQL Injection Attack: Common DB Names Detected
     crs_942_160 = "crs-942-160"  # Detects blind sqli tests using sleep() or benchmark()
-    crs_942_220 = "crs-942-220"  # Looking for integer overflow attacks, these are taken from skipfish, except 3.0.00738585072007e-308 is the \"magic number\" crash
+    crs_942_190 = "crs-942-190"  # Detects MSSQL code execution and information gathering attempts
+    crs_942_220 = "crs-942-220"  # Looking for integer overflow attacks, these are taken from skipfish, except 2.2.2250738585072011e-308 is the \"magic number\" crash
     crs_942_240 = "crs-942-240"  # Detects MySQL charset switch and MSSQL DoS attempts
     crs_942_250 = "crs-942-250"  # Detects MATCH AGAINST, MERGE and EXECUTE IMMEDIATE injections
     crs_942_270 = "crs-942-270"  # Looking for basic sql injection. Common attack string for mysql, oracle and others
     crs_942_280 = (
         "crs-942-280"  # Detects Postgres pg_sleep injection, waitfor delay attacks and database shutdown attempts
     )
+    crs_942_360 = "crs-942-360"  # Detects concatenated basic SQL injection and SQLLFI attempts
     crs_942_500 = "crs-942-500"  # MySQL in-line comment detected
 
 
-class nosqli:
+class nosql_injection:
     crs_942_290 = "crs-942-290"  # Finds basic MongoDB SQL injection attempts
     sqr_000_007 = "sqr-000-007"  # NoSQL: Detect common exploitation strategy
 
@@ -147,3 +154,8 @@ class java_code_injection:
 
 class ssrf:
     sqr_000_001 = "sqr-000-001"  # SSRF: Try to access the credential manager of the main cloud services
+    sqr_000_011 = "sqr-000-011"  # SSRF: Try to access internal OMI service (CVE-2021-38647)
+    sqr_000_012 = "sqr-000-012"  # SSRF: Detect SSRF attempt on internal service
+    sqr_000_013 = "sqr-000-013"  # SSRF: Detect SSRF attempts using IPv6 or octal/hexdecimal obfuscation
+    sqr_000_014 = "sqr-000-014"  # SSRF: Detect SSRF domain redirection bypass
+    sqr_000_015 = "sqr-000-015"  # SSRF: Detect SSRF attempt using non HTTP protocol

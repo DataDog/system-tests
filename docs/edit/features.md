@@ -32,13 +32,14 @@ class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 ```
 
-It means that the test will be executed starting version `1.2.3`. Arguments are components names, e.g. `java`, `golang`, etc... You can mix them on a single line. 
+It means that the test will be executed starting version `1.2.3`. Arguments are components names, e.g. `java`, `golang`, etc... You can mix them on a single line.
+Also, if a feature is not yet implemented, you can set the version as `?`. The test class will be skipped and flagged as missing feature (see below).
 
 ## Skip tests
 
 Three decorators will helps you to skip some test function or class, depending on the skip reason:
 
-* `@not_relevant`: no need to test
+* `@irrelevant`: no need to test
 * `@missing_feature`: feature or use case is not yet implemented
 * `@bug`: known bug
 
@@ -52,10 +53,10 @@ And then, an `reason` argument with mor details. It's very handy for `@bug`, the
 
 
 ```python
-from utils import BaseTestCase, not_relevant
+from utils import BaseTestCase, irrelevant
 
 
-@not_relevant(library="nodejs")
+@irrelevant(library="nodejs")
 class Test_AwesomeFeature(BaseTestCase)
     """ Short description of Awesome feature """
 
@@ -71,3 +72,16 @@ class Test_AwesomeFeature(BaseTestCase)
     def test_full(self)
         assert 42
 ```
+
+## Declare a RFC
+
+When the RFC exists, you must use this decorator:
+```python
+from utils import BaseTestCase, rfc
+
+
+@rfc("http://www.claymath.org/millennium-problems")
+class Test_Millenium(BaseTestCase)
+    """ Test on small details """
+```
+

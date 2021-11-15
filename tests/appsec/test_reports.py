@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, not_relevant, missing_feature
+from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature
 import pytest
 
 
@@ -14,10 +14,11 @@ elif context.library == "cpp":
 
 @released(golang="?", dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
+    """ Appsec reports good status code """
+
     @missing_feature(library="java", reason="response is not reported")
     @bug(library="ruby", reason="status is missing")
     def test_basic(self):
-        """ Appsec reports good status code """
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
         assert r.status_code == 404
         interfaces.library.assert_waf_attack(r)
@@ -34,6 +35,8 @@ class Test_StatusCode(BaseTestCase):
 @released(golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 @bug(library="dotnet", reason="request headers are not reported")
 class Test_ActorIP(BaseTestCase):
+    """ AppSec reports good actor's IP"""
+
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1",}, stream=True)
@@ -87,7 +90,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
 
     @missing_feature(library="java", reason="actor ip has incorrect data")
-    @not_relevant(library="ruby", reason="neither rack or puma provides this info")
+    @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
         r = self.weblog_get(

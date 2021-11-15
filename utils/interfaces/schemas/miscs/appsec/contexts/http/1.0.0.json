@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "/miscs/appsec/contexts/http/1.0.0.json",
+  "title": "Http 1.0.0",
   "definitions": {
     "HttpHeaders": {
       "type": ["object", "null"],
@@ -11,9 +12,11 @@
               "type": "string"
           }
         }
-      }
+      },
+      "existingJavaType" : "java.util.Map<String, ? extends java.util.Collection<String>>"
     },
     "HttpRequest": {
+      "title": "HttpRequest 1.0.0",
       "type": "object",
       "properties": {
         "method": {
@@ -52,57 +55,7 @@
           "type": ["string", "null"]
         },
         "parameters": {
-          "description": "TODO Formalize this when more context.",
-          "type": ["object", "null"],
-          "properties": {
-            "form": {
-              "type": ["object", "null"],
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "other": {
-              "type": ["object", "null"],
-              "$comment": "This is a dictionary and seems hard to describe consistently at the moment.",
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "query": {
-              "type": ["object", "null"],
-              "$comment": "This is a dictionary and seems hard to describe consistently at the moment.",
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "json": {
-              "type": ["object", "null"],
-              "$comment": "This is a dictionary and seems hard to describe consistently at the moment.",
-              "patternProperties": {
-                "^.+$": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
+          "$ref": "parameters.json"
         }
       },
       "required": [
@@ -114,6 +67,7 @@
       ]
     },
     "HttpResponse": {
+      "title": "HttpResponse 1.0.0",
       "type": "object",
       "properties": {
         "status": {

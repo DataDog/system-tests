@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "/miscs/appsec/contexts/actor/0.1.0.json",
+  "title": "Actor",
   "definitions": {
   },
   "type": "object",
@@ -34,7 +35,8 @@
         "^.+$": {
           "type": "string"
         }
-      }
+      },
+      "existingJavaType" : "java.util.Map<String, Object>"
     },
     "_id": {
       "type": ["string", "null"],

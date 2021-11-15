@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "/miscs/appsec/events/_definitions/rule/0.1.0.json",
+  "title": "Rule 0.1.0",
   "type": "object",
   "properties": {
     "id": {

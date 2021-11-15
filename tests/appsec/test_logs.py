@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, not_relevant, missing_feature
+from utils import BaseTestCase, context, interfaces, released, irrelevant, missing_feature, bug
 import pytest
 
 
@@ -27,13 +27,13 @@ class Test_Standardization(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @not_relevant(library="java", reason="Cannot be implemented with cooperation from libddwaf")
+    @irrelevant(library="java", reason="Cannot be implemented with cooperation from libddwaf")
     def test_d01(self):
         """Log D1: names and adresses AppSec listen to"""
         stdout.assert_presence(r"Loaded rule:", level="DEBUG")  # TODO: should be more precise
 
     @missing_feature(library="dotnet")
-    @not_relevant(library="java", reason="IG doesn't push addresses in Java.")
+    @irrelevant(library="java", reason="IG doesn't push addresses in Java.")
     def test_d02(self):
         """Log D2: Address pushed to Instrumentation Gateway"""
         stdout.assert_presence(r"Pushing address .* to the Instrumentation Gateway.", level="DEBUG")
@@ -50,6 +50,8 @@ class Test_Standardization(BaseTestCase):
         """Log D4: When calling the WAF, logs parameters"""
         stdout.assert_presence(r"Executing AppSec In-App WAF with parameters:", level="DEBUG")
 
+    @bug(context.library == "java@0.90.0", reason="APPSEC-2190")
+    @bug(context.library == "java@0.91.0", reason="APPSEC-2190")
     @missing_feature(library="dotnet")
     def test_d05(self):
         """Log D5: WAF outputs"""

@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, BaseTestCase, interfaces, released, bug, missing_feature
+from utils import context, BaseTestCase, interfaces, released, bug, missing_feature, irrelevant
 from .utils import rules
 import pytest
 
@@ -183,11 +183,23 @@ class Test_JsInjection(BaseTestCase):
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
 
-    def test_xss(self):
+    @irrelevant(context.waf_rule_set < "1.0.0", reason="Rules set 0.0.1 => crs_941_100 does not exists")
+    def test_xss_941_100(self):
         """AppSec catches XSS attacks"""
+        r = self.weblog_get("/waf/", cookies={"key": "<script>"})
+        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_100)
+
+    @irrelevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0 => crs_941_100 catches all")
+    def test_xss_941_110(self):
+        """AppSec catches XSS attacks"""
+
+        # TODO : use a big blob
+
         r = self.weblog_get("/waf/", cookies={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, rules.xss.crs_941_110)
 
+    def test_xss(self):
+        """AppSec catches XSS attacks"""
         r = self.weblog_get("/waf/", cookies={"key": "javascript:x"})
         interfaces.library.assert_waf_attack(r, rules.xss.crs_941_210)
 
@@ -222,9 +234,12 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss.crs_941_350)
 
     @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @irrelevant(context.waf_rule_set >= "1.0.0", reason="crs-941-100 catches it")
     def test_xss2(self):
         """Other XSS patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": '<vmlframe src="xss">'})
+
+        # TODO use a big blog
         interfaces.library.assert_waf_attack(r, rules.xss.crs_941_200)
 
 
@@ -236,31 +251,31 @@ class Test_SQLI(BaseTestCase):
     def test_sqli(self):
         """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf", cookies={"value": "db_name("})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_140)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_140)
 
         r = self.weblog_get("/waf", cookies={"value": "sleep()"})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_160)
-
-        r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_500)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
 
     @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_sqli1(self):
         """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf", params={"value": "0000012345"})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_220)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_220)
 
     @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
     def test_sqli2(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": "alter d char set f"})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_240)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_240)
 
         r = self.weblog_get("/waf", cookies={"value": "merge using("})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_250)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_250)
 
+    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @irrelevant(context.waf_rule_set >= "1.0", reason="crs-942-190 catch it")
+    def test_sqli2_bis(self):
         r = self.weblog_get("/waf", cookies={"value": "union select from"})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_270)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_270)
 
     @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
     @bug(library="java", reason="under Valentin's investigations")
@@ -268,7 +283,12 @@ class Test_SQLI(BaseTestCase):
     def test_sqli3(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})
-        interfaces.library.assert_waf_attack(r, rules.sqli.crs_942_280)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
+
+    @irrelevant(context.waf_rule_set >= "1.0", reason="crs-942-100 catch it")
+    def test_sqli4(self):
+        r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_500)
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
@@ -279,10 +299,10 @@ class Test_NoSqli(BaseTestCase):
     def test_nosqli(self):
         """AppSec catches NoSQLI attacks"""
         r = self.weblog_get("/waf", cookies={"value": "[$ne]"})
-        interfaces.library.assert_waf_attack(r, rules.nosqli.crs_942_290)
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
 
         r = self.weblog_get("/waf", headers={"x-attack": "$nin"})
-        interfaces.library.assert_waf_attack(r, rules.nosqli.sqr_000_007)
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")

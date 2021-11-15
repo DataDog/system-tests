@@ -4,11 +4,13 @@
 
 from urllib.parse import urlparse
 
-from utils import context, BaseTestCase, interfaces, bug, not_relevant
+from utils import context, BaseTestCase, interfaces, bug, irrelevant
 
 
-@not_relevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
+@irrelevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
 class Test_Meta(BaseTestCase):
+    """meta object in spans respect all conventions"""
+
     @bug(library="python", reason="span.kind not included, should be discussed of actually a bug or not")
     @bug(library="ruby", reason="span.kind not included, should be discussed of actually a bug or not")
     @bug(library="golang", reason="span.kind not included, should be discussed of actually a bug or not")
@@ -108,12 +110,12 @@ class Test_Meta(BaseTestCase):
 
 @bug(
     context.library in ("java", "cpp", "python", "ruby", "dotnet"),
-    reason="Inconsistent implementation across tracers;will need a dedicated testing scenario",
+    reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
 )
 class Test_MetaDatadogTags(BaseTestCase):
-    def test_meta_dd_tags(self):
-        """Validates that spans carry meta tags that were set in DD_TAGS tracer environment"""
+    """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
+    def test_meta_dd_tags(self):
         def validator(span):
             if span["meta"]["key1"] != "val1":
                 raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
