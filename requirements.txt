@@ -11,7 +11,7 @@ packaging==20.4
 msgpack==1.0.2
 protobuf==3.16
 
-aiohttp==3.6.2
+aiohttp==3.7.4
 yarl==1.4.2
 
 jsonschema==3.2.0
