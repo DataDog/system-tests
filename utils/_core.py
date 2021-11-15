@@ -21,7 +21,7 @@ class BaseTestCase(unittest.TestCase):
     def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
         return self._weblog_request("POST", path, params=params, data=data, headers=headers, **kwargs)
 
-    def _weblog_request(self, method, path="/", params=None, data=None, headers=None, **kwargs):
+    def _weblog_request(self, method, path="/", params=None, data=None, headers=None, stream=None, **kwargs):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = headers or {}
@@ -46,7 +46,7 @@ class BaseTestCase(unittest.TestCase):
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
             r = req.prepare()
             r.url = url
-            r = requests.Session().send(r, timeout=5)
+            r = requests.Session().send(r, timeout=5, stream=stream)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
             return None  # TODO: find a gentle way to say to pytest there is an error without spamming stdout
