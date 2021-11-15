@@ -35,10 +35,12 @@ class BaseTestCase(unittest.TestCase):
         user_agent = headers.get(user_agent_key, "system_tests")
         headers[user_agent_key] = f"{user_agent} rid/{rid}"
 
-        url = self._get_weblog_url(path)
+        if method == "GET" and params:
+            url = self._get_weblog_url(path, params)
+        else:
+            url = self._get_weblog_url(path)
         full_url = url + "?" + urllib.parse.urlencode(params) if params else url
-
-        logger.debug(f"Send request {rid}: {method} {full_url}")
+        logger.debug(f"Sending request {rid}: {method} {full_url}")
 
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)

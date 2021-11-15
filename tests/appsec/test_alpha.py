@@ -3,12 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released
 import pytest
 
+from utils import context, BaseTestCase, interfaces, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
+
 
 @released(
     golang="1.34.0-rc.4",
@@ -39,6 +40,7 @@ class TestLFIAttempt(BaseTestCase):
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         r = self.weblog_get("/waf/", headers={"MyHeader": "../../../secret.txt"})
         interfaces.library.assert_waf_attack(r, pattern="/../", address="server.request.headers.no_cookies")
+
 
 @released(
     golang="1.34.0-rc.4",
