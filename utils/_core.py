@@ -41,7 +41,10 @@ class BaseTestCase(unittest.TestCase):
         logger.debug(f"Send request {rid}: {method} {full_url}")
 
         try:
-            r = requests.request(method, url, params=params, data=data, headers=headers, timeout=5, **kwargs)
+            req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
+            r = req.prepare()
+            r.url = url
+            r = requests.Session().send(r, timeout=5)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
             return None  # TODO: find a gentle way to say to pytest there is an error without spamming stdout
