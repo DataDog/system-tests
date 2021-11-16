@@ -5,7 +5,7 @@
 from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant
 
 
-@released(dotnet="?", golang="?", java="0.90.0", nodejs="nodejs@2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="0.90.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 @irrelevant(library="cpp")
 class Test_Events(BaseTestCase):
     """AppSec events uses version 1.0"""
@@ -20,7 +20,7 @@ class Test_Events(BaseTestCase):
 
 
 @rfc("https://github.com/DataDog/appsec-event-rules/tree/1.0.0/v2/build")
-@released(dotnet="?", golang="?", java="0.90.0", nodejs="nodejs@2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="0.90.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
 @irrelevant(library="cpp")
 class Test_LatestWafRuleSet(BaseTestCase):
     """AppSec WAF uses latest recommended rule set"""
