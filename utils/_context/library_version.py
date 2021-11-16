@@ -2,14 +2,29 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from packaging.version import parse as parse_version
+from packaging.version import Version as BaseVersion, InvalidVersion
+
+
+def _build_version(version):
+    if isinstance(version, str):
+        return Version(version)
+    elif isinstance(version, Version):
+        return version
+    else:
+        raise TypeError(version)
 
 
 class Version:
     """ Version object that supports comparizon with string"""
 
     def __init__(self, version) -> None:
-        self._version = parse_version(version)
+        try:
+            self._version = BaseVersion(version)
+        except InvalidVersion:
+            if "-" in version:
+                self._version = BaseVersion(version.split("-")[0])
+            else:
+                raise
 
     @staticmethod
     def __test__():
@@ -38,20 +53,24 @@ class Version:
 
         assert v == "0.53.0.dev70+g494e6dc0"
 
+        assert Version("1.31.1") < "v1.34.1-0.20211116150256-dd5b7c8a7caf"
+        assert "1.31.1" < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
+        assert Version("1.31.1") < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
+
     def __eq__(self, other):
-        return self._version == parse_version(other)
+        return self._version == _build_version(other)._version
 
     def __lt__(self, other):
-        return self._version < parse_version(other)
+        return self._version < _build_version(other)._version
 
     def __le__(self, other):
-        return self._version <= parse_version(other)
+        return self._version <= _build_version(other)._version
 
     def __gt__(self, other):
-        return self._version > parse_version(other)
+        return self._version > _build_version(other)._version
 
     def __ge__(self, other):
-        return self._version >= parse_version(other)
+        return self._version >= _build_version(other)._version
 
     def __str__(self):
         return str(self._version)
