@@ -29,6 +29,7 @@ class Test_SamplingDecisions(BaseTestCase):
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(library="java")
     @bug(library="golang")
+    @bug(library="python", reason="flaky")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
