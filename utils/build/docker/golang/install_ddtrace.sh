@@ -13,12 +13,12 @@ if [ -e "/binaries/dd-trace-go" ]; then
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
-    go get -d "$(cat /binaries/golang-load-from-go-get)"
+    go get -v -d "$(cat /binaries/golang-load-from-go-get)"
     version=$(go list -f '{{.Version}}' -m gopkg.in/DataDog/dd-trace-go.v1)
 
 else
     echo "Installing production dd-trace-version"
-    go get -d gopkg.in/DataDog/dd-trace-go.v1
+    go get -v -d -u gopkg.in/DataDog/dd-trace-go.v1
     version=$(go list -f '{{.Version}}' -m gopkg.in/DataDog/dd-trace-go.v1)
 fi
 

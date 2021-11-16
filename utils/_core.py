@@ -21,7 +21,7 @@ class BaseTestCase(unittest.TestCase):
     def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
         return self._weblog_request("POST", path, params=params, data=data, headers=headers, **kwargs)
 
-    def _weblog_request(self, method, path="/", params=None, data=None, headers=None, **kwargs):
+    def _weblog_request(self, method, path="/", params=None, data=None, headers=None, stream=None, **kwargs):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = headers or {}
@@ -35,13 +35,18 @@ class BaseTestCase(unittest.TestCase):
         user_agent = headers.get(user_agent_key, "system_tests")
         headers[user_agent_key] = f"{user_agent} rid/{rid}"
 
-        url = self._get_weblog_url(path)
+        if method == "GET" and params:
+            url = self._get_weblog_url(path, params)
+        else:
+            url = self._get_weblog_url(path)
         full_url = url + "?" + urllib.parse.urlencode(params) if params else url
-
-        logger.debug(f"Send request {rid}: {method} {full_url}")
+        logger.debug(f"Sending request {rid}: {method} {full_url}")
 
         try:
-            r = requests.request(method, url, params=params, data=data, headers=headers, timeout=5, **kwargs)
+            req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
+            r = req.prepare()
+            r.url = url
+            r = requests.Session().send(r, timeout=5, stream=stream)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
             return None  # TODO: find a gentle way to say to pytest there is an error without spamming stdout
