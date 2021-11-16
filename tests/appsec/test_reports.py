@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="1.28.6", nodejs="?", php="?", python="?", ruby="0.51.0")
+@released(golang="?", dotnet="1.28.6", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
