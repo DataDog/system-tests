@@ -5,7 +5,7 @@
 
 import pytest
 
-from utils import context, BaseTestCase, interfaces, released
+from utils import context, BaseTestCase, interfaces, released, irrelevant
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -25,6 +25,7 @@ class TestLFIAttempt(BaseTestCase):
     Detect LFI attack attempts.
     """
 
+    @irrelevant(library="dotnet" and context.weblog_variant == "poc", reason="the .net framework is instrumented after the URI gets simplified")
     def test_uri(self):
         """
         Via server.request.uri.raw
