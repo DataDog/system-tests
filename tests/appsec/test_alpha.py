@@ -27,7 +27,7 @@ class TestLFIAttempt(BaseTestCase):
 
     @irrelevant(
         context.library == "dotnet" and context.weblog_variant == "poc",
-        reason="the .net framework is instrumented after the URI gets simplified"
+        reason="the .net framework is instrumented after the URI gets simplified",
     )
     def test_uri(self):
         """
