@@ -25,7 +25,7 @@ class TestLFIAttempt(BaseTestCase):
     Detect LFI attack attempts.
     """
 
-    @irrelevant(library="dotnet" and context.weblog_variant == "poc", reason="the .net framework is instrumented after the URI gets simplified")
+    @irrelevant(context.library == "dotnet" and context.weblog_variant == "poc", reason="the .net framework is instrumented after the URI gets simplified")
     def test_uri(self):
         """
         Via server.request.uri.raw
