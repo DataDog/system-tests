@@ -8,7 +8,6 @@ from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_fe
 
 
 @irrelevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
-@irrelevant(weblog_variant="echo-poc", reason="echo is not instrumented")
 class Test_SamplingDecisions(BaseTestCase):
     """Sampling configuration"""
 

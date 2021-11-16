@@ -13,7 +13,6 @@ class Test_Backend(BaseTestCase):
         interfaces.agent.assert_use_domain(context.dd_site)
 
 
-@irrelevant(weblog_variant="echo-poc", reason="echo isn't instrumented")
 class Test_Library(BaseTestCase):
     """Misc test around library/agent communication"""
 
