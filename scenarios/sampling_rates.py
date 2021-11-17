@@ -12,6 +12,9 @@ from utils.warmups import default_warmup
 
 context.add_warmup(default_warmup)
 
+AUTO_KEEP = 1
+USER_KEEP = 2
+
 
 class AgentSampledFwdValidation(BaseValidation):
     is_success_on_expiry = True
@@ -67,7 +70,7 @@ class LibrarySamplingRateValidation(BaseValidation):
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
                 return
-            self.sampled_count[sampling_priority == 1] += 1
+            self.sampled_count[sampling_priority in (USER_KEEP, AUTO_KEEP)] += 1
 
     def final_check(self):
         trace_count = sum(self.sampled_count.values())
