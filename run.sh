@@ -11,6 +11,11 @@ if test -f ".env"; then
     source .env
 fi
 
+if [ -z "${DD_API_KEY:-}" ]; then
+    echo "DD_API_KEY is missing in env, please add it."
+    exit 1
+fi
+
 containers=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library)
 
