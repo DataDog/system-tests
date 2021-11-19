@@ -113,8 +113,8 @@ def _main(interface):
             if not validator.is_success:
                 print("    ---> ERROR:")
                 print("")
-                print(validator.logs)
-                exit(1)
+                for log in validator.logs:
+                    print(log)
 
 
 if __name__ == "__main__":

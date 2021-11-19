@@ -1,4 +1,30 @@
 {
-    "$id": "/library/v0.4/misc/trace-item.json",
-    "description" : "TODO"
+  "$id": "/library/v0.4/misc/trace-item.json",
+  "description": "Array of spans",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "service": { "type": "string" },
+      "resource": { "type": "string" },
+      "type": { "type": "string" },
+      "start": { "type": "integer" },
+      "duration": { "type": "integer" },
+      "meta": {
+        "type": "object",
+        "properties": {
+          "appsec.event": { "enum": ["true"] },
+          "_dd.appsec.json": { "type": "string" }
+        }
+      },
+      "metrics": { "type": "object" },
+      "span_id": { "type": "integer" },
+      "trace_id": { "type": "integer" },
+      "parent_id": { "anyOf": [{ "type": "integer" }, { "type": "null" }] },
+      "error": { "type": "integer" }
+    },
+
+    "required": ["name"]
   }
+}

@@ -199,8 +199,8 @@ class BaseValidation(object):
                     self.message = func_obj.__doc__
 
                     # if the message is missing, try to get the parent class docstring
-                    if self.message is None and hasattr(func_obj, "__class__"):
-                        self.message = func_obj.__class__.__doc__
+                    if self.message is None and "self" in frame_info.frame.f_locals:
+                        self.message = frame_info.frame.f_locals["self"].__doc__
 
                 break
 

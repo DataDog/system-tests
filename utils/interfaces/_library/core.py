@@ -90,8 +90,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_span_validation(self, request=None, validator=None):
         self.append_validation(_SpanValidation(request=request, validator=validator))
 
-    def add_appsec_validation(self, request=None, validator=None):
-        self.append_validation(_AppSecValidation(request=request, validator=validator))
+    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None):
+        self.append_validation(
+            _AppSecValidation(request=request, validator=validator, legacy_validator=legacy_validator)
+        )
 
 
 class _TraceIdUniquenessExceptions:
