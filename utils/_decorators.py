@@ -151,21 +151,3 @@ def rfc(link):
         return item
 
     return wrapper
-
-
-if __name__ == "__main__":
-    import sys, logging
-
-    logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-
-    @bug(library="ruby", reason="test")
-    def test():
-        pass
-
-    @bug(library="ruby", reason="test")
-    class Test:
-        pass
-
-    @released(ruby="99.99")
-    class Test:
-        pass

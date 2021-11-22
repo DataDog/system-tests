@@ -44,7 +44,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             with open(filename, "r") as f:
                 buffer = []
                 for line in f:
-                    line = line[:-1]  # remove tailing \n
+                    if line.endswith("\n"):
+                        line = line[:-1]  # remove tailing \n
                     line = self._clean_line(line)
 
                     if self._is_skipped_line(line):
@@ -142,6 +143,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
         else:
             self._new_log_line_pattern = re.compile(r".")
+            self._parsers.append(re.compile(p("message", r".*")))
 
     def _get_files(self):
         return ["logs/docker/weblog/stdout.log"]
