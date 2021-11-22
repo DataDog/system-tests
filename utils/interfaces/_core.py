@@ -16,7 +16,7 @@ import re
 from utils.tools import get_logger, m, e as format_error, get_exception_traceback
 from ._deserializer import deserialize
 
-logger = get_logger("interfaces", use_dedicated_file=True)
+logger = get_logger()
 
 
 class InterfaceValidator(object):
@@ -206,6 +206,8 @@ class BaseValidation(object):
 
         if self.message is None:
             raise Exception(f"Please set a message for {self.frame.function}")
+
+        self.message = self.message.strip()
 
         self.logs = []
 

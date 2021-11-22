@@ -7,13 +7,14 @@ on:
       - "**"
 
 jobs:
-  lint:
+  lint_and_test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
     - run: pip install -r requirements.txt
     - run: black --check --diff .
+    - run: PYTHONPATH="$PWD" python utils/test_the_test.py
   test-the-tests:
     runs-on: ubuntu-latest
     strategy:

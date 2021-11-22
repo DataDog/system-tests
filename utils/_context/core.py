@@ -95,10 +95,3 @@ class _Context:
 
 
 context = _Context()
-
-
-if __name__ == "__main__":
-    import sys, logging
-
-    logger.handlers.append(logging.StreamHandler(stream=sys.stdout))
-    print(context)

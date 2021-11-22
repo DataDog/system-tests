@@ -26,37 +26,6 @@ class Version:
             else:
                 raise
 
-    @staticmethod
-    def __test__():
-        v = Version("1.0")
-
-        assert v == "1.0"
-        assert v != "1.1"
-
-        assert v <= "1.1"
-        assert v <= "1.0"
-        assert "1.1" >= v
-        assert "1.0" >= v
-
-        assert v < "1.1"
-        assert "1.1" > v
-
-        assert v >= "0.9"
-        assert v >= "1.0"
-        assert "0.9" <= v
-        assert "1.0" <= v
-
-        assert v > "0.9"
-        assert "0.9" < v
-
-        v = Version("0.53.0.dev70+g494e6dc0")
-
-        assert v == "0.53.0.dev70+g494e6dc0"
-
-        assert Version("1.31.1") < "v1.34.1-0.20211116150256-dd5b7c8a7caf"
-        assert "1.31.1" < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
-        assert Version("1.31.1") < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
-
     def __eq__(self, other):
         return self._version == _build_version(other)._version
 
@@ -89,52 +58,6 @@ class LibraryVersion:
 
         self.library = library
         self.version = Version(version) if version else None
-
-    @staticmethod
-    def __test__():
-        v = LibraryVersion("p")
-        assert v == "p"
-        assert v != "u"
-
-        v = LibraryVersion("p", "1.0")
-
-        assert v == "p@1.0"
-        assert v == "p"
-        assert v != "p@1.1"
-        assert v != "u"
-
-        assert v <= "p@1.1"
-        assert v <= "p@1.0"
-        assert "p@1.1" >= v
-        assert "p@1.0" >= v
-
-        assert v < "p@1.1"
-        assert "p@1.1" > v
-
-        assert v >= "p@0.9"
-        assert v >= "p@1.0"
-        assert "p@0.9" <= v
-        assert "p@1.0" <= v
-
-        assert v > "p@0.9"
-        assert "p@0.9" < v
-
-        assert (v <= "u@1.0") is False
-        assert (v >= "u@1.0") is False
-
-        assert ("u@1.0" <= v) is False
-        assert ("u@1.0" >= v) is False
-
-        v = LibraryVersion("p")
-
-        assert ("u@1.0" == v) is False
-        assert ("u@1.0" <= v) is False
-
-        v = LibraryVersion("python", "0.53.0.dev70+g494e6dc0")
-
-        assert v == "python@0.53.0.dev70+g494e6dc0"
-
-        print("LibraryVersion is working as expected")
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.library}", "{self.version}")'
@@ -200,8 +123,3 @@ class LibraryVersion:
             "library": self.library,
             "version": str(self.version),
         }
-
-
-if __name__ == "__main__":
-    Version.__test__()
-    LibraryVersion.__test__()
