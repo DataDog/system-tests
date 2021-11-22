@@ -19,9 +19,11 @@ def _get_rid_from_span(span):
     # code version
     user_agent = span.get("meta", {}).get("http.request.headers.user-agent", None)
 
-    if not user_agent:
-        # try something for .NET
+    if not user_agent:  # try something for .NET
         user_agent = span.get("meta", {}).get("http_request_headers_user-agent", None)
+
+    if not user_agent:  # last hope
+        user_agent = span.get("meta", {}).get("http.useragent", None)
 
     return get_rid_from_user_agent(user_agent)
 
@@ -37,5 +39,5 @@ def get_rid_from_user_agent(user_agent):
 def get_spans_related_to_rid(traces, rid):
     for trace in traces:
         for span in trace:
-            if rid == _get_rid_from_span(span):
+            if rid is None or rid == _get_rid_from_span(span):
                 yield span

@@ -4,6 +4,7 @@
 
 """ AppSec validations """
 import traceback
+import json
 
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_spans_related_to_rid, get_rid_from_user_agent
@@ -11,32 +12,36 @@ from utils.tools import m
 
 
 class _BaseAppSecValidation(BaseValidation):
-    # TODO : remove this horrible span/trace identification once we have user agent in appsec event
     path_filters = ["/v0.4/traces", "/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
     def __init__(self, request):
         super().__init__(request=request)
-        self.spans = []  # list of (trace_id, span_id) related to rid
-        self.appSecEvents = []  # list of all appsec events
+        self.spans = []  # list of (trace_id, span_id): span related to rid
+        self.appsec_events = []  # list of all appsec events
 
     def check(self, data):
         if data["path"] == "/v0.4/traces":
             content = data["request"]["content"]
 
-            for span in get_spans_related_to_rid(content, self.rid):
+            for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
                 self.spans.append(f'{span["trace_id"]}#{span["span_id"]}')
+
+                if "_dd.appsec.json" in span.get("meta", {}):
+                    self.appsec_events.append({"span": span, "i": i, "log_filename": data["log_filename"]})
 
         elif data["path"] in ("/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"):
             events = data["request"]["content"]["events"]
             for i, event in enumerate(events):
                 if "trace" in event["context"] and "span" in event["context"]:
-                    self.appSecEvents.append({"event": event, "i": i, "log_filename": data["log_filename"]})
+                    self.appsec_events.append({"legacy_event": event, "i": i, "log_filename": data["log_filename"]})
 
-    def _getRelatedAppSecEvents(self):
+    def _get_related_spans(self):
         return [
             event
-            for event in self.appSecEvents
-            if self._is_related_to_spans(event["event"]) or self._is_my_rid(event["event"])
+            for event in self.appsec_events
+            if "span" in event
+            or self._is_related_to_spans(event["legacy_event"])
+            or self._is_my_rid(event["legacy_event"])
         ]
 
     def _is_related_to_spans(self, event):
@@ -63,6 +68,42 @@ class _BaseAppSecValidation(BaseValidation):
 
         return False
 
+    def final_check(self):
+        spans = self._get_related_spans()
+
+        if len(spans) == 0 and not self.is_success_on_expiry:
+            self.set_failure(f"{self.message} not validated: Can't find any related event")
+
+        for span in spans:
+            if not self.closed:
+                if "legacy_event" in span:
+                    event = span["legacy_event"]
+                    try:
+                        if self.validate_legacy(event):
+                            self.is_success_on_expiry = True
+                    except Exception as e:
+                        msg = traceback.format_exception_only(type(e), e)[0]
+                        self.set_failure(
+                            f"{m(self.message)} not validated on {span['log_filename']}, event #{span['i']}: {msg}"
+                        )
+                else:
+                    span_data = span["span"]
+                    appsec_data = json.loads(span_data["meta"]["_dd.appsec.json"])
+                    try:
+                        if self.validate(span_data, appsec_data):
+                            self.is_success_on_expiry = True
+                    except Exception as e:
+                        msg = traceback.format_exception_only(type(e), e)[0]
+                        self.set_failure(
+                            f"{m(self.message)} not validated on {span['log_filename']}, event #{span['i']}: {msg}"
+                        )
+
+    def validate_legacy(self, event):
+        raise NotImplementedError
+
+    def validate(self, span, appsec_data):
+        raise NotImplementedError
+
 
 class _AppSecValidation(_BaseAppSecValidation):
     """ will run an arbitrary check on appsec event. If a request is provided, only events
@@ -74,35 +115,29 @@ class _AppSecValidation(_BaseAppSecValidation):
         * raise an exception => validation will fail
     """
 
-    def __init__(self, request, validator):
+    def __init__(self, request, validator, legacy_validator):
         super().__init__(request=request)
+        self.legacy_validator = legacy_validator
         self.validator = validator
 
-    def final_check(self):
-        events = self._getRelatedAppSecEvents()
+    def validate_legacy(self, event):
+        if self.legacy_validator:
+            return self.legacy_validator(event)
+        else:
+            return True
 
-        if len(events) == 0 and not self.is_success_on_expiry:
-            self.set_failure(f"{self.message} not validated: Can't find any related event")
-
-        for event_data in events:
-            event = event_data["event"]
-            try:
-                if self.validator(event):
-                    self.is_success_on_expiry = True
-            except Exception as e:
-                msg = traceback.format_exception_only(type(e), e)[0]
-                self.set_failure(
-                    f"{m(self.message)} not validated on {event_data['log_filename']}, event #{event_data['i']}: {msg}"
-                )
+    def validate(self, span, appsec_data):
+        if self.validator:
+            return self.validator(span, appsec_data)
+        else:
+            raise NotImplementedError
 
 
 class _NoAppsecEvent(_BaseAppSecValidation):
-    def final_check(self):
-        if len(self._getRelatedAppSecEvents()):
-            self.set_failure(f"{self.message} => request has been reported")
-            return
+    is_success_on_expiry = True
 
-        self.set_status(True)
+    def validate_legacy(self, event):
+        self.set_failure(f"{m(self.message)} => request has been reported")
 
 
 class _WafAttack(_BaseAppSecValidation):
@@ -143,25 +178,18 @@ class _WafAttack(_BaseAppSecValidation):
 
         return result
 
-    def final_check(self):
-        events = self._getRelatedAppSecEvents()
+    def validate(self, span, appsec_data):
+        for trigger in appsec_data.get("triggers", []):
+            patterns = []
+            addresses = []
+            full_addresses = []
+            rule_id = trigger.get("rule", {}).get("id")
 
-        if len(events) == 0:
-            self.set_failure(f"{self.message} => nothing has been reported")
-            return
-
-        # looking for at least one event that matches all conditions
-        for event_data in events:
-            event = event_data["event"]
-
-            event_version = event.get("event_version", "0.1.0")
-            parameters = self._get_parameters(event)
-            patterns = event.get("rule_match", {}).get("highlight", [])
-            rule_id = event.get("rule", {}).get("id")
-            addresses = [address for address, _ in parameters]
-
-            # be nice with very first AppSec data model, do not check key_path
-            key_path = self.key_path if event_version != "0.1.0" else None
+            for match in trigger.get("rule_matches", []):
+                for parameter in match.get("parameters", []):
+                    patterns += parameter["highlight"]
+                    addresses.append(parameter["address"])
+                    full_addresses.append((parameter["address"], parameter["key_path"]))
 
             if self.rule_id and self.rule_id != rule_id:
                 self.log_info(f"{self.message} => saw {rule_id}")
@@ -169,16 +197,36 @@ class _WafAttack(_BaseAppSecValidation):
             elif self.pattern and self.pattern not in patterns:
                 self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
 
-            elif self.address and key_path is None and self.address not in addresses:
+            elif self.address and self.key_path is None and self.address not in addresses:
                 self.log_info(f"{self.message} => saw {addresses}, expecting {self.address}")
 
-            elif self.address and key_path and (self.address, key_path) not in parameters:
-                self.log_info(f"{self.message} => saw {parameters}, expecting {(self.address, key_path)}")
+            elif self.address and self.key_path and (self.address, self.key_path) not in full_addresses:
+                self.log_info(f"{self.message} => saw {full_addresses}, expecting {(self.address, self.key_path)}")
 
             else:
                 self.set_status(True)
 
-        if not self.closed:
-            # the only way to be closed here is a success
-            # so if it's not closed, it's a failure
-            self.set_status(False)
+    def validate_legacy(self, event):
+        event_version = event.get("event_version", "0.1.0")
+        parameters = self._get_parameters(event)
+        patterns = event.get("rule_match", {}).get("highlight", [])
+        rule_id = event.get("rule", {}).get("id")
+        addresses = [address for address, _ in parameters]
+
+        # be nice with very first AppSec data model, do not check key_path
+        key_path = self.key_path if event_version != "0.1.0" else None
+
+        if self.rule_id and self.rule_id != rule_id:
+            self.log_info(f"{self.message} => saw {rule_id}")
+
+        elif self.pattern and self.pattern not in patterns:
+            self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
+
+        elif self.address and key_path is None and self.address not in addresses:
+            self.log_info(f"{self.message} => saw {addresses}, expecting {self.address}")
+
+        elif self.address and key_path and (self.address, key_path) not in parameters:
+            self.log_info(f"{self.message} => saw {parameters}, expecting {(self.address, key_path)}")
+
+        else:
+            self.set_status(True)

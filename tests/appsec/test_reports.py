@@ -21,13 +21,19 @@ class Test_StatusCode(BaseTestCase):
         assert r.status_code == 404
         interfaces.library.assert_waf_attack(r)
 
-        def check_http_code(event):
+        def check_http_code_legacy(event):
             status_code = event["context"]["http"]["response"]["status"]
             assert status_code == 404, f"404 should have been reported, not {status_code}"
 
             return True
 
-        interfaces.library.add_appsec_validation(r, check_http_code)
+        def check_http_code(span, appsec_data):
+            status_code = span["meta"]["http.status_code"]
+            assert status_code == "404", f"404 should have been reported, not {status_code}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
 @released(golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
@@ -47,7 +53,7 @@ class Test_ActorIP(BaseTestCase):
 
             return True
 
-        interfaces.library.add_appsec_validation(r, _check_remote_ip)
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_remote_ip)
 
     def test_http_request_headers(self):
         """ AppSec reports the HTTP headers used for actor IP detection."""
@@ -77,15 +83,15 @@ class Test_ActorIP(BaseTestCase):
 
             return inner_check
 
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-forwarded-for"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-client-ip"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-real-ip"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-forwarded"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("x-cluster-client-ip"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("forwarded-for"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("forwarded"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("via"))
-        interfaces.library.add_appsec_validation(r, _check_header_is_present("true-client-ip"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-forwarded-for"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-client-ip"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-real-ip"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-forwarded"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-cluster-client-ip"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("forwarded-for"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("forwarded"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("via"))
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("true-client-ip"))
 
     @missing_feature(library="java", reason="actor ip has incorrect data")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
@@ -103,7 +109,7 @@ class Test_ActorIP(BaseTestCase):
 
             return True
 
-        interfaces.library.add_appsec_validation(r, _check_actor_ip)
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_actor_ip)
 
 
 @released(golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
@@ -122,4 +128,4 @@ class Test_Info(BaseTestCase):
 
             return True
 
-        interfaces.library.add_appsec_validation(r, _check_service)
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_service)
