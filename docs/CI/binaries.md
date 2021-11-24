@@ -19,7 +19,7 @@ TODO
 
 1. Add a file `golang-load-from-go-get`, the content will be installed by `go get`. Content example:
     * `gopkg.in/DataDog/dd-trace-go.v1@a8c99b56c5bf2545da7e38f4ad97b1da5cfe73b7`
-2. Clone the dd-trace-go inside `binaries`
+2. Clone the dd-trace-go repo inside `binaries`
 
 ## Java library
 
@@ -44,3 +44,4 @@ TODO
 
 * Create an file `ruby-load-from-bundle-add` in `binaries/`, the content will be installed by `bundle add`. Content example:
   * `ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"`
+2. Clone the dd-trace-rb repo inside `binaries`
