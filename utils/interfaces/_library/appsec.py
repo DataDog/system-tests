@@ -9,6 +9,7 @@ import json
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_spans_related_to_rid, get_rid_from_user_agent
 from utils.tools import m
+from utils.interfaces._library.appsec_data import rule_id_to_type
 
 
 class _BaseAppSecValidation(BaseValidation):
@@ -141,9 +142,22 @@ class _NoAppsecEvent(_BaseAppSecValidation):
 
 
 class _WafAttack(_BaseAppSecValidation):
-    def __init__(self, request, rule_id=None, pattern=None, patterns=None, address=None, key_path=None):
+    def __init__(self, request, rule=None, pattern=None, patterns=None, address=None, key_path=None):
         super().__init__(request=request)
-        self.rule_id = rule_id
+
+        # rule can be a rule id, or a rule type
+        if rule is None:
+            self.rule_id = None
+            self.rule_type = None
+
+        elif isinstance(rule, str):
+            self.rule_id = rule
+            self.rule_type = None
+
+        else:
+            self.rule_id = None
+            self.rule_type = rule.__name__
+
         self.pattern = pattern
 
         self.address = address
@@ -184,6 +198,11 @@ class _WafAttack(_BaseAppSecValidation):
             addresses = []
             full_addresses = []
             rule_id = trigger.get("rule", {}).get("id")
+            rule_type = trigger.get("rule", {}).get("tags", {}).get("type")
+
+            # Some agent does not report rule type ??
+            if not rule_type:
+                rule_type = rule_id_to_type.get(rule_id)
 
             for match in trigger.get("rule_matches", []):
                 for parameter in match.get("parameters", []):
@@ -193,6 +212,9 @@ class _WafAttack(_BaseAppSecValidation):
 
             if self.rule_id and self.rule_id != rule_id:
                 self.log_info(f"{self.message} => saw {rule_id}")
+
+            if self.rule_type and self.rule_type != rule_type:
+                self.log_info(f"{self.message} => saw rule type {rule_type}")
 
             elif self.pattern and self.pattern not in patterns:
                 self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
@@ -209,15 +231,24 @@ class _WafAttack(_BaseAppSecValidation):
     def validate_legacy(self, event):
         event_version = event.get("event_version", "0.1.0")
         parameters = self._get_parameters(event)
-        patterns = event.get("rule_match", {}).get("highlight", [])
+        rule_match = event.get("rule_match", {})
+        patterns = rule_match.get("highlight", rule_match.get("parameters", [{}])[0].get("highlight", []))
         rule_id = event.get("rule", {}).get("id")
+        rule_type = event.get("rule", {}).get("tags", {}).get("type")
         addresses = [address for address, _ in parameters]
 
-        # be nice with very first AppSec data model, do not check key_path
+        # Some agent does not report rule type
+        if not rule_type:
+            rule_type = rule_id_to_type.get(rule_id)
+
+        # be nice with very first AppSec data model, do not check key_path or rule_type
         key_path = self.key_path if event_version != "0.1.0" else None
 
         if self.rule_id and self.rule_id != rule_id:
-            self.log_info(f"{self.message} => saw {rule_id}")
+            self.log_info(f"{self.message} => saw rule id {rule_id}")
+
+        if self.rule_type and self.rule_type != rule_type:
+            self.log_info(f"{self.message} => saw rule type {rule_type}")
 
         elif self.pattern and self.pattern not in patterns:
             self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")

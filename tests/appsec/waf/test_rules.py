@@ -61,16 +61,16 @@ class Test_LFI(BaseTestCase):
     def test_lfi(self):
         """ AppSec catches LFI attacks"""
         r = self.weblog_get("/waf", headers={"x-attack": "/../"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.lfi.crs_930_100)
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
-        interfaces.library.assert_waf_attack(r, rule_id=rules.lfi.crs_930_100)
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
         r = self.weblog_get("/waf/%2e%2e%2f")
-        interfaces.library.assert_waf_attack(r, rule_id=rules.lfi.crs_930_100)
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
         r = self.weblog_get("/waf/", params={"attack": ".htaccess"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.lfi.crs_930_120)
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_120)
 
     @bug(library="dotnet", reason="APPSEC-1405")
     @bug(library="java", reason="under Valentin's investigations")
@@ -79,7 +79,7 @@ class Test_LFI(BaseTestCase):
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         r = self.weblog_get("/waf/..")
-        interfaces.library.assert_waf_attack(r, rule_id=rules.lfi.crs_930_110)
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_110)
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
@@ -105,22 +105,22 @@ class Test_CommandInjection(BaseTestCase):
     def test_command_injection(self):
         """ Appsec WAF detects command injection attacks """
         r = self.weblog_get("/waf/", cookies={"x-attack": "$pwd"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.command_injection.crs_932_160)
+        interfaces.library.assert_waf_attack(r, rules.command_injection.crs_932_160)
 
         r = self.weblog_get("/waf/", headers={"x-attack": "() {"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.command_injection.crs_932_171)
+        interfaces.library.assert_waf_attack(r, rules.command_injection.crs_932_171)
 
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.command_injection.crs_932_180)
+        interfaces.library.assert_waf_attack(r, rules.command_injection.crs_932_180)
 
         r = self.weblog_get("/waf/", headers={"x-attack": "|type %d%\\d.ini|"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.command_injection.sqr_000_008)
+        interfaces.library.assert_waf_attack(r, rules.command_injection.sqr_000_008)
 
         r = self.weblog_get("/waf/", headers={"x-attack": "|cat /etc/passwd|"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.command_injection.sqr_000_009)
+        interfaces.library.assert_waf_attack(r, rules.command_injection.sqr_000_009)
 
         r = self.weblog_get("/waf/", headers={"x-attack": "|timeout /t 1|"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.command_injection.sqr_000_010)
+        interfaces.library.assert_waf_attack(r, rules.command_injection.sqr_000_010)
 
 
 @released(golang="1.33.1", java="0.87.0", php="?", python="?", ruby="0.51.0")
@@ -131,32 +131,32 @@ class Test_PhpCodeInjection(BaseTestCase):
     def test_php_code_injection(self):
         """ Appsec WAF detects unrestricted file upload attacks """
         r = self.weblog_get("/waf/", headers={"x-file-name": ".php."})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.unrestricted_file_upload.crs_933_111)
+        interfaces.library.assert_waf_attack(r, rules.unrestricted_file_upload.crs_933_111)
 
         r = self.weblog_get("/waf/", cookies={"x-attack": "$globals"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_130)
+        interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_130)
 
         r = self.weblog_get("/waf/", cookies={"x-attack": "AUTH_TYPE"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_131)
+        interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_131)
 
         r = self.weblog_get("/waf/", cookies={"x-attack": "php://fd"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_140)
+        interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_140)
 
         r = self.weblog_get("/waf/", params={"x-attack": "bzdecompress"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_150)
+        interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_150)
 
         r = self.weblog_get("/waf/", cookies={"x-attack": "rar://"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_200)
+        interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_200)
 
     @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
     @bug(library="golang")
     def test_php_code_injection_bug(self):
         """ Appsec WAF detects other php injection rules """
         r = self.weblog_get("/waf/", cookies={"x-attack": " var_dump ()"})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_160)
+        interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_160)
 
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
-        interfaces.library.assert_waf_attack(r, rule_id=rules.php_code_injection.crs_933_170)
+        interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_170)
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
@@ -181,65 +181,51 @@ class Test_JsInjection(BaseTestCase):
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
 
-    @irrelevant(context.waf_rule_set < "1.0.0", reason="Rules set 0.0.1 => crs_941_100 does not exists")
-    def test_xss_941_100(self):
-        """AppSec catches XSS attacks"""
-        r = self.weblog_get("/waf/", cookies={"key": "<script>"})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_100)
-
-    @irrelevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0 => crs_941_100 catches all")
-    def test_xss_941_110(self):
-        """AppSec catches XSS attacks"""
-
-        # TODO : use a big blob
-
-        r = self.weblog_get("/waf/", cookies={"key": "<script>"})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_110)
-
-    @missing_feature(library="ruby", reason="Needs to understand if 941-100 should catch these uses cases")
     def test_xss(self):
         """AppSec catches XSS attacks"""
+
+        r = self.weblog_get("/waf/", cookies={"key": "<script>"})
+        interfaces.library.assert_waf_attack(r, rules.xss)
+
         r = self.weblog_get("/waf/", cookies={"key": "javascript:x"})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_210)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "vbscript:x"})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_220)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "<EMBED+src="})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_230)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "<importimplementation="})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_240)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "<LINK+href="})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_270)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "<BASE+href="})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_280)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "<APPLET+"})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_290)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "<OBJECT+type="})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_300)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
         r = self.weblog_get("/waf/", cookies={"key": "!![]"})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_360)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
     @bug(library="ruby", reason="need to be investiged")
     def test_xss1(self):
         """AppSec catches XSS attacks"""
         r = self.weblog_get("/waf/", cookies={"key": "+ADw->|<+AD$-"})
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_350)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
     @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
-    @irrelevant(context.waf_rule_set >= "1.0.0", reason="crs-941-100 catches it")
     def test_xss2(self):
         """Other XSS patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": '<vmlframe src="xss">'})
 
-        # TODO use a big blog
-        interfaces.library.assert_waf_attack(r, rules.xss.crs_941_200)
+        interfaces.library.assert_waf_attack(r, rules.xss)
 
 
 @released(golang="?", php="?", python="?", ruby="0.51.0")
@@ -254,6 +240,9 @@ class Test_SQLI(BaseTestCase):
 
         r = self.weblog_get("/waf", cookies={"value": "sleep()"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
+
+        r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
+        interfaces.library.assert_waf_attack(r, rules.sql_injection)
 
     @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_sqli1(self):
@@ -283,11 +272,6 @@ class Test_SQLI(BaseTestCase):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
-
-    @irrelevant(context.waf_rule_set >= "1.0", reason="crs-942-100 catch it")
-    def test_sqli4(self):
-        r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
-        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_500)
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")

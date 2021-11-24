@@ -20,7 +20,8 @@ class Test_Events(BaseTestCase):
 
 
 @rfc("https://github.com/DataDog/appsec-event-rules/tree/1.0.0/v2/build")
-@released(dotnet="?", golang="?", java="0.90.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
+@released(dotnet="1.30.0", golang="?", java="0.90.0")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.53.0")
 @irrelevant(library="cpp")
 class Test_LatestWafRuleSet(BaseTestCase):
     """AppSec WAF uses latest recommended rule set"""

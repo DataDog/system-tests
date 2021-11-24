@@ -22,7 +22,7 @@ class Test_404(BaseTestCase):
         assert r.status_code == 404
         interfaces.library.assert_waf_attack(
             r,
-            rule_id=rules.security_scanner.ua0_600_12x,
+            rule=rules.security_scanner.ua0_600_12x,
             pattern="Arachni/v",
             address="server.request.headers.no_cookies",
             key_path=["user-agent"],
@@ -37,7 +37,7 @@ class Test_MultipleHighlight(BaseTestCase):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
         interfaces.library.assert_waf_attack(
-            r, rule_id=rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
+            r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
         )
 
 
