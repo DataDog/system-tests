@@ -21,7 +21,7 @@ def create_context():
         json.dump(data, open(f"logs/{name}_image.json", "w"))
 
     build_docker_info("agent", {})
-    build_docker_info("weblog", ["SYSTEM_TESTS_LIBRARY=ruby", "SYSTEM_TESTS_LIBRARY_VERSION=0.66"])
+    build_docker_info("weblog", ["SYSTEM_TESTS_LIBRARY=ruby", "SYSTEM_TESTS_LIBRARY_VERSION=0.66.0"])
 
     from utils.tools import logger
 
@@ -78,10 +78,10 @@ def test_context():
     from utils import context
 
     assert context.library == "ruby"
-    assert context.library == "ruby@0.66"
+    assert context.library == "ruby@0.66.0"
     assert context.weblog_variant is None
     assert context.sampling_rate is None
-    assert context.waf_rule_set == "0.0.1"
+    assert context.waf_rule_set == "1.0.0"
     print("Test context OK")
 
 
@@ -116,6 +116,9 @@ def test_version():
     assert Version("1.31.1") < "v1.34.1-0.20211116150256-dd5b7c8a7caf"
     assert "1.31.1" < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
     assert Version("1.31.1") < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
+
+    v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
+    assert v == Version("0.53.0")
 
     print("Test Version class OK")
 

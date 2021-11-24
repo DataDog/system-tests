@@ -196,6 +196,7 @@ class Test_XSS(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, rules.xss.crs_941_110)
 
+    @missing_feature(library="ruby", reason="Needs to understand if 941-100 should catch these uses cases")
     def test_xss(self):
         """AppSec catches XSS attacks"""
         r = self.weblog_get("/waf/", cookies={"key": "javascript:x"})

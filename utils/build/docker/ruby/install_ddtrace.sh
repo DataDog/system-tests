@@ -18,5 +18,5 @@ fi
 
 bundle install
 
-bundle list | grep ddtrace | sed -E 's/.*\(//' | sed -E 's/[ )].*//' > SYSTEM_TESTS_LIBRARY_VERSION
+bundle list | grep ddtrace > SYSTEM_TESTS_LIBRARY_VERSION
 echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"

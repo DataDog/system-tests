@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from packaging.version import Version as BaseVersion, InvalidVersion
+import re
 
 
 def _build_version(version):
@@ -17,7 +18,15 @@ def _build_version(version):
 class Version:
     """ Version object that supports comparizon with string"""
 
-    def __init__(self, version) -> None:
+    def __init__(self, version, component=None):
+        # some cleanup to handle the variaty of versions numbers
+
+        if component == "ruby":
+            version = version.strip()
+            if version.startswith("* ddtrace"):
+
+                version = re.sub(r"\* *ddtrace *\((\d+\.\d+\.\d+).*", r"\1", version)
+
         try:
             self._version = BaseVersion(version)
         except InvalidVersion:
@@ -57,7 +66,7 @@ class LibraryVersion:
             raise ValueError("Library can't contains '@'")
 
         self.library = library
-        self.version = Version(version) if version else None
+        self.version = Version(version, component=library) if version else None
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.library}", "{self.version}")'

@@ -59,6 +59,8 @@ class _Context:
             self.waf_rule_set = Version("1.0.0")
         elif self.library >= "dotnet@1.30.0":
             self.waf_rule_set = Version("1.0.0")
+        elif self.library >= "ruby@0.53.0":
+            self.waf_rule_set = Version("1.0.0")
         elif self.library == "java":
             self.waf_rule_set = Version("0.0.1")
         else:
