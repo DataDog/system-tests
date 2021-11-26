@@ -93,7 +93,6 @@
         "port",
         "url",
         "remote_ip",
-        "remote_port",
         "path"
       ]
     },

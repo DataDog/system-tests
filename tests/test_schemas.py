@@ -13,7 +13,6 @@ class Test_Library(BaseTestCase):
     @bug(library="java")
     @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
-    @bug(library="ruby")
     def test_library_format(self):
         # send some requests to be sure to trigger events
         self.weblog_get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
@@ -27,7 +26,6 @@ class Test_Agent(BaseTestCase):
     @bug(library="java")
     @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
-    @bug(library="ruby")
     def test_agent_format(self):
 
         # send some requests to be sure to trigger events
