@@ -11,7 +11,6 @@ class Test_Library(BaseTestCase):
     """Libraries's payload are valid regarding schemas"""
 
     @bug(library="java")
-    @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
     def test_full(self):
         # send some requests to be sure to trigger events
@@ -31,6 +30,12 @@ class Test_Library(BaseTestCase):
                 r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
                 r"'protocol_version' is a required property on instance ",
             )
+        elif context.library == "java":
+            allowed_errors = (
+                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
+                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
+                r"'idempotency_key' is a required property on instance ",
+            )
 
         interfaces.library.assert_schemas(allowed_errors=allowed_errors)
 
@@ -39,7 +44,6 @@ class Test_Agent(BaseTestCase):
     """Agents's payload are valid regarding schemas"""
 
     @bug(library="java")
-    @bug(library="dotnet", reason="APPSEC-1698")
     @bug(library="golang")
     def test_agent_format(self):
 
@@ -59,6 +63,12 @@ class Test_Agent(BaseTestCase):
             allowed_errors = (
                 r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
                 r"'protocol_version' is a required property on instance ",
+            )
+        elif context.library == "java":
+            allowed_errors = (
+                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
+                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
+                r"'idempotency_key' is a required property on instance ",
             )
 
         interfaces.agent.assert_schemas(allowed_errors=allowed_errors)
