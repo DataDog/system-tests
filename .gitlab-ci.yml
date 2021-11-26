@@ -20,7 +20,7 @@ cross-components:
   parallel:
     matrix:
       - TEST_LIBRARY: php
-        WEBLOG_VARIANT: vanilla-poc
+        WEBLOG_VARIANT: apache-mod
   script:
     - ./utils/scripts/load-binary.sh $TEST_LIBRARY
     - ./build.sh

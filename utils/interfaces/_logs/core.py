@@ -141,6 +141,16 @@ class _LibraryStdout(_LogsInterfaceValidator):
 
         elif context.library == "dotnet":
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
+        elif context.library == "php":
+            self._skipped_patterns += [
+                re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),
+            ]
+
+            timestamp = p("timestamp", r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")
+            level = p("level", r"\w+")
+            thread = p("thread", r"\d+")
+            message = p("message", r".+")
+            self._parsers.append(re.compile(fr"\[{timestamp}\]\[{level}\]\[{thread}\] {message}"))
         else:
             self._new_log_line_pattern = re.compile(r".")
             self._parsers.append(re.compile(p("message", r".*")))
@@ -153,6 +163,12 @@ class _LibraryStdout(_LogsInterfaceValidator):
             line = line[19:]
 
         return line
+
+    def _get_standardized_level(self, level):
+        if context.library == "php":
+            return level.upper()
+        else:
+            super(_LibraryStdout, self)._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):

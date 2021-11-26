@@ -4,7 +4,7 @@
 
 #!/bin/bash
 
-set -e
+set -ex
 
 # set .env if exists. Allow users to keep their conf via env vars
 if test -f ".env"; then
@@ -49,7 +49,7 @@ elif [ "$TEST_LIBRARY" = "java" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}
 
 elif [ "$TEST_LIBRARY" = "php" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-vanilla-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-apache-mod}
 
 elif [ "$TEST_LIBRARY" = "dotnet" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-poc}

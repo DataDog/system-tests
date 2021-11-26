@@ -2,25 +2,37 @@
 
 set -eu
 
+curl -Lf -o /tmp/dd-library-php-setup.php \
+  https://raw.githubusercontent.com/cataphract/dd-trace-php/php-install-ddappsec/dd-library-php-setup.php
+
 cd /binaries
 
-get_latest_release() {
-    wget -qO- "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/';
-}
-
-if [ $(ls *.apk | wc -l) = 0 ]; then
-    echo "Install ddtrace from github releases"
-    DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-php)"
-    wget -O datadog-php-tracer_${DDTRACE_VERSION}_noarch.apk https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/datadog-php-tracer_${DDTRACE_VERSION}_noarch.apk
-    apk add datadog-php-tracer_${DDTRACE_VERSION}_noarch.apk --allow-untrusted
-elif [ $(ls *.apk | wc -l) = 1 ]; then
-    echo "Install ddtrace from $(ls *.apk)"
-    apk add $(ls *.apk) --allow-untrusted
-else
-    echo "ERROR: Found several apk files in binaries/, abort."
-    exit 1
+BINARIES_APPSEC_N=$(find . -name 'dd-appsec-php-*.tar.gz' | wc -l)
+BINARIES_TRACER_N=$(find . -name 'datadog-php-tracer*.tar.gz' | wc -l)
+INSTALLER_ARGS=()
+if [[ $BINARIES_APPSEC_N -eq 1 ]]; then
+  INSTALLER_ARGS+=(--appsec-file /binaries/dd-appsec-php-*.tar.gz)
+elif [[ $BINARIES_APPSEC_N -gt 1 ]]; then
+  echo "Too many appsec packages in /binaries" >&2
+  exit 1
 fi
 
-cd -
+if [[ $BINARIES_TRACER_N -eq 1 ]]; then
+  INSTALLER_ARGS+=(--tracer-file /binaries/datadog-php-tracer*.tar.gz)
+elif [[ $BINARIES_TRACER_N -gt 1 ]]; then
+  echo "Too many appsec packages in /binaries" >&2
+  exit 1
+else
+  INSTALLER_ARGS+=(--tracer-version 0.67.0)
+fi
 
-apk info datadog-php-tracer | grep -m 1 description | sed 's/datadog-php-tracer-//' | sed 's/ description://' > SYSTEM_TESTS_LIBRARY_VERSION
+PHP_INI_SCAN_DIR=/etc/php/ php /tmp/dd-library-php-setup.php \
+  "${INSTALLER_ARGS[@]}"\
+  --php-bin all
+
+php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
+  ./SYSTEM_TESTS_LIBRARY_VERSION
+
+find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
+mkdir -p /etc/dd-appsec
+find /opt -name recommended.json -exec ln -s '{}' /etc/dd-appsec/ \;

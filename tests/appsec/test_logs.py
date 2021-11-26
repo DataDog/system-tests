@@ -13,7 +13,7 @@ if context.library == "cpp":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", nodejs="?", php="0.1.0", python="?", ruby="?")
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
 
@@ -26,6 +26,7 @@ class Test_Standardization(BaseTestCase):
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     @irrelevant(library="java", reason="Cannot be implemented with cooperation from libddwaf")
+    @missing_feature(library="php")
     def test_d01(self):
         """Log D1: names and adresses AppSec listen to"""
         stdout.assert_presence(r"Loaded rule:", level="DEBUG")  # TODO: should be more precise
@@ -38,6 +39,7 @@ class Test_Standardization(BaseTestCase):
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
+    @missing_feature(library="php", reason="Happens inside the WAF")
     def test_d03(self):
         """Log D3: When an address matches a rule needs"""
         stdout.assert_presence(r"Available addresses .* match needs for rules", level="DEBUG")
@@ -53,10 +55,11 @@ class Test_Standardization(BaseTestCase):
     @missing_feature(library="dotnet")
     def test_d05(self):
         """Log D5: WAF outputs"""
-        stdout.assert_presence(r'AppSec In-App WAF returned:.*"rule":"crs-921-160"', level="DEBUG")
-        stdout.assert_presence(r'AppSec In-App WAF returned:.*"rule":"crs-913-110"', level="DEBUG")
+        stdout.assert_presence(r'AppSec In-App WAF returned:.*crs-921-160"', level="DEBUG")
+        stdout.assert_presence(r'AppSec In-App WAF returned:.*crs-913-110"', level="DEBUG")
 
     @missing_feature(library="dotnet")
+    @missing_feature(library="php", reason="Would require parsing the WAF result")
     def test_d06(self):
         """Log D6: WAF rule detected an attack with details"""
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160:.*", level="DEBUG")
@@ -75,41 +78,48 @@ class Test_Standardization(BaseTestCase):
     @missing_feature(library="dotnet")
     def test_d10(self):
         """Log D10: WAF end of execution"""
-        stdout.assert_presence(r"Executing AppSec In-App WAF finished. Took \d+ ms\.$", level="DEBUG")
+        stdout.assert_presence(r"Executing AppSec In-App WAF finished. Took \d+(?:\.\d+)? ms\.$", level="DEBUG")
 
     @missing_feature(library="dotnet")
+    @missing_feature(library="php")
     def test_i01(self):
         """Log I1: AppSec initial configuration"""
         stdout.assert_presence(r"AppSec initial configuration from .*, libddwaf version: \d+\.\d+\.\d+", level="INFO")
 
     @missing_feature(library="dotnet")
+    @missing_feature(library="php", reason="rules are not analyzed, only converted to PWArgs")
     def test_i02(self):
         """Log I2: AppSec rule source"""
         stdout.assert_presence(r"AppSec loaded \d+ rules from file .*$", level="INFO")
 
     @missing_feature(library="dotnet")
     @missing_feature(context.library <= "java@0.88.0", reason="small typo")
+    @missing_feature(library="php")
     def test_i05(self):
         """Log I5: WAF detected an attack"""
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160$", level="INFO")
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110$", level="INFO")
 
     @missing_feature(library="dotnet")
+    @missing_feature(library="php", reason="attack is only meta tag on trace")
     def test_i07(self):
         """Log I7: Pushing AppSec events"""
         stdout.assert_presence(r"Pushing new attack to AppSec events$", level="INFO")
 
     @missing_feature(library="dotnet")
+    @missing_feature(library="php", reason="attack is only meta tag on trace")
     def test_i08(self):
         """Log I8: Sending AppSec events"""
         stdout.assert_presence(r"Sending \d+ AppSec events to the agent$", level="INFO")
 
     @missing_feature(True, reason="not testable as now")
+    @missing_feature(library="php", reason="attack is only meta tag on trace")
     def test_i09(self):
         """Log I9: Dropping events"""
         stdout.assert_presence(r"Dropping \d+ AppSec events because ", level="INFO")
 
     @missing_feature(True, reason="not testable as now")
+    @missing_feature(library="php", reason="attack is only meta tag on trace")
     def test_i10(self):
         """Log I10: Flushing events before shutdown"""
         stdout.assert_presence(r"Reporting AppSec event batch because of process shutdown.$", level="INFO")

@@ -13,7 +13,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_Scanners(BaseTestCase):
     """ Appsec WAF tests on scanners rules """
@@ -30,7 +30,7 @@ class Test_Scanners(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120)
 
 
-@released(golang="?", php="?", python="?", ruby="0.51.0")
+@released(golang="?", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
@@ -40,7 +40,7 @@ class Test_HttpProtocol(BaseTestCase):
     @bug(library="ruby", reason="? need to be investiged")
     def test_http_protocol(self):
         """ AppSec catches attacks by violation of HTTP protocol"""
-        r = self.weblog_get("/waf", cookies={"key": ".cookie-;domain="})
+        r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_943_100)
 
     @missing_feature(library="ruby", reason="query string is not sent as decoded map")
@@ -53,7 +53,7 @@ class Test_HttpProtocol(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_921_160)
 
 
-@released(golang="?", php="?", python="?", ruby="0.51.0")
+@released(golang="?", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
@@ -66,11 +66,14 @@ class Test_LFI(BaseTestCase):
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
-        r = self.weblog_get("/waf/%2e%2e%2f")
-        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
-
         r = self.weblog_get("/waf/", params={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_120)
+
+    # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
+    @irrelevant(library="php", weblog_variant="apache-mod")
+    def test_lfi_percent_2f(self):
+        r = self.weblog_get("/waf/%2e%2e%2f")
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
     @bug(library="dotnet", reason="APPSEC-1405")
     @bug(library="java", reason="under Valentin's investigations")
@@ -82,7 +85,7 @@ class Test_LFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_110)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_RFI(BaseTestCase):
     """ Appsec WAF tests on RFI rules """
@@ -97,7 +100,7 @@ class Test_RFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.rfi.crs_931_120)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
@@ -123,7 +126,7 @@ class Test_CommandInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.command_injection.sqr_000_010)
 
 
-@released(golang="1.33.1", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_PhpCodeInjection(BaseTestCase):
     """ Appsec WAF tests on PHP injection rules """
@@ -159,7 +162,7 @@ class Test_PhpCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_170)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_JsInjection(BaseTestCase):
     """ Appsec WAF tests on Js Injection rules """
@@ -176,7 +179,7 @@ class Test_JsInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.js_code_injection.sqr_000_002)
 
 
-@released(golang="?", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="?", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
@@ -228,7 +231,7 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="?", php="?", python="?", ruby="0.51.0")
+@released(golang="?", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_SQLI(BaseTestCase):
     """ Appsec WAF tests on SQLI rules """
@@ -242,7 +245,7 @@ class Test_SQLI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
 
         r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
-        interfaces.library.assert_waf_attack(r, rules.sql_injection)
+        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_100)
 
     @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_sqli1(self):
@@ -270,11 +273,11 @@ class Test_SQLI(BaseTestCase):
     @bug(library="ruby", reason="need to be investiged")
     def test_sqli3(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
-        r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})
+        r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
@@ -288,7 +291,7 @@ class Test_NoSqli(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_JavaCodeInjection(BaseTestCase):
     """ Appsec WAF tests on Java code injection rules """
@@ -305,7 +308,7 @@ class Test_JavaCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.java_code_injection.crs_944_130)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_SSRF(BaseTestCase):
     """ Appsec WAF tests on SSRF rules """

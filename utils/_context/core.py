@@ -63,8 +63,10 @@ class _Context:
             self.waf_rule_set = Version("1.0.0")
         elif self.library == "java":
             self.waf_rule_set = Version("0.0.1")
+        elif self.library == "php":
+            self.waf_rule_set = Version("1.0.0")
         else:
-            self.waf_rule_set = Version("0.0.1")
+            self.waf_rule_set = Version("1.0.0")
 
     def get_weblog_container_id(self):
         cgroup_file = "logs/weblog.cgroup"

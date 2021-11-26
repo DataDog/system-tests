@@ -33,7 +33,7 @@ jobs:
           - library: nodejs
             weblog-variant: express-poc
           - library: php
-            weblog-variant: vanilla-poc
+            weblog-variant: apache-mod
           - library: python
             weblog-variant: flask-poc
           - library: python

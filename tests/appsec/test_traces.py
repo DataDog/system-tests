@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="?", nodejs="?", php="0.1.0", python="?", ruby="?")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """
     AppSec should had span tags.

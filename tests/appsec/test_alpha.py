@@ -17,7 +17,7 @@ if context.library == "cpp":
     java="0.87.0",
     nodejs="2.0.0-appsec-alpha.1",
     ruby="0.51.0",
-    php="?",
+    php="0.1.0",
     python="?",
 )
 class TestLFIAttempt(BaseTestCase):
@@ -28,6 +28,10 @@ class TestLFIAttempt(BaseTestCase):
     @irrelevant(
         context.library == "dotnet" and context.weblog_variant == "poc",
         reason="the .net framework is instrumented after the URI gets simplified",
+    )
+    @irrelevant(
+        context.library == "php" and context.weblog_variant == "apache-mod",
+        reason="apache resolves .. before passing it to mod_rewrite",
     )
     def test_uri(self):
         """
@@ -52,7 +56,7 @@ class TestLFIAttempt(BaseTestCase):
     java="0.87.0",
     nodejs="2.0.0-appsec-alpha.1",
     ruby="0.51.0",
-    php="?",
+    php="0.1.0",
     python="?",
 )
 class TestSecurityScanner(BaseTestCase):
@@ -74,7 +78,7 @@ class TestSecurityScanner(BaseTestCase):
     java="0.87.0",
     nodejs="2.0.0-appsec-alpha.1",
     ruby="0.51.0",
-    php="?",
+    php="0.1.0",
     python="?",
 )
 class TestAddresses(BaseTestCase):
