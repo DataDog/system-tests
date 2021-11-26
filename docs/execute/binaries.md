@@ -45,3 +45,7 @@ TODO
 * Create an file `ruby-load-from-bundle-add` in `binaries/`, the content will be installed by `bundle add`. Content example:
   * `ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"`
 2. Clone the dd-trace-rb repo inside `binaries`
+
+----
+
+Hint for components who allows to have the repo in `binaries`, use the command `mount --bind src dst` to mount your local repo => any build of system tests will uses it.

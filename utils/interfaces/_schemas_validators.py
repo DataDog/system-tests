@@ -83,8 +83,9 @@ class SchemaValidator(BaseValidation):
             validator = _get_schema_validator(schema_id)
             if not validator.is_valid(data["request"]["content"]):
                 self.set_status(False)
+                self.log_error(f"In message {data['log_filename']}:")
                 for error in validator.iter_errors(data["request"]["content"]):
-                    self.log_error(f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path]))
+                    self.log_error(f"* {error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path]))
 
         except FileNotFoundError as e:
             self.set_failure(e)
