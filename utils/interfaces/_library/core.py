@@ -55,8 +55,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_receive_request_root_trace(self):
         self.append_validation(_ReceiveRequestRootTrace())
 
-    def assert_schemas(self):
-        self.append_validation(SchemaValidator("library"))
+    def assert_schemas(self, allowed_errors=None):
+        self.append_validation(SchemaValidator("library", allowed_errors))
 
     def assert_sampling_decision_respected(self, sampling_rate):
         self.append_validation(_TracesSamplingDecision(sampling_rate))

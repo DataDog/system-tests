@@ -71,7 +71,7 @@ def test_decorators():
     assert Test2().__released__ == "99.99"
     assert Test2().__rfc__ == "A link"
 
-    print("Test decorators OK")
+    print("Test decorators:                     OK")
 
 
 def test_context():
@@ -82,7 +82,7 @@ def test_context():
     assert context.weblog_variant is None
     assert context.sampling_rate is None
     assert context.waf_rule_set == "1.0.0"
-    print("Test context OK")
+    print("Test context:                        OK")
 
 
 def test_version():
@@ -120,7 +120,7 @@ def test_version():
     v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
     assert v == Version("0.53.0")
 
-    print("Test Version class OK")
+    print("Test Version class:                  OK")
 
 
 def test_library_version():
@@ -168,7 +168,7 @@ def test_library_version():
 
     assert v == "python@0.53.0.dev70+g494e6dc0"
 
-    print("Test LibraryVersion class OK")
+    print("Test LibraryVersion class:           OK")
 
 
 def test_stdout_reader():
@@ -191,7 +191,7 @@ def test_stdout_reader():
     for v in stdout._validations:
         assert v.is_success, v
 
-    print("Test log reader ok")
+    print("Test log reader:                     OK")
 
 
 def test_message_collector():
@@ -216,7 +216,35 @@ def test_message_collector():
     Test_Class().test_A()
     Test_Class().test_B()
 
-    print("Test message magic collector OK")
+    print("Test message magic collector:        OK")
+
+
+def test_schema_validator():
+    from utils.interfaces._schemas_validators import SchemaValidator
+
+    v = SchemaValidator("library", None)
+    v.check({"path": "/donotexists"})
+    v.set_expired()
+    assert not v.is_success
+    assert "There is no schema file that describe /library/donotexists-request.json\n" in logs
+
+    v = SchemaValidator("library", None)
+    v.check({"path": "/v0.4/traces", "log_filename": "...", "request": {"content": []}})
+    v.set_expired()
+    assert v.is_success
+
+    v = SchemaValidator("library", None)
+    v.check({"path": "/v0.4/traces", "log_filename": "...", "request": {"content": [[{"name": 666}]]}})
+    v.set_expired()
+    assert not v.is_success
+    assert "* 666 is not of type 'string' on instance [0][0]['name']\n" in logs
+
+    v = SchemaValidator("library", [r"666 is not of type 'string' on instance \[\d+\]\[\d+\]\['name'\]"])
+    v.check({"path": "/v0.4/traces", "log_filename": "...", "request": {"content": [[{"name": 666}]]}})
+    v.set_expired()
+    assert v.is_success
+
+    print("Test schemas validators:             OK")
 
 
 create_context()
@@ -227,5 +255,6 @@ test_version()
 test_library_version()
 test_stdout_reader()
 test_message_collector()
+test_schema_validator()
 
 print("All good, you can have a 🍺")

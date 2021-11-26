@@ -9,7 +9,7 @@ Usage:
 
 import os
 import json
-
+import re
 import functools
 
 from jsonschema import Draft7Validator, RefResolver, draft7_format_checker, exceptions as jsonschema_exceptions
@@ -71,9 +71,13 @@ def _get_schema_validator(schema_id):
 class SchemaValidator(BaseValidation):
     is_success_on_expiry = True
 
-    def __init__(self, interface):
+    def __init__(self, interface, allowed_errors):
         super().__init__(message=f"Validate {interface} schemas")
         self.interface = interface
+        self.allowed_errors = []
+
+        for pattern in allowed_errors or []:
+            self.allowed_errors.append(re.compile(pattern))
 
     def check(self, data):
         path = "/" if data["path"] == "" else data["path"]
@@ -82,10 +86,18 @@ class SchemaValidator(BaseValidation):
         try:
             validator = _get_schema_validator(schema_id)
             if not validator.is_valid(data["request"]["content"]):
-                self.set_status(False)
-                self.log_error(f"In message {data['log_filename']}:")
+                messages = []
+
                 for error in validator.iter_errors(data["request"]["content"]):
-                    self.log_error(f"* {error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path]))
+                    message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
+                    if not any([pattern.fullmatch(message) for pattern in self.allowed_errors]):
+                        messages.append(message)
+
+                if len(messages) != 0:
+                    self.set_status(False)
+                    self.log_error(f"In message {data['log_filename']}:")
+                    for message in messages:
+                        self.log_error(f"* {message}")
 
         except FileNotFoundError as e:
             self.set_failure(e)
