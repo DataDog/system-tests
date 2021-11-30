@@ -53,8 +53,8 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         """AppSec should store in APM spans some tags when enabled."""
 
         def validate_custom_span_tags(span):
-            if span.get("name") != "init.service":
-                return
+            if span.get("name") not in ("init.service", "web.request"):
+                return True
             return validate_appsec_span_tags(span)
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
@@ -65,7 +65,7 @@ RUNTIME_FAMILY = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 def validate_appsec_span_tags(span):
     if span.get("parent_id") not in (0, None):  # do nothing if not root span
-        return
+        return True
 
     if "_dd.appsec.enabled" not in span["metrics"]:
         raise Exception("Can't find _dd.appsec.enabled in span's metrics")

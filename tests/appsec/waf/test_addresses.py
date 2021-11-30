@@ -11,9 +11,9 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="?", java="?", php="0.1.0", python="?", ruby="?")
+# WAF/current ruleset don't support looking at keys at all
+@released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
 @missing_feature(library="nodejs", reason="query string not yet supported")
-@missing_feature(library="php", reason="WAF/current ruleset don't support looking at keys at all")
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 

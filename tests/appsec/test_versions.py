@@ -6,11 +6,11 @@ from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant, 
 
 
 @released(dotnet="?", golang="?", java="0.90.0", nodejs="2.0.0-appsec-alpha.1", python="?", ruby="?")
-@missing_feature(library="php", reason="reporting outside traces is not and will not be supported")
 @irrelevant(library="cpp")
 class Test_Events(BaseTestCase):
     """AppSec events uses version 1.0 (legacy appsec events on dedicated entry point)"""
 
+    @irrelevant(library="php", reason="reporting outside traces is not and will not be supported")
     def test_1_0(self):
         def validator(event):
             assert event["event_version"] == "1.0.0", f"event version should be 1.0.0, not {event['event_version']}"

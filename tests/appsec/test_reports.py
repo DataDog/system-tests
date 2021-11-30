@@ -10,8 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", python="?", ruby="0.51.0")
-@missing_feature(library="php", reason="reporting outside traces is not and will not be supported")
+@released(golang="?", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", python="?", ruby="0.51.0", php="0.1.0")
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 

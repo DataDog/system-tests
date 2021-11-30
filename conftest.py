@@ -94,7 +94,13 @@ def pytest_runtestloop(session):
         if session.shouldstop:
             raise session.Interrupted(session.shouldstop)
 
-    interfaces.library.wait(timeout=80 if context.library == "java" else 40)
+    if context.library == "java":
+        timeout = 80
+    elif context.library == "php":
+        timeout = 5
+    else:
+        timeout = 40
+    interfaces.library.wait(timeout=timeout)
     interfaces.library_stdout.wait()
     interfaces.library_dotnet_managed.wait()
 
@@ -106,7 +112,7 @@ def pytest_runtestloop(session):
         session.shouldfail = "Library's interface is not validated"
         raise session.Failed(session.shouldfail)
 
-    interfaces.agent.wait(timeout=40)
+    interfaces.agent.wait(timeout=5 if context.library == "php" else 40)
     if not interfaces.agent.is_success:
         session.shouldfail = "Agent's interface is not validated"
         raise session.Failed(session.shouldfail)

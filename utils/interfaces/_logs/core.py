@@ -168,7 +168,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
         if context.library == "php":
             return level.upper()
         else:
-            super(_LibraryStdout, self)._get_standardized_level(level)
+            return super(_LibraryStdout, self)._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):
