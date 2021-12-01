@@ -267,3 +267,21 @@ class _WafAttack(_BaseAppSecValidation):
 
         else:
             self.set_status(True)
+
+
+class _ReportedHeader(_BaseAppSecValidation):
+    def __init__(self, request, header_name):
+        super().__init__(request)
+        self.header_name = header_name.lower()
+
+    def validate_legacy(self, event):
+        headers = [n.lower() for n in event["context"]["http"]["request"]["headers"].keys()]
+        assert self.header_name in headers, f"header {self.header_name} not reported"
+
+        return True
+
+    def validate(self, span, appsec_data):
+        headers = [n.lower() for n in span["meta"].keys() if n.startswith("http.response.headers.")]
+        assert f"http.response.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
+
+        return True
