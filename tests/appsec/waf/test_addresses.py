@@ -148,7 +148,6 @@ class Test_Cookies(BaseTestCase):
 
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="golang")
-
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
