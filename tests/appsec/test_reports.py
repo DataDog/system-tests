@@ -36,8 +36,7 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
-@bug(library="dotnet", reason="request headers are not reported")
+@released(dotnet="1.30.0", golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_ActorIP(BaseTestCase):
     """ AppSec reports good actor's IP"""
 
@@ -47,13 +46,19 @@ class Test_ActorIP(BaseTestCase):
         actual_remote_ip = r.raw._connection.sock.getsockname()[0]
         r.close()
 
-        def _check_remote_ip(event):
+        def legacy_validator(event):
             remote_ip = event["context"]["http"]["request"]["remote_ip"]
             assert remote_ip == actual_remote_ip, f"request remote ip should be {actual_remote_ip}"
 
             return True
 
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_remote_ip)
+        def validator(span, appsec_data):
+            ip = span["meta"]["network.client.ip"]
+            assert ip == actual_remote_ip, f"network.client.ip should be {actual_remote_ip}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
     def test_http_request_headers(self):
         """ AppSec reports the HTTP headers used for actor IP detection."""
@@ -73,25 +78,15 @@ class Test_ActorIP(BaseTestCase):
             },
         )
 
-        def _check_header_is_present(header_name):
-            def inner_check(event):
-                assert header_name.lower() in [
-                    n.lower() for n in event["context"]["http"]["request"]["headers"].keys()
-                ], f"header {header_name} not reported"
-
-                return True
-
-            return inner_check
-
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-forwarded-for"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-client-ip"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-real-ip"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-forwarded"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("x-cluster-client-ip"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("forwarded-for"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("forwarded"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("via"))
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_header_is_present("true-client-ip"))
+        interfaces.library.add_appsec_reported_header(r, "x-forwarded-for")
+        interfaces.library.add_appsec_reported_header(r, "x-client-ip")
+        interfaces.library.add_appsec_reported_header(r, "x-real-ip")
+        interfaces.library.add_appsec_reported_header(r, "x-forwarded")
+        interfaces.library.add_appsec_reported_header(r, "x-cluster-client-ip")
+        interfaces.library.add_appsec_reported_header(r, "forwarded-for")
+        interfaces.library.add_appsec_reported_header(r, "forwarded")
+        interfaces.library.add_appsec_reported_header(r, "via")
+        interfaces.library.add_appsec_reported_header(r, "true-client-ip")
 
     @missing_feature(library="java", reason="actor ip has incorrect data")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
@@ -101,7 +96,7 @@ class Test_ActorIP(BaseTestCase):
             "/waf/", headers={"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1", "User-Agent": "Arachni/v1",},
         )
 
-        def _check_actor_ip(event):
+        def legacy_validator(event):
             if "actor" in event["context"]:
                 actor_ip = event["context"]["actor"]["ip"]["address"]
 
@@ -109,7 +104,13 @@ class Test_ActorIP(BaseTestCase):
 
             return True
 
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_actor_ip)
+        def validator(span, appsec_data):
+            actor_ip = span["meta"]["actor.ip"]
+            assert actor_ip == "43.43.43.43", "actor IP should be 43.43.43.43"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
 @released(golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")

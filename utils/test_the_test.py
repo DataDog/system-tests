@@ -7,6 +7,9 @@ class Logs(list):
     def write(self, line):
         self.append(line)
 
+    def __str__(self):
+        return "\n".join([l.strip() for l in self])
+
 
 logs = Logs()
 
@@ -21,7 +24,7 @@ def create_context():
         json.dump(data, open(f"logs/{name}_image.json", "w"))
 
     build_docker_info("agent", {})
-    build_docker_info("weblog", ["SYSTEM_TESTS_LIBRARY=ruby", "SYSTEM_TESTS_LIBRARY_VERSION=0.66.0"])
+    build_docker_info("weblog", ["SYSTEM_TESTS_LIBRARY=java", "SYSTEM_TESTS_LIBRARY_VERSION=0.66.0"])
 
     from utils.tools import logger
 
@@ -39,16 +42,16 @@ def test_decorators():
 
         return False
 
-    @bug(library="ruby", reason="test")
+    @bug(library="java", reason="test")
     def test_function():
         pass
 
     assert is_skipped(test_function)
     assert "test_function function, known bug: test => skipped\n" in logs
 
-    @bug(library="ruby", reason="test")
+    @bug(library="java", reason="test")
     class Test_Class:
-        @irrelevant(library="ruby")
+        @irrelevant(library="java")
         def test_method(self):
             pass
 
@@ -63,7 +66,7 @@ def test_decorators():
     assert "Test_Class class, known bug: test => skipped\n" in logs
 
     @rfc("A link")
-    @released(ruby="99.99")
+    @released(java="99.99")
     class Test2:
         pass
 
@@ -77,11 +80,11 @@ def test_decorators():
 def test_context():
     from utils import context
 
-    assert context.library == "ruby"
-    assert context.library == "ruby@0.66.0"
+    assert context.library == "java"
+    assert context.library == "java@0.66.0"
     assert context.weblog_variant is None
     assert context.sampling_rate is None
-    assert context.waf_rule_set == "1.0.0"
+    assert context.waf_rule_set == "0.0.1"
     print("Test context OK")
 
 
@@ -177,17 +180,20 @@ def test_stdout_reader():
     from utils.interfaces._logs.core import _LibraryStdout
 
     with open("logs/docker/weblog/stdout.log", "w") as f:
-        f.write("some file")
+        f.write("[dd.trace 2021-11-29 17:10:22:203 +0000] [main] DEBUG com.klass - some file\n")
+        f.write("[dd.trace 2021-11-29 17:10:22:203 +0000] [main] INFO com.klass - AppSec initial 1.0.14\n")
 
     stdout = _LibraryStdout()
 
     stdout.assert_absence(r"System\.Exception")
     stdout.assert_presence(r"some.*file")
+    stdout.assert_presence(r"AppSec initial \d+\.\d+\.\d+", level="INFO")
 
-    # stdout.assert_presence(r"some.*file", level="DEBUG")
-    # stdout.append_log_validation(lambda data: data["level"])
+    stdout.assert_presence(r"some.*file", level="DEBUG")
+    stdout.append_log_validation(lambda data: data["level"])
 
     stdout.wait()
+
     for v in stdout._validations:
         assert v.is_success, v
 

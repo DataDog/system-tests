@@ -7,7 +7,7 @@ import threading
 from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
-from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation
+from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
 from utils.interfaces._library.miscs import _TraceIdUniqueness, _ReceiveRequestRootTrace, _SpanValidation
 from utils.interfaces._library.sampling import (
@@ -55,8 +55,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_receive_request_root_trace(self):
         self.append_validation(_ReceiveRequestRootTrace())
 
-    def assert_schemas(self):
-        self.append_validation(SchemaValidator("library"))
+    def assert_schemas(self, allowed_errors=None):
+        self.append_validation(SchemaValidator("library", allowed_errors))
 
     def assert_sampling_decision_respected(self, sampling_rate):
         self.append_validation(_TracesSamplingDecision(sampling_rate))
@@ -94,6 +94,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(
             _AppSecValidation(request=request, validator=validator, legacy_validator=legacy_validator)
         )
+
+    def add_appsec_reported_header(self, request, header_name):
+        self.append_validation(_ReportedHeader(request, header_name))
 
 
 class _TraceIdUniquenessExceptions:

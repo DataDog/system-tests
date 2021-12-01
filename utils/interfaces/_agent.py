@@ -30,8 +30,8 @@ class AgentInterfaceValidator(InterfaceValidator):
     def assert_use_domain(self, domain):
         self.append_validation(_UseDomain(domain))
 
-    def assert_schemas(self):
-        self.append_validation(SchemaValidator("agent"))
+    def assert_schemas(self, allowed_errors=None):
+        self.append_validation(SchemaValidator("agent", allowed_errors))
 
     def assert_metric_existence(self, metric_name):
         self.append_validation(_MetricExistence(metric_name))
