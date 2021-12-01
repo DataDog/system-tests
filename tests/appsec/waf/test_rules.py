@@ -244,9 +244,6 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "sleep()"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
 
-        r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
-        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_100)
-
     @missing_feature(library="ruby", reason="query string is not sent as decoded map")
     def test_sqli1(self):
         """AppSec catches SQLI attacks"""
@@ -275,6 +272,11 @@ class Test_SQLI(BaseTestCase):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
+
+    @irrelevant(context.waf_rule_set == "0.0.1", reason="rules.sql_injection was named sqli")
+    def test_sqli4(self):
+        r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
+        interfaces.library.assert_waf_attack(r, rules.sql_injection)
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php="0.1.0", python="?", ruby="0.51.0")
