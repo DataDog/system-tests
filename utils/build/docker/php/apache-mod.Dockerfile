@@ -3,9 +3,12 @@ ARG VARIANT=release-zts
 
 FROM datadog/dd-appsec-php-ci:php-$PHP_VERSION-$VARIANT
 
-RUN apt-get update && apt-get install -y \
-	apache2 \
-	&& rm -rf /var/lib/apt/lists/*
+RUN printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
+	chmod +x /usr/sbin/policy-rc.d && \
+	apt-get update && apt-get install -y \
+		apache2 \
+	&& rm -rf /var/lib/apt/lists/* && \
+	rm -rf /usr/sbin/policy-rc.d
 
 RUN find /var/www/html -mindepth 1 -delete
 RUN echo '<?php phpinfo();' > /var/www/html/index.php

@@ -3,7 +3,7 @@
 set -eu
 
 curl -Lf -o /tmp/dd-library-php-setup.php \
-  https://raw.githubusercontent.com/cataphract/dd-trace-php/php-install-ddappsec/dd-library-php-setup.php
+  https://raw.githubusercontent.com/DataDog/dd-trace-php/cataphract/appsec-installer/dd-library-php-setup.php
 
 cd /binaries
 
@@ -26,6 +26,7 @@ else
   INSTALLER_ARGS+=(--tracer-version 0.67.0)
 fi
 
+export DD_APPSEC_ENABLED=0
 PHP_INI_SCAN_DIR=/etc/php/ php /tmp/dd-library-php-setup.php \
   "${INSTALLER_ARGS[@]}"\
   --php-bin all
@@ -36,3 +37,5 @@ php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddapps
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
 mkdir -p /etc/dd-appsec
 find /opt -name recommended.json -exec ln -s '{}' /etc/dd-appsec/ \;
+
+rm -rf /tmp/{dd-library-php-setup.php,dd-library,dd-appsec}
