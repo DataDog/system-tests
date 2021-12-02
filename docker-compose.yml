@@ -37,6 +37,7 @@ services:
       - DD_TRACE_DEBUG=true
       - DD_APPSEC_RULES
       - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
+      - DD_APPSEC_WAF_TIMEOUT=5s
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     depends_on:
