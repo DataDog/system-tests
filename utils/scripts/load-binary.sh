@@ -149,7 +149,7 @@ elif [ "$TARGET" = "ruby" ]; then
 
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.apk
-    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer_.*-nightly_noarch.apk"
+    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer_.*-nightly_amd64.deb"
 
 elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
