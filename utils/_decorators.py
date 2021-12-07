@@ -5,9 +5,10 @@ from utils.tools import logger
 from utils._context.core import context
 
 
-def _get_wrapped_class(klass, skip_reason):
+def _get_wrapped_class(klass, skip_reason=None):
 
-    logger.info(f"{klass.__name__} class, {skip_reason} => skipped")
+    if skip_reason:
+        logger.info(f"{klass.__name__} class, {skip_reason} => skipped")
 
     @pytest.mark.skip(reason=skip_reason)
     class Test(klass):
@@ -109,38 +110,60 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
     return decorator
 
 
-def released(cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=None, python=None, ruby=None):
+def released(
+    cpp=None, dotnet=None, golang=None, java=None, nodejs=None, php=None, python=None, ruby=None, php_appsec=None
+):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
     def wrapper(test_class):
 
-        version = {
-            "cpp": cpp,
-            "dotnet": dotnet,
-            "golang": golang,
-            "java": java,
-            "nodejs": nodejs,
-            "php": php,
-            "python": python,
-            "ruby": ruby,
-        }[context.library.library]
+        should_skip = False
+        skip_reason = None
 
-        if version is None:
+        def compute_requirement(version, component_name, library_requirement, tested_version):
+            if context.library != library_requirement or version is None:
+                return
+
+            if not hasattr(test_class, "__released__"):
+                setattr(test_class, "__released__", {})
+
+            if component_name in test_class.__released__:
+                raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
+
+            test_class.__released__[component_name] = version
+
+            if version == "?":
+                return "missing feature: release not yet planned"
+
+            if version.startswith("not relevant"):
+                raise Exception("TODO remove this test, it should never happen")
+
+            if tested_version >= version:
+                logger.debug(f"{test_class.__name__} feature has been released in {version} => added in test queue")
+                return
+
+            return f"missing feature: release version is {version}"
+
+        skip_reasons = [
+            compute_requirement(cpp, "cpp", "cpp", context.library.version),
+            compute_requirement(dotnet, "dotnet", "dotnet", context.library.version),
+            compute_requirement(golang, "golang", "golang", context.library.version),
+            compute_requirement(java, "java", "java", context.library.version),
+            compute_requirement(nodejs, "nodejs", "nodejs", context.library.version),
+            compute_requirement(php_appsec, "php_appsec", "php", context.library.version),
+            compute_requirement(php, "php", "php", context.php_appsec),
+            compute_requirement(python, "python", "python", context.library.version),
+            compute_requirement(ruby, "ruby", "ruby", context.library.version),
+        ]
+
+        skip_reasons = [reason for reason in skip_reasons if reason]  # remove None
+
+        if len(skip_reasons) != 0:
+            for reason in skip_reasons:
+                logger.info(f"{test_class.__name__} class, {reason} => skipped")
+            return _get_wrapped_class(test_class)
+        else:
             return test_class
-
-        setattr(test_class, "__released__", version)
-
-        if version == "?":
-            return _get_wrapped_class(test_class, f"missing feature: release not yet planned")
-
-        if version.startswith("not relevant"):
-            return _get_wrapped_class(test_class, "not relevant")
-
-        if context.library.version >= version:
-            logger.debug(f"{test_class.__name__} feature has been released in {version} => added in test queue")
-            return test_class
-
-        return _get_wrapped_class(test_class, f"missing feature: release version is {version}")
 
     return wrapper
 

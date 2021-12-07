@@ -12,7 +12,13 @@ if context.library == "cpp":
 
 
 @released(
-    golang="?", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="0.1.0", python="?", ruby="0.51.0"
+    golang="?",
+    dotnet="1.28.6",
+    java="0.87.0",
+    nodejs="2.0.0-appsec-alpha.1",
+    php_appsec="0.1.0",
+    python="?",
+    ruby="0.51.0",
 )
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -44,7 +50,7 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php="0.1.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?", ruby="?")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 

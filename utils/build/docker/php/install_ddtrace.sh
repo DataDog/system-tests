@@ -31,8 +31,11 @@ PHP_INI_SCAN_DIR=/etc/php/ php /tmp/dd-library-php-setup.php \
   "${INSTALLER_ARGS[@]}"\
   --php-bin all
 
-php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
+php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
   ./SYSTEM_TESTS_LIBRARY_VERSION
+
+php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
+  ./SYSTEM_TESTS_PHP_APPSEC_VERSION
 
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
 mkdir -p /etc/dd-appsec

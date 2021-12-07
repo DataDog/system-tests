@@ -17,7 +17,7 @@ if context.library == "cpp":
     java="0.87.0",
     nodejs="2.0.0-appsec-alpha.1",
     ruby="0.51.0",
-    php="0.1.0",
+    php_appsec="0.1.0",
     python="?",
 )
 class TestLFIAttempt(BaseTestCase):
@@ -56,7 +56,7 @@ class TestLFIAttempt(BaseTestCase):
     java="0.87.0",
     nodejs="2.0.0-appsec-alpha.1",
     ruby="0.51.0",
-    php="0.1.0",
+    php_appsec="0.1.0",
     python="?",
 )
 class TestSecurityScanner(BaseTestCase):
@@ -78,7 +78,7 @@ class TestSecurityScanner(BaseTestCase):
     java="0.87.0",
     nodejs="2.0.0-appsec-alpha.1",
     ruby="0.51.0",
-    php="0.1.0",
+    php_appsec="0.1.0",
     python="?",
 )
 class TestAddresses(BaseTestCase):

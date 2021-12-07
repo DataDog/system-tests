@@ -17,6 +17,9 @@ _rfcs = {}
 
 def pytest_sessionstart(session):
     logger.debug(f"Library: {context.library}")
+    if context.library == "php":
+        logger.debug(f"AppSec: {context.php_appsec}")
+
     logger.debug(f"Weblog variant: {context.weblog_variant}")
     logger.debug(f"Backend: {context.dd_site}")
 
@@ -27,7 +30,14 @@ def pytest_sessionstart(session):
 
 
 def pytest_report_header(config):
-    return f"Library: {context.library}\nWeblog variant: {context.weblog_variant}\nBackend: {context.dd_site}"
+    header = f"Library: {context.library}\n"
+
+    if context.library == "php":
+        header += f"AppSec: {context.php_appsec}\n"
+
+    header += f"Weblog variant: {context.weblog_variant}\nBackend: {context.dd_site}" ""
+
+    return header
 
 
 def _get_skip_reason_from_marker(marker):

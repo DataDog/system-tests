@@ -148,8 +148,8 @@ elif [ "$TARGET" = "ruby" ]; then
     echo "Using $(cat ruby-load-from-bundle-add)"
 
 elif [ "$TARGET" = "php" ]; then
-    rm -rf *.apk
-    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer_.*-nightly_amd64.deb"
+    rm -rf *.tar.gz
+    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
 
 elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
