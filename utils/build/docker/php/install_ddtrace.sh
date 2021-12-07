@@ -15,6 +15,8 @@ if [[ $BINARIES_APPSEC_N -eq 1 ]]; then
 elif [[ $BINARIES_APPSEC_N -gt 1 ]]; then
   echo "Too many appsec packages in /binaries" >&2
   exit 1
+else
+  INSTALLER_ARGS+=(--appsec-version $APPSEC_VERSION)
 fi
 
 if [[ $BINARIES_TRACER_N -eq 1 ]]; then
@@ -23,7 +25,7 @@ elif [[ $BINARIES_TRACER_N -gt 1 ]]; then
   echo "Too many appsec packages in /binaries" >&2
   exit 1
 else
-  INSTALLER_ARGS+=(--tracer-version 0.67.0)
+  INSTALLER_ARGS+=(--tracer-version $TRACER_VERSION)
 fi
 
 export DD_APPSEC_ENABLED=0

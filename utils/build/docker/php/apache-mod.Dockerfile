@@ -44,6 +44,8 @@ RUN a2enmod php
 RUN sed -i s/80/7777/ /etc/apache2/ports.conf
 EXPOSE 7777/tcp
 
+ARG TRACER_VERSION=latest
+ARG APPSEC_VERSION=latest
 ADD binaries* /binaries/
 ADD utils/build/docker/php/install_ddtrace.sh /
 RUN /install_ddtrace.sh
