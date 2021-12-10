@@ -50,6 +50,7 @@ class Test_Standardization(BaseTestCase):
 
     @bug(context.library == "java@0.90.0", reason="APPSEC-2190")
     @bug(context.library == "java@0.91.0", reason="APPSEC-2190")
+    @bug(context.library == "java@0.92.0", reason="APPSEC-2190")
     @missing_feature(library="dotnet")
     def test_d05(self):
         """Log D5: WAF outputs"""
