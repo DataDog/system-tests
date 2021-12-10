@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", php="?", python="?", ruby="0.51.0")
+@released(golang="1.35.0", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", php="?", python="?", ruby="0.51.0")
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
@@ -90,6 +90,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_reported_header(r, "true-client-ip")
 
     @missing_feature(library="java", reason="actor ip has incorrect data")
+    @missing_feature(library="golang", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
