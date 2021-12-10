@@ -53,7 +53,7 @@ class _TracesSamplingDecision(BaseValidation):
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
                 return
-            if sampling_priority != (
+            if sampling_priority not in (
                 expected := self.get_sampling_decision(self.sample_rate, root_span["trace_id"], root_span["meta"])
             ):
                 self.set_failure(
@@ -71,13 +71,14 @@ class _TracesSamplingDecision(BaseValidation):
         AUTO_REJECT = 0
         AUTO_KEEP = 1
         MANUAL_KEEP = 2
+        MANUAL_REJECT = -1
 
         if meta.get("appsec.event", None) == "true":
-            return MANUAL_KEEP
+            return (MANUAL_KEEP,)
 
         if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
-            return AUTO_KEEP
-        return AUTO_REJECT
+            return (AUTO_KEEP, MANUAL_KEEP)
+        return (AUTO_REJECT, MANUAL_REJECT)
 
 
 class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation):
