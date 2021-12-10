@@ -6,6 +6,7 @@ import pytest
 
 from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
 
+
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
@@ -15,6 +16,14 @@ class Test_AppSecEventSpanTags(BaseTestCase):
     """
     AppSec should had span tags.
     """
+
+    @classmethod
+    def setup_class(cls):
+        """Send a bunch of attack, to be sure that something is done on AppSec side"""
+        get = cls().weblog_get
+
+        get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     @missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
     @missing_feature(library="dotnet", reason="still uses the appsec_keep priority and should move back to manual_keep")
@@ -47,14 +56,14 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
     @missing_feature(library="golang", reason="appsec span tags are only applied to spans of instrumented frameworks")
-    @bug(library="dotnet", reason="_dd.appsec.enabled is meta instead of metrics")
     @bug(library="ruby", reason="_dd.appsec.enabled is missing on user spans, maybe not a bug, TBC")
     def test_custom_span_tags(self):
         """AppSec should store in APM spans some tags when enabled."""
 
         def validate_custom_span_tags(span):
-            if span.get("name") != "init.service":
+            if span.get("name") == "init.service":  # do nothing on warm-up spans
                 return
+
             return validate_appsec_span_tags(span)
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
