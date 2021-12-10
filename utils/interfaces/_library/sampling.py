@@ -74,7 +74,7 @@ class _TracesSamplingDecision(BaseValidation):
         MANUAL_REJECT = -1
 
         if meta.get("appsec.event", None) == "true":
-            return (MANUAL_KEEP, )
+            return (MANUAL_KEEP,)
 
         if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
             return (AUTO_KEEP, MANUAL_KEEP)
