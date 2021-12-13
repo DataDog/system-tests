@@ -154,13 +154,13 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
         interfaces.library.assert_waf_attack(r, pattern=".cookie-;domain=", address="server.request.cookies")
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     def test_cookies_with_spaces(self):
         """ Cookie with pattern containing a space """
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="golang")
     def test_cookies_with_special_chars2(self):

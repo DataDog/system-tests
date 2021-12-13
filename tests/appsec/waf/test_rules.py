@@ -35,7 +35,7 @@ class Test_Scanners(BaseTestCase):
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
-    @bug(library="dotnet", reason="APPSEC-1407")
+    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="ruby", reason="? need to be investiged")
     def test_http_protocol(self):
@@ -72,7 +72,7 @@ class Test_LFI(BaseTestCase):
         r = self.weblog_get("/waf/", params={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_120)
 
-    @bug(library="dotnet", reason="APPSEC-1405")
+    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="golang", reason="? may be not supported by framework")
     @bug(library="ruby", reason="? may be not supported by framework")
@@ -148,7 +148,7 @@ class Test_PhpCodeInjection(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": "rar://"})
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_200)
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="golang")
     def test_php_code_injection_bug(self):
         """ Appsec WAF detects other php injection rules """
@@ -220,7 +220,7 @@ class Test_XSS(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"key": "+ADw->|<+AD$-"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     def test_xss2(self):
         """Other XSS patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": '<vmlframe src="xss">'})
@@ -250,7 +250,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_220)
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     def test_sqli2(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": "alter d char set f"})
@@ -259,13 +259,13 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "merge using("})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_250)
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     @irrelevant(context.waf_rule_set >= "1.0", reason="crs-942-190 catch it")
     def test_sqli2_bis(self):
         r = self.weblog_get("/waf", cookies={"value": "union select from"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_270)
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="ruby", reason="need to be investiged")
     def test_sqli3(self):
