@@ -15,7 +15,7 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// "/" is the default route when the others don't match
 		// cf. documentation at https://pkg.go.dev/net/http#ServeMux
-		// Therefore, we need to check the URL path to only handler the `/` case
+		// Therefore, we need to check the URL path to only handle the `/` case
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
 			return
