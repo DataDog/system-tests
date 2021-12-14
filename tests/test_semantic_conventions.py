@@ -120,9 +120,7 @@ class Test_MetaDatadogTags(BaseTestCase):
                 raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
 
             if span["meta"]["key2"] != "val2":
-                raise Exception(
-                    f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}'
-                )
+                raise Exception(f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}')
 
             return True
 
