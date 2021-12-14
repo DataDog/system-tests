@@ -9,7 +9,7 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 
 @irrelevant(library="cpp")
 @bug(
-    library="dotnet", 
+    library="dotnet",
     reason=".NET replaces dot by underscores even in the mapping part : http.request.headers.user-agent>: http_request_headers_user-agent",
 )
 @missing_feature(library="golang")
