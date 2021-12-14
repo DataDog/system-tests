@@ -115,8 +115,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
-@bug(library="dotnet", reason="none is reported")
+@released(dotnet="2.0.0", golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_Info(BaseTestCase):
     @bug(library="ruby", reason="name is sinatra io weblog")
     def test_service(self):
@@ -131,9 +130,9 @@ class Test_Info(BaseTestCase):
 
             return True
 
-        def _check_service(event):
-            name = event["request"]["content"]["service"]
-            environment = event["request"]["content"]["meta"]["env"]
+        def _check_service(span, appsec_data):
+            name = span.get("service")
+            environment = span.get("meta", {}).get("env")
             assert name == "weblog", f"weblog should have been reported, not {name}"
             assert environment == "system-tests", f"system-tests should have been reported, not {environment}"
 
