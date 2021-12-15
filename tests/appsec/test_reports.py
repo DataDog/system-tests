@@ -10,7 +10,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.35.0", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", php="?", python="?", ruby="0.51.0")
+@released(golang="1.35.0", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
@@ -36,7 +37,8 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(dotnet="1.30.0", golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(dotnet="1.30.0", golang="1.33.1", nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_ActorIP(BaseTestCase):
     """ AppSec reports good actor's IP"""
 
@@ -116,7 +118,8 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(dotnet="2.0.0", golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(dotnet="2.0.0", golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Info(BaseTestCase):
     @bug(library="ruby", reason="name is sinatra io weblog")
     def test_service(self):
