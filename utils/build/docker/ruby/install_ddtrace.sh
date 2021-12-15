@@ -19,7 +19,7 @@ fi
 bundle install
 
 bundle list | grep ddtrace > SYSTEM_TESTS_LIBRARY_VERSION
-bundle list | grep libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION
+bundle list | grep libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION || true
 
 echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
 echo "libddwaf version: $(cat SYSTEM_TESTS_LIBDDWAF_VERSION)"

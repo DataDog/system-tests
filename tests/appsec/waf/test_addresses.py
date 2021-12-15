@@ -56,7 +56,8 @@ class Test_UrlQuery(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
@@ -67,7 +68,8 @@ class Test_UrlRaw(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -134,7 +136,8 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
