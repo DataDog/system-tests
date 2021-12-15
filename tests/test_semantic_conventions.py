@@ -108,7 +108,7 @@ class Test_Meta(BaseTestCase):
 
 
 @bug(
-    context.library in ("java", "cpp", "python", "ruby", "dotnet"),
+    context.library in ("cpp", "python", "ruby"),
     reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
 )
 class Test_MetaDatadogTags(BaseTestCase):
@@ -119,10 +119,8 @@ class Test_MetaDatadogTags(BaseTestCase):
             if span["meta"]["key1"] != "val1":
                 raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
 
-            if span["meta"]["aKey"] != "aVal bKey:bVal cKey:":
-                raise Exception(
-                    f'dKey tag in span\'s meta should be "aVal bKey:bVal cKey:", not {span["meta"]["aKey"]}'
-                )
+            if span["meta"]["key2"] != "val2":
+                raise Exception(f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}')
 
             return True
 

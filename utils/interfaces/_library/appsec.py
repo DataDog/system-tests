@@ -281,7 +281,7 @@ class _ReportedHeader(_BaseAppSecValidation):
         return True
 
     def validate(self, span, appsec_data):
-        headers = [n.lower() for n in span["meta"].keys() if n.startswith("http.response.headers.")]
-        assert f"http.response.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
+        headers = [n.lower() for n in span["meta"].keys() if n.startswith("http.request.headers.")]
+        assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 
         return True

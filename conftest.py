@@ -20,6 +20,7 @@ def pytest_sessionstart(session):
     if context.library == "php":
         logger.debug(f"AppSec: {context.php_appsec}")
 
+    logger.debug(f"libddwaf: {context.libddwaf_version}")
     logger.debug(f"Weblog variant: {context.weblog_variant}")
     logger.debug(f"Backend: {context.dd_site}")
 
@@ -30,14 +31,21 @@ def pytest_sessionstart(session):
 
 
 def pytest_report_header(config):
-    header = f"Library: {context.library}\n"
+    headers = [
+        f"Library: {context.library}",
+    ]
 
     if context.library == "php":
-        header += f"AppSec: {context.php_appsec}\n"
+        headers.append(f"AppSec: {context.php_appsec}")
 
-    header += f"Weblog variant: {context.weblog_variant}\nBackend: {context.dd_site}" ""
+    if context.libddwaf_version:
+        headers.append(f"libddwaf: {context.libddwaf_version}")
 
-    return header
+    headers += [
+        f"Weblog variant: {context.weblog_variant}",
+        f"Backend: {context.dd_site}",
+    ]
+    return "\n".join(headers)
 
 
 def _get_skip_reason_from_marker(marker):

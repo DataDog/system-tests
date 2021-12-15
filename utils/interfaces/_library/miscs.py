@@ -85,6 +85,7 @@ class _SpanValidation(BaseValidation):
 
                 try:
                     if self.validator(span):
+                        self.log_debug(f"Trace in {data['log_filename']} validates {self.message}")
                         self.is_success_on_expiry = True
                 except Exception as e:
                     self.set_failure(f"{self.message} not validated: {e}\nSpan is: {span}")

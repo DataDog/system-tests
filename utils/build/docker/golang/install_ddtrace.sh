@@ -25,4 +25,6 @@ fi
 go mod tidy
 
 echo $version > /app/SYSTEM_TESTS_LIBRARY_VERSION
+touch SYSTEM_TESTS_LIBDDWAF_VERSION
+
 echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
