@@ -115,15 +115,14 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
-@bug(library="dotnet", reason="none is reported")
+@released(dotnet="2.0.0", golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
 class Test_Info(BaseTestCase):
     @bug(library="ruby", reason="name is sinatra io weblog")
     def test_service(self):
         """ Appsec reports the service information """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-        def _check_service(event):
+        def _check_service_legacy(event):
             name = event["context"]["service"]["name"]
             environment = event["context"]["service"]["environment"]
             assert name == "weblog", f"weblog should have been reported, not {name}"
@@ -131,4 +130,12 @@ class Test_Info(BaseTestCase):
 
             return True
 
-        interfaces.library.add_appsec_validation(r, legacy_validator=_check_service)
+        def _check_service(span, appsec_data):
+            name = span.get("service")
+            environment = span.get("meta", {}).get("env")
+            assert name == "weblog", f"weblog should have been reported, not {name}"
+            assert environment == "system-tests", f"system-tests should have been reported, not {environment}"
+
+            return True
+
+        interfaces.library.add_appsec_validation(r, legacy_validator=_check_service_legacy, validator=_check_service)
