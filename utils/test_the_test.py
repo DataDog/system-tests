@@ -123,6 +123,10 @@ def test_version():
     v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
     assert v == Version("0.53.0")
 
+    v = Version("* libddwaf (1.0.14.1.0.beta1)", "libddwaf")
+    assert v == Version("1.0.14.1.0.beta1")
+    assert v == "1.0.14.1.0.beta1"
+
     print("Test Version class OK")
 
 

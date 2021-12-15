@@ -24,3 +24,4 @@ fi
 cd -
 
 apk info datadog-php-tracer | grep -m 1 description | sed 's/datadog-php-tracer-//' | sed 's/ description://' > SYSTEM_TESTS_LIBRARY_VERSION
+touch SYSTEM_TESTS_LIBDDWAF_VERSION

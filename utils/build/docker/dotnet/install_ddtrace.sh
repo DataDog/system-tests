@@ -17,6 +17,7 @@ else
 fi
 
 ls datadog-dotnet-apm-*.tar.gz | sed 's/[^0-9]*//' | sed 's/.tar.gz//' > /app/SYSTEM_TESTS_LIBRARY_VERSION
+touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 mkdir -p /opt/datadog
 tar xzf datadog-dotnet-apm-$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION).tar.gz -C /opt/datadog
