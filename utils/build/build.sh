@@ -69,6 +69,7 @@ echo ""
 echo "TEST_LIBRARY:      $TEST_LIBRARY"
 echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
 echo "BUILD_IMAGES:      $BUILD_IMAGES"
+echo "AGENT_BASE_IMAGE:" $AGENT_BASE_IMAGE
 echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
 echo ""
 
@@ -80,9 +81,14 @@ do
         docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
 
     elif [[ $IMAGE_NAME == agent ]]; then
+        BUILD_ARGS=""
+        if [[ ! -z $AGENT_BASE_IMAGE ]]; then
+            BUILD_ARGS="--build-arg AGENT_IMAGE=$AGENT_BASE_IMAGE"
+        fi
         docker build \
             -f utils/build/docker/agent.Dockerfile \
             -t system_tests/agent \
+            $BUILD_ARGS \
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then

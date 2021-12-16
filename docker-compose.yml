@@ -56,6 +56,7 @@ services:
       - DD_API_KEY
       - DD_ENV=system-tests
       - DD_SITE=${DD_SITE:-datad0g.com}
+      - DD_APM_TELEMETRY_DD_URL=${DD_APM_TELEMETRY_DD_URL:-https://all-http-intake.logs.datad0g.com}
     depends_on:
       runner:
         condition: service_healthy

@@ -1,0 +1,386 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/library/telemetry/proxy/api/v2/apmtelemetry-request.json",
+  "description": "Instrumentation telemetry schema",
+  "$ref": "#/$defs/Telemtry2",
+  "$defs": {
+    "ApiVersion": {
+      "type": "string",
+      "enum": ["v1"],
+      "example": "v1"
+    },
+    "AppStarted": {
+      "type": "object",
+      "properties": {
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Dependency"
+          }
+        },
+        "integrations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Integration"
+          }
+        },
+        "configuration": {
+          "$ref": "#/$defs/Configuration"
+        },
+        "additional_payload": {
+          "$ref": "#/$defs/Configuration"
+        }
+      },
+      "required": ["integrations", "dependencies"]
+    },
+    "Application": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "type": "string"
+        },
+        "language_name": {
+          "type": "string"
+        },
+        "language_version": {
+          "type": "string"
+        },
+        "runtime_name": {
+          "type": "string"
+        },
+        "runtime_patches": {
+          "type": "string"
+        },
+        "runtime_version": {
+          "type": "string"
+        },
+        "service_name": {
+          "type": "string"
+        },
+        "service_version": {
+          "type": "string"
+        },
+        "tracer_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_name",
+        "env",
+        "tracer_version",
+        "language_name",
+        "language_version"
+      ]
+    },
+    "Dependency": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/DependencyType"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "type"]
+    },
+    "DependencyType": {
+      "type": "string",
+      "enum": ["SharedSystemLibrary", "PlatformStandard"],
+      "example": "SharedSystemLibrary"
+    },
+    "GenerateMetrics": {
+      "type": "object",
+      "properties": {
+        "lib_language": {
+          "type": "string"
+        },
+        "lib_version": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Metric"
+          }
+        }
+      },
+      "required": ["namespace", "lib_language", "lib_version", "series"]
+    },
+    "Host": {
+      "type": "object",
+      "properties": {
+        "container_id": {
+          "type": "string"
+        },
+        "hostname": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "os_version": {
+          "type": "string"
+        },
+        "kernel_name": {
+          "type": "string"
+        },
+        "kernel_release": {
+          "type": "string"
+        },
+        "kernel_version": {
+          "type": "string"
+        }
+      }
+    },
+    "Integration": {
+      "type": "object",
+      "properties": {
+        "auto_enabled": {
+          "type": "boolean"
+        },
+        "compatible": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": ["name"]
+    },
+    "Metric": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "common": {
+              "type": "boolean"
+            },
+            "metric": {
+              "type": "string"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "integer",
+                      "format": "uint64"
+                    },
+                    {
+                      "type": "number",
+                      "format": "double"
+                    }
+                  ]
+                }
+              }
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "description": "Metric type variant",
+              "type": "string",
+              "enum": ["gauge"],
+              "example": "gauge"
+            }
+          },
+          "required": ["metric", "points", "tags", "common", "type"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "common": {
+              "type": "boolean"
+            },
+            "metric": {
+              "type": "string"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "integer",
+                      "format": "uint64"
+                    },
+                    {
+                      "type": "number",
+                      "format": "double"
+                    }
+                  ]
+                }
+              }
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "description": "Metric type variant",
+              "type": "string",
+              "enum": ["gauge"],
+              "example": "gauge"
+            }
+          },
+          "required": ["metric", "points", "tags", "common", "type"]
+        }
+      ]
+    },
+    "Payload": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AppStarted"
+        },
+        {
+          "$ref": "#/$defs/GenerateMetrics"
+        }
+      ]
+    },
+    "RequestType": {
+      "description": "Payload type variant",
+      "type": "string",
+      "enum": [
+        "app-started",
+        "app-dependencies-loaded",
+        "app-heartbeat",
+        "app-closing",
+        "generate-metrics"
+      ],
+      "example": "app-started"
+    },
+    "Configuration": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["number", "boolean", "string", "null"]
+      }
+    },
+    "Header": {
+      "type": "object",
+      "properties": {
+        "api_version": {
+          "$ref": "#/$defs/ApiVersion"
+        },
+        "application": {
+          "$ref": "#/$defs/Application"
+        },
+        "host": {
+          "$ref": "#/$defs/Host"
+        },
+        "runtime_id": {
+          "type": "string"
+        },
+        "seq_id": {
+          "type": "integer",
+          "format": "uint64"
+        },
+        "tracer_time": {
+          "type": "integer",
+          "format": "uint64"
+        }
+      },
+      "required": [
+        "api_version",
+        "tracer_time",
+        "runtime_id",
+        "seq_id",
+        "application",
+        "host"
+      ]
+    },
+    "Telemtry2": {
+      "allOf": [
+        { "$ref": "#/$defs/Header" },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-started" },
+                "payload": { "$ref": "#/$defs/AppStarted" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "generate-metrics" },
+                "payload": { "$ref": "#/$defs/GenerateMetrics" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-heartbeat" }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Telemetry": {
+      "type": "object",
+      "properties": {
+        "api_version": {
+          "$ref": "#/$defs/ApiVersion"
+        },
+        "application": {
+          "$ref": "#/$defs/Application"
+        },
+        "host": {
+          "$ref": "#/$defs/Host"
+        },
+        "payload": {
+          "$ref": "#/$defs/Payload"
+        },
+        "request_type": {
+          "$ref": "#/$defs/RequestType"
+        },
+        "runtime_id": {
+          "type": "string"
+        },
+        "seq_id": {
+          "type": "integer",
+          "format": "uint64"
+        },
+        "tracer_time": {
+          "type": "integer",
+          "format": "uint64"
+        }
+      },
+      "required": [
+        "api_version",
+        "request_type",
+        "tracer_time",
+        "runtime_id",
+        "seq_id",
+        "application",
+        "host",
+        "payload"
+      ]
+    }
+  }
+}
