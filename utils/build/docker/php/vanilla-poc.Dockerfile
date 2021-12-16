@@ -2,7 +2,7 @@ FROM alpine
 
 
 RUN apk add --no-cache --upgrade bash
-RUN apk add php
+RUN apk add php php-json
 
 WORKDIR /app
 RUN echo '<?php phpinfo(); ?>' > index.php
