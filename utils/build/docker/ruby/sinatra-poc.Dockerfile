@@ -7,6 +7,9 @@ RUN ruby --version && curl --version
 RUN mkdir /app
 WORKDIR /app
 
+RUN wget https://dd.datad0g.com/security/appsec/event-rules && mv event-rules /etc/event-rules.json
+
+
 RUN echo "source 'https://rubygems.org'\n\
 gem 'sinatra'\n\
 gem 'rack-contrib'\n\

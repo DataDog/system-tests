@@ -4,6 +4,8 @@ FROM node:14
 RUN node --version && npm --version && curl --version
 
 WORKDIR /usr/app
+RUN wget https://dd.datad0g.com/security/appsec/event-rules
+RUN mv event-rules event-rules.json
 
 # install hello-world app
 RUN npm install express

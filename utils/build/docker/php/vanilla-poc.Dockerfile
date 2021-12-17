@@ -5,6 +5,10 @@ RUN apk add --no-cache --upgrade bash
 RUN apk add php
 
 WORKDIR /app
+
+RUN wget https://dd.datad0g.com/security/appsec/event-rules
+RUN mv event-rules event-rules.json
+
 RUN echo '<?php phpinfo(); ?>' > index.php
 
 ENV DD_TRACE_ENABLED=true

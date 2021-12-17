@@ -1,5 +1,8 @@
 FROM python:3.9
 
+RUN wget https://dd.datad0g.com/security/appsec/event-rules
+RUN mv event-rules event-rules.json
+
 # print versions
 RUN python --version && curl --version
 

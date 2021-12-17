@@ -8,6 +8,9 @@ COPY utils/build/docker/golang/app /app
 
 WORKDIR /app
 
+RUN wget https://dd.datad0g.com/security/appsec/event-rules
+RUN mv event-rules event-rules.json
+
 RUN /binaries/install_ddtrace.sh
 
 RUN go build -v -tags appsec -o weblog ./gorilla.go ./common.go
