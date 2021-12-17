@@ -208,7 +208,13 @@ class _WafAttack(_BaseAppSecValidation):
                 for parameter in match.get("parameters", []):
                     patterns += parameter["highlight"]
                     addresses.append(parameter["address"])
-                    full_addresses.append((parameter["address"], parameter["key_path"]))
+                    key_path = parameter["key_path"]
+                    full_addresses.append((parameter["address"], key_path))
+                    if isinstance(key_path, list) and len(key_path) != 0 and key_path[-1] == 0:
+                        # on some framework, headers values can be arrays. In this case,
+                        # key_path contains a tailing 0. Remove it and add it as possible use case.
+                        key_path = key_path[:-1]
+                        full_addresses.append((parameter["address"], key_path))
 
             if self.rule_id and self.rule_id != rule_id:
                 self.log_info(f"{self.message} => saw {rule_id}")
@@ -261,3 +267,21 @@ class _WafAttack(_BaseAppSecValidation):
 
         else:
             self.set_status(True)
+
+
+class _ReportedHeader(_BaseAppSecValidation):
+    def __init__(self, request, header_name):
+        super().__init__(request)
+        self.header_name = header_name.lower()
+
+    def validate_legacy(self, event):
+        headers = [n.lower() for n in event["context"]["http"]["request"]["headers"].keys()]
+        assert self.header_name in headers, f"header {self.header_name} not reported"
+
+        return True
+
+    def validate(self, span, appsec_data):
+        headers = [n.lower() for n in span["meta"].keys() if n.startswith("http.request.headers.")]
+        assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
+
+        return True

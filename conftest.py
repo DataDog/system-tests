@@ -17,6 +17,7 @@ _rfcs = {}
 
 def pytest_sessionstart(session):
     logger.debug(f"Library: {context.library}")
+    logger.debug(f"libddwaf: {context.libddwaf_version}")
     logger.debug(f"Weblog variant: {context.weblog_variant}")
     logger.debug(f"Backend: {context.dd_site}")
 
@@ -27,7 +28,17 @@ def pytest_sessionstart(session):
 
 
 def pytest_report_header(config):
-    return f"Library: {context.library}\nWeblog variant: {context.weblog_variant}\nBackend: {context.dd_site}"
+
+    headers = [
+        f"Library: {context.library}",
+        f"Weblog variant: {context.weblog_variant}",
+        f"Backend: {context.dd_site}",
+    ]
+
+    if context.libddwaf_version:
+        headers.append(f"libddwaf: {context.libddwaf_version}")
+
+    return "\n".join(headers)
 
 
 def _get_skip_reason_from_marker(marker):

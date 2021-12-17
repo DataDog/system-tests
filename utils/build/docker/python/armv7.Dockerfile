@@ -14,7 +14,7 @@ RUN /binaries/install_ddtrace.sh
 
 # Datadog setup
 ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'
+ENV DD_TAGS='key1:val1, key2 : val2 '
 
 # docker startup
 RUN echo '#!/bin/bash \n\

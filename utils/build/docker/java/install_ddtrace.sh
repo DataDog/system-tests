@@ -16,3 +16,5 @@ else
 
     cp $(ls dd-java-agent-*.jar) /dd-tracer/dd-java-agent.jar
 fi
+
+touch SYSTEM_TESTS_LIBDDWAF_VERSION

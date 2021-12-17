@@ -66,6 +66,13 @@ class _Context:
         else:
             self.waf_rule_set = Version("0.0.1")
 
+        libddwaf_version = self.weblog_image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None)
+
+        if not libddwaf_version:
+            self.libddwaf_version = None
+        else:
+            self.libddwaf_version = Version(libddwaf_version, "libddwaf")
+
     def get_weblog_container_id(self):
         cgroup_file = "logs/weblog.cgroup"
 
@@ -92,6 +99,7 @@ class _Context:
             "dd_site": self.dd_site,
             "sampling_rate": self.sampling_rate,
             "waf_rule_set": str(self.waf_rule_set),
+            "libddwaf_version": str(self.libddwaf_version),
         }
 
     def __str__(self):

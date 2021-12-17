@@ -19,6 +19,7 @@ COPY --from=build event-rules .
 RUN mv event-rules event-rules.json
 
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
@@ -26,4 +27,4 @@ CMD [ "java", "-javaagent:/app/dd-java-agent.jar", "-jar", "/app/myproject-0.0.1
 
 # Datadog setup
 ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'
+ENV DD_TAGS='key1:val1, key2 : val2 '

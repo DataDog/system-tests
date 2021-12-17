@@ -24,8 +24,12 @@ class Version:
         if component == "ruby":
             version = version.strip()
             if version.startswith("* ddtrace"):
-
                 version = re.sub(r"\* *ddtrace *\((\d+\.\d+\.\d+).*", r"\1", version)
+
+        elif component == "libddwaf":
+            version = version.strip()
+            if version.startswith("* libddwaf"):
+                version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
         try:
             self._version = BaseVersion(version)

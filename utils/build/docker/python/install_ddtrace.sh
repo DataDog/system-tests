@@ -22,3 +22,4 @@ fi
 cd -
 
 python -c "import ddtrace; print(ddtrace.__version__)" > SYSTEM_TESTS_LIBRARY_VERSION
+touch SYSTEM_TESTS_LIBDDWAF_VERSION

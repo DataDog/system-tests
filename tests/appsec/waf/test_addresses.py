@@ -56,7 +56,8 @@ class Test_UrlQuery(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
@@ -67,7 +68,8 @@ class Test_UrlRaw(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="0.51.0")
+@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -134,7 +136,8 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.33.1", php="?", python="?", ruby="0.51.0")
+@released(golang="1.33.1", php="?", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
@@ -144,26 +147,27 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="golang")
-    @bug(library="ruby")
-    def test_cookies_with_special_chars(self):
-        """Other cookies patterns, to be merged once issue are corrected"""
-        r = self.weblog_get("/waf", cookies={"value": ";shutdown--"})
+    def test_cookies_with_semicolon(self):
+        """ Cookie with pattern containing a semicolon """
+        r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
 
-        r = self.weblog_get("/waf", cookies={"key": ".cookie-;domain="})
+        r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
         interfaces.library.assert_waf_attack(r, pattern=".cookie-;domain=", address="server.request.cookies")
 
-        r = self.weblog_get("/waf/", cookies={"x-attack": " var_dump ()"})
-        interfaces.library.assert_waf_attack(r, pattern=" var_dump ()", address="server.request.cookies")
+    @bug(library="dotnet", reason="APPSEC-2290")
+    def test_cookies_with_spaces(self):
+        """ Cookie with pattern containing a space """
+        r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
+        interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
-    @bug(library="dotnet", reason="APPSEC-1407 and APPSEC-1408")
+    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="golang")
     def test_cookies_with_special_chars2(self):
-        """Other cookies patterns, to be merged once issue are corrected"""
+        """Other cookies patterns"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 

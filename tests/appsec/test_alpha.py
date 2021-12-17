@@ -5,21 +5,16 @@
 
 import pytest
 
-from utils import context, BaseTestCase, interfaces, released, irrelevant
+from utils import context, BaseTestCase, interfaces, released, irrelevant, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
 @released(
-    golang="1.34.0-rc.4",
-    dotnet="1.28.6",
-    java="0.87.0",
-    nodejs="2.0.0-appsec-alpha.1",
-    ruby="0.51.0",
-    php="?",
-    python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", ruby="?", php="?", python="?",
 )
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestLFIAttempt(BaseTestCase):
     """
     Detect LFI attack attempts.
@@ -47,14 +42,9 @@ class TestLFIAttempt(BaseTestCase):
 
 
 @released(
-    golang="1.34.0-rc.4",
-    dotnet="1.28.6",
-    java="0.87.0",
-    nodejs="2.0.0-appsec-alpha.1",
-    ruby="0.51.0",
-    php="?",
-    python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?",
 )
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestSecurityScanner(BaseTestCase):
     """
     Detect security scanners.
@@ -69,14 +59,9 @@ class TestSecurityScanner(BaseTestCase):
 
 
 @released(
-    golang="1.34.0-rc.4",
-    dotnet="1.28.6",
-    java="0.87.0",
-    nodejs="2.0.0-appsec-alpha.1",
-    ruby="0.51.0",
-    php="?",
-    python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?",
 )
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestAddresses(BaseTestCase):
     """
     Address server.request.headers.no_cookies should not include cookies.
