@@ -36,6 +36,11 @@ class _Context:
         if "DD_APPSEC_RULES" in os.environ:
             self.weblog_image.env["DD_APPSEC_RULES"] = os.environ["DD_APPSEC_RULES"]
 
+        if "DD_APPSEC_RULES" in self.weblog_image.env:
+            self.appsec_rules = self.weblog_image.env["DD_APPSEC_RULES"]
+        else:
+            self.appsec_rules = None
+
         self.dd_site = os.environ.get("DD_SITE")
 
         library = self.weblog_image.env.get("SYSTEM_TESTS_LIBRARY", None)
@@ -52,21 +57,6 @@ class _Context:
                 pytest.exit(f"DD_TRACE_SAMPLE_RATE should be a float, not {sampling_rate}")
         else:
             self.sampling_rate = None
-
-        if self.library == "nodejs":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library >= "java@0.90.0":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library >= "dotnet@1.30.0":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library >= "ruby@0.53.0":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library == "java":
-            self.waf_rule_set = Version("0.0.1")
-        elif self.library == "php":
-            self.waf_rule_set = Version("1.0.0")
-        else:
-            self.waf_rule_set = Version("0.0.1")
 
         if self.library == "php":
             self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION", None))
@@ -105,8 +95,8 @@ class _Context:
             "weblog_variant": self.weblog_variant,
             "dd_site": self.dd_site,
             "sampling_rate": self.sampling_rate,
-            "waf_rule_set": str(self.waf_rule_set),
             "libddwaf_version": str(self.libddwaf_version),
+            "appsec_rules": self.appsec_rules or "*default*",
         }
 
         if self.library == "php":

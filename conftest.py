@@ -41,11 +41,14 @@ def pytest_report_header(config):
     if context.libddwaf_version:
         headers.append(f"libddwaf: {context.libddwaf_version}")
 
+    if context.appsec_rules:
+        headers.append(f"AppSec rules: {context.appsec_rules}")
+
     headers += [
         f"Weblog variant: {context.weblog_variant}",
         f"Backend: {context.dd_site}",
     ]
-    return "\n".join(headers)
+    return headers
 
 
 def _get_skip_reason_from_marker(marker):
