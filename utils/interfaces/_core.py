@@ -68,7 +68,8 @@ class InterfaceValidator(object):
 
                 for validation in self._validations:
                     try:
-                        validation.final_check()
+                        if not validation.closed:
+                            validation.final_check()
                     except Exception as exc:
                         traceback = "\n".join([format_error(l) for l in get_exception_traceback(exc)])
                         validation.set_failure(f"Unexpected error for {m(validation.message)}:\n{traceback}")
