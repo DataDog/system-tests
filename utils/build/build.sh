@@ -93,6 +93,15 @@ do
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
             .
+        
+        if test -f "binaries/waf_rule_set.json"; then
+            docker build \
+                --progress=plain \
+                -f utils/build/docker/overwrite_waf_rules.Dockerfile \
+                -t system_tests/weblog \
+                $EXTRA_DOCKER_ARGS \
+                .
+        fi
 
         # The library version is needed as an env var, and as the runner is executed before the weblog
         # this value need to be present in the image, in order to be inspected. The point here is that

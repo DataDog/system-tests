@@ -269,23 +269,12 @@ class Test_SQLI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_250)
 
     @bug(library="dotnet", reason="APPSEC-2290")
-    @irrelevant(context.waf_rule_set >= "1.0", reason="crs-942-190 catch it")
-    def test_sqli2_bis(self):
-        r = self.weblog_get("/waf", cookies={"value": "union select from"})
-        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_270)
-
-    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="ruby", reason="need to be investiged")
     def test_sqli3(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
-
-    @irrelevant(context.waf_rule_set == "0.0.1", reason="rules.sql_injection was named sqli")
-    def test_sqli4(self):
-        r = self.weblog_get("/waf", cookies={"value": "/*!*/"})
-        interfaces.library.assert_waf_attack(r, rules.sql_injection)
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="?", python="?")

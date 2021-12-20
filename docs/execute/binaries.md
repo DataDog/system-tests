@@ -46,6 +46,9 @@ TODO
   * `ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"`
 2. Clone the dd-trace-rb repo inside `binaries`
 
+## WAF rule set
+
+* copy a file `waf_rule_set` in `binaries/`
 ----
 
 Hint for components who allows to have the repo in `binaries`, use the command `mount --bind src dst` to mount your local repo => any build of system tests will uses it.

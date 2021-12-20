@@ -98,7 +98,6 @@ def test_context():
     assert context.library == "java@0.66.0"
     assert context.weblog_variant is None
     assert context.sampling_rate is None
-    assert context.waf_rule_set == "0.0.1"
     print("Test context OK")
 
 

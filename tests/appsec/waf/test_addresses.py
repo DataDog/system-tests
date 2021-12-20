@@ -38,13 +38,6 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
     @bug(library="golang")
-    @irrelevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
-    def test_query_encoded_legacy(self):
-        """ AppSec catches attacks in URL query value, even encoded"""
-        r = self.weblog_get("/waf/", params={"key": "<script>"})
-        interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
-
-    @bug(library="golang")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
@@ -105,20 +98,6 @@ class Test_Headers(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
         interfaces.library.assert_waf_attack(
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
-        )
-
-    @irrelevant(context.waf_rule_set >= "1.0.0", reason="Rules set 1.0.0 => libxss does not report highlight")
-    @bug(library="golang", reason="entire address is missing")
-    def test_specific_key3_legacy(self):
-        """ When a specific header key is specified, other key are ignored """
-        r = self.weblog_get("/waf/", headers={"referer": "<script >"})
-        interfaces.library.assert_waf_attack(
-            r, pattern="<script >", address="server.request.headers.no_cookies", key_path=["referer"]
-        )
-
-        r = self.weblog_get("/waf/", headers={"RefErEr": "<script >"})
-        interfaces.library.assert_waf_attack(
-            r, pattern="<script >", address="server.request.headers.no_cookies", key_path=["referer"]
         )
 
     def test_specific_key3(self):
