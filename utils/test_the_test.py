@@ -34,19 +34,33 @@ def create_context():
 def test_decorators():
     from utils._decorators import bug, released, rfc, irrelevant
 
-    def is_skipped(item):
+    def is_skipped(item, reason):
         if hasattr(item, "pytestmark"):
             for mark in item.pytestmark:
                 if mark.name == "skip":
+
+                    if mark.kwargs["reason"] != reason:
+                        raise Exception(
+                            f"{item} is skipped, but reason is {repr(mark.kwargs['reason'])} io {repr(reason)}"
+                        )
+
                     return True
 
-        return False
+        raise Exception(f"{item} is not skipped")
+
+    def is_not_skipped(item):
+        if hasattr(item, "pytestmark"):
+            for mark in item.pytestmark:
+                if mark.name == "skip":
+                    raise Exception(f"{item} is skipped")
+
+        return True
 
     @bug(library="java", reason="test")
     def test_function():
         pass
 
-    assert is_skipped(test_function)
+    assert is_skipped(test_function, "known bug: test")
     assert "test_function function, known bug: test => skipped\n" in logs
 
     @bug(library="java", reason="test")
@@ -59,9 +73,9 @@ def test_decorators():
         def test_method2(self):
             pass
 
-    assert is_skipped(Test_Class)
-    assert is_skipped(Test_Class.test_method)
-    assert not is_skipped(Test_Class.test_method2)
+    assert is_skipped(Test_Class, "known bug: test")
+    assert is_skipped(Test_Class.test_method, "not relevant")
+    assert is_not_skipped(Test_Class.test_method2)
     assert "test_method function, not relevant => skipped\n" in logs
     assert "Test_Class class, known bug: test => skipped\n" in logs
 
@@ -87,6 +101,12 @@ def test_decorators():
         assert str(e) == "A java' version for Test has been declared twice"
     else:
         raise Exception("Component has been declared twice, should fail")
+
+    @released(java="?")
+    class Test4:
+        pass
+
+    assert is_skipped(Test4, "missing feature: release not yet planned")
 
     print("Test decorators OK")
 
