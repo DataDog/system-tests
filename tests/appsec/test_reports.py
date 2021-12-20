@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.35.0", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0", dotnet="1.28.6", nodejs="2.0.0-appsec-beta.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """

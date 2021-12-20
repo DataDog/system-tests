@@ -24,7 +24,7 @@ class Test_Events(BaseTestCase):
 
 @rfc("https://github.com/DataDog/appsec-event-rules/tree/1.0.0/v2/build")
 @released(dotnet="1.30.0", golang="?", java="0.90.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @irrelevant(library="cpp")
 class Test_LatestWafRuleSet(BaseTestCase):
