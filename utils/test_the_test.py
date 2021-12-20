@@ -67,12 +67,26 @@ def test_decorators():
 
     @rfc("A link")
     @released(java="99.99")
+    @released(php="99.99")
     class Test2:
         pass
 
     assert "Test2 class, missing feature: release version is 99.99 => skipped\n" in logs
-    assert Test2().__released__ == "99.99"
+    assert Test2().__released__["java"] == "99.99"
+    assert "php" not in Test2().__released__
     assert Test2().__rfc__ == "A link"
+
+    try:
+
+        @released(java="99.99")
+        @released(java="99.99")
+        class Test3:
+            pass
+
+    except ValueError as e:
+        assert str(e) == "A java' version for Test has been declared twice"
+    else:
+        raise Exception("Component has been declared twice, should fail")
 
     print("Test decorators OK")
 

@@ -41,6 +41,7 @@ class Test_SamplingDecisions(BaseTestCase):
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
     @bug(library="golang", reason="Sampling decisions are not taken by the tracer APMRP-259")
+    @bug(library="php", reason="Unknown reason")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 

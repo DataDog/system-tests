@@ -63,8 +63,15 @@ class _Context:
             self.waf_rule_set = Version("1.0.0")
         elif self.library == "java":
             self.waf_rule_set = Version("0.0.1")
+        elif self.library == "php":
+            self.waf_rule_set = Version("1.0.0")
         else:
             self.waf_rule_set = Version("0.0.1")
+
+        if self.library == "php":
+            self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION", None))
+        else:
+            self.php_appsec = None
 
         libddwaf_version = self.weblog_image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None)
 
@@ -93,7 +100,7 @@ class _Context:
             warmup()
 
     def serialize(self):
-        return {
+        result = {
             "library": self.library.serialize(),
             "weblog_variant": self.weblog_variant,
             "dd_site": self.dd_site,
@@ -101,6 +108,11 @@ class _Context:
             "waf_rule_set": str(self.waf_rule_set),
             "libddwaf_version": str(self.libddwaf_version),
         }
+
+        if self.library == "php":
+            result["php_appsec"] = self.php_appsec
+
+        return result
 
     def __str__(self):
         return json.dumps(self.serialize(), indent=4)

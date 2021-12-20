@@ -33,7 +33,7 @@ jobs:
           - library: nodejs
             weblog-variant: express-poc
           - library: php
-            weblog-variant: vanilla-poc
+            weblog-variant: apache-mod
           - library: python
             weblog-variant: flask-poc
           - library: python
@@ -52,6 +52,11 @@ jobs:
       - name: Load library binary
         if: ${{ matrix.library != 'cpp' && matrix.library != 'java' && matrix.library != 'php' && matrix.library != 'python' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
+
+      # uncomment this block once DataDog/dd-appsec-php-internal is public
+      # - name: Load library PHP appsec binary
+      #   if: ${{ matrix.library == 'php' }}
+      #   run: ./utils/scripts/load-binary.sh php_appsec
 
       - name: Load library binary
         if: ${{ matrix.library == 'python' }}

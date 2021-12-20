@@ -37,7 +37,7 @@ class Test_Meta(BaseTestCase):
 
     @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
     @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
-    @bug(library="php", reason="http.url is not a full url, should be discussed of actually a bug or not")
+    @bug(library="php", reason="To be fixed in ddtrace 0.68.0: https://github.com/DataDog/dd-trace-php/pull/1360")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 

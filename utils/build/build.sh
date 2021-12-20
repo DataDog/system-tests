@@ -4,7 +4,7 @@
 
 #!/bin/bash
 
-set -e
+set -ex
 
 # set .env if exists. Allow users to keep their conf via env vars
 if test -f ".env"; then
@@ -49,7 +49,7 @@ elif [ "$TEST_LIBRARY" = "java" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}
 
 elif [ "$TEST_LIBRARY" = "php" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-vanilla-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-apache-mod}
 
 elif [ "$TEST_LIBRARY" = "dotnet" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-poc}
@@ -100,12 +100,14 @@ do
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
+        SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
 
         docker build \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
             --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
             --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \
+            --build-arg SYSTEM_TESTS_PHP_APPSEC_VERSION="$SYSTEM_TESTS_PHP_APPSEC_VERSION" \
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
             -f utils/build/docker/set-system-tests-env.Dockerfile \
             -t system_tests/weblog \

@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @released(
-    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", ruby="?", php="?", python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?",
 )
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestLFIAttempt(BaseTestCase):
@@ -23,6 +23,10 @@ class TestLFIAttempt(BaseTestCase):
     @irrelevant(
         context.library == "dotnet" and context.weblog_variant == "poc",
         reason="the .net framework is instrumented after the URI gets simplified",
+    )
+    @irrelevant(
+        context.library == "php" and context.weblog_variant == "apache-mod",
+        reason="apache resolves .. before passing it to mod_rewrite",
     )
     def test_uri(self):
         """
@@ -42,7 +46,7 @@ class TestLFIAttempt(BaseTestCase):
 
 
 @released(
-    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?",
 )
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestSecurityScanner(BaseTestCase):
@@ -59,7 +63,7 @@ class TestSecurityScanner(BaseTestCase):
 
 
 @released(
-    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?",
 )
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestAddresses(BaseTestCase):

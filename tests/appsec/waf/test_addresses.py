@@ -11,6 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
+# WAF/current ruleset don't support looking at keys at all
 @released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_UrlQueryKey(BaseTestCase):
@@ -27,7 +28,7 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -56,7 +57,7 @@ class Test_UrlQuery(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
@@ -68,7 +69,7 @@ class Test_UrlRaw(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
@@ -97,7 +98,8 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
         )
 
-    @irrelevant(library="ruby", reason="Rack transforms undersocre to dashes")
+    @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
+    @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     def test_specific_key2(self):
         """ attacks on specific header X_Filename, and report it """
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
@@ -136,7 +138,7 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.33.1", php="?", python="?")
+@released(golang="1.33.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
@@ -172,7 +174,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
 
@@ -183,21 +185,23 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
     @missing_feature(library="java")
+    @missing_feature(library="php", reason="matching against keys is impossible with current rules")
     def test_body_key(self):
         """AppSec detects attacks in URL encoded body keys"""
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
     @missing_feature(library="java")
+    @bug(library="php", reason="WAF provides no highlight and that's what pattern matches against")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
-        interfaces.library.assert_waf_attack(r, pattern="x", address="x")
+        interfaces.library.assert_waf_attack(r, pattern="<vmlframe src=", address="server.request.body")
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")

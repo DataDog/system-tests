@@ -11,7 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@released(golang="?", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -30,6 +30,7 @@ class Test_404(BaseTestCase):
         )
 
 
+# currently throws NotImplementedError
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -42,23 +43,22 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?", ruby="?")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
     @missing_feature(library="nodejs", reason="query string not yet supported")
     def test_basic(self):
         """Basic test with more than one attack"""
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"}, params={"key": "appscan_fingerprint"})
-        interfaces.library.assert_waf_attack(r, rules.security_scanner.ua0_600_12x, pattern="Arachni/v")
+        r = self.weblog_get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100, pattern="/../")
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120, pattern="appscan_fingerprint")
 
-    @irrelevant(library="nodejs", reason="WAF does not return multiple security scanners")
     def test_same_source(self):
         """Test with more than one attack in headers"""
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1", "random-key": "acunetix-user-agreement"})
+        r = self.weblog_get("/waf/", headers={"User-Agent": "/../", "random-key": "acunetix-user-agreement"})
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_110, pattern="acunetix-user-agreement")
-        interfaces.library.assert_waf_attack(r, rules.security_scanner.ua0_600_12x, pattern="Arachni/v")
+        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100, pattern="/../")
 
     def test_same_location(self):
         """Test with more than one attack in a unique property"""

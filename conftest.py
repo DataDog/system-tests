@@ -17,6 +17,9 @@ _rfcs = {}
 
 def pytest_sessionstart(session):
     logger.debug(f"Library: {context.library}")
+    if context.library == "php":
+        logger.debug(f"AppSec: {context.php_appsec}")
+
     logger.debug(f"libddwaf: {context.libddwaf_version}")
     logger.debug(f"Weblog variant: {context.weblog_variant}")
     logger.debug(f"Backend: {context.dd_site}")
@@ -28,16 +31,20 @@ def pytest_sessionstart(session):
 
 
 def pytest_report_header(config):
-
     headers = [
         f"Library: {context.library}",
-        f"Weblog variant: {context.weblog_variant}",
-        f"Backend: {context.dd_site}",
     ]
+
+    if context.library == "php":
+        headers.append(f"AppSec: {context.php_appsec}")
 
     if context.libddwaf_version:
         headers.append(f"libddwaf: {context.libddwaf_version}")
 
+    headers += [
+        f"Weblog variant: {context.weblog_variant}",
+        f"Backend: {context.dd_site}",
+    ]
     return "\n".join(headers)
 
 
@@ -105,7 +112,13 @@ def pytest_runtestloop(session):
         if session.shouldstop:
             raise session.Interrupted(session.shouldstop)
 
-    interfaces.library.wait(timeout=80 if context.library == "java" else 40)
+    if context.library == "java":
+        timeout = 80
+    elif context.library == "php":
+        timeout = 5
+    else:
+        timeout = 40
+    interfaces.library.wait(timeout=timeout)
     interfaces.library_stdout.wait()
     interfaces.library_dotnet_managed.wait()
 
@@ -117,7 +130,7 @@ def pytest_runtestloop(session):
         session.shouldfail = "Library's interface is not validated"
         raise session.Failed(session.shouldfail)
 
-    interfaces.agent.wait(timeout=40)
+    interfaces.agent.wait(timeout=5 if context.library == "php" else 40)
     if not interfaces.agent.is_success:
         session.shouldfail = "Agent's interface is not validated"
         raise session.Failed(session.shouldfail)
