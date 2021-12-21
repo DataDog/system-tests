@@ -78,6 +78,13 @@ get_circleci_artifact() {
     ARTIFACTS=$(curl --silent https://circleci.com/api/v2/project/$SLUG/$JOB_NUMBER/artifacts -H "Circle-Token: $CIRCLECI_TOKEN")
     QUERY=".items[] | select(.path | test(\"$ARTIFACT_PATTERN\"))"
     ARTIFACT_URL=$(echo $ARTIFACTS | jq -r "$QUERY | .url")
+
+    if [ -z "$ARTIFACT_URL" ]; then
+        echo "Oooops, I did not found any artifact that satisfy this pattern: $ARTIFACT_PATTERN. Here is the list:"
+        echo $ARTIFACTS | jq -r ".items[] | .path"
+        exit 1
+    fi
+
     ARTIFACT_NAME=$(echo $ARTIFACTS | jq -r "$QUERY | .path" | sed -E 's/libs\///')
     echo "Artifact URL: $ARTIFACT_URL"
     echo "Artifact name: $ARTIFACT_NAME"
@@ -100,7 +107,7 @@ if [ "$TARGET" = "java" ]; then
     OWNER=DataDog
     REPO=dd-trace-java
 
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*-SNAPSHOT.jar"
+    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
