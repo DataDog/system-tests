@@ -13,9 +13,9 @@ if context.library == "cpp":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_Standardization(BaseTestCase):
-    """AppSec errors logs should be standardized"""
+    """AppSec logs should be standardized"""
 
     @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
     @bug(library="java", reason="ERROR io CRITICAL")
