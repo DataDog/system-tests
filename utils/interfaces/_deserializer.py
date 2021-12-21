@@ -40,21 +40,39 @@ def deserialize_http_message(path, message, data, interface):
 
     if content_type in ("application/json", "text/json"):
         return json.loads(data)
-    elif interface == "library" and content_type == "application/msgpack" and path == "/v0.4/traces":
-        traces = msgpack.unpackb(data)
-        for span in (span for trace in traces for span in trace):
-            for key in ("trace_id", "parent_id", "span_id"):
-                if key in span.keys():
-                    span[key] = parse_as_unsigned_int(span[key], 64)
-        return traces
+
     elif content_type == "application/msgpack":
-        return msgpack.unpackb(data)
+        result = msgpack.unpackb(data)
+
+        if interface == "library" and path == "/v0.4/traces":
+            for span in (span for trace in result for span in trace):
+                for key in ("trace_id", "parent_id", "span_id"):
+                    if key in span.keys():
+                        span[key] = parse_as_unsigned_int(span[key], 64)
+
+        _convert_bytes_values(result)
+
+        return result
+
     elif content_type == "application/x-protobuf" and path == "/api/v0.2/traces":
         return MessageToDict(TracePayload.FromString(data))
+
     elif content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
         return []
 
     return data
+
+
+def _convert_bytes_values(item):
+    if isinstance(item, dict):
+        for key in item:
+            if isinstance(item[key], bytes):
+                item[key] = item[key].decode("ascii")
+            elif isinstance(item[key], dict):
+                _convert_bytes_values(item[key])
+    elif isinstance(item, (list, tuple)):
+        for value in item:
+            _convert_bytes_values(value)
 
 
 def deserialize(data, interface):
