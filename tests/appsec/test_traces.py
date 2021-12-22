@@ -10,14 +10,13 @@ from utils import BaseTestCase, context, interfaces, released, bug, missing_feat
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
-@released(
-    golang="v1.34.0-rc.4", dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?"
-)
+
+@released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="0.92.0")
+@released(nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?")
 class Test_AppSecEventSpanTags(BaseTestCase):
-    """
-    AppSec should had span tags.
-    """
+    """ AppSec correctly fill span tags. """
 
     @classmethod
     def setup_class(cls):
@@ -27,7 +26,6 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @missing_feature(library="ruby", reason="can't report user agent with dd-trace-rb")
     def test_appsec_event_span_tags(self):
         """
         Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
@@ -51,45 +49,54 @@ class Test_AppSecEventSpanTags(BaseTestCase):
             if span["metrics"]["_sampling_priority_v1"] != MANUAL_KEEP:
                 raise Exception(f"Trace id {span['trace_id']} , sampling priority should be {MANUAL_KEEP}")
 
-            return validate_appsec_span_tags(span)
+            return True
 
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
-    @missing_feature(library="golang", reason="appsec span tags are only applied to spans of instrumented frameworks")
-    @missing_feature(library="nodejs", reason="appsec span tags are only applied to spans of instrumented frameworks")
-    @bug(library="ruby", reason="_dd.appsec.enabled is missing on user spans, maybe not a bug, TBC")
     def test_custom_span_tags(self):
-        """AppSec should store in APM spans some tags when enabled."""
+        """AppSec should store in all APM spans some tags when enabled."""
 
         def validate_custom_span_tags(span):
-            if span.get("name") == "init.service":  # do nothing on warm-up spans
+            if span.get("type") != "web":
                 return
 
-            return validate_appsec_span_tags(span)
+            if span.get("parent_id") not in (0, None):  # do nothing if not root span
+                return
+
+            if "_dd.appsec.enabled" not in span["metrics"]:
+                raise Exception("Can't find _dd.appsec.enabled in span's metrics")
+
+            if "_dd.runtime_family" not in span["meta"]:
+                raise Exception("Can't find _dd.runtime_family in span's meta")
+
+            if span["metrics"]["_dd.appsec.enabled"] != 1:
+                raise Exception(
+                    f'_dd.appsec.enabled in span\'s metrics should be 1 or 1.0, not {span["metrics"]["_dd.appsec.enabled"]}'
+                )
+
+            if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILIES:
+                raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']}, should be in {RUNTIME_FAMILIES}")
+
+            return True
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
+    @missing_feature(library="dotnet", reason="Weblog does not generate any span with type !=web")
+    @missing_feature(library="java", reason="Weblog does not generate any span with type !=web")
+    def test_root_span_coherence(self):
+        """ Appsec tags are not on span where type is not web """
 
-RUNTIME_FAMILY = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
+        def validator(span):
+            if span.get("type") == "web":
+                return
 
+            if "_dd.appsec.enabled" in span["metrics"]:
+                raise Exception("_dd.appsec.enabled should be present when span type is web")
 
-def validate_appsec_span_tags(span):
-    if span.get("parent_id") not in (0, None):  # do nothing if not root span
-        return
+            if "_dd.runtime_family" in span["meta"]:
+                raise Exception("_dd.runtime_family should be present when span type is web")
 
-    if "_dd.appsec.enabled" not in span["metrics"]:
-        raise Exception("Can't find _dd.appsec.enabled in span's metrics")
+            return True
 
-    if span["metrics"]["_dd.appsec.enabled"] != 1:
-        raise Exception(
-            f'_dd.appsec.enabled in span\'s metrics should be 1 or 1.0, not {span["metrics"]["_dd.appsec.enabled"]}'
-        )
-
-    if "_dd.runtime_family" not in span["meta"]:
-        raise Exception("Can't find _dd.runtime_family in span's meta")
-
-    if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILY:
-        raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']} , should be in {RUNTIME_FAMILY}")
-
-    return True
+        interfaces.library.add_span_validation(validator=validator)
