@@ -28,7 +28,7 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -50,7 +50,7 @@ class Test_UrlQuery(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
+@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
@@ -62,7 +62,7 @@ class Test_UrlRaw(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
+@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
@@ -117,7 +117,7 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.33.1", php_appsec="?", python="?")
+@released(golang="1.33.1", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
@@ -153,7 +153,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
 
@@ -164,7 +164,7 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
