@@ -10,11 +10,11 @@ from utils import BaseTestCase, context, interfaces, released, bug, missing_feat
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
-
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="0.92.0", nodejs="2.0.0", php_appsec="?", python="?", ruby="?")
+@released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="0.92.0")
+@released(nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 
