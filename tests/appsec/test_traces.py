@@ -83,7 +83,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
     @missing_feature(library="dotnet", reason="Weblog does not generate any span with type !=web")
-    @missing_feature(library="java", reason="Weblog does not generate any span with type !=web")
+    @bug(library="java")
     def test_root_span_coherence(self):
         """ Appsec tags are not on span where type is not web """
 
