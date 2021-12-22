@@ -11,7 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="?", nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """
     AppSec should had span tags.
@@ -55,6 +55,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
     @missing_feature(library="golang", reason="appsec span tags are only applied to spans of instrumented frameworks")
+    @missing_feature(library="nodejs", reason="appsec span tags are only applied to spans of instrumented frameworks")
     @bug(library="ruby", reason="_dd.appsec.enabled is missing on user spans, maybe not a bug, TBC")
     def test_custom_span_tags(self):
         """AppSec should store in APM spans some tags when enabled."""

@@ -117,7 +117,7 @@ def pytest_runtestloop(session):
 
     if context.library == "java":
         timeout = 80
-    elif context.library == "php":
+    elif context.library == "php" or context.library == "nodejs":
         timeout = 5
     else:
         timeout = 40
@@ -133,7 +133,7 @@ def pytest_runtestloop(session):
         session.shouldfail = "Library's interface is not validated"
         raise session.Failed(session.shouldfail)
 
-    interfaces.agent.wait(timeout=5 if context.library == "php" else 40)
+    interfaces.agent.wait(timeout=5 if context.library == "php" or context.library == "nodejs" else 40)
     if not interfaces.agent.is_success:
         session.shouldfail = "Agent's interface is not validated"
         raise session.Failed(session.shouldfail)

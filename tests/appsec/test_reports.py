@@ -91,9 +91,9 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_reported_header(r, "via")
         interfaces.library.add_appsec_reported_header(r, "true-client-ip")
 
-    @missing_feature(library="nodejs", reason="actor ip is missing")
     @missing_feature(library="java", reason="actor ip has incorrect data")
     @missing_feature(library="golang", reason="done by the backend until customer request or ip blocking features")
+    @missing_feature(library="nodejs", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
