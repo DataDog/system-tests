@@ -31,6 +31,10 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/params/{value}", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
+
 	initDatadog()
 	http.ListenAndServe(":7777", mux)
 }

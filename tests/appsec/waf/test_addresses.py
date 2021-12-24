@@ -249,3 +249,13 @@ class Test_ResponseStatus(BaseTestCase):
         """ AppSec catches attacks in URL query value"""
         r = self.weblog_get("/mysql")
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
+
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params")
+class Test_PathParams(BaseTestCase):
+    """Appsec supports values on server.request.path_params"""
+
+    def test_security_scanner(self):
+        """ AppSec catches attacks in URL query value"""
+        r = self.weblog_get("/params/appscan_fingerprint")
+        interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")

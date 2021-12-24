@@ -35,6 +35,10 @@ func main() {
 		return c.String(http.StatusOK, "OK")
 	})
 
+	r.Any("/params/:i", func(c echo.Context) error {
+		return c.String(http.StatusOK, "OK")
+	})
+
 	initDatadog()
 	r.Start(":7777")
 }
