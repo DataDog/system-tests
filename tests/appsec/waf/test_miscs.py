@@ -43,7 +43,7 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?", ruby="?")
+@released(golang="1.35.0", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?", ruby="?")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 

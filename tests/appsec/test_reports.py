@@ -118,7 +118,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(dotnet="2.0.0", golang="?", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
+@released(dotnet="2.0.0", golang="1.35.0", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Info(BaseTestCase):
     """AppSec correctly reports service and environment values"""

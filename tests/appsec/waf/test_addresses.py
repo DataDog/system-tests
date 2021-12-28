@@ -28,7 +28,7 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="1.34.0", dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -37,7 +37,6 @@ class Test_UrlQuery(BaseTestCase):
         r = self.weblog_get("/waf/", params={"attack": "appscan_fingerprint"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
-    @bug(library="golang")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
@@ -49,7 +48,7 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
+@released(golang="1.34.0", dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
@@ -61,7 +60,7 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
+@released(golang="1.34.0", dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Headers(BaseTestCase):
@@ -117,7 +116,7 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.33.1", php_appsec="?", python="?")
+@released(golang="1.34.0", php_appsec="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
@@ -129,7 +128,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
     @bug(library="java", reason="under Valentin's investigations")
-    @bug(library="golang")
+    @missing_feature(library="golang", reason="cookies are not url-decoded")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
@@ -146,7 +145,6 @@ class Test_Cookies(BaseTestCase):
 
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
-    @bug(library="golang")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})

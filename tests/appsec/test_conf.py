@@ -11,8 +11,9 @@ if context.library == "cpp":
 
 
 @released(
-    golang="?", dotnet="1.29.0", java="0.87.0", nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?"
+    dotnet="1.29.0", java="0.87.0", nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?"
 )
+@missing_feature(library="golang", reason="standard logs not implemented")
 class Test_StaticRuleSet(BaseTestCase):
     """Appsec loads rules from a static rules file"""
 

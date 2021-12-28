@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	tracer.Start(tracer.WithServiceName("weblog"))
+	tracer.Start()
 	defer tracer.Stop()
 
 	r := echo.New()

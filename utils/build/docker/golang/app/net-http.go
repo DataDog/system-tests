@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	tracer.Start(tracer.WithServiceName("weblog"))
+	tracer.Start()
 	defer tracer.Stop()
 	mux := httptrace.NewServeMux()
 
