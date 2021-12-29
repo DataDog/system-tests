@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant
 
 
 if context.library == "cpp":
@@ -83,6 +83,33 @@ class Test_AppSecEventSpanTags(BaseTestCase):
             return True
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
+
+    @irrelevant(context.library not in ["golang"], reason="test")
+    def test_header_collection(self):
+        """
+        AppSec should collect some headers for http.request and http.response and store them in span tags.
+        Note that this test checks for collection, not data.
+        """
+
+        def assertHeaderInSpanMeta(span, h):
+            if h not in span["meta"]:
+                raise Exception("Can't find {header} in span's meta".format(header=h))
+
+        def validate_request_headers(span):
+            for h in ["user-agent", "host", "content-type"]:
+                assertHeaderInSpanMeta(span, "http.request.headers.{header}".format(header=h))
+            return True
+
+        def validate_response_headers(span):
+            for h in ["content-type", "content-length", "content-language"]:
+                assertHeaderInSpanMeta(span, "http.response.headers.{header}".format(header=h))
+            return True
+
+        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        interfaces.library.add_span_validation(r, validate_request_headers)
+        interfaces.library.add_span_validation(r, validate_response_headers)
+
+
 
     @bug(context.library < "java@0.93.0")
     @missing_feature(library="php")  # need to generate a user trace

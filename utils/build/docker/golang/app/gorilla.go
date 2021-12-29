@@ -35,6 +35,14 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/headers/", func(w http.ResponseWriter, r *http.Request) {
+		//Data used for header content is irrelevant here, only header presence is checked
+		w.Header().Set("content-type", "text/plain")
+		w.Header().Set("content-length", "42")
+		w.Header().Set("content-language", "en-US")
+		w.Write([]byte("Hello, headers!"))
+	})
+
 	initDatadog()
 	http.ListenAndServe(":7777", mux)
 }
