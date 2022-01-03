@@ -15,7 +15,7 @@ class Test_Events(BaseTestCase):
         """ Check sends event using legacy /appsec/proxy/api/v2/appsecevts 0.1.0"""
 
         def validator(event):
-            assert event["event_version"] == "1.0.0", f"event version should be 0.1.0, not {event['event_version']}"
+            assert event["event_version"] == "0.1.0", f"event version should be 0.1.0, not {event['event_version']}"
 
             return True
 
