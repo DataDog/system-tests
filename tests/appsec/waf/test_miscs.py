@@ -11,7 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
+@released(golang="?", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -43,7 +43,7 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?", ruby="?")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
