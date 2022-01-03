@@ -13,7 +13,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_Scanners(BaseTestCase):
@@ -88,7 +89,8 @@ class Test_LFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_110)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_RFI(BaseTestCase):
@@ -104,7 +106,8 @@ class Test_RFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.rfi.crs_931_120)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_CommandInjection(BaseTestCase):
@@ -131,7 +134,8 @@ class Test_CommandInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.command_injection.sqr_000_010)
 
 
-@released(golang="1.33.1", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_PhpCodeInjection(BaseTestCase):
@@ -168,7 +172,8 @@ class Test_PhpCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_170)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_JsInjection(BaseTestCase):
@@ -277,7 +282,8 @@ class Test_SQLI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_NoSqli(BaseTestCase):
@@ -292,7 +298,8 @@ class Test_NoSqli(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_JavaCodeInjection(BaseTestCase):
@@ -310,7 +317,8 @@ class Test_JavaCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.java_code_injection.crs_944_130)
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_SSRF(BaseTestCase):

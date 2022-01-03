@@ -44,6 +44,9 @@ jobs:
           - library: golang
             weblog-variant: echo
             version: dev
+          - library: golang
+            weblog-variant: echo
+            version: prod
           - library: java
             weblog-variant: spring-boot-poc
             version: dev

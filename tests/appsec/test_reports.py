@@ -37,7 +37,8 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(dotnet="1.30.0", golang="1.33.1", nodejs="2.0.0rc0", php="?", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.30.0", nodejs="2.0.0rc0", php="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_ActorIP(BaseTestCase):
     """ AppSec reports good actor's IP"""

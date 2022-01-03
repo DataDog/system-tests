@@ -28,7 +28,8 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -49,7 +50,8 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
@@ -61,7 +63,8 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Headers(BaseTestCase):
@@ -117,7 +120,8 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.33.1", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
