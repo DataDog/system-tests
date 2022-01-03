@@ -55,6 +55,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
+    @bug(context.library == "golang" and context.weblog_variant == "echo")
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
