@@ -48,7 +48,7 @@ class InterfaceValidator(object):
         return f"{self.__class__.__name__}('{self.name}')"
 
     def __str__(self):
-        return f"{self.name} interface validator"
+        return f"{self.name} interface"
 
     def _check_closed_status(self):
         if len([item for item in self._validations if not item.closed]) == 0:
@@ -156,6 +156,10 @@ class InterfaceValidator(object):
 
     def check(self, message):
         pass
+
+    @property
+    def validations_count(self):
+        return len(self._validations)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
