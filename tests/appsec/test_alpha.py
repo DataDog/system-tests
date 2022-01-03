@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @released(
-    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?",
 )
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestLFIAttempt(BaseTestCase):
@@ -46,7 +46,7 @@ class TestLFIAttempt(BaseTestCase):
 
 
 @released(
-    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?",
 )
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestSecurityScanner(BaseTestCase):
@@ -63,7 +63,7 @@ class TestSecurityScanner(BaseTestCase):
 
 
 @released(
-    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?",
+    golang="1.34.0-rc.4", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?",
 )
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestAddresses(BaseTestCase):

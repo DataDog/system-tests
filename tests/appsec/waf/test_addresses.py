@@ -50,7 +50,7 @@ class Test_UrlQuery(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
@@ -62,7 +62,7 @@ class Test_UrlRaw(BaseTestCase):
 
 
 @released(golang="1.33.1", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
