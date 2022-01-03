@@ -84,6 +84,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
     @bug(library="java")
+    @missing_feature(library="php")  # need to generate a user trace
     def test_root_span_coherence(self):
         """ Appsec tags are not on span where type is not web """
 
