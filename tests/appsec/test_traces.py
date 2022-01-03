@@ -14,7 +14,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
 @released(golang="v1.34.0-rc.4", dotnet="1.29.0", java="0.92.0")
-@released(nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?")
+@released(nodejs="2.0.0rc0", php_appsec="?", python="?", ruby="?")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 

@@ -10,9 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(
-    golang="?", dotnet="1.29.0", java="0.87.0", nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?"
-)
+@released(golang="?", dotnet="1.29.0", java="0.87.0", nodejs="2.0.0rc0", php_appsec="?", python="?", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
     """Appsec loads rules from a static rules file"""
 
