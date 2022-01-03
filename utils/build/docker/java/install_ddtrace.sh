@@ -17,4 +17,6 @@ else
     cp $(ls dd-java-agent-*.jar) /dd-tracer/dd-java-agent.jar
 fi
 
+echo "Installed $(cat SYSTEM_TESTS_LIBRARY_VERSION) java library"
+
 touch SYSTEM_TESTS_LIBDDWAF_VERSION

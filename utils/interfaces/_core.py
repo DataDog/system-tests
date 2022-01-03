@@ -48,7 +48,7 @@ class InterfaceValidator(object):
         return f"{self.__class__.__name__}('{self.name}')"
 
     def __str__(self):
-        return f"{self.name} interface validator"
+        return f"{self.name} interface"
 
     def _check_closed_status(self):
         if len([item for item in self._validations if not item.closed]) == 0:
@@ -68,7 +68,8 @@ class InterfaceValidator(object):
 
                 for validation in self._validations:
                     try:
-                        validation.final_check()
+                        if not validation.closed:
+                            validation.final_check()
                     except Exception as exc:
                         traceback = "\n".join([format_error(l) for l in get_exception_traceback(exc)])
                         validation.set_failure(f"Unexpected error for {m(validation.message)}:\n{traceback}")
@@ -155,6 +156,10 @@ class InterfaceValidator(object):
 
     def check(self, message):
         pass
+
+    @property
+    def validations_count(self):
+        return len(self._validations)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):

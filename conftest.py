@@ -9,6 +9,11 @@ import inspect
 from utils import context, data_collector, interfaces
 from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
 
+from pytest_jsonreport.plugin import JSONReport
+
+# Monkey patch JSON-report plugin to avoid noise in report
+JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+
 _docs = {}
 _skip_reasons = {}
 _release_versions = {}
@@ -16,6 +21,7 @@ _rfcs = {}
 
 
 def pytest_sessionstart(session):
+
     logger.debug(f"Library: {context.library}")
     if context.library == "php":
         logger.debug(f"AppSec: {context.php_appsec}")
@@ -94,8 +100,29 @@ def pytest_itemcollected(item):
             break
 
 
+def _wait_interface(interface, session, timeout=None):
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+
+    # side note : do NOT skip this function even if interface has no validations
+    # internal errors may cause no validation in interface
+
+    if timeout:
+        terminal.write_line(f"Wait {timeout}s for {interface}: {interface.validations_count} to be validated")
+        interface.wait(timeout=timeout)
+    else:
+        terminal.write_line(f"Wait for {interface}: {interface.validations_count} to be validated")
+        interface.wait()
+
+    if not interface.is_success:
+        session.shouldfail = f"{interface} is not validated"
+        raise session.Failed(session.shouldfail)
+
+
 def pytest_runtestloop(session):
 
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+
+    terminal.write_line(f"Executing weblog warmup...")
     context.execute_warmups()
 
     """From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337"""
@@ -117,26 +144,20 @@ def pytest_runtestloop(session):
 
     if context.library == "java":
         timeout = 80
-    elif context.library == "php":
+    elif context.library.library in ("php", "nodejs"):
         timeout = 5
     else:
         timeout = 40
-    interfaces.library.wait(timeout=timeout)
-    interfaces.library_stdout.wait()
-    interfaces.library_dotnet_managed.wait()
 
-    if (
-        not interfaces.library_stdout.is_success
-        or not interfaces.library.is_success
-        or not interfaces.library_dotnet_managed.is_success
-    ):
-        session.shouldfail = "Library's interface is not validated"
-        raise session.Failed(session.shouldfail)
+    terminal.write_line("")
+    terminal.write_sep("-", f"Wait for async validations")
 
-    interfaces.agent.wait(timeout=5 if context.library == "php" else 40)
-    if not interfaces.agent.is_success:
-        session.shouldfail = "Agent's interface is not validated"
-        raise session.Failed(session.shouldfail)
+    _wait_interface(interfaces.library, session, timeout)
+    _wait_interface(interfaces.library_stdout, session)
+    _wait_interface(interfaces.library_dotnet_managed, session)
+
+    timeout = 5 if context.library.library in ("php", "nodejs") else 40
+    _wait_interface(interfaces.agent, session, timeout)
 
     return True
 

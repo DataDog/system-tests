@@ -22,24 +22,55 @@ jobs:
         include:
           - library: cpp
             weblog-variant: nginx
+            version: dev
           - library: dotnet
             weblog-variant: poc
+            version: dev
+          - library: dotnet
+            weblog-variant: poc
+            version: prod
           - library: golang
             weblog-variant: net-http
+            version: dev
+          - library: golang
+            weblog-variant: net-http
+            version: prod
           - library: golang
             weblog-variant: gorilla
+            version: prod
+          - library: golang
+            weblog-variant: gorilla
+            version: dev
+          - library: golang
+            weblog-variant: echo
+            version: dev
           - library: java
             weblog-variant: spring-boot-poc
+            version: dev
           - library: nodejs
             weblog-variant: express-poc
+            version: dev
+          - library: nodejs
+            weblog-variant: express-poc
+            version: prod
           - library: php
             weblog-variant: apache-mod
+            version: dev
           - library: python
             weblog-variant: flask-poc
+            version: dev
+          - library: python
+            weblog-variant: flask-poc
+            version: prod
           - library: python
             weblog-variant: uwsgi-poc
+            version: dev
           - library: ruby
             weblog-variant: sinatra-poc
+            version: dev
+          - library: ruby
+            weblog-variant: sinatra-poc
+            version: prod
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.library }}
@@ -50,16 +81,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Load library binary
-        if: ${{ matrix.library != 'cpp' && matrix.library != 'java' && matrix.library != 'php' && matrix.library != 'python' }}
+        if: ${{ matrix.version == 'dev' && matrix.library != 'cpp' && matrix.library != 'java' && matrix.library != 'php' && matrix.library != 'python' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
 
       # uncomment this block once DataDog/dd-appsec-php-internal is public
       # - name: Load library PHP appsec binary
-      #   if: ${{ matrix.library == 'php' }}
+      #   if: ${{ matrix.version == 'dev' && matrix.library == 'php' }}
       #   run: ./utils/scripts/load-binary.sh php_appsec
 
       - name: Load library binary
-        if: ${{ matrix.library == 'python' }}
+        if: ${{ matrix.version == 'dev' && matrix.library == 'python' }}
         run: echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > binaries/python-load-from-pip
 
       - name: Build

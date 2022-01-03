@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Datadog.Trace;
 
 namespace weblog
 {
@@ -18,6 +19,7 @@ namespace weblog
             {
                 app.UseDeveloperExceptionPage();
             }
+
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
@@ -41,6 +43,12 @@ namespace weblog
                     await context.Response.WriteAsync("OK");
                 });
             });
+            using(var scope = Tracer.Instance.StartActive("test.manual"))
+            {
+                var span = scope.Span;
+                span.Type = SpanTypes.Custom;
+                span.ResourceName = "BIM";
+            }
         }
     }
 }

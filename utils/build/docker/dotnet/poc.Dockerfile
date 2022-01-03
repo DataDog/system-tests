@@ -9,14 +9,20 @@ RUN dotnet restore
 COPY utils/build/docker/dotnet/Program.cs Program.cs
 COPY utils/build/docker/dotnet/Startup.cs Startup.cs
 
+COPY utils/build/docker/dotnet/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 RUN dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
 WORKDIR /app
 COPY --from=build /app/out .
 
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN mkdir /opt/datadog
+COPY --from=build /opt/datadog /opt/datadog
+
+COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_VERSION
 
 #Setup Datadog APM
 ENV CORECLR_ENABLE_PROFILING=1

@@ -5,10 +5,9 @@ from utils.tools import logger
 from utils._context.core import context
 
 
-def _get_wrapped_class(klass, skip_reason=None):
+def _get_wrapped_class(klass, skip_reason):
 
-    if skip_reason:
-        logger.info(f"{klass.__name__} class, {skip_reason} => skipped")
+    logger.info(f"{klass.__name__} class, {skip_reason} => skipped")
 
     @pytest.mark.skip(reason=skip_reason)
     class Test(klass):
@@ -116,10 +115,6 @@ def released(
     """Class decorator, allow to mark a test class with a version number of a component"""
 
     def wrapper(test_class):
-
-        should_skip = False
-        skip_reason = None
-
         def compute_requirement(version, component_name, library_requirement, tested_version):
             if context.library != library_requirement or version is None:
                 return
@@ -161,7 +156,7 @@ def released(
         if len(skip_reasons) != 0:
             for reason in skip_reasons:
                 logger.info(f"{test_class.__name__} class, {reason} => skipped")
-            return _get_wrapped_class(test_class)
+            return _get_wrapped_class(test_class, skip_reasons[0])  # use the first skip reason found
         else:
             return test_class
 
