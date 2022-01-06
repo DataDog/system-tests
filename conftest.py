@@ -8,6 +8,7 @@ import inspect
 
 from utils import context, data_collector, interfaces
 from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
+from utils._xfail import xfails
 
 from pytest_jsonreport.plugin import JSONReport
 
@@ -61,7 +62,7 @@ def _get_skip_reason_from_marker(marker):
     if marker.name == "skipif":
         if all(marker.args):
             return marker.kwargs.get("reason", "")
-    elif marker.name == "skip":
+    elif marker.name in ("skip", "expected_failure"):
         if len(marker.args):  # if un-named arguments are present, the first one is the reason
             return marker.args[0]
         else:  #  otherwise, search in named arguments
@@ -71,6 +72,7 @@ def _get_skip_reason_from_marker(marker):
 
 
 def pytest_itemcollected(item):
+
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
 
@@ -206,24 +208,25 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
-    if exitstatus != pytest.ExitCode.OK:
-        validations = []
+    passed = []
+    failed = []
+    xpassed = []
+    xfailed = []
 
-        for interface in interfaces.all:
-            if interface.system_test_error is not None:
-                terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
-                terminalreporter.line("Traceback (most recent call last):", red=True)
-                for line in get_exception_traceback(interface.system_test_error):
-                    terminalreporter.line(line, red=True)
-                return
+    for interface in interfaces.all:
+        if interface.system_test_error is not None:
+            terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
+            terminalreporter.line("Traceback (most recent call last):", red=True)
+            for line in get_exception_traceback(interface.system_test_error):
+                terminalreporter.line(line, red=True)
+            return
 
-            validations += interface._validations
+        passed += interface.passed
+        failed += interface.failed
+        xpassed += interface.xpassed
+        xfailed += interface.xfailed
 
-        failed = [v for v in validations if v.closed and not v.is_success]
-        validated = [v for v in validations if v.closed and v.is_success]
-
-        if len(failed) != 0:
-            _print_async_failure_report(terminalreporter, failed, validated)
+    _print_async_failure_report(terminalreporter, failed, passed)
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -236,72 +239,86 @@ def pytest_sessionfinish(session, exitstatus):
         logger.error("Can't terminate data collector")
 
 
-def _print_async_failure_report(terminalreporter, failed, validated):
+def _print_async_failure_report(terminalreporter, failed, passed):
     """Given a list of validation, build a fancy report of source code that instanciate each validation object"""
-
-    terminalreporter.line("")
-    terminalreporter.write_sep("=", "ASYNC FAILURE" if len(failed) == 1 else "ASYNC FAILURES")
 
     # Create a tree filename > functions > fails
     files = collections.defaultdict(lambda: collections.defaultdict(list))
-    for fail in failed:
-        filename, _, function = fail.get_test_source_info()
-        files[filename][function].append(fail)
 
-    for filename, functions in files.items():
+    if len(failed) != 0:
+        terminalreporter.line("")
+        terminalreporter.write_sep("=", "ASYNC FAILURE" if len(failed) == 1 else "ASYNC FAILURES", red=True, bold=True)
 
-        for function, fails in functions.items():
-            terminalreporter.write_sep("_", function, red=True, bold=True)
-            terminalreporter.line("")
-            fails = sorted(fails, key=lambda v: v.frame.lineno)
+        for fail in failed:
+            filename, _, function = fail.get_test_source_info()
+            files[filename][function].append(fail)
 
-            latest_frame = fails[-1].frame
-            lines, function_line = inspect.findsource(latest_frame[0])
+        for filename, functions in files.items():
 
-            lines = [f"    {line[:-1]}" for line in lines]  # add padding, remove endline
+            for function, fails in functions.items():
+                terminalreporter.write_sep("_", function, red=True, bold=True)
+                terminalreporter.line("")
+                fails = sorted(fails, key=lambda v: v.frame.lineno)
 
-            for fail in fails:
-                line = lines[fail.frame.lineno - 1]
-                lines[fail.frame.lineno - 1] = "E" + line[1:]
+                latest_frame = fails[-1].frame
+                lines, function_line = inspect.findsource(latest_frame[0])
 
-            lines = lines[function_line : latest_frame.lineno]
+                lines = [f"    {line[:-1]}" for line in lines]  # add padding, remove endline
 
-            for line in lines:
-                terminalreporter.line(line, red=line.startswith("E"), bold=line.startswith("E"))
+                for fail in fails:
+                    line = lines[fail.frame.lineno - 1]
+                    lines[fail.frame.lineno - 1] = "E" + line[1:]
 
-            terminalreporter.line("")
-            logs = []
-            for fail in fails:
-                filename = filename.replace("/app/", "")
+                lines = lines[function_line : latest_frame.lineno]
 
-                terminalreporter.write(filename, bold=True, red=True)
-                terminalreporter.line(
-                    f":{fail.frame.lineno}: {m(fail.message)} not validated on {fail._interface} interface"
-                )
+                for line in lines:
+                    terminalreporter.line(line, red=line.startswith("E"), bold=line.startswith("E"))
 
-                logs += fail.logs
+                terminalreporter.line("")
+                logs = []
+                for fail in fails:
+                    filename = filename.replace("/app/", "")
 
-            if len(logs) != 0:
-                terminalreporter.write_sep("-", "Captured stdout call")
-                f = get_log_formatter()
-                for log in logs:
-                    terminalreporter.line(f.format(log))
+                    terminalreporter.write(filename, bold=True, red=True)
+                    terminalreporter.line(
+                        f":{fail.frame.lineno}: {m(fail.message)} not validated on {fail._interface} interface"
+                    )
 
-    terminalreporter.line("")
-    terminalreporter.write_sep("=", "short async test summary info")
+                    logs += fail.logs
 
-    for filename, functions in files.items():
-        for function, fails in functions.items():
-            filename, klass, function = fails[0].get_test_source_info()
-            terminalreporter.line(f"FAILED {filename}::{klass}::{function} - {len(fails)} fails")
+                if len(logs) != 0:
+                    terminalreporter.write_sep("-", "Captured stdout call")
+                    f = get_log_formatter()
+                    for log in logs:
+                        terminalreporter.line(f.format(log))
+                    terminalreporter.line("")
 
-    msg = ", ".join(
-        [
-            terminalreporter._tw.markup(f"{len(failed)} failed", red=True, bold=True),
-            terminalreporter._tw.markup(f"{len(validated)} passed", green=True, bold=True),
-        ]
-    )
+    xpassed_methods = []
+    for validations in xfails.methods.values():
+        if len([v for v in validations if not v.is_success]) == 0 and len(validations) != 0:
+            xpassed_methods.append(validations[0])
 
-    terminalreporter.write_sep("=", msg, fullwidth=terminalreporter._tw.fullwidth + 23, red=True)
+    xpassed_classes = []
+    for validations in xfails.classes.values():
+        if len([v for v in validations if not v.is_success]) == 0 and len(validations) != 0:
+            xpassed_classes.append(validations[0])
 
-    terminalreporter.line("")
+    if len(failed) != 0 or len(xpassed_methods) != 0 or len(xpassed_classes) != 0:
+        terminalreporter.write_sep("=", "short async test summary info")
+
+        for filename, functions in files.items():
+            for function, fails in functions.items():
+                filename, klass, function = fails[0].get_test_source_info()
+                terminalreporter.line(f"FAILED {filename}::{klass}::{function} - {len(fails)} fails")
+
+        for validation in xpassed_methods:
+            filename, klass, function = validation.get_test_source_info()
+            terminalreporter.line(
+                f"XPASSED {filename}::{klass}::{function} - Expected to fail, but all is ok", yellow=True
+            )
+
+        for validation in xpassed_classes:
+            filename, klass, function = validation.get_test_source_info()
+            terminalreporter.line(f"XPASSED {filename}::{klass} - Expected to fail, but all is ok", yellow=True)
+
+        terminalreporter.line("")

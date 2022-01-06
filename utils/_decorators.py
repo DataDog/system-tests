@@ -3,6 +3,7 @@ import inspect
 
 from utils.tools import logger
 from utils._context.core import context
+from utils._xfail import xfails
 
 
 def _get_wrapped_class(klass, skip_reason):
@@ -28,6 +29,35 @@ def _get_wrapped_function(function, skip_reason):
     wrapper.__doc__ = function.__doc__
 
     return wrapper
+
+
+def _get_expected_failure_function(function, skip_reason):
+    logger.info(f"{function.__name__} function, {skip_reason} => xfail")
+
+    xfails.add_xfailed_method(function)
+
+    @pytest.mark.expected_failure(reason=skip_reason)
+    def wrapper(*args, **kwargs):
+        return function(*args, **kwargs)
+
+    wrapper.__doc__ = function.__doc__
+
+    return wrapper
+
+
+def _get_expected_failure_class(klass, skip_reason):
+
+    logger.info(f"{klass.__name__} class, {skip_reason} => xfail")
+
+    @pytest.mark.expected_failure(reason=skip_reason)
+    class Test(klass):
+        pass
+
+    Test.__doc__ = klass.__doc__
+
+    xfails.add_xfailed_class(Test)
+
+    return Test
 
 
 def _should_skip(condition=None, library=None, weblog_variant=None):
@@ -103,6 +133,28 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
             return _get_wrapped_function(function_or_class, full_reason)
         elif inspect.isclass(function_or_class):
             return _get_wrapped_class(function_or_class, full_reason)
+        else:
+            raise Exception(f"Unexpected skipped object: {function_or_class}")
+
+    return decorator
+
+
+def bug_v2(condition=None, library=None, weblog_variant=None, reason=None):
+    """ decorator, allow to mark a test function/class as an known bug """
+
+    expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if not expected_to_fail:
+            return function_or_class
+
+        full_reason = "known bug" if reason is None else f"known bug: {reason}"
+
+        if inspect.isfunction(function_or_class):
+            return _get_expected_failure_function(function_or_class, full_reason)
+        elif inspect.isclass(function_or_class):
+            return _get_expected_failure_class(function_or_class, full_reason)
         else:
             raise Exception(f"Unexpected skipped object: {function_or_class}")
 
