@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 import collections
-import pytest
 import inspect
 
 from utils import context, data_collector, interfaces

@@ -17,9 +17,12 @@ class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
     def __init__(self, image_name):
-        self._raw = json.load(open(f"logs/{image_name}_image.json"))
-
         self.env = {}
+
+        try:
+            self._raw = json.load(open(f"logs/{image_name}_image.json"))
+        except FileNotFoundError:
+            return  # silently fail, needed for testing
 
         for var in self._raw[0]["Config"]["Env"]:
             key, value = var.split("=", 1)

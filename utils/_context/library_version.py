@@ -63,8 +63,11 @@ class Version:
 
 class LibraryVersion:
     def __init__(self, library, version=None):
+        self.library = None
+        self.version = None
+
         if library is None:
-            raise ValueError("Library can't be none")
+            return
 
         if "@" in library:
             raise ValueError("Library can't contains '@'")
@@ -76,6 +79,9 @@ class LibraryVersion:
         return f'{self.__class__.__name__}("{self.library}", "{self.version}")'
 
     def __str__(self):
+        if not self.library:
+            return str(None)
+
         return f"{self.library}@{self.version}" if self.version else self.library
 
     def __eq__(self, other):

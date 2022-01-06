@@ -1,9 +1,8 @@
 import pytest
-import json
-from pathlib import Path
 import logging
-from utils import interfaces, bug_v2
+from utils import interfaces, bug_v2, context
 from utils.tools import logger
+from utils._context.library_version import LibraryVersion
 
 
 class Logs(list):
@@ -24,19 +23,10 @@ def logs():
 
 
 class Test_All:
-    @classmethod
-    def setup_class(cls):
-        Path("logs/docker/weblog/").mkdir(exist_ok=True, parents=True)
-
-        def build_docker_info(name, env):
-            data = [{"Config": {"Env": env}}]
-            json.dump(data, open(f"logs/{name}_image.json", "w"))
-
-        build_docker_info("agent", {})
-        build_docker_info("weblog", ["SYSTEM_TESTS_LIBRARY=java", "SYSTEM_TESTS_LIBRARY_VERSION=0.66.0"])
-
     def test_decorators(self, logs):
         from utils._decorators import bug, released, rfc, irrelevant
+
+        context.library = LibraryVersion("java", "0.66.0")
 
         def is_skipped(item, reason):
             if hasattr(item, "pytestmark"):

@@ -14,7 +14,8 @@ jobs:
     - uses: actions/setup-python@v2
     - run: pip install -r requirements.txt
     - run: black --check --diff .
-    - run: PYTHONPATH="$PWD" python utils/test_the_test.py
+    - run: mkdir -p logs/docker/weblog/logs/
+    - run: PYTHONPATH="$PWD" pytest utils/test_the_test.py
   test-the-tests:
     runs-on: ubuntu-latest
     strategy:
