@@ -192,13 +192,13 @@ class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
     def test_json_key(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_json_value(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_json_array(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
@@ -206,16 +206,16 @@ class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
     def test_xml_node(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_xml_attr(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_xml_attr_value(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_xml_content(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
@@ -224,14 +224,13 @@ class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 
     def test_method(self):
-        raise NotImplementedError
+        interfaces.library.append_not_implemented_validation()
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@irrelevant(library="nodejs", reason="not yet rule on client_ip")
 class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""
 
     def test_client_ip(self):
         """ Appsec WAF supports server.request.client_ip """
-        raise NotImplementedError
+        interfaces.library.append_not_implemented_validation()

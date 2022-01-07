@@ -1,6 +1,6 @@
 import pytest
 import logging
-from utils import interfaces, bug_v2, context
+from utils import interfaces, bug, context
 from utils.tools import logger
 from utils._context.library_version import LibraryVersion
 
@@ -31,7 +31,7 @@ class Test_All:
         def is_skipped(item, reason):
             if hasattr(item, "pytestmark"):
                 for mark in item.pytestmark:
-                    if mark.name == "skip":
+                    if mark.name in ("skip", "expected_failure"):
 
                         if mark.kwargs["reason"] != reason:
                             raise Exception(
@@ -45,7 +45,7 @@ class Test_All:
         def is_not_skipped(item):
             if hasattr(item, "pytestmark"):
                 for mark in item.pytestmark:
-                    if mark.name == "skip":
+                    if mark.name == ("skip", "expected_failure"):
                         raise Exception(f"{item} is skipped")
 
             return True
@@ -55,7 +55,7 @@ class Test_All:
             pass
 
         assert is_skipped(test_function, "known bug: test")
-        assert "test_function function, known bug: test => skipped\n" in logs
+        assert "test_function function, known bug: test => xfail\n" in logs
 
         @bug(library="java", reason="test")
         class Test_Class:
@@ -71,7 +71,7 @@ class Test_All:
         assert is_skipped(Test_Class.test_method, "not relevant")
         assert is_not_skipped(Test_Class.test_method2)
         assert "test_method function, not relevant => skipped\n" in logs
-        assert "Test_Class class, known bug: test => skipped\n" in logs
+        assert "Test_Class class, known bug: test => xfail\n" in logs
 
         @rfc("A link")
         @released(java="99.99")
@@ -101,14 +101,6 @@ class Test_All:
             pass
 
         assert is_skipped(Test4, "missing feature: release not yet planned")
-
-    def test_context(self):
-        from utils import context
-
-        assert context.library == "java"
-        assert context.library == "java@0.66.0"
-        assert context.weblog_variant is None
-        assert context.sampling_rate is None
 
     def test_version(self):
         from utils._context.library_version import Version
@@ -239,14 +231,14 @@ class Test_All:
         Test_Class().test_A()
         Test_Class().test_B()
 
-    @bug_v2(True, reason="Can't succeed")
+    @bug(True, reason="Can't succeed")
     def test_failing(self):
         """Failing test"""
         interfaces.library_stdout.assert_presence("nope i do not exists")
         interfaces.library_stdout.assert_absence("nope i do not exists")
 
 
-@bug_v2(True, reason="Can't succeed")
+@bug(True, reason="Can't succeed")
 class Test_Failing:
     def test_success(self):
         """success test"""

@@ -29,4 +29,4 @@ class Test_FleetManagement(BaseTestCase):
     """ApppSec supports Fleet management"""
 
     def test_basic(self):
-        raise NotImplementedError
+        interfaces.library.append_not_implemented_validation()

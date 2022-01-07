@@ -54,8 +54,12 @@ def _get_expected_failure_class(klass, skip_reason):
         pass
 
     Test.__doc__ = klass.__doc__
+    if hasattr(klass, "__real_test_class__"):
+        Test.__real_test_class__ = klass.__real_test_class__
+    else:
+        Test.__real_test_class__ = klass
 
-    xfails.add_xfailed_class(Test)
+    xfails.add_xfailed_class(Test.__real_test_class__)
 
     return Test
 
@@ -86,9 +90,9 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
         full_reason = "missing feature" if reason is None else f"missing feature: {reason}"
 
         if inspect.isfunction(function_or_class):
-            return _get_wrapped_function(function_or_class, full_reason)
+            return _get_expected_failure_function(function_or_class, full_reason)
         elif inspect.isclass(function_or_class):
-            return _get_wrapped_class(function_or_class, full_reason)
+            return _get_expected_failure_class(function_or_class, full_reason)
         else:
             raise Exception(f"Unexpected skipped object: {function_or_class}")
 
@@ -118,29 +122,10 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None):
-    """ decorator, allow to mark a test function/class as a known bug """
-
-    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if not skip:
-            return function_or_class
-
-        full_reason = "known bug" if reason is None else f"known bug: {reason}"
-
-        if inspect.isfunction(function_or_class):
-            return _get_wrapped_function(function_or_class, full_reason)
-        elif inspect.isclass(function_or_class):
-            return _get_wrapped_class(function_or_class, full_reason)
-        else:
-            raise Exception(f"Unexpected skipped object: {function_or_class}")
-
-    return decorator
-
-
-def bug_v2(condition=None, library=None, weblog_variant=None, reason=None):
-    """ decorator, allow to mark a test function/class as an known bug """
+    """
+        Decorator, allow to mark a test function/class as an known bug.
+        The test is executed, and if it passes, and warning is reported
+    """
 
     expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
@@ -155,6 +140,28 @@ def bug_v2(condition=None, library=None, weblog_variant=None, reason=None):
             return _get_expected_failure_function(function_or_class, full_reason)
         elif inspect.isclass(function_or_class):
             return _get_expected_failure_class(function_or_class, full_reason)
+        else:
+            raise Exception(f"Unexpected skipped object: {function_or_class}")
+
+    return decorator
+
+
+def flaky(condition=None, library=None, weblog_variant=None, reason=None):
+    """ Decorator, allow to mark a test function/class as a known bug, and skip it """
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "known bug (flaky)" if reason is None else f"known bug (flaky): {reason}"
+
+        if inspect.isfunction(function_or_class):
+            return _get_wrapped_function(function_or_class, full_reason)
+        elif inspect.isclass(function_or_class):
+            return _get_wrapped_class(function_or_class, full_reason)
         else:
             raise Exception(f"Unexpected skipped object: {function_or_class}")
 
@@ -208,7 +215,7 @@ def released(
         if len(skip_reasons) != 0:
             for reason in skip_reasons:
                 logger.info(f"{test_class.__name__} class, {reason} => skipped")
-            return _get_wrapped_class(test_class, skip_reasons[0])  # use the first skip reason found
+            return _get_expected_failure_class(test_class, skip_reasons[0])  # use the first skip reason found
         else:
             return test_class
 

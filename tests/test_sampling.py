@@ -36,7 +36,7 @@ class Test_SamplingDecisions(BaseTestCase):
         # Generate enough traces to have a high chance to catch sampling problems
         for _ in range(30):
             r = self.weblog_get(f"/sample_rate_route/{self.next_request_id()}")
-            assert r.status_code == 200
+
         interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
@@ -52,7 +52,7 @@ class Test_SamplingDecisions(BaseTestCase):
                 f"/sample_rate_route/{self.next_request_id()}",
                 headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"])},
             )
-            assert r.status_code == 200
+
         interfaces.library.assert_sampling_decisions_added(traces)
 
     @bug(library="python", reason="APMRP-259")
@@ -78,5 +78,5 @@ class Test_SamplingDecisions(BaseTestCase):
                         "x-datadog-parent-id": str(trace["parent_id"]),
                     },
                 )
-                assert r.status_code == 200
+
         interfaces.library.assert_deterministic_sampling_decisions(traces)

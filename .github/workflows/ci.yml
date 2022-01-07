@@ -116,5 +116,5 @@ jobs:
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
-          name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}
+          name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}_${{ matrix.version }}
           path: artifact.tar.gz

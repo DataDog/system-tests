@@ -167,6 +167,9 @@ class InterfaceValidator(object):
 
         return data
 
+    def append_not_implemented_validation(self):
+        self.append_validation(_NotImplementedValidation())
+
     def check(self, message):
         pass
 
@@ -215,6 +218,9 @@ class BaseValidation(object):
                 self.frame = frame_info
                 self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
                 self.calling_class = frame_info.frame.f_locals["self"].__class__
+                if hasattr(self.calling_class, "__real_test_class__"):
+                    self.calling_class = self.calling_class.__real_test_class__
+
                 break
 
         if self.calling_method is None:
@@ -255,7 +261,7 @@ class BaseValidation(object):
             return f"{self.__class__.__name__}({repr(self.message)})"
 
     def get_test_source_info(self):
-        klass = self.frame.frame.f_locals["self"].__class__.__name__
+        klass = self.calling_class.__name__
         return self.frame.filename.replace("/app/", ""), klass, self.frame.function
 
     def log_debug(self, message):
@@ -321,3 +327,9 @@ class BaseValidation(object):
             self.set_failure(err_msg)
 
         return not condition
+
+
+class _NotImplementedValidation(BaseValidation):
+    def __init__(self, message=None, request=None):
+        super().__init__(message=message, request=request)
+        self.set_status(False)

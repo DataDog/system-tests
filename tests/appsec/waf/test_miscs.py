@@ -30,7 +30,7 @@ class Test_404(BaseTestCase):
         )
 
 
-# currently throws NotImplementedError
+# Not yet specified
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -38,9 +38,10 @@ class Test_MultipleHighlight(BaseTestCase):
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
-        interfaces.library.assert_waf_attack(
-            r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
-        )
+        # interfaces.library.assert_waf_attack(
+        #     r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
+        # )
+        interfaces.library.append_not_implemented_validation()
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
