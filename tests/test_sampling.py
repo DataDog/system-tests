@@ -28,7 +28,6 @@ class Test_SamplingDecisions(BaseTestCase):
     )
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(library="java")
-    @bug(library="golang")
     @bug(library="python", reason="flaky")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
@@ -40,7 +39,6 @@ class Test_SamplingDecisions(BaseTestCase):
         interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(library="golang", reason="Sampling decisions are not taken by the tracer APMRP-259")
     @bug(library="php", reason="Unknown reason")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
@@ -56,7 +54,6 @@ class Test_SamplingDecisions(BaseTestCase):
         interfaces.library.assert_sampling_decisions_added(traces)
 
     @bug(library="python", reason="APMRP-259")
-    @bug(library="golang", reason="APMRP-259")
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="ruby", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")

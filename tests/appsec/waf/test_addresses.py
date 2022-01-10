@@ -28,7 +28,7 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
@@ -38,7 +38,6 @@ class Test_UrlQuery(BaseTestCase):
         r = self.weblog_get("/waf/", params={"attack": "appscan_fingerprint"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
-    @bug(library="golang")
     def test_query_encoded(self):
         """ AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})

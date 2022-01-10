@@ -10,7 +10,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.35.0", dotnet="1.28.6", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(dotnet="1.28.6", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
@@ -93,8 +94,8 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_reported_header(r, "true-client-ip")
 
     @missing_feature(library="java", reason="actor ip has incorrect data")
-    @missing_feature(library="golang", reason="done by the backend until customer request or ip blocking features")
-    @missing_feature(library="nodejs", reason="done by the backend until customer request or ip blocking features")
+    @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")
+    @irrelevant(library="nodejs", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
@@ -119,7 +120,8 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(dotnet="2.0.0", golang="?", java="0.87.0", nodejs="2.0.0rc0", php="?", python="?")
+@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0rc0", php="?", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Info(BaseTestCase):
     """AppSec correctly reports service and environment values"""

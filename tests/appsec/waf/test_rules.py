@@ -56,7 +56,8 @@ class Test_HttpProtocol(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_921_160)
 
 
-@released(golang="?", php_appsec="0.1.0", python="?")
+@released(php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_LFI(BaseTestCase):
@@ -81,7 +82,6 @@ class Test_LFI(BaseTestCase):
 
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
-    @bug(library="golang", reason="? may be not supported by framework")
     @bug(library="ruby", reason="? may be not supported by framework")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
