@@ -11,7 +11,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -44,7 +45,8 @@ class Test_MultipleHighlight(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
+@released(dotnet="?", java="?", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 

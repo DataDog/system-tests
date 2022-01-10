@@ -116,7 +116,10 @@ def _wait_interface(interface, session, timeout=None):
 
     if not interface.is_success:
         session.shouldfail = f"{interface} is not validated"
-        raise session.Failed(session.shouldfail)
+        terminal.write_line(f"{interface}: failure")
+        return False
+
+    return True
 
 
 def pytest_runtestloop(session):
@@ -145,7 +148,7 @@ def pytest_runtestloop(session):
 
     if context.library == "java":
         timeout = 80
-    elif context.library.library in ("php", "nodejs"):
+    elif context.library.library in ("php", "nodejs", "golang"):
         timeout = 5
     else:
         timeout = 40
@@ -153,12 +156,17 @@ def pytest_runtestloop(session):
     terminal.write_line("")
     terminal.write_sep("-", f"Wait for async validations")
 
-    _wait_interface(interfaces.library, session, timeout)
-    _wait_interface(interfaces.library_stdout, session)
-    _wait_interface(interfaces.library_dotnet_managed, session)
+    success = True
 
-    timeout = 5 if context.library.library in ("php", "nodejs") else 40
-    _wait_interface(interfaces.agent, session, timeout)
+    success = _wait_interface(interfaces.library, session, timeout) and success
+    success = _wait_interface(interfaces.library_stdout, session) and success
+    success = _wait_interface(interfaces.library_dotnet_managed, session) and success
+
+    timeout = 5 if context.library.library in ("php", "nodejs", "golang") else 40
+    success = _wait_interface(interfaces.agent, session, timeout) and success
+
+    if not success:
+        raise session.Failed(session.shouldfail)
 
     return True
 
@@ -213,6 +221,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     xfailed = []
 
     for interface in interfaces.all:
+
         if interface.system_test_error is not None:
             terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
             terminalreporter.line("Traceback (most recent call last):", red=True)
