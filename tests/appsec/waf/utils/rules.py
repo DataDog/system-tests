@@ -159,3 +159,8 @@ class ssrf:
     sqr_000_013 = "sqr-000-013"  # SSRF: Detect SSRF attempts using IPv6 or octal/hexdecimal obfuscation
     sqr_000_014 = "sqr-000-014"  # SSRF: Detect SSRF domain redirection bypass
     sqr_000_015 = "sqr-000-015"  # SSRF: Detect SSRF attempt using non HTTP protocol
+
+class discovery_scans:
+    nfd_000_001 = "nfd-000-001"  #Discovery scans: Detect common directory discovery scans like  "/wordpress/, /etc/, /login.php","/install.php"
+    nfd_000_002 = "nfd-000-002"  #Discovery scans: Detect failed attempt to fetch readme files
+    nfd_000_006 = "nfd-000-006"  #Discovery scans: Detect failed attempt to fetch sensitive files

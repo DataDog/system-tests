@@ -329,3 +329,44 @@ class Test_SSRF(BaseTestCase):
         """AppSec catches SSRF attacks"""
         r = self.weblog_get("/waf", params={"value": "metadata.goog/"})
         interfaces.library.assert_waf_attack(r, rules.ssrf.sqr_000_001)
+
+        
+@released(dotnet="2.1.0")
+class Test_404_Rules(BaseTestCase):
+    """ Appsec WAF misc tests """
+
+    def test_404(self):
+        """ AppSec WAF catches attacks, even on 404"""
+
+        r = self.weblog_get("/waf/wp-config/")
+        assert r.status_code == 404
+        interfaces.library.assert_waf_attack(
+            r,
+            rule=rules.discovery_scans.nfd_000_001,
+            pattern="/wp-config",
+            address="server.request.uri.raw"
+        )
+
+    def test_404_readme(self):
+        """ AppSec WAF catches attacks, even on 404"""
+
+        r = self.weblog_get("/waf/readme.md")
+        assert r.status_code == 404
+        interfaces.library.assert_waf_attack(
+            r,
+            rule=rules.discovery_scans.nfd_000_002,
+            pattern="readme.md",
+            address="server.request.uri.raw"
+        )
+
+    def test_404_sensitive_files(self):
+        """ AppSec WAF catches attacks, even on 404"""
+
+        r = self.weblog_get("/waf/datadog.trace.dll/")
+        assert r.status_code == 404
+        interfaces.library.assert_waf_attack(
+            r,
+            rule=rules.discovery_scans.nfd_000_006,
+            pattern=".dll/",
+            address="server.request.uri.raw"
+        )
