@@ -8,10 +8,7 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 
 
 @irrelevant(library="cpp")
-@bug(
-    library="dotnet",
-    reason=".NET replaces dot by underscores even in the mapping part : http.request.headers.user-agent>: http_request_headers_user-agent",
-)
+@released(dotnet="2.1.0")
 @missing_feature(library="golang")
 @missing_feature(library="nodejs")
 @missing_feature(library="php", reason="partial support, can't set the key")
