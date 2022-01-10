@@ -31,7 +31,7 @@ class Test_Standardization(BaseTestCase):
         """Log D1: names and adresses AppSec listen to"""
         stdout.assert_presence(r"Loaded rule:", level="DEBUG")  # TODO: should be more precise
 
-    @missing_feature(library="dotnet", reason="APPSEC-983")
+    @missing_feature(context.library < "dotnet@2.1.0")
     @irrelevant(library="java", reason="IG doesn't push addresses in Java.")
     def test_d02(self):
         """Log D2: Address pushed to Instrumentation Gateway"""
@@ -44,7 +44,7 @@ class Test_Standardization(BaseTestCase):
         """Log D3: When an address matches a rule needs"""
         stdout.assert_presence(r"Available addresses .* match needs for rules", level="DEBUG")
 
-    @missing_feature(library="dotnet", reason="APPSEC-983")
+    @missing_feature(context.library < "dotnet@2.1.0")
     @missing_feature(library="java")
     def test_d04(self):
         """Log D4: When calling the WAF, logs parameters"""
@@ -53,7 +53,7 @@ class Test_Standardization(BaseTestCase):
     @bug(context.library == "java@0.90.0", reason="APPSEC-2190")
     @bug(context.library == "java@0.91.0", reason="APPSEC-2190")
     @bug(context.library == "java@0.92.0", reason="APPSEC-2190")
-    @missing_feature(library="dotnet", reason="APPSEC-983")
+    @missing_feature(context.library < "dotnet@2.1.0")
     def test_d05(self):
         """Log D5: WAF outputs"""
         stdout.assert_presence(r'AppSec In-App WAF returned:.*crs-921-160"', level="DEBUG")
