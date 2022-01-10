@@ -38,7 +38,7 @@ class Test_Scanners(BaseTestCase):
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @bug(context.library < "dotnet@2.1.0")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="ruby", reason="? need to be investiged")
     def test_http_protocol(self):
@@ -273,7 +273,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "merge using("})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_250)
 
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @bug(context.library < "dotnet@2.1.0")
     @bug(library="java", reason="under Valentin's investigations")
     @bug(library="ruby", reason="need to be investiged")
     def test_sqli3(self):

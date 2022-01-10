@@ -64,7 +64,7 @@ class Test_ActorIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
-    @bug(library="dotnet", reason="headers are in the response, fix to come")
+    @bug(context.library < "dotnet@2.1.0")
     def test_http_request_headers(self):
         """ AppSec reports the HTTP headers used for actor IP detection."""
         r = self.weblog_get(
