@@ -1,15 +1,18 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 
+RUN apt-get update
+RUN apt-get install dos2unix
+
 WORKDIR /app
 
 COPY utils/build/docker/dotnet/app.csproj app.csproj
 
 RUN dotnet restore
 
-COPY utils/build/docker/dotnet/Program.cs Program.cs
-COPY utils/build/docker/dotnet/Startup.cs Startup.cs
+COPY utils/build/docker/dotnet/*.cs ./
 
 COPY utils/build/docker/dotnet/install_ddtrace.sh binaries* /binaries/
+RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 RUN dotnet publish -c Release -o out
