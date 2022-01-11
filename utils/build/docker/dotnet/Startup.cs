@@ -80,12 +80,12 @@ END
                     await context.Response.WriteAsync("OK");
                 });
 
-                endpoints.MapGet("/sql_injectable_route/{str}", async context =>
+                endpoints.MapGet("/sqli", async context =>
                 {
                     using var conn = new SqlConnection(Constants.SqlConnectionString);
                     conn.Open();
 
-                    var query = "SELECT * FROM dbo.Items WHERE id = " + context.Items["str"];
+                    var query = "SELECT * FROM dbo.Items WHERE id = " + context.Request.Query["q"];
 
                     using var cmd = new SqlCommand(query, conn);
 
@@ -94,7 +94,7 @@ END
                     while (reader.Read())
                     {
                         var value = reader["Value"]?.ToString();
-                        await context.Response.WriteAsync(value);
+                        await context.Response.WriteAsync(value + Environment.NewLine);
                     }
                 });
 
