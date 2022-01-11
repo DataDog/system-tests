@@ -4,6 +4,7 @@
     <RootNamespace>weblog</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Data.SqlClient" />
     <Reference Include="Datadog.Trace">
       <HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
     </Reference>
