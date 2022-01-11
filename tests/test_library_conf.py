@@ -8,8 +8,7 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", python="0.53")
-@missing_feature(library="nodejs")
+@released(dotnet="2.1.0", nodejs="2.0.0", python="0.53")
 @missing_feature(library="php", reason="partial support, can't set the key")
 @missing_feature(library="ruby")
 class Test_HeaderTags(BaseTestCase):
