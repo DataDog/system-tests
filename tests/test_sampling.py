@@ -4,7 +4,7 @@
 
 from random import randint
 
-from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature
+from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature, flaky
 
 
 @irrelevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
@@ -28,7 +28,7 @@ class Test_SamplingDecisions(BaseTestCase):
     )
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.93.0")
-    @bug(library="python", reason="flaky")
+    @flaky(context.library < "python@0.57.0")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
