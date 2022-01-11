@@ -80,7 +80,7 @@ class Test_LFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
     @bug(library="dotnet", reason="APPSEC-2290")
-    @bug(library="java", reason="under Valentin's investigations")
+    @bug(context.library < "java@0.93.0")
     @bug(library="ruby", reason="? may be not supported by framework")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""

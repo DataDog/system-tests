@@ -5,7 +5,7 @@
 from threading import Lock
 import time
 
-from utils import BaseTestCase, interfaces, context, bug, missing_feature
+from utils import BaseTestCase, interfaces, context, missing_feature, released
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans
 from utils.warmups import default_warmup
@@ -94,7 +94,7 @@ class LibrarySamplingRateValidation(BaseValidation):
 
 
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
-@bug(library="php", reason="https://dd.slack.com/archives/CDF48UAUC/p1639997022452600")
+@released(php="1.0.0")
 class Test_SamplingRates(BaseTestCase):
     """Rate at which traces are sampled is the actual sample rate"""
 

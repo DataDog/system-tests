@@ -10,7 +10,7 @@ from utils import BaseTestCase, interfaces, bug, context
 class Test_Library(BaseTestCase):
     """Libraries's payload are valid regarding schemas"""
 
-    @bug(library="java")
+    @bug(context.library < "java@0.93.0")
     @bug(library="golang")
     def test_full(self):
         # send some requests to be sure to trigger events
@@ -43,9 +43,9 @@ class Test_Library(BaseTestCase):
 class Test_Agent(BaseTestCase):
     """Agents's payload are valid regarding schemas"""
 
-    @bug(library="java")
+    @bug(context.library < "java@0.93.0")
     @bug(library="golang")
-    def test_agent_format(self):
+    def test_full(self):
 
         # send some requests to be sure to trigger events
         self.weblog_get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160

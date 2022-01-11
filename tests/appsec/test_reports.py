@@ -10,13 +10,12 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="1.28.6", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(dotnet="1.28.6", java="0.93.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
-    @missing_feature(library="java", reason="response is not reported")
     @bug(library="ruby", reason="status is missing")
     def test_basic(self):
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
@@ -120,7 +119,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0rc0", php="?", python="?")
+@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0rc0", php="1.0.0", python="?")
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_Info(BaseTestCase):
