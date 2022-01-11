@@ -174,8 +174,8 @@ def released(
     """Class decorator, allow to mark a test class with a version number of a component"""
 
     def wrapper(test_class):
-        def compute_requirement(version, component_name, library_requirement, tested_version):
-            if context.library != library_requirement or version is None:
+        def compute_requirement(tested_library, component_name, released_version, tested_version):
+            if context.library != tested_library or released_version is None:
                 return
 
             if not hasattr(test_class, "__released__"):
@@ -184,30 +184,32 @@ def released(
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
 
-            test_class.__released__[component_name] = version
+            test_class.__released__[component_name] = released_version
 
-            if version == "?":
+            if released_version == "?":
                 return "missing feature: release not yet planned"
 
-            if version.startswith("not relevant"):
+            if released_version.startswith("not relevant"):
                 raise Exception("TODO remove this test, it should never happen")
 
-            if tested_version >= version:
-                logger.debug(f"{test_class.__name__} feature has been released in {version} => added in test queue")
+            if tested_version >= released_version:
+                logger.debug(
+                    f"{test_class.__name__} feature has been released in {released_version} => added in test queue"
+                )
                 return
 
-            return f"missing feature: release version is {version}"
+            return f"missing feature for {component_name}: release version is {released_version}, tested version is {tested_version}"
 
         skip_reasons = [
-            compute_requirement(cpp, "cpp", "cpp", context.library.version),
-            compute_requirement(dotnet, "dotnet", "dotnet", context.library.version),
-            compute_requirement(golang, "golang", "golang", context.library.version),
-            compute_requirement(java, "java", "java", context.library.version),
-            compute_requirement(nodejs, "nodejs", "nodejs", context.library.version),
-            compute_requirement(php_appsec, "php_appsec", "php", context.library.version),
-            compute_requirement(php, "php", "php", context.php_appsec),
-            compute_requirement(python, "python", "python", context.library.version),
-            compute_requirement(ruby, "ruby", "ruby", context.library.version),
+            compute_requirement("cpp", "cpp", cpp, context.library.version),
+            compute_requirement("dotnet", "dotnet", dotnet, context.library.version),
+            compute_requirement("golang", "golang", golang, context.library.version),
+            compute_requirement("java", "java", java, context.library.version),
+            compute_requirement("nodejs", "nodejs", nodejs, context.library.version),
+            compute_requirement("php", "php_appsec", php_appsec, context.php_appsec),
+            compute_requirement("php", "php", php, context.library.version),
+            compute_requirement("python", "python", python, context.library.version),
+            compute_requirement("ruby", "ruby", ruby, context.library.version),
         ]
 
         skip_reasons = [reason for reason in skip_reasons if reason]  # remove None

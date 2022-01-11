@@ -79,7 +79,10 @@ class Test_All:
         class Test2:
             pass
 
-        assert "Test2 class, missing feature: release version is 99.99 => skipped\n" in logs
+        assert (
+            "Test2 class, missing feature for java: release version is 99.99, tested version is 0.66.0 => skipped\n"
+            in logs
+        )
         assert Test2().__released__["java"] == "99.99"
         assert "php" not in Test2().__released__
         assert Test2().__rfc__ == "A link"
