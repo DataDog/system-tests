@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, BaseTestCase, interfaces, released, bug, missing_feature, irrelevant
+from utils import context, BaseTestCase, interfaces, released, bug, missing_feature, irrelevant, flaky
 from .utils import rules
 import pytest
 
@@ -243,7 +243,8 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="?", php_appsec="0.1.0", python="?")
+@released(golang="?", php="1.0.0", php_appsec="0.1.0", python="?")
+@flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_SQLI(BaseTestCase):
@@ -263,6 +264,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_220)
 
+    @flaky(context.library <= "php@0.68.2")
     @bug(library="dotnet", reason="APPSEC-2290")
     def test_sqli2(self):
         """Other SQLI patterns, to be merged once issue are corrected"""

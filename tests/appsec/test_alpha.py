@@ -5,7 +5,7 @@
 
 import pytest
 
-from utils import context, BaseTestCase, interfaces, released, irrelevant, missing_feature
+from utils import context, BaseTestCase, interfaces, released, irrelevant, missing_feature, flaky
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -46,8 +46,9 @@ class TestLFIAttempt(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0-rc.4")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php="1.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@flaky(context.library <= "php@0.68.2")
 class TestSecurityScanner(BaseTestCase):
     """
     Detect security scanners.
