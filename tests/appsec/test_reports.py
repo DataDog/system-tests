@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature
+from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, flaky
 import pytest
 
 
@@ -119,9 +119,10 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0rc0", php="1.0.0", python="?")
+@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0rc0", php="0.68.2", python="?")
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@flaky(context.library <= "php@0.68.2")
 class Test_Info(BaseTestCase):
     """AppSec correctly reports service and environment values"""
 

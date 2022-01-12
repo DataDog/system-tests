@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature
+from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky
 import pytest
 
 
@@ -51,7 +51,8 @@ class Test_UrlQuery(BaseTestCase):
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0rc0", php_appsec="0.1.0", php="1.0.0", python="?")
+@flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
@@ -64,8 +65,9 @@ class Test_UrlRaw(BaseTestCase):
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0rc0", php_appsec="0.1.0", php="1.0.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@flaky(context.library <= "php@0.68.2")
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 

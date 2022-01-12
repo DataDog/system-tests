@@ -8,7 +8,7 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", nodejs="2.0.0", php="1.0.0", python="0.53")
+@released(dotnet="2.1.0", nodejs="2.0.0", php="0.68.2", python="0.53")
 @missing_feature(library="ruby")
 class Test_HeaderTags(BaseTestCase):
     """DD_TRACE_HEADER_TAGS env var support"""
