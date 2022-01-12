@@ -128,26 +128,27 @@ elif [ "$TARGET" = "python" ]; then
     # sudo apt-get install unzip
     # sudo apt-get install jq
 
-    curl --silent "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/build_deploy.yml/runs?branch=master&event=schedule&per_page=1" > workflows.json
+    WORKFLOWS=$(curl --silent -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/build_deploy.yml/runs?branch=master&event=schedule&per_page=10")
 
-    ARTIFACT_URL=$(jq -r '.workflow_runs[0].artifacts_url' workflows.json)
-    echo "Load $ARTIFACT_URL" 
-    curl --silent "$ARTIFACT_URL" > artifacts.json
+    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\")][0] | .artifacts_url"
+    ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY")
+    echo "Load artifact $ARTIFACT_URL" 
+    ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
 
-    ARCHIVE_URL=$(jq -r '.artifacts[0].archive_download_url' artifacts.json)
-    echo "Load $ARCHIVE_URL" 
-    curl --silent -H "Authorization: token $GH_TOKEN" -L "$ARCHIVE_URL" --output artifacts.zip
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
+    echo "Load archive $ARCHIVE_URL" 
+    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL 
 
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
 
     find artifacts/ -type f -name 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl' -exec cp '{}' . ';'
 
-    rm -rf artifacts artifacts.zip 
+    rm -rf artifacts artifacts.zip
 
-    jq '.workflow_runs[0].created_at' workflows.json
-    jq '.workflow_runs[0].head_commit.id' workflows.json
-    jq '.workflow_runs[0].head_commit.timestamp' workflows.json
+    echo $WORKFLOWS | jq '.workflow_runs[0].created_at'
+    echo $WORKFLOWS | jq '.workflow_runs[0].head_commit.id'
+    echo $WORKFLOWS | jq '.workflow_runs[0].head_commit.timestamp'
 
 elif [ "$TARGET" = "ruby" ]; then
     # echo 'ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"' > ruby-load-from-bundle-add
