@@ -109,6 +109,7 @@ class Test_RFI(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
+@flaky(context.library <= "php@0.68.2")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
 
@@ -287,6 +288,7 @@ class Test_SQLI(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
+@flaky(context.library <= "php@0.68.2")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
