@@ -150,7 +150,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
     @bug(library="dotnet", reason="APPSEC-2290")
-    @bug(context.library < "java@0.93.0")
+    @bug(context.library < "java@0.92.0")
     @bug(library="golang")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
