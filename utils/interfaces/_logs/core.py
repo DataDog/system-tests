@@ -224,6 +224,7 @@ class _LogPresence(BaseValidation):
                     )
                     return
 
+            self.log_debug(f"For {self}, found {data['message']}")
             self.set_status(True)
 
 

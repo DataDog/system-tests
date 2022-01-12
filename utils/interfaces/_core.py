@@ -295,7 +295,11 @@ class BaseValidation(object):
         self._closed.set()
 
     def set_failure(self, message):
-        self.log_error(message)
+        if not self.is_xfail:
+            self.log_error(message)
+        else:
+            self.log_info(f"xfail: {message}")
+
         self.set_status(False)
 
     def set_expired(self):

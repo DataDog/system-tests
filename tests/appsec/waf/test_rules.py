@@ -80,7 +80,7 @@ class Test_LFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
     @bug(library="dotnet", reason="APPSEC-2290")
-    @bug(context.library < "java@0.93.0")
+    @bug(context.library < "java@0.92.0")
     @bug(library="ruby", reason="? may be not supported by framework")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
@@ -109,6 +109,7 @@ class Test_RFI(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
+@flaky(context.library <= "php@0.68.2")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
 
@@ -287,6 +288,7 @@ class Test_SQLI(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported")
+@flaky(context.library <= "php@0.68.2")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
