@@ -148,7 +148,7 @@ def pytest_runtestloop(session):
 
     if context.library == "java":
         timeout = 80
-    elif context.library.library in ("php", "nodejs", "golang"):
+    elif context.library.library in ("php", "nodejs"):
         timeout = 5
     else:
         timeout = 40
@@ -162,7 +162,7 @@ def pytest_runtestloop(session):
     success = _wait_interface(interfaces.library_stdout, session) and success
     success = _wait_interface(interfaces.library_dotnet_managed, session) and success
 
-    timeout = 5 if context.library.library in ("php", "nodejs", "golang") else 40
+    timeout = 5 if context.library.library in ("php", "nodejs") else 40
     success = _wait_interface(interfaces.agent, session, timeout) and success
 
     if not success:
