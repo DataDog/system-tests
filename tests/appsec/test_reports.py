@@ -92,27 +92,28 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_reported_header(r, "via")
         interfaces.library.add_appsec_reported_header(r, "true-client-ip")
 
-    @missing_feature(context.library < "java@0.92.0", reason="actor ip has incorrect data")
+    @missing_feature(context.library < "java@0.93.0")
+    @bug(context.library >= "java@0.93.0", reason="actor is not reported")
     @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="nodejs", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
-        r = self.weblog_get(
-            "/waf/", headers={"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1", "User-Agent": "Arachni/v1",},
-        )
+
+        headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1", "User-Agent": "Arachni/v1"}
+        r = self.weblog_get("/waf/", headers=headers)
 
         def legacy_validator(event):
-            if "actor" in event["context"]:
-                actor_ip = event["context"]["actor"]["ip"]["address"]
-
-                assert actor_ip == "43.43.43.43", "actor IP should be 43.43.43.43"
+            assert "actor" in event["context"], "actor is missing from context"
+            actor_ip = event["context"]["actor"]["ip"]["address"]
+            assert actor_ip == "43.43.43.43", f"actor should be 43.43.43.43, not {actor_ip}"
 
             return True
 
         def validator(span, appsec_data):
+            assert "actor.ip" in span["meta"], "actor.ip is missing from in meta tags"
             actor_ip = span["meta"]["actor.ip"]
-            assert actor_ip == "43.43.43.43", "actor IP should be 43.43.43.43"
+            assert actor_ip == "43.43.43.43", f"actor.ip should be 43.43.43.43, not {actor_ip}"
 
             return True
 

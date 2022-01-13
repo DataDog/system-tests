@@ -81,6 +81,7 @@ class _BaseAppSecValidation(BaseValidation):
                     event = span["legacy_event"]
                     try:
                         if self.validate_legacy(event):
+                            self.log_debug(f"{self} is validated (legacy) by {span['log_filename']}")
                             self.is_success_on_expiry = True
                     except Exception as e:
                         msg = traceback.format_exception_only(type(e), e)[0]
@@ -92,6 +93,7 @@ class _BaseAppSecValidation(BaseValidation):
                     appsec_data = json.loads(span_data["meta"]["_dd.appsec.json"])
                     try:
                         if self.validate(span_data, appsec_data):
+                            self.log_debug(f"{self} is validated by {span['log_filename']}")
                             self.is_success_on_expiry = True
                     except Exception as e:
                         msg = traceback.format_exception_only(type(e), e)[0]
@@ -125,7 +127,7 @@ class _AppSecValidation(_BaseAppSecValidation):
         if self.legacy_validator:
             return self.legacy_validator(event)
         else:
-            return True
+            raise NotImplementedError
 
     def validate(self, span, appsec_data):
         if self.validator:
