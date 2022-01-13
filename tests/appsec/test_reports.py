@@ -92,8 +92,7 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_reported_header(r, "via")
         interfaces.library.add_appsec_reported_header(r, "true-client-ip")
 
-    @missing_feature(context.library < "java@0.93.0")
-    @bug(context.library >= "java@0.93.0", reason="actor is not reported")
+    @irrelevant(library="java", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="nodejs", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
