@@ -81,6 +81,13 @@ jobs:
           - library: ruby
             weblog-variant: sinatra-poc
             version: prod
+
+          - library: ruby
+            weblog-variant: rails
+            version: dev
+          - library: ruby
+            weblog-variant: rails
+            version: prod
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.library }}
