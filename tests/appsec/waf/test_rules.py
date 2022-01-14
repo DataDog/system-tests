@@ -331,7 +331,7 @@ class Test_SSRF(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.ssrf.sqr_000_001)
 
         
-@released(dotnet="2.1.0")
+@released(dotnet="2.1.1")
 class Test_404_Rules(BaseTestCase):
     """ Appsec WAF misc tests """
 
