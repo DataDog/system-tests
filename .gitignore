@@ -25,3 +25,5 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+
+!utils/build/docker/ruby/rails52/bin
