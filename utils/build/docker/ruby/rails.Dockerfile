@@ -15,6 +15,8 @@ COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 RUN cat Gemfile
+RUN rails --version
+RUN which rails
 
 RUN rm -f db/*.sqlite3
 RUN bundle exec rake db:create

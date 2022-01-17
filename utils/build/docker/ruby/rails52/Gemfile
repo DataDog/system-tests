@@ -32,5 +32,3 @@ gem 'unicorn'
 gem 'graphql'
 
 gem 'graphiql-rails', group: :development
-
-# gem "execjs", "2.8.1"
