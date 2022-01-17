@@ -57,7 +57,6 @@ class Test_SamplingDecisions(BaseTestCase):
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="ruby", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")
-    @bug(library="golang", reason="APMRP-258")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
 
