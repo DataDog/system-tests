@@ -8,6 +8,7 @@ from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_fe
 
 
 @irrelevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
+@flaky(library="golang", reason="investigation required")
 class Test_SamplingDecisions(BaseTestCase):
     """Sampling configuration"""
 
