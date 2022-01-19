@@ -22,6 +22,8 @@ services:
       - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
+    ports:
+      - "7777:7777"
     depends_on:
       agent:
         condition: service_healthy

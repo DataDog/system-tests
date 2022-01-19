@@ -16,7 +16,8 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
-for lib in golang dotnet java nodejs php ruby
+
+for lib in ${1:-dotnet golang php ruby java nodejs}
 do
     ./utils/scripts/load-binary.sh $lib
     ./build.sh $lib
@@ -28,5 +29,4 @@ do
     docker-compose down
     DD_APPSEC_ENABLED=true docker-compose -f scenarios/perfs/docker-compose.yml --project-directory . up runner
     docker-compose down
-
 done

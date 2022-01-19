@@ -15,7 +15,8 @@ def get_bucket(size):
 def compute_file(filename):
     buckets = defaultdict(list)
     results = {}
-    for _, time, _, size in json.load(open(filename)):
+    data = json.load(open(filename))
+    for _, time, _, size in data["durations"]:
         buckets[get_bucket(size)].append(time)
 
     for b in buckets:

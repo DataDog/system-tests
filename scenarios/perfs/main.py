@@ -8,8 +8,16 @@ import requests
 
 MAX_CONCURRENT_REQUEST = 5
 TOTAL_REQUEST_COUNT = 10000
-
+WARMUP_REQUEST_COUNT = 100
+WARMUP_LAST_SLEEP_DURATION = 30
 WEBLOG_URL="http://weblog:7777"
+LOG_FOLDER="/app/logs"
+
+# TOTAL_REQUEST_COUNT = 100
+# WARMUP_REQUEST_COUNT = 1
+# WARMUP_LAST_SLEEP_DURATION = 1
+# WEBLOG_URL="http://localhost:7777"
+# LOG_FOLDER="logs"
 class Runner:
     def __init__(self) -> None:
 
@@ -25,9 +33,11 @@ class Runner:
 
         self.i = 0
         self.results = []
+        self.memory = [] 
+        self.finished = False
 
     def build_requests(self):
-        paths = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/")
+        paths = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=bcd", "/waf?a=b&a=c")
         headers = (None, [["User-Agent", "normal"]], {"x-filename": "test"})
 
         datas = ({"a": "value"}, {"b": "other value", "bypass": "normal"})
@@ -40,7 +50,7 @@ class Runner:
         medium_nested = nested(5, 5)
         big_nested = nested(6, 6)
 
-        for _ in range(10):
+        for _ in range(5):
             for path in paths:
                 for header in headers:
                     self.add_request({"method": "GET", "url": f"{WEBLOG_URL}{path}", "headers": header})
@@ -55,7 +65,7 @@ class Runner:
         for path in paths:
             for header in headers:
                 for data in datas:
-                    for _ in range(10):
+                    for _ in range(5):
                         self.add_request(
                             {
                                 "method": "POST",
@@ -82,26 +92,28 @@ class Runner:
 
         print(f"Testing {lang} {appsec}")
         print("Warmup", end="")
+
         # warmup
-        for _ in range(10):
+        for _ in range(WARMUP_REQUEST_COUNT):
             requests.get(WEBLOG_URL)
             print(".", end="", flush=True)
-            time.sleep(1)
+            time.sleep(0.6)
+
+        time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
         print()
         task = asyncio.ensure_future(self._main())
         self.loop.run_until_complete(task)
 
-        json.dump(self.results, open(f"/app/logs/stats_{lang}_{appsec}.json", "w"), indent=2)
+        data = {
+            "durations": self.results,
+            "memory": self.memory
+        }
 
-    async def fetch(self, session):
-        await self.semaphore.acquire()
+        json.dump(data, open(f"{LOG_FOLDER}/stats_{lang}_{appsec}.json", "w"), indent=2)
 
-        self.i += 1
-        i = self.i
-
+    async def fetch(self, session, i):
         try:
-
             request_timestamp = datetime.now()
             size, request = self.requests[i % len(self.requests)]
             async with session.request(ssl=False, timeout=self.timeout, **request) as response:
@@ -111,7 +123,7 @@ class Runner:
                 self.results.append((i, ellapsed, status, size))
                 return "OK"
         except Exception as e:
-            print("ERROR", str(e))
+            pass
         finally:
             self.semaphore.release()
 
@@ -119,23 +131,30 @@ class Runner:
 
         tasks = []
 
+        asyncio.ensure_future(self.watch_docker_target())
+
         async with ClientSession() as session:
-            for _ in range(TOTAL_REQUEST_COUNT):
-                tasks.append(asyncio.ensure_future(self.fetch(session)))
+            for i in range(TOTAL_REQUEST_COUNT):
+                await self.semaphore.acquire()
+                tasks.append(asyncio.ensure_future(self.fetch(session, i)))
 
             responses = asyncio.gather(*tasks)
             await responses
 
+        self.finished = True
+        
         return responses
 
     async def watch_docker_target(self):
+        start = datetime.now()
         try:
-            session = ClientSession(loop=self.loop, connector=UnixConnector(path="/var/run/docker.sock"))
-
-            async with session.get("http://localhost/containers/systemtests_weblog_1/stats") as resp:
-                async for line in resp.content:
-                    data = json.loads(line)
-                    print(data["memory_stats"]["usage"])
+            async with ClientSession(loop=self.loop, connector=UnixConnector(path="/var/run/docker.sock")) as session:
+                async with session.get("http://localhost/containers/system-tests_weblog_1/stats") as resp:
+                    async for line in resp.content:
+                        if self.finished:
+                            break
+                        data = json.loads(line)
+                        self.memory.append(((datetime.now() - start).total_seconds() ,data["memory_stats"]["usage"]))
 
         except FileNotFoundError:
             print("Docker socket not found")
@@ -143,10 +162,6 @@ class Runner:
             print("Can't connect to Docker socket")
         except Exception as e:
             print(f"Unexpected exception when connecting to Docker socket: {e}")
-
-        finally:
-            if session:
-                await session.close()
 
 
 Runner().run()
