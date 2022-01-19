@@ -34,10 +34,13 @@ def report(bucket, without, with_, diff):
 
 
 def compute(lib):
-    print()
-    without_appsec = compute_file(f"logs/stats_{lib}_without_appsec.json")
-    with_appsec = compute_file(f"logs/stats_{lib}_with_appsec.json")
+    try:
+        without_appsec = compute_file(f"logs/stats_{lib}_without_appsec.json")
+        with_appsec = compute_file(f"logs/stats_{lib}_with_appsec.json")
+    except FileNotFoundError:
+        return
 
+    print()
     report(f"** {lib} **", "Without Appsec", "With Appsec", "Overhead")
     print("-" * 81)
     for b in without_appsec:
