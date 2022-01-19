@@ -5,7 +5,7 @@ Datadog.configure do |c|
 end
 
 Datadog.configure do |c|
-  options = {}
+  options = { service_name: ENV['DD_SERVICE'] || 'rails' }
   c.use :rails, options
 end
 

@@ -20,7 +20,7 @@ Datadog.configure do |c|\n\
   c.diagnostics.debug = true\n\
 end\n\
 Datadog.configure do |c|\n\
-  options = {}\n\
+  options = { service_name: ENV['DD_SERVICE'] || 'sinatra' }\n\
   c.use :sinatra, options\n\
 end\n\
 Datadog.tracer.trace('init.service') do |span|\n\
