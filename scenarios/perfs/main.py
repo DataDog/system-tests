@@ -12,6 +12,7 @@ WARMUP_REQUEST_COUNT = 100
 WARMUP_LAST_SLEEP_DURATION = 30
 WEBLOG_URL = "http://weblog:7777"
 LOG_FOLDER = "/app/logs"
+TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=bcd", "/waf?a=b&a=c")
 
 # TOTAL_REQUEST_COUNT = 100
 # WARMUP_REQUEST_COUNT = 1
@@ -37,7 +38,6 @@ class Runner:
         self.finished = False
 
     def build_requests(self):
-        paths = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=bcd", "/waf?a=b&a=c")
         headers = (None, [["User-Agent", "normal"]], {"x-filename": "test"})
 
         datas = ({"a": "value"}, {"b": "other value", "bypass": "normal"})
@@ -51,18 +51,18 @@ class Runner:
         big_nested = nested(6, 6)
 
         for _ in range(5):
-            for path in paths:
+            for path in TESTED_PATHS:
                 for header in headers:
                     self.add_request({"method": "GET", "url": f"{WEBLOG_URL}{path}", "headers": header})
 
-            for path in paths:
+            for path in TESTED_PATHS:
                 for header in headers:
                     for data in datas:
                         self.add_request(
                             {"method": "POST", "url": f"{WEBLOG_URL}{path}", "headers": header, "data": data}
                         )
 
-        for path in paths:
+        for path in TESTED_PATHS:
             for header in headers:
                 for data in datas:
                     for _ in range(5):

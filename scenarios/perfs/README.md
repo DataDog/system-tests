@@ -9,7 +9,8 @@
 2. Get the `main.py` script
    1. modify `WEBLOG_URL` to point to your app
    2. modify `LOG_FOLDER` to save your results to the good location
-3. Set two env var: 
+3. Even if the WAff should run also on 404, you may want to modify `TESTED_PATHS`
+4. Set two env var: 
     1. `SYSTEM_TESTS_LIBRARY` to whatever you want (usually your lang name)
     2. `DD_APPSEC_ENABLED` to `true` if you app is running with appsec, `false` otherwise
 
@@ -20,4 +21,4 @@
 
 ## Display
 
-Get the `process.py`, modify `LOG_FOLDER` if needed, and run it. 
+Get the `process.py`, modify `LOG_FOLDER` if needed, and run it.
