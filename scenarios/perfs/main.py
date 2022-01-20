@@ -1,3 +1,4 @@
+import os
 import json
 from aiohttp import ClientTimeout, ClientSession, UnixConnector, client_exceptions
 import asyncio
@@ -5,6 +6,7 @@ from datetime import datetime
 from os import environ
 import time
 import requests
+
 
 MAX_CONCURRENT_REQUEST = 5
 TOTAL_REQUEST_COUNT = 10000
@@ -139,14 +141,20 @@ class Runner:
 
     async def watch_docker_target(self):
         start = datetime.now()
+        basename = os.path.basename(os.getcwd())
+
         try:
             async with ClientSession(loop=self.loop, connector=UnixConnector(path="/var/run/docker.sock")) as session:
-                async with session.get("http://localhost/containers/system-tests_weblog_1/stats") as resp:
+                async with session.get(f"http://localhost/containers/{basename}_weblog_1/stats") as resp:
                     async for line in resp.content:
                         if self.finished:
                             break
-                        data = json.loads(line)
-                        # self.memory.append(((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"]))
+
+                        try:
+                            data = json.loads(line)
+                            self.memory.append(((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"]))
+                        except:
+                            pass
 
         except FileNotFoundError:
             print("Docker socket not found")
