@@ -80,6 +80,12 @@ class Test_AppSecEventSpanTags(BaseTestCase):
             if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILIES:
                 raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']}, should be in {RUNTIME_FAMILIES}")
 
+            if span.get("service") != "weblog":
+                raise Exception("Service name is not 'weblog'")
+
+            if span.get("meta", {}).get("env") != "system-tests":
+                raise Exception("Environment is not 'system-tests'")
+
             return True
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
@@ -98,6 +104,12 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
             if "_dd.runtime_family" in span["meta"]:
                 raise Exception("_dd.runtime_family should be present when span type is web")
+
+            if span.get("service") != "weblog":
+                raise Exception("Service name is not 'weblog'")
+
+            if span.get("meta", {}).get("env") != "system-tests":
+                raise Exception("Environment is not 'system-tests'")
 
             return True
 
