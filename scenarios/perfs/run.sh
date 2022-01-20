@@ -16,10 +16,9 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
-for lib in ${1:-dotnet golang php ruby java nodejs}
+for lib in ${1:-dotnet golang java nodejs php python ruby}
 do
-    # ./utils/scripts/load-binary.sh $lib
-    # ./build.sh $lib
+    ./build.sh $lib
 
     docker-compose down
     docker inspect system_tests/weblog > logs/weblog_image.json
