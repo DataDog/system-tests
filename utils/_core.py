@@ -9,17 +9,29 @@ import random
 
 import requests
 
-from utils.tools import logger, m
+import grpc
+import utils.grpc.weblog_pb2_grpc as grpcapi
+
+from utils.tools import logger
 
 
 class BaseTestCase(unittest.TestCase):
     _weblog_url_prefix = "http://weblog:7777"
+    _grpc_channel = grpc.insecure_channel('weblog:7778', options=(('grpc.enable_http_proxy', 0),))
+    _grpc_client = grpcapi.WeblogStub(_grpc_channel)
 
     def weblog_get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self._weblog_request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
 
     def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
         return self._weblog_request("POST", path, params=params, data=data, headers=headers, **kwargs)
+
+    def weblog_grpc_unary(self, request):
+        rid = "".join(random.choices(string.ascii_uppercase, k=36))
+        response = self._grpc_client.Unary(request,
+                                           metadata=[["user-agent", f"system_tests rid/{rid}"]])
+        logger.debug(f"Sending grpc request {rid}")
+        return rid
 
     def _weblog_request(self, method, path="/", params=None, data=None, headers=None, stream=None, **kwargs):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number

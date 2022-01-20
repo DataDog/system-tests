@@ -5,7 +5,7 @@
 
 from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky
 import pytest
-
+import google.protobuf.struct_pb2 as pb
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -235,3 +235,13 @@ class Test_ClientIP(BaseTestCase):
     def test_client_ip(self):
         """ Appsec WAF supports server.request.client_ip """
         interfaces.library.append_not_implemented_validation()
+
+
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_gRPC(BaseTestCase):
+    """Appsec supports gRPC"""
+
+    def test_request_message_unary_sqli(self):
+        """AppSec detects a SQLi attack in the message address"""
+        rid = self.weblog_grpc_unary(pb.Value(string_value="SELECT * FROM users WHERE id=3 UNION SELECT creditcard FROM users"))
+        interfaces.library.assert_waf_attack(rid=rid, address="grpc.server.request.message")

@@ -22,8 +22,11 @@ def _get_rid_from_span(span):
     if not user_agent:  # try something for .NET
         user_agent = span.get("meta", {}).get("http_request_headers_user-agent", None)
 
-    if not user_agent:  # last hope
+    if not user_agent:  # almost last hope
         user_agent = span.get("meta", {}).get("http.useragent", None)
+
+    if not user_agent:  # last hope
+        return get_rid_from_grpc_user_agent(span.get("meta", {}).get("grpc.metadata.user-agent", None))
 
     return get_rid_from_user_agent(user_agent)
 
@@ -33,6 +36,14 @@ def get_rid_from_user_agent(user_agent):
         return None
 
     rid = user_agent[-36:]
+    return rid
+
+
+def get_rid_from_grpc_user_agent(user_agent):
+    if not user_agent or "rid/" not in user_agent:
+        return None
+    start = user_agent.index("rid/") + 4
+    rid = user_agent[start:start+36]
     return rid
 
 

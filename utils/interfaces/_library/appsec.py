@@ -15,8 +15,8 @@ from utils.interfaces._library.appsec_data import rule_id_to_type
 class _BaseAppSecValidation(BaseValidation):
     path_filters = ["/v0.4/traces", "/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
-    def __init__(self, request):
-        super().__init__(request=request)
+    def __init__(self, request=None, rid=None):
+        super().__init__(request=request, rid=rid)
         self.spans = []  # list of (trace_id, span_id): span related to rid
         self.appsec_events = []  # list of all appsec events
 
@@ -25,6 +25,7 @@ class _BaseAppSecValidation(BaseValidation):
             content = data["request"]["content"]
 
             for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
+                self.log_debug(f'Found span with rid={self.rid}: span_id={span["span_id"]}')
                 self.spans.append(f'{span["trace_id"]}#{span["span_id"]}')
 
                 if "_dd.appsec.json" in span.get("meta", {}):
@@ -144,8 +145,8 @@ class _NoAppsecEvent(_BaseAppSecValidation):
 
 
 class _WafAttack(_BaseAppSecValidation):
-    def __init__(self, request, rule=None, pattern=None, patterns=None, address=None, key_path=None):
-        super().__init__(request=request)
+    def __init__(self, request=None, rid=None, rule=None, pattern=None, patterns=None, address=None, key_path=None):
+        super().__init__(request=request, rid=rid)
 
         # rule can be a rule id, or a rule type
         if rule is None:

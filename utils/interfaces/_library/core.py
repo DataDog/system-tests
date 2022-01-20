@@ -76,9 +76,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_no_appsec_event(self, request):
         self.append_validation(_NoAppsecEvent(request))
 
-    def assert_waf_attack(self, request, rule=None, pattern=None, address=None, patterns=None, key_path=None):
+    def assert_waf_attack(self, request=None, rid=None, rule=None, pattern=None, address=None, patterns=None, key_path=None):
         self.append_validation(
-            _WafAttack(request, rule=rule, pattern=pattern, address=address, patterns=patterns, key_path=key_path)
+            _WafAttack(request, rid=rid, rule=rule, pattern=pattern, address=address, patterns=patterns, key_path=key_path)
         )
 
     def assert_metric_existence(self, metric_name):

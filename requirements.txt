@@ -16,3 +16,6 @@ yarl==1.4.2
 
 jsonschema==3.2.0
 rfc3339-validator==0.1.2
+
+protobuf~=3.16.0
+grpcio-tools~=1.43.0

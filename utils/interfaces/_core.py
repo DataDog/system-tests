@@ -192,7 +192,7 @@ class BaseValidation(object):
     is_success_on_expiry = False  # if validation is still pending at end of procees, is it a success?
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
 
-    def __init__(self, message=None, request=None):
+    def __init__(self, message=None, request=None, rid=None):
         self.message = message
         self._closed = threading.Event()
         self._is_success = None
@@ -205,6 +205,8 @@ class BaseValidation(object):
 
         if request is not None:
             self.rid = request.request.headers["User-Agent"][-36:]
+        elif rid is not None:
+            self.rid = rid
         else:
             self.rid = None
 
