@@ -3,6 +3,9 @@ from collections import defaultdict
 from statistics import mean, stdev
 
 
+LOG_FOLDER = "logs"
+
+
 def get_bucket(size):
     if size < 10000:
         return "Requests < 10ko"
@@ -36,8 +39,8 @@ def report(bucket, without, with_, diff):
 
 def compute(lib):
     try:
-        without_appsec = compute_file(f"logs/stats_{lib}_without_appsec.json")
-        with_appsec = compute_file(f"logs/stats_{lib}_with_appsec.json")
+        without_appsec = compute_file(f"{LOG_FOLDER}/stats_{lib}_without_appsec.json")
+        with_appsec = compute_file(f"{LOG_FOLDER}/stats_{lib}_with_appsec.json")
     except FileNotFoundError:
         return
 
