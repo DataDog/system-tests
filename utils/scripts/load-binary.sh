@@ -93,6 +93,36 @@ get_circleci_artifact() {
     curl --silent -L $ARTIFACT_URL --output $ARTIFACT_NAME
 }
 
+
+get_github_action_artifact() {
+    rm -rf artifacts artifacts.zip
+
+    SLUG=$1
+    WORKFLOW=$2
+    BRANCH=$3
+    EVENT=$4
+    PATTERN=$5
+
+    WORKFLOWS=$(curl --silent -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?branch=$BRANCH&event=$EVENT&per_page=10")
+
+    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\")][0] | .artifacts_url"
+    ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY")
+    echo "Load artifact $ARTIFACT_URL" 
+    ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
+
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
+    echo "Load archive $ARCHIVE_URL"
+
+    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL 
+
+    mkdir -p artifacts/
+    unzip artifacts.zip -d artifacts/
+
+    find artifacts/ -type f -name $PATTERN -exec cp '{}' . ';'
+
+    rm -rf artifacts artifacts.zip
+}
+
 if test -f ".env"; then
     source .env
 fi
@@ -121,34 +151,8 @@ elif [ "$TARGET" = "dotnet" ]; then
 
 elif [ "$TARGET" = "python" ]; then
     rm -rf *.whl
-
-    OWNER=DataDog
-    REPO=dd-trace-py
-
-    # sudo apt-get install unzip
-    # sudo apt-get install jq
-
-    WORKFLOWS=$(curl --silent -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/build_deploy.yml/runs?branch=master&event=schedule&per_page=10")
-
-    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\")][0] | .artifacts_url"
-    ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY")
-    echo "Load artifact $ARTIFACT_URL" 
-    ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
-
-    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
-    echo "Load archive $ARCHIVE_URL" 
-    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL 
-
-    mkdir -p artifacts/
-    unzip artifacts.zip -d artifacts/
-
-    find artifacts/ -type f -name 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl' -exec cp '{}' . ';'
-
-    rm -rf artifacts artifacts.zip
-
-    echo $WORKFLOWS | jq '.workflow_runs[0].created_at'
-    echo $WORKFLOWS | jq '.workflow_runs[0].head_commit.id'
-    echo $WORKFLOWS | jq '.workflow_runs[0].head_commit.timestamp'
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" "master" "schedule" 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl'
+    
 
 elif [ "$TARGET" = "ruby" ]; then
     # echo 'ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"' > ruby-load-from-bundle-add
@@ -194,6 +198,9 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
         -H "Accept: application/vnd.github.v3.raw" \
         --output "waf_rule_set.json" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/v2/build/recommended.json
+
+elif [ "$TARGET" = "php_appsec" ]; then
+    get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "push" "dd-appsec-php-*-amd64.tar.gz"
 
 else
     echo "Unknown target: $1"
