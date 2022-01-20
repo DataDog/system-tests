@@ -16,6 +16,8 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
+mkdir -p logs
+
 for lib in ${1:-dotnet golang java nodejs php python ruby}
 do
     ./build.sh $lib
