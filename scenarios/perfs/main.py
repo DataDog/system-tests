@@ -10,8 +10,8 @@ MAX_CONCURRENT_REQUEST = 5
 TOTAL_REQUEST_COUNT = 10000
 WARMUP_REQUEST_COUNT = 100
 WARMUP_LAST_SLEEP_DURATION = 30
-WEBLOG_URL="http://weblog:7777"
-LOG_FOLDER="/app/logs"
+WEBLOG_URL = "http://weblog:7777"
+LOG_FOLDER = "/app/logs"
 
 # TOTAL_REQUEST_COUNT = 100
 # WARMUP_REQUEST_COUNT = 1
@@ -33,7 +33,7 @@ class Runner:
 
         self.i = 0
         self.results = []
-        self.memory = [] 
+        self.memory = []
         self.finished = False
 
     def build_requests(self):
@@ -67,12 +67,7 @@ class Runner:
                 for data in datas:
                     for _ in range(5):
                         self.add_request(
-                            {
-                                "method": "POST",
-                                "url": f"{WEBLOG_URL}{path}",
-                                "headers": header,
-                                "json": medium_nested,
-                            }
+                            {"method": "POST", "url": f"{WEBLOG_URL}{path}", "headers": header, "json": medium_nested,}
                         )
 
                     self.add_request(
@@ -105,10 +100,7 @@ class Runner:
         task = asyncio.ensure_future(self._main())
         self.loop.run_until_complete(task)
 
-        data = {
-            "durations": self.results,
-            "memory": self.memory
-        }
+        data = {"durations": self.results, "memory": self.memory}
 
         json.dump(data, open(f"{LOG_FOLDER}/stats_{lang}_{appsec}.json", "w"), indent=2)
 
@@ -142,7 +134,7 @@ class Runner:
             await responses
 
         self.finished = True
-        
+
         return responses
 
     async def watch_docker_target(self):
@@ -154,7 +146,7 @@ class Runner:
                         if self.finished:
                             break
                         data = json.loads(line)
-                        self.memory.append(((datetime.now() - start).total_seconds() ,data["memory_stats"]["usage"]))
+                        self.memory.append(((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"]))
 
         except FileNotFoundError:
             print("Docker socket not found")
