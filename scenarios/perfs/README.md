@@ -1,0 +1,1 @@
+docker-compose -f scenarios/perfs/docker-compose.yml --project-directory . up

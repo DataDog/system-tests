@@ -28,6 +28,8 @@ else
   INSTALLER_ARGS+=(--tracer-version $TRACER_VERSION)
 fi
 
+echo "Install args are ${INSTALLER_ARGS[@]}"
+
 export DD_APPSEC_ENABLED=0
 PHP_INI_SCAN_DIR=/etc/php/ php /tmp/dd-library-php-setup.php \
   "${INSTALLER_ARGS[@]}"\
