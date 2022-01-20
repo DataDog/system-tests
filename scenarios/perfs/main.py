@@ -146,7 +146,7 @@ class Runner:
                         if self.finished:
                             break
                         data = json.loads(line)
-                        self.memory.append(((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"]))
+                        # self.memory.append(((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"]))
 
         except FileNotFoundError:
             print("Docker socket not found")
