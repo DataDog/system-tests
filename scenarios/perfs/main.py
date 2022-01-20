@@ -1,4 +1,3 @@
-import os
 import json
 from aiohttp import ClientTimeout, ClientSession, UnixConnector, client_exceptions
 import asyncio
@@ -83,7 +82,6 @@ class Runner:
         self.requests.append((size, request))
 
     def run(self):
-
         appsec = "with_appsec" if environ["DD_APPSEC_ENABLED"] == "true" else "without_appsec"
         lang = environ["SYSTEM_TESTS_LIBRARY"]
 
@@ -141,20 +139,21 @@ class Runner:
 
     async def watch_docker_target(self):
         start = datetime.now()
-        basename = os.path.basename(os.getcwd())
 
         try:
             async with ClientSession(loop=self.loop, connector=UnixConnector(path="/var/run/docker.sock")) as session:
-                async with session.get(f"http://localhost/containers/{basename}_weblog_1/stats") as resp:
+                async with session.get(f"http://localhost/containers/system-tests_weblog_1/stats") as resp:
                     async for line in resp.content:
                         if self.finished:
                             break
 
+                        data = json.loads(line)
                         try:
-                            data = json.loads(line)
-                            self.memory.append(((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"]))
+                            self.memory.append(
+                                ((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"])
+                            )
                         except:
-                            pass
+                            return  # probably not with system tests env
 
         except FileNotFoundError:
             print("Docker socket not found")

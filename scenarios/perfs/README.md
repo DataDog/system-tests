@@ -1,7 +1,7 @@
 ## Requirements
 
 * Python 3.8 or higher
-* `pip install aiohttp requests`
+* `pip install aiohttp requests matplotlib`
 
 ## Prepare 
 
