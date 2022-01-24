@@ -13,6 +13,8 @@ RUN echo 'const tracer = require("dd-trace").init({debug: true});' >> app.js
 RUN echo 'const app = require("express")();' >> app.js
 RUN echo '\n\
 app.get("/", (req, res) => { console.log("Received a request"); res.send("Hello\\n") });\n\
+app.get("/waf", (req, res) => { res.send("Hello\\n") });\n\
+app.get("/waf/*", (req, res) => { res.send("Hello\\n") });\n\
 app.get("/sample_rate_route/:i", (req, res) => res.send("OK"));\n\
 ' >> app.js
 RUN echo 'app.listen(7777, "0.0.0.0",() => {\
