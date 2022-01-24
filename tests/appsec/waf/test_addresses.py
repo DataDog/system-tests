@@ -235,3 +235,13 @@ class Test_ClientIP(BaseTestCase):
     def test_client_ip(self):
         """ Appsec WAF supports server.request.client_ip """
         interfaces.library.append_not_implemented_validation()
+
+@missing_feature(library="dotnet", reason="server.response.status not yet supported")
+@missing_feature(library="golang", reason="server.response.status not yet supported")
+class Test_ResponseStatus(BaseTestCase):
+    """Appsec supports values on server.response.status"""
+
+    def test_query_argument(self):
+        """ AppSec catches attacks in URL query value"""
+        r = self.weblog_get("/mysql")
+        interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
