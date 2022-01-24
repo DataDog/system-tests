@@ -2,8 +2,11 @@
 
 set -eu
 
+# curl -Lf -o /tmp/dd-library-php-setup.php \
+#   https://raw.githubusercontent.com/DataDog/dd-trace-php/cataphract/appsec-installer/dd-library-php-setup.php
+
 curl -Lf -o /tmp/dd-library-php-setup.php \
-  https://raw.githubusercontent.com/DataDog/dd-trace-php/cataphract/appsec-installer/dd-library-php-setup.php
+  https://raw.githubusercontent.com/DataDog/dd-appsec-php/anilm3/installer-update-0.2.0/dd-library-php-setup.php
 
 cd /binaries
 
@@ -27,6 +30,8 @@ elif [[ $BINARIES_TRACER_N -gt 1 ]]; then
 else
   INSTALLER_ARGS+=(--tracer-version $TRACER_VERSION)
 fi
+
+echo "Install args are ${INSTALLER_ARGS[@]}"
 
 export DD_APPSEC_ENABLED=0
 PHP_INI_SCAN_DIR=/etc/php/ php /tmp/dd-library-php-setup.php \
