@@ -332,3 +332,47 @@ class Test_SSRF(BaseTestCase):
         """AppSec catches SSRF attacks"""
         r = self.weblog_get("/waf", params={"value": "metadata.goog/"})
         interfaces.library.assert_waf_attack(r, rules.ssrf.sqr_000_001)
+
+@missing_feature(library="dotnet", reason="server.response.status not yet supported")
+@missing_feature(library="golang", reason="server.response.status not yet supported")
+class Test_DiscoveryScan(BaseTestCase):
+    """AppSec WAF Tests on Discovery Scan rules"""
+
+    def test_security_scan(self):
+        """AppSec WAF catches Discovery scan"""
+        r = self.weblog_get("/etc/")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_001)
+
+        r = self.weblog_get("/mysql")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_001)
+
+        r = self.weblog_get("/myadmin")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_001)
+
+    def test_security_scan2(self):
+        """AppSec WAF catches Discovery scan"""
+        r = self.weblog_get("/readme.md")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_002)
+
+        r = self.weblog_get("/web-inf/web.xml")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_003)
+
+        r = self.weblog_get("/src/main.rb")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_004)
+
+        r = self.weblog_get("/access.log")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_005)
+
+        r = self.weblog_get("/mykey.pem")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_006)
+
+        r = self.weblog_get("/logs.tar")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_007)
+
+        # Need a match for rule 8
+        # r = self.weblog_get()
+        # interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_008)
+
+        r = self.weblog_get("/login.pwd")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_009)
+
