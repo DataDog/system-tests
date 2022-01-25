@@ -23,13 +23,17 @@ func main() {
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNotFound)
 	})
 
 	mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {
 		if span, ok := tracer.SpanFromContext(r.Context()); ok {
 			span.SetTag(ext.SamplingPriority, ext.PriorityUserKeep)
 		}
+		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/params/:i", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 

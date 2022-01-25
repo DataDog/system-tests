@@ -250,6 +250,7 @@ class Test_ResponseStatus(BaseTestCase):
         r = self.weblog_get("/mysql")
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
+
 @released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params")
 class Test_PathParams(BaseTestCase):
