@@ -239,10 +239,11 @@ class Test_ClientIP(BaseTestCase):
 
 @missing_feature(library="dotnet", reason="server.response.status not yet supported")
 @missing_feature(library="golang", reason="server.response.status not yet supported")
+@missing_feature(library="php", reason="???")
 class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
-    def test_query_argument(self):
+    def test_basic(self):
         """ AppSec catches attacks in URL query value"""
         r = self.weblog_get("/mysql")
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
