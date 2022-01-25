@@ -23,8 +23,6 @@ func main() {
 	})
 
 	r.Any("/waf/", func(c echo.Context) error {
-		span, _ := tracer.SpanFromContext(c.Request().Context())
-		span.SetTag("http.request.headers.user-agent", c.Request().UserAgent())
 		return c.String(http.StatusOK, "Hello, WAF!\n")
 	})
 

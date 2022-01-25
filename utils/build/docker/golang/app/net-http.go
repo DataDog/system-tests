@@ -24,8 +24,6 @@ func main() {
 	})
 
 	mux.HandleFunc("/waf/", func(w http.ResponseWriter, r *http.Request) {
-		span, _ := tracer.SpanFromContext(r.Context())
-		span.SetTag("http.request.headers.user-agent", r.UserAgent())
 		write(w, r, []byte("Hello, WAF!"))
 	})
 
