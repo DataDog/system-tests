@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	muxtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -24,6 +25,9 @@ func main() {
 	})
 
 	mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			span.SetTag(ext.SamplingPriority, ext.PriorityUserKeep)
+		}
 		w.Write([]byte("OK"))
 	})
 
