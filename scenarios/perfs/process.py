@@ -66,7 +66,10 @@ def compute(lib):
 
 
 def plot():
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib.pyplot as plt
+    except ModuleNotFoundError:
+        return
 
     def add_plot(filename, label, axis):
         data = json.load(open(filename))["memory"]
