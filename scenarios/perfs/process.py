@@ -5,6 +5,7 @@ from os import environ
 
 
 LOG_FOLDER = environ["LOG_FOLDER"] if "LOG_FOLDER" in environ else "logs"
+LIBS = ("golang", "dotnet", "java", "nodejs", "php", "ruby")
 
 
 def get_bucket(size):
@@ -64,9 +65,38 @@ def compute(lib):
     print()
 
 
+def plot():
+    import matplotlib.pyplot as plt
+
+    def add_plot(filename, label, axis):
+        data = json.load(open(filename))["memory"]
+
+        x = [d[0] for d in data]
+        y = [d[1] / (1024 ** 2) for d in data]
+
+        axis.plot(x, y, label=label)
+
+    fig, axis = plt.subplots(len(LIBS), figsize=(10, 40))
+
+    for i, lib in enumerate(LIBS):
+        try:
+            add_plot(f"{LOG_FOLDER}/stats_{lib}_without_appsec.json", "Without AppSec", axis[i])
+            add_plot(f"{LOG_FOLDER}/stats_{lib}_with_appsec.json", "With AppSec", axis[i])
+        except FileNotFoundError:
+            continue
+
+        axis[i].legend()
+        axis[i].set(xlabel="time (s)", ylabel="Mem (Mo)", title=lib)
+        axis[i].grid()
+
+    fig.savefig("test.png")
+
+
 def main():
-    for lib in ("golang", "dotnet", "java", "nodejs", "php", "ruby"):
+    for lib in LIBS:
         compute(lib)
+
+    plot()
 
 
 main()

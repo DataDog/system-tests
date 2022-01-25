@@ -18,7 +18,6 @@ services:
       - DD_AGENT_HOST=agent
       - DD_TRACE_AGENT_PORT=8126
       - DD_APPSEC_ENABLED=${DD_APPSEC_ENABLED:-}
-      - DD_TRACE_DEBUG=${DD_TRACE_DEBUG:-true}
       - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests

@@ -35,7 +35,7 @@ class Test_Standardization(BaseTestCase):
     @irrelevant(library="java", reason="IG doesn't push addresses in Java.")
     def test_d02(self):
         """Log D2: Address pushed to Instrumentation Gateway"""
-        stdout.assert_presence(r"Pushing address .* to the Instrumentation Gateway.", level="DEBUG")
+        stdout.assert_presence(r"Pushing address .* to the Instrumentation Gateway", level="DEBUG")
 
     @missing_feature(library="dotnet", reason="APPSEC-983, being discussed")
     @missing_feature(library="java")

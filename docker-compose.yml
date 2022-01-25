@@ -40,6 +40,8 @@ services:
       - DD_APPSEC_WAF_TIMEOUT=5s
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
+    ports:
+      - "7777:7777"
     depends_on:
       runner:
         condition: service_healthy

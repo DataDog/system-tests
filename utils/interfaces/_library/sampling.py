@@ -10,6 +10,7 @@ from utils.interfaces._library._utils import get_root_spans, _spans_with_parent
 
 
 class _AllRequestsTransmitted(BaseValidation):
+    is_success_on_expiry = False
     path_filters = ["/v0.4/traces"]
 
     def __init__(self, paths):
@@ -27,13 +28,8 @@ class _AllRequestsTransmitted(BaseValidation):
             if len(self.paths) == 0:
                 self.set_status(True)
 
-    def set_expired(self):
-        super().set_expired()
-        if not self.is_success:
-            self.log_error(
-                f'Validation "{self.message} failed. Only {self.trace_count - len(self.paths)} '
-                "on {self.trace_count} have been sent by the tracer"
-            )
+    def final_check(self):
+        self.log_error(f"Only {self.trace_count - len(self.paths)} on {self.trace_count} have been sent by the tracer")
 
 
 class _TracesSamplingDecision(BaseValidation):

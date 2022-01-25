@@ -2,8 +2,11 @@
 
 set -eu
 
+# curl -Lf -o /tmp/dd-library-php-setup.php \
+#   https://raw.githubusercontent.com/DataDog/dd-trace-php/cataphract/appsec-installer/dd-library-php-setup.php
+
 curl -Lf -o /tmp/dd-library-php-setup.php \
-  https://raw.githubusercontent.com/DataDog/dd-trace-php/cataphract/appsec-installer/dd-library-php-setup.php
+  https://raw.githubusercontent.com/DataDog/dd-appsec-php/anilm3/installer-update-0.2.0/dd-library-php-setup.php
 
 cd /binaries
 
