@@ -39,6 +39,10 @@ class Runner:
         self.finished = False
 
     def build_requests(self):
+        data = json.load(open("scenarios/perfs/jirakiller.json"))
+        self.add_request({"method": "POST", "url": f"{WEBLOG_URL}/waf", "json": data,})
+        return
+
         headers = (None, [["User-Agent", "normal"]], {"x-filename": "test"})
 
         datas = ({"a": "value"}, {"b": "other value", "bypass": "normal"})
