@@ -333,6 +333,7 @@ class Test_SSRF(BaseTestCase):
         r = self.weblog_get("/waf", params={"value": "metadata.goog/"})
         interfaces.library.assert_waf_attack(r, rules.ssrf.sqr_000_001)
 
+
 @missing_feature(library="dotnet", reason="server.response.status not yet supported")
 @missing_feature(library="golang", reason="server.response.status not yet supported")
 class Test_DiscoveryScan(BaseTestCase):
@@ -375,4 +376,3 @@ class Test_DiscoveryScan(BaseTestCase):
 
         r = self.weblog_get("/login.pwd")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_009)
-

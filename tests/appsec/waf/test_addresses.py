@@ -236,6 +236,7 @@ class Test_ClientIP(BaseTestCase):
         """ Appsec WAF supports server.request.client_ip """
         interfaces.library.append_not_implemented_validation()
 
+
 @missing_feature(library="dotnet", reason="server.response.status not yet supported")
 @missing_feature(library="golang", reason="server.response.status not yet supported")
 class Test_ResponseStatus(BaseTestCase):
