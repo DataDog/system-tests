@@ -337,8 +337,9 @@ class Test_SSRF(BaseTestCase):
 @missing_feature(library="dotnet", reason="server.response.status not yet supported")
 @missing_feature(library="golang", reason="server.response.status not yet supported")
 @missing_feature(library="php", reason="???")
-@missing_feature(library="python", reason="???")
-@released(nodejs="2.0.0", ruby="0.54.2")
+@missing_feature(library="python", reason="server.response.status not yet supported")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@released(nodejs="2.0.0")
 class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 
