@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
+@released(golang="1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
@@ -37,7 +37,7 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(golang="1.34.0")
 @released(dotnet="1.30.0", nodejs="2.0.0rc0", php="?", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_ActorIP(BaseTestCase):

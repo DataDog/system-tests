@@ -15,7 +15,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 @released(nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?")
 @released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
-@missing_feature(context.weblog_variant == "echo" and context.library < "golang@v1.35.0")
+@released(golang="1.35.0")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 
@@ -55,7 +55,6 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
-    @bug(context.library == "golang" and context.weblog_variant == "echo")
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 

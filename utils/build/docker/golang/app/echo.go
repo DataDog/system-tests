@@ -18,8 +18,8 @@ func main() {
 
 	r.Use(echotrace.Middleware())
 
-	r.Any("/", func(c echo.Context) error {
-		return c.NoContent(http.StatusOK)
+	r.Any("/*", func(c echo.Context) error {
+		return c.NoContent(http.StatusNotFound)
 	})
 
 	r.Any("/waf/", func(c echo.Context) error {
