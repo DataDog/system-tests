@@ -11,7 +11,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="1.28.6", java="0.87.0", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -30,7 +31,7 @@ class Test_404(BaseTestCase):
         )
 
 
-# currently throws NotImplementedError
+# Not yet specified
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -38,12 +39,15 @@ class Test_MultipleHighlight(BaseTestCase):
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
-        interfaces.library.assert_waf_attack(
-            r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
-        )
+        # interfaces.library.assert_waf_attack(
+        #     r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
+        # )
+        interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="1.35.0", dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", java="?", nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?", ruby="?")
+@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.35.0")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
@@ -65,6 +69,14 @@ class Test_MultipleAttacks(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1 and /../"})
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100, pattern="/../")
         interfaces.library.assert_waf_attack(r, rules.security_scanner.ua0_600_12x, pattern="Arachni/v")
+
+
+@bug(library="php")
+class Test_NoWafTimeout(BaseTestCase):
+    """ With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
+
+    def test_main(self):
+        interfaces.library_stdout.assert_absence("Ran out of time while running flow")  # PHP version
 
 
 # TODO :

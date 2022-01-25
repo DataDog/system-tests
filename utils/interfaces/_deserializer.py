@@ -31,7 +31,7 @@ def parse_as_unsigned_int(value, size_in_bits):
     return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
 
 
-def deserialize_http_message(path, message, data, interface):
+def deserialize_http_message(path, message, data, interface, key):
     if not isinstance(data, (str, bytes)):
         return data
 
@@ -40,7 +40,8 @@ def deserialize_http_message(path, message, data, interface):
 
     if content_type in ("application/json", "text/json"):
         return json.loads(data)
-
+    elif interface == "library" and key == "response" and path == "/info":
+        return json.loads(data)
     elif content_type == "application/msgpack":
         result = msgpack.unpackb(data)
 
@@ -79,7 +80,7 @@ def deserialize(data, interface):
     for key in ("request", "response"):
         try:
             content = ast.literal_eval(data[key]["content"])
-            decoded = deserialize_http_message(data["path"], data[key], content, interface)
+            decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
             data[key]["content"] = decoded
         except Exception as e:
             msg = traceback.format_exception_only(type(e), e)[0]

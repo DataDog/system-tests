@@ -159,3 +159,15 @@ class ssrf:
     sqr_000_013 = "sqr-000-013"  # SSRF: Detect SSRF attempts using IPv6 or octal/hexdecimal obfuscation
     sqr_000_014 = "sqr-000-014"  # SSRF: Detect SSRF domain redirection bypass
     sqr_000_015 = "sqr-000-015"  # SSRF: Detect SSRF attempt using non HTTP protocol
+
+
+class discovery_scan:
+    ndf_000_001 = "ndf-000-001"  # Detect common directory discovery scans
+    ndf_000_002 = "ndf-000-002"  # Detect failed attempt to fetch readme files
+    ndf_000_003 = "ndf-000-003"  # Detect failed attempt to fetch Java EE resource files
+    ndf_000_004 = "ndf-000-004"  # Detect failed attempt to fetch code files
+    ndf_000_005 = "ndf-000-005"  # Detect failed attempt to fetch source code archives
+    ndf_000_006 = "ndf-000-006"  # Detect failed attempt to fetch sensitive files
+    ndf_000_007 = "ndf-000-007"  # Detect failed attempt to fetch archives
+    ndf_000_008 = "ndf-000-008"  # Detect failed attempt to trigger incorrect application behavior
+    ndf_000_009 = "ndf-000-009"  # Detect failed attempt to leak the structure of the application

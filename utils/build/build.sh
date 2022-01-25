@@ -4,7 +4,7 @@
 
 #!/bin/bash
 
-set -ex
+set -e
 
 # set .env if exists. Allow users to keep their conf via env vars
 if test -f ".env"; then

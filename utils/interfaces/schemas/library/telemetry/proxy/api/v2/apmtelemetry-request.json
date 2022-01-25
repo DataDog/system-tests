@@ -1,0 +1,52 @@
+{
+  "$id": "/library/telemetry/proxy/api/v2/apmtelemetry-request.json",
+
+  "properties": {
+    "api_version": {
+      "type": "string"
+    },
+    "request_type": {
+      "type": "string"
+    },
+    "tracer_time": {
+      "type": "integer"
+    },
+    "runtime_id": {
+      "type": "string"
+    },
+    "seq_id": {
+      "type": "integer"
+    },
+    "payload": {
+      "anyOf": [{ "type": "object" }, { "type": "null" }]
+    },
+    "application": {
+      "type": "object",
+      "properties": {
+        "service_name": { "type": "string" },
+        "env": { "type": "string" },
+        "service_version": { "anyOf": [{ "type": "string" }, { "type": "null" }]  },
+        "tracer_version": { "type": "string" },
+        "language_name": { "type": "string" },
+        "language_version": { "type": "string" },
+        "runtime_name": { "anyOf": [{ "type": "string" }, { "type": "null" }]  },
+        "runtime_version": { "anyOf": [{ "type": "string" }, { "type": "null" }]  },
+        "runtime_patches": { "anyOf": [{ "type": "string" }, { "type": "null" }]  }
+        },
+      "required": ["service_name", "env", "tracer_version", "language_name", "language_version"]
+    },
+    "host": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "api_version",
+    "request_type",
+    "tracer_time",
+    "runtime_id",
+    "seq_id",
+    "application",
+    "host",
+    "payload"
+  ]
+}

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature
+from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky
 import pytest
 
 
@@ -28,7 +28,8 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.34.0", dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -48,8 +49,10 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(golang="1.34.0", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0")
+@released(nodejs="2.0.0rc0", php_appsec="0.1.0", php="1.0.0", python="?")
+@flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
@@ -60,9 +63,11 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@released(golang="1.34.0", dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0-appsec-alpha.1", php_appsec="?", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(dotnet="1.28.6", java="0.87.0")
+@released(nodejs="2.0.0rc0", php_appsec="0.1.0", php="1.0.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@flaky(context.library <= "php@0.68.2")
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -116,7 +121,8 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.34.0", php_appsec="?", python="?")
+@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(library="nodejs", reason="cookies not yet supported?")
 class Test_Cookies(BaseTestCase):
@@ -151,7 +157,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
 
@@ -162,7 +168,7 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -186,13 +192,13 @@ class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
     def test_json_key(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_json_value(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_json_array(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
@@ -200,16 +206,16 @@ class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
     def test_xml_node(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_xml_attr(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_xml_attr_value(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
     def test_xml_content(self):
-        raise NotImplementedError()
+        interfaces.library.append_not_implemented_validation()
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
@@ -218,14 +224,28 @@ class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 
     def test_method(self):
-        raise NotImplementedError
+        interfaces.library.append_not_implemented_validation()
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@irrelevant(library="nodejs", reason="not yet rule on client_ip")
 class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""
 
     def test_client_ip(self):
         """ Appsec WAF supports server.request.client_ip """
-        raise NotImplementedError
+        interfaces.library.append_not_implemented_validation()
+
+
+@missing_feature(library="dotnet", reason="server.response.status not yet supported")
+@missing_feature(library="golang", reason="server.response.status not yet supported")
+@missing_feature(library="php", reason="???")
+@missing_feature(library="python", reason="server.response.status not yet supported")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@released(nodejs="2.0.0")
+class Test_ResponseStatus(BaseTestCase):
+    """Appsec supports values on server.response.status"""
+
+    def test_basic(self):
+        """ AppSec catches attacks in URL query value"""
+        r = self.weblog_get("/mysql")
+        interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")

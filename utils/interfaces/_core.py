@@ -13,6 +13,7 @@ import gc
 import json
 import re
 
+from utils._xfail import xfails
 from utils.tools import get_logger, m, e as format_error, get_exception_traceback
 from ._deserializer import deserialize
 
@@ -40,6 +41,11 @@ class InterfaceValidator(object):
         self._closed.set()
         self.is_success = False
 
+        self.passed = []  # list of passed validation
+        self.xpassed = []  # list of passed validation, but it was not expected
+        self.failed = []  # list of failed validation
+        self.xfailed = []  # list of failed validation, but it was expected
+
         # if there is an excpetion during test execution on any other part then test itself
         # save it to display it on output. Very helpful when it comes to modify internals
         self.system_test_error = None
@@ -48,7 +54,7 @@ class InterfaceValidator(object):
         return f"{self.__class__.__name__}('{self.name}')"
 
     def __str__(self):
-        return f"{self.name} interface validator"
+        return f"{self.name} interface"
 
     def _check_closed_status(self):
         if len([item for item in self._validations if not item.closed]) == 0:
@@ -64,7 +70,6 @@ class InterfaceValidator(object):
 
         try:
             with self._lock:
-                fails = []
 
                 for validation in self._validations:
                     try:
@@ -77,10 +82,18 @@ class InterfaceValidator(object):
                     if not validation.closed:
                         validation.set_expired()
 
-                    if not validation.is_success:
-                        fails.append(validation)
+                    if validation.is_success:
+                        if validation.is_xfail:
+                            self.xpassed.append(validation)
+                        else:
+                            self.passed.append(validation)
+                    else:
+                        if validation.is_xfail:
+                            self.xfailed.append(validation)
+                        else:
+                            self.failed.append(validation)
 
-                if len(fails) != 0:
+                if len(self.failed) != 0:
                     self.is_success = False
                     return
 
@@ -154,8 +167,15 @@ class InterfaceValidator(object):
 
         return data
 
+    def append_not_implemented_validation(self):
+        self.append_validation(_NotImplementedValidation())
+
     def check(self, message):
         pass
+
+    @property
+    def validations_count(self):
+        return len(self._validations)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -189,24 +209,43 @@ class BaseValidation(object):
             self.rid = None
 
         self.frame = None
+        self.calling_method = None
+        self.is_xfail = False
 
-        # save test context, if validation fails
+        # Get calling class and calling method
         for frame_info in inspect.getouterframes(inspect.currentframe()):
             if frame_info.function.startswith("test_"):
                 self.frame = frame_info
-                if self.message is None:
-                    # if the message is missing, try to get the function docstring
-                    func_obj = gc.get_referrers(frame_info.frame.f_code)[0]
-                    self.message = func_obj.__doc__
-
-                    # if the message is missing, try to get the parent class docstring
-                    if self.message is None and "self" in frame_info.frame.f_locals:
-                        self.message = frame_info.frame.f_locals["self"].__doc__
+                self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
+                self.calling_class = frame_info.frame.f_locals["self"].__class__
+                if hasattr(self.calling_class, "__real_test_class__"):
+                    self.calling_class = self.calling_class.__real_test_class__
 
                 break
 
+        if self.calling_method is None:
+            raise Exception(f"Unexpected error, can't found the method for {self}")
+
+        if self.message is None:
+            # if the message is missing, try to get the function docstring
+            self.message = self.calling_method.__doc__
+
+            # if the message is missing, try to get the parent class docstring
+            if self.message is None:
+                self.message = self.calling_class.__doc__
+
         if self.message is None:
             raise Exception(f"Please set a message for {self.frame.function}")
+
+        if xfails.is_xfail_method(self.calling_method):
+            logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
+            xfails.add_validation_from_method(self.calling_method, self)
+            self.is_xfail = True
+
+        if xfails.is_xfail_class(self.calling_class):
+            logger.debug(f"{self} is called from {self.calling_class}, which is xfail")
+            xfails.add_validation_from_class(self.calling_class, self)
+            self.is_xfail = True
 
         self.message = self.message.strip()
 
@@ -222,7 +261,7 @@ class BaseValidation(object):
             return f"{self.__class__.__name__}({repr(self.message)})"
 
     def get_test_source_info(self):
-        klass = self.frame.frame.f_locals["self"].__class__.__name__
+        klass = self.calling_class.__name__
         return self.frame.filename.replace("/app/", ""), klass, self.frame.function
 
     def log_debug(self, message):
@@ -256,13 +295,20 @@ class BaseValidation(object):
         self._closed.set()
 
     def set_failure(self, message):
-        self.log_error(message)
+        if not self.is_xfail:
+            self.log_error(message)
+        else:
+            self.log_info(f"xfail: {message}")
+
         self.set_status(False)
 
     def set_expired(self):
         if not self.closed:
             if not self.is_success_on_expiry:
-                self.log_error(f"{self} has expired and is a failure")
+                if self.is_xfail:
+                    self.log_info(f"{self} has expired and is a failure, as expected")
+                else:
+                    self.log_error(f"{self} has expired and is a failure")
             self.set_status(self.is_success_on_expiry)
 
     def _check(self, data):
@@ -285,3 +331,9 @@ class BaseValidation(object):
             self.set_failure(err_msg)
 
         return not condition
+
+
+class _NotImplementedValidation(BaseValidation):
+    def __init__(self, message=None, request=None):
+        super().__init__(message=message, request=request)
+        self.set_status(False)

@@ -33,15 +33,16 @@ class Test_AwesomeFeature(BaseTestCase)
 ```
 
 It means that the test will be executed starting version `1.2.3`. Arguments are components names, e.g. `java`, `golang`, etc... You can mix them on a single line.
-Also, if a feature is not yet implemented, you can set the version as `?`. The test class will be skipped and flagged as missing feature (see below).
+Also, if a feature is not yet implemented, you can set the version as `?`. The test class will be be flagged as missing feature (see below). Note that it will be executed, and a warning will be reported if it succeed.
 
 ## Skip tests
 
 Three decorators will helps you to skip some test function or class, depending on the skip reason:
 
-* `@irrelevant`: no need to test
-* `@missing_feature`: feature or use case is not yet implemented
-* `@bug`: known bug
+* `@irrelevant`: no need to test, the test is skipped
+* `@flaky`: The feature sometimes fails, sometimes passed, the test is skipped
+* `@bug`: known bug, the test is executed, and a warning is reported if it succeed
+* `@missing_feature`: feature or use case is not yet implemented, the test is executed, and a warning is reported if it succeed
 
 They takes several arguments:
 

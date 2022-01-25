@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ast (2.4.0)
+    parser (2.7.1.3)
+      ast (~> 2.4.0)
+    scout_apm (2.6.7)
+      parser
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  scout_apm
+
+BUNDLED WITH
+   1.11.2

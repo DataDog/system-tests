@@ -13,8 +13,9 @@ if context.library == "cpp":
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@released(golang="v1.34.0", dotnet="1.29.0", java="0.92.0")
 @released(nodejs="2.0.0-appsec-beta.2", php_appsec="?", python="?", ruby="?")
+@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
+@missing_feature(context.weblog_variant == "echo" and context.library < "golang@v1.35.0")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 
@@ -54,6 +55,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
+    @bug(context.library == "golang" and context.weblog_variant == "echo")
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
@@ -82,7 +84,8 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @bug(library="java")
+    @bug(context.library < "java@0.93.0")
+    @missing_feature(library="php")  # need to generate a user trace
     def test_root_span_coherence(self):
         """ Appsec tags are not on span where type is not web """
 

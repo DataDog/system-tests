@@ -6,6 +6,6 @@ from utils._core import BaseTestCase
 
 # singletons
 from utils._context.core import context
-from utils._decorators import released, bug, irrelevant, missing_feature, rfc
+from utils._decorators import released, bug, irrelevant, missing_feature, rfc, flaky
 from utils import interfaces
 from utils._data_collector import data_collector

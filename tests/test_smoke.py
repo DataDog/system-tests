@@ -19,5 +19,5 @@ class Test_Library(BaseTestCase):
     def test_receive_request_trace(self):
         """Basic test to verify that libraries sent traces to the agent"""
         r = self.weblog_get("/")
-        assert r.status_code == 200
+
         interfaces.library.assert_receive_request_root_trace()

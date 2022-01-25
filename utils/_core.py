@@ -39,13 +39,13 @@ class BaseTestCase(unittest.TestCase):
             url = self._get_weblog_url(path, params)
         else:
             url = self._get_weblog_url(path)
-        full_url = url + "?" + urllib.parse.urlencode(params) if params else url
-        logger.debug(f"Sending request {rid}: {method} {full_url}")
 
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
             r = req.prepare()
             r.url = url
+            logger.debug(f"Sending request {rid}: {method} {url}")
+
             r = requests.Session().send(r, timeout=5, stream=stream)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
