@@ -129,3 +129,15 @@ jobs:
         with:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}_${{ matrix.version }}
           path: artifact.tar.gz
+
+  peformances:
+    runs-on: ubuntu-latest
+    env:
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run
+        run: ./scenarios/perfs/run.sh golang
+      - name: Display
+        run: python scenarios/perfs/process.py
