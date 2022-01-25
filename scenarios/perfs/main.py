@@ -11,8 +11,8 @@ MAX_CONCURRENT_REQUEST = 5
 TOTAL_REQUEST_COUNT = 10000
 WARMUP_REQUEST_COUNT = 100
 WARMUP_LAST_SLEEP_DURATION = 30
-WEBLOG_URL = "http://weblog:7777"
-LOG_FOLDER = "/app/logs"
+WEBLOG_URL = environ["WEBLOG_URL"] if "WEBLOG_URL" in environ else "http://weblog:7777"
+LOG_FOLDER = environ["LOG_FOLDER"] if "LOG_FOLDER" in environ else "/app/logs"
 TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=bcd", "/waf?a=b&a=c")
 
 # TOTAL_REQUEST_COUNT = 100

@@ -1,9 +1,10 @@
 import json
 from collections import defaultdict
 from statistics import mean, stdev
+from os import environ
 
 
-LOG_FOLDER = "logs"
+LOG_FOLDER = environ["LOG_FOLDER"] if "LOG_FOLDER" in environ else "logs"
 LIBS = ("golang", "dotnet", "java", "nodejs", "php", "ruby")
 
 
