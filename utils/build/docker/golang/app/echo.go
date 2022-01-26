@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 
 	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -27,9 +26,6 @@ func main() {
 	})
 
 	r.Any("/sample_rate_route/:i", func(c echo.Context) error {
-		if span, ok := tracer.SpanFromContext(c.Request().Context()); ok {
-			span.SetTag(ext.SamplingPriority, ext.PriorityUserKeep)
-		}
 		return c.String(http.StatusOK, "OK")
 	})
 

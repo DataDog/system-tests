@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -21,9 +20,6 @@ func main() {
 	})
 
 	mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := tracer.SpanFromContext(r.Context()); ok {
-			span.SetTag(ext.SamplingPriority, ext.PriorityUserKeep)
-		}
 		w.Write([]byte("OK"))
 	})
 
