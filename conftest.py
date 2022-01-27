@@ -23,6 +23,7 @@ _rfcs = {}
 def pytest_sessionstart(session):
 
     logger.debug(f"Library: {context.library}")
+    logger.debug(f"Agent: {context.agent_version}")
     if context.library == "php":
         logger.debug(f"AppSec: {context.php_appsec}")
 
@@ -37,9 +38,7 @@ def pytest_sessionstart(session):
 
 
 def pytest_report_header(config):
-    headers = [
-        f"Library: {context.library}",
-    ]
+    headers = [f"Library: {context.library}", f"Agent: {context.agent_version}"]
 
     if context.library == "php":
         headers.append(f"AppSec: {context.php_appsec}")

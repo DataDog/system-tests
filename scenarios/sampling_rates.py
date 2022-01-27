@@ -99,6 +99,7 @@ class LibrarySamplingRateValidation(BaseValidation):
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
 @released(php="1.0.0")
 @bug(context.library >= "golang@1.35.0")
+@bug(context.agent_version == "7.33.0", reason="Under investigation")
 class Test_SamplingRates(BaseTestCase):
     """Rate at which traces are sampled is the actual sample rate"""
 

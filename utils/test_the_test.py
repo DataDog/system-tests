@@ -144,6 +144,9 @@ class Test_All:
         assert v == Version("1.0.14.1.0.beta1")
         assert v == "1.0.14.1.0.beta1"
 
+        v = Version("Agent 7.33.0 - Commit: e6cfcb9 - Serialization version: v5.0.4 - Go version: go1.16.7", "agent")
+        assert v == "7.33.0"
+
     def test_library_version(self):
         from utils._context.library_version import LibraryVersion
 

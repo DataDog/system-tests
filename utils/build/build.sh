@@ -81,7 +81,17 @@ do
 
     elif [[ $IMAGE_NAME == agent ]]; then
         docker build \
+            --progress=plain \
             -f utils/build/docker/agent.Dockerfile \
+            -t system_tests/agent \
+            $EXTRA_DOCKER_ARGS \
+            .
+
+        SYSTEM_TESTS_AGENT_VERSION=$(docker run system_tests/agent datadog-agent version)
+
+        docker build \
+            --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
+            -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
             -t system_tests/agent \
             .
 
