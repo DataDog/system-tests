@@ -62,6 +62,7 @@ class _DataCollector(threading.Thread):
         return f"{self.__class__.__name__}()"
 
     def run(self):
+        logger.info(f"runner is listening to port 8081")
         self.server = make_server("0.0.0.0", 8081, self.app)
         context = self.app.app_context()
         context.push()
