@@ -33,8 +33,11 @@ class AgentSampledFwdValidation(BaseValidation):
             self.library_sampled[root_span["trace_id"]] = root_span
 
     def check(self, data):
-        for trace in data["request"]["content"]["traces"]:
-            self.agent_forwarded[int(trace["traceID"])] = trace
+        if "traces" not in data["request"]["content"]:
+            self.set_failure("Trace property is missing in agent payload")
+        else:
+            for trace in data["request"]["content"]["traces"]:
+                self.agent_forwarded[int(trace["traceID"])] = trace
 
     def final_check(self):
         with self.library_sampled_lock:
