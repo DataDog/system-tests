@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "/library/telemetry/proxy/api/v2/apmtelemetry-request.json",
   "description": "Instrumentation telemetry schema",
-  "$ref": "#/$defs/Telemtry2",
+  "$ref": "#/$defs/Telemetry",
   "$defs": {
     "ApiVersion": {
       "type": "string",
@@ -32,6 +32,30 @@
         }
       },
       "required": ["integrations", "dependencies"]
+    },
+    "IntegrationsChange": {
+      "type": "object",
+      "properties": {
+        "integrations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Integration"
+          }
+        }
+      },
+      "required": ["integrations"]
+    },
+    "DependenciesLoaded": {
+      "type": "object",
+      "properties": {
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Dependency"
+          }
+        }
+      },
+      "required": ["dependencies"]
     },
     "Application": {
       "type": "object",
@@ -317,7 +341,7 @@
         "host"
       ]
     },
-    "Telemtry2": {
+    "Telemetry": {
       "allOf": [
         { "$ref": "#/$defs/Header" },
         {
@@ -327,6 +351,20 @@
               "properties": {
                 "request_type": { "const": "app-started" },
                 "payload": { "$ref": "#/$defs/AppStarted" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-integrations-change" },
+                "payload": { "$ref": "#/$defs/IntegrationsChange" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-dependencies-loaded" },
+                "payload": { "$ref": "#/$defs/IntegrationsChange" }
               }
             },
             {
@@ -344,47 +382,6 @@
             }
           ]
         }
-      ]
-    },
-    "Telemetry": {
-      "type": "object",
-      "properties": {
-        "api_version": {
-          "$ref": "#/$defs/ApiVersion"
-        },
-        "application": {
-          "$ref": "#/$defs/Application"
-        },
-        "host": {
-          "$ref": "#/$defs/Host"
-        },
-        "payload": {
-          "$ref": "#/$defs/Payload"
-        },
-        "request_type": {
-          "$ref": "#/$defs/RequestType"
-        },
-        "runtime_id": {
-          "type": "string"
-        },
-        "seq_id": {
-          "type": "integer",
-          "format": "uint64"
-        },
-        "tracer_time": {
-          "type": "integer",
-          "format": "uint64"
-        }
-      },
-      "required": [
-        "api_version",
-        "request_type",
-        "tracer_time",
-        "runtime_id",
-        "seq_id",
-        "application",
-        "host",
-        "payload"
       ]
     }
   }
