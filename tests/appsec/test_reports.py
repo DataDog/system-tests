@@ -12,11 +12,9 @@ if context.library == "cpp":
 
 @released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
-    @bug(library="ruby", reason="status is missing")
     def test_basic(self):
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
         assert r.status_code == 404
@@ -121,12 +119,10 @@ class Test_ActorIP(BaseTestCase):
 
 @released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0rc0", php="0.68.2", python="?")
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @flaky(context.library <= "php@0.68.2")
 class Test_Info(BaseTestCase):
     """AppSec correctly reports service and environment values"""
 
-    @bug(library="ruby", reason="name is sinatra io weblog")
     def test_service(self):
         """ Appsec reports the service information """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
