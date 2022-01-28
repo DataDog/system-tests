@@ -1,4 +1,10 @@
 {
-    "$id": "/agent/api/v0.2/traces-request.json",
-    "type": "object"
-  }
+  "$id": "/agent/api/v0.2/traces-request.json",
+  "type": "object",
+  "properties": {
+    "hostName": { "type": "string" },
+    "env": { "type": "string" },
+    "traces": { "type": "array" }
+  },
+  "required": ["env", "hostName", "traces"]
+}
