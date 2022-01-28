@@ -232,6 +232,7 @@ class Test_ClientIP(BaseTestCase):
         """ Appsec WAF supports server.request.client_ip """
         interfaces.library.append_not_implemented_validation()
 
+
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="0.2.0", python="?", ruby="?")
 class Test_PathParams(BaseTestCase):
     """ Appsec supports values on server.request.path_params"""
@@ -240,6 +241,7 @@ class Test_PathParams(BaseTestCase):
         """ Appsec detects file access attempts in path_params"""
         r = self.weblog_get("/waf/.htaccess")
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.path_params")
+
 
 @missing_feature(library="dotnet", reason="server.response.status not yet supported")
 @missing_feature(library="golang", reason="server.response.status not yet supported")

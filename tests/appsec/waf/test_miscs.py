@@ -42,6 +42,7 @@ class Test_MultipleHighlight(BaseTestCase):
             r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
         )
 
+
 @released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
 class Test_MultipleAttacks(BaseTestCase):

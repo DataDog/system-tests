@@ -168,7 +168,6 @@ class _WafAttack(_BaseAppSecValidation):
         self.address = address
         self.key_path = key_path
 
-
     @staticmethod
     def _get_parameters(event):
         result = []
