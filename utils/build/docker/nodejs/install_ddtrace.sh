@@ -4,10 +4,16 @@ set -eu
 
 cd /binaries
 
-if [ $(ls nodejs-load-from-npm | wc -l) = 0 ]; then
+if [ -e "/binaries/dd-trace-js" ]; then
+    echo "Install from local folder /binaries/dd-trace-js"
+    cd /usr/app
+    npm install /binaries/dd-trace-js
+
+elif [ $(ls nodejs-load-from-npm | wc -l) = 0 ]; then
     echo "install from NPM"
     cd /usr/app
     npm install dd-trace
+
 else
     echo "install from $(cat nodejs-load-from-npm)"
     cd /usr/app
