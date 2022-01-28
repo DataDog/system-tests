@@ -87,7 +87,7 @@ do
             $EXTRA_DOCKER_ARGS \
             .
 
-        SYSTEM_TESTS_AGENT_VERSION=$(docker run system_tests/agent datadog-agent version)
+        SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent datadog-agent version)
 
         docker build \
             --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
@@ -118,9 +118,9 @@ do
         # ENV command in a Dockerfile can be the result of a command, it must either an hardcoded value
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
-        SYSTEM_TESTS_LIBRARY_VERSION=$(docker run system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
-        SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
-        SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
+        SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
+        SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
+        SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
 
         docker build \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
