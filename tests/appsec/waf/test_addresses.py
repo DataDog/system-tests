@@ -12,8 +12,7 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", php="?", python="?", ruby="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -29,7 +28,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="?", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -51,7 +50,7 @@ class Test_UrlQuery(BaseTestCase):
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", php="1.0.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="?")
 @flaky(context.library <= "php@0.68.2")
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
@@ -64,7 +63,7 @@ class Test_UrlRaw(BaseTestCase):
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", php="1.0.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="?")
 @flaky(context.library <= "php@0.68.2")
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
@@ -120,8 +119,7 @@ class Test_Headers(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="cookies not yet supported?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
@@ -217,7 +215,6 @@ class Test_BodyXml(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@irrelevant(library="nodejs", reason="not yet rule on method")
 class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 

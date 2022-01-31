@@ -15,7 +15,7 @@ def to_camel_case(input):
 
 sources = {
     "dotnet": "https://raw.githubusercontent.com/DataDog/dd-trace-dotnet/master/tracer/src/Datadog.Trace/AppSec/Waf/rule-set.json",
-    "nodejs": "https://raw.githubusercontent.com/DataDog/dd-trace-js/vdeturckheim/iaw-bindings/packages/dd-trace/src/appsec/recommended.json",
+    "nodejs": "https://raw.githubusercontent.com/DataDog/dd-trace-js/master/packages/dd-trace/src/appsec/recommended.json",
     "ruby": "https://raw.githubusercontent.com/DataDog/dd-trace-rb/appsec/lib/datadog/security/assets/waf_rules.json",
 }
 

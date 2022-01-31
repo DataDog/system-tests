@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @released(golang="?", dotnet="1.29.0", java="0.87.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
     """Appsec loads rules from a static rules file"""
 
