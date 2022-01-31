@@ -233,7 +233,7 @@ class Test_ClientIP(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="0.2.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.2.0", python="?", ruby="?")
 class Test_PathParams(BaseTestCase):
     """ Appsec supports values on server.request.path_params"""
 
