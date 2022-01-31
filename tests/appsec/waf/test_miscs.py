@@ -31,17 +31,16 @@ class Test_404(BaseTestCase):
 
 
 # Not yet specified
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.2.0", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
-        # interfaces.library.assert_waf_attack(
-        #     r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
-        # )
-        interfaces.library.append_not_implemented_validation()
+        interfaces.library.assert_waf_attack(
+            r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
+        )
 
 
 @released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="0.54.2")

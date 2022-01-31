@@ -178,11 +178,10 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
     @missing_feature(library="java")
-    @bug(library="php", reason="WAF provides no highlight and that's what pattern matches against")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
-        interfaces.library.assert_waf_attack(r, pattern="<vmlframe src=", address="server.request.body")
+        interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
@@ -232,6 +231,16 @@ class Test_ClientIP(BaseTestCase):
     def test_client_ip(self):
         """ Appsec WAF supports server.request.client_ip """
         interfaces.library.append_not_implemented_validation()
+
+
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.2.0", python="?", ruby="?")
+class Test_PathParams(BaseTestCase):
+    """ Appsec supports values on server.request.path_params"""
+
+    def test_file_access(self):
+        """ Appsec detects file access attempts in path_params"""
+        r = self.weblog_get("/waf/.htaccess")
+        interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.path_params")
 
 
 @missing_feature(library="dotnet", reason="server.response.status not yet supported")

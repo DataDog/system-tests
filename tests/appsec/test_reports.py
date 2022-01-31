@@ -36,7 +36,7 @@ class Test_StatusCode(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.30.0", nodejs="2.0.0rc0", php="?", python="?")
+@released(dotnet="1.30.0", nodejs="2.0.0rc0", php_appsec="0.2.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_ActorIP(BaseTestCase):
     """ AppSec reports good actor's IP"""
@@ -93,6 +93,7 @@ class Test_ActorIP(BaseTestCase):
     @irrelevant(library="java", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="nodejs", reason="done by the backend until customer request or ip blocking features")
+    @irrelevant(library="php", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
