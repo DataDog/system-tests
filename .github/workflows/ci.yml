@@ -58,10 +58,10 @@ jobs:
             version: prod
 
           - library: nodejs
-            weblog-variant: express-poc
+            weblog-variant: express4
             version: dev
           - library: nodejs
-            weblog-variant: express-poc
+            weblog-variant: express4
             version: prod
 
           - library: php

@@ -42,7 +42,7 @@ Build images used for system tests.
 * For `dotnet`: `poc` (default)
 * For `golang`: `net-http` (default), `gorilla`
 * For `java`: `spring-boot-poc` (default)
-* For `nodejs`: `express-poc` (default)
+* For `nodejs`: `express4` (default)
 * For `php`: `apache-mod` (default)
 * For `python`: `flask-poc` (default), `uwsgi-poc`
 * For `ruby`: `sinatra-poc` (default), `rails`
