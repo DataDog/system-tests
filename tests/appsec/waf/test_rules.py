@@ -343,8 +343,8 @@ class Test_DiscoveryScan(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_007)
 
         # Need a match for rule 8
-        # r = self.weblog_get()
-        # interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_008)
+        r = self.weblog_get("/administrator/components/component.php")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_008)
 
         r = self.weblog_get("/login.pwd")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_009)
