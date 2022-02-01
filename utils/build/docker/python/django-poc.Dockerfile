@@ -13,6 +13,7 @@ RUN python3 manage.py startapp app
 RUN sed -i "1s/^/from django.urls import include\n/" django_app/urls.py
 RUN sed -i "s/admin\///g" django_app/urls.py
 RUN sed -i "s/admin.site.urls/include(\"app.urls\")/g" django_app/urls.py
+RUN sed -i "s/ALLOWED_HOSTS\s=\s\[\]/ALLOWED_HOSTS = \[\"0.0.0.0\",\"weblog\"\]/g" django_app/settings.py
 
 
 COPY utils/build/docker/python/django.app.urls.py /app/urls.py
