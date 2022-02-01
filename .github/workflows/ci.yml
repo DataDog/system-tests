@@ -80,6 +80,9 @@ jobs:
           - library: python
             weblog-variant: uwsgi-poc
             version: prod
+          - library: python
+            weblog-variant: django-poc
+            version: prod
 
           - library: ruby
             weblog-variant: sinatra-poc
