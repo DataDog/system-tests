@@ -68,11 +68,17 @@ jobs:
             weblog-variant: apache-mod
             version: prod
 
+          # - library: python
+          #   weblog-variant: flask-poc
+          #   version: dev
           - library: python
             weblog-variant: flask-poc
             version: prod
+          # - library: python
+          #   weblog-variant: uwsgi-poc
+          #   version: dev
           - library: python
-            weblog-variant: flask-poc
+            weblog-variant: uwsgi-poc
             version: prod
 
           - library: ruby
