@@ -6,7 +6,8 @@ require (
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/labstack/echo/v4 v4.6.3
 	google.golang.org/grpc v1.43.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.36.0-rc.1
+	google.golang.org/protobuf v1.27.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.36.0
 )
 
 require (
@@ -40,5 +41,4 @@ require (
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20220111164026-67b88f271998 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
 )
