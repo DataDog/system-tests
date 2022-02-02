@@ -26,7 +26,7 @@ end\n\
 Datadog::Tracing.trace('init.service') do |span|\n\
 end\n\
 class MyApp < Sinatra::Base\n\
-    register Datadog::Contrib::Sinatra::Tracer\n\
+    register Datadog::Tracing::Contrib::Sinatra::Tracer\n\
     use Rack::PostBodyContentTypeParser\n\
     set :environment, :production\n\
     set :show_exceptions, false\n\
