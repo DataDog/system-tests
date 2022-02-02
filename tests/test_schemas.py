@@ -11,7 +11,7 @@ class Test_Library(BaseTestCase):
     """Libraries's payload are valid regarding schemas"""
 
     @bug(context.library < "java@0.93.0")
-    @bug(library="golang")
+    @bug(context.library < "golang@1.36.1")
     def test_full(self):
         # send some requests to be sure to trigger events
         self.weblog_get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
@@ -44,7 +44,7 @@ class Test_Agent(BaseTestCase):
     """Agents's payload are valid regarding schemas"""
 
     @bug(context.library < "java@0.93.0")
-    @bug(library="golang")
+    @bug(context.library < "golang@1.36.1")
     def test_full(self):
 
         # send some requests to be sure to trigger events

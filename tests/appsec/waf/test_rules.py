@@ -31,15 +31,16 @@ class Test_Scanners(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120)
 
 
-@released(golang="?", php_appsec="0.1.0", python="?")
+@released(golang="1.36.1", php_appsec="0.1.0", python="?")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
     @bug(context.library < "dotnet@2.1.0")
     @bug(library="java", reason="under Valentin's investigations")
+    @missing_feature(library="golang")
     def test_http_protocol(self):
-        """ AppSec catches attacks by violation of HTTP protocol"""
+        """ AppSec catches attacks by violation of HTTP protocol on cookies"""
         r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_943_100)
 
@@ -152,7 +153,7 @@ class Test_PhpCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_200)
 
     @bug(library="dotnet", reason="APPSEC-2290")
-    @bug(library="golang")
+    @bug(context.library < "golang@1.36.1")
     def test_php_code_injection_bug(self):
         """ Appsec WAF detects other php injection rules """
         r = self.weblog_get("/waf/", cookies={"x-attack": " var_dump ()"})
@@ -179,7 +180,7 @@ class Test_JsInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.js_code_injection.sqr_000_002)
 
 
-@released(golang="?", java="0.87.0", php_appsec="0.1.0", python="?")
+@released(golang="1.36.1", java="0.87.0", php_appsec="0.1.0", python="?")
 @missing_feature(library="nodejs", reason="query string not yet supported")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
@@ -219,7 +220,7 @@ class Test_XSS(BaseTestCase):
 
     @bug(library="ruby", reason="need to be investiged")
     def test_xss1(self):
-        """AppSec catches XSS attacks"""
+        """AppSec catches XSS attacks on weird pattern"""
         r = self.weblog_get("/waf/", cookies={"key": "+ADw->|<+AD$-"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
@@ -231,7 +232,7 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="?", php="1.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.36.1", php="1.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_SQLI(BaseTestCase):
@@ -245,8 +246,6 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "sleep()"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
 
-    def test_sqli1(self):
-        """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_220)
 
@@ -260,6 +259,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "merge using("})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_250)
 
+    @missing_feature(library="golang")
     @bug(context.library < "dotnet@2.1.0")
     @bug(library="java", reason="under Valentin's investigations")
     def test_sqli3(self):

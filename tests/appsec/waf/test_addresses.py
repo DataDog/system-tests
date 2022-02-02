@@ -148,7 +148,7 @@ class Test_Cookies(BaseTestCase):
 
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.92.0")
-    @bug(library="golang")
+    @bug(context.library < "golang@1.36.1")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
