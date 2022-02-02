@@ -4,6 +4,7 @@
 
 from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, flaky
 import pytest
+import google.protobuf.struct_pb2 as pb
 
 
 if context.library == "cpp":
@@ -82,15 +83,43 @@ class Test_ActorIP(BaseTestCase):
             },
         )
 
-        interfaces.library.add_appsec_reported_header(r, "x-forwarded-for")
-        interfaces.library.add_appsec_reported_header(r, "x-client-ip")
-        interfaces.library.add_appsec_reported_header(r, "x-real-ip")
-        interfaces.library.add_appsec_reported_header(r, "x-forwarded")
-        interfaces.library.add_appsec_reported_header(r, "x-cluster-client-ip")
-        interfaces.library.add_appsec_reported_header(r, "forwarded-for")
-        interfaces.library.add_appsec_reported_header(r, "forwarded")
-        interfaces.library.add_appsec_reported_header(r, "via")
-        interfaces.library.add_appsec_reported_header(r, "true-client-ip")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="x-forwarded-for")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="x-client-ip")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="x-real-ip")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="x-forwarded")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="x-cluster-client-ip")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="forwarded-for")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="forwarded")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="via")
+        interfaces.library.add_appsec_reported_header(r=r, header_name="true-client-ip")
+
+    @irrelevant(context.weblog_variant != "grpc")
+    def test_grpc_request_headers(self):
+        """ AppSec reports the gRPC headers used for actor IP detection."""
+        rid = self.weblog_grpc_unary(
+            pb.Value(string_value="SELECT * FROM users WHERE id=3 UNION SELECT creditcard FROM users"),
+            metadata=[
+                ["x-forwarded-for", "42.42.42.42, 43.43.43.43"],
+                ["x-client-ip", "42.42.42.42, 43.43.43.43"],
+                ["x-real-ip", "42.42.42.42, 43.43.43.43"],
+                ["x-forwarded", "42.42.42.42, 43.43.43.43"],
+                ["x-cluster-client-ip", "42.42.42.42, 43.43.43.43"],
+                ["forwarded-for", "42.42.42.42, 43.43.43.43"],
+                ["forwarded", "42.42.42.42, 43.43.43.43"],
+                ["via", "42.42.42.42, 43.43.43.43"],
+                ["true-client-ip", "42.42.42.42, 43.43.43.43"],
+            ]
+        )
+
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="x-forwarded-for")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="x-client-ip")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="x-real-ip")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="x-forwarded")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="x-cluster-client-ip")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="forwarded-for")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="forwarded")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="via")
+        interfaces.library.add_appsec_reported_header(rid=rid, header_name="true-client-ip")
 
     @irrelevant(library="java", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")

@@ -95,8 +95,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
             _AppSecValidation(request=request, validator=validator, legacy_validator=legacy_validator)
         )
 
-    def add_appsec_reported_header(self, request, header_name):
-        self.append_validation(_ReportedHeader(request, header_name))
+    def add_appsec_reported_header(self, request=None, header_name=None, rid=None):
+        self.append_validation(_ReportedHeader(request=request, rid=rid, header_name=header_name))
 
 
 class _TraceIdUniquenessExceptions:

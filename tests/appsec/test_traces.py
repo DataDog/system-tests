@@ -60,7 +60,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         """AppSec should store in all APM spans some tags when enabled."""
 
         def validate_custom_span_tags(span):
-            if span.get("type") != "web":
+            if span.get("type") not in ["web", "rpc"]:
                 return
 
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
@@ -90,7 +90,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         """ Appsec tags are not on span where type is not web """
 
         def validator(span):
-            if span.get("type") == "web":
+            if span.get("type") in ["web", "rpc"]:
                 return
 
             if "_dd.appsec.enabled" in span["metrics"]:

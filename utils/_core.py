@@ -26,11 +26,24 @@ class BaseTestCase(unittest.TestCase):
     def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
         return self._weblog_request("POST", path, params=params, data=data, headers=headers, **kwargs)
 
-    def weblog_grpc_unary(self, request):
+    def weblog_grpc_unary(self, request, metadata=None):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
-        response = self._grpc_client.Unary(request,
-                                           metadata=[["user-agent", f"system_tests rid/{rid}"]])
+        if metadata is None:
+            metadata = []
+        metadata.append(["user-agent", f"system_tests rid/{rid}"])
         logger.debug(f"Sending grpc request {rid}")
+        response = self._grpc_client.Unary(request,
+                                           metadata=metadata)
+        return rid
+
+    def weblog_grpc_client_streaming(self, requests_iterator, metadata=None):
+        rid = "".join(random.choices(string.ascii_uppercase, k=36))
+        if metadata is None:
+            metadata = []
+        metadata.append(["user-agent", f"system_tests rid/{rid}"])
+        logger.debug(f"Sending grpc request {rid}")
+        response = self._grpc_client.ClientStream(requests_iterator,
+                                                  metadata=metadata)
         return rid
 
     def _weblog_request(self, method, path="/", params=None, data=None, headers=None, stream=None, **kwargs):

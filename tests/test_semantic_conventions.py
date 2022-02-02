@@ -106,6 +106,23 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
+    @irrelevant(context.weblog_variant != "grpc")
+    def test_meta_http_status_code(self):
+        """Validates that grpc traces a grpc.status meta tag"""
+
+        def validator(span):
+            if span.get("parent_id") not in (0, None):  # do nothing if not root span
+                return
+
+            if span.get("type") != "rpc":  # do nothing if is not web related
+                return
+
+            if "grpc.code" not in span["meta"]:
+                raise Exception("web span expect an http.status_code meta tag")
+
+            return True
+
+        interfaces.library.add_span_validation(validator=validator)
 
 @bug(
     context.library in ("cpp", "python", "ruby"),

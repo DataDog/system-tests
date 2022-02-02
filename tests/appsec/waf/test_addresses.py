@@ -237,11 +237,65 @@ class Test_ClientIP(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@missing_feature(library="dotnet", reason="server.response.status not yet supported")
+@missing_feature(library="php", reason="???")
+@missing_feature(library="python", reason="server.response.status not yet supported")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@released(nodejs="2.0.0")
+@released(golang="1.36.0")
+class Test_ResponseStatus(BaseTestCase):
+    """Appsec supports values on server.response.status"""
+
+    def test_basic(self):
+        """ AppSec catches attacks in URL query value"""
+        r = self.weblog_get("/mysql")
+        interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
+
+
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params")
+class Test_PathParams(BaseTestCase):
+    """Appsec supports values on server.request.path_params"""
+
+    def test_security_scanner(self):
+        """ AppSec catches attacks in URL query value"""
+        r = self.weblog_get("/params/appscan_fingerprint")
+        interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
+
+
+@released(dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="1.36.0")
+@irrelevant(context.weblog_variant != "grpc", reason="not grpc")
 class Test_gRPC(BaseTestCase):
     """Appsec supports gRPC"""
 
     def test_request_message_unary_sqli(self):
         """AppSec detects a SQLi attack in the message address"""
         rid = self.weblog_grpc_unary(pb.Value(string_value="SELECT * FROM users WHERE id=3 UNION SELECT creditcard FROM users"))
+        interfaces.library.assert_waf_attack(rid=rid, address="grpc.server.request.message")
+
+    def test_request_message_client_streaming_sqli(self):
+        """AppSec detects a SQLi attack in the message address"""
+        def generate_requests():
+            messages = [
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="SELECT * FROM users WHERE id=3 UNION SELECT creditcard FROM users"),
+                pb.Value(string_value="SELECT * FROM users WHERE id=3 UNION SELECT creditcard FROM users"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="SELECT * FROM users WHERE id=3 UNION SELECT creditcard FROM users"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="not an attack"),
+                pb.Value(string_value="SELECT * FROM users WHERE id=3 UNION SELECT creditcard FROM users"),
+            ]
+            for msg in messages:
+                print("Sending %s" % msg)
+                yield msg
+
+        rid = self.weblog_grpc_client_streaming(generate_requests())
         interfaces.library.assert_waf_attack(rid=rid, address="grpc.server.request.message")

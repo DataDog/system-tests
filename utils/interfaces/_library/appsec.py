@@ -273,8 +273,8 @@ class _WafAttack(_BaseAppSecValidation):
 
 
 class _ReportedHeader(_BaseAppSecValidation):
-    def __init__(self, request, header_name):
-        super().__init__(request)
+    def __init__(self, request=None, header_name=None, rid=None):
+        super().__init__(request=request, rid=rid)
         self.header_name = header_name.lower()
 
     def validate_legacy(self, event):
@@ -284,7 +284,13 @@ class _ReportedHeader(_BaseAppSecValidation):
         return True
 
     def validate(self, span, appsec_data):
-        headers = [n.lower() for n in span["meta"].keys() if n.startswith("http.request.headers.")]
-        assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
+        if span.get("type") == "web":
+            prefix = "http.request.headers."
+        elif span.get("type") == "rpc":
+            prefix = "grpc.metadata."
+        else:
+            return True
 
-        return True
+        self.log_debug(f"looking for headers prefixed by {prefix}")
+        headers = [n.lower() for n in span["meta"].keys() if n.startswith(prefix)]
+        assert f"{prefix}{self.header_name}" in headers, f"header {self.header_name} not reported"
