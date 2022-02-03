@@ -8,6 +8,7 @@ from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
 from utils.interfaces._library.miscs import _TraceIdUniqueness, _ReceiveRequestRootTrace, _SpanValidation
 from utils.interfaces._library.sampling import (
@@ -99,6 +100,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
+
+    def add_profiling_validation(self, validator):
+        self.append_validation(_ProfilingValidation("/profiling/v1/input", validator))
+
+    def profiling_assert_field(self, field_name, content_pattern=None):
+        self.append_validation(_ProfilingFieldAssertion("/profiling/v1/input", field_name, content_pattern))
 
 
 class _TraceIdUniquenessExceptions:

@@ -10,6 +10,7 @@ import threading
 
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
+from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -35,6 +36,12 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def assert_metric_existence(self, metric_name):
         self.append_validation(_MetricExistence(metric_name))
+
+    def add_profiling_validation(self, validator):
+        self.append_validation(_ProfilingValidation("/api/v2/profile", validator))
+
+    def profiling_assert_field(self, field_name, content_pattern=None):
+        self.append_validation(_ProfilingFieldAssertion("/api/v2/profile", field_name, content_pattern))
 
 
 class _UseDomain(BaseValidation):

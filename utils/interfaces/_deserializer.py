@@ -70,7 +70,7 @@ def deserialize_http_message(path, message, data, interface, key):
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
             item = {"headers": headers}
             try:
-                item["text"] = part.text
+                item["content"] = part.text
             except UnicodeDecodeError:
                 item["content"] = part.content
 
