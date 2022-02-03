@@ -1,4 +1,4 @@
-FROM arm32v7/node:14
+FROM node:14
 
 RUN uname -r
 

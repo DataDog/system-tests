@@ -27,8 +27,8 @@ TODO
 
 ## NodeJS library
 
-* Create an file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
-    * `DataDog/dd-trace-js#master`
+1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
+  * `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
 
 ## PHP library

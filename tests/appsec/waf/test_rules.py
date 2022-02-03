@@ -14,8 +14,7 @@ if context.library == "cpp":
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_Scanners(BaseTestCase):
     """ Appsec WAF tests on scanners rules """
 
@@ -31,8 +30,7 @@ class Test_Scanners(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120)
 
 
-@released(golang="?", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(golang="?", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
@@ -83,8 +81,7 @@ class Test_LFI(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_RFI(BaseTestCase):
     """ Appsec WAF tests on RFI rules """
 
@@ -98,8 +95,7 @@ class Test_RFI(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="cookies not yet supported")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
@@ -126,8 +122,7 @@ class Test_CommandInjection(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="cookies not yet supported")
+@released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_PhpCodeInjection(BaseTestCase):
     """ Appsec WAF tests on PHP injection rules """
 
@@ -163,8 +158,7 @@ class Test_PhpCodeInjection(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_JsInjection(BaseTestCase):
     """ Appsec WAF tests on Js Injection rules """
 
@@ -179,8 +173,7 @@ class Test_JsInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.js_code_injection.sqr_000_002)
 
 
-@released(golang="?", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(golang="?", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
 
@@ -231,9 +224,8 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="?", php="1.0.0", php_appsec="0.1.0", python="?")
+@released(golang="?", nodejs="2.0.0", php="1.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(library="nodejs", reason="cookies not yet supported")
 class Test_SQLI(BaseTestCase):
     """ Appsec WAF tests on SQLI rules """
 
@@ -269,8 +261,7 @@ class Test_SQLI(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="cookies not yet supported")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
@@ -285,8 +276,7 @@ class Test_NoSqli(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_JavaCodeInjection(BaseTestCase):
     """ Appsec WAF tests on Java code injection rules """
 
@@ -303,8 +293,7 @@ class Test_JavaCodeInjection(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="?")
-@missing_feature(library="nodejs", reason="query string not yet supported")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_SSRF(BaseTestCase):
     """ Appsec WAF tests on SSRF rules """
 
