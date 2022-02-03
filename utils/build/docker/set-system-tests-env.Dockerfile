@@ -2,6 +2,7 @@ FROM system_tests/weblog
 
 # Datadog conf for all weblogs
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV DD_PROFILING_ENABLED=true
 
 ARG SYSTEM_TESTS_LIBRARY
 ENV SYSTEM_TESTS_LIBRARY=$SYSTEM_TESTS_LIBRARY

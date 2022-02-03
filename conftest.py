@@ -152,6 +152,9 @@ def pytest_runtestloop(session):
     else:
         timeout = 40
 
+    # temp value for profiling testing. DO NOT MERGE ON MAIN
+    timeout = 80
+
     terminal.write_line("")
     terminal.write_sep("-", f"Wait for async validations")
 
@@ -316,7 +319,7 @@ def _print_async_failure_report(terminalreporter, failed, passed):
         for filename, functions in files.items():
             for function, fails in functions.items():
                 filename, klass, function = fails[0].get_test_source_info()
-                terminalreporter.line(f"FAILED {filename}::{klass}::{function} - {len(fails)} fails")
+                terminalreporter.line(f"FAILED {filename}::{klass}::{function} - {len(fails)} fails", red=True)
 
         for validation in xpassed_methods:
             filename, klass, function = validation.get_test_source_info()

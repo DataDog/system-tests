@@ -34,8 +34,6 @@ class _ProfilingValidation(BaseValidation):
 
 
 class _ProfilingFieldAssertion(BaseValidation):
-    is_success_on_expiry = True
-
     def __init__(self, path_filters, field_name, content_pattern):
         super().__init__(path_filters=path_filters)
         self.field_name = field_name
@@ -53,6 +51,7 @@ class _ProfilingFieldAssertion(BaseValidation):
                         return
 
                 self.log_debug(f"{self} is ok on {data['log_filename']}")
+                self.is_success_on_expiry = True
                 return
 
         self.set_failure(f"{self} is not validated on {data['log_filename']}")
