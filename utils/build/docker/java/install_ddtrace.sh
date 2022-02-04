@@ -2,30 +2,24 @@
 
 set -eu
 
-get_latest_release() {
-    curl --silent "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
-}
-
 mkdir /dd-tracer
 
-cd /binaries
-
-if [ $(ls dd-java-agent-*.jar | wc -l) = 0 ]; then
-    echo "install from Github release"
-
-    TRACER_VERSION=$(get_latest_release DataDog/dd-trace-java)
-    BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/download/v${TRACER_VERSION}/dd-java-agent-$TRACER_VERSION.jar"
-    echo "Get $BUILD_URL"
+if [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 0 ]; then
+    BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"
+    echo "install from Github release: $BUILD_URL"
     curl  -Lf -o /dd-tracer/dd-java-agent.jar $BUILD_URL
-    echo $TRACER_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
+
+elif [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 1 ]; then
+    echo "Install local file $(ls /binaries/dd-java-agent*.jar)"
+    cp $(ls /binaries/dd-java-agent*.jar) /dd-tracer/dd-java-agent.jar
 
 else
-    echo "install local file"
-    ls dd-java-agent-*.jar | sed 's/[^0-9]*//' | sed -E 's/(-SNAPSHOT)?.jar//' > SYSTEM_TESTS_LIBRARY_VERSION
-
-    cp $(ls dd-java-agent-*.jar) /dd-tracer/dd-java-agent.jar
+    echo "Too many jar files in binaries"
+    exit 1
 fi
 
-echo "Installed $(cat SYSTEM_TESTS_LIBRARY_VERSION) java library"
+java -jar /dd-tracer/dd-java-agent.jar > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
-touch SYSTEM_TESTS_LIBDDWAF_VERSION
+echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
+
+touch /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION

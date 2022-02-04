@@ -1,3 +1,4 @@
+import sys
 import pytest
 import logging
 from utils import interfaces, bug, context
@@ -189,8 +190,17 @@ class Test_All:
         assert ("u@1.0" <= v) is False
 
         v = LibraryVersion("python", "0.53.0.dev70+g494e6dc0")
-
         assert v == "python@0.53.0.dev70+g494e6dc0"
+
+        v = LibraryVersion("java", "0.94.1~dde6877139")
+        assert v == "java@0.94.1"
+        assert v >= "java@0.94.1"
+        assert v < "java@0.94.2"
+
+        v = LibraryVersion("java", "0.94.0-SNAPSHOT~57664cfbe5")
+        assert v == "java@0.94.0"
+        assert v >= "java@0.94.0"
+        assert v < "java@0.94.1"
 
     def test_stdout_reader(self):
         """ Test stdout reader """
@@ -253,3 +263,7 @@ class Test_Failing:
     def test_failing(self):
         """Failing test"""
         interfaces.library_stdout.assert_presence("nope i do not exists")
+
+
+if __name__ == "__main__":
+    sys.exit("Usage: pytest utils/test_the_test.py")
