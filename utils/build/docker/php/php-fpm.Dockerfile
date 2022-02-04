@@ -22,7 +22,7 @@ RUN echo '<?php echo "Hello, WAF!";' > /var/www/html/waf.php
 RUN echo '<?php http_response_code(404);' > /var/www/html/404.php
 RUN a2enmod rewrite
 
-ADD utils/build/docker/php/fpm/php8.0-fpm.conf /etc/apache2/conf-available/
+ADD utils/build/docker/php/php-fpm/php8.0-fpm.conf /etc/apache2/conf-available/
 ADD utils/build/docker/php/common/php.ini /etc/php/8.0/fpm/php.ini
 
 RUN a2enconf php8.0-fpm
@@ -50,7 +50,7 @@ ADD binaries* /binaries/
 ADD utils/build/docker/php/common/install_ddtrace.sh /
 RUN /install_ddtrace.sh
 
-ADD utils/build/docker/php/fpm/entrypoint.sh /
+ADD utils/build/docker/php/php-fpm/entrypoint.sh /
 
 WORKDIR /binaries
 ENTRYPOINT ["dumb-init", "/entrypoint.sh"]
