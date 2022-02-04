@@ -24,7 +24,7 @@ ADD utils/build/docker/php/.htaccess /var/www/html/
 RUN a2enmod rewrite
 
 ADD utils/build/docker/php/fpm/php8.0-fpm.conf /etc/apache2/conf-available/
-ADD utils/build/docker/php/fpm/php.ini /etc/php/8.0/fpm/php.ini
+ADD utils/build/docker/php/common/php.ini /etc/php/8.0/fpm/php.ini
 
 RUN a2enconf php8.0-fpm
 RUN a2enmod proxy
@@ -52,7 +52,6 @@ ADD utils/build/docker/php/common/install_ddtrace.sh /
 RUN /install_ddtrace.sh
 
 ADD utils/build/docker/php/fpm/entrypoint.sh /
-ADD utils/build/docker/php/common/php.ini /etc/php/8.0/fpm/php.ini
 
 WORKDIR /binaries
 ENTRYPOINT ["dumb-init", "/entrypoint.sh"]
