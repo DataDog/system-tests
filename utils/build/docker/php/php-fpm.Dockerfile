@@ -20,7 +20,6 @@ RUN echo '<?php phpinfo();' > /var/www/html/index.php
 RUN echo '<?php echo "OK";' > /var/www/html/sample_rate_route.php
 RUN echo '<?php echo "Hello, WAF!";' > /var/www/html/waf.php
 RUN echo '<?php http_response_code(404);' > /var/www/html/404.php
-ADD utils/build/docker/php/.htaccess /var/www/html/
 RUN a2enmod rewrite
 
 ADD utils/build/docker/php/fpm/php8.0-fpm.conf /etc/apache2/conf-available/
