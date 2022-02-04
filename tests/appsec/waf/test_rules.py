@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Exhaustive tests on WAF default rule set"""
-
+import sys
 from utils import context, BaseTestCase, interfaces, released, bug, missing_feature, irrelevant, flaky
 from .utils import rules
 import pytest
@@ -327,14 +327,14 @@ class Test_DiscoveryScan(BaseTestCase):
         r = self.weblog_get("/readme.md")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_002)
 
-        r = self.weblog_get("/web-inf/web.xml")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_003)
-
         r = self.weblog_get("/src/main.rb")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_004)
 
         r = self.weblog_get("/access.log")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_005)
+
+        r = self.weblog_get("/web-inf/web.xml")
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_003)
 
         r = self.weblog_get("/mykey.pem")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_006)
