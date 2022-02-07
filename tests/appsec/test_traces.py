@@ -96,12 +96,12 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         def validate_request_headers(span):
             for h in ["user-agent", "host", "content-type"]:
-                assertHeaderInSpanMeta(span, "http.request.headers.{header}".format(header=h))
+                assertHeaderInSpanMeta(span, f"http.request.headers.{h}")
             return True
 
         def validate_response_headers(span):
             for h in ["content-type", "content-length", "content-language"]:
-                assertHeaderInSpanMeta(span, "http.response.headers.{header}".format(header=h))
+                assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
             return True
 
         r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
