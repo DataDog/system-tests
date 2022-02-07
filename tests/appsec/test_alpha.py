@@ -28,6 +28,10 @@ class TestLFIAttempt(BaseTestCase):
         context.library == "php" and context.weblog_variant == "apache-mod",
         reason="apache resolves .. before passing it to mod_rewrite",
     )
+    @irrelevant(
+        context.library == "php" and context.weblog_variant == "php-fpm",
+        reason="apache resolves .. before passing it to mod_rewrite",
+    )
     def test_uri(self):
         """
         Via server.request.uri.raw

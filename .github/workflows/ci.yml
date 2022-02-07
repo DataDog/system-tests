@@ -67,6 +67,9 @@ jobs:
           - library: php
             weblog-variant: apache-mod
             version: prod
+          - library: php
+            weblog-variant: php-fpm
+            version: prod
 
           - library: python
             weblog-variant: flask-poc
