@@ -262,6 +262,7 @@ class Test_SQLI(BaseTestCase):
 
     @bug(context.library < "dotnet@2.1.0")
     @bug(library="java", reason="under Valentin's investigations")
+    @missing_feature(library="golang", reason="cookies are not url-decoded and this attack works with a ;")
     def test_sqli3(self):
         """Other SQLI patterns, to be merged once issue are corrected"""
         r = self.weblog_get("/waf/", cookies={"value": "%3Bshutdown--"})
