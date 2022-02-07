@@ -15,6 +15,10 @@ func main() {
 
 	mux := chi.NewRouter().With(chitrace.Middleware())
 
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello, world!\n"))
+	})
+
 	mux.HandleFunc("/waf/*", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello, WAF!\n"))
 	})
