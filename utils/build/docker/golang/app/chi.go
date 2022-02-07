@@ -15,10 +15,6 @@ func main() {
 
 	mux := chi.NewRouter().With(chitrace.Middleware())
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, world!\n"))
-	})
-
 	mux.HandleFunc("/waf/*", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello, WAF!\n"))
 	})
@@ -27,12 +23,16 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	mux.HandleFunc("/params/:i", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/params/{myParam}", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
+	})
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
 	})
 
 	initDatadog()
