@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 """Exhaustive tests on WAF default rule set"""
-import sys
 from utils import context, BaseTestCase, interfaces, released, bug, missing_feature, irrelevant, flaky
 from .utils import rules
 import pytest
