@@ -26,11 +26,3 @@ class Test_Basic(BaseTestCase):
         """ All profiling agent payload have recording-start and recording-end fields"""
         interfaces.agent.profiling_assert_field("recording-start", content_pattern=TIMESTAMP_PATTERN)
         interfaces.agent.profiling_assert_field("recording-end", content_pattern=TIMESTAMP_PATTERN)
-
-    def test_failure_example_1(self):
-        """ not-a-field is really present? """
-        interfaces.library.profiling_assert_field("not-a-field")
-
-    def test_failure_example_2(self):
-        """ recording-start field has a strange pattern? """
-        interfaces.agent.profiling_assert_field("recording-start", content_pattern="not-a-pattern-timestamp")
