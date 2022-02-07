@@ -150,9 +150,9 @@ elif [ "$TARGET" = "dotnet" ]; then
     curl -L --silent $URL --output $ARCHIVE
 
 elif [ "$TARGET" = "python" ]; then
-    rm -rf *.whl
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" "master" "schedule" 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl'
-    
+    # rm -rf *.whl
+    # get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" "master" "schedule" 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl'
+    echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@master" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
     # echo 'ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"' > ruby-load-from-bundle-add
