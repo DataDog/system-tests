@@ -27,6 +27,14 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/headers/", func(w http.ResponseWriter, r *http.Request) {
+		//Data used for header content is irrelevant here, only header presence is checked
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Length", "42")
+		w.Header().Set("Content-Language", "en-US")
+		w.Write([]byte("Hello, headers!"))
+	})
+
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
