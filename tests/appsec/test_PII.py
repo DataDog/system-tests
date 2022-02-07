@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_Scrubbing(BaseTestCase):
     """Appsec scrubs all sensitive data"""
 

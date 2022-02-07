@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @released(golang="?", dotnet="1.29.0", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="0.57.3", ruby="?")
 class Test_StaticRuleSet(BaseTestCase):
     """Appsec loads rules from a static rules file"""
 
@@ -24,7 +24,7 @@ class Test_StaticRuleSet(BaseTestCase):
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <.*>$", level="INFO")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_FleetManagement(BaseTestCase):
     """ApppSec supports Fleet management"""
 

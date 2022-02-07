@@ -13,7 +13,7 @@ if context.library == "cpp":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(golang="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="?", nodejs="?", php_appsec="0.1.0", python="0.57.3", ruby="?")
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
 
@@ -91,7 +91,7 @@ class Test_Standardization(BaseTestCase):
         stdout.assert_presence(r"Detecting an attack from rule crs-913-110$", level="INFO")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_StandardizationBlockMode(BaseTestCase):
     """AppSec blocking logs should be standardized"""
 

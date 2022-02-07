@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -28,7 +28,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="0.57.3", ruby="0.54.2")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -50,7 +50,7 @@ class Test_UrlQuery(BaseTestCase):
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="0.57.3")
 @flaky(context.library <= "php@0.68.2")
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
@@ -63,7 +63,7 @@ class Test_UrlRaw(BaseTestCase):
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="0.57.3")
 @flaky(context.library <= "php@0.68.2")
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
@@ -119,7 +119,7 @@ class Test_Headers(BaseTestCase):
 
 
 @released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="0.57.3")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
@@ -153,7 +153,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="0.57.3", ruby="?")
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
 
@@ -164,7 +164,7 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="0.57.3", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -182,7 +182,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -196,7 +196,7 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
@@ -213,7 +213,7 @@ class Test_BodyXml(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 
@@ -221,7 +221,7 @@ class Test_Method(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="0.57.3", ruby="?")
 class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""
 
@@ -230,7 +230,7 @@ class Test_ClientIP(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.0", python="0.57.3", ruby="?")
 class Test_PathParams(BaseTestCase):
     """ Appsec supports values on server.request.path_params"""
 
