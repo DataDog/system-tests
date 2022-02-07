@@ -13,10 +13,9 @@ if context.library == "cpp":
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@released(dotnet="1.29.0", java="0.92.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 @released(golang="v1.34.0")
-@missing_feature(context.weblog_variant == "echo" and context.library < "golang@v1.35.0")
+@released(dotnet="1.29.0", java="0.92.0")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 

@@ -5,9 +5,9 @@
 from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant, missing_feature
 
 
-@released(java="0.90.0", nodejs="2.0.0rc0", python="?", ruby="0.54.2")
-@irrelevant(context.library >= "golang@1.35.0", reason="appsec span tags")
+@released(java="0.90.0", nodejs="2.0.0", python="?", ruby="0.54.2")
 @irrelevant(library="cpp")
+@irrelevant(context.library >= "golang@1.35.0", reason="appsec span tags")
 class Test_Events(BaseTestCase):
     """AppSec events uses version 1.0 (legacy appsec events on dedicated entry point)"""
 

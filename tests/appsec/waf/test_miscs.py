@@ -11,8 +11,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
 @released(golang="1.34.0")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
@@ -31,7 +31,7 @@ class Test_404(BaseTestCase):
 
 
 # Not yet specified
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.2.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec WAF misc tests """
 
@@ -43,12 +43,11 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 @released(golang="1.35.0")
+@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
-    @missing_feature(library="nodejs", reason="query string not yet supported")
     def test_basic(self):
         """Basic test with more than one attack"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})

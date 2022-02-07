@@ -34,7 +34,7 @@ BUILD_IMAGES=${BUILD_IMAGES:-weblog,runner,agent}
 TEST_LIBRARY=${TEST_LIBRARY:-nodejs}
 
 if [ "$TEST_LIBRARY" = "nodejs" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-express-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-express4}
 
 elif [ "$TEST_LIBRARY" = "python" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-flask-poc}

@@ -64,28 +64,34 @@ jobs:
             version: prod
 
           - library: nodejs
-            weblog-variant: express-poc
+            weblog-variant: express4
             version: dev
           - library: nodejs
-            weblog-variant: express-poc
+            weblog-variant: express4
             version: prod
 
           - library: php
             weblog-variant: apache-mod
             version: prod
+          - library: php
+            weblog-variant: php-fpm
+            version: prod
 
-          # - library: python
-          #   weblog-variant: flask-poc
-          #   version: dev
+          - library: python
+            weblog-variant: flask-poc
+            version: dev
           - library: python
             weblog-variant: flask-poc
             version: prod
-          # - library: python
-          #   weblog-variant: uwsgi-poc
-          #   version: dev
+          - library: python
+            weblog-variant: uwsgi-poc
+            version: dev
           - library: python
             weblog-variant: uwsgi-poc
             version: prod
+          - library: python
+            weblog-variant: django-poc
+            version: dev
           - library: python
             weblog-variant: django-poc
             version: prod

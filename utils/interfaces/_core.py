@@ -156,8 +156,8 @@ class InterfaceValidator(object):
                 self._data_list.append(data)
 
                 for i, validation in enumerate(self._validations):
-                    logger.debug(f"Send [{data['host']}{data['path']}] data to #{i}: {validation}")
                     if not validation.closed:
+                        logger.debug(f"Send [{data['host']}{data['path']}] data to #{i}: {validation}")
                         validation._check(data)
 
                 self._check_closed_status()
@@ -192,10 +192,13 @@ class BaseValidation(object):
     is_success_on_expiry = False  # if validation is still pending at end of procees, is it a success?
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
 
-    def __init__(self, message=None, request=None):
+    def __init__(self, message=None, request=None, path_filters=None):
         self.message = message
         self._closed = threading.Event()
         self._is_success = None
+
+        if path_filters is not None:
+            self.path_filters = path_filters
 
         if isinstance(self.path_filters, str):
             self.path_filters = [self.path_filters]

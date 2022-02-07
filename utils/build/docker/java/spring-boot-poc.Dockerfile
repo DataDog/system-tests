@@ -1,11 +1,12 @@
 FROM maven:3.3-jdk-8 as build
 
 WORKDIR /app
-COPY ./utils/build/docker/java/spring-boot-poc/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh 
+RUN /binaries/install_ddtrace.sh
+
+COPY ./utils/build/docker/java/spring-boot-poc/pom.xml .
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot-poc/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
