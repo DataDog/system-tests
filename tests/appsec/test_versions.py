@@ -5,7 +5,7 @@
 from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant, missing_feature
 
 
-@released(java="0.90.0", nodejs="2.0.0rc0", python="?", ruby="?")
+@released(java="0.90.0", nodejs="2.0.0rc0", python="?", ruby="0.54.2")
 @irrelevant(context.library >= "golang@1.35.0", reason="appsec span tags")
 @irrelevant(library="cpp")
 class Test_Events(BaseTestCase):

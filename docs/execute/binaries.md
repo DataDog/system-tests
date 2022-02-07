@@ -29,6 +29,7 @@ TODO
 
 * Create an file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
     * `DataDog/dd-trace-js#master`
+2. Clone the dd-trace-js repo inside `binaries`
 
 ## PHP library
 
@@ -39,6 +40,7 @@ TODO
 1. Add a file `binaries/python-load-from-pip`, the content will be installed by pip. Content example:
   * `ddtrace[appsec-beta] @ git+https://github.com/DataDog/dd-trace-py.git@appsec`
 2. Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
+3. Clone the dd-trace-py repo inside `binaries`
 
 ## Ruby library
 

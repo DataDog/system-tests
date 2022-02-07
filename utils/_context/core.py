@@ -73,6 +73,13 @@ class _Context:
         else:
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
+        agent_version = self.agent_image.env.get("SYSTEM_TESTS_AGENT_VERSION")
+
+        if not agent_version:
+            self.agent_version = None
+        else:
+            self.agent_version = Version(agent_version, "agent")
+
     def get_weblog_container_id(self):
         cgroup_file = "logs/weblog.cgroup"
 

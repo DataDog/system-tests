@@ -48,10 +48,10 @@ class Forwarder(object):
         self.forward_port = os.environ["FORWARD_TO_PORT"]
         self.interface_name = os.environ["INTERFACE_NAME"]
 
-        logger.info("Forward flows to {}:{}".format(self.forward_ip, self.forward_port))
+        logger.info(f"Forward flows to {self.forward_ip}:{self.forward_port}")
 
     def response(self, flow):
-        logger.info(f"{flow.request.host}:{flow.request.port}{flow.request.path} {flow.response.status_code}")
+        logger.info(f"Received {flow.request.host}:{flow.request.port}{flow.request.path} {flow.response.status_code}")
 
         request_content = str(flow.request.content)
         response_content = str(flow.response.content)
@@ -95,7 +95,7 @@ class Forwarder(object):
                 headers={"Content-type": "application/json"},
             )
         except socket.gaierror:
-            logger.error("Can't resolve to forward to Host", self.forward_ip, self.forward_port)
+            logger.error(f"Can't resolve to forward {self.forward_ip}:{self.forward_port}")
         except ConnectionRefusedError:
             logger.error("Can't forward, connection refused")
         except BrokenPipeError:
@@ -103,7 +103,7 @@ class Forwarder(object):
         except TimeoutError:
             logger.error("Can't forward, time out")
         except Exception as e:
-            logger.error("Can't forward,", e)
+            logger.error(f"Can't forward: {e}")
         finally:
             conn.close()
 

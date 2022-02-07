@@ -19,11 +19,11 @@ require 'ddtrace'\n\
 Datadog.configure do |c|\n\
   c.diagnostics.debug = true\n\
 end\n\
-Datadog.configure do |c|\n\
+Datadog::Tracing.configure do |c|\n\
   options = {}\n\
-  c.use :sinatra, options\n\
+  c.instrument :sinatra, options\n\
 end\n\
-Datadog.tracer.trace('init.service') do |span|\n\
+Datadog::Tracing.trace('init.service') do |span|\n\
 end\n\
 class MyApp < Sinatra::Base\n\
     register Datadog::Contrib::Sinatra::Tracer\n\
