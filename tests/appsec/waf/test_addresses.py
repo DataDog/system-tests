@@ -254,7 +254,9 @@ class Test_ResponseStatus(BaseTestCase):
 
 
 @released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@irrelevant(context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params")
+@irrelevant(
+    context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
+)
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 

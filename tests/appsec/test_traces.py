@@ -108,8 +108,6 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_request_headers)
         interfaces.library.add_span_validation(r, validate_response_headers)
 
-
-
     @bug(context.library < "java@0.93.0")
     @missing_feature(library="php")  # need to generate a user trace
     def test_root_span_coherence(self):
