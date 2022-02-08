@@ -83,7 +83,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @irrelevant(context.library not in ["golang"], reason="test")
+    @irrelevant(context.library not in ["golang", "nodejs"], reason="test")
     def test_header_collection(self):
         """
         AppSec should collect some headers for http.request and http.response and store them in span tags.

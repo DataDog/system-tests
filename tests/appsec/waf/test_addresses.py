@@ -253,7 +253,7 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
