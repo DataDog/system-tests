@@ -7,8 +7,8 @@ cd /binaries
 if [ -e "/binaries/dd-trace-js" ]; then
     echo "Install from local folder /binaries/dd-trace-js"
     cd /usr/app
-    npm install /binaries/dd-trace-js
-    npm explore dd-trace -- npm explore @datadog/native-appsec -- npm run install
+    npm install "/binaries/$(npm pack /binaries/dd-trace-js)"
+    # npm explore dd-trace -- npm explore @datadog/native-appsec -- npm run install
 
 elif [ $(ls nodejs-load-from-npm | wc -l) = 0 ]; then
     echo "install from NPM"
