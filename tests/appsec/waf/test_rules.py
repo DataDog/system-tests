@@ -305,11 +305,11 @@ class Test_SSRF(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.ssrf.sqr_000_001)
 
 
-@missing_feature(library="dotnet", reason="server.response.status not yet supported")
 @missing_feature(library="python", reason="server.response.status not yet supported")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(nodejs="2.0.0")
 @released(golang="1.36.0")
+@released(dotnet="2.3.0")
 class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 
@@ -324,8 +324,6 @@ class Test_DiscoveryScan(BaseTestCase):
         r = self.weblog_get("/myadmin")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_001)
 
-    def test_security_scan2(self):
-        """AppSec WAF catches Discovery scan"""
         r = self.weblog_get("/readme.md")
         interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_002)
 
