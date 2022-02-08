@@ -27,7 +27,7 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
+@released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
@@ -48,7 +48,7 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(golang="1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="?")
 @flaky(context.library <= "php@0.68.2")
@@ -61,7 +61,7 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(golang="1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="?")
 @flaky(context.library <= "php@0.68.2")
@@ -118,7 +118,7 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
+@released(golang="1.34.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
@@ -129,7 +129,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
     @bug(library="java", reason="under Valentin's investigations")
-    @bug(library="golang")
+    @missing_feature(library="golang", reason="cookies are not url-decoded")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
@@ -145,8 +145,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
     @bug(library="dotnet", reason="APPSEC-2290")
-    @bug(context.library < "java@0.92.0")
-    @bug(library="golang")
+    @bug(library="java", reason="under Valentin's investigations")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
@@ -241,10 +240,10 @@ class Test_PathParams(BaseTestCase):
 
 
 @missing_feature(library="dotnet", reason="server.response.status not yet supported")
-@missing_feature(library="golang", reason="server.response.status not yet supported")
 @missing_feature(library="python", reason="server.response.status not yet supported")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(nodejs="2.0.0")
+@released(golang="1.36.0")
 class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
@@ -252,3 +251,16 @@ class Test_ResponseStatus(BaseTestCase):
         """ AppSec catches attacks in URL query value"""
         r = self.weblog_get("/mysql")
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
+
+
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@irrelevant(
+    context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
+)
+class Test_PathParams(BaseTestCase):
+    """Appsec supports values on server.request.path_params"""
+
+    def test_security_scanner(self):
+        """ AppSec catches attacks in URL query value"""
+        r = self.weblog_get("/params/appscan_fingerprint")
+        interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
