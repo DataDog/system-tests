@@ -2,6 +2,8 @@ name: Testing the test
 
 on:
   workflow_dispatch: {}
+  schedule:
+    - cron:  '00 02 * * 2-6'
   pull_request:
     branches:
       - "**"
