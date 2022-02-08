@@ -31,9 +31,9 @@ class Test_404(BaseTestCase):
 
 
 # Not yet specified
-@released(golang="1.36.0", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
+@released(golang="1.36.0", dotnet="2.3.0", java="0.95.0", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
-    """ Appsec WAF misc tests """
+    """ Appsec reports multiple attacks on same request """
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
