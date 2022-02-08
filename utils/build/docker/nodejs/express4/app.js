@@ -21,6 +21,20 @@ app.get('/sample_rate_route/:i', (req, res) => {
   res.send('OK');
 });
 
+app.get('/params/:value', (req, res) => {
+  res.send('OK')
+})
+
+app.get('/headers', (req, res) => {
+  res.set({
+    'content-type': 'text/plain',
+    'content-length': '42',
+    'content-language': 'en-US',
+  })
+
+  res.send('Hello, headers!')
+});
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');
