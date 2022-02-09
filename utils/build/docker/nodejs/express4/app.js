@@ -6,6 +6,7 @@ const app = require('express')();
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
 
 app.get('/', (req, res) => {
