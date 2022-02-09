@@ -62,7 +62,7 @@ jobs:
             version: prod
 
           - library: java
-            weblog-variant: spring-boot-poc
+            weblog-variant: spring-boot
             version: prod
 
           - library: nodejs
