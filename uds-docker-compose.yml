@@ -50,7 +50,7 @@ services:
         condition: service_started
       library_proxy:
         condition: service_started
-    command: bash -c "socat -x -u UNIX-RECV:/tmp/apm.sock, fork TCP:agent:8126 && socat -x -u UNIX-RECV:/tmp/dsd.sock, fork UDP:agent:8125"
+    command: bash -c "socat EXEC:'ssh -T remote_host socat "UNIX-RECV:/tmp/apm.sock,fork,unlink-early" STDIO' TCP:agent:8126,fork"
 
   agent:
     image: system_tests/agent

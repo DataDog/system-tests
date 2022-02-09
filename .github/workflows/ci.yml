@@ -219,6 +219,9 @@ jobs:
       - name: Run default scenario
         run: ./run.sh
 
+      - name: Run UDS scenario
+        run: ./run.sh UDS
+
       - name: Run missing AppSec rules file
         run: ./run.sh APPSEC_MISSING_RULES
 
