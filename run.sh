@@ -30,11 +30,10 @@ SCENARIO=${1:-DEFAULT}
 if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
-    export TESTS_DOCKER_COMPOSE=uds-docker-compose.yml # remove after verifying
 
 if [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     export RUNNER_ARGS=tests/
-    export SYSTEMTESTS_LOG_FOLDER=logs
+    export SYSTEMTESTS_LOG_FOLDER=logs_uds
     export TESTS_DOCKER_COMPOSE=uds-docker-compose.yml
 
 elif [ $SCENARIO = "SAMPLING" ]; then
