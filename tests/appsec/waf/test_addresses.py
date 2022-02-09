@@ -192,7 +192,7 @@ class Test_BodyJson(BaseTestCase):
 
     def test_json_value(self):
         """AppSec detects attacks in JSON body values"""
-        r = self.weblog_post("/waf", json={'value': '<vmlframe src="xss">'})
+        r = self.weblog_post("/waf", json={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
     def test_json_array(self):
@@ -202,7 +202,6 @@ class Test_BodyJson(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
-@irrelevant(True, reason="not implemented")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
