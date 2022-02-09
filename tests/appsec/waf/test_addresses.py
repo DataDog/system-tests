@@ -205,6 +205,11 @@ class Test_BodyJson(BaseTestCase):
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
+    def weblog_post(self, path="/", params=None, data=None, headers={}, **kwargs):
+        headers["Content-Type"] = "application/xml"
+        data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
+        return super().weblog_post(path, params, data, headers)
+
     def test_xml_node(self):
         interfaces.library.append_not_implemented_validation()
 
@@ -215,7 +220,8 @@ class Test_BodyXml(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
     def test_xml_content(self):
-        interfaces.library.append_not_implemented_validation()
+        r = self.weblog_post("/waf", data="<a>var_dump ()</a>")
+        interfaces.library.assert_waf_attack(r)
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
