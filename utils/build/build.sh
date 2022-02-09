@@ -46,7 +46,7 @@ elif [ "$TEST_LIBRARY" = "golang" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http}
 
 elif [ "$TEST_LIBRARY" = "java" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot}
 
 elif [ "$TEST_LIBRARY" = "php" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-apache-mod}
