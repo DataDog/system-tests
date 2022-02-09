@@ -83,7 +83,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
                 raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']}, should be in {RUNTIME_FAMILIES}")
             
             if span["meta"]["language"] not in RUNTIME_FAMILIES:
-                raise Exception(f"language {span["meta"]["language"]}, should be in {RUNTIME_FAMILIES}")
+                raise Exception(f"language {span['meta']['language']}, should be in {RUNTIME_FAMILIES}")
 
             return True
 
