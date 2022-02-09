@@ -163,12 +163,11 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
-    @missing_feature(library="java")
-    @missing_feature(library="php", reason="matching against keys is impossible with current rules")
+    @missing_feature(True, reason="matching against keys is impossible with current rules")
     def test_body_key(self):
         """AppSec detects attacks in URL encoded body keys"""
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
@@ -181,18 +180,25 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
+    @missing_feature(True, reason="matching against keys is impossible with current rules")
     def test_json_key(self):
-        interfaces.library.append_not_implemented_validation()
+        """AppSec detects attacks in JSON body keys"""
+        r = self.weblog_post("/waf", json={'<vmlframe src="xss">': "value"})
+        interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
     def test_json_value(self):
-        interfaces.library.append_not_implemented_validation()
+        """AppSec detects attacks in JSON body values"""
+        r = self.weblog_post("/waf", json={"value": '<vmlframe src="xss">'})
+        interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
     def test_json_array(self):
-        interfaces.library.append_not_implemented_validation()
+        """AppSec detects attacks in JSON body arrays"""
+        r = self.weblog_post("/waf", json=['<vmlframe src="xss">'])
+        interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
