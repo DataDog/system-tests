@@ -70,6 +70,9 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
             if "_dd.runtime_family" not in span["meta"]:
                 raise Exception("Can't find _dd.runtime_family in span's meta")
+            
+            if "language" not in span["meta"]:
+                raise Exception("Can't find language in span's meta")
 
             if span["metrics"]["_dd.appsec.enabled"] != 1:
                 raise Exception(
@@ -78,6 +81,9 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
             if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILIES:
                 raise Exception(f"_dd.runtime_family {span['_dd.runtime_family']}, should be in {RUNTIME_FAMILIES}")
+            
+            if span["meta"]["language"] not in RUNTIME_FAMILIES:
+                raise Exception(f"language {span["meta"]["language"]}, should be in {RUNTIME_FAMILIES}")
 
             return True
 
