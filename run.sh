@@ -76,7 +76,7 @@ echo 🔥 Starting test context.
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-docker-compose -f ${TESTS_DOCKER_COMPOSE_FILE} $ up -d
+docker-compose -f ${TESTS_DOCKER_COMPOSE_FILE} up -d
 docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
 
 # Save docker logs
