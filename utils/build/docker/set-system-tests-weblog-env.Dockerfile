@@ -1,7 +1,10 @@
 FROM system_tests/weblog
 
-# Datadog conf for all weblogs
+# Datadog setup
+ENV DD_SERVICE=weblog
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV DD_TRACE_SAMPLE_RATE=0.5
+ENV DD_TAGS='key1:val1, key2 : val2 '
 
 ARG SYSTEM_TESTS_LIBRARY
 ENV SYSTEM_TESTS_LIBRARY=$SYSTEM_TESTS_LIBRARY
