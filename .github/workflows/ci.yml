@@ -107,12 +107,12 @@ jobs:
             weblog-variant: rack
             version: prod
 
-         #- library: ruby
-         #  weblog-variant: sinatra14
-         #  version: dev
-         #- library: ruby
-         #  weblog-variant: sinatra14
-         #  version: prod
+          - library: ruby
+            weblog-variant: sinatra14
+            version: dev
+          - library: ruby
+            weblog-variant: sinatra14
+            version: prod
           - library: ruby
             weblog-variant: sinatra20
             version: dev
@@ -126,30 +126,30 @@ jobs:
             weblog-variant: sinatra21
             version: prod
 
-         #- library: ruby
-         #  weblog-variant: rails32
-         #  version: dev
-         #- library: ruby
-         #  weblog-variant: rails32
-         #  version: prod
-         #- library: ruby
-         #  weblog-variant: rails40
-         #  version: dev
-         #- library: ruby
-         #  weblog-variant: rails40
-         #  version: prod
-         #- library: ruby
-         #  weblog-variant: rails41
-         #  version: dev
-         #- library: ruby
-         #  weblog-variant: rails41
-         #  version: prod
-         #- library: ruby
-         #  weblog-variant: rails42
-         #  version: dev
-         #- library: ruby
-         #  weblog-variant: rails42
-         #  version: prod
+          - library: ruby
+            weblog-variant: rails32
+            version: dev
+          - library: ruby
+            weblog-variant: rails32
+            version: prod
+          - library: ruby
+            weblog-variant: rails40
+            version: dev
+          - library: ruby
+            weblog-variant: rails40
+            version: prod
+          - library: ruby
+            weblog-variant: rails41
+            version: dev
+          - library: ruby
+            weblog-variant: rails41
+            version: prod
+          - library: ruby
+            weblog-variant: rails42
+            version: dev
+          - library: ruby
+            weblog-variant: rails42
+            version: prod
           - library: ruby
             weblog-variant: rails50
             version: dev
