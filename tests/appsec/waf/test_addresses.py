@@ -201,7 +201,7 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
