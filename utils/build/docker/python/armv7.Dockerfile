@@ -13,9 +13,6 @@ COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # docker startup
-RUN echo '#!/bin/bash \n\
-ddtrace-run gunicorn -w 2 -b 0.0.0.0:7777 app:app \n' > /app.sh
-RUN chmod +x /app.sh
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .

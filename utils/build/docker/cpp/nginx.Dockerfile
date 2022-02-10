@@ -33,6 +33,8 @@ http {\n\
 
 RUN echo '{}' > /etc/nginx/dd-config.json
 
+CMD ./app.sh
+
 RUN mkdir /builds
 COPY utils/build/docker/cpp/install_ddtrace.sh builds* /builds/
 RUN /builds/install_ddtrace.sh

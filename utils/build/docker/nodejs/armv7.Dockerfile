@@ -14,9 +14,6 @@ RUN npm install
 EXPOSE 7777
 
 # docker startup
-RUN echo '#!/bin/sh' > app.sh
-RUN echo 'node app.js' >> app.sh
-RUN chmod +x app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
