@@ -30,14 +30,15 @@ class Test_Scanners(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120)
 
 
-@released(golang="?", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.36.1", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
     @bug(context.library < "dotnet@2.1.0")
     @bug(library="java", reason="under Valentin's investigations")
+    @missing_feature(library="golang", reason="cookie decoding ?")
     def test_http_protocol(self):
-        """ AppSec catches attacks by violation of HTTP protocol"""
+        """ AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         r = self.weblog_get("/waf/", cookies={"key": ".cookie-%3Bdomain="})
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_943_100)
 
