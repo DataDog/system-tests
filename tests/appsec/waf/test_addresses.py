@@ -156,7 +156,7 @@ class Test_Cookies(BaseTestCase):
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
 
-    @missing_feature(True, reason="no rule with body raw yet")
+    @missing_feature(reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
         r = self.weblog_post("/waf", data="/.adsensepostnottherenonobook")
@@ -167,7 +167,7 @@ class Test_BodyRaw(BaseTestCase):
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
-    @missing_feature(True, reason="matching against keys is impossible with current rules")
+    @missing_feature(reason="matching against keys is impossible with current rules")
     def test_body_key(self):
         """AppSec detects attacks in URL encoded body keys"""
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
@@ -184,7 +184,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
-    @missing_feature(True, reason="matching against keys is impossible with current rules")
+    @missing_feature(reason="matching against keys is impossible with current rules")
     def test_json_key(self):
         """AppSec detects attacks in JSON body keys"""
         r = self.weblog_post("/waf", json={'<vmlframe src="xss">': "value"})
@@ -201,27 +201,31 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
+
+    ATTACK = '<vmlframe src="xss">'
+    ENCODED_ATTACK = "&lt;vmlframe src=&quot;xss&quot;&gt;"
 
     def weblog_post(self, path="/", params=None, data=None, headers={}, **kwargs):
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
         return super().weblog_post(path, params, data, headers)
 
-    def test_xml_node(self):
-        interfaces.library.append_not_implemented_validation()
-
-    def test_xml_attr(self):
-        interfaces.library.append_not_implemented_validation()
-
     def test_xml_attr_value(self):
-        interfaces.library.append_not_implemented_validation()
+        r = self.weblog_post("/waf", data='<a attack="var_dump ()" />', address="server.request.body")
+        interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
+
+        r = self.weblog_post("/waf", data=f'<a attack="{self.ENCODED_ATTACK}" />')
+        interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
     def test_xml_content(self):
         r = self.weblog_post("/waf", data="<a>var_dump ()</a>")
-        interfaces.library.assert_waf_attack(r)
+        interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
+
+        r = self.weblog_post("/waf", data=f"<a>{self.ENCODED_ATTACK}</a>")
+        interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
