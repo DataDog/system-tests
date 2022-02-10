@@ -11,5 +11,8 @@
 
 set -eu
 
-( socat UNIX-LISTEN:/tmp/apm.sock,fork TCP:agent:8126 ) &
-( socat -u UNIX-LISTEN:/tmp/dsd.sock,fork UDP:agent:8125 ) &
+if [ -z ${DD_APM_RECEIVER_SOCKET+x} ]; then
+    ( socat UNIX-LISTEN:/tmp/apm.sock,fork TCP:agent:8126 ) &
+    
+if [ -z ${DD_DOGSTATSD_SOCKET+x} ]; then
+    ( socat -u UNIX-LISTEN:/tmp/dsd.sock,fork UDP:agent:8125 ) &

@@ -12,7 +12,7 @@ RUN /binaries/install_ddtrace.sh
 
 RUN go build -v -tags appsec -o weblog ./echo.go ./common.go
 
-CMD ./weblog
+CMD ./app.sh
 
 # Datadog setup
 ENV DD_LOGGING_RATE=0

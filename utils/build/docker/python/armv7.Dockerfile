@@ -13,7 +13,7 @@ COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # docker startup
-CMD ./app.sh
+CMD ["./app.sh", "GUNICORN"]
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
