@@ -22,10 +22,9 @@ interfaces=(agent library)
 # Stop previous container not stopped
 docker-compose down
 
-# Set default docker compose file to be overridden if needed
-export TESTS_DOCKER_COMPOSE_FILE=docker-compose.yml
-
 SCENARIO=${1:-DEFAULT}
+
+export DD_TRACE_AGENT_PORT=8126
 
 if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
@@ -34,7 +33,9 @@ if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
 if [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs_uds
-    export TESTS_DOCKER_COMPOSE=uds-docker-compose.yml
+    unset DD_TRACE_AGENT_PORT
+    export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
+    export DD_DOGSTATSD_SOCKET=/tmp/dsd.sock
 
 elif [ $SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
@@ -76,7 +77,7 @@ echo 🔥 Starting test context.
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-docker-compose -f ${TESTS_DOCKER_COMPOSE_FILE} up -d
+docker-compose up -d
 docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
 
 # Save docker logs

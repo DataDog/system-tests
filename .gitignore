@@ -27,3 +27,16 @@ bld/
 [Ll]og/
 
 !utils/build/docker/ruby/rails52/bin
+
+### VisualStudioCode ###
+.vscode/*      # Maybe .vscode/**/* instead - see comments
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+**/.history
+
+# End of https://www.gitignore.io/api/visualstudiocode
