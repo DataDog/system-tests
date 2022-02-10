@@ -20,10 +20,6 @@ RUN a2enmod rewrite
 ENV DD_TRACE_ENABLED=1
 ENV DD_TRACE_GENERATE_ROOT_SPAN=1
 ENV DD_TRACE_AGENT_FLUSH_AFTER_N_REQUESTS=0
-ENV DD_TRACE_DEBUG=1
-ENV DD_APPSEC_ENABLED=1
-ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, key2 : val2 '
 
 RUN curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb

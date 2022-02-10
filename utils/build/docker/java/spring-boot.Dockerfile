@@ -20,7 +20,3 @@ COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 CMD [ "java", "-javaagent:/app/dd-java-agent.jar", "-jar", "/app/myproject-0.0.1-SNAPSHOT.jar", "--server.port=7777" ]
-
-# Datadog setup
-ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, key2 : val2 '

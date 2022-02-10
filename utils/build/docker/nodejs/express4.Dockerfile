@@ -22,9 +22,5 @@ CMD ./app.sh
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-# Datadog setup
-ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, key2 : val2 '
-
 # docker build -f utils/build/docker/nodejs.datadog.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
