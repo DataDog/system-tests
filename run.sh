@@ -30,7 +30,7 @@ if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
 
-if [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
+elif [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs_uds
     unset DD_TRACE_AGENT_PORT
