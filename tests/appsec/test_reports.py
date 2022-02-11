@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
-@released(golang="1.35.0")
+@released(golang="1.34.0")
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 

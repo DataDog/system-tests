@@ -10,6 +10,7 @@ from utils import BaseTestCase, interfaces, bug, context
 class Test_Library(BaseTestCase):
     """Libraries's payload are valid regarding schemas"""
 
+    @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
     def test_full(self):
         # send some requests to be sure to trigger events
@@ -42,6 +43,7 @@ class Test_Library(BaseTestCase):
 class Test_Agent(BaseTestCase):
     """Agents's payload are valid regarding schemas"""
 
+    @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
     def test_full(self):
 
