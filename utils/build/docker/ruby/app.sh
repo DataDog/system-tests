@@ -8,6 +8,10 @@ exec_rails() {
     exec rails server -p 7777 -b 0.0.0.0
 }
 
+exec_thin() {
+    bundle exec thin start -p 7777
+}
+
 SERVER=${1:-PUMA}
 
 if [ $SCENARIO = "PUMA" ]; then
@@ -15,3 +19,6 @@ if [ $SCENARIO = "PUMA" ]; then
 
 if [ $SCENARIO = "RAILS" ]; then
     exec_rails()
+
+if [ $SCENARIO = "THIN" ]; then
+    exec_thin()
