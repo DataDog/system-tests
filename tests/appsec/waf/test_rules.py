@@ -147,6 +147,7 @@ class Test_PhpCodeInjection(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": "rar://"})
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_200)
 
+    @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
     @bug(library="dotnet", reason="APPSEC-2290")
     def test_php_code_injection_bug(self):
         """ Appsec WAF detects other php injection rules """
@@ -217,9 +218,10 @@ class Test_XSS(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"key": "+ADw->|<+AD$-"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
+    @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
     @bug(library="dotnet", reason="APPSEC-2290")
     def test_xss2(self):
-        """Other XSS patterns, to be merged once issue are corrected"""
+        """XSS patterns in cookie, with special char"""
         r = self.weblog_get("/waf/", cookies={"value": '<vmlframe src="xss">'})
 
         interfaces.library.assert_waf_attack(r, rules.xss)
