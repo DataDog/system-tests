@@ -12,6 +12,8 @@ exec_thin() {
     bundle exec thin start -p 7777
 }
 
+bash /system-tests/utils/scripts/configure-container-options.sh
+
 SERVER=${1:-PUMA}
 
 if [ $SCENARIO = "PUMA" ]; then

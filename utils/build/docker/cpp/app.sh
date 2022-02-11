@@ -1,3 +1,3 @@
 #!/bin/bash
 
-# TODO: Add optional socat call
+bash /system-tests/utils/scripts/configure-container-options.sh

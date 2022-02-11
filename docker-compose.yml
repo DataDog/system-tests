@@ -42,6 +42,7 @@ services:
       - DD_DOGSTATSD_SOCKET
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
+      - ./utils/scripts/:/system-tests/utils/scripts/
     ports:
       - "7777:7777"
     depends_on:

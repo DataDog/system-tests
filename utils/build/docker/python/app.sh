@@ -15,6 +15,8 @@ exec_uwsgi() {
     ddtrace-run uwsgi --http :7777 -w app:app --enable-threads
 }
 
+bash /system-tests/utils/scripts/configure-container-options.sh
+
 SCENARIO=${1:-GUNICORN}
 
 if [ $SCENARIO = "GUNICORN" ]; then
