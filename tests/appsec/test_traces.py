@@ -13,7 +13,7 @@ if context.library == "cpp":
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@released(golang="v1.34.0")
+@released(golang="1.36.0")
 @released(dotnet="1.29.0", java="0.92.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 class Test_AppSecEventSpanTags(BaseTestCase):
@@ -83,6 +83,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
+    @missing_feature(context.library < "golang@1.36.0")
     @irrelevant(context.library not in ["golang", "nodejs"], reason="test")
     def test_header_collection(self):
         """

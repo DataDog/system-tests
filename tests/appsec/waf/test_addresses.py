@@ -144,6 +144,7 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
+    @missing_feature(context.library < "golang@1.36.0")
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(library="java", reason="under Valentin's investigations")
     def test_cookies_with_special_chars2(self):
