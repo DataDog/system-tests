@@ -8,8 +8,8 @@ if [ -e "/binaries/dd-trace-rb" ]; then
     echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', path: '/binaries/dd-trace-rb'" >> Gemfile
 elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     echo "Install prod version"
-    gem install --source 'https://s3.amazonaws.com/gems.datadoghq.com/prerelease-v2' ddtrace -v '1.0.0.1.0.205324'
-    echo "gem 'ddtrace', '1.0.0.1.0.205324'" >> Gemfile
+    gem install --source 'https://s3.amazonaws.com/gems.datadoghq.com/prerelease-v2' ddtrace -v '1.0.0.1.0.207804'
+    echo "gem 'ddtrace', '1.0.0.1.0.207804', require: 'ddtrace/auto_instrument'" >> Gemfile
 else
     options=$(cat /binaries/ruby-load-from-bundle-add)
     echo "Install from $options"
