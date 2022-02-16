@@ -46,6 +46,55 @@ public class App {
         return "OK";
     }
 
+    @RequestMapping("/trace/sql")
+    String traceSQL() {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        // NOTE: see README.md for setting up the docker image to quickly test this
+
+        String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
+        try (Connection pgConn = DriverManager.getConnection(url)) {
+
+            Statement st = pgConn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM display_names LIMIT 10");
+            while (rs.next())
+            {
+                System.out.print("Column 2 returned ");
+                System.out.println(rs.getString(2));
+            }
+            rs.close();
+            st.close();
+        } catch (SQLException e) {
+            e.printStackTrace(System.err);
+            return "pgsql exception :(";
+        }
+
+        return "hi SQL";
+    }
+
+    @RequestMapping("/trace/http")
+    String traceHTTP() {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        try {
+            URL server = new URL("http://example.com");
+            HttpURLConnection connection = (HttpURLConnection)server.openConnection();
+            connection.connect();
+            InputStream test = connection.getErrorStream();
+            String result = new BufferedReader(new InputStreamReader(test)).lines().collect(Collectors.joining("\n"));
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            return "ssrf exception :(";
+        }
+        return "hi HTTP";
+    }
+
     // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
     @RequestMapping("/rasp/sqli")
     String raspSQLi(@RequestParam(required = false, name="q") String param) {
