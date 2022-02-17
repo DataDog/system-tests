@@ -23,19 +23,40 @@ interfaces=(agent library)
 docker-compose down
 
 SCENARIO=${1:-DEFAULT}
+VARIATION=${2:-DEFAULT}
+
+echo "Scenario is ${SCENARIO}"
 
 export DD_TRACE_AGENT_PORT=8126
+export DD_AGENT_HOST=library_proxy
+
+export SYSTEST_SCENARIO=$SCENARIO
+export SYSTEST_VARIATION=$VARIATION
 
 if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
 
 elif [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
+    echo "Running all tests in UDS mode."
     export RUNNER_ARGS=tests/
-    export SYSTEMTESTS_LOG_FOLDER=logs_uds
+    export SYSTEMTESTS_LOG_FOLDER=logs
+    unset DD_AGENT_HOST
     unset DD_TRACE_AGENT_PORT
-    export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
-    export DD_DOGSTATSD_SOCKET=/tmp/dsd.sock
+    export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal TCP communication
+    export HIDDEN_DSD_PORT_OVERRIDE=7125 # Break normal TCP communication
+    if [ $VARIATION = "DEFAULT" ]; then
+        # Test implicit config
+        echo "Testing default UDS configuration path."
+        unset DD_APM_RECEIVER_SOCKET
+        unset DD_DOGSTATSD_SOCKET
+        export USE_DEFAULT_UDS=1
+    else
+       # Test explicit config
+        echo "Testing explicit UDS configuration path."
+        export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
+        export DD_DOGSTATSD_SOCKET=/tmp/dsd.sock
+    fi 
 
 elif [ $SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
@@ -93,7 +114,7 @@ docker-compose logs -f runner
 EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
 
 # Stop all containers
-docker-compose down --remove-orphans
+# docker-compose down --remove-orphans
 
 # Exit with runner's status
 exit $EXIT_CODE

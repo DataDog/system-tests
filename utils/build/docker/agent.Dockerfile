@@ -34,6 +34,6 @@ RUN update-ca-certificates
 
 RUN datadog-agent version
 
-HEALTHCHECK --interval=10s --timeout=5s --retries=6 CMD [ "curl", "-f", "http://localhost:8126/info" ]
+# HEALTHCHECK --interval=10s --timeout=5s --retries=6 CMD [ "curl", "-f", "http://localhost:${HIDDEN_APM_PORT_OVERRIDE}/info" ]
 
 CMD ["/opt/datadog-agent/embedded/bin/trace-agent", "-config", "/etc/datadog-agent/datadog.yaml"]

@@ -6,6 +6,7 @@ RUN apt-get install dos2unix
 WORKDIR /app
 
 COPY utils/build/docker/dotnet/app.csproj app.csproj
+COPY utils/build/docker/dotnet/app.sh app.sh
 
 RUN dotnet restore
 
@@ -22,6 +23,7 @@ WORKDIR /app
 COPY --from=build /app/out .
 
 RUN mkdir /opt/datadog
+COPY --from=build /app/app.sh /app/app.sh
 COPY --from=build /opt/datadog /opt/datadog
 
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
