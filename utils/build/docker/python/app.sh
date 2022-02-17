@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -eu
 
 exec_gunicorn() {
     ddtrace-run gunicorn -w 2 -b 0.0.0.0:7777 app:app
@@ -21,9 +22,8 @@ SCENARIO=${1:-GUNICORN}
 
 if [ $SCENARIO = "GUNICORN" ]; then
     exec_gunicorn()
-
-if [ $SCENARIO = "GUNICORN_W_GEVENT" ]; then
+elif [ $SCENARIO = "GUNICORN_W_GEVENT" ]; then
     exec_gunicorn_w_gevent()
-
-if [ $SCENARIO = "UWSGI" ]; then
+elif [ $SCENARIO = "UWSGI" ]; then
     exec_uwsgi()
+fi

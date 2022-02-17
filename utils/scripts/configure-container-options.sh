@@ -11,18 +11,21 @@
 
 set -eu
 
+echo "APM receiver socket is ${DD_APM_RECEIVER_SOCKET:-NOT_SET}"
+echo "DSD receiver socket is ${DD_DOGSTATSD_SOCKET:-NOT_SET}"
+
 if [ ${SYSTEST_SCENARIO} = "UDS" ]; then
 
     if [ ${SYSTEST_VARIATION} = "DEFAULT" ]; then
     
-        echo "Attempting to use UDS default path."
+        echo "Attempting to use UDS default path"
 
         apt-get update
         apt-get install socat -y
 
         mkdir -p /var/run/datadog
         chmod -R a+rwX /var/run/datadog
-        
+
         ( socat UNIX-LISTEN:/var/run/datadog/apm.socket,fork TCP:agent:7126 ) &
         ( socat -u UNIX-LISTEN:/var/run/datadog/dsd.socket,fork UDP:agent:7125 ) &
 
@@ -30,7 +33,7 @@ if [ ${SYSTEST_SCENARIO} = "UDS" ]; then
         # ( socat UNIX-LISTEN:/var/run/datadog/apm.sock,fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} ) &
         # ( socat -u UNIX-LISTEN:/var/run/datadog/dsd.sock,fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE} ) &
     else
-        echo "Using explicit UDS config successfully"
+        echo "Using explicit UDS config"
         if [ -z ${DD_APM_RECEIVER_SOCKET+x} ]; then
             ( socat UNIX-LISTEN:${DD_APM_RECEIVER_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} ) &
         fi
