@@ -15,17 +15,18 @@ if [ ${SYSTEST_SCENARIO} = "UDS" ]; then
 
     if [ ${SYSTEST_VARIATION} = "DEFAULT" ]; then
     
-        echo "Using default UDS config successfully"
+        echo "Attempting to use UDS default path."
+
         apt-get update
         apt-get install socat -y
 
-        if [ -d "/var/run/datadog" ]; then
-            mkdir /var/run/datadog
-        fi
-        
+        mkdir -p /var/run/datadog
         chmod -R a+rwX /var/run/datadog
+        
         ( socat UNIX-LISTEN:/var/run/datadog/apm.socket,fork TCP:agent:7126 ) &
         ( socat -u UNIX-LISTEN:/var/run/datadog/dsd.socket,fork UDP:agent:7125 ) &
+
+        echo "Using default UDS config successfully"
         # ( socat UNIX-LISTEN:/var/run/datadog/apm.sock,fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} ) &
         # ( socat -u UNIX-LISTEN:/var/run/datadog/dsd.sock,fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE} ) &
     else
