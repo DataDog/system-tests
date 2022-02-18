@@ -1,11 +1,15 @@
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import io.opentracing.util.GlobalTracer;
+import org.bson.Document;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.boot.context.event.*;
 import org.springframework.context.event.*;
+import com.mongodb.MongoClient;
 
 import datadog.trace.api.Trace;
 
@@ -28,6 +32,7 @@ import io.opentracing.Span;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.mongodb.client.model.Filters.eq;
 
 
 @RestController
@@ -35,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class App {
 
     CassandraConnector cassandra;
+    MongoClient mongoClient;
 
     @RequestMapping("/")
     String home() {
@@ -111,6 +117,21 @@ public class App {
         return "hi Cassandra";
     }
 
+    @RequestMapping("/trace/mongo")
+    String traceMongo() {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        MongoCollection<Document> collection = mongoClient.getDatabase("mydb").getCollection("test");
+        Document doc = collection.find(eq("id", 3)).first();
+        if (doc != null) {
+            return "hi Mongo, " + doc.get("subject").toString();
+        }
+        return "hi Mongo";
+    }
+
     // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
     @RequestMapping("/rasp/sqli")
     String raspSQLi(@RequestParam(required = false, name="q") String param) {
@@ -174,7 +195,26 @@ public class App {
     public void init() {
         cassandra = new CassandraConnector();
         cassandra.setup();
+        initMongo();
         System.out.println("Initialized");
+    }
+
+    void initMongo() {
+        mongoClient = new MongoClient("127.0.0.1");
+        MongoCollection<Document> collection = mongoClient.getDatabase("mydb").getCollection("test");
+
+        collection.insertOne(new Document("name", "MongoDB")
+                .append("id", 1)
+                .append("title", "Skydiving is fun")
+                .append("subject", "Have you ever thought about jumping off an airplane?"));
+        collection.insertOne(new Document("name", "MongoDB")
+                .append("id", 2)
+                .append("title", "Mastering skydiving")
+                .append("subject", "So jump in empty air, but many times"));
+        collection.insertOne(new Document("name", "MongoDB")
+                .append("id", 3)
+                .append("title", "Wingsuit")
+                .append("subject", "Flying like a bird made of cloth who just left a perfectly working airplane"));
     }
 
     public static void main(String[] args) {
