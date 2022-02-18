@@ -1,8 +1,9 @@
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import ognl.Ognl;
 import io.opentracing.util.GlobalTracer;
+import ognl.OgnlException;
 import org.bson.Document;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
@@ -24,6 +25,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
 
@@ -130,6 +133,26 @@ public class App {
             return "hi Mongo, " + doc.get("subject").toString();
         }
         return "hi Mongo";
+    }
+
+    @RequestMapping("/trace/ognl")
+    String traceOGNL() {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
+                "Flying like a bird made of cloth who just left a perfectly working airplane");
+        try {
+            Object expr = Ognl.parseExpression("[1]");
+            String value = (String) Ognl.getValue(expr, list);
+            return "hi OGNL, " + value;
+        } catch (OgnlException e) {
+            e.printStackTrace();
+        }
+
+        return "hi OGNL";
     }
 
     // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
