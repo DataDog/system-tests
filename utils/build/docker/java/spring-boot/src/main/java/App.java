@@ -1,3 +1,5 @@
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import io.opentracing.util.GlobalTracer;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
@@ -19,6 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 import io.opentracing.Span;
 
@@ -30,6 +33,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @EnableAutoConfiguration
 public class App {
+
+    CassandraConnector cassandra;
 
     @RequestMapping("/")
     String home() {
@@ -86,13 +91,24 @@ public class App {
             URL server = new URL("http://example.com");
             HttpURLConnection connection = (HttpURLConnection)server.openConnection();
             connection.connect();
-            InputStream test = connection.getErrorStream();
-            String result = new BufferedReader(new InputStreamReader(test)).lines().collect(Collectors.joining("\n"));
+            System.out.println("Response code:" + connection.getResponseCode());
         } catch (Exception e) {
             e.printStackTrace(System.err);
             return "ssrf exception :(";
         }
         return "hi HTTP";
+    }
+
+    @RequestMapping("/trace/cassandra")
+    String traceCassandra() {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        cassandra.getSession().execute("SELECT * FROM \"table\" WHERE id = 1").all();
+
+        return "hi Cassandra";
     }
 
     // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
@@ -156,12 +172,60 @@ public class App {
     @EventListener(ApplicationReadyEvent.class)
     @Trace
     public void init() {
+        cassandra = new CassandraConnector();
+        cassandra.setup();
         System.out.println("Initialized");
     }
-
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
 
+}
+
+class CassandraConnector {
+    private Cluster cluster;
+    private Session session;
+
+    public void setup() {
+        Cluster.Builder b = Cluster.builder().addContactPoint("cassandra");
+
+        boolean successInit = false;
+        int retry = 1000;
+        while (!successInit && retry-- > 0)
+        {
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+                cluster = b.build();
+                session = cluster.connect();
+                successInit = true;
+
+            } catch (Exception e) {
+                cluster.close();
+            }
+        }
+
+        // Create KeySpace
+        session.execute("CREATE KEYSPACE IF NOT EXISTS \"testDB\" WITH replication = {'class':'SimpleStrategy','replication_factor':1};");
+
+        // Create table
+        session.execute("USE \"testDB\";");
+        session.execute("DROP TABLE IF EXISTS \"table\";");
+        session.execute("CREATE TABLE \"table\" (id int PRIMARY KEY, title text, subject text);");
+
+        // Insert data
+        session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (1, 'book1', 'subject1');");
+        session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (2, 'book2', 'subject2');");
+        session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (3, 'book3', 'subject3');");
+        session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (4, 'book4', 'subject4');");
+    }
+
+    public Session getSession() {
+        return this.session;
+    }
+
+    public void close() {
+        session.close();
+        cluster.close();
+    }
 }
