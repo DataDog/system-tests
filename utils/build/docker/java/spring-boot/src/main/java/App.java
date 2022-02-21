@@ -223,7 +223,7 @@ public class App {
     }
 
     void initMongo() {
-        mongoClient = new MongoClient("127.0.0.1");
+        mongoClient = new MongoClient("mongodb");
         MongoCollection<Document> collection = mongoClient.getDatabase("mydb").getCollection("test");
 
         collection.insertOne(new Document("name", "MongoDB")
