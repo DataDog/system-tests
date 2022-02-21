@@ -45,7 +45,7 @@ Build images used for system tests.
 * For `nodejs`: `express4` (default)
 * For `php`: `apache-mod` (default), `php-fpm`
 * For `python`: `flask-poc` (default), `uwsgi-poc`
-* For `ruby`: `sinatra-poc` (default), `rails`
+* For `ruby`: `rails70` (default), `rack`, `sinatra21`, and lot of other sinatra/rails versions
 
 
 ## Real life examples
