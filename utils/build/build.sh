@@ -40,7 +40,7 @@ elif [ "$TEST_LIBRARY" = "python" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-flask-poc}
 
 elif [ "$TEST_LIBRARY" = "ruby" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-sinatra-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-rails70}
 
 elif [ "$TEST_LIBRARY" = "golang" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http}
