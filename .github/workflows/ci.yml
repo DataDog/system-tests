@@ -226,6 +226,10 @@ jobs:
         if: ${{ matrix.library == 'nodejs' }}
         run: ./run.sh PROFILING
 
+      - name: Run trace stats test
+        if: ${{ matrix.library == 'python' }}
+        run: ./run.sh TRACE_STATS
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)

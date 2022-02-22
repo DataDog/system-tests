@@ -50,6 +50,10 @@ elif [ $SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
     export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
+elif [ $SCENARIO = "TRACE_STATS" ]; then
+    export RUNNER_ARGS=scenarios/test_trace_stats.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_trace_stats
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}

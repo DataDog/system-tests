@@ -8,7 +8,17 @@ class _TraceStatsValid(BaseValidation):
 
     def __init__(self):
         super().__init__()
+        self.traces = []
+        self.stats = []
+        self.expected_timeout = 160
 
     def check(self, data):
-        print(data)
-        self.set_failure("Testing")
+        if data["path"] == "/v0.4/traces":
+            self.traces.append(data)
+
+    def final_check(self):
+        if len(self.traces) == 0:
+            self.set_failure("Not expected")
+            return
+
+        self.set_status(True)
