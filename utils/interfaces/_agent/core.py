@@ -8,6 +8,7 @@ This files will validate data flow between agent and backend
 
 import threading
 
+from utils import context
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
@@ -18,8 +19,12 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def __init__(self):
         super().__init__("agent")
-
         self.ready = threading.Event()
+
+        if context.library.library in ("php", "nodejs"):
+            self.expected_timeout = 5
+        else:
+            self.expected_timeout = 40
 
     def append_data(self, data):
         data = super().append_data(data)

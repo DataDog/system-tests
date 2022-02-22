@@ -100,11 +100,13 @@ def pytest_itemcollected(item):
             break
 
 
-def _wait_interface(interface, session, timeout=None):
+def _wait_interface(interface, session):
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     # side note : do NOT skip this function even if interface has no validations
     # internal errors may cause no validation in interface
+
+    timeout = interface.expected_timeout
 
     if timeout:
         terminal.write_line(f"Wait {timeout}s for {interface}: {interface.validations_count} to be validated")
@@ -145,27 +147,15 @@ def pytest_runtestloop(session):
         if session.shouldstop:
             raise session.Interrupted(session.shouldstop)
 
-    if context.library == "java":
-        timeout = 80
-    elif context.library.library in ("php", "nodejs"):
-        timeout = 5
-    else:
-        timeout = 40
-
-    # temp value for profiling testing. DO NOT MERGE ON MAIN
-    timeout = 80
-
     terminal.write_line("")
     terminal.write_sep("-", f"Wait for async validations")
 
     success = True
 
-    success = _wait_interface(interfaces.library, session, timeout) and success
+    success = _wait_interface(interfaces.library, session) and success
     success = _wait_interface(interfaces.library_stdout, session) and success
     success = _wait_interface(interfaces.library_dotnet_managed, session) and success
-
-    timeout = 5 if context.library.library in ("php", "nodejs") else 40
-    success = _wait_interface(interfaces.agent, session, timeout) and success
+    success = _wait_interface(interfaces.agent, session) and success
 
     if not success:
         raise session.Failed(session.shouldfail)

@@ -222,6 +222,10 @@ jobs:
       - name: Run missing AppSec rules file
         run: ./run.sh APPSEC_MISSING_RULES
 
+      - name: Run profiling test
+        if: ${{ matrix.library == 'nodejs' }}
+        run: ./run.sh PROFILING
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)

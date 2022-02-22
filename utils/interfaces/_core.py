@@ -41,6 +41,8 @@ class InterfaceValidator(object):
         self._closed.set()
         self.is_success = False
 
+        self.expected_timeout = 0
+
         self.passed = []  # list of passed validation
         self.xpassed = []  # list of passed validation, but it was not expected
         self.failed = []  # list of failed validation
@@ -114,6 +116,9 @@ class InterfaceValidator(object):
         validation._interface = self.name
 
         logger.debug(f"{repr(validation)} added in {self}[{len(self._validations)}]")
+
+        if validation.expected_timeout is not None and validation.expected_timeout > self.expected_timeout:
+            self.expected_timeout = validation.expected_timeout
 
         try:
             with self._lock:
@@ -193,6 +198,7 @@ class BaseValidation(object):
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
 
     def __init__(self, message=None, request=None, path_filters=None):
+        self.expected_timeout = None
         self.message = message
         self._closed = threading.Event()
         self._is_success = None
