@@ -13,7 +13,8 @@ if context.library == "cpp":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(golang="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@released(nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@missing_feature(library="golang", reason="standard logs not implemented")
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
 

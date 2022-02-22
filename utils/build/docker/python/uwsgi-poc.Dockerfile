@@ -12,10 +12,6 @@ ENV FLASK_APP=app.py
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-# Datadog setup
-ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, key2 : val2 '
-
 # docker startup
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi

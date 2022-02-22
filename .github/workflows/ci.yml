@@ -2,9 +2,13 @@ name: Testing the test
 
 on:
   workflow_dispatch: {}
+  schedule:
+    - cron:  '00 02 * * 2-6'
   pull_request:
     branches:
       - "**"
+env:
+  REGISTRY: ghcr.io
 
 jobs:
   lint_and_test:
@@ -52,9 +56,15 @@ jobs:
           - library: golang
             weblog-variant: echo
             version: prod
+          - library: golang
+            weblog-variant: chi
+            version: dev
+          - library: golang
+            weblog-variant: chi
+            version: prod
 
           - library: java
-            weblog-variant: spring-boot-poc
+            weblog-variant: spring-boot
             version: prod
 
           - library: nodejs
@@ -67,35 +77,114 @@ jobs:
           - library: php
             weblog-variant: apache-mod
             version: prod
+          - library: php
+            weblog-variant: php-fpm
+            version: prod
 
-          # - library: python
-          #   weblog-variant: flask-poc
-          #   version: dev
+          - library: python
+            weblog-variant: flask-poc
+            version: dev
           - library: python
             weblog-variant: flask-poc
             version: prod
-          # - library: python
-          #   weblog-variant: uwsgi-poc
-          #   version: dev
+          - library: python
+            weblog-variant: uwsgi-poc
+            version: dev
           - library: python
             weblog-variant: uwsgi-poc
             version: prod
           - library: python
             weblog-variant: django-poc
+            version: dev
+          - library: python
+            weblog-variant: django-poc
             version: prod
 
           - library: ruby
-            weblog-variant: sinatra-poc
+            weblog-variant: rack
             version: dev
           - library: ruby
-            weblog-variant: sinatra-poc
+            weblog-variant: rack
             version: prod
 
           - library: ruby
-            weblog-variant: rails
+            weblog-variant: sinatra14
             version: dev
           - library: ruby
-            weblog-variant: rails
+            weblog-variant: sinatra14
+            version: prod
+          - library: ruby
+            weblog-variant: sinatra20
+            version: dev
+          - library: ruby
+            weblog-variant: sinatra20
+            version: prod
+          - library: ruby
+            weblog-variant: sinatra21
+            version: dev
+          - library: ruby
+            weblog-variant: sinatra21
+            version: prod
+
+          - library: ruby
+            weblog-variant: rails32
+            version: dev
+          - library: ruby
+            weblog-variant: rails32
+            version: prod
+          - library: ruby
+            weblog-variant: rails40
+            version: dev
+          - library: ruby
+            weblog-variant: rails40
+            version: prod
+          - library: ruby
+            weblog-variant: rails41
+            version: dev
+          - library: ruby
+            weblog-variant: rails41
+            version: prod
+          - library: ruby
+            weblog-variant: rails42
+            version: dev
+          - library: ruby
+            weblog-variant: rails42
+            version: prod
+          - library: ruby
+            weblog-variant: rails50
+            version: dev
+          - library: ruby
+            weblog-variant: rails50
+            version: prod
+          - library: ruby
+            weblog-variant: rails51
+            version: dev
+          - library: ruby
+            weblog-variant: rails51
+            version: prod
+          - library: ruby
+            weblog-variant: rails52
+            version: dev
+          - library: ruby
+            weblog-variant: rails52
+            version: prod
+          - library: ruby
+            weblog-variant: rails60
+            version: dev
+          - library: ruby
+            weblog-variant: rails60
+            version: prod
+          - library: ruby
+            weblog-variant: rails61
+            version: dev
+          - library: ruby
+            weblog-variant: rails61
+            version: prod
+          - library: ruby
+            weblog-variant: rails70
+            version: dev
+          - library: ruby
+            weblog-variant: rails70
             version: prod
       fail-fast: false
     env:
@@ -118,6 +207,11 @@ jobs:
       - name: Load library binary
         if: ${{ matrix.version == 'dev' && matrix.library == 'python' }}
         run: echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > binaries/python-load-from-pip
+
+      - name: Log in to the Container registry
+        if: ${{ matrix.library == 'ruby' }}
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Build
         run: ./build.sh

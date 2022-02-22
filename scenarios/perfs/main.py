@@ -150,7 +150,7 @@ class Runner:
                         data = json.loads(line)
                         try:
                             self.memory.append(
-                                ((datetime.now() - start).total_seconds(), data["memory_stats"]["usage"])
+                                ((datetime.now() - start).total_seconds(), data["memory_stats"]["stats"]["rss"])
                             )
                         except:
                             return  # probably not with system tests env

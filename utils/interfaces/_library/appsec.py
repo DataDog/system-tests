@@ -26,6 +26,7 @@ class _BaseAppSecValidation(BaseValidation):
             content = data["request"]["content"]
 
             for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
+                self.log_debug(f'Found span with rid={self.rid}: span_id={span["span_id"]}')
                 self.spans.append(f'{span["trace_id"]}#{span["span_id"]}')
 
                 if "_dd.appsec.json" in span.get("meta", {}):

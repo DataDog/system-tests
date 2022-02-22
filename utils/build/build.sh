@@ -40,13 +40,13 @@ elif [ "$TEST_LIBRARY" = "python" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-flask-poc}
 
 elif [ "$TEST_LIBRARY" = "ruby" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-sinatra-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-rails70}
 
 elif [ "$TEST_LIBRARY" = "golang" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http}
 
 elif [ "$TEST_LIBRARY" = "java" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot}
 
 elif [ "$TEST_LIBRARY" = "php" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-apache-mod}
@@ -128,7 +128,7 @@ do
             --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \
             --build-arg SYSTEM_TESTS_PHP_APPSEC_VERSION="$SYSTEM_TESTS_PHP_APPSEC_VERSION" \
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
-            -f utils/build/docker/set-system-tests-env.Dockerfile \
+            -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
             -t system_tests/weblog \
             .
 

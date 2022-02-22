@@ -10,7 +10,12 @@ from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
-from utils.interfaces._library.miscs import _TraceIdUniqueness, _ReceiveRequestRootTrace, _SpanValidation
+from utils.interfaces._library.miscs import (
+    _TraceIdUniqueness,
+    _ReceiveRequestRootTrace,
+    _SpanValidation,
+    _TraceExistence,
+)
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
     _AllRequestsTransmitted,
@@ -81,7 +86,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
     ):
         self.append_validation(
-            _WafAttack(request, rule=rule, pattern=pattern, address=address, patterns=patterns, key_path=key_path)
+            _WafAttack(
+                request, rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path
+            )
         )
 
     def assert_metric_existence(self, metric_name):
@@ -106,6 +113,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion("/profiling/v1/input", field_name, content_pattern))
+
+    def assert_trace_exists(self, request):
+        self.append_validation(_TraceExistence(request=request))
 
 
 class _TraceIdUniquenessExceptions:

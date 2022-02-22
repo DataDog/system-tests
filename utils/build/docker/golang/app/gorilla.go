@@ -18,13 +18,23 @@ func main() {
 	})
 
 	mux.HandleFunc("/waf/", func(w http.ResponseWriter, r *http.Request) {
-		span, _ := tracer.SpanFromContext(r.Context())
-		span.SetTag("http.request.headers.user-agent", r.UserAgent())
 		w.Write([]byte("Hello, WAF!\n"))
 	})
 
 	mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/params/{value}", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/headers/", func(w http.ResponseWriter, r *http.Request) {
+		//Data used for header content is irrelevant here, only header presence is checked
+		w.Header().Set("content-type", "text/plain")
+		w.Header().Set("content-length", "42")
+		w.Header().Set("content-language", "en-US")
+		w.Write([]byte("Hello, headers!"))
 	})
 
 	initDatadog()
