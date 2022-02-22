@@ -51,7 +51,25 @@ services:
         condition: service_started
       library_proxy:
         condition: service_started
+      cassandra_db:
+        condition: service_started
+      mongodb:
+        condition: service_started
 
+  cassandra_db:
+    image: cassandra:latest
+    restart: always
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+  
   agent:
     image: system_tests/agent
     environment:
