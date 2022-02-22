@@ -56,7 +56,7 @@ services:
       mongodb:
         condition: service_started
 
-   cassandra_db:
+  cassandra_db:
     image: cassandra:latest
     restart: always
     container_name: cassandra
