@@ -1,5 +1,4 @@
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 import com.mongodb.client.MongoCollection;
 import ognl.Ognl;
 import io.opentracing.util.GlobalTracer;
@@ -18,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
@@ -247,24 +247,21 @@ public class App {
 }
 
 class CassandraConnector {
-    private Cluster cluster;
-    private Session session;
+    CqlSession session;
 
     public void setup() {
-        Cluster.Builder b = Cluster.builder().addContactPoint("cassandra");
-
         boolean successInit = false;
         int retry = 1000;
         while (!successInit && retry-- > 0)
         {
             try {
                 TimeUnit.MILLISECONDS.sleep(500);
-                cluster = b.build();
-                session = cluster.connect();
+                session = CqlSession.builder()
+                        .addContactPoint(new InetSocketAddress("cassandra", 9042))
+                        .withLocalDatacenter("datacenter1")
+                        .build();
                 successInit = true;
-
-            } catch (Exception e) {
-                cluster.close();
+            } catch (Exception ignored) {
             }
         }
 
@@ -283,12 +280,7 @@ class CassandraConnector {
         session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (4, 'book4', 'subject4');");
     }
 
-    public Session getSession() {
+    public CqlSession getSession() {
         return this.session;
-    }
-
-    public void close() {
-        session.close();
-        cluster.close();
     }
 }
