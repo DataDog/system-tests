@@ -17,6 +17,11 @@ def sample_rate(i):
     return "OK"
 
 
+@app.route("/stats/<n>")
+def stats(n: int):
+    return "OK"
+
+
 @app.route("/waf", methods=["GET", "POST"])
 @app.route("/waf/", methods=["GET", "POST"])
 @app.route("/waf/<path:url>", methods=["GET", "POST"])

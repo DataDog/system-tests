@@ -49,6 +49,9 @@ def deserialize_http_message(path, message, data, interface):
                 for key in ("trace_id", "parent_id", "span_id"):
                     if key in span.keys():
                         span[key] = parse_as_unsigned_int(span[key], 64)
+        elif interface == "library" and path == "/v0.6/stats":
+            # TODO: decode OkSummary, Error
+            return result
 
         _convert_bytes_values(result)
 

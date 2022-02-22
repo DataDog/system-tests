@@ -23,6 +23,9 @@ from utils.interfaces._library.trace_headers import (
     _TraceHeadersPresentPhp,
     _TraceHeadersContainerTagsCpp,
 )
+from utils.interfaces._library.trace_stats import (
+    _TraceStatsValid,
+)
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
@@ -97,6 +100,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
+
+    def add_trace_stats_validation(self):
+        self.append_validation(_TraceStatsValid())
 
 
 class _TraceIdUniquenessExceptions:

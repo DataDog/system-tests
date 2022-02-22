@@ -235,7 +235,7 @@ class BaseValidation(object):
                 self.message = self.calling_class.__doc__
 
         if self.message is None:
-            raise Exception(f"Please set a message for {self.frame.function}")
+            raise Exception(f"Please set a message for {self.frame.function} by setting a docstring on the test method.")
 
         if xfails.is_xfail_method(self.calling_method):
             logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
