@@ -6,7 +6,7 @@ RUN python --version && curl --version
 # install hello world app
 RUN pip install flask gunicorn gevent
 
-COPY utils/build/docker/python/flask_app.py app.py
+COPY utils/build/docker/python/flask.py app.py
 ENV FLASK_APP=app.py
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/

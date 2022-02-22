@@ -10,15 +10,17 @@ def hello_world(request):
 def sample_rate(request, i):
     return HttpResponse("OK")
 
+def stats(request, i):
+    return HttpResponse("OK")
 
 def waf(request, url=""):
     return HttpResponse("Hello, World!")
 
 urlpatterns = [
     path("", hello_world),
+    path("stats/<int:i>", stats),
     path("sample_rate_route/<int:i>", sample_rate),
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
 ]
-
