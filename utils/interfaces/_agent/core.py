@@ -8,6 +8,7 @@ This files will validate data flow between agent and backend
 
 import threading
 
+from utils import context
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
@@ -18,8 +19,12 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def __init__(self):
         super().__init__("agent")
-
         self.ready = threading.Event()
+
+        if context.library.library in ("php", "nodejs"):
+            self.expected_timeout = 5
+        else:
+            self.expected_timeout = 40
 
     def append_data(self, data):
         data = super().append_data(data)
@@ -38,10 +43,10 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.append_validation(_MetricExistence(metric_name))
 
     def add_profiling_validation(self, validator):
-        self.append_validation(_ProfilingValidation("/api/v2/profile", validator))
+        self.append_validation(_ProfilingValidation(validator))
 
     def profiling_assert_field(self, field_name, content_pattern=None):
-        self.append_validation(_ProfilingFieldAssertion("/api/v2/profile", field_name, content_pattern))
+        self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
 
 class _UseDomain(BaseValidation):

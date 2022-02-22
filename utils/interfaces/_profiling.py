@@ -10,7 +10,15 @@ from utils.interfaces._core import BaseValidation
 from utils.tools import m
 
 
-class _ProfilingValidation(BaseValidation):
+class _BaseProfilingValidation(BaseValidation):
+    """ Base class for library profiling validation"""
+
+    def __init__(self):
+        super().__init__(path_filters=["/profiling/v1/input", "/api/v2/profile"])
+        self.expected_timeout = 160
+
+
+class _ProfilingValidation(_BaseProfilingValidation):
     """ will run an arbitrary check on profiling data.
 
         Validator function can :
@@ -19,8 +27,8 @@ class _ProfilingValidation(BaseValidation):
         * raise an exception => validation will fail
     """
 
-    def __init__(self, path_filters, validator):
-        super().__init__(path_filters=path_filters)
+    def __init__(self, validator):
+        super().__init__()
         self.validator = validator
 
     def check(self, data):
@@ -30,14 +38,12 @@ class _ProfilingValidation(BaseValidation):
                 self.is_success_on_expiry = True
         except Exception as e:
             msg = traceback.format_exception_only(type(e), e)[0]
-            self.set_failure(f"{m(self.message)} not validated by {data['log_filename']}")
+            self.set_failure(f"{m(self.message)} not validated by {data['log_filename']}: {msg}")
 
 
-class _ProfilingFieldAssertion(BaseValidation):
-    is_success_on_expiry = True
-
-    def __init__(self, path_filters, field_name, content_pattern):
-        super().__init__(path_filters=path_filters)
+class _ProfilingFieldAssertion(_BaseProfilingValidation):
+    def __init__(self, field_name, content_pattern):
+        super().__init__()
         self.field_name = field_name
         self.content_pattern = re.compile(content_pattern) if content_pattern else None
 
@@ -53,6 +59,7 @@ class _ProfilingFieldAssertion(BaseValidation):
                         return
 
                 self.log_debug(f"{self} is ok on {data['log_filename']}")
+                self.is_success_on_expiry = True
                 return
 
         self.set_failure(f"{self} is not validated on {data['log_filename']}")
