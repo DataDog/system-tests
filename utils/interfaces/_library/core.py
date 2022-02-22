@@ -30,9 +30,7 @@ from utils.interfaces._library.trace_headers import (
     _TraceHeadersPresentPhp,
     _TraceHeadersContainerTagsCpp,
 )
-from utils.interfaces._library.trace_stats import (
-    _TraceStatsValid,
-)
+from utils.interfaces._library.trace_stats import _TraceStatsValid
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
