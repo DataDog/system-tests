@@ -34,19 +34,19 @@ BUILD_IMAGES=${BUILD_IMAGES:-weblog,runner,agent}
 TEST_LIBRARY=${TEST_LIBRARY:-nodejs}
 
 if [ "$TEST_LIBRARY" = "nodejs" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-express-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-express4}
 
 elif [ "$TEST_LIBRARY" = "python" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-flask-poc}
 
 elif [ "$TEST_LIBRARY" = "ruby" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-sinatra-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-rails70}
 
 elif [ "$TEST_LIBRARY" = "golang" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-net-http}
 
 elif [ "$TEST_LIBRARY" = "java" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot-poc}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot}
 
 elif [ "$TEST_LIBRARY" = "php" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-apache-mod}
@@ -81,7 +81,17 @@ do
 
     elif [[ $IMAGE_NAME == agent ]]; then
         docker build \
+            --progress=plain \
             -f utils/build/docker/agent.Dockerfile \
+            -t system_tests/agent \
+            $EXTRA_DOCKER_ARGS \
+            .
+
+        SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent datadog-agent version)
+
+        docker build \
+            --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
+            -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
             -t system_tests/agent \
             .
 
@@ -108,9 +118,9 @@ do
         # ENV command in a Dockerfile can be the result of a command, it must either an hardcoded value
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
-        SYSTEM_TESTS_LIBRARY_VERSION=$(docker run system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
-        SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
-        SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
+        SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
+        SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
+        SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
 
         docker build \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
@@ -118,7 +128,7 @@ do
             --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \
             --build-arg SYSTEM_TESTS_PHP_APPSEC_VERSION="$SYSTEM_TESTS_PHP_APPSEC_VERSION" \
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
-            -f utils/build/docker/set-system-tests-env.Dockerfile \
+            -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
             -t system_tests/weblog \
             .
 

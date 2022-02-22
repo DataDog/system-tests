@@ -8,8 +8,7 @@ from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, 
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", nodejs="2.0.0", php="0.68.2", python="0.53")
-@missing_feature(library="ruby")
+@released(golang="1.36.0", dotnet="2.1.0", nodejs="2.0.0", php="0.68.2", python="0.53")
 class Test_HeaderTags(BaseTestCase):
     """DD_TRACE_HEADER_TAGS env var support"""
 

@@ -30,7 +30,6 @@ services:
     image: system_tests/weblog
     environment:
       - DD_ENV=system-tests
-      - DD_SERVICE=weblog
       - DD_AGENT_HOST=library_proxy
       - DD_TRACE_AGENT_PORT=8126
       - DD_APPSEC_ENABLED=true
@@ -39,8 +38,11 @@ services:
       - DD_APPSEC_RULES
       - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
       - DD_APPSEC_WAF_TIMEOUT=5s
+      - DD_APPSEC_TRACE_RATE_LIMIT=10000
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
+    ports:
+      - "7777:7777"
     depends_on:
       runner:
         condition: service_healthy
@@ -50,7 +52,25 @@ services:
         condition: service_started
       library_proxy:
         condition: service_started
+      cassandra_db:
+        condition: service_started
+      mongodb:
+        condition: service_started
 
+  cassandra_db:
+    image: cassandra:latest
+    restart: always
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+  
   agent:
     image: system_tests/agent
     environment:

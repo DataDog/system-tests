@@ -8,8 +8,14 @@ from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
-from utils.interfaces._library.miscs import _TraceIdUniqueness, _ReceiveRequestRootTrace, _SpanValidation
+from utils.interfaces._library.miscs import (
+    _TraceIdUniqueness,
+    _ReceiveRequestRootTrace,
+    _SpanValidation,
+    _TraceExistence,
+)
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
     _AllRequestsTransmitted,
@@ -79,9 +85,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_no_appsec_event(self, request):
         self.append_validation(_NoAppsecEvent(request))
 
-    def assert_waf_attack(self, request, rule=None, pattern=None, address=None, patterns=None, key_path=None):
+    def assert_waf_attack(
+        self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
+    ):
         self.append_validation(
-            _WafAttack(request, rule=rule, pattern=pattern, address=address, patterns=patterns, key_path=key_path)
+            _WafAttack(
+                request, rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path
+            )
         )
 
     def assert_metric_existence(self, metric_name):
@@ -100,6 +110,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
+
+    def add_profiling_validation(self, validator):
+        self.append_validation(_ProfilingValidation("/profiling/v1/input", validator))
+
+    def profiling_assert_field(self, field_name, content_pattern=None):
+        self.append_validation(_ProfilingFieldAssertion("/profiling/v1/input", field_name, content_pattern))
+
+    def assert_trace_exists(self, request):
+        self.append_validation(_TraceExistence(request=request))
 
     def add_trace_stats_validation(self):
         self.append_validation(_TraceStatsValid())

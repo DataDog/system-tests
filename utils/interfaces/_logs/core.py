@@ -217,7 +217,10 @@ class _LogPresence(BaseValidation):
     def check(self, data):
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
-                if key not in data or not extra_pattern.search(data[key]):
+                if key not in data:
+                    self.log_info(f"For {self}, pattern was found, but condition on [{key}] was not found")
+                    return
+                elif not extra_pattern.search(data[key]):
                     self.log_info(
                         f"For {self}, pattern was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"

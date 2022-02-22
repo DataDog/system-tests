@@ -11,9 +11,9 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0-rc.4")
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestLFIAttempt(BaseTestCase):
     """
@@ -26,6 +26,10 @@ class TestLFIAttempt(BaseTestCase):
     )
     @irrelevant(
         context.library == "php" and context.weblog_variant == "apache-mod",
+        reason="apache resolves .. before passing it to mod_rewrite",
+    )
+    @irrelevant(
+        context.library == "php" and context.weblog_variant == "php-fpm",
         reason="apache resolves .. before passing it to mod_rewrite",
     )
     def test_uri(self):
@@ -45,8 +49,8 @@ class TestLFIAttempt(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="/../", address="server.request.headers.no_cookies")
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0-rc.4")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php="1.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php="1.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @flaky(context.library <= "php@0.68.2")
 class TestSecurityScanner(BaseTestCase):
@@ -62,9 +66,9 @@ class TestSecurityScanner(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0-rc.4")
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class TestAddresses(BaseTestCase):
     """

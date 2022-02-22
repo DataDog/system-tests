@@ -31,6 +31,15 @@ class Version:
             if version.startswith("* libddwaf"):
                 version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
+        elif component == "agent":
+            version = version.strip()
+            version = re.sub(r"Agent (.*) - Commit.*", r"\1", version)
+
+        elif component == "java":
+            version = version.strip()
+            version = version.split("~")[0]
+            version = version.replace("-SNAPSHOT", "")
+
         try:
             self._version = BaseVersion(version)
         except InvalidVersion:

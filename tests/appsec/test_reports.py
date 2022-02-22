@@ -10,13 +10,11 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
-    @bug(library="ruby", reason="status is missing")
     def test_basic(self):
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
         assert r.status_code == 404
@@ -37,8 +35,8 @@ class Test_StatusCode(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.33.1")
-@released(dotnet="1.30.0", nodejs="2.0.0rc0", php="?", python="?")
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(dotnet="1.30.0", nodejs="2.0.0", php_appsec="0.2.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 class Test_ActorIP(BaseTestCase):
     """ AppSec reports good actor's IP"""
@@ -95,6 +93,7 @@ class Test_ActorIP(BaseTestCase):
     @irrelevant(library="java", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="nodejs", reason="done by the backend until customer request or ip blocking features")
+    @irrelevant(library="php", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="ruby", reason="neither rack or puma provides this info")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
@@ -119,14 +118,12 @@ class Test_ActorIP(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
 
-@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0rc0", php="0.68.2", python="?")
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0", php="0.68.2", python="?")
 @flaky(context.library <= "php@0.68.2")
 class Test_Info(BaseTestCase):
     """AppSec correctly reports service and environment values"""
 
-    @bug(library="ruby", reason="name is sinatra io weblog")
     def test_service(self):
         """ Appsec reports the service information """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})

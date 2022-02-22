@@ -11,9 +11,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?")
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
@@ -32,25 +31,23 @@ class Test_404(BaseTestCase):
 
 
 # Not yet specified
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="1.36.0", dotnet="2.3.0", java="0.95.0", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
 class Test_MultipleHighlight(BaseTestCase):
-    """ Appsec WAF misc tests """
+    """ Appsec reports multiple attacks on same request """
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
         r = self.weblog_get("/waf", params={"value": "processbuilder unmarshaller"})
-        # interfaces.library.assert_waf_attack(
-        #     r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
-        # )
-        interfaces.library.append_not_implemented_validation()
+        interfaces.library.assert_waf_attack(
+            r, rules.java_code_injection.crs_944_110, patterns=["processbuilder", "unmarshaller"]
+        )
 
 
-@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0rc0", php_appsec="0.1.0", python="?", ruby="?")
-@released(golang="1.35.0" if context.weblog_variant == "echo" else "1.34.0")
+@released(golang="1.35.0")
+@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
-    @missing_feature(library="nodejs", reason="query string not yet supported")
     def test_basic(self):
         """Basic test with more than one attack"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
@@ -68,6 +65,14 @@ class Test_MultipleAttacks(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1 and /../"})
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100, pattern="/../")
         interfaces.library.assert_waf_attack(r, rules.security_scanner.ua0_600_12x, pattern="Arachni/v")
+
+
+@bug(library="php")
+class Test_NoWafTimeout(BaseTestCase):
+    """ With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
+
+    def test_main(self):
+        interfaces.library_stdout.assert_absence("Ran out of time while running flow")  # PHP version
 
 
 # TODO :

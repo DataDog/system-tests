@@ -6,6 +6,7 @@ import traceback
 import ast
 import msgpack
 import json
+from requests_toolbelt.multipart.decoder import MultipartDecoder
 from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from google.protobuf.json_format import MessageToDict
 
@@ -31,16 +32,19 @@ def parse_as_unsigned_int(value, size_in_bits):
     return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
 
 
-def deserialize_http_message(path, message, data, interface):
+def deserialize_http_message(path, message, data, interface, key):
     if not isinstance(data, (str, bytes)):
         return data
 
     content_type = get_header_value("content-type", message["headers"])
     content_type = None if content_type is None else content_type.lower()
 
+    logger.debug(f"Deserialize {content_type} for {path} {key}")
+
     if content_type in ("application/json", "text/json"):
         return json.loads(data)
-
+    elif interface == "library" and key == "response" and path == "/info":
+        return json.loads(data)
     elif content_type == "application/msgpack":
         result = msgpack.unpackb(data)
 
@@ -63,6 +67,20 @@ def deserialize_http_message(path, message, data, interface):
     elif content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
         return []
 
+    elif content_type and content_type.startswith("multipart/form-data;"):
+        decoded = []
+        for part in MultipartDecoder(data, content_type).parts:
+            headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
+            item = {"headers": headers}
+            try:
+                item["content"] = part.text
+            except UnicodeDecodeError:
+                item["content"] = part.content
+
+            decoded.append(item)
+
+        return decoded
+
     return data
 
 
@@ -82,7 +100,7 @@ def deserialize(data, interface):
     for key in ("request", "response"):
         try:
             content = ast.literal_eval(data[key]["content"])
-            decoded = deserialize_http_message(data["path"], data[key], content, interface)
+            decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
             data[key]["content"] = decoded
         except Exception as e:
             msg = traceback.format_exception_only(type(e), e)[0]

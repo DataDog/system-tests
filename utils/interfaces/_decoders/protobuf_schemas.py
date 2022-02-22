@@ -15,4 +15,4 @@ def _get_schema(descriptor_name, name):
     return messages[name]
 
 
-TracePayload = _get_schema("trace_payload.descriptor", "pb.TracePayload")
+TracePayload = _get_schema("trace_payload.descriptor", "pb.AgentPayload")

@@ -12,12 +12,7 @@ ENV FLASK_APP=app.py
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-# Datadog setup
-ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, key2 : val2 '
 ENV DD_GEVENT_PATCH_ALL=1
-ENV DD_TRACE_COMPUTE_STATS=1
-ENV DD_TRACE_DEBUG=1
 
 # docker startup
 RUN echo '#!/bin/bash \n\
