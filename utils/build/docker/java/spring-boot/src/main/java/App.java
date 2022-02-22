@@ -115,10 +115,7 @@ public class App {
             span.setTag("appsec.event", true);
         }
 
-        CqlSession session = cassandra.getSession();
-        session.execute("USE \"testDB\";");
-        session.execute("SELECT * FROM \"table\" WHERE id = 1").all();
-        session.close();
+        cassandra.getSession().execute("SELECT * FROM \"table\" WHERE id = 1").all();
 
         return "hi Cassandra";
     }
@@ -250,17 +247,20 @@ public class App {
 }
 
 class CassandraConnector {
+    CqlSession session;
+
     public void setup() {
         boolean successInit = false;
-        CqlSession session = null;
         int retry = 1000;
         while (!successInit && retry-- > 0)
         {
             try {
                 TimeUnit.MILLISECONDS.sleep(500);
-                session = getSession();
+                session = CqlSession.builder()
+                        .addContactPoint(new InetSocketAddress("cassandra", 9042))
+                        .withLocalDatacenter("datacenter1")
+                        .build();
                 successInit = true;
-
             } catch (Exception ignored) {
             }
         }
@@ -278,14 +278,9 @@ class CassandraConnector {
         session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (2, 'book2', 'subject2');");
         session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (3, 'book3', 'subject3');");
         session.execute("INSERT INTO \"table\"(id, title, subject) VALUES (4, 'book4', 'subject4');");
-
-        session.close();
     }
 
     public CqlSession getSession() {
-        return CqlSession.builder()
-                .addContactPoint(new InetSocketAddress("cassandra", 9042))
-                .withLocalDatacenter("datacenter1")
-                .build();
+        return this.session;
     }
 }
