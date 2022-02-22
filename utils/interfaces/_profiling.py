@@ -14,7 +14,7 @@ class _BaseProfilingValidation(BaseValidation):
     """ Base class for library profiling validation"""
 
     def __init__(self):
-        super().__init__(path_filters="/profiling/v1/input")
+        super().__init__(path_filters=["/profiling/v1/input", "/api/v2/profile"])
         self.expected_timeout = 160
 
 

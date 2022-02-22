@@ -43,10 +43,10 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.append_validation(_MetricExistence(metric_name))
 
     def add_profiling_validation(self, validator):
-        self.append_validation(_ProfilingValidation("/api/v2/profile", validator))
+        self.append_validation(_ProfilingValidation(validator))
 
     def profiling_assert_field(self, field_name, content_pattern=None):
-        self.append_validation(_ProfilingFieldAssertion("/api/v2/profile", field_name, content_pattern))
+        self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
 
 class _UseDomain(BaseValidation):
