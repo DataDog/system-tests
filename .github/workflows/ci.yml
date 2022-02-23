@@ -62,6 +62,9 @@ jobs:
           - library: golang
             weblog-variant: chi
             version: prod
+          - library: golang
+            weblog-variant: gin
+            version: dev
 
           - library: java
             weblog-variant: spring-boot
