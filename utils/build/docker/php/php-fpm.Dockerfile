@@ -48,4 +48,5 @@ RUN /install_ddtrace.sh
 ADD utils/build/docker/php/php-fpm/entrypoint.sh /
 
 WORKDIR /binaries
-ENTRYPOINT ["dumb-init", "/entrypoint.sh"]
+COPY ./utils/build/docker/php/app.sh app.sh
+CMD ["./app.sh", "dumb-init", "/entrypoint.sh"]

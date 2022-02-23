@@ -26,7 +26,7 @@ if [ ${SYSTEST_SCENARIO} = "UDS" ]; then
         mkdir -p /var/run/datadog
         chmod -R a+rwX /var/run/datadog
 
-        ( socat UNIX-LISTEN:/var/run/datadog/apm.socket,fork TCP:agent:7126 ) &
+        ( socat UNIX-LISTEN:/var/run/datadog/apm.socket,fork TCP:library_proxy:7126 ) &
         ( socat -u UNIX-LISTEN:/var/run/datadog/dsd.socket,fork UDP:agent:7125 ) &
 
         echo "Using default UDS config successfully"

@@ -10,6 +10,10 @@ exec_gunicorn_w_gevent() {
     ddtrace-run gunicorn -w 2 -b 0.0.0.0:7777 --access-logfile - app:app -k gevent
 }
 
+exec_pythonmanage() {
+    ddtrace-run python manage.py runserver 0.0.0.0:7777
+}
+
 exec_uwsgi() { 
     # note, only thread mode is supported
     # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
@@ -26,4 +30,6 @@ elif [ $SCENARIO = "GUNICORN_W_GEVENT" ]; then
     exec_gunicorn_w_gevent()
 elif [ $SCENARIO = "UWSGI" ]; then
     exec_uwsgi()
+elif [ $SCENARIO = "PYTHONPOC" ]; then
+    exec_pythonmanage()
 fi

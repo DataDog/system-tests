@@ -12,6 +12,7 @@ RUN /binaries/install_ddtrace.sh
 
 RUN go build -v -tags appsec -o weblog ./gorilla.go ./common.go
 
+COPY ./utils/build/docker/golang/app.sh app.sh
 CMD ./app.sh
 
 # Datadog setup

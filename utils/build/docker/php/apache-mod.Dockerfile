@@ -51,4 +51,5 @@ ADD utils/build/docker/php/apache-mod/entrypoint.sh /
 ADD utils/build/docker/php/common/php.ini /etc/php/
 
 WORKDIR /binaries
+COPY ./utils/build/docker/php/app.sh app.sh
 CMD ./app.sh

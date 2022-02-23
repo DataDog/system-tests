@@ -23,10 +23,8 @@ COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # docker startup
-RUN echo '#!/bin/bash \n\
-ddtrace-run python manage.py runserver 0.0.0.0:7777\n' > /app.sh
-RUN chmod +x /app.sh
-CMD ./app.sh
+COPY ./utils/build/docker/python/app.sh app.sh
+CMD ["./app.sh", "PYTHONPOC"]
 
 # docker build -f utils/build/docker/python/django-poc.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

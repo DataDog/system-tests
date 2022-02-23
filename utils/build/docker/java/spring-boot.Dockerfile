@@ -19,4 +19,5 @@ COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
+COPY ./utils/build/docker/java/app.sh app.sh
 CMD ./app.sh
