@@ -24,7 +24,7 @@ services:
       - FORWARD_TO_PORT=8081
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
-    command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
+    command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
     container_name: weblog
@@ -32,8 +32,12 @@ services:
     env_file:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/.weblog.env
     environment:
-      - DD_AGENT_HOST=library_proxy
-      - DD_TRACE_AGENT_PORT=8126
+      - DD_AGENT_HOST
+      - DD_TRACE_AGENT_PORT
+      - DD_APM_RECEIVER_SOCKET
+      - DD_DOGSTATSD_SOCKET
+      - SYSTEST_SCENARIO=${SYSTEST_SCENARIO:-DEFAULT}
+      - SYSTEST_VARIATION=${SYSTEST_VARIATION:-DEFAULT}
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
@@ -69,10 +73,17 @@ services:
   agent:
     container_name: agent
     image: system_tests/agent
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/info"]
+      interval: 10s
+      start_period: 5s
+      retries: 6
     environment:
       - DD_API_KEY
       - DD_ENV=system-tests
       - DD_SITE=${DD_SITE:-datad0g.com}
+      - DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126}
+      - DD_DOGSTATSD_PORT=${HIDDEN_DSD_PORT_OVERRIDE:-8125}
     depends_on:
       runner:
         condition: service_healthy
