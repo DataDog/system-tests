@@ -73,6 +73,12 @@ jobs:
           - library: nodejs
             weblog-variant: express4
             version: prod
+          - library: nodejs
+            weblog-variant: express4-typescript
+            version: dev
+          - library: nodejs
+            weblog-variant: express4-typescript
+            version: prod
 
           - library: php
             weblog-variant: apache-mod
@@ -221,6 +227,10 @@ jobs:
 
       - name: Run missing AppSec rules file
         run: ./run.sh APPSEC_MISSING_RULES
+
+      - name: Run profiling test
+        if: ${{ matrix.library == 'nodejs' }}
+        run: ./run.sh PROFILING
 
       - name: Compress logs
         if: ${{ always() }}
