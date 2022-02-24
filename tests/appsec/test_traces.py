@@ -140,5 +140,9 @@ class Test_AppSecObfuscator(BaseTestCase):
                 raise Exception("The secret value should be obfuscated")
             return True
 
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1", "DD_API_TOKEN": f"{secret} token {secret}"}, params={"pwd": f"{secret} appscan_fingerprint {secret}"})
+        r = self.weblog_get(
+            "/waf/",
+            headers={"User-Agent": "Arachni/v1", "DD_API_TOKEN": f"{secret} token {secret}"},
+            params={"pwd": f"{secret} appscan_fingerprint {secret}"},
+        )
         interfaces.library.add_span_validation(r, validate_appsec_span_tags)
