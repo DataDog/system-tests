@@ -15,6 +15,7 @@ if context.library == "cpp":
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class TestLFIAttempt(BaseTestCase):
     """
     Detect LFI attack attempts.
@@ -53,6 +54,7 @@ class TestLFIAttempt(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php="1.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @flaky(context.library <= "php@0.68.2")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class TestSecurityScanner(BaseTestCase):
     """
     Detect security scanners.
@@ -70,6 +72,7 @@ class TestSecurityScanner(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class TestAddresses(BaseTestCase):
     """
     Address server.request.headers.no_cookies should not include cookies.
