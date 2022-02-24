@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant, rfc
 
 
 if context.library == "cpp":
@@ -129,6 +129,8 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
+@missing_feature(reason="Not started yet in any lib")
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
