@@ -16,6 +16,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(golang="1.36.0")
 @released(dotnet="1.29.0", java="0.92.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 

@@ -15,6 +15,7 @@ if context.library == "cpp":
 
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_Scanners(BaseTestCase):
     """ Appsec WAF tests on scanners rules """
 
@@ -53,6 +54,7 @@ class Test_HttpProtocol(BaseTestCase):
 
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @released(golang="1.35.0")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
 
@@ -83,6 +85,7 @@ class Test_LFI(BaseTestCase):
 
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_RFI(BaseTestCase):
     """ Appsec WAF tests on RFI rules """
 
@@ -98,6 +101,7 @@ class Test_RFI(BaseTestCase):
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
 
@@ -124,6 +128,7 @@ class Test_CommandInjection(BaseTestCase):
 
 @released(golang="1.35.0")
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_PhpCodeInjection(BaseTestCase):
     """ Appsec WAF tests on PHP injection rules """
 
@@ -160,6 +165,7 @@ class Test_PhpCodeInjection(BaseTestCase):
 
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_JsInjection(BaseTestCase):
     """ Appsec WAF tests on Js Injection rules """
 
@@ -176,6 +182,7 @@ class Test_JsInjection(BaseTestCase):
 
 @released(golang="1.35.0")
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
 
@@ -230,6 +237,7 @@ class Test_XSS(BaseTestCase):
 @released(golang="1.35.0")
 @released(nodejs="2.0.0", php="1.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_SQLI(BaseTestCase):
     """ Appsec WAF tests on SQLI rules """
 
@@ -268,6 +276,7 @@ class Test_SQLI(BaseTestCase):
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
@@ -282,6 +291,7 @@ class Test_NoSqli(BaseTestCase):
 
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_JavaCodeInjection(BaseTestCase):
     """ Appsec WAF tests on Java code injection rules """
 
@@ -299,6 +309,7 @@ class Test_JavaCodeInjection(BaseTestCase):
 
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_SSRF(BaseTestCase):
     """ Appsec WAF tests on SSRF rules """
 
@@ -313,6 +324,7 @@ class Test_SSRF(BaseTestCase):
 @released(nodejs="2.0.0")
 @released(golang="1.36.0")
 @released(dotnet="2.3.0")
+@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
 class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 
