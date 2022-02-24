@@ -73,6 +73,12 @@ jobs:
           - library: nodejs
             weblog-variant: express4
             version: prod
+          - library: nodejs
+            weblog-variant: express4-typescript
+            version: dev
+          - library: nodejs
+            weblog-variant: express4-typescript
+            version: prod
 
           - library: php
             weblog-variant: apache-mod
