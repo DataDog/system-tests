@@ -26,12 +26,13 @@ set -eu
 get_circleci_artifact() {
 
     SLUG=$1
-    WORKFLOW_NAME=$2
-    JOB_NAME=$3
-    ARTIFACT_PATTERN=$4
+    BRANCH=$2
+    WORKFLOW_NAME=$3
+    JOB_NAME=$4
+    ARTIFACT_PATTERN=$5
 
-    echo "CircleCI: https://app.circleci.com/pipelines/$SLUG?branch=master"
-    PIPELINES=$(curl --silent https://circleci.com/api/v2/project/$SLUG/pipeline?branch=master -H "Circle-Token: $CIRCLECI_TOKEN")
+    echo "CircleCI: https://app.circleci.com/pipelines/$SLUG?branch=$BRANCH"
+    PIPELINES=$(curl --silent https://circleci.com/api/v2/project/$SLUG/pipeline?branch=$BRANCH -H "Circle-Token: $CIRCLECI_TOKEN")
 
     for i in {1..30}; do
         PIPELINE_ID=$(echo $PIPELINES| jq -r ".items[$i].id")
@@ -137,7 +138,7 @@ if [ "$TARGET" = "java" ]; then
     OWNER=DataDog
     REPO=dd-trace-java
 
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
+    get_circleci_artifact "gh/DataDog/dd-trace-java" "master" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
@@ -161,7 +162,7 @@ elif [ "$TARGET" = "ruby" ]; then
 
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
-    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
+    get_circleci_artifact "gh/DataDog/dd-trace-php" "master" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
 
 elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
@@ -173,7 +174,7 @@ elif [ "$TARGET" = "golang" ]; then
     echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
-    # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
+    # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "master" "build_test_deploy" "build" "TBD"
     x=1
 
 elif [ "$TARGET" = "agent" ]; then
@@ -200,6 +201,10 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
 
 elif [ "$TARGET" = "php_appsec" ]; then
     get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "push" "dd-appsec-php-*-amd64.tar.gz"
+
+elif [ "$TARGET" = "php_profiling" ]; then
+    rm -rf datadog-profiling*.tar.gz
+    get_circleci_artifact "gh/DataDog/dd-prof-php" "main" "nightly" "nightly" "datadog-profiling.tar.gz"
 
 else
     echo "Unknown target: $1"

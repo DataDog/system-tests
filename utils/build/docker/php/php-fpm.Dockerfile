@@ -41,6 +41,7 @@ EXPOSE 7777/tcp
 
 ARG TRACER_VERSION=latest
 ARG APPSEC_VERSION=latest
+ARG PROFILING_VERSION=latest
 ADD binaries* /binaries/
 ADD utils/build/docker/php/common/install_ddtrace.sh /
 RUN /install_ddtrace.sh
