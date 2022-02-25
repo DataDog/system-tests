@@ -30,7 +30,7 @@ from utils.interfaces._library.trace_headers import (
     _TraceHeadersPresentPhp,
     _TraceHeadersContainerTagsCpp,
 )
-from utils.interfaces._library.trace_stats import _TraceStatsValid
+from utils.interfaces._library.trace_stats import _TraceStatsV06Valid
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
@@ -126,8 +126,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_trace_exists(self, request):
         self.append_validation(_TraceExistence(request=request))
 
-    def add_trace_stats_validation(self):
-        self.append_validation(_TraceStatsValid())
+    def add_trace_stats_validation(self, num_traces):
+        self.append_validation(_TraceStatsV06Valid(num_traces))
 
 
 class _TraceIdUniquenessExceptions:

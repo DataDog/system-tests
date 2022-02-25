@@ -35,6 +35,7 @@ services:
       - DD_APPSEC_ENABLED=true
       - DD_TRACE_DEBUG=true
       - DD_TRACE_COMPUTE_STATS=true
+      - DD_SAMPLE_RATE=1.0
       - DD_APPSEC_RULES
       - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
       - DD_APPSEC_WAF_TIMEOUT=5s
