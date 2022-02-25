@@ -135,16 +135,19 @@ class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
     def test_appsec_obfuscator(self):
-        secret = "this is a very secret value"
+        SECRET = "this is a very secret value"
 
-        def validate_appsec_span_tags(span):
-            if secret in span["meta"]["_dd.appsec.json"]:
+        def validate_appsec_span_tags(payload, chunk, span, appsec_data):
+
+            if SECRET in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The secret value should be obfuscated")
+
             return True
 
         r = self.weblog_get(
             "/waf/",
-            headers={"User-Agent": "Arachni/v1", "DD_API_TOKEN": f"{secret} token {secret}"},
-            params={"pwd": f"{secret} appscan_fingerprint {secret}"},
+            headers={"User-Agent": "Arachni/v1", "DD_API_TOKEN": f"{SECRET} token {SECRET}"},
+            params={"pwd": f"{SECRET} appscan_fingerprint {SECRET}"},
         )
-        interfaces.library.add_span_validation(r, validate_appsec_span_tags)
+        interfaces.library.assert_waf_attack(r)
+        interfaces.agent.add_appsec_validation(r, validate_appsec_span_tags)

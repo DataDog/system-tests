@@ -12,6 +12,7 @@ from utils import context
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
+from utils.interfaces._agent.appsec import AppSecValidation
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -20,11 +21,7 @@ class AgentInterfaceValidator(InterfaceValidator):
     def __init__(self):
         super().__init__("agent")
         self.ready = threading.Event()
-
-        if context.library.library in ("php", "nodejs"):
-            self.expected_timeout = 5
-        else:
-            self.expected_timeout = 40
+        self.expected_timeout = 5
 
     def append_data(self, data):
         data = super().append_data(data)
@@ -47,6 +44,9 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
+
+    def add_appsec_validation(self, request, validator):
+        self.append_validation(AppSecValidation(request, validator))
 
 
 class _UseDomain(BaseValidation):
