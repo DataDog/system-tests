@@ -37,8 +37,6 @@ ENV SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$SYSTEM_TESTS_APPSEC_EVENT_RULES_VER
 RUN echo "corrupted::data" > /appsec_corrupted_rules.yml
 
 RUN apt-get install socat -y
-COPY ./utils/scripts/configuration/ /configuration-scripts
-COPY ./utils/scripts/weblog-entrypoint.sh ./weblog-entrypoint.sh
-RUN chmod +x app.sh
-CMD [ "./app.sh"]
-ENTRYPOINT [ "./weblog-entrypoint.sh" ]
+COPY ./utils/build/docker/weblog-cmd.sh ./weblog-cmd.sh
+CMD [ "./weblog-cmd.sh" ]
+

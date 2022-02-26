@@ -24,26 +24,20 @@ mkdir -p logs
 touch logs/.weblog.env
 docker-compose down
 
-SCENARIO=${1:-DEFAULT}
-VARIATION=${2:-DEFAULT}
+export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
+export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
 
-echo "Scenario is ${SCENARIO}"
-
-
-if [ $SCENARIO != "UDS" ]; then
+if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
     export DD_AGENT_HOST=library_proxy
     export HIDDEN_APM_PORT_OVERRIDE=8126
     export HIDDEN_DSD_PORT_OVERRIDE=8125
 fi
 
-export SYSTEST_SCENARIO=$SCENARIO
-export SYSTEST_VARIATION=$VARIATION
-
-if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
+if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
     
-elif [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
+elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     echo "Running all tests in UDS mode."
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs_uds
@@ -51,34 +45,36 @@ elif [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     unset DD_AGENT_HOST
     export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
     export HIDDEN_DSD_PORT_OVERRIDE=7125 # Break normal communication
-    if [ $VARIATION = "DEFAULT" ]; then
+    
+    # Assume explicit config and unset if DEFAULT
+    export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
+    export DD_DOGSTATSD_SOCKET=/tmp/dsd.sock
+
+    if [ $SYSTEMTESTS_VARIATION = "DEFAULT" ]; then
         # Test implicit config
-        echo "Testing default UDS configuration path."
         unset DD_APM_RECEIVER_SOCKET
         unset DD_DOGSTATSD_SOCKET
-        export USE_DEFAULT_UDS=1
-    else
-       # Test explicit config
-        echo "Testing explicit UDS configuration path."
-        export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
-        export DD_DOGSTATSD_SOCKET=/tmp/dsd.sock
-    fi 
+    fi
 
-elif [ $SCENARIO = "SAMPLING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
-elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_MissingRules scenarios/appsec/test_customconf.py::Test_ConfRuleSet"
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c04
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
-elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_CorruptedRules
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c05
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
-elif [ $SCENARIO = "PROFILING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
+    export RUNNER_ARGS=scenarios/appsec_unsupported.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
+
+elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
     export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
@@ -108,23 +104,39 @@ done
 # them in the docker-compose.yml is not possible
 echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
-echo ============ Run tests ===================
+echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
 echo 🔥 Starting test context.
 
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
+echo "Starting containers in background."
+
 docker-compose up -d
+
+echo "Getting cgroup."
+
 docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
 
+echo "Saving all logs to ./${SYSTEMTESTS_LOG_FOLDER}"
+
+export container_log_folder="unset"
 # Save docker logs
 for container in ${containers[@]}
 do
-    docker-compose logs --no-color --no-log-prefix -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
+    container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${container}"
+    echo "Saving ${container} logs to ./${container_log_folder}"
+    docker-compose logs --no-color --no-log-prefix -f $container > $container_log_folder/stdout.log &
 done
+
+echo "Outputting runner logs."
 
 # Show output. Trick: The process will end when runner ends
 docker-compose logs -f runner
+
+docker-compose logs weblog
+
+echo "Getting runner exit code."
 
 # Get runner status
 EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
@@ -133,4 +145,5 @@ EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.Exi
 docker-compose down --remove-orphans
 
 # Exit with runner's status
+echo "Exiting with ${EXIT_CODE}"
 exit $EXIT_CODE

@@ -127,6 +127,7 @@ do
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
 
         docker build \
+            --progress=plain \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
             --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
             --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \

@@ -49,4 +49,5 @@ ADD utils/build/docker/php/php-fpm/entrypoint.sh /
 
 WORKDIR /binaries
 RUN echo "dumb-init /entrypoint.sh" >> ./app.sh
+RUN chmod +x app.sh
 CMD [ "./app.sh" ]

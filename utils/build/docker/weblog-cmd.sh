@@ -6,12 +6,15 @@
 
 
 ##########################################################################################
-# The purpose of this script is to proxy UDS to TCP for mitmproxy until we implement UDS proxy.
+# This is an entrypoint file that all containers run in system-tests are funneled through.
 ##########################################################################################
 
 set -eu
 
-if [ ${SYSTEST_SCENARIO} = "UDS" ]; then
+BASEDIR=$(dirname $0)
+echo "Configuration script location: ${BASEDIR}"
+
+if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
 
     export EXPECTED_APM_SOCKET=${DD_APM_RECEIVER_SOCKET:-/var/run/datadog/apm.socket}
     export EXPECTED_DSD_SOCKET=${DD_DOGSTATSD_SOCKET:-/var/run/datadog/dsd.socket}
@@ -41,12 +44,16 @@ if [ ${SYSTEST_SCENARIO} = "UDS" ]; then
         echo "[SUCCESS] APM receiver socket listening at ${EXPECTED_APM_SOCKET}"
     else
         echo "[FAILURE] APM receiver socket not bound to ${EXPECTED_APM_SOCKET}"
+        exit 1
     fi
 
     if test -f "${EXPECTED_DSD_SOCKET}"; then
         echo "[SUCCESS] DSD receiver socket listening at ${EXPECTED_DSD_SOCKET}"
     else
         echo "[FAILURE] DSD receiver socket not bound to ${EXPECTED_DSD_SOCKET}"
+        exit 1
     fi
-
 fi
+
+./app.sh
+

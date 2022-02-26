@@ -30,6 +30,11 @@ services:
       - DD_API_KEY
       - DD_ENV=system-tests
       - DD_SITE=${DD_SITE:-datad0g.com}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/info"]
+      interval: 10s
+      start_period: 5s
+      retries: 6
 
   runner:
     image: system_tests/runner
