@@ -11,30 +11,42 @@
 
 set -eu
 
-echo "APM receiver socket is ${DD_APM_RECEIVER_SOCKET:-NOT_SET}"
-echo "DSD receiver socket is ${DD_DOGSTATSD_SOCKET:-NOT_SET}"
-
 if [ ${SYSTEST_SCENARIO} = "UDS" ]; then
 
-    if [ ${SYSTEST_VARIATION} = "DEFAULT" ]; then
+    export EXPECTED_APM_SOCKET=${DD_APM_RECEIVER_SOCKET:-/var/run/datadog/apm.socket}
+    export EXPECTED_DSD_SOCKET=${DD_DOGSTATSD_SOCKET:-/var/run/datadog/dsd.socket}
+
+    echo "Setting up UDS with ${EXPECTED_APM_SOCKET} and ${EXPECTED_DSD_SOCKET}"
+
+    if [ ${EXPECTED_APM_SOCKET} = "/var/run/datadog/apm.socket" ]; then
 
         echo "Attempting to use UDS default path"
 
         mkdir -p /var/run/datadog
         chmod -R a+rwX /var/run/datadog
 
-        ( socat UNIX-LISTEN:/var/run/datadog/apm.sock,fork TCP:library_proxy:${HIDDEN_APM_PORT_OVERRIDE:-7126} ) &
-        ( socat -u UNIX-LISTEN:/var/run/datadog/dsd.sock,fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE:-7125} ) &
-        echo "Using default UDS config successfully"
-        
+        ( socat UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:library_proxy:${HIDDEN_APM_PORT_OVERRIDE:-7126} ) &
+        ( socat -u UNIX-LISTEN:${EXPECTED_DSD_SOCKET},fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE:-7125} ) &     
     else
         echo "Using explicit UDS config"
         if [ -z ${DD_APM_RECEIVER_SOCKET+x} ]; then
-            ( socat UNIX-LISTEN:${DD_APM_RECEIVER_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} ) &
+            ( socat UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} ) &
         fi
         if [ -z ${DD_DOGSTATSD_SOCKET+x} ]; then
-            ( socat -u UNIX-LISTEN:${DD_DOGSTATSD_SOCKET},fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE} ) &
+            ( socat -u UNIX-LISTEN:${EXPECTED_DSD_SOCKET},fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE} ) &
         fi
     fi 
+
+    if test -f "${EXPECTED_APM_SOCKET}"; then
+        echo "[SUCCESS] APM receiver socket listening at ${EXPECTED_APM_SOCKET}"
+    else
+        echo "[FAILURE] APM receiver socket not bound to ${EXPECTED_APM_SOCKET}"
+    fi
+
+    if test -f "${EXPECTED_DSD_SOCKET}"; then
+        echo "[SUCCESS] DSD receiver socket listening at ${EXPECTED_DSD_SOCKET}"
+    else
+        echo "[FAILURE] DSD receiver socket not bound to ${EXPECTED_DSD_SOCKET}"
+    fi
 
 fi

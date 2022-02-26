@@ -29,8 +29,12 @@ VARIATION=${2:-DEFAULT}
 
 echo "Scenario is ${SCENARIO}"
 
-export DD_TRACE_AGENT_PORT=8126
-export DD_AGENT_HOST=library_proxy
+
+if [ $SCENARIO != "UDS" ]; then
+    export DD_AGENT_HOST=library_proxy
+    export HIDDEN_APM_PORT_OVERRIDE=8126
+    export HIDDEN_DSD_PORT_OVERRIDE=8125
+fi
 
 export SYSTEST_SCENARIO=$SCENARIO
 export SYSTEST_VARIATION=$VARIATION
@@ -42,11 +46,11 @@ if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
 elif [ $SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     echo "Running all tests in UDS mode."
     export RUNNER_ARGS=tests/
-    export SYSTEMTESTS_LOG_FOLDER=logs
-    unset DD_AGENT_HOST
+    export SYSTEMTESTS_LOG_FOLDER=logs_uds
     unset DD_TRACE_AGENT_PORT
-    export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal TCP communication
-    export HIDDEN_DSD_PORT_OVERRIDE=7125 # Break normal TCP communication
+    unset DD_AGENT_HOST
+    export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
+    export HIDDEN_DSD_PORT_OVERRIDE=7125 # Break normal communication
     if [ $VARIATION = "DEFAULT" ]; then
         # Test implicit config
         echo "Testing default UDS configuration path."

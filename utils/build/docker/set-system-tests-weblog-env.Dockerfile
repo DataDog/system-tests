@@ -1,5 +1,7 @@
 FROM system_tests/weblog
 
+RUN apt-get update
+
 # Datadog setup
 ENV DD_SERVICE=weblog
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
@@ -34,10 +36,9 @@ ENV SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$SYSTEM_TESTS_APPSEC_EVENT_RULES_VER
 # files for exotic scenarios
 RUN echo "corrupted::data" > /appsec_corrupted_rules.yml
 
-RUN apt-get update
 RUN apt-get install socat -y
-
 COPY ./utils/scripts/configuration/ /configuration-scripts
 COPY ./utils/scripts/weblog-entrypoint.sh ./weblog-entrypoint.sh
-
-ENTRYPOINT ./weblog-entrypoint.sh
+RUN chmod +x app.sh
+CMD [ "./app.sh"]
+ENTRYPOINT [ "./weblog-entrypoint.sh" ]

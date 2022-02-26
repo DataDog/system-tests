@@ -14,4 +14,5 @@ set -eu
 /configuration-scripts/configure-app-container.sh
 echo "Argument count: ${#:-ZERO}"
 echo "Arguments passed: ${@:-MUST_SPECIFY_ARGUMENTS_VIA_DOCKERFILE_CMD}"
+
 eval "${@:-MUST_SPECIFY_ARGUMENTS_VIA_DOCKERFILE_CMD}"
