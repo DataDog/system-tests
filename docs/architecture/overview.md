@@ -125,17 +125,17 @@ The run script ultimately calls the `./docker-compose.yml` file and whichever im
 ## Building the System Tests
 
 The first argument to the `./build.sh` script is the language (`$TEST_LIBRARY`) which is built: `./utils/build/docker/{language}`.
-    - `./build.sh ruby`
-    - `./build.sh python`
-    - `./build.sh php`
-    - `./build.sh nodejs`
-    - `./build.sh java`
-    - `./build.sh golang`
-    - `./build.sh dotnet`
+ - `./build.sh ruby`
+ - `./build.sh python`
+ - `./build.sh php`
+ - `./build.sh nodejs`
+ - `./build.sh java`
+ - `./build.sh golang`
+ - `./build.sh dotnet`
 
 There are explicit arguments available for more specific configuration of the build.
-    i.e., `./build.sh --library {language} --weblog-variant {dockerfile-prefix} 
-    e.g., `./build.sh --library python --weblog-variant flask-poc 
+ - i.e., `./build.sh --library {language} --weblog-variant {dockerfile-prefix} 
+- e.g., `./build.sh --library python --weblog-variant flask-poc 
 
 These arguments determine which Dockerfile is ultimately used in the format of: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`
 
