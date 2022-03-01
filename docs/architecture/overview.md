@@ -68,6 +68,16 @@ The tests then wait on the results, which are available as the logs are collecte
   - Sampling rates from the agent are respected when not explicitly configured
   - All tracer libraries log consistent diagnostic information at startup
 
+## How do I add a new test?
+
+The default folder to add new tests is `./tests`.
+
+The framework used for running tests is [pytest](https://docs.pytest.org/).
+
+For a test to be run, it must have the filename prefix `test_`.
+
+Follow the example provided within `./tests/template_test.py` if you are unfamiliar with pytest.
+
 ## How do I troubleshoot a failing test?
 
 The first method of troubleshooting should be to inspect the logs folder.
@@ -95,7 +105,6 @@ If there are more in depth problems within a container you may need to adjust th
  - re-run `./build.sh`
  - start the container via `docker-compose up`
  - `docker exec -it {container-id} bash` to diagnose from within the container
-
 
 ## What is the structure of the code base?
 
@@ -142,11 +151,13 @@ The first argument to the `./run.sh` script is the scenario (`$SCENARIO`) which 
 You can see all available scenarios within the `./run.sh` script.
 The run script sets necessary variables for each scenario, which are then used within the `docker-compose.yml` file.
 
-# Structure of the application container
+## Structure of the application container
 
 The application container is the pluggable component for each language.
 It is a web application that exposes consistent endpoints across all implementations.
+
 If you are introducing a new Dockerfile, or looking to modify an existing one, remember that they are built using this convention in arguments: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`.
 
 All application containers share final layers applied via this file: `./utils/build/docker/set-system-tests-weblog-env.Dockerfile`
+
 The shared application docker file is a good place to add any configuration needed across languages and variants.
