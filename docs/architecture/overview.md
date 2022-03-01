@@ -17,15 +17,15 @@ This document aims to give a working understanding of the parts of system-tests,
 ## What are the components of a running test?
 
 When the system tests are executing, there are several main containers of concern.
- - [Tests Container](TODO)
+ - [Tests Container](#tests-container)
    - Responsible for running the actual tests, sending traffic, and asserting results
- - [Application Container](#structure-of-the-application-container)
+ - [Application Container](#application-container)
    - Swappable webapp language module that must meet an interface
- - [Application Proxy](TODO)
+ - [Application Proxy Container](#application-proxy-container)
    - Mechanism to inspect payloads from the datadog libraries
- - [Agent](TODO)
+ - [Agent Container](#agent-container)
    - Basic Datadog agent image
- - [Agent Proxy](TODO)
+ - [Agent Proxy Container](#agent-proxy-container)
    - Mechanism to inspect payloads from the Agent to the Backend
 
 ```mermaid
@@ -46,15 +46,14 @@ The tests then wait on the results, which are available as the logs are collecte
 
 ## What are system-tests bad for?
 
- - Combinatorial style tests
- - Tests that require specific versions of runtimes, libraries, or operating systems
+ - Combinatorial style tests (Permutations of runtimes, libraries, operating systems)
  - Cloud deployments, kubernetes, distributed deployments
  - Immediately knowing the reason a feature fails
  - Problems or features which are not shared across tracers
  - Performance or throughput testing
 
  *Examples of bad candidates:*
-  - The .NET tracer must not write invalid IL for it's earliest supported runtime
+  - The .NET tracer must not write invalid [IL](https://en.wikipedia.org/wiki/Common_Intermediate_Language) for it's earliest supported runtime
   - The startup overhead of the Java tracer is less than 3s for a given sample application
   - The python tracer must not fail to retrieve traces for a version range of the mongodb library
 
@@ -79,7 +78,7 @@ The framework used for running tests is [pytest](https://docs.pytest.org/).
 
 For a test to be run, it must have the filename prefix `test_`.
 
-Follow the example provided within `./tests/template_test.py` if you are unfamiliar with pytest.
+Follow the [example provided within `./tests/template_test.py`](/DataDog/system-tests/blob/main/tests/template_test.py).
 
 ## How do I troubleshoot a failing test?
 
@@ -138,8 +137,8 @@ The first argument to the `./build.sh` script is the language (`$TEST_LIBRARY`) 
  - `./build.sh dotnet`
 
 There are explicit arguments available for more specific configuration of the build.
- - i.e., `./build.sh --library {language} --weblog-variant {dockerfile-prefix} 
- - e.g., `./build.sh --library python --weblog-variant flask-poc 
+ - i.e., `./build.sh --library {language} --weblog-variant {dockerfile-prefix}`
+ - e.g., `./build.sh --library python --weblog-variant flask-poc`
 
 These arguments determine which Dockerfile is ultimately used in the format of: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`
 
@@ -151,13 +150,16 @@ The first argument to the `./run.sh` script is the scenario (`$SCENARIO`) which 
  - `./run.sh`
  - `./run.sh DEFAULT`
  - `./run.sh SAMPLING`
- - `./run.sh PROFLING`
+ - `./run.sh PROFILING`
 
 You can see all available scenarios within the `./run.sh` script.
 
 The run script sets necessary variables for each scenario, which are then used within the `docker-compose.yml` file.
 
-## Structure of the application container
+When debugging tests, it may be useful to only run individual tests, following this example:
+ - `./run.sh tests/appsec/test_conf.py::Test_StaticRuleSet::test_basic_hardcoded_ruleset`
+
+## Application Container
 
 The application container is the pluggable component for each language.
 It is a web application that exposes consistent endpoints across all implementations.
@@ -167,3 +169,19 @@ If you are introducing a new Dockerfile, or looking to modify an existing one, r
 All application containers share final layers applied via this file: `./utils/build/docker/set-system-tests-weblog-env.Dockerfile`
 
 The shared application docker file is a good place to add any configuration needed across languages and variants.
+
+## Application Proxy Container
+
+TODO
+
+## Tests Container
+
+TODO
+
+## Agent Container
+
+TODO
+
+## Agent Proxy Container
+
+TODO
