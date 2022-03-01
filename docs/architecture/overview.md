@@ -12,33 +12,6 @@ To enable a typical feature within system tests might go like this:
  However, there are many scenarios where a test may not be so simple to implement.
  This document aims to give a working understanding of the parts of system-tests, and how to troubleshoot them.
 
-## What is system-tests bad for?
-
- - Combinatorial style tests
- - Tests that require specific versions of runtimes, libraries, or operating systems
- - Cloud deployments, kubernetes, distributed deployments
- - Immediately knowing the reason a feature fails
- - Problems or features which are not shared across tracers
- - Performance or throughput testing
-
- *Examples of bad candidates:*
-  - The .NET tracer must not write invalid IL for it's earliest supported runtime
-  - The startup overhead of the Java tracer is less than 3s for a given sample application
-  - The python tracer must not fail to retrieve traces for a version range of the mongodb library
-
-## What is system-tests good for?
-
- - Catching regressions on shared features
- - Wide coverage in a short time frame
- - Shared test coverage across all tracer libraries
- - Ensuring requirements for shared features are met across tracer libraries
-
-*Examples of good candidates:*
-  - `DD_TAGS` must be parsed correctly and carried as tags on all traces
-  - Tracer libraries must be able to communicate with the agent through Unix Domain Sockets
-  - Sampling rates from the agent are respected when not explicitly configured
-  - All tracer libraries log consistent diagnostic information at startup
-
 ## What are the components of a running test?
 
 When the system tests are executing, there are four main containers of concern.
@@ -60,6 +33,33 @@ flowchart TD
 The tests send requests directly to the application.
 The tests then wait on the results, which are available as the logs are collected from [mitmproxy](TODO) dumps.
 
+## What are system-tests bad for?
+
+ - Combinatorial style tests
+ - Tests that require specific versions of runtimes, libraries, or operating systems
+ - Cloud deployments, kubernetes, distributed deployments
+ - Immediately knowing the reason a feature fails
+ - Problems or features which are not shared across tracers
+ - Performance or throughput testing
+
+ *Examples of bad candidates:*
+  - The .NET tracer must not write invalid IL for it's earliest supported runtime
+  - The startup overhead of the Java tracer is less than 3s for a given sample application
+  - The python tracer must not fail to retrieve traces for a version range of the mongodb library
+
+## What are system-tests good for?
+
+ - Catching regressions on shared features
+ - Wide coverage in a short time frame
+ - Shared test coverage across all tracer libraries
+ - Ensuring requirements for shared features are met across tracer libraries
+
+*Examples of good candidates:*
+  - `DD_TAGS` must be parsed correctly and carried as tags on all traces
+  - Tracer libraries must be able to communicate with the agent through Unix Domain Sockets
+  - Sampling rates from the agent are respected when not explicitly configured
+  - All tracer libraries log consistent diagnostic information at startup
+  
 ## How do I troubleshoot a failing test?
 
 The first method of troubleshooting should be to inspect the logs folder.
