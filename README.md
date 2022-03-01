@@ -12,7 +12,7 @@ Add a valid staging `DD_API_KEY` environment variable (you can set it in a `.env
 
 ```mermaid
 flowchart TD
-    BUILDNODE[./build.sh node] --> BUILT
+    BUILDNODE[./build.sh nodejs] --> BUILT
     BUILDDOTNET[./build.sh dotnet] --> BUILT
     BUILDJAVA[./build.sh java] --> BUILT
     BUILDGO[./build.sh golang] --> BUILT
