@@ -27,7 +27,28 @@ flowchart TD
     APP[Application Container] --> APPPROXY
     APPPROXY[Application Proxy] --> AGENT
     AGENT[Agent Container] --> AGENTPROXY
-    AGENTPROXY[Agent Proxy] --> BACKEND
+    AGENTPROXY[Agent Proxy] -->|remote request| BACKEND
     BACKEND[Datadog]
+```
+
+The tests send requests directly to the application.
+The tests then wait on the results, which are available as the logs are collected from [mitmproxy](TODO) dumps.
+
+## How do I troubleshoot?
+
+The first method of troubleshooting should be to inspect the logs folder.
+The logs folder is set on the `SYSTEMTESTS_LOG_FOLDER` variable in in the `./run.sh` file, but you should be able to notice an aptly named folder created after your tests run.
+
+```mermaid
+flowchart TD
+    RUNTEST[./run.sh] -->|pass| PASS
+    PASS[Success]
+    RUNTEST -->|fail| TESTFAIL
+    TESTFAIL[Test Failures] --> FAILURELOG
+    FAILURELOG[Logs Directory] --> LOGDECISION
+    LOGDECISION(Enough information?) -->|no| ADDLOGS
+    ADDLOGS[Add more logs] --> RUNTEST
+    LOGDECISION(Enough information?) -->|yes| FIXTEST
+    FIXTEST[Fix tests] --> RUNTEST
 ```
 
