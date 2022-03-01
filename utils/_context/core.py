@@ -28,16 +28,21 @@ class ImageInfo:
             key, value = var.split("=", 1)
             self.env[key] = value
 
+        try:
+            with open(f"logs/.{image_name}.env") as f:
+                for line in f:
+                    if line.strip():
+                        key, value = line.split("=", 1)
+                        self.env[key] = value.strip()
+        except FileNotFoundError:
+            pass
+
 
 class _Context:
     def __init__(self):
         self.agent_image = ImageInfo("agent")
         self.weblog_image = ImageInfo("weblog")
         self._warmups = []
-
-        # complete with some env that can be sent threw command line
-        if "DD_APPSEC_RULES" in os.environ:
-            self.weblog_image.env["DD_APPSEC_RULES"] = os.environ["DD_APPSEC_RULES"]
 
         if "DD_APPSEC_RULES" in self.weblog_image.env:
             self.appsec_rules = self.weblog_image.env["DD_APPSEC_RULES"]

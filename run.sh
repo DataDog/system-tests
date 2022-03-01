@@ -20,6 +20,8 @@ containers=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library)
 
 # Stop previous container not stopped
+mkdir -p logs
+touch logs/.weblog.env
 docker-compose down
 
 SCENARIO=${1:-DEFAULT}
@@ -35,12 +37,12 @@ elif [ $SCENARIO = "SAMPLING" ]; then
 elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c04
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
-    export DD_APPSEC_RULES=/donotexists
+    WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
 elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c05
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
-    export DD_APPSEC_RULES=/appsec_corrupted_rules.yml
+    WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
 elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     export RUNNER_ARGS=scenarios/appsec_unsupported.py
@@ -65,6 +67,11 @@ for container in ${containers[@]}
 do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/$container
 done
+
+# Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
+# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set 
+# them in the docker-compose.yml is not possible
+echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
 echo ============ Run tests ===================
 echo 🔥 Starting test context.
