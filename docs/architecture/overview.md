@@ -99,6 +99,7 @@ flowchart TD
 ## How do I troubleshoot a container?
 
 The `./run.sh` script starts the containers in the background.
+
 Often, knowing how a container fails to start is as simple as running `docker-compose up {container}` and observing the output.
 
 If there are more in depth problems within a container you may need to adjust the Dockerfile.
@@ -111,16 +112,16 @@ If there are more in depth problems within a container you may need to adjust th
 The entry points of system-tests are observable from `./.github/workflows/ci.yml`.
 
 The `./build.sh` script calls into a nested `./utils/build/build.sh` script.
-[Click here for more details about the `./build.sh` script and options available](#building-the-system-tests).
+ - [Click for details about the `./build.sh` script and options available](#building-the-system-tests).
 
 The first argument to the `./build.sh` script is the language which is built: `./utils/build/docker/{language}`.
-    e.g., `./build.sh dotnet`
+ - e.g., `./build.sh dotnet`
 
 The `./run.sh` script runs the tests and relies 1-to-1 on what is built in the `./build.sh` step.
-[Click here for more details about the `./run.sh` script and options available](#running-the-system-tests).
+ - [Click for details about the `./run.sh` script and options available](#running-the-system-tests).
 
 The run script ultimately calls the `./docker-compose.yml` file and whichever image is built with the `weblog` tag is tested. 
-[Click here for more detail about how the images interact with eachother](#what-are-the-components-of-a-running-test)
+ - [Click for detail about how the images interact with eachother](#what-are-the-components-of-a-running-test)
 
 ## Building the System Tests
 
@@ -135,20 +136,22 @@ The first argument to the `./build.sh` script is the language (`$TEST_LIBRARY`) 
 
 There are explicit arguments available for more specific configuration of the build.
  - i.e., `./build.sh --library {language} --weblog-variant {dockerfile-prefix} 
-- e.g., `./build.sh --library python --weblog-variant flask-poc 
+ - e.g., `./build.sh --library python --weblog-variant flask-poc 
 
 These arguments determine which Dockerfile is ultimately used in the format of: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`
 
 ## Running the System Tests
 
 The build script must be successful before running the tests.
+
 The first argument to the `./run.sh` script is the scenario (`$SCENARIO`) which defaults to `DEFAULT`.
-    - `./run.sh`
-    - `./run.sh DEFAULT`
-    - `./run.sh SAMPLING`
-    - `./run.sh PROFLING`
+ - `./run.sh`
+ - `./run.sh DEFAULT`
+ - `./run.sh SAMPLING`
+ - `./run.sh PROFLING`
 
 You can see all available scenarios within the `./run.sh` script.
+
 The run script sets necessary variables for each scenario, which are then used within the `docker-compose.yml` file.
 
 ## Structure of the application container
