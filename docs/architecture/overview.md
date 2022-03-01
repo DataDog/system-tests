@@ -12,7 +12,7 @@ To enable a typical feature within system tests might go like this:
  However, there are many scenarios where a test may not be so simple to implement.
  This document aims to give a working understanding of the parts of system-tests, and how to troubleshoot them.
 
-## What is system-tests NOT for?
+## What is system-tests bad for?
 
  - Combinatorial style tests
  - Tests that require specific versions of runtimes, libraries, or operating systems
@@ -26,7 +26,7 @@ To enable a typical feature within system tests might go like this:
   - The startup overhead of the Java tracer is less than 3s for a given sample application
   - The python tracer must not fail to retrieve traces for a version range of the mongodb library
 
-## What is system-tests GOOD for?
+## What is system-tests good for?
 
  - Catching regressions on shared features
  - Wide coverage in a short time frame
@@ -83,18 +83,29 @@ flowchart TD
 
 The `./run.sh` script starts the containers in the background.
 Often, knowing how a container fails to start is as simple as running `docker-compose up {container}` and observing the output.
-If there are more in depth problems within a container, you may need to adjust the Dockerfile, re-run `./build.sh`, start the container via docker-compose, and then `docker exec -it {container-id} bash` to diagnose from within the container.
 
-```mermaid
-flowchart TD
-    RUNTEST[./run.sh] -->|pass| PASS
-    PASS[Success]
-    RUNTEST -->|fail| TESTFAIL
-    TESTFAIL[Test Failures] --> FAILURELOG
-    FAILURELOG[Logs Directory] --> LOGDECISION
-    LOGDECISION(Enough information?) -->|no| ADDLOGS
-    ADDLOGS[Add more logs] --> RUNTEST
-    LOGDECISION -->|yes| FIXTEST
-    FIXTEST[Fix tests] --> RUNTEST
-```
+If there are more in depth problems within a container you may need to adjust the Dockerfile.
+ - re-run `./build.sh`
+ - start the container via `docker-compose up`
+ - `docker exec -it {container-id} bash` to diagnose from within the container
+
+
+## What is the structure of the code base?
+
+The entry points of system-tests are observable from `./.github/workflows/ci.yml`.
+
+The `./build.sh` script calls into a nested `./utils/build/build.sh` script.
+[Click here for more details about the `./build.sh` script and options available](#building-the-system-tests).
+
+The first argument to the `./build.sh` script is the language which is built: `./utils/build/docker/{language}`.
+    e.g., `./build.sh dotnet`
+
+The `./run.sh` script runs the tests and relies 1-to-1 on what is built in the `./build.sh` step.
+[Click here for more details about the `./run.sh` script and options available](TODO).
+
+The run script ultimately calls the `./docker-compose.yml` file and whichever image is built with the `weblog` tag is tested. 
+[Click here for more detail about how the images interact with eachother](#what-are-the-components-of-a-running-test)
+
+## Building the System Tests
+
 
