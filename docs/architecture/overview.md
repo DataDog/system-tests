@@ -17,11 +17,16 @@ This document aims to give a working understanding of the parts of system-tests,
 ## What are the components of a running test?
 
 When the system tests are executing, there are several main containers of concern.
-The [Tests Container](TODO) is responsible for running the actual tests, sending traffic, and asserting results.
-The [Application Container](#structure-of-the-application-container) is the swappable web app language module that must meet an interface.
-The [Application Proxy](TODO) is what we use to inspect payloads from the datadog libraries.
-The [Agent](TODO) is the basic Datadog agent image.
-The [Agent Proxy](TODO) is what is used to inspect payloads from the Agent to the Backend.
+ - [Tests Container](TODO)
+   - Responsible for running the actual tests, sending traffic, and asserting results
+ - [Application Container](#structure-of-the-application-container)
+   - Swappable webapp language module that must meet an interface
+ - [Application Proxy](TODO)
+   - Mechanism to inspect payloads from the datadog libraries
+ - [Agent](TODO)
+   - Basic Datadog agent image
+ - [Agent Proxy](TODO)
+   - Mechanism to inspect payloads from the Agent to the Backend
 
 ```mermaid
 flowchart TD
