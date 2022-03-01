@@ -12,6 +12,31 @@ To enable a typical feature within system tests might go like this:
  However, there are many scenarios where a test may not be so simple to implement.
  This document aims to give a working understanding of the parts of system-tests, and how to troubleshoot them.
 
+## What is system-tests NOT for?
+
+ - Combinatorial style tests
+ - Tests that require specific versions of runtimes, libraries, or operating systems
+ - Immediately knowing the reason a feature fails
+ - Problems or features which are not shared across tracers
+ - Performance or throughput testing
+
+ *Examples of bad candidates:*
+  - The .NET tracer must not write invalid IL for it's earliest supported runtime
+  - The startup overhead of the Java tracer is less than 3s for a given sample application
+
+## What is system-tests GOOD for?
+
+ - Catching regressions on shared features
+ - Wide coverage in a short time frame
+ - Shared test coverage across all tracer libraries
+ - Ensuring requirements for shared features are met across tracer libraries
+
+*Examples of good candidates:*
+  - `DD_TAGS` must be parsed correctly and carried as tags on all traces
+  - Tracer libraries must be able to communicate with the agent through Unix Domain Sockets
+  - Sampling rates from the agent are respected when not explicitly configured
+  - All tracer libraries log consistent diagnostic information at startup
+
 ## What are the components of a running test?
 
 When the system tests are executing, there are four main containers of concern.
@@ -48,7 +73,7 @@ flowchart TD
     FAILURELOG[Logs Directory] --> LOGDECISION
     LOGDECISION(Enough information?) -->|no| ADDLOGS
     ADDLOGS[Add more logs] --> RUNTEST
-    LOGDECISION(Enough information?) -->|yes| FIXTEST
+    LOGDECISION -->|yes| FIXTEST
     FIXTEST[Fix tests] --> RUNTEST
 ```
 

@@ -18,13 +18,9 @@ flowchart TD
     BUILDGO[./build.sh golang] --> BUILT
     BUILDPHP[./build.sh php] --> BUILT
     BUILDPY[./build.sh python] --> BUILT
-    BUILT[Build complete] --> SCENARIO
-    SCENARIO(Pick scenario) --> RUNDEFAULT
-    SCENARIO --> RUNSAMPLING
-    SCENARIO --> RUNMISC
+    BUILDRUBY[./build.sh ruby] --> BUILT
+    BUILT[Build complete] --> RUNDEFAULT
     RUNDEFAULT[./run.sh] -->|wait| FINISH
-    RUNSAMPLING[./run.sh SAMPLING] -->|wait| FINISH
-    RUNMISC[./run.sh ....] -->|wait| FINISH
     FINISH[Tests complete] --> LOGS
     FINISH[Tests complete] --> OUTPUT
     OUTPUT[Test output in bash]
