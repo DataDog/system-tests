@@ -16,6 +16,7 @@ To enable a typical feature within system tests might go like this:
 
  - Combinatorial style tests
  - Tests that require specific versions of runtimes, libraries, or operating systems
+ - Cloud deployments, kubernetes, distributed deployments
  - Immediately knowing the reason a feature fails
  - Problems or features which are not shared across tracers
  - Performance or throughput testing
@@ -23,6 +24,7 @@ To enable a typical feature within system tests might go like this:
  *Examples of bad candidates:*
   - The .NET tracer must not write invalid IL for it's earliest supported runtime
   - The startup overhead of the Java tracer is less than 3s for a given sample application
+  - The python tracer must not fail to retrieve traces for a version range of the mongodb library
 
 ## What is system-tests GOOD for?
 
@@ -59,10 +61,29 @@ flowchart TD
 The tests send requests directly to the application.
 The tests then wait on the results, which are available as the logs are collected from [mitmproxy](TODO) dumps.
 
-## How do I troubleshoot?
+## How do I troubleshoot a failing test?
 
 The first method of troubleshooting should be to inspect the logs folder.
 The logs folder is set on the `SYSTEMTESTS_LOG_FOLDER` variable in in the `./run.sh` file, but you should be able to notice an aptly named folder created after your tests run.
+
+```mermaid
+flowchart TD
+    RUNTEST[./run.sh] -->|pass| PASS
+    PASS[Success]
+    RUNTEST -->|fail| TESTFAIL
+    TESTFAIL[Test Failures] --> FAILURELOG
+    FAILURELOG[Logs Directory] --> LOGDECISION
+    LOGDECISION(Enough information?) -->|no| ADDLOGS
+    ADDLOGS[Add more logs] --> RUNTEST
+    LOGDECISION -->|yes| FIXTEST
+    FIXTEST[Fix tests] --> RUNTEST
+```
+
+## How do I troubleshoot a container?
+
+The `./run.sh` script starts the containers in the background.
+Often, knowing how a container fails to start is as simple as running `docker-compose up {container}` and observing the output.
+If there are more in depth problems within a container, you may need to adjust the Dockerfile, re-run `./build.sh`, start the container via docker-compose, and then `docker exec -it {container-id} bash` to diagnose from within the container.
 
 ```mermaid
 flowchart TD
