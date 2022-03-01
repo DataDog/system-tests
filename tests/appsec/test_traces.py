@@ -15,8 +15,9 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 @released(golang="1.36.0")
 @released(dotnet="1.29.0", java="0.92.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
 @missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library < "python@0.58.5")
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 
@@ -28,6 +29,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
+    @missing_feature(library="python")
     def test_appsec_event_span_tags(self):
         """
         Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
@@ -110,6 +112,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_request_headers)
         interfaces.library.add_span_validation(r, validate_response_headers)
 
+    @missing_feature(library="python")
     @bug(context.library < "java@0.93.0")
     @missing_feature(library="php")  # need to generate a user trace
     def test_root_span_coherence(self):

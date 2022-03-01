@@ -5,7 +5,7 @@
 from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant, missing_feature
 
 
-@released(java="0.90.0", nodejs="2.0.0", python="?", ruby="0.54.2")
+@released(java="0.90.0", nodejs="2.0.0", python="0.58.5", ruby="0.54.2")
 @irrelevant(library="cpp")
 @irrelevant(context.library < "golang@1.36.0", reason="Before 1.36.0, go was using dedicated entry point")
 @missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
