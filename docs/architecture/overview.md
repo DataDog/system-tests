@@ -33,8 +33,10 @@ flowchart TD
     TESTS[Tests Container] -->|Send Requests| APP
     APP[Application Container] --> APPPROXY
     APPPROXY[Application Proxy] --> AGENT
+    APPPROXY -->|mitmdump| TESTS
     AGENT[Agent Container] --> AGENTPROXY
     AGENTPROXY[Agent Proxy] -->|remote request| BACKEND
+    AGENTPROXY -->|mitmdump| TESTS
     BACKEND[Datadog]
 ```
 
