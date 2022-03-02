@@ -26,6 +26,13 @@ go mod tidy
 
 echo $version > /app/SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
-echo "1.2.5" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+if [[ $version >= "1.37.0" ]]; then
+    # Parse the appsec rules version string out of the inlined rules json
+    mod_dir=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)
+    rules_version=$(sed -nrE 's#.*rules_version\\\\":\\\\"([[:digit:]\.-]+)\\\\".*#\1#p' $mod_dir/internal/appsec/rule.go)
+else
+    echo "1.2.5" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+fi
 
-echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
+echo "dd-trace-go version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
+echo "rules version: $(cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"
