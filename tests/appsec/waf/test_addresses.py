@@ -43,8 +43,9 @@ class Test_UrlQuery(BaseTestCase):
         r = self.weblog_get("/waf/", params={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, address="server.request.query")
 
+    @irrelevant(context.agent_version >= "1.2.6", reason="Need to find another rule")
     def test_query_with_strict_regex(self):
-        """ AppSec catches attacks in URL query value, even with regex containing"""
+        """ AppSec catches attacks in URL query value, even with regex containing start and end char"""
         r = self.weblog_get("/waf/", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
