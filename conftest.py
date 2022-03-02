@@ -28,6 +28,7 @@ def pytest_sessionstart(session):
         logger.debug(f"AppSec: {context.php_appsec}")
 
     logger.debug(f"libddwaf: {context.libddwaf_version}")
+    logger.debug(f"AppSec event rules: {context.appsec_event_rules}")
     logger.debug(f"Weblog variant: {context.weblog_variant}")
     logger.debug(f"Backend: {context.dd_site}")
 
@@ -48,6 +49,8 @@ def pytest_report_header(config):
 
     if context.appsec_rules:
         headers.append(f"AppSec rules: {context.appsec_rules}")
+
+    headers.append(f"AppSec event rules: {context.appsec_event_rules}")
 
     headers += [
         f"Weblog variant: {context.weblog_variant}",
