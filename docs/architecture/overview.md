@@ -159,6 +159,12 @@ The run script sets necessary variables for each scenario, which are then used w
 When debugging tests, it may be useful to only run individual tests, following this example:
  - `./run.sh tests/appsec/test_conf.py::Test_StaticRuleSet::test_basic_hardcoded_ruleset`
 
+## Tests Container
+
+This container shares mounted volumes with the proxy containers.
+It executes the tests via pytest.
+These tests generate traffic against the Application Container and then inspect the dumps from the proxy containers.
+
 ## Application Container
 
 The application container is the pluggable component for each language.
@@ -172,16 +178,17 @@ The shared application docker file is a good place to add any configuration need
 
 ## Application Proxy Container
 
-TODO
-
-## Tests Container
-
-TODO
+All application container traffic is sent to this container.
+This container uses mitmproxy to inspect and dump the traffic and then forwards to the Agent Container.
 
 ## Agent Container
 
-TODO
+
+All agent containers share final layers applied via this file: `./utils/build/docker/set-system-tests-agent-env.Dockerfile`
+
+The shared agent docker file is a good place to add any configuration needed across languages and variants.
 
 ## Agent Proxy Container
 
-TODO
+All application agent traffic egress is sent to this container.
+This container uses mitmproxy to inspect and dump the traffic and then forwards to the backend.
