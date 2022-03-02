@@ -26,5 +26,6 @@ go mod tidy
 
 echo $version > /app/SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
+echo "1.2.5" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"

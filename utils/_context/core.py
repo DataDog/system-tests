@@ -78,6 +78,9 @@ class _Context:
         else:
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
+        appsec_event_rules = self.weblog_image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
+        self.appsec_event_rules = Version(appsec_event_rules, "appsec_event_rules")
+
         agent_version = self.agent_image.env.get("SYSTEM_TESTS_AGENT_VERSION")
 
         if not agent_version:
