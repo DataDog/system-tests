@@ -10,7 +10,6 @@ services:
       - INTERFACE_NAME=agent
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081
-      - PROXY_TROLLS
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
@@ -21,23 +20,17 @@ services:
       - INTERFACE_NAME=library
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081
-      - PROXY_TROLLS
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
     image: system_tests/weblog
+    env_file:
+      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/.weblog.env
     environment:
-      - DD_ENV=system-tests
       - DD_AGENT_HOST=library_proxy
       - DD_TRACE_AGENT_PORT=8126
-      - DD_APPSEC_ENABLED=true
-      - DD_TRACE_DEBUG=true
-      - DD_APPSEC_RULES
-      - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
-      - DD_APPSEC_WAF_TIMEOUT=5s
-      - DD_APPSEC_TRACE_RATE_LIMIT=10000
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
@@ -94,8 +87,6 @@ services:
     environment:
       - COLUMNS=${COLUMNS:-120}
       - PYTHONPATH=/app
-      - SYSTEMTESTS_BACKEND
-      - DD_APPSEC_RULES
       - DD_SITE=${DD_SITE:-datad0g.com}
     volumes:
       - ./pytest.ini:/app/pytest.ini
