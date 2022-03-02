@@ -39,7 +39,7 @@ class TestLFIAttempt(BaseTestCase):
         """
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         r = self.weblog_get("/waf/../../../secret.txt")
-        interfaces.library.assert_waf_attack(r, pattern="/../", address="server.request.uri.raw")
+        interfaces.library.assert_waf_attack(r, pattern="(/)?\.\./", address="server.request.uri.raw")
 
     def test_headers(self):
         """
@@ -47,7 +47,7 @@ class TestLFIAttempt(BaseTestCase):
         """
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         r = self.weblog_get("/waf/", headers={"MyHeader": "../../../secret.txt"})
-        interfaces.library.assert_waf_attack(r, pattern="../", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(r, pattern="(/)?\.\./", address="server.request.headers.no_cookies")
 
 
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
@@ -86,7 +86,7 @@ class TestAddresses(BaseTestCase):
         # on server.request.headers.no_cookies and then retry it with the cookies
         # to validate that cookies are properly excluded from server.request.headers.no_cookies.
         r = self.weblog_get("/waf/", headers={"MyHeader": "../../../secret.txt"})
-        interfaces.library.assert_waf_attack(r, pattern="../", address="server.request.headers.no_cookies")
+        interfaces.library.assert_waf_attack(r, pattern="(/)?\.\./", address="server.request.headers.no_cookies")
 
         r = self.weblog_get("/waf/", cookies={"Cookie": "../../../secret.txt"})
         interfaces.library.assert_no_appsec_event(r)
