@@ -243,16 +243,8 @@ class Test_SQLI(BaseTestCase):
 
     def test_sqli(self):
         """AppSec catches SQLI attacks"""
-        r = self.weblog_get("/waf/", cookies={"value": "db_name("})
-        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_140)
-
         r = self.weblog_get("/waf/", cookies={"value": "sleep()"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
-
-    def test_sqli1(self):
-        """AppSec catches SQLI attacks"""
-        r = self.weblog_get("/waf/", params={"value": "0000012345"})
-        interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_220)
 
     @flaky(context.library <= "php@0.68.2")
     @bug(library="dotnet", reason="APPSEC-2290")
