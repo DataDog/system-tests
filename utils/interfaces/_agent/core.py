@@ -20,11 +20,7 @@ class AgentInterfaceValidator(InterfaceValidator):
     def __init__(self):
         super().__init__("agent")
         self.ready = threading.Event()
-
-        if context.library.library in ("php", "nodejs"):
-            self.expected_timeout = 5
-        else:
-            self.expected_timeout = 40
+        self.expected_timeout = 5
 
     def append_data(self, data):
         data = super().append_data(data)
