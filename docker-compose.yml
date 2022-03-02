@@ -5,6 +5,7 @@
 version: "2.4"
 services:
   agent_proxy:
+    container_name: agent_proxy
     image: mitmproxy/mitmproxy
     environment:
       - INTERFACE_NAME=agent
@@ -15,6 +16,7 @@ services:
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
 
   library_proxy:
+    container_name: library_proxy
     image: mitmproxy/mitmproxy
     environment:
       - INTERFACE_NAME=library
@@ -25,6 +27,7 @@ services:
     command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
+    container_name: weblog
     image: system_tests/weblog
     env_file:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/.weblog.env
@@ -50,20 +53,21 @@ services:
         condition: service_started
 
   cassandra_db:
+    container_name: cassandra
     image: cassandra:latest
     restart: always
-    container_name: cassandra
     ports:
       - "9042:9042"
 
   mongodb:
+    container_name: mongodb
     image: mongo:latest
     restart: always
-    container_name: mongodb
     ports:
       - "27017:27017"
   
   agent:
+    container_name: agent
     image: system_tests/agent
     environment:
       - DD_API_KEY
@@ -78,6 +82,7 @@ services:
         condition: service_started
 
   runner:
+    container_name: runner
     image: system_tests/runner
     healthcheck:
       test: ["CMD", "curl", "-f", "http://runner:8081/health"]

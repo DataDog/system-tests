@@ -85,7 +85,7 @@ docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_F
 # Save docker logs
 for container in ${containers[@]}
 do
-    docker-compose logs --no-color -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
+    docker-compose logs --no-color --no-log-prefix -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
 done
 
 # Show output. Trick: The process will end when runner ends
