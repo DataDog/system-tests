@@ -105,8 +105,11 @@ do
             .
         
         if test -f "binaries/waf_rule_set.json"; then
+            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
+
             docker build \
                 --progress=plain \
+                --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                 -t system_tests/weblog \
                 $EXTRA_DOCKER_ARGS \
