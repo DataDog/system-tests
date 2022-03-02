@@ -25,7 +25,7 @@ echo $version > SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 # Read the rule file version
-if [[ $version =~ v1.36 ]]; then
+if [[ "$version" =~ "1.36" ]]; then
     rules_version="1.2.5"
 else
     # Parse the appsec rules version string out of the inlined rules json
