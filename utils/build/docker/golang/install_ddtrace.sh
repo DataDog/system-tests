@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -euv
 
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
@@ -25,11 +25,11 @@ echo $version > SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 # Read the rule file version
-if [[ "$version" =~ "1.36" ]]; then
-    rules_version="1.2.5"
-else
+if [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
     # Parse the appsec rules version string out of the inlined rules json
-    rules_version=$(sed -nrE 's#.*rules_version\\\\":\\\\"([[:digit:]\.-]+)\\\\".*#\1#p' $mod_dir/internal/appsec/rule.go)
+    rules_version="${BASH_REMATCH[1]}"
+else
+    rules_version="1.2.5"
 fi
 echo $rules_version > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
