@@ -158,6 +158,7 @@ The run script sets necessary variables for each scenario, which are then used w
 
 When debugging tests, it may be useful to only run individual tests, following this example:
  - `./run.sh tests/appsec/test_conf.py::Test_StaticRuleSet::test_basic_hardcoded_ruleset`
+ - `./run.sh tests/test_traces.py::Test_Misc::test_main`
 
 ## Tests Container
 
@@ -183,12 +184,16 @@ This container uses mitmproxy to inspect and dump the traffic and then forwards 
 
 ## Agent Container
 
-
 All agent containers share final layers applied via this file: `./utils/build/docker/set-system-tests-agent-env.Dockerfile`
 
 The shared agent docker file is a good place to add any configuration needed across languages and variants.
 
 ## Agent Proxy Container
 
-All application agent traffic egress is sent to this container.
+All agent container traffic egress is sent to this container.
 This container uses mitmproxy to inspect and dump the traffic and then forwards to the backend.
+
+## Testing a local version of the tracer
+
+Read the instructions in [the binaries documentation](/DataDog/system-tests/blob/colin/diagrams/docs/execute/binaries.md)
+In short, copy your tracer version to the `./binaries` folder, and build and run as usual.
