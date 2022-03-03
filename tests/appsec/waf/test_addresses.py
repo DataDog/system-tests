@@ -29,7 +29,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 @released(golang="1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -54,7 +54,7 @@ class Test_UrlQuery(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
@@ -68,7 +68,7 @@ class Test_UrlRaw(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 @missing_feature(context.library < "python@0.58.5")
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
@@ -130,7 +130,7 @@ class Test_Headers(BaseTestCase):
 
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
@@ -258,7 +258,7 @@ class Test_ClientIP(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_PathParams(BaseTestCase):
     """ Appsec supports values on server.request.path_params"""
 
@@ -273,7 +273,7 @@ class Test_PathParams(BaseTestCase):
 @released(golang="1.36.0")
 @released(dotnet="2.3.0")
 @released(python="0.58.5")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
@@ -287,7 +287,7 @@ class Test_ResponseStatus(BaseTestCase):
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
