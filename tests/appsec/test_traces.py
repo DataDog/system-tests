@@ -18,8 +18,8 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 @missing_feature(context.library < "python@0.58.5")
-class Test_AppSecEventSpanTags(BaseTestCase):
-    """ AppSec correctly fill span tags. """
+class Test_RetainTraces(BaseTestCase):
+    """ Retain trace (manual keep & appsec.event = true) """
 
     @classmethod
     def setup_class(cls):
@@ -58,6 +58,23 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
+
+@released(golang="1.36.0")
+@released(dotnet="1.29.0", java="0.92.0")
+@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@missing_feature(context.library < "python@0.58.5")
+class Test_AppSecEventSpanTags(BaseTestCase):
+    """ AppSec correctly fill span tags. """
+
+    @classmethod
+    def setup_class(cls):
+        """Send a bunch of attack, to be sure that something is done on AppSec side"""
+        get = cls().weblog_get
+
+        get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
+
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
@@ -86,7 +103,6 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @missing_feature(context.library < "golang@1.36.0")
     @irrelevant(context.library not in ["golang", "nodejs"], reason="test")
     def test_header_collection(self):
         """
