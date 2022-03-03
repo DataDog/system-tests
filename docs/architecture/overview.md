@@ -191,9 +191,11 @@ The shared agent docker file is a good place to add any configuration needed acr
 ## Agent Proxy Container
 
 All agent container traffic egress is sent to this container.
+
 This container uses mitmproxy to inspect and dump the traffic and then forwards to the backend.
 
 ## Testing a local version of the tracer
 
-Read the instructions in [the binaries documentation](/DataDog/system-tests/blob/colin/diagrams/docs/execute/binaries.md)
+Read the instructions in [the binaries documentation](/DataDog/system-tests/blob/colin/diagrams/docs/execute/binaries.md).
+
 In short, copy your tracer version to the `./binaries` folder, and build and run as usual.
