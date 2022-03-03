@@ -93,7 +93,7 @@ do
             $EXTRA_DOCKER_ARGS \
             .
 
-        SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent datadog-agent version)
+        SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
 
         docker build \
             --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \

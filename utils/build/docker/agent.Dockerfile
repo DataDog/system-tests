@@ -25,7 +25,7 @@ RUN mkdir -p /usr/local/share/ca-certificates
 RUN ./install_mitm_certificate.sh /usr/local/share/ca-certificates/mitm.crt
 RUN update-ca-certificates
 
-RUN datadog-agent version
+RUN /opt/datadog-agent/bin/agent/agent version
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=6 CMD [ "curl", "-f", "http://localhost:8126/info" ]
 
