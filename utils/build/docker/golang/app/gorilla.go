@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	muxtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -15,6 +16,14 @@ func main() {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
+		body, err := parseBody(r)
+		if err == nil {
+			appsec.MonitorParsedHTTPBody(r.Context(), body)
+		}
+		w.Write([]byte("Hello, WAF!\n"))
 	})
 
 	mux.HandleFunc("/waf/", func(w http.ResponseWriter, r *http.Request) {
