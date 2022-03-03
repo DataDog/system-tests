@@ -1,6 +1,6 @@
 FROM node:14
 
-RUN apt-get update && apt-get install jq
+RUN apt-get update && apt-get install -y jq
 
 RUN uname -r
 
