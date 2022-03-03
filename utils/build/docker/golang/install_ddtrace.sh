@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -euv
 
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
@@ -30,7 +30,6 @@ if [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit
     rules_version="${BASH_REMATCH[1]}"
 else
     rules_version="1.2.5"
-    exit 1
 fi
 echo $rules_version > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
