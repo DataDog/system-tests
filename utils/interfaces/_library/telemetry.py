@@ -1,16 +1,11 @@
 from time import time
 
-from utils import context, BaseTestCase, interfaces
 from utils.interfaces._core import BaseValidation
-from utils.warmups import default_warmup
-
-context.add_warmup(default_warmup)
 
 TELEMETRY_AGENT_ENDPOINT = "/telemetry/proxy/api/v2/apmtelemetry"
 TELEMETRY_INTAKE_ENDPOINT = "/api/v2/apmtelemetry"
 
-
-class TelemetryRequestSuccessValidation(BaseValidation):
+class _TelemetryRequestSuccessValidation(BaseValidation):
     is_success_on_expiry = True
 
     def __init__(self, path_filter):
@@ -23,7 +18,7 @@ class TelemetryRequestSuccessValidation(BaseValidation):
             self.set_failure(f"Got response code {repsonse_code} telemetry message {data['log_filename']}")
 
 
-class SeqIdLatencyValidation(BaseValidation):
+class _SeqIdLatencyValidation(BaseValidation):
     """Verify that the messages seq_id s are sent somewhat in-order."""
 
     MAX_OUT_OF_ORDER_LAG = 0.1  # s
@@ -51,7 +46,7 @@ class SeqIdLatencyValidation(BaseValidation):
                 )
 
 
-class SeqIdsAreConsecutive(BaseValidation):
+class _NoSkippedSeqId(BaseValidation):
     """Verify that the messages seq_id s are sent somewhat in-order."""
 
     path_filters = TELEMETRY_AGENT_ENDPOINT
@@ -79,7 +74,7 @@ class SeqIdsAreConsecutive(BaseValidation):
                 )
 
 
-class TelemetryProxyValidation(BaseValidation):
+class _TelemetryProxyValidation(BaseValidation):
     class LibToAgent(BaseValidation):
         is_success_on_expiry = True
         path_filters = TELEMETRY_AGENT_ENDPOINT
@@ -124,7 +119,7 @@ class TelemetryProxyValidation(BaseValidation):
             self.set_failure("Some telemetry messages were not forwarded by the proxy endpoint")
 
 
-class AppStartedLibraryValidation(BaseValidation):
+class _AppStartedLibraryValidation(BaseValidation):
     path_filters = TELEMETRY_AGENT_ENDPOINT
 
     def __init__(self, message=None, request=None):
@@ -145,7 +140,7 @@ class AppStartedLibraryValidation(BaseValidation):
             self.set_status(True)
 
 
-class IntegrationChangedValidation(BaseValidation):
+class _IntegrationChangedValidation(BaseValidation):
     path_filters = TELEMETRY_AGENT_ENDPOINT
     is_success_on_expiry = True
 
@@ -158,36 +153,3 @@ class IntegrationChangedValidation(BaseValidation):
             return
         if not content["payload"]["integrations"]:
             self.set_failure(f"Empty integration changes sent in {data['log_filename']}")
-
-
-class Test_Telemetry(BaseTestCase):
-    """Test that instrumentation telemetry is sent"""
-
-    def test_schemas(self):
-        """Test that telemetry messages have the correct schema"""
-        interfaces.library.assert_schemas()
-        interfaces.agent.assert_schemas()
-
-    def test_status_ok(self):
-        """Test that telemetry requests are successful"""
-        interfaces.library.append_validation(TelemetryRequestSuccessValidation(TELEMETRY_AGENT_ENDPOINT))
-        interfaces.library.append_validation(TelemetryRequestSuccessValidation(TELEMETRY_INTAKE_ENDPOINT))
-
-    def test_seq_id(self):
-        """Test that messages are sent sequentially"""
-        interfaces.library.append_validation(SeqIdLatencyValidation())
-        interfaces.library.append_validation(SeqIdsAreConsecutive())
-
-    def test_app_started(self):
-        """Request type app-started is sent on startup"""
-        interfaces.library.append_validation(AppStartedLibraryValidation())
-    
-    def test_integrations_change(self):
-        """Request type integrations-change have non empty list of changes"""
-        interfaces.library.append_validation(IntegrationChangedValidation())
-
-    def test_proxy_forwarding(self):
-        """Test that the telemetry proxy forwards messages correctly"""
-        lib_to_agent_messages = TelemetryProxyValidation.LibToAgent()
-        interfaces.library.append_validation(lib_to_agent_messages)
-        interfaces.agent.append_validation(TelemetryProxyValidation(lib_to_agent_messages))

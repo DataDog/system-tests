@@ -23,6 +23,15 @@ from utils.interfaces._library.trace_headers import (
     _TraceHeadersPresentPhp,
     _TraceHeadersContainerTagsCpp,
 )
+from utils.interfaces._library.telemetry import (
+    _TelemetryRequestSuccessValidation,
+    _SeqIdLatencyValidation,
+    _NoSkippedSeqId,
+    _TelemetryProxyValidation,
+    _AppStartedLibraryValidation,
+    _IntegrationChangedValidation,
+    TELEMETRY_AGENT_ENDPOINT,
+)
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
@@ -97,6 +106,26 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
+
+    def assert_telemetry_requests_are_successful(self):
+        self.append_validation(_TelemetryRequestSuccessValidation(TELEMETRY_AGENT_ENDPOINT))
+
+    def assert_seq_ids_are_roughly_sequential(self):
+        self.append_validation(_SeqIdLatencyValidation())
+
+    def assert_no_skipped_seq_ids(self):
+        self.append_validation(_NoSkippedSeqId())
+
+    def assert_send_app_started(self):
+        self.append_validation(_AppStartedLibraryValidation())
+
+    def assert_integrations_changed_message_valid(self):
+        self.append_validation(_IntegrationChangedValidation())
+
+    def assert_all_telemetry_messages_proxied(self, agent_interface):
+        validation = _TelemetryProxyValidation.LibToAgent()
+        self.append_validation(validation)
+        agent_interface.append_validation(_TelemetryProxyValidation(validation))
 
 
 class _TraceIdUniquenessExceptions:

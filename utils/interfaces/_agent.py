@@ -10,6 +10,7 @@ import threading
 
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
+from utils.interfaces._library.telemetry import _TelemetryRequestSuccessValidation, TELEMETRY_INTAKE_ENDPOINT
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -35,6 +36,9 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def assert_metric_existence(self, metric_name):
         self.append_validation(_MetricExistence(metric_name))
+    
+    def assert_telemetry_requests_are_successful(self):
+        self.append_validation(_TelemetryRequestSuccessValidation(TELEMETRY_INTAKE_ENDPOINT))
 
 
 class _UseDomain(BaseValidation):
