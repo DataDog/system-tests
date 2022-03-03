@@ -10,19 +10,30 @@ context.add_warmup(default_warmup)
 
 # *ATTENTION*: Copy this file, modify, and rename with a prefix of `test_` to enable your new tests
 
-# There are ways to mark a test to be skipped in pytest, which may or may not be relevant for your tests
-@irrelevant(context.library != "*ATTENTION*: language-to-skip", reason="*ATTENTION*: The reason the language is skipped")
+# There are ways to mark a test to be skipped in pytest, which may or may not be relevant for your tests.
+# Use any of the following examples and add them as decorators on your test class.
+#  - Require a specific version condition: 
+#       @bug(context.library < "golang@1.36.0")
+#  - Skip for an entire library:
+#       @irrelevant(context.library != "java", reason="*ATTENTION*: The reason the language is skipped")
+#  - Skip for every library except one
+#       @irrelevant(context.library != "dotnet", reason="only for .NET")
+
+# To run this test: ./run.sh tests/test_template.py::Test_Misc::test_main
 class Test_Misc(BaseTestCase):
-    """ *ATTENTION*: This is where you describe the summary of the test """
+    """ *ATTENTION*: This is where you summarize the test """
 
     def test_main(self):
         # This is where you make your requests and assertions
-        r = self.weblog_get("/trace/http")
-        interfaces.library.assert_trace_exists(r)
+        request = self.weblog_get("/trace/http")
+        interfaces.library.assert_trace_exists(request)
 
         # You can make several requests and assertions to fulfill the needs of a test
-        r = self.weblog_get("/trace/mongo")
-        interfaces.library.assert_trace_exists(r)
+        request = self.weblog_get("/trace/mongo")
+        interfaces.library.assert_trace_exists(request)
 
         # The interfaces.library namespace is used to expose valuable assertions
 
+        # If you want to create custom validations:
+        #   - Follow the assert_trace_exists method down to examine how assertions and validations are structured.
+        #   - Create your own assertions and methods for use in tests.
