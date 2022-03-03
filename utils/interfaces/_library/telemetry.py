@@ -5,6 +5,7 @@ from utils.interfaces._core import BaseValidation
 TELEMETRY_AGENT_ENDPOINT = "/telemetry/proxy/api/v2/apmtelemetry"
 TELEMETRY_INTAKE_ENDPOINT = "/api/v2/apmtelemetry"
 
+
 class _TelemetryRequestSuccessValidation(BaseValidation):
     is_success_on_expiry = True
 

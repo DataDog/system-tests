@@ -37,7 +37,7 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def assert_metric_existence(self, metric_name):
         self.append_validation(_MetricExistence(metric_name))
-    
+
     def assert_telemetry_requests_are_successful(self):
         self.append_validation(_TelemetryRequestSuccessValidation(TELEMETRY_INTAKE_ENDPOINT))
 
