@@ -4,7 +4,10 @@ set -eu
 
 cd binaries
 
-if [ "$(ls *.whl *.tar.gz | wc -l)" = "1" ]; then
+if [ -e "dd-trace-py" ]; then
+    echo "Install from local folder /binaries/dd-trace-py"
+    pip install /binaries/dd-trace-py
+elif [ "$(ls *.whl *.tar.gz | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl *.tar.gz))
     echo "Install ddtrace from ${path}"
     pip install "ddtrace[appsec-beta] @ file://${path}"
@@ -22,3 +25,6 @@ fi
 cd -
 
 python -c "import ddtrace; print(ddtrace.__version__)" > SYSTEM_TESTS_LIBRARY_VERSION
+echo "dd-trace version is $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
+touch SYSTEM_TESTS_LIBDDWAF_VERSION
+echo "1.2.5" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION

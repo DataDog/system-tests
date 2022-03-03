@@ -85,6 +85,19 @@ class _SpanValidation(BaseValidation):
 
                 try:
                     if self.validator(span):
+                        self.log_debug(f"Trace in {data['log_filename']} validates {self.message}")
                         self.is_success_on_expiry = True
                 except Exception as e:
                     self.set_failure(f"{self.message} not validated: {e}\nSpan is: {span}")
+
+
+class _TraceExistence(BaseValidation):
+    path_filters = "/v0.4/traces"
+
+    def check(self, data):
+        for trace in data["request"]["content"]:
+            for span in trace:
+                if self.rid:
+                    if self.rid == _get_rid_from_span(span):
+                        self.log_debug(f"Found a trace for {self.message}")
+                        self.set_status(True)

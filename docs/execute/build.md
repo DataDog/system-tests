@@ -41,11 +41,11 @@ Build images used for system tests.
 * For `cpp`: `poc` (default)
 * For `dotnet`: `poc` (default)
 * For `golang`: `net-http` (default), `gorilla`
-* For `java`: `spring-boot-poc` (default)
-* For `nodejs`: `express-poc` (default)
-* For `php`: `vanilla-poc` (default)
+* For `java`: `spring-boot` (default)
+* For `nodejs`: `express4` (default), `express4-typescript`
+* For `php`: `apache-mod` (default), `php-fpm`
 * For `python`: `flask-poc` (default), `uwsgi-poc`
-* For `ruby`: `sinatra-poc` (default)
+* For `ruby`: `rails70` (default), `rack`, `sinatra21`, and lot of other sinatra/rails versions
 
 
 ## Real life examples

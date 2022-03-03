@@ -12,10 +12,6 @@ ENV FLASK_APP=app.py
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-# Datadog setup
-ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'
-
 # docker startup
 RUN echo '#!/bin/bash \n\
 ddtrace-run gunicorn -w 2 -b 0.0.0.0:7777 app:app \n' > /app.sh

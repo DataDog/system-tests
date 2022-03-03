@@ -9,16 +9,15 @@ import pytest
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
-# get the default log outpu
+# get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(golang="?", nodejs="?", php="?", python="?", ruby="?")
-class Test_Standardization(BaseTestCase):
-    """AppSec errors logs should be standardized"""
+@released(golang="?", java="0.93.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_ErrorStandardization(BaseTestCase):
+    """AppSec error logs should be standardized"""
 
     @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
-    @bug(library="java", reason="ERROR io CRITICAL")
     def test_c04(self):
         """Log C4: Rules file is missing"""
         stdout.assert_presence(
@@ -29,7 +28,6 @@ class Test_Standardization(BaseTestCase):
         )
 
     @bug(library="dotnet", reason="ERROR io CRITICAL")
-    @missing_feature(library="java", reason="Partial, Cannot be fully implemented")
     def test_c05(self):
         """Log C5: Rules file is corrupted"""
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")

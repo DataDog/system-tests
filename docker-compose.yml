@@ -5,41 +5,39 @@
 version: "2.4"
 services:
   agent_proxy:
+    container_name: agent_proxy
     image: mitmproxy/mitmproxy
     environment:
       - INTERFACE_NAME=agent
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081
-      - PROXY_TROLLS
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
 
   library_proxy:
+    container_name: library_proxy
     image: mitmproxy/mitmproxy
     environment:
       - INTERFACE_NAME=library
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081
-      - PROXY_TROLLS
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
+    container_name: weblog
     image: system_tests/weblog
+    env_file:
+      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/.weblog.env
     environment:
-      - DD_ENV=system-tests
-      - DD_SERVICE=weblog
       - DD_AGENT_HOST=library_proxy
       - DD_TRACE_AGENT_PORT=8126
-      - DD_APPSEC_ENABLED=true
-      - DD_TRACE_DEBUG=true
-      - DD_APPSEC_RULES
-      - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
-      - DD_APPSEC_WAF_TIMEOUT=5s
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
+    ports:
+      - "7777:7777"
     depends_on:
       runner:
         condition: service_healthy
@@ -49,8 +47,27 @@ services:
         condition: service_started
       library_proxy:
         condition: service_started
+      cassandra_db:
+        condition: service_started
+      mongodb:
+        condition: service_started
 
+  cassandra_db:
+    container_name: cassandra
+    image: cassandra:latest
+    restart: always
+    ports:
+      - "9042:9042"
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+  
   agent:
+    container_name: agent
     image: system_tests/agent
     environment:
       - DD_API_KEY
@@ -66,6 +83,7 @@ services:
         condition: service_started
 
   runner:
+    container_name: runner
     image: system_tests/runner
     healthcheck:
       test: ["CMD", "curl", "-f", "http://runner:8081/health"]
@@ -75,8 +93,6 @@ services:
     environment:
       - COLUMNS=${COLUMNS:-120}
       - PYTHONPATH=/app
-      - SYSTEMTESTS_BACKEND
-      - DD_APPSEC_RULES
       - DD_SITE=${DD_SITE:-datad0g.com}
     volumes:
       - ./pytest.ini:/app/pytest.ini

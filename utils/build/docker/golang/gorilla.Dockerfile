@@ -15,7 +15,4 @@ RUN go build -v -tags appsec -o weblog ./gorilla.go ./common.go
 CMD ./weblog
 
 # Datadog setup
-ENV DD_TRACE_SAMPLE_RATE=0
-ENV DD_TRACE_DEBUG=true
 ENV DD_LOGGING_RATE=0
-ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'

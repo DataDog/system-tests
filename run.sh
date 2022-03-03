@@ -20,6 +20,8 @@ containers=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library)
 
 # Stop previous container not stopped
+mkdir -p logs
+touch logs/.weblog.env
 docker-compose down
 
 SCENARIO=${1:-DEFAULT}
@@ -33,18 +35,22 @@ elif [ $SCENARIO = "SAMPLING" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
 elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_Standardization::test_c04
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c04
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
-    export DD_APPSEC_RULES=/donotexists
+    WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
 elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_Standardization::test_c05
+    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c05
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
-    export DD_APPSEC_RULES=/appsec_corrupted_rules.yml
+    WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
 elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     export RUNNER_ARGS=scenarios/appsec_unsupported.py
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
+
+elif [ $SCENARIO = "PROFILING" ]; then
+    export RUNNER_ARGS=scenarios/test_profiling.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
 else # Let user choose the target
     export RUNNER_ARGS=$@
@@ -62,6 +68,11 @@ do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/$container
 done
 
+# Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
+# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set 
+# them in the docker-compose.yml is not possible
+echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
+
 echo ============ Run tests ===================
 echo 🔥 Starting test context.
 
@@ -74,7 +85,7 @@ docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_F
 # Save docker logs
 for container in ${containers[@]}
 do
-    docker-compose logs --no-color -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
+    docker-compose logs --no-color --no-log-prefix -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
 done
 
 # Show output. Trick: The process will end when runner ends

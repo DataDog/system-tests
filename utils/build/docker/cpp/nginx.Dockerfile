@@ -36,9 +36,3 @@ RUN echo '{}' > /etc/nginx/dd-config.json
 RUN mkdir /builds
 COPY utils/build/docker/cpp/install_ddtrace.sh builds* /builds/
 RUN /builds/install_ddtrace.sh
-
-# Datadog setup
-ENV DD_AGENT_HOST=agent_proxy
-ENV DD_SERVICE=weblog
-ENV DD_TRACE_SAMPLE_RATE=0.5
-ENV DD_TAGS='key1:val1, aKey : aVal bKey:bVal cKey:'

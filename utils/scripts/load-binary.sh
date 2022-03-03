@@ -78,12 +78,49 @@ get_circleci_artifact() {
     ARTIFACTS=$(curl --silent https://circleci.com/api/v2/project/$SLUG/$JOB_NUMBER/artifacts -H "Circle-Token: $CIRCLECI_TOKEN")
     QUERY=".items[] | select(.path | test(\"$ARTIFACT_PATTERN\"))"
     ARTIFACT_URL=$(echo $ARTIFACTS | jq -r "$QUERY | .url")
+
+    if [ -z "$ARTIFACT_URL" ]; then
+        echo "Oooops, I did not found any artifact that satisfy this pattern: $ARTIFACT_PATTERN. Here is the list:"
+        echo $ARTIFACTS | jq -r ".items[] | .path"
+        exit 1
+    fi
+
     ARTIFACT_NAME=$(echo $ARTIFACTS | jq -r "$QUERY | .path" | sed -E 's/libs\///')
     echo "Artifact URL: $ARTIFACT_URL"
     echo "Artifact name: $ARTIFACT_NAME"
     echo "Downloading artifact..."
 
     curl --silent -L $ARTIFACT_URL --output $ARTIFACT_NAME
+}
+
+
+get_github_action_artifact() {
+    rm -rf artifacts artifacts.zip
+
+    SLUG=$1
+    WORKFLOW=$2
+    BRANCH=$3
+    EVENT=$4
+    PATTERN=$5
+
+    WORKFLOWS=$(curl --silent -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?branch=$BRANCH&event=$EVENT&per_page=10")
+
+    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\")][0] | .artifacts_url"
+    ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY")
+    echo "Load artifact $ARTIFACT_URL" 
+    ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
+
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
+    echo "Load archive $ARCHIVE_URL"
+
+    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL 
+
+    mkdir -p artifacts/
+    unzip artifacts.zip -d artifacts/
+
+    find artifacts/ -type f -name $PATTERN -exec cp '{}' . ';'
+
+    rm -rf artifacts artifacts.zip
 }
 
 if test -f ".env"; then
@@ -100,7 +137,7 @@ if [ "$TARGET" = "java" ]; then
     OWNER=DataDog
     REPO=dd-trace-java
 
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*-SNAPSHOT.jar"
+    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
@@ -113,43 +150,18 @@ elif [ "$TARGET" = "dotnet" ]; then
     curl -L --silent $URL --output $ARCHIVE
 
 elif [ "$TARGET" = "python" ]; then
-    rm -rf *.whl
-
-    OWNER=DataDog
-    REPO=dd-trace-py
-
-    # sudo apt-get install unzip
-    # sudo apt-get install jq
-
-    curl --silent "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/build_deploy.yml/runs?branch=master&event=schedule&per_page=1" > workflows.json
-
-    ARTIFACT_URL=$(jq -r '.workflow_runs[0].artifacts_url' workflows.json)
-    echo "Load $ARTIFACT_URL" 
-    curl --silent "$ARTIFACT_URL" > artifacts.json
-
-    ARCHIVE_URL=$(jq -r '.artifacts[0].archive_download_url' artifacts.json)
-    echo "Load $ARCHIVE_URL" 
-    curl --silent -H "Authorization: token $GH_TOKEN" -L "$ARCHIVE_URL" --output artifacts.zip
-
-    mkdir -p artifacts/
-    unzip artifacts.zip -d artifacts/
-
-    find artifacts/ -type f -name 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl' -exec cp '{}' . ';'
-
-    rm -rf artifacts artifacts.zip 
-
-    jq '.workflow_runs[0].created_at' workflows.json
-    jq '.workflow_runs[0].head_commit.id' workflows.json
-    jq '.workflow_runs[0].head_commit.timestamp' workflows.json
+    # rm -rf *.whl
+    # get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" "master" "schedule" 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl'
+    echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
     # echo 'ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"' > ruby-load-from-bundle-add
-    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', github: 'Datadog/dd-trace-rb', branch: 'appsec'" > ruby-load-from-bundle-add
+    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', github: 'Datadog/dd-trace-rb', branch: 'master'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 
 elif [ "$TARGET" = "php" ]; then
-    rm -rf *.apk
-    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer_.*-nightly_noarch.apk"
+    rm -rf *.tar.gz
+    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
 
 elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
@@ -170,8 +182,27 @@ elif [ "$TARGET" = "agent" ]; then
 
 elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    # echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
-    echo "DataDog/dd-trace-js#vdeturckheim/iaw-bindings" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+
+elif [ "$TARGET" = "waf_rule_set_v1" ]; then
+    exit 1
+
+elif [ "$TARGET" = "waf_rule_set_v2" ]; then
+    curl --silent \
+        -H "Authorization: token $GH_TOKEN" \
+        -H "Accept: application/vnd.github.v3.raw" \
+        --output "waf_rule_set.json" \
+        https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+
+elif [ "$TARGET" = "waf_rule_set" ]; then
+    curl --silent \
+        -H "Authorization: token $GH_TOKEN" \
+        -H "Accept: application/vnd.github.v3.raw" \
+        --output "waf_rule_set.json" \
+        https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+
+elif [ "$TARGET" = "php_appsec" ]; then
+    get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "push" "dd-appsec-php-*-amd64.tar.gz"
 
 else
     echo "Unknown target: $1"

@@ -4,12 +4,19 @@
 
 import threading
 
+from utils import context
 from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
-from utils.interfaces._library.miscs import _TraceIdUniqueness, _ReceiveRequestRootTrace, _SpanValidation
+from utils.interfaces._library.miscs import (
+    _TraceIdUniqueness,
+    _ReceiveRequestRootTrace,
+    _SpanValidation,
+    _TraceExistence,
+)
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
     _AllRequestsTransmitted,
@@ -41,6 +48,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
         super().__init__("library")
         self.ready = threading.Event()
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
+
+        if context.library == "java":
+            self.expected_timeout = 80
+        elif context.library.library in ("php", "nodejs"):
+            self.expected_timeout = 5
+        else:
+            self.expected_timeout = 40
 
     def append_data(self, data):
         self.ready.set()
@@ -85,9 +99,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_no_appsec_event(self, request):
         self.append_validation(_NoAppsecEvent(request))
 
-    def assert_waf_attack(self, request, rule=None, pattern=None, address=None, patterns=None, key_path=None):
+    def assert_waf_attack(
+        self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
+    ):
         self.append_validation(
-            _WafAttack(request, rule=rule, pattern=pattern, address=address, patterns=patterns, key_path=key_path)
+            _WafAttack(
+                request, rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path
+            )
         )
 
     def assert_metric_existence(self, metric_name):
@@ -126,6 +144,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
         validation = _TelemetryProxyValidation.LibToAgent()
         self.append_validation(validation)
         agent_interface.append_validation(_TelemetryProxyValidation(validation))
+
+    def add_profiling_validation(self, validator):
+        self.append_validation(_ProfilingValidation(validator))
+
+    def profiling_assert_field(self, field_name, content_pattern=None):
+        self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
+
+    def assert_trace_exists(self, request):
+        self.append_validation(_TraceExistence(request=request))
 
 
 class _TraceIdUniquenessExceptions:

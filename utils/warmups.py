@@ -11,29 +11,27 @@ import requests
 import time
 import pytest
 
-from utils import context, interfaces
+from utils import interfaces
 from utils.tools import logger
 
 
 def _send_warmup_requests():
+    ok_count = 0
+    for i in range(120):
+        try:
+            r = requests.get("http://weblog:7777", timeout=0.5)
+            logger.debug(f"Warmup request #{i} result: {r}")
+            if r.status_code == 200:
+                ok_count += 1
+                if ok_count == 3:
+                    break
+        except Exception as e:
+            logger.debug(f"Warmup request #{i} result: {e}")
 
-    if context.library in ["php", "dotnet", "cpp", "ruby", "nodejs"]:
-        ok_count = 0
-        for i in range(120):
-            try:
-                r = requests.get("http://weblog:7777", timeout=0.5)
-                logger.debug(f"Warmup request #{i} result: {r}")
-                if r.status_code == 200:
-                    ok_count += 1
-                    if ok_count == 3:
-                        break
-            except Exception as e:
-                logger.debug(f"Warmup request #{i} result: {e}")
+        time.sleep(1)
 
-            time.sleep(1)
-
-        if ok_count != 3:
-            pytest.exit("App never answered to warn-up request", 1)
+    if ok_count != 3:
+        pytest.exit("App never answered to warn-up request", 1)
 
 
 def _wait_for_weblog_cgroup_file():

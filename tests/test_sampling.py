@@ -4,7 +4,7 @@
 
 from random import randint
 
-from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature
+from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature, flaky
 
 
 @irrelevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
@@ -27,20 +27,20 @@ class Test_SamplingDecisions(BaseTestCase):
         reason="sampling decision implemented differently in these tracers",
     )
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
-    @bug(library="java")
-    @bug(library="golang")
-    @bug(library="python", reason="flaky")
+    @bug(context.library < "java@0.92.0")
+    @flaky(context.library < "python@0.57.0")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
         # Generate enough traces to have a high chance to catch sampling problems
         for _ in range(30):
             r = self.weblog_get(f"/sample_rate_route/{self.next_request_id()}")
-            assert r.status_code == 200
+
         interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(library="golang", reason="Sampling decisions are not taken by the tracer APMRP-259")
+    @bug(library="php", reason="Unknown reason")
+    @bug(library="ruby", reason="Unknown reason")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
@@ -51,11 +51,10 @@ class Test_SamplingDecisions(BaseTestCase):
                 f"/sample_rate_route/{self.next_request_id()}",
                 headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"])},
             )
-            assert r.status_code == 200
+
         interfaces.library.assert_sampling_decisions_added(traces)
 
     @bug(library="python", reason="APMRP-259")
-    @bug(library="golang", reason="APMRP-259")
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="ruby", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")
@@ -77,5 +76,5 @@ class Test_SamplingDecisions(BaseTestCase):
                         "x-datadog-parent-id": str(trace["parent_id"]),
                     },
                 )
-                assert r.status_code == 200
+
         interfaces.library.assert_deterministic_sampling_decisions(traces)

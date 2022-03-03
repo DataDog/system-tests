@@ -17,13 +17,25 @@ class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
     def __init__(self, image_name):
-        self._raw = json.load(open(f"logs/{image_name}_image.json"))
-
         self.env = {}
+
+        try:
+            self._raw = json.load(open(f"logs/{image_name}_image.json"))
+        except FileNotFoundError:
+            return  # silently fail, needed for testing
 
         for var in self._raw[0]["Config"]["Env"]:
             key, value = var.split("=", 1)
             self.env[key] = value
+
+        try:
+            with open(f"logs/.{image_name}.env") as f:
+                for line in f:
+                    if line.strip():
+                        key, value = line.split("=", 1)
+                        self.env[key] = value.strip()
+        except FileNotFoundError:
+            pass
 
 
 class _Context:
@@ -32,9 +44,10 @@ class _Context:
         self.weblog_image = ImageInfo("weblog")
         self._warmups = []
 
-        # complete with some env that can be sent threw command line
-        if "DD_APPSEC_RULES" in os.environ:
-            self.weblog_image.env["DD_APPSEC_RULES"] = os.environ["DD_APPSEC_RULES"]
+        if "DD_APPSEC_RULES" in self.weblog_image.env:
+            self.appsec_rules = self.weblog_image.env["DD_APPSEC_RULES"]
+        else:
+            self.appsec_rules = None
 
         self.dd_site = os.environ.get("DD_SITE")
 
@@ -53,18 +66,27 @@ class _Context:
         else:
             self.sampling_rate = None
 
-        if self.library == "nodejs":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library >= "java@0.90.0":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library >= "dotnet@1.30.0":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library >= "ruby@0.53.0":
-            self.waf_rule_set = Version("1.0.0")
-        elif self.library == "java":
-            self.waf_rule_set = Version("0.0.1")
+        if self.library == "php":
+            self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION", None))
         else:
-            self.waf_rule_set = Version("0.0.1")
+            self.php_appsec = None
+
+        libddwaf_version = self.weblog_image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None)
+
+        if not libddwaf_version:
+            self.libddwaf_version = None
+        else:
+            self.libddwaf_version = Version(libddwaf_version, "libddwaf")
+
+        appsec_event_rules = self.weblog_image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
+        self.appsec_event_rules = Version(appsec_event_rules, "appsec_event_rules")
+
+        agent_version = self.agent_image.env.get("SYSTEM_TESTS_AGENT_VERSION")
+
+        if not agent_version:
+            self.agent_version = None
+        else:
+            self.agent_version = Version(agent_version, "agent")
 
     def get_weblog_container_id(self):
         cgroup_file = "logs/weblog.cgroup"
@@ -86,13 +108,19 @@ class _Context:
             warmup()
 
     def serialize(self):
-        return {
+        result = {
             "library": self.library.serialize(),
             "weblog_variant": self.weblog_variant,
             "dd_site": self.dd_site,
             "sampling_rate": self.sampling_rate,
-            "waf_rule_set": str(self.waf_rule_set),
+            "libddwaf_version": str(self.libddwaf_version),
+            "appsec_rules": self.appsec_rules or "*default*",
         }
+
+        if self.library == "php":
+            result["php_appsec"] = self.php_appsec
+
+        return result
 
     def __str__(self):
         return json.dumps(self.serialize(), indent=4)

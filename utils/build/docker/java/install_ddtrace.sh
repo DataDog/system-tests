@@ -4,15 +4,23 @@ set -eu
 
 mkdir /dd-tracer
 
-cd /binaries
+if [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 0 ]; then
+    BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"
+    echo "install from Github release: $BUILD_URL"
+    curl  -Lf -o /dd-tracer/dd-java-agent.jar $BUILD_URL
 
-if [ $(ls dd-java-agent-*.jar | wc -l) = 0 ]; then
-    echo "install from maven binary"
-    basename $(ls -d -1 /maven/com/datadoghq/dd-java-agent/*/) > SYSTEM_TESTS_LIBRARY_VERSION
-    cp /maven/com/datadoghq/dd-java-agent/$(cat SYSTEM_TESTS_LIBRARY_VERSION)/dd-java-agent-$(cat SYSTEM_TESTS_LIBRARY_VERSION).jar /dd-tracer/dd-java-agent.jar
+elif [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 1 ]; then
+    echo "Install local file $(ls /binaries/dd-java-agent*.jar)"
+    cp $(ls /binaries/dd-java-agent*.jar) /dd-tracer/dd-java-agent.jar
+
 else
-    echo "install local file"
-    ls dd-java-agent-*.jar | sed 's/[^0-9]*//' | sed -E 's/(-SNAPSHOT)?.jar//' > SYSTEM_TESTS_LIBRARY_VERSION
-
-    cp $(ls dd-java-agent-*.jar) /dd-tracer/dd-java-agent.jar
+    echo "Too many jar files in binaries"
+    exit 1
 fi
+
+java -jar /dd-tracer/dd-java-agent.jar > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
+
+echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
+
+touch /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
+echo "1.2.5" > /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION

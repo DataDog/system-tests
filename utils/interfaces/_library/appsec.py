@@ -6,6 +6,7 @@
 import traceback
 import json
 
+from collections import Counter
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_spans_related_to_rid, get_rid_from_user_agent
 from utils.tools import m
@@ -25,6 +26,7 @@ class _BaseAppSecValidation(BaseValidation):
             content = data["request"]["content"]
 
             for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
+                self.log_debug(f'Found span with rid={self.rid}: span_id={span["span_id"]}')
                 self.spans.append(f'{span["trace_id"]}#{span["span_id"]}')
 
                 if "_dd.appsec.json" in span.get("meta", {}):
@@ -81,6 +83,7 @@ class _BaseAppSecValidation(BaseValidation):
                     event = span["legacy_event"]
                     try:
                         if self.validate_legacy(event):
+                            self.log_debug(f"{self} is validated (legacy) by {span['log_filename']}")
                             self.is_success_on_expiry = True
                     except Exception as e:
                         msg = traceback.format_exception_only(type(e), e)[0]
@@ -92,6 +95,7 @@ class _BaseAppSecValidation(BaseValidation):
                     appsec_data = json.loads(span_data["meta"]["_dd.appsec.json"])
                     try:
                         if self.validate(span_data, appsec_data):
+                            self.log_debug(f"{self} is validated by {span['log_filename']}")
                             self.is_success_on_expiry = True
                     except Exception as e:
                         msg = traceback.format_exception_only(type(e), e)[0]
@@ -125,7 +129,7 @@ class _AppSecValidation(_BaseAppSecValidation):
         if self.legacy_validator:
             return self.legacy_validator(event)
         else:
-            return True
+            raise NotImplementedError
 
     def validate(self, span, appsec_data):
         if self.validator:
@@ -142,7 +146,7 @@ class _NoAppsecEvent(_BaseAppSecValidation):
 
 
 class _WafAttack(_BaseAppSecValidation):
-    def __init__(self, request, rule=None, pattern=None, patterns=None, address=None, key_path=None):
+    def __init__(self, request, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None):
         super().__init__(request=request)
 
         # rule can be a rule id, or a rule type
@@ -159,12 +163,11 @@ class _WafAttack(_BaseAppSecValidation):
             self.rule_type = rule.__name__
 
         self.pattern = pattern
+        self.patterns = patterns
+        self.value = value
 
         self.address = address
         self.key_path = key_path
-
-        if patterns:
-            raise NotImplementedError
 
     @staticmethod
     def _get_parameters(event):
@@ -195,6 +198,7 @@ class _WafAttack(_BaseAppSecValidation):
     def validate(self, span, appsec_data):
         for trigger in appsec_data.get("triggers", []):
             patterns = []
+            values = []
             addresses = []
             full_addresses = []
             rule_id = trigger.get("rule", {}).get("id")
@@ -207,6 +211,7 @@ class _WafAttack(_BaseAppSecValidation):
             for match in trigger.get("rule_matches", []):
                 for parameter in match.get("parameters", []):
                     patterns += parameter["highlight"]
+                    values.append(parameter["value"])
                     addresses.append(parameter["address"])
                     key_path = parameter["key_path"]
                     full_addresses.append((parameter["address"], key_path))
@@ -224,6 +229,12 @@ class _WafAttack(_BaseAppSecValidation):
 
             elif self.pattern and self.pattern not in patterns:
                 self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
+
+            elif self.patterns and Counter(self.patterns) != Counter(patterns):
+                self.log_info(f"{self.message} => saw {patterns}, expecting {self.patterns}")
+
+            elif self.value and self.value not in values:
+                self.log_info(f"{self.message} => saw {values}, expecting {self.value}")
 
             elif self.address and self.key_path is None and self.address not in addresses:
                 self.log_info(f"{self.message} => saw {addresses}, expecting {self.address}")

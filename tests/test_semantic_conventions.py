@@ -37,7 +37,7 @@ class Test_Meta(BaseTestCase):
 
     @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
     @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
-    @bug(library="php", reason="http.url is not a full url, should be discussed of actually a bug or not")
+    @bug(context.library < "php@0.68.2")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
@@ -59,7 +59,6 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
-    @bug(library="ruby", reason="http.status_code is missing")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
@@ -108,7 +107,7 @@ class Test_Meta(BaseTestCase):
 
 
 @bug(
-    context.library in ("java", "cpp", "python", "ruby", "dotnet"),
+    context.library in ("cpp", "python", "ruby"),
     reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
 )
 class Test_MetaDatadogTags(BaseTestCase):
@@ -119,10 +118,8 @@ class Test_MetaDatadogTags(BaseTestCase):
             if span["meta"]["key1"] != "val1":
                 raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
 
-            if span["meta"]["aKey"] != "aVal bKey:bVal cKey:":
-                raise Exception(
-                    f'dKey tag in span\'s meta should be "aVal bKey:bVal cKey:", not {span["meta"]["aKey"]}'
-                )
+            if span["meta"]["key2"] != "val2":
+                raise Exception(f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}')
 
             return True
 

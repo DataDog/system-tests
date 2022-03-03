@@ -5,7 +5,7 @@
 from threading import Lock
 import time
 
-from utils import BaseTestCase, interfaces, context, bug, irrelevant, missing_feature
+from utils import BaseTestCase, interfaces, context, missing_feature, released, bug
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans
 from utils.warmups import default_warmup
@@ -33,15 +33,20 @@ class AgentSampledFwdValidation(BaseValidation):
             self.library_sampled[root_span["trace_id"]] = root_span
 
     def check(self, data):
-        for trace in data["request"]["content"]["traces"]:
-            self.agent_forwarded[int(trace["traceID"])] = trace
+        if "tracerPayloads" not in data["request"]["content"]:
+            self.set_failure("Trace property is missing in agent payload")
+        else:
+            for payload in data["request"]["content"]["tracerPayloads"]:
+                for trace in payload["chunks"]:
+                    for span in trace["spans"]:
+                        self.agent_forwarded[int(span["traceID"])] = trace
 
     def final_check(self):
         with self.library_sampled_lock:
             sampled_not_fwd = self.library_sampled.keys() - self.agent_forwarded.keys()
         if len(sampled_not_fwd) > 0:
             self.set_failure(
-                "Detected traces that were sampled by library, but not submitted to the backed:\n"
+                "Detected traces that were sampled by library, but not submitted to the backend:\n"
                 "\n".join(
                     f"\ttraceid {t_id} in library message {self.library_sampled[t_id]['log_filename']}"
                     for t_id in sampled_not_fwd
@@ -94,7 +99,9 @@ class LibrarySamplingRateValidation(BaseValidation):
 
 
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
-@bug(library="golang")
+@released(php="1.0.0")
+@bug(context.library >= "golang@1.35.0")
+@bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
 class Test_SamplingRates(BaseTestCase):
     """Rate at which traces are sampled is the actual sample rate"""
 
@@ -117,7 +124,7 @@ class Test_SamplingRates(BaseTestCase):
             p = f"/sample_rate_route/{i}"
             paths.append(p)
             r = self.weblog_get(p)
-            assert r.status_code == 200
+
         interfaces.library.assert_all_traces_requests_forwarded(paths)
         interfaces.library.append_validation(LibrarySamplingRateValidation())
         interfaces.agent.append_validation(AgentSampledFwdValidation())

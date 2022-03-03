@@ -141,6 +141,16 @@ class _LibraryStdout(_LogsInterfaceValidator):
 
         elif context.library == "dotnet":
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
+        elif context.library == "php":
+            self._skipped_patterns += [
+                re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),
+            ]
+
+            timestamp = p("timestamp", r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")
+            level = p("level", r"\w+")
+            thread = p("thread", r"\d+")
+            message = p("message", r".+")
+            self._parsers.append(re.compile(fr"\[{timestamp}\]\[{level}\]\[{thread}\] {message}"))
         else:
             self._new_log_line_pattern = re.compile(r".")
             self._parsers.append(re.compile(p("message", r".*")))
@@ -153,6 +163,12 @@ class _LibraryStdout(_LogsInterfaceValidator):
             line = line[19:]
 
         return line
+
+    def _get_standardized_level(self, level):
+        if context.library == "php":
+            return level.upper()
+        else:
+            return super(_LibraryStdout, self)._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):
@@ -201,13 +217,17 @@ class _LogPresence(BaseValidation):
     def check(self, data):
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
-                if key not in data or not extra_pattern.search(data[key]):
+                if key not in data:
+                    self.log_info(f"For {self}, pattern was found, but condition on [{key}] was not found")
+                    return
+                elif not extra_pattern.search(data[key]):
                     self.log_info(
                         f"For {self}, pattern was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"
                     )
                     return
 
+            self.log_debug(f"For {self}, found {data['message']}")
             self.set_status(True)
 
 
@@ -259,3 +279,15 @@ class _LogValidation(BaseValidation):
                 self.is_success_on_expiry = True
         except Exception as e:
             self.set_failure(f"{self.message} not validated: {e}\nLog is: {data['raw']}")
+
+
+class Test:
+    def test_main(self):
+        """ Test example """
+        i = _LibraryStdout()
+        i.assert_presence(r".*", level="DEBUG")
+        i.__test__()
+
+
+if __name__ == "__main__":
+    Test().test_main()
