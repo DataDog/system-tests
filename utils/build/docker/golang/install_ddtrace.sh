@@ -25,17 +25,13 @@ echo $version > SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 # Read the rule file version
-if [[ "$version" =~ "1.36" ]]; then
-    rules_version="1.2.5"
+if [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
+    # Parse the appsec rules version string out of the inlined rules json
+    rules_version="${BASH_REMATCH[1]}"
 else
-    if [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
-        # Parse the appsec rules version string out of the inlined rules json
-        rules_version="${BASH_REMATCH[1]}"
-    else
-        echo could not find the rules version
-        exit 1
-    fi
- fi
+    rules_version="1.2.5"
+    exit 1
+fi
 echo $rules_version > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 echo "dd-trace-go version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
