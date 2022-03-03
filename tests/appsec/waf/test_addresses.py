@@ -172,7 +172,7 @@ class Test_BodyRaw(BaseTestCase):
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
         r = self.weblog_post("/waf", data="/.adsensepostnottherenonobook")
-        interfaces.library.assert_waf_attack(r, pattern="x", address="x")
+        interfaces.library.assert_waf_attack(r, address="server.request.body")
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")

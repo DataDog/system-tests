@@ -10,7 +10,7 @@ from utils import BaseTestCase, context, interfaces, released, rfc, irrelevant, 
 @irrelevant(context.library < "golang@1.36.0", reason="Before 1.36.0, go was using dedicated entry point")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Events(BaseTestCase):
-    """AppSec events uses version 1.0 (legacy appsec events on dedicated entry point)"""
+    """AppSec events uses events in span"""
 
     @missing_feature(context.library < "java@0.93.0")
     def test_appsec_in_traces(self):

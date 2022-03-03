@@ -147,3 +147,20 @@ class Test_AppSecEventSpanTags(BaseTestCase):
             return True
 
         interfaces.library.add_span_validation(validator=validator)
+
+
+class Test_CollectRespondHeaders(BaseTestCase):
+    """ AppSec should collect some headers for http.response and store them in span tags. """
+
+    def test_header_collection(self):
+        def assertHeaderInSpanMeta(span, h):
+            if h not in span["meta"]:
+                raise Exception("Can't find {header} in span's meta".format(header=h))
+
+        def validate_response_headers(span):
+            for h in ["content-type", "content-length", "content-language"]:
+                assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
+            return True
+
+        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        interfaces.library.add_span_validation(r, validate_response_headers)
