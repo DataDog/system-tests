@@ -125,7 +125,7 @@ class Test_ActorIP(BaseTestCase):
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Info(BaseTestCase):
-    """AppSec correctly reports service and environment values"""
+    """ Environment (production, staging) from DD_ENV variable """
 
     def test_service(self):
         """ Appsec reports the service information """
