@@ -15,9 +15,11 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 @released(golang="1.36.0")
 @released(dotnet="1.29.0", java="0.92.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
-class Test_AppSecEventSpanTags(BaseTestCase):
-    """ AppSec correctly fill span tags. """
+@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@missing_feature(context.library < "python@0.58.5")
+class Test_RetainTraces(BaseTestCase):
+    """ Retain trace (manual keep & appsec.event = true) """
 
     @classmethod
     def setup_class(cls):
@@ -27,6 +29,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
+    @missing_feature(library="python")
     def test_appsec_event_span_tags(self):
         """
         Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
@@ -54,6 +57,23 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
+
+
+@released(golang="1.36.0")
+@released(dotnet="1.29.0", java="0.92.0")
+@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@missing_feature(context.library < "python@0.58.5")
+class Test_AppSecEventSpanTags(BaseTestCase):
+    """ AppSec correctly fill span tags. """
+
+    @classmethod
+    def setup_class(cls):
+        """Send a bunch of attack, to be sure that something is done on AppSec side"""
+        get = cls().weblog_get
+
+        get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
@@ -83,7 +103,6 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @missing_feature(context.library < "golang@1.36.0")
     @irrelevant(context.library not in ["golang", "nodejs"], reason="test")
     def test_header_collection(self):
         """
@@ -109,6 +128,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_request_headers)
         interfaces.library.add_span_validation(r, validate_response_headers)
 
+    @missing_feature(library="python")
     @bug(context.library < "java@0.93.0")
     @missing_feature(library="php")  # need to generate a user trace
     def test_root_span_coherence(self):
@@ -151,3 +171,26 @@ class Test_AppSecObfuscator(BaseTestCase):
         )
         interfaces.library.assert_waf_attack(r)
         interfaces.agent.add_appsec_validation(r, validate_appsec_span_tags)
+
+
+@missing_feature(library="dotnet")
+@missing_feature(library="java")
+@missing_feature(library="php")
+@missing_feature(library="python")
+@missing_feature(library="ruby")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+class Test_CollectRespondHeaders(BaseTestCase):
+    """ AppSec should collect some headers for http.response and store them in span tags. """
+
+    def test_header_collection(self):
+        def assertHeaderInSpanMeta(span, h):
+            if h not in span["meta"]:
+                raise Exception("Can't find {header} in span's meta".format(header=h))
+
+        def validate_response_headers(span):
+            for h in ["content-type", "content-length", "content-language"]:
+                assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
+            return True
+
+        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        interfaces.library.add_span_validation(r, validate_response_headers)

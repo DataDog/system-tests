@@ -279,3 +279,15 @@ class _LogValidation(BaseValidation):
                 self.is_success_on_expiry = True
         except Exception as e:
             self.set_failure(f"{self.message} not validated: {e}\nLog is: {data['raw']}")
+
+
+class Test:
+    def test_main(self):
+        """ Test example """
+        i = _LibraryStdout()
+        i.assert_presence(r".*", level="DEBUG")
+        i.__test__()
+
+
+if __name__ == "__main__":
+    Test().test_main()

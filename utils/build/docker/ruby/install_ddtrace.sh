@@ -19,6 +19,8 @@ bundle update ddtrace
 
 bundle list | grep ddtrace > SYSTEM_TESTS_LIBRARY_VERSION
 bundle list | grep libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION || true
+echo "1.2.5" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
 echo "libddwaf version: $(cat SYSTEM_TESTS_LIBDDWAF_VERSION)"
+echo "appsec event rules version: $(cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"

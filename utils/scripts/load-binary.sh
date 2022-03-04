@@ -185,18 +185,21 @@ elif [ "$TARGET" = "nodejs" ]; then
     echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
-    curl --silent \
-        -H "Authorization: token $GH_TOKEN" \
-        -H "Accept: application/vnd.github.v3.raw" \
-        --output "waf_rule_set.json" \
-        https://api.github.com/repos/DataDog/appsec-event-rules/contents/v1/build/recommended.json
+    exit 1
 
 elif [ "$TARGET" = "waf_rule_set_v2" ]; then
     curl --silent \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         --output "waf_rule_set.json" \
-        https://api.github.com/repos/DataDog/appsec-event-rules/contents/v2/build/recommended.json
+        https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+
+elif [ "$TARGET" = "waf_rule_set" ]; then
+    curl --silent \
+        -H "Authorization: token $GH_TOKEN" \
+        -H "Accept: application/vnd.github.v3.raw" \
+        --output "waf_rule_set.json" \
+        https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 elif [ "$TARGET" = "php_appsec" ]; then
     get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "push" "dd-appsec-php-*-amd64.tar.gz"

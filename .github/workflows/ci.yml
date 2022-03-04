@@ -62,6 +62,12 @@ jobs:
           - library: golang
             weblog-variant: chi
             version: prod
+          - library: golang
+            weblog-variant: gin
+            version: dev
+          - library: golang
+            weblog-variant: gin
+            version: prod
 
           - library: java
             weblog-variant: spring-boot
@@ -196,23 +202,29 @@ jobs:
     env:
       TEST_LIBRARY: ${{ matrix.library }}
       WEBLOG_VARIANT: ${{ matrix.weblog-variant }}
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Load library binary
+      - name: Load WAF rules
         if: ${{ matrix.version == 'dev' }}
-        run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
+        run: ./utils/scripts/load-binary.sh waf_rule_set
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # uncomment this block once DataDog/dd-appsec-php-internal is public
-      # - name: Load library PHP appsec binary
-      #   if: ${{ matrix.version == 'dev' && matrix.library == 'php' }}
-      #   run: ./utils/scripts/load-binary.sh php_appsec
+      - name: Load library binary
+        if: ${{ matrix.version == 'dev' && matrix.library != 'python'  }}
+        run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
 
       - name: Load library binary
         if: ${{ matrix.version == 'dev' && matrix.library == 'python' }}
         run: echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > binaries/python-load-from-pip
+
+      - name: Load library PHP appsec binary
+        if: ${{ matrix.version == 'dev' && matrix.library == 'php' }}
+        run: ./utils/scripts/load-binary.sh php_appsec
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to the Container registry
         if: ${{ matrix.library == 'ruby' }}
@@ -224,13 +236,19 @@ jobs:
 
       - name: Run default scenario
         run: ./run.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run missing AppSec rules file
         run: ./run.sh APPSEC_MISSING_RULES
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run profiling test
         if: ${{ matrix.library == 'nodejs' }}
         run: ./run.sh PROFILING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Compress logs
         if: ${{ always() }}

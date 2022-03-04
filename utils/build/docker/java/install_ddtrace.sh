@@ -23,3 +23,4 @@ java -jar /dd-tracer/dd-java-agent.jar > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
 
 touch /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
+echo "1.2.5" > /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION

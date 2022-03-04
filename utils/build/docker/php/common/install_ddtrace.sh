@@ -43,6 +43,7 @@ php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddapps
   ./SYSTEM_TESTS_PHP_APPSEC_VERSION
 
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
+echo "1.2.5" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
 mkdir -p /etc/dd-appsec
