@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, irrelevant, missing_feature, bug
+from utils import BaseTestCase, context, interfaces, released, irrelevant, missing_feature, bug, rfc
 import pytest
 
 

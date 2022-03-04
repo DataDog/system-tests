@@ -30,3 +30,17 @@ class Test_FleetManagement(BaseTestCase):
 
     def test_basic(self):
         interfaces.library.append_not_implemented_validation()
+
+
+class Test_RuleSet_1_2_4(BaseTestCase):
+    """ AppSec uses rule set 1.2.4 or higher """
+
+    def test_main(self):
+        assert context.appsec_event_rules >= "1.2.4"
+
+
+class Test_RuleSet_1_2_5(BaseTestCase):
+    """ AppSec uses rule set 1.2.5 or higher """
+
+    def test_main(self):
+        assert context.appsec_event_rules >= "1.2.5"
