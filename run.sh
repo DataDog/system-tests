@@ -48,6 +48,11 @@ elif [ $SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
     export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
+elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
+    # armv7 tests
+    export RUNNER_ARGS=scenarios/appsec/test_unsupported.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}

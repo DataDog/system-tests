@@ -149,6 +149,12 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
 
+@missing_feature(library="dotnet")
+@missing_feature(library="java")
+@missing_feature(library="php")
+@missing_feature(library="python")
+@missing_feature(library="ruby")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """
 
