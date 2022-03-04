@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant, rfc
 
 
 if context.library == "cpp":
@@ -147,6 +147,30 @@ class Test_AppSecEventSpanTags(BaseTestCase):
             return True
 
         interfaces.library.add_span_validation(validator=validator)
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
+@missing_feature(reason="Not started yet in any lib")
+class Test_AppSecObfuscator(BaseTestCase):
+    """AppSec obfuscates sensitive data."""
+
+    def test_appsec_obfuscator(self):
+        SECRET = "this is a very secret value"
+
+        def validate_appsec_span_tags(payload, chunk, span, appsec_data):
+
+            if SECRET in span["meta"]["_dd.appsec.json"]:
+                raise Exception("The secret value should be obfuscated")
+
+            return True
+
+        r = self.weblog_get(
+            "/waf/",
+            headers={"User-Agent": "Arachni/v1", "DD_API_TOKEN": f"{SECRET} token {SECRET}"},
+            params={"pwd": f"{SECRET} appscan_fingerprint {SECRET}"},
+        )
+        interfaces.library.assert_waf_attack(r)
+        interfaces.agent.add_appsec_validation(r, validate_appsec_span_tags)
 
 
 @missing_feature(library="dotnet")
