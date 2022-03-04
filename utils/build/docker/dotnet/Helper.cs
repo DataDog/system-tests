@@ -25,8 +25,11 @@ namespace weblog
 
         private static string RandomString(int length)
         {
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            return new string(
+                Enumerable
+                    .Range(1, length)
+                    .Select(_ => chars[random.Next(chars.Length)])
+                    .ToArray());
         }
     }
 }
