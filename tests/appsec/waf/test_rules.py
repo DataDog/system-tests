@@ -80,6 +80,7 @@ class Test_LFI(BaseTestCase):
 
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.92.0")
+    @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         r = self.weblog_get("/waf/..")
