@@ -53,12 +53,13 @@ class Test_HttpProtocol(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_921_160)
 
 
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(golang="1.35.0")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
 
+    @missing_feature(library="python")
     def test_lfi(self):
         """ AppSec catches LFI attacks"""
         r = self.weblog_get("/waf/", headers={"x-attack": "/../"})
@@ -73,6 +74,7 @@ class Test_LFI(BaseTestCase):
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
     @irrelevant(library="php", weblog_variant="apache-mod")
     def test_lfi_percent_2f(self):
+        """ Appsec catches encoded LFI attacks"""
         r = self.weblog_get("/waf/%2e%2e%2f")
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
@@ -235,8 +237,7 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="1.35.0")
-@released(nodejs="2.0.0", php="1.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_SQLI(BaseTestCase):
