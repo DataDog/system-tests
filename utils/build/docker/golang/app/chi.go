@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -14,6 +15,14 @@ func main() {
 	defer tracer.Stop()
 
 	mux := chi.NewRouter().With(chitrace.Middleware())
+
+	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
+		body, err := parseBody(r)
+		if err == nil {
+			appsec.MonitorParsedHTTPBody(r.Context(), body)
+		}
+		w.Write([]byte("Hello, WAF!\n"))
+	})
 
 	mux.HandleFunc("/waf/*", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello, WAF!\n"))
