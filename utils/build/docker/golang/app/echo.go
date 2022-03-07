@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -23,6 +24,15 @@ func main() {
 
 	r.Any("/*", func(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
+	})
+
+	r.Any("/waf", func(c echo.Context) error {
+		req := c.Request()
+		body, err := parseBody(req)
+		if err == nil {
+			appsec.MonitorParsedHTTPBody(req.Context(), body)
+		}
+		return c.String(http.StatusOK, "Hello, WAF!\n")
 	})
 
 	r.Any("/waf/", func(c echo.Context) error {
