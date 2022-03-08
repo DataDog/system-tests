@@ -35,6 +35,6 @@ ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
 ENV DD_INTEGRATIONS=/opt/datadog/integrations.json
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
-RUN echo "dotnet app.dll" >> ./app.sh
+RUN echo "#!/bin/bash\ndotnet app.dll" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
