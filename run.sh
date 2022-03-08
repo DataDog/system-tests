@@ -54,25 +54,21 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
         export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
     fi 
 
-elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
+elif [ $SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
-elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c04
+elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_MissingRules scenarios/appsec/test_customconf.py::Test_ConfRuleSet"
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
-elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c05
+elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_CorruptedRules
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
-elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
-    export RUNNER_ARGS=scenarios/appsec_unsupported.py
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
-
-elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
+elif [ $SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
     export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
