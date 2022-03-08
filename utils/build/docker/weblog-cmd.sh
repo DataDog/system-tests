@@ -11,15 +11,16 @@
 
 set -eu
 
+echo "Configuration script executed from: ${PWD}"
+
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
 
-if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
+if [ ${SYSTEMTESTS_SCENARIO} = "UDS" ]; then
 
     export EXPECTED_APM_SOCKET=${DD_APM_RECEIVER_SOCKET:-/var/run/datadog/apm.socket}
-    export EXPECTED_DSD_SOCKET=${DD_DOGSTATSD_SOCKET:-/var/run/datadog/dsd.socket}
 
-    echo "Setting up UDS with ${EXPECTED_APM_SOCKET} and ${EXPECTED_DSD_SOCKET}"
+    echo "Setting up UDS with ${EXPECTED_APM_SOCKET}."
 
     if [ ${EXPECTED_APM_SOCKET} = "/var/run/datadog/apm.socket" ]; then
 
@@ -29,31 +30,13 @@ if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
         chmod -R a+rwX /var/run/datadog
 
         ( socat UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:library_proxy:${HIDDEN_APM_PORT_OVERRIDE:-7126} ) &
-        ( socat -u UNIX-LISTEN:${EXPECTED_DSD_SOCKET},fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE:-7125} ) &     
     else
         echo "Using explicit UDS config"
         if [ -z ${DD_APM_RECEIVER_SOCKET+x} ]; then
             ( socat UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} ) &
         fi
-        if [ -z ${DD_DOGSTATSD_SOCKET+x} ]; then
-            ( socat -u UNIX-LISTEN:${EXPECTED_DSD_SOCKET},fork UDP:agent:${HIDDEN_DSD_PORT_OVERRIDE} ) &
-        fi
     fi 
 
-    if test -f "${EXPECTED_APM_SOCKET}"; then
-        echo "[SUCCESS] APM receiver socket listening at ${EXPECTED_APM_SOCKET}"
-    else
-        echo "[FAILURE] APM receiver socket not bound to ${EXPECTED_APM_SOCKET}"
-        exit 1
-    fi
-
-    if test -f "${EXPECTED_DSD_SOCKET}"; then
-        echo "[SUCCESS] DSD receiver socket listening at ${EXPECTED_DSD_SOCKET}"
-    else
-        echo "[FAILURE] DSD receiver socket not bound to ${EXPECTED_DSD_SOCKET}"
-        exit 1
-    fi
 fi
 
 ./app.sh
-

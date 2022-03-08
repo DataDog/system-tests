@@ -38,5 +38,6 @@ RUN echo "corrupted::data" > /appsec_corrupted_rules.yml
 
 RUN apt-get install socat -y
 COPY ./utils/build/docker/weblog-cmd.sh ./weblog-cmd.sh
+RUN chmod +x app.sh
+RUN chmod +x weblog-cmd.sh
 CMD [ "./weblog-cmd.sh" ]
-

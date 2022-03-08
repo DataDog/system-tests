@@ -30,13 +30,12 @@ export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
 if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
     export DD_AGENT_HOST=library_proxy
     export HIDDEN_APM_PORT_OVERRIDE=8126
-    export HIDDEN_DSD_PORT_OVERRIDE=8125
 fi
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
-    
+
 elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     echo "Running all tests in UDS mode."
     export RUNNER_ARGS=tests/
@@ -44,17 +43,16 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
     unset DD_TRACE_AGENT_PORT
     unset DD_AGENT_HOST
     export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
-    export HIDDEN_DSD_PORT_OVERRIDE=7125 # Break normal communication
-    
-    # Assume explicit config and unset if DEFAULT
-    export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
-    export DD_DOGSTATSD_SOCKET=/tmp/dsd.sock
 
     if [ $SYSTEMTESTS_VARIATION = "DEFAULT" ]; then
         # Test implicit config
+        echo "Testing default UDS configuration path."
         unset DD_APM_RECEIVER_SOCKET
-        unset DD_DOGSTATSD_SOCKET
-    fi
+    else
+       # Test explicit config
+        echo "Testing explicit UDS configuration path."
+        export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
+    fi 
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
@@ -114,7 +112,7 @@ echo "Starting containers in background."
 
 docker-compose up -d
 
-echo "Getting cgroup."
+echo "Getting cgroup, if execution stops here, run: docker-compose logs weblog"
 
 docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
 
@@ -133,8 +131,6 @@ echo "Outputting runner logs."
 
 # Show output. Trick: The process will end when runner ends
 docker-compose logs -f runner
-
-docker-compose logs weblog
 
 echo "Getting runner exit code."
 

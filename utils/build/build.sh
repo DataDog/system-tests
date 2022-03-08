@@ -96,7 +96,14 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
+
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+
+        if ! grep -q "RUN chmod +x app.sh" "${DOCKERFILE}"; then
+            echo "You must output an 'app.sh' file to use as CMD and add 'RUN chmod +x app.sh' to your Dockerfile"
+            exit 1
+        fi
+
         docker build \
             --progress=plain \
             -f ${DOCKERFILE} \
