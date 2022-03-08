@@ -16,6 +16,11 @@ echo "Configuration script executed from: ${PWD}"
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
 
+if ! grep -q "#!/bin/bash" "./app.sh"; then
+    echo "Please ensure you add #!/bin/bash to your ./app.sh file"
+    exit 1
+fi
+
 if [ ${SYSTEMTESTS_SCENARIO} = "UDS" ]; then
 
     export EXPECTED_APM_SOCKET=${DD_APM_RECEIVER_SOCKET:-/var/run/datadog/apm.socket}
