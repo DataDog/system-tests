@@ -12,7 +12,7 @@ RUN /binaries/install_ddtrace.sh
 
 RUN go build -v -tags appsec -o weblog ./gorilla.go ./common.go
 
-RUN echo "./weblog" >> ./app.sh
+RUN echo "#!/bin/bash\n./weblog" > ./app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 

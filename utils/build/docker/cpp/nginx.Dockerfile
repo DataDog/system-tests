@@ -37,6 +37,6 @@ RUN mkdir /builds
 COPY utils/build/docker/cpp/install_ddtrace.sh builds* /builds/
 RUN /builds/install_ddtrace.sh
 
-RUN echo "nginx -g 'daemon off;'" >> ./app.sh
+RUN echo "#!/bin/bash\nnginx -g 'daemon off;'" > ./app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
