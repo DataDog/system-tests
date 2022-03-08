@@ -17,11 +17,16 @@ else
 fi
 
 ls datadog-dotnet-apm-*.tar.gz | sed 's/[^0-9]*//' | sed 's/.tar.gz//' > /app/SYSTEM_TESTS_LIBRARY_VERSION
-touch /app/SYSTEM_TESTS_LIBDDWAF_VERSION
-echo "1.2.5" > /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 mkdir -p /opt/datadog
 tar xzf datadog-dotnet-apm-$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION).tar.gz -C /opt/datadog
 
+cp /opt/datadog/Datadog.Trace.ClrProfiler.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
+cp /opt/datadog/libddwaf.so /binaries
+dotnet fsi --langversion:preview /binaries/query-versions.fsx
+rm /binaries/libDatadog.Trace.ClrProfiler.Native.so
+rm /binaries/libddwaf.so
+
 echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
+echo "libddwaf version: $(cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)"
 echo "appsec event rules version: $(cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"
