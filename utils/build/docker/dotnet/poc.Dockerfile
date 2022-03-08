@@ -11,7 +11,7 @@ RUN dotnet restore
 
 COPY utils/build/docker/dotnet/*.cs ./
 
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
