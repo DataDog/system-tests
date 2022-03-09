@@ -54,25 +54,25 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
         export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
     fi 
 
-elif [ $SCENARIO = "SAMPLING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
-elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_MissingRules scenarios/appsec/test_customconf.py::Test_ConfRuleSet"
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
-elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_CorruptedRules
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
-elif [ $SCENARIO = "PROFILING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
     export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
-elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     # armv7 tests
     export RUNNER_ARGS=scenarios/appsec/test_unsupported.py
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
@@ -99,20 +99,17 @@ done
 echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
 echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
-echo 🔥 Starting test context.
+echo "🔥 Starting test context."
+echo "ℹ️ Log folder is  ./${SYSTEMTESTS_LOG_FOLDER}"
 
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
 echo "Starting containers in background."
-
 docker-compose up -d
 
 echo "Getting cgroup, if execution stops here, run: docker-compose logs weblog"
-
 docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
-
-echo "Saving all logs to ./${SYSTEMTESTS_LOG_FOLDER}"
 
 export container_log_folder="unset"
 # Save docker logs

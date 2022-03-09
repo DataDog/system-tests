@@ -239,11 +239,6 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run UDS scenario
-        run: ./run.sh UDS
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-
       - name: Run missing AppSec rules file
         run: ./run.sh APPSEC_MISSING_RULES
         env:
@@ -252,6 +247,11 @@ jobs:
       - name: Run profiling test
         if: ${{ matrix.library == 'nodejs' }}
         run: ./run.sh PROFILING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run UDS scenario
+        run: ./run.sh UDS
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
