@@ -99,8 +99,8 @@ done
 echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
 echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
-echo "🔥 Starting test context."
-echo "ℹ️ Log folder is  ./${SYSTEMTESTS_LOG_FOLDER}"
+echo "🔥  Starting test context."
+echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json

@@ -17,8 +17,7 @@ RUN npm run build
 EXPOSE 7777
 
 # docker startup
-RUN echo '#!/bin/sh' > app.sh
-RUN echo 'node dist/app.js' >> app.sh
+RUN echo '#!/bin/bash\nnode dist/app.js' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 
