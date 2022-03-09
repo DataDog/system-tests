@@ -34,11 +34,12 @@ if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
         mkdir -p /var/run/datadog
         chmod -R a+rwX /var/run/datadog
 
-        ( socat UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:library_proxy:${HIDDEN_APM_PORT_OVERRIDE:-7126} ) &
+        ( socat -d -d UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:library_proxy:${HIDDEN_APM_PORT_OVERRIDE:-7126} > /var/log/system-tests/uds-socat.log 2>&1 ) &
+
     else
         echo "Using explicit UDS config"
         if [ -z ${DD_APM_RECEIVER_SOCKET+x} ]; then
-            ( socat UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} ) &
+            ( socat -d -d UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} > /var/log/system-tests/uds-socat.log 2>&1 ) &
         fi
     fi 
 
