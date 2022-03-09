@@ -51,6 +51,7 @@ ADD utils/build/docker/php/apache-mod/entrypoint.sh /
 ADD utils/build/docker/php/common/php.ini /etc/php/
 
 WORKDIR /binaries
+ENTRYPOINT []
 RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]

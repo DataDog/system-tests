@@ -21,7 +21,7 @@ if ! grep -q "#!/bin/bash" "./app.sh"; then
     exit 1
 fi
 
-if [ ${SYSTEMTESTS_SCENARIO} = "UDS" ]; then
+if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
 
     export EXPECTED_APM_SOCKET=${DD_APM_RECEIVER_SOCKET:-/var/run/datadog/apm.socket}
 

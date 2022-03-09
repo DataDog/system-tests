@@ -48,6 +48,7 @@ RUN /install_ddtrace.sh
 ADD utils/build/docker/php/php-fpm/entrypoint.sh /
 
 WORKDIR /binaries
+ENTRYPOINT []
 RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
