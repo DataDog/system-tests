@@ -251,6 +251,7 @@ jobs:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run UDS scenario
+        if: ${{ matrix.library != 'php' && matrix.library != 'cpp' }}
         run: ./run.sh UDS
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}

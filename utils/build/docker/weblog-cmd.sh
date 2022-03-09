@@ -39,9 +39,11 @@ if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
     else
         echo "Using explicit UDS config"
         if [ -z ${DD_APM_RECEIVER_SOCKET+x} ]; then
-            ( socat -d -d UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} > /var/log/system-tests/uds-socat.log 2>&1 ) &
+            ( socat -d -d UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} > /var/log/system-tests/uds-socat.log 2>&1 ) & 
         fi
-    fi 
+    fi
+
+    sleep 5
 
 fi
 
