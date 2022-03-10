@@ -5,11 +5,15 @@ The components that make up a running test are simple from the outside.
 The idea behind system tests is that we can share the tests for a given feature across implementations.
 
 Enabling a feature within system tests might go like this:
- - Add the enabling environment variable to the shared docker-compose
- - Add a test asserting the environment variable affected traces as expected
- - Build and run for your language to verify the tests run and behave as expected
- - Create the pull request in system-tests
- - Ask for review
+ 1. [Run the system test suite](#running-the-system-tests)
+ 1.[Inspect `./logs/interfaces` folders to see if the data you want to validate is present
+ 1. If the feature you want to validate isn't enabled, enable it.
+  - Probably the correct option: Change the weblog/application image
+  - Enable it through run.sh
+  - Enable it through an environment variable
+ 1. [Add a test to verify your data, sending any requests as needed](#how-do-i-add-a-new-test).
+ 1. Disable the test for languages which don't yet implement it
+ 1. Submit a pull request, ask for review
 
 However, there are many scenarios where a test may not be so simple to implement.
 
