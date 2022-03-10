@@ -17,7 +17,7 @@ This document aims to give a working understanding of the parts of system-tests,
 ## What are the components of a running test?
 
 When the system tests are executing, there are several main containers of concern.
- - [Tests Container](#tests-container)
+ - [Tests Container](#tests-container) (aka "runner")
    - Responsible for running the actual tests, sending traffic, and asserting results
  - [Application Container](#application-container)
    - Swappable webapp language module that must meet an interface
