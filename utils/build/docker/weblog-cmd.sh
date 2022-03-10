@@ -11,8 +11,10 @@
 
 set -eu
 
-echo "Configuration script executed from: ${PWD}"
+# Zero is good!
+script_status=0
 
+echo "Configuration script executed from: ${PWD}"
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
 
@@ -24,27 +26,32 @@ fi
 if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
 
     export EXPECTED_APM_SOCKET=${DD_APM_RECEIVER_SOCKET:-/var/run/datadog/apm.socket}
-
     echo "Setting up UDS with ${EXPECTED_APM_SOCKET}."
+    
+    export SOCKET_DIR=$(echo ${EXPECTED_APM_SOCKET} | sed 's|\(.*\)/.*|\1|')
+    mkdir -p ${SOCKET_DIR}
+    chmod -R a+rwX ${SOCKET_DIR}
 
-    if [ ${EXPECTED_APM_SOCKET} = "/var/run/datadog/apm.socket" ]; then
+    ( socat -d -d UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:library_proxy:${HIDDEN_APM_PORT_OVERRIDE:-7126} > /var/log/system-tests/uds-socat.log 2>&1 ) &
 
-        echo "Attempting to use UDS default path"
-
-        mkdir -p /var/run/datadog
-        chmod -R a+rwX /var/run/datadog
-
-        ( socat -d -d UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:library_proxy:${HIDDEN_APM_PORT_OVERRIDE:-7126} > /var/log/system-tests/uds-socat.log 2>&1 ) &
-
-    else
-        echo "Using explicit UDS config"
-        if [ -z ${DD_APM_RECEIVER_SOCKET+x} ]; then
-            ( socat -d -d UNIX-LISTEN:${EXPECTED_APM_SOCKET},fork TCP:agent:${HIDDEN_APM_PORT_OVERRIDE} > /var/log/system-tests/uds-socat.log 2>&1 ) & 
+    attempts=$((14))
+    while [ ! grep -q "listening on" "/var/log/system-tests/uds-socat.log" ]
+    do
+        sleep 0.5
+        attempts=$((attempts-1))
+        if [ $attempts -lt 1 ]; then
+            echo "Unable to verify creation of ${EXPECTED_APM_SOCKET}."
+            script_status=1
+            break
         fi
-    fi
 
-    sleep 5
+    done
 
 fi
 
-./app.sh
+if [ script_status = 0 ]; then
+    # the ultimate entry point, defined in the original Dockerfile
+    ./app.sh
+else
+    exit ${script_status}
+fi
