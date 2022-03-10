@@ -7,8 +7,9 @@ The idea behind system tests is that we can share the tests for a given feature 
 Enabling a feature within system tests might go like this:
  - Add the enabling environment variable to the shared docker-compose
  - Add a test asserting the environment variable affected traces as expected
- - Build and run for each language to verify the tests run and behave as expected
+ - Build and run for your language to verify the tests run and behave as expected
  - Create the pull request in system-tests
+ - Ask for review
 
 However, there are many scenarios where a test may not be so simple to implement.
 

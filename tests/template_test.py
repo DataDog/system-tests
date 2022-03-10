@@ -6,7 +6,8 @@ from utils import BaseTestCase, interfaces, context, irrelevant
 from utils.warmups import default_warmup
 
 # This warmup task runs to make sure containers are ready to receive requests
-context.add_warmup(default_warmup)
+# This is only necessary if you are running a dedicated test like sampling
+# context.add_warmup(default_warmup)
 
 # *ATTENTION*: Copy this file, modify, and rename with a prefix of `test_` to enable your new tests
 
