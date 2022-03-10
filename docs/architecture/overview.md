@@ -42,7 +42,7 @@ flowchart TD
 
 The tests send requests directly to the application.
 
-The tests then wait on the results, which are available as the logs are collected from [mitmproxy](https://docs.mitmproxy.org/) dumps.
+The tests then wait on the results, which are available as the logs are collected from proxies.
 
 ## What are system-tests bad for?
 
