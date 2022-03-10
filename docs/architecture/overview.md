@@ -19,7 +19,7 @@ This document aims to give a working understanding of the parts of system-tests,
 When the system tests are executing, there are several main containers of concern.
  - [Tests Container](#tests-container) (aka "runner")
    - Responsible for running the actual tests, sending traffic, and asserting results
- - [Application Container](#application-container)
+ - [Application Container](#application-container) (aka "weblog")
    - Swappable webapp language module that must meet an interface
  - [Application Proxy Container](#application-proxy-container)
    - Mechanism to inspect payloads from the datadog libraries
