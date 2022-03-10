@@ -22,7 +22,7 @@ class Test_SamplingDecisions(BaseTestCase):
         cls.rid += 1
         return rid
 
-    @missing_feature(
+    @irrelevant(
         context.library in ("nodejs", "php", "dotnet"),
         reason="sampling decision implemented differently in these tracers which isnt't problematic. Cf https://datadoghq.atlassian.net/browse/AIT-374 for more info.",
     )
