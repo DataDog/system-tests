@@ -24,7 +24,7 @@ class Test_SamplingDecisions(BaseTestCase):
 
     @missing_feature(
         context.library in ("nodejs", "php", "dotnet"),
-        reason="sampling decision implemented differently in these tracers",
+        reason="sampling decision implemented differently in these tracers which isnt't problematic. Cf https://datadoghq.atlassian.net/browse/AIT-374 for more info.",
     )
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.92.0")
