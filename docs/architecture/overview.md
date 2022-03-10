@@ -139,7 +139,9 @@ The first argument to the `./build.sh` script is the language (`$TEST_LIBRARY`) 
 
 There are explicit arguments available for more specific configuration of the build.
  - i.e., `./build.sh {language} --weblog-variant {dockerfile-prefix}`
- - e.g., `./build.sh --library python --weblog-variant flask-poc`
+ - e.g., `./build.sh python --weblog-variant flask-poc`
+ - shorter version: ./build.sh python -w flask-poc
+
 
 These arguments determine which Dockerfile is ultimately used in the format of: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`
 
