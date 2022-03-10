@@ -128,6 +128,7 @@ The run script ultimately calls the `./docker-compose.yml` file and whichever im
 ## Building the System Tests
 
 The first argument to the `./build.sh` script is the language (`$TEST_LIBRARY`) which is built: `./utils/build/docker/{language}`.
+ - `./build.sh cpp`
  - `./build.sh ruby`
  - `./build.sh python`
  - `./build.sh php`
