@@ -24,31 +24,55 @@ mkdir -p logs
 touch logs/.weblog.env
 docker-compose down
 
-SCENARIO=${1:-DEFAULT}
+export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
+export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
 
-if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
+if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
+    export DD_AGENT_HOST=library_proxy
+    export HIDDEN_APM_PORT_OVERRIDE=8126
+fi
+
+if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
 
-elif [ $SCENARIO = "SAMPLING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
+    echo "Running all tests in UDS mode."
+    export RUNNER_ARGS=tests/
+    export SYSTEMTESTS_LOG_FOLDER=logs_uds
+    unset DD_TRACE_AGENT_PORT
+    unset DD_AGENT_HOST
+    export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
+
+    if [ $SYSTEMTESTS_VARIATION = "DEFAULT" ]; then
+        # Test implicit config
+        echo "Testing default UDS configuration path."
+        unset DD_APM_RECEIVER_SOCKET
+    else
+       # Test explicit config
+        echo "Testing explicit UDS configuration path."
+        export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
+    fi 
+
+elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
-elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_MissingRules scenarios/appsec/test_customconf.py::Test_ConfRuleSet"
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
-elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_CorruptedRules
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
-elif [ $SCENARIO = "PROFILING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
     export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
-elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     # armv7 tests
     export RUNNER_ARGS=scenarios/appsec/test_unsupported.py
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
@@ -74,23 +98,34 @@ done
 # them in the docker-compose.yml is not possible
 echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
-echo ============ Run tests ===================
-echo 🔥 Starting test context.
+echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
+echo "🔥  Starting test context."
+echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
+echo "Starting containers in background."
 docker-compose up -d
+
+echo "Getting cgroup, if execution stops here, run: docker-compose logs weblog"
 docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
 
+export container_log_folder="unset"
 # Save docker logs
 for container in ${containers[@]}
 do
-    docker-compose logs --no-color --no-log-prefix -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
+    container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${container}"
+    echo "Saving ${container} logs to ./${container_log_folder}"
+    docker-compose logs --no-color --no-log-prefix -f $container > $container_log_folder/stdout.log &
 done
+
+echo "Outputting runner logs."
 
 # Show output. Trick: The process will end when runner ends
 docker-compose logs -f runner
+
+echo "Getting runner exit code."
 
 # Get runner status
 EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
@@ -99,4 +134,5 @@ EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.Exi
 docker-compose down --remove-orphans
 
 # Exit with runner's status
+echo "Exiting with ${EXIT_CODE}"
 exit $EXIT_CODE

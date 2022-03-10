@@ -75,6 +75,8 @@ echo ""
 # Build images
 for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
 do
+
+    echo "-----------------------"
     echo Build $IMAGE_NAME
     if [[ $IMAGE_NAME == runner ]]; then
         docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
@@ -96,7 +98,9 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
+
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+
         docker build \
             --progress=plain \
             -f ${DOCKERFILE} \
@@ -121,12 +125,15 @@ do
         # ENV command in a Dockerfile can be the result of a command, it must either an hardcoded value
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
+
+        echo "Getting system test context and saving it in weblog image"
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
 
         docker build \
+            --progress=plain \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
             --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
             --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \

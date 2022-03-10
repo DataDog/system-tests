@@ -34,6 +34,4 @@ RUN update-ca-certificates
 
 RUN datadog-agent version
 
-HEALTHCHECK --interval=10s --timeout=5s --retries=6 CMD [ "curl", "-f", "http://localhost:8126/info" ]
-
 CMD ["/opt/datadog-agent/embedded/bin/trace-agent", "-config", "/etc/datadog-agent/datadog.yaml"]

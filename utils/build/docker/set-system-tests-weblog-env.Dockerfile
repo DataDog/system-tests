@@ -1,5 +1,7 @@
 FROM system_tests/weblog
 
+RUN apt-get update
+
 # Datadog setup
 ENV DD_SERVICE=weblog
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
@@ -33,3 +35,9 @@ ENV SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$SYSTEM_TESTS_APPSEC_EVENT_RULES_VER
 
 # files for exotic scenarios
 RUN echo "corrupted::data" > /appsec_corrupted_rules.yml
+
+RUN apt-get install socat -y
+COPY ./utils/build/docker/weblog-cmd.sh ./weblog-cmd.sh
+RUN chmod +x app.sh
+RUN chmod +x weblog-cmd.sh
+CMD [ "./weblog-cmd.sh" ]
