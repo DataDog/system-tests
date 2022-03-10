@@ -47,6 +47,9 @@ if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
 
     done
 
+    # Give everything a quick second to finish in the background
+    sleep 1
+
 fi
 
 if [ $script_status -ne 0 ]; then
