@@ -169,7 +169,7 @@ These tests generate traffic against the Application Container and then inspect 
 
 ## Application Container
 
-The application container is the pluggable component for each language.
+The application container (aka weblog) is the pluggable component for each language.
 It is a web application that exposes consistent endpoints across all implementations.
 
 If you are introducing a new Dockerfile, or looking to modify an existing one, remember that they are built using this convention in arguments: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`.
