@@ -49,9 +49,9 @@ if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
 
 fi
 
-if [ script_status = 0 ]; then
+if [ $script_status -ne 0 ]; then
+    exit ${script_status}
+else
     # the ultimate entry point, defined in the original Dockerfile
     ./app.sh
-else
-    exit ${script_status}
 fi
