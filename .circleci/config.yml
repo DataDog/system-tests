@@ -1,0 +1,27 @@
+version: 2.1
+
+jobs:
+  system-tests:
+    machine:
+      # https://support.circleci.com/hc/en-us/articles/360007324514-How-can-I-use-Docker-volume-mounting-on-CircleCI-
+      image: ubuntu-2004:current
+    resource_class: large
+    steps:
+      - checkout
+
+      - run:
+          name: Build
+          command: ./build.sh java
+
+      - run:
+          name: Run
+          command: DD_API_KEY=todo ./run.sh
+
+      - store_artifacts:
+          path: logs
+          destination: system-tests.tar.gz
+
+workflows:
+  build_test:
+    jobs:
+      - system-tests
