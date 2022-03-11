@@ -87,8 +87,13 @@ Follow the [example and instructions provided within `./docs/architecture/test_t
 
 ## How do I troubleshoot a failing test?
 
+As system tests is blackbox testing, there will likely be very little information about your failing test in output.
+
 The first method of troubleshooting should be to inspect the logs folder.
-The logs folder is set on the `SYSTEMTESTS_LOG_FOLDER` variable in in the `./run.sh` file, but you should be able to notice an aptly named folder created after your tests run.
+
+The folder is usually `./logs/`.
+
+If you are running a non-default scenario: the logs folder is set with the `SYSTEMTESTS_LOG_FOLDER` variable in in the `./run.sh` file.
 
 ```mermaid
 flowchart TD
