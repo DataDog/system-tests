@@ -10,6 +10,12 @@ jobs:
       - checkout
 
       - run:
+          name: versions
+          command: |
+            docker --version
+            docker-compose --version
+
+      - run:
           name: Build
           command: ./build.sh java
 
