@@ -6,7 +6,7 @@ The idea behind system tests is that we can share the tests for a given feature 
 
 Enabling a feature within system tests might go like this:
  1. [Run the system test suite](#running-the-system-tests)
- 1.[Inspect `./logs/interfaces` folders to see if the data you want to validate is present
+ 1. [Inspect `./logs/interfaces` folders to see if the data you want to validate is present
  1. If the feature you want to validate isn't enabled, enable it.
   - Probably the correct option: Change the weblog/application image
   - Enable it through run.sh
