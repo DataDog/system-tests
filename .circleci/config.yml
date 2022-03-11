@@ -34,6 +34,6 @@ jobs:
           destination: system-tests.tar.gz
 
 workflows:
-  build_test:
+  test:
     jobs:
       - system-tests
