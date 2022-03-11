@@ -10,6 +10,18 @@ jobs:
       - checkout
 
       - run:
+          name: Install good version of docker-compose
+          command: |
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+
+      - run:
+          name: versions
+          command: |
+            docker --version
+            docker-compose --version
+
+      - run:
           name: Build
           command: ./build.sh java
 
@@ -22,6 +34,6 @@ jobs:
           destination: system-tests.tar.gz
 
 workflows:
-  build_test:
+  test:
     jobs:
       - system-tests
