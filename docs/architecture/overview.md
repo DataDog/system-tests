@@ -83,7 +83,7 @@ The framework used for running tests is [pytest](https://docs.pytest.org/).
 
 For a test to be run, it must have the filename prefix `test_`.
 
-Follow the [example and instructions provided within `./tests/template_test.py`](/DataDog/system-tests/blob/main/tests/template_test.py).
+Follow the [example and instructions provided within `./docs/architecture/test_template.py`](/DataDog/system-tests/blob/main/docs/architecture/test_template.py).
 
 ## How do I troubleshoot a failing test?
 
