@@ -1,6 +1,3 @@
-# fmt: off
-# Remove the above line from your test, this is to disable linting for this file
-
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
@@ -16,7 +13,7 @@ from utils.warmups import default_warmup
 
 # There are ways to mark a test to be skipped in pytest, which may or may not be relevant for your tests.
 # Use any of the following examples and add them as decorators on your test class.
-#  - Require a specific version condition: 
+#  - Require a specific version condition:
 #       @bug(context.library < "golang@1.36.0")
 #  - Skip for an entire library:
 #       @irrelevant(context.library != "java", reason="*ATTENTION*: The reason the language is skipped")
