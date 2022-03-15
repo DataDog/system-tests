@@ -69,12 +69,12 @@ class Test_MultipleAttacks(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.security_scanner.ua0_600_12x, pattern="Arachni/v")
 
 
+@missing_feature(library="php")
 class Test_NoWafTimeout(BaseTestCase):
     """ With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
 
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")
-        # TODO a scneario that test the log file ...
 
 
 @missing_feature(library="golang")
