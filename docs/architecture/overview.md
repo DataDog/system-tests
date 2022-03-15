@@ -8,9 +8,9 @@ Enabling a feature within system tests might go like this:
  1. [Run the system test suite](#running-the-system-tests)
  1. [Inspect `./logs/interfaces` folders to see if the data you want to validate is present
  1. If the feature you want to validate isn't enabled, enable it.
-  - Probably the correct option: Change the weblog/application image
-  - Enable it through run.sh
-  - Enable it through an environment variable
+    * Probably the correct option: Change the weblog/application image
+    * Enable it through run.sh
+    * Enable it through an environment variable
  1. [Add a test to verify your data, sending any requests as needed](#how-do-i-add-a-new-test).
  1. Disable the test for languages which don't yet implement it
  1. Submit a pull request, ask for review
