@@ -179,7 +179,7 @@ class Test_BodyRaw(BaseTestCase):
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
-    @missing_feature(reason="matching against keys is impossible with current rules")
+    @irrelevant(reason="matching against keys is impossible with current rules")
     def test_body_key(self):
         """AppSec detects attacks in URL encoded body keys"""
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
