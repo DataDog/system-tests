@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -18,6 +19,13 @@ func main() {
 
 	r.Any("/", func(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusOK)
+	})
+	r.Any("/waf", func(ctx *gin.Context) {
+		body, err := parseBody(ctx.Request)
+		if err == nil {
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), body)
+		}
+		ctx.Writer.Write([]byte("Hello, WAF!\n"))
 	})
 	r.Any("/waf/*allpaths", func(ctx *gin.Context) {
 		ctx.Writer.Write([]byte("Hello, WAF!\n"))
