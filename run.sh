@@ -19,11 +19,6 @@ fi
 containers=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library)
 
-# Stop previous container not stopped
-mkdir -p logs
-touch logs/.weblog.env
-docker-compose down
-
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
 export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
 
@@ -99,25 +94,29 @@ done
 echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
 echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
-echo "🔥  Starting test context."
 echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
 echo "Starting containers in background."
-docker-compose up -d
+docker-compose up -d --force-recreate
 
-echo "Getting cgroup, if execution stops here, run: docker-compose logs weblog"
-docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
+docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup || true
 
 export container_log_folder="unset"
 # Save docker logs
 for container in ${containers[@]}
 do
     container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${container}"
-    echo "Saving ${container} logs to ./${container_log_folder}"
     docker-compose logs --no-color --no-log-prefix -f $container > $container_log_folder/stdout.log &
+
+    # checking container, if should not be stopped here
+    if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $container)` ]; then
+        echo "ERROR: $container container is unexpectably stopped. Here is the output:"
+        docker-compose logs $container
+        exit 1
+    fi
 done
 
 echo "Outputting runner logs."
@@ -125,9 +124,7 @@ echo "Outputting runner logs."
 # Show output. Trick: The process will end when runner ends
 docker-compose logs -f runner
 
-echo "Getting runner exit code."
-
-# Get runner status
+# Getting runner exit code.
 EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
 
 # Stop all containers
