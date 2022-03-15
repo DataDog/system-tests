@@ -46,6 +46,17 @@ func main() {
 		w.Write([]byte("Hello, headers!"))
 	})
 
+	mux.HandleFunc("/identify/", func(w http.ResponseWriter, r *http.Request) {
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(
+				span, "usr.id", tracer.WithUserEmail("usr.email"),
+				tracer.WithUserName("usr.name"), tracer.WithUserSessionID("usr.session_id"),
+				tracer.WithUserRole("usr.role"), tracer.WithUserScope("usr.scope"),
+			)
+		}
+		w.Write([]byte("Hello, identify!"))
+	})
+
 	initDatadog()
 	http.ListenAndServe(":7777", mux)
 }

@@ -56,6 +56,17 @@ func main() {
 		return c.String(http.StatusOK, "Hello, headers!")
 	})
 
+	r.Any("/identify/", func(c echo.Context) error {
+		if span, ok := tracer.SpanFromContext(c.Request().Context()); ok {
+			tracer.SetUser(
+				span, "usr.id", tracer.WithUserEmail("usr.email"),
+				tracer.WithUserName("usr.name"), tracer.WithUserSessionID("usr.session_id"),
+				tracer.WithUserRole("usr.role"), tracer.WithUserScope("usr.scope"),
+			)
+		}
+		return c.String(http.StatusOK, "Hello, identify!")
+	})
+
 	initDatadog()
 	r.Start(":7777")
 }
