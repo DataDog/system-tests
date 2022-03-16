@@ -29,11 +29,11 @@ class Test_Basic(BaseTestCase):
             if val != tag:
                 raise Exception(f"{tag} value is '{val}', should be '{tag}'")
 
-        def validate_response_headers(span):
+        def validate_identify_tags(span):
             for tag in ["id", "name", "email", "session_id", "role", "scope"]:
                 assertTagInSpanMeta(span, f"usr.{tag}")
             return True
 
         # Send a random attack on the identify endpoint
         r = self.weblog_get("/identify/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.add_span_validation(r, validate_response_headers)
+        interfaces.library.add_span_validation(r, validate_identify_tags)
