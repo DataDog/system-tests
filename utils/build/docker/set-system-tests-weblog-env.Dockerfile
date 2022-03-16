@@ -35,6 +35,7 @@ ENV SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$SYSTEM_TESTS_APPSEC_EVENT_RULES_VER
 
 # files for exotic scenarios
 RUN echo "corrupted::data" > /appsec_corrupted_rules.yml
+COPY scenarios/appsec/custom_rules.json /appsec_custom_rules.json
 
 RUN apt-get install socat -y
 COPY ./utils/build/docker/weblog-cmd.sh ./weblog-cmd.sh
