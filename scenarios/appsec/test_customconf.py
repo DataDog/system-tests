@@ -56,18 +56,18 @@ class Test_MissingRules(_BaseNoAppSec):
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
 @released(java="0.93.0", nodejs="?", php_appsec="?", ruby="?")
-class Test_ConfRuleSet(_BaseNoAppSec):
+class Test_ConfRuleSet(BaseTestCase):
     """AppSec support env var DD_APPSEC_RULES"""
 
-    @missing_feature(library="golang")
-    @missing_feature(library="nodejs")
-    @missing_feature(library="python")
-    @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
-    def test_c04(self):
-        """Log C4: Rules file is missing"""
-        stdout.assert_presence(
-            r'AppSec could not find the rules file in path "?/donotexists"?. '
-            r"AppSec will not run any protections in this application. "
-            r"No security activities will be collected.",
-            level="CRITICAL",
-        )
+    def test_requests(self):
+        """ Appsec does not catch any attack """
+        r = self.weblog_get("/waf", headers={"User-Agent": "Arachni/v1"})
+        interfaces.library.assert_no_appsec_event(r)
+
+        r = self.weblog_get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
+        interfaces.library.assert_waf_attack(r, pattern="dedicated-value-for-testing-purpose")
+
+    def test_log(self):
+        stdout.assert_absence("AppSec could not read the rule file")
+        stdout.assert_absence("failed to parse rule")
+        stdout.assert_absence("WAF initialization failed")

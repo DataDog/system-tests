@@ -1,0 +1,32 @@
+{
+  "version": "2.2",
+  "metadata": {
+    "rules_version": "1.2.6"
+  },
+  "rules": [
+    {
+      "id": "custom-rule-for-system-tests",
+      "name": "noname",
+      "tags": {
+        "type": "testing",
+        "crs_id": "0",
+        "category": "testing"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies"
+              }
+            ],
+            "list": [
+              "dedicated-value-for-testing-purpose"
+            ]
+          },
+          "operator": "phrase_match"
+        }
+      ]
+    }
+  ]
+}

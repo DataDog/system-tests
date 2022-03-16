@@ -250,6 +250,11 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run custom AppSec rules file
+        run: ./run.sh APPSEC_CUSTOM_RULES
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run profiling test
         if: ${{ matrix.library == 'nodejs' }}
         run: ./run.sh PROFILING

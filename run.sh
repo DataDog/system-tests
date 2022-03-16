@@ -54,7 +54,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_MissingRules scenarios/appsec/test_customconf.py::Test_ConfRuleSet"
+    export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
@@ -62,6 +62,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_CorruptedRules
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_ConfRuleSet
+    export SYSTEMTESTS_LOG_FOLDER=logs_custom_appsec_rules
+    WEBLOG_ENV="DD_APPSEC_RULES=/appsec_custom_rules.json"
 
 elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
