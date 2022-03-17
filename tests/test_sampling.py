@@ -4,10 +4,11 @@
 
 from random import randint
 
-from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature, flaky
+from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature, flaky, released
 
 
 @irrelevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
+@released(php="0.71.0")
 class Test_SamplingDecisions(BaseTestCase):
     """Sampling configuration"""
 
@@ -39,7 +40,6 @@ class Test_SamplingDecisions(BaseTestCase):
         interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(library="php", reason="Unknown reason")
     @bug(library="ruby", reason="Unknown reason")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""

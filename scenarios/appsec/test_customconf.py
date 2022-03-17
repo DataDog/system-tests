@@ -23,7 +23,7 @@ class _BaseNoAppSec(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(java="0.93.0", php_appsec="?", ruby="?")
+@released(java="0.93.0", php_appsec="0.3.0", ruby="?")
 class Test_CorruptedRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is invalid"""
 
@@ -36,7 +36,7 @@ class Test_CorruptedRules(_BaseNoAppSec):
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
 
 
-@released(java="0.93.0", nodejs="?", php_appsec="?", ruby="?")
+@released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
 class Test_MissingRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is missing"""
 
@@ -55,7 +55,7 @@ class Test_MissingRules(_BaseNoAppSec):
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@released(java="0.93.0", nodejs="2.3.1", php_appsec="?", python="?", ruby="?")
+@released(java="0.93.0", nodejs="2.3.1", php_appsec="0.3.0", python="?", ruby="?")
 class Test_ConfRuleSet(BaseTestCase):
     """AppSec support env var DD_APPSEC_RULES"""
 
