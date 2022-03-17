@@ -36,6 +36,19 @@ app.get('/headers', (req, res) => {
   res.send('Hello, headers!');
 });
 
+app.get('/identify', (req, res) => {
+  tracer.setUser({
+    id: 'usr.id',
+    email: 'usr.email',
+    name: 'usr.name',
+    session_id: 'usr.session_id',
+    role: 'usr.role',
+    scope: 'usr.scope'
+  });
+
+  res.send('OK');
+})
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');
