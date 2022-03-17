@@ -30,6 +30,7 @@ class Test_CorruptedRules(_BaseNoAppSec):
     @missing_feature(library="golang")
     @missing_feature(library="nodejs")
     @missing_feature(library="python")
+    @missing_feature(library="php")
     @bug(library="dotnet", reason="ERROR io CRITICAL")
     def test_c05(self):
         """Log C5: Rules file is corrupted"""
