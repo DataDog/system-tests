@@ -49,7 +49,7 @@ app.get('/identify', (req: Request, res: Response) => {
   });
 
   res.send('OK');
-})
+});
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
