@@ -173,13 +173,13 @@ class Test_AppSecObfuscator(BaseTestCase):
         interfaces.agent.add_appsec_validation(r, validate_appsec_span_tags)
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @missing_feature(library="dotnet")
 @missing_feature(library="java")
 @missing_feature(library="php")
 @missing_feature(library="python")
 @missing_feature(library="ruby")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
-@released(golang="1.36.2")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """
 
