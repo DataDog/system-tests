@@ -364,7 +364,7 @@
               "type": "object",
               "properties": {
                 "request_type": { "const": "app-dependencies-loaded" },
-                "payload": { "$ref": "#/$defs/IntegrationsChange" }
+                "payload": { "$ref": "#/$defs/DependenciesLoaded" }
               }
             },
             {
