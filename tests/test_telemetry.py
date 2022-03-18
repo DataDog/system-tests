@@ -18,9 +18,9 @@ class Test_Telemetry(BaseTestCase):
         """Request type app-started is sent on startup"""
         interfaces.library.assert_send_app_started()
 
-    def test_integrations_change(self):
-        """Request type integrations-change have non empty list of changes"""
-        interfaces.library.assert_integrations_changed_message_valid()
+    def test_telemetry_messages_valid(self):
+        """Telemetry messages additional validation"""
+        interfaces.library.assert_telemetry_messages_valid()
 
     def test_proxy_forwarding(self):
         """Test that the telemetry proxy forwards messages correctly"""

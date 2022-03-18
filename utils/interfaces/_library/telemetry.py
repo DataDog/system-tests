@@ -154,3 +154,17 @@ class _IntegrationChangedValidation(BaseValidation):
             return
         if not content["payload"]["integrations"]:
             self.set_failure(f"Empty integration changes sent in {data['log_filename']}")
+
+class _DependenciesLoadedValidation(BaseValidation):
+    path_filters = TELEMETRY_AGENT_ENDPOINT
+    is_success_on_expiry = True
+
+    def __init__(self, message=None, request=None):
+        super().__init__(message=message, request=request)
+
+    def check(self, data):
+        content = data["request"]["content"]
+        if content["request_type"] != "app-dependencies-loaded":
+            return
+        if not content["payload"]["dependencies"]:
+            self.set_failure(f"Empty dependencies changes sent in {data['log_filename']}")
