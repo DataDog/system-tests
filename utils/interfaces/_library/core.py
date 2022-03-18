@@ -37,6 +37,7 @@ from utils.interfaces._library.telemetry import (
     _TelemetryProxyValidation,
     _AppStartedLibraryValidation,
     _IntegrationChangedValidation,
+    _DependenciesLoadedValidation,
     TELEMETRY_AGENT_ENDPOINT,
 )
 
@@ -137,8 +138,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_send_app_started(self):
         self.append_validation(_AppStartedLibraryValidation())
 
-    def assert_integrations_changed_message_valid(self):
+    def assert_telemetry_messages_valid(self):
         self.append_validation(_IntegrationChangedValidation())
+        self.append_validation(_DependenciesLoadedValidation())
 
     def assert_all_telemetry_messages_proxied(self, agent_interface):
         validation = _TelemetryProxyValidation.LibToAgent()
