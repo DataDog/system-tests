@@ -84,7 +84,7 @@ class Test_NoWafTimeout(BaseTestCase):
 @missing_feature(library="python")
 @missing_feature(library="ruby")
 @released(nodejs="2.4.0")
-@irrelevant(reason="test not implemented")
+@missing_feature(reason="test not implemented")
 class Test_RuleSerialization(BaseTestCase):
     """ Serialize WAF rules without limiting their sizes """
 
