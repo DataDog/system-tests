@@ -13,3 +13,4 @@ class Test_Misc(BaseTestCase):
     def test_main(self):
         r = self.weblog_get("/trace/cassandra")
         interfaces.library.assert_trace_exists(r)
+        
