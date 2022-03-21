@@ -57,7 +57,7 @@ class Test_MissingRules(_BaseNoAppSec):
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@released(java="0.93.0", nodejs="2.3.1", php_appsec="0.3.0", python="?", ruby="?")
+@released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="?", ruby="?")
 class Test_ConfRuleSet(BaseTestCase):
     """AppSec support env var DD_APPSEC_RULES"""
 
