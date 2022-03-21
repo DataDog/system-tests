@@ -8,7 +8,7 @@ import os
 import json
 import pytest
 
-from utils.tools import logger
+from utils.tools import logger, get_exception_traceback
 from utils._context.cgroup_info import CGroupInfo
 from utils._context.library_version import LibraryVersion, Version
 
@@ -100,12 +100,17 @@ class _Context:
         raise RuntimeError("Failed to get container id")
 
     def add_warmup(self, warmup):
-        logger.debug(f"Add warmup function {warmup}")
+        logger.debug(f"Add warmup {warmup}")
         self._warmups.append(warmup)
 
     def execute_warmups(self):
         for warmup in self._warmups:
-            warmup()
+            logger.info(f"Executing warmup {warmup}")
+            try:
+                warmup()
+            except Exception as e:
+                logger.error("\n".join(get_exception_traceback(e)))
+                pytest.exit(f"{warmup} failed: {e}", 1)
 
     def serialize(self):
         result = {

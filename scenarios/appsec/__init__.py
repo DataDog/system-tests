@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context
-from utils.warmups import default_warmup
+from utils.warmups import add_default_warmups
 
 
-context.add_warmup(default_warmup)
+add_default_warmups()
