@@ -6,7 +6,7 @@ The idea behind system tests is that we can share the tests for a given feature 
 
 Enabling a feature within system tests might go like this:
  1. [Run the system test suite](#running-the-system-tests)
- 1. [Inspect `./logs/interfaces` folders to see if the data you want to validate is present
+ 1. Inspect `./logs/interfaces` folders to see if the data you want to validate is present
  1. If the feature you want to validate isn't enabled, enable it.
     * Probably the correct option: Change the weblog/application image
     * Enable it through run.sh
@@ -83,7 +83,7 @@ The framework used for running tests is [pytest](https://docs.pytest.org/).
 
 For a test to be run, it must have the filename prefix `test_`.
 
-Follow the [example and instructions provided within `./docs/architecture/test_template.py`](/DataDog/system-tests/blob/main/docs/architecture/test_template.py).
+Follow the [example and instructions provided within `./docs/architecture/test_template.py`](/docs/architecture/test_template.py).
 
 ## How do I troubleshoot a failing test?
 
@@ -209,6 +209,6 @@ This container uses mitmproxy to inspect and dump the traffic and then forwards 
 
 ## Testing a local version of the tracer
 
-Read the instructions in [the binaries documentation](/DataDog/system-tests/blob/colin/diagrams/docs/execute/binaries.md).
+Read the instructions in [the binaries documentation](/docs/execute/binaries.md).
 
 In short, copy your tracer version to the `./binaries` folder, and build and run as usual.
