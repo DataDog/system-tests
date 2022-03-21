@@ -100,6 +100,7 @@ services:
       - COLUMNS=${COLUMNS:-120}
       - PYTHONPATH=/app
       - DD_SITE=${DD_SITE:-datad0g.com}
+      - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
     volumes:
       - ./pytest.ini:/app/pytest.ini
       - ./conftest.py:/app/conftest.py

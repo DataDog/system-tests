@@ -75,8 +75,9 @@ def _wait_for_app_readiness():
 
 def add_default_warmups():
 
-    # need help from Colin: which port with UDS ?
-    context.add_warmup(_HealthCheck("http://agent:8126/info", 60, start_period=15))
-    context.add_warmup(_HealthCheck("http://library_proxy:8126/info", 60))
+    agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
+
+    context.add_warmup(_HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=15))
+    context.add_warmup(_HealthCheck(f"http://library_proxy:{agent_port}/info", 60))
     context.add_warmup(_HealthCheck("http://weblog:7777", 120))
     context.add_warmup(_wait_for_app_readiness)
