@@ -139,7 +139,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
 
             source = p("source", r"[a-z\.]+")
             timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d:\d\d\d [+\-]0000")
-            thread = p("thread", r"[\w\-]+")
+            thread = p("thread", r"[^\]]+")
             level = p("level", r"\w+")
             klass = p("klass", r"[\w\.$]+")
             message = p("message", r".*")
