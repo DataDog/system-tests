@@ -33,7 +33,7 @@ class _TraceHeadersContainerTags(BaseValidation):
         request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
 
         if "datadog-container-id" not in request_headers:
-            self.set_failure(f"Datadog-Container-ID header is missing in request number {data['log_filename']}")
+            self.set_failure(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
             return
 
         expected_value = context.get_weblog_container_id()

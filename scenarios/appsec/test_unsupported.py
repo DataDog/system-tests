@@ -3,10 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, interfaces, context
-from utils.warmups import default_warmup
+from utils.warmups import add_default_warmups
 
 
-context.add_warmup(default_warmup)
+add_default_warmups()
 
 
 class TestAppSecDeactivated(BaseTestCase):

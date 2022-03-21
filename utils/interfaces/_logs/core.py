@@ -44,27 +44,30 @@ class _LogsInterfaceValidator(InterfaceValidator):
         for filename in self._get_files():
             logger.info(f"For {self}, reading {filename}")
             log_count = 0
-            with open(filename, "r") as f:
-                buffer = []
-                for line in f:
-                    if line.endswith("\n"):
-                        line = line[:-1]  # remove tailing \n
-                    line = self._clean_line(line)
+            try:
+                with open(filename, "r") as f:
+                    buffer = []
+                    for line in f:
+                        if line.endswith("\n"):
+                            line = line[:-1]  # remove tailing \n
+                        line = self._clean_line(line)
 
-                    if self._is_skipped_line(line):
-                        continue
+                        if self._is_skipped_line(line):
+                            continue
 
-                    if self._is_new_log_line(line) and len(buffer):
-                        log_count += 1
-                        yield "\n".join(buffer) + "\n"
-                        buffer = []
+                        if self._is_new_log_line(line) and len(buffer):
+                            log_count += 1
+                            yield "\n".join(buffer) + "\n"
+                            buffer = []
 
-                    buffer.append(line)
+                        buffer.append(line)
 
-                log_count += 1
-                yield "\n".join(buffer) + "\n"
+                    log_count += 1
+                    yield "\n".join(buffer) + "\n"
 
-            logger.info(f"Reading {filename} is finished, {log_count} has been treated")
+                logger.info(f"Reading {filename} is finished, {log_count} has been treated")
+            except FileNotFoundError:
+                logger.error(f"File not found: {filename}")
 
     def wait(self):
         for log_line in self._read():

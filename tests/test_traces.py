@@ -3,10 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, interfaces, context, irrelevant
-from utils.warmups import default_warmup
-
-
-context.add_warmup(default_warmup)
 
 
 @irrelevant(context.library != "java", reason="Need to build endpoint on weblog")

@@ -15,24 +15,32 @@ from utils import context, interfaces
 from utils.tools import logger
 
 
-def _send_warmup_requests():
+class _HealthCheck:
+    def __init__(self, url, retries, interval=1, start_period=0):
+        self.url = url
+        self.retries = retries
+        self.interval = interval
+        self.start_period = start_period
 
-    ok_count = 0
-    for i in range(120):
-        try:
-            r = requests.get("http://weblog:7777", timeout=0.5)
-            logger.debug(f"Warmup request #{i} result: {r}")
-            if r.status_code == 200:
-                ok_count += 1
-                if ok_count == 3:
-                    break
-        except Exception as e:
-            logger.debug(f"Warmup request #{i} result: {e}")
+    def __call__(self):
+        if self.start_period:
+            time.sleep(self.start_period)
 
-        time.sleep(1)
+        for i in range(self.retries + 1):
+            try:
+                r = requests.get(self.url, timeout=0.5)
+                logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
+                if r.status_code == 200:
+                    return True
+            except Exception as e:
+                logger.debug(f"Healthcheck #{i} on {self.url}: {e}")
 
-    if ok_count != 3:
-        pytest.exit("App never answered to warn-up request", 1)
+            time.sleep(self.interval)
+
+        pytest.exit(f"{self.url} never answered to healthcheck request", 1)
+
+    def __str__(self):
+        return f"Healthcheck({repr(self.url)}, retries={self.retries}, interval={self.interval}, start_period={self.start_period})"
 
 
 def _wait_for_weblog_cgroup_file():
@@ -46,28 +54,30 @@ def _wait_for_weblog_cgroup_file():
     if attempt == max_attempts:
         pytest.exit("Failed to access cgroup file from weblog container", 1)
 
+    return True
+
 
 def _wait_for_app_readiness():
     logger.debug("Wait for app readiness")
 
-    t_start = time.time()
     if not interfaces.library.ready.wait(40):
         pytest.exit("Library not ready", 1)
-    logger.debug(f"Library ready after {(time.time() - t_start):2f}s")
+    logger.debug(f"Library ready")
 
     if not interfaces.agent.ready.wait(40):
         pytest.exit("Datadog agent not ready", 1)
-    logger.debug(f"Agent ready after {(time.time() - t_start):2f}s")
+    logger.debug(f"Agent ready")
 
     _wait_for_weblog_cgroup_file()
 
     return
 
 
-def default_warmup():
-    """Check that the agent has instrumented the app"""
+def add_default_warmups():
 
-    _send_warmup_requests()
-    _wait_for_app_readiness()
+    agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
 
-    logger.debug("Instrumentation enabled ok")
+    context.add_warmup(_HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=15))
+    context.add_warmup(_HealthCheck(f"http://library_proxy:{agent_port}/info", 60))
+    context.add_warmup(_HealthCheck("http://weblog:7777", 120))
+    context.add_warmup(_wait_for_app_readiness)
