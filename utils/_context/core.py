@@ -94,7 +94,7 @@ class _Context:
         with open(cgroup_file, mode="r") as fp:
             for line in fp:
                 info = CGroupInfo.from_line(line)
-                if info and info.container_id:
+                if info:
                     return info.container_id
 
         raise RuntimeError("Failed to get container id")
