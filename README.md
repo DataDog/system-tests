@@ -6,7 +6,7 @@ Workbench designed to run advanced tests (integration, smoke, functionnal, fuzzi
 
 `bash`, `docker-compose`
 
-## How to use ? 
+## How to use
 
 Add a valid staging `DD_API_KEY` environment variable (you can set it in a `.env` file). Then:
 
@@ -26,6 +26,8 @@ flowchart TD
     OUTPUT[Test output in bash]
     LOGS[Logs directory per scenario]
 ```
+
+Understand the parts of the tests at the [architectural overview](https://github.com/DataDog/system-tests/blob/main/docs/architecture/overview.md).
 
 More details in [build documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md) and [run documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/run.md).
 
