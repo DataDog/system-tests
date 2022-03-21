@@ -2,41 +2,21 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from utils import context, BaseTestCase, interfaces, bug, irrelevant
+from utils.warmups import default_warmup
 from urllib.parse import urlparse
 
-from utils import context, BaseTestCase, interfaces, bug, irrelevant
+context.add_warmup(default_warmup)
 
+class Test_Misc(BaseTestCase):
+    """ Check that traces are reported for HTTP calls """
 
-class Test_Meta(BaseTestCase):
-    """meta object in spans respect all conventions"""
+    def test_main(self):
+        r = self.weblog_get("/trace/http")
+        interfaces.library.assert_trace_exists(r)
 
-    @bug(library="python", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="ruby", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="golang", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="php", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="cpp", reason="span.kind not included, should be discussed of actually a bug or not")
-    def test_meta_span_kind(self):
-        """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
-
-        def validator(span):
-            if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
-
-            if span.get("type") != "web":  # do nothing if is not web related
-                return
-
-            if "span.kind" not in span["meta"]:
-                raise Exception("web span expect an span.kind meta tag")
-
-            if span["meta"]["span.kind"] not in ("server", "client"):
-                raise Exception("Meta http.kind should be client or server")
-
-            return True
-
-        interfaces.library.add_span_validation(validator=validator)
-
-    @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
-    @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
+    @bug(library="ruby", reason="http.url is not a full url, is this a bug?")
+    @bug(library="golang", reason="http.url is not a full url, is this a bug?")
     @bug(context.library < "php@0.68.2")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
@@ -105,21 +85,27 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
+    
+    @bug(library="python", reason="span.kind not included, is this a bug?")
+    @bug(library="ruby", reason="span.kind not included, is this a bug?")
+    @bug(library="golang", reason="span.kind not included, is this a bug?")
+    @bug(library="php", reason="span.kind not included, is this a bug?")
+    @bug(library="cpp", reason="span.kind not included, is this a bug?")
+    def test_meta_span_kind(self):
+        """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
-@bug(
-    context.library in ("cpp", "python", "ruby"),
-    reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
-)
-class Test_MetaDatadogTags(BaseTestCase):
-    """Spans carry meta tags that were set in DD_TAGS tracer environment"""
-
-    def test_meta_dd_tags(self):
         def validator(span):
-            if span["meta"]["key1"] != "val1":
-                raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
+            if span.get("parent_id") not in (0, None):  # do nothing if not root span
+                return
 
-            if span["meta"]["key2"] != "val2":
-                raise Exception(f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}')
+            if span.get("type") != "web":  # do nothing if is not web related
+                return
+
+            if "span.kind" not in span["meta"]:
+                raise Exception("web span expect an span.kind meta tag")
+
+            if span["meta"]["span.kind"] not in ("server", "client"):
+                raise Exception("Meta http.kind should be client or server")
 
             return True
 
