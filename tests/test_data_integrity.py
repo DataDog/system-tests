@@ -30,7 +30,7 @@ class Test_TraceHeaders(BaseTestCase):
             "datadog-meta-lang-version",
             "x-datadog-trace-count",
         ]
-        
+
         interfaces.library.assert_headers_presence(r"/v0\.[1-9]+/traces", request_headers=request_headers)
 
     @irrelevant(context.library != "php", reason="Special case of the header tests for php tracer")
