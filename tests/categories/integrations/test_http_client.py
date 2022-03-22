@@ -2,13 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context
+from utils import context, BaseTestCase, interfaces
 
 
-class Test_MongoDB(BaseTestCase):
-    """ Ensure tracers instrument MongoDB consistently """
+class Test_Misc(BaseTestCase):
+    """ Check that traces are reported for HTTP calls """
 
     def test_main(self):
-        """ Mongo client call creates a mongodb span """
-        r = self.weblog_get("/trace/mongo")
+        r = self.weblog_get("/trace/http")
         interfaces.library.assert_trace_exists(r)

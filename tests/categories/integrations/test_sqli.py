@@ -2,14 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, irrelevant
-from utils.warmups import default_warmup
+from utils import BaseTestCase, interfaces, context
 
 
-context.add_warmup(default_warmup)
-
-
-class Test_Misc(BaseTestCase):
+class Test_Sqli(BaseTestCase):
     """ Check that traces are reported for sqli """
 
     def test_main(self):

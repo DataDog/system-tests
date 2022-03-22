@@ -2,19 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, bug, irrelevant
-from utils.warmups import default_warmup
+from utils import context, BaseTestCase, interfaces, bug
 from urllib.parse import urlparse
-
-context.add_warmup(default_warmup)
 
 
 class Test_Misc(BaseTestCase):
     """ Check that traces are reported for HTTP calls """
-
-    def test_main(self):
-        r = self.weblog_get("/trace/http")
-        interfaces.library.assert_trace_exists(r)
 
     @bug(library="ruby", reason="http.url is not a full url, is this a bug?")
     @bug(library="golang", reason="http.url is not a full url, is this a bug?")

@@ -101,6 +101,9 @@ class _Context:
 
     def add_warmup(self, warmup):
         logger.debug(f"Add warmup {warmup}")
+        if warmup in self._warmups:
+            return
+
         self._warmups.append(warmup)
 
     def execute_warmups(self):
