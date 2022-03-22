@@ -81,6 +81,9 @@ jobs:
           - library: java
             weblog-variant: jersey-grizzly2
             version: prod
+          - library: java
+            weblog-variant: resteasy-netty3
+            version: prod
 
           - library: nodejs
             weblog-variant: express4
