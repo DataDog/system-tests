@@ -12,6 +12,12 @@ import requests
 from utils.tools import logger, m
 
 
+class _FailedResponse:
+    def __init__(self, request):
+        self.request = request
+        self.status_code = None
+
+
 class BaseTestCase(unittest.TestCase):
     _weblog_url_prefix = "http://weblog:7777"
 
@@ -49,7 +55,7 @@ class BaseTestCase(unittest.TestCase):
             r = requests.Session().send(r, timeout=5, stream=stream)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            return None  # TODO: find a gentle way to say to pytest there is an error without spamming stdout
+            return _FailedResponse(request=r)
 
         logger.debug(f"Request {rid}: {r.status_code}")
 
