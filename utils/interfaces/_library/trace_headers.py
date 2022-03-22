@@ -42,7 +42,7 @@ class _TraceHeadersContainerTags(BaseValidation):
             self.set_failure(
                 f"Expected Datadog-Container-ID header to be {expected_value}, "
                 f"but got {request_headers['datadog-container-id']} "
-                f"in request number {data['log_filename']}"
+                f"in request {data['log_filename']}"
             )
 
 
@@ -63,7 +63,7 @@ class _TraceHeadersContainerTagsCpp(BaseValidation):
 
         if "datadog-container-id" in request_headers:
             self.set_failure(
-                f"Datadog-Container-ID header is present in request number {data['log_filename']}. "
+                f"Datadog-Container-ID header is present in request {data['log_filename']}. "
                 f"Please remove special Datadog-Container-ID test case for C++."
             )
             return
@@ -88,7 +88,7 @@ class _TraceHeadersPresent(BaseValidation):
         request_headers = {h[0].lower() for h in data["request"]["headers"]}
         missing_headers = self.required_headers - request_headers
         if missing_headers:
-            self.set_failure(f"Headers {missing_headers} are missing in request number {data['log_filename']}")
+            self.set_failure(f"Headers {missing_headers} are missing in request {data['log_filename']}")
 
 
 class _TraceHeadersPresentPhp(_TraceHeadersPresent):
