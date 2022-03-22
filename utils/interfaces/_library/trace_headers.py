@@ -32,18 +32,19 @@ class _TraceHeadersContainerTags(BaseValidation):
 
         request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
 
-        if "datadog-container-id" not in request_headers:
-            self.set_failure(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
-            return
-
         expected_value = context.get_weblog_container_id()
 
-        if request_headers["datadog-container-id"] != expected_value:
-            self.set_failure(
-                f"Expected Datadog-Container-ID header to be {expected_value}, "
-                f"but got {request_headers['datadog-container-id']} "
-                f"in request {data['log_filename']}"
-            )
+        if expected_value is not None:
+            if "datadog-container-id" not in request_headers:
+                self.set_failure(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
+                return
+
+            if request_headers["datadog-container-id"] != expected_value:
+                self.set_failure(
+                    f"Expected Datadog-Container-ID header to be {expected_value}, "
+                    f"but got {request_headers['datadog-container-id']} "
+                    f"in request {data['log_filename']}"
+                )
 
 
 class _TraceHeadersContainerTagsCpp(BaseValidation):
