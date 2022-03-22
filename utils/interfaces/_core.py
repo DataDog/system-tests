@@ -228,6 +228,9 @@ class BaseValidation(object):
         if self.message is None:
             raise Exception(f"Please set a message for {self.frame.function}")
 
+        # remove new lines for logging
+        self.message = self.message.replace("\n", " ")
+
         if xfails.is_xfail_method(self.calling_method):
             logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
             xfails.add_validation_from_method(self.calling_method, self)
