@@ -6,8 +6,10 @@ from urllib.parse import urlparse
 
 from utils import context, BaseTestCase, interfaces, bug, irrelevant
 
+
 class Test_Meta(BaseTestCase):
     """meta object in spans respect all conventions"""
+
 
 @bug(
     context.library in ("cpp", "python", "ruby"),

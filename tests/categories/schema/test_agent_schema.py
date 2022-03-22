@@ -6,6 +6,7 @@
 
 from utils import BaseTestCase, interfaces, bug, context
 
+
 class Test_Agent(BaseTestCase):
     """Agents's payload are valid regarding schemas"""
 

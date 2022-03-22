@@ -8,6 +8,7 @@ from utils.warmups import default_warmup
 
 context.add_warmup(default_warmup)
 
+
 class Test_Misc(BaseTestCase):
     """ Check that traces are reported for sqli """
 

@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 context.add_warmup(default_warmup)
 
+
 class Test_Misc(BaseTestCase):
     """ Check that traces are reported for HTTP calls """
 
@@ -85,7 +86,6 @@ class Test_Misc(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
-    
     @bug(library="python", reason="span.kind not included, is this a bug?")
     @bug(library="ruby", reason="span.kind not included, is this a bug?")
     @bug(library="golang", reason="span.kind not included, is this a bug?")
@@ -110,4 +110,3 @@ class Test_Misc(BaseTestCase):
             return True
 
         interfaces.library.add_span_validation(validator=validator)
-        

@@ -7,10 +7,10 @@ from utils.warmups import default_warmup
 
 context.add_warmup(default_warmup)
 
+
 class Test_Misc(BaseTestCase):
     """ Check that traces are reported for Cassandra """
 
     def test_main(self):
         r = self.weblog_get("/trace/cassandra")
         interfaces.library.assert_trace_exists(r)
-        
