@@ -47,14 +47,8 @@ func main() {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	r.Any("/headers/", func(c echo.Context) error {
-		//Data used for header content is irrelevant here, only header presence is checked
-		c.Response().Writer.Header().Set("content-type", "text/plain")
-		c.Response().Writer.Header().Set("content-length", "42")
-		c.Response().Writer.Header().Set("content-language", "en-US")
-
-		return c.String(http.StatusOK, "Hello, headers!")
-	})
+	r.Any("/headers/", headers)
+	r.Any("/headers", headers)
 
 	r.Any("/identify/", func(c echo.Context) error {
 		if span, ok := tracer.SpanFromContext(c.Request().Context()); ok {
@@ -69,4 +63,13 @@ func main() {
 
 	initDatadog()
 	r.Start(":7777")
+}
+
+func headers(c echo.Context) error {
+	//Data used for header content is irrelevant here, only header presence is checked
+	c.Response().Writer.Header().Set("content-type", "text/plain")
+	c.Response().Writer.Header().Set("content-length", "42")
+	c.Response().Writer.Header().Set("content-language", "en-US")
+
+	return c.String(http.StatusOK, "Hello, headers!")
 }

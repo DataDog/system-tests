@@ -40,13 +40,8 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	mux.HandleFunc("/headers/", func(w http.ResponseWriter, r *http.Request) {
-		//Data used for header content is irrelevant here, only header presence is checked
-		w.Header().Set("content-type", "text/plain")
-		w.Header().Set("content-length", "42")
-		w.Header().Set("content-language", "en-US")
-		w.Write([]byte("Hello, headers!"))
-	})
+	mux.HandleFunc("/headers", headers)
+	mux.HandleFunc("/headers/", headers)
 
 	mux.HandleFunc("/identify/", func(w http.ResponseWriter, r *http.Request) {
 		if span, ok := tracer.SpanFromContext(r.Context()); ok {
@@ -67,4 +62,12 @@ func write(w http.ResponseWriter, r *http.Request, d []byte) {
 	span, _ := tracer.StartSpanFromContext(r.Context(), "child.span")
 	defer span.Finish()
 	w.Write(d)
+}
+
+func headers(w http.ResponseWriter, r *http.Request) {
+	//Data used for header content is irrelevant here, only header presence is checked
+	w.Header().Set("content-type", "text/plain")
+	w.Header().Set("content-length", "42")
+	w.Header().Set("content-language", "en-US")
+	w.Write([]byte("Hello, headers!"))
 }

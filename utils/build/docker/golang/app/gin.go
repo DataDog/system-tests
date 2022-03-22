@@ -37,13 +37,8 @@ func main() {
 		ctx.Writer.Write([]byte("OK"))
 	})
 
-	r.Any("/headers/", func(ctx *gin.Context) {
-		//Data used for header content is irrelevant here, only header presence is checked
-		ctx.Writer.Header().Set("content-type", "text/plain")
-		ctx.Writer.Header().Set("content-length", "42")
-		ctx.Writer.Header().Set("content-language", "en-US")
-		ctx.Writer.Write([]byte("Hello, headers!"))
-	})
+	r.Any("/headers/", headers)
+	r.Any("/headers", headers)
 
 	r.Any("/identify/", func(ctx *gin.Context) {
 		if span, ok := tracer.SpanFromContext(ctx.Request.Context()); ok {
@@ -58,4 +53,12 @@ func main() {
 
 	initDatadog()
 	http.ListenAndServe(":7777", r)
+}
+
+func headers(ctx *gin.Context) {
+	//Data used for header content is irrelevant here, only header presence is checked
+	ctx.Writer.Header().Set("content-type", "text/plain")
+	ctx.Writer.Header().Set("content-length", "42")
+	ctx.Writer.Header().Set("content-language", "en-US")
+	ctx.Writer.Write([]byte("Hello, headers!"))
 }

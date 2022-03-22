@@ -124,7 +124,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
                 assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
             return True
 
-        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
         interfaces.library.add_span_validation(r, validate_request_headers)
         interfaces.library.add_span_validation(r, validate_response_headers)
 
@@ -193,5 +193,5 @@ class Test_CollectRespondHeaders(BaseTestCase):
                 assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
             return True
 
-        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
         interfaces.library.add_span_validation(r, validate_response_headers)
