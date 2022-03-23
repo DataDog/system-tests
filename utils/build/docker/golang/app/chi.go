@@ -36,13 +36,8 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	mux.HandleFunc("/headers/", func(w http.ResponseWriter, r *http.Request) {
-		//Data used for header content is irrelevant here, only header presence is checked
-		w.Header().Set("Content-Type", "text/plain")
-		w.Header().Set("Content-Length", "42")
-		w.Header().Set("Content-Language", "en-US")
-		w.Write([]byte("Hello, headers!"))
-	})
+	mux.HandleFunc("/headers/", headers)
+	mux.HandleFunc("/headers", headers)
 
 	mux.HandleFunc("/identify/", func(w http.ResponseWriter, r *http.Request) {
 		if span, ok := tracer.SpanFromContext(r.Context()); ok {
@@ -65,4 +60,12 @@ func main() {
 
 	initDatadog()
 	http.ListenAndServe(":7777", mux)
+}
+
+func headers(w http.ResponseWriter, r *http.Request) {
+	//Data used for header content is irrelevant here, only header presence is checked
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Length", "42")
+	w.Header().Set("Content-Language", "en-US")
+	w.Write([]byte("Hello, headers!"))
 }

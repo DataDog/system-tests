@@ -6,6 +6,7 @@
 
 from collections import Counter
 
+from utils.tools import m
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
 
@@ -88,15 +89,15 @@ class _SpanValidation(BaseValidation):
                 if self.rid:
                     if self.rid != _get_rid_from_span(span):
                         continue
-                    else:
-                        self.log_debug(f"Found a trace for {self.message}")
+
+                    self.log_debug(f"Found a trace for {m(self.message)}")
 
                 try:
                     if self.validator(span):
-                        self.log_debug(f"Trace in {data['log_filename']} validates {self.message}")
+                        self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                         self.is_success_on_expiry = True
                 except Exception as e:
-                    self.set_failure(f"{self.message} not validated: {e}\nSpan is: {span}")
+                    self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
 
 class _TraceExistence(BaseValidation):
