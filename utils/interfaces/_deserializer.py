@@ -10,7 +10,7 @@ from requests_toolbelt.multipart.decoder import MultipartDecoder
 from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from google.protobuf.json_format import MessageToDict
 
-from utils.tools import logger
+from utils.tools import logger, get_exception_traceback
 
 
 def get_header_value(name, headers):
@@ -100,5 +100,4 @@ def deserialize(data, interface):
             decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
             data[key]["content"] = decoded
         except Exception as e:
-            msg = traceback.format_exception_only(type(e), e)[0]
-            logger.critical(msg)
+            logger.critical("\n".join(get_exception_traceback(e)))

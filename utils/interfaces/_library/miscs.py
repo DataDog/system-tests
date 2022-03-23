@@ -22,13 +22,17 @@ class _TraceIdUniqueness(BaseValidation):
         self.uniqueness_exceptions = uniqueness_exceptions
 
     def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            self.log_error(f"For {data['log_filename']}, traces shoud be an array")
+            return
+
         for trace in data["request"]["content"]:
             if len(trace):
                 span = trace[0]
                 self.is_success_on_expiry = True
 
                 if "trace_id" not in span:
-                    self.set_failure(f"Can't find trace_id in request number {data['log_filename']}")
+                    self.set_failure(f"Can't find trace_id in request {data['log_filename']}")
                 else:
                     trace_id = span["trace_id"]
                     self.traces_ids[trace_id] += 1
@@ -76,6 +80,10 @@ class _SpanValidation(BaseValidation):
         self.validator = validator
 
     def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            self.log_error(f"In {data['log_filename']}, traces should be an array")
+            return  # do not fail, it's schema's job
+
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid:
@@ -96,6 +104,11 @@ class _TraceExistence(BaseValidation):
     path_filters = "/v0.4/traces"
 
     def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            # do not fail here, it's schema's job, simply ignore it
+            self.log_error(f"{data['log_filename']} content should be an array")
+            return
+
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid:

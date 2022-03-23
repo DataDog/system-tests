@@ -32,18 +32,19 @@ class _TraceHeadersContainerTags(BaseValidation):
 
         request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
 
-        if "datadog-container-id" not in request_headers:
-            self.set_failure(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
-            return
-
         expected_value = context.get_weblog_container_id()
 
-        if request_headers["datadog-container-id"] != expected_value:
-            self.set_failure(
-                f"Expected Datadog-Container-ID header to be {expected_value}, "
-                f"but got {request_headers['datadog-container-id']} "
-                f"in request number {data['log_filename']}"
-            )
+        if expected_value is not None:
+            if "datadog-container-id" not in request_headers:
+                self.set_failure(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
+                return
+
+            if request_headers["datadog-container-id"] != expected_value:
+                self.set_failure(
+                    f"Expected Datadog-Container-ID header to be {expected_value}, "
+                    f"but got {request_headers['datadog-container-id']} "
+                    f"in request {data['log_filename']}"
+                )
 
 
 class _TraceHeadersContainerTagsCpp(BaseValidation):
@@ -63,16 +64,15 @@ class _TraceHeadersContainerTagsCpp(BaseValidation):
 
         if "datadog-container-id" in request_headers:
             self.set_failure(
-                f"Datadog-Container-ID header is present in request number {data['log_filename']}. "
+                f"Datadog-Container-ID header is present in request {data['log_filename']}. "
                 f"Please remove special Datadog-Container-ID test case for C++."
             )
             return
 
 
-class _TraceHeadersPresent(BaseValidation):
-    """Verify that headers described in
-    https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md
-    are present in traces submitted to the agent"""
+class _TraceHeadersPresentPhp(BaseValidation):
+    """Special test for the php tracer to filter trace submissions containing
+    x-datadog-diagnostic-check but still ensure other requests headers are correct"""
 
     is_success_on_expiry = True
     path_filters = r"/v0\.[1-9]+/traces"  # Should be implemented independently from the endpoint version
@@ -86,23 +86,15 @@ class _TraceHeadersPresent(BaseValidation):
 
     def check(self, data):
         request_headers = {h[0].lower() for h in data["request"]["headers"]}
-        missing_headers = self.required_headers - request_headers
-        if missing_headers:
-            self.set_failure(f"Headers {missing_headers} are missing in request number {data['log_filename']}")
-
-
-class _TraceHeadersPresentPhp(_TraceHeadersPresent):
-    """Special test for the php tracer to filter trace submissions containing
-    x-datadog-diagnostic-check but still ensure other requests headers are correct"""
-
-    def check(self, data):
-        request_headers = {h[0].lower() for h in data["request"]["headers"]}
         if context.library == "php" and "x-datadog-diagnostic-check" in request_headers:
             if len(data["request"]["content"]) != 0:
                 self.set_failure("Php tracer sent a dignostic request with traces in it")
             return
 
-        return super().check(data)
+        request_headers = {h[0].lower() for h in data["request"]["headers"]}
+        missing_headers = self.required_headers - request_headers
+        if missing_headers:
+            self.set_failure(f"Headers {missing_headers} are missing in request {data['log_filename']}")
 
 
 class _TraceHeadersCount(BaseValidation):

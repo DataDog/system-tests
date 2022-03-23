@@ -2,12 +2,18 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from utils.tools import logger
+
 
 def _spans_with_parent(traces, parent_ids):
-    for trace in traces:
-        for span in trace:
-            if span.get("parent_id") in parent_ids:
-                yield span
+    if not isinstance(traces, list):
+        logger.error("Traces should be an array")
+        yield from []  # do notfail here, it's schema's job
+    else:
+        for trace in traces:
+            for span in trace:
+                if span.get("parent_id") in parent_ids:
+                    yield span
 
 
 def get_root_spans(traces):
@@ -15,6 +21,10 @@ def get_root_spans(traces):
 
 
 def _get_rid_from_span(span):
+
+    if not isinstance(span, dict):
+        logger.error(f"Span should be an object, not {type(span)}")
+        return None
 
     # code version
     user_agent = span.get("meta", {}).get("http.request.headers.user-agent", None)
@@ -37,7 +47,11 @@ def get_rid_from_user_agent(user_agent):
 
 
 def get_spans_related_to_rid(traces, rid):
-    for trace in traces:
-        for span in trace:
-            if rid is None or rid == _get_rid_from_span(span):
-                yield span
+    if not isinstance(traces, list):
+        logger.error("Traces should be an array")
+        yield from []  # do notfail here, it's schema's job
+    else:
+        for trace in traces:
+            for span in trace:
+                if rid is None or rid == _get_rid_from_span(span):
+                    yield span
