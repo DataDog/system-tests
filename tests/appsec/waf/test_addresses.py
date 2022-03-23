@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="1.0.0")
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -21,6 +21,7 @@ class Test_UrlQueryKey(BaseTestCase):
         r = self.weblog_get("/waf/", params={"appscan_fingerprint": "attack"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
+    @missing_feature(library="ruby")
     def test_query_key_encoded(self):
         """ AppSec catches attacks in URL query encoded key"""
         r = self.weblog_get("/waf/", params={"<script>": "attack"})

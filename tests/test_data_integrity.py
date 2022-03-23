@@ -17,8 +17,8 @@ class Test_TraceUniqueness(BaseTestCase):
 class Test_TraceHeaders(BaseTestCase):
     """All required headers are present in all traces submitted to the agent"""
 
+    @bug(context.library <= "golang@1.37.0")
     @bug(library="cpp")
-    @bug(library="golang")
     @bug(library="php", reason="Php tracer submits empty traces to endpoint")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
