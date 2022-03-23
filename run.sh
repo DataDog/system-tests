@@ -118,7 +118,7 @@ do
 
     # checking container, if should not be stopped here
     if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $container)` ]; then
-        echo "ERROR: $container container is unexpectably stopped. Here is the output:"
+        echo "ERROR: $container container is stopped. Here is the output:"
         docker-compose logs $container
         exit 1
     fi
