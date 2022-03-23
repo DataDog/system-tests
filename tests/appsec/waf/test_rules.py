@@ -334,6 +334,7 @@ class Test_SSRF(BaseTestCase):
 class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 
+    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""
         r = self.weblog_get("/etc/")

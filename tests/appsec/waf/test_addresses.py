@@ -186,6 +186,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
+    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})

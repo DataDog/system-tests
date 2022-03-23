@@ -309,6 +309,10 @@ class BaseValidation(object):
         if self.path_filters is not None and all((path.fullmatch(data["path"]) is None for path in self.path_filters)):
             return
 
+        # Java sends empty requests during endpoint discovery
+        if "request" in data and data["request"]["length"] == 0:
+            return
+
         self.check(data)
 
     def check(self, data):
