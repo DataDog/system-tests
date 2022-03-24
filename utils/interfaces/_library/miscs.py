@@ -4,6 +4,7 @@
 
 """ Misc validations """
 
+from ast import And
 from collections import Counter
 
 from utils.tools import m
@@ -101,6 +102,10 @@ class _SpanValidation(BaseValidation):
 
 
 class _TraceExistence(BaseValidation):
+    def __init__(self, request, span_type):
+        super().__init__(request=request)
+        self.span_type = span_type.lower()
+
     path_filters = "/v0.4/traces"
 
     def check(self, data):
@@ -109,9 +114,28 @@ class _TraceExistence(BaseValidation):
             self.log_error(f"{data['log_filename']} content should be an array")
             return
 
+        check_pass = False
+        span_types = []
+        span_count = 0
+
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid:
                     if self.rid == _get_rid_from_span(span):
-                        self.log_debug(f"Found a trace for {self.message}")
-                        self.set_status(True)
+                        self.log_info("Found a span with {self.rid}")
+                        span_count = span_count + 1
+                        span_types.append(span["type"])
+                        if self.span_type == span["type"]:
+                            check_pass = True
+
+        if check_pass:
+            self.log_debug(f"Found a trace for {self.message}")
+            self.set_status(True)
+        else:
+            log_messages = []
+            log_messages.append(f"Expected span with rid {self.rid} and span type {self.span_type}")
+            log_messages.append(f"Found {span_count} spans with matching rid")
+            if span_types:
+                span_types_message = ", ".join(span_types)
+                log_messages.append(f"Span types found: {span_types_message}")
+            self.log_error("\n".join(log_messages))
