@@ -10,4 +10,9 @@ class Test_NoExceptions(BaseTestCase):
 
     @irrelevant(context.library != "dotnet", reason="only for .NET")
     def test_dotnet(self):
-        interfaces.library_dotnet_managed.assert_absence(r"[A-Za-z]+\.[A-Za-z]*Exception")
+        interfaces.library_dotnet_managed.assert_absence(
+            pattern=r"[A-Za-z]+\.[A-Za-z]*Exception",
+            allowed_patterns=[
+                r"System.DllNotFoundException: Unable to load shared library 'Datadog.AutoInstrumentation.Profiler.Native.x64'",
+            ],
+        )
