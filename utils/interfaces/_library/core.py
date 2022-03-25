@@ -51,8 +51,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready.set()
         return super().append_data(data)
 
-    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=()):
-        self.append_validation(HeadersPresenceValidation(path_filter, request_headers, response_headers))
+    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(
+            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
+        )
 
     def assert_trace_headers_container_tags(self):
         self.append_validation(_TraceHeadersContainerTags())

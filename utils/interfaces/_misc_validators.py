@@ -11,12 +11,16 @@ class HeadersPresenceValidation(BaseValidation):
 
     is_success_on_expiry = True
 
-    def __init__(self, path_filters=None, request_headers=(), response_headers=()):
+    def __init__(self, path_filters=None, request_headers=(), response_headers=(), check_condition=None):
         super().__init__(path_filters=path_filters)
         self.request_headers = set(request_headers)
         self.response_headers = set(response_headers)
+        self.check_condition = check_condition
 
     def check(self, data):
+        if self.check_condition and not self.check_condition(data):
+            return
+
         request_headers = {h[0].lower() for h in data["request"]["headers"]}
         missing_request_headers = self.request_headers - request_headers
         if missing_request_headers:
