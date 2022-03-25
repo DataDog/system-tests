@@ -36,7 +36,7 @@ class Test_Basic(BaseTestCase):
         """
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         r = self.weblog_get("/waf/", headers={"MyHeader": "../../../secret.txt"})
-        pattern = "/../" if context.appsec_event_rules < "1.2.6" else "../"
+        pattern = "/../" if context.appsec_rules_version < "1.2.6" else "../"
         interfaces.library.assert_waf_attack(r, pattern=pattern, address="server.request.headers.no_cookies")
 
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -51,7 +51,7 @@ class Test_Basic(BaseTestCase):
         # on server.request.headers.no_cookies and then retry it with the cookies
         # to validate that cookies are properly excluded from server.request.headers.no_cookies.
         r = self.weblog_get("/waf/", headers={"MyHeader": "../../../secret.txt"})
-        pattern = "/../" if context.appsec_event_rules < "1.2.6" else "../"
+        pattern = "/../" if context.appsec_rules_version < "1.2.6" else "../"
         interfaces.library.assert_waf_attack(r, pattern=pattern, address="server.request.headers.no_cookies")
 
         r = self.weblog_get("/waf/", cookies={"Cookie": "../../../secret.txt"})
