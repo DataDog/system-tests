@@ -75,18 +75,3 @@ class Test_NoWafTimeout(BaseTestCase):
 
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")
-
-
-@missing_feature(library="golang")
-@missing_feature(library="dotnet")
-@missing_feature(library="java")
-@missing_feature(library="php")
-@missing_feature(library="python")
-@missing_feature(library="ruby")
-@released(nodejs="2.4.0")
-@missing_feature(reason="test not implemented")
-class Test_RuleSerialization(BaseTestCase):
-    """ Serialize WAF rules without limiting their sizes """
-
-    def test_main(self):
-        interfaces.library.append_not_implemented_validation()
