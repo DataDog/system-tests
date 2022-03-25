@@ -1,17 +1,28 @@
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-import ognl.Ognl;
+import datadog.trace.api.Trace;
+import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import ognl.Ognl;
 import ognl.OgnlException;
 import org.bson.Document;
-import org.springframework.boot.*;
-import org.springframework.boot.autoconfigure.*;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.boot.context.event.*;
-import org.springframework.context.event.*;
-import com.mongodb.MongoClient;
-
-import datadog.trace.api.Trace;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -27,13 +38,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
-
-import io.opentracing.Span;
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -50,9 +56,47 @@ public class App {
         return "Hello World!";
     }
 
-    @RequestMapping("/waf/**")
+    @GetMapping("/waf/**")
     String waf() {
         return "Hello World!";
+    }
+
+    @PostMapping(value = "/waf",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    String postWafUrlencoded(@RequestParam MultiValueMap<String, String> body) {
+        return body.toString();
+    }
+
+    @PostMapping(value = "/waf",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    String postWafJson(@RequestBody Object body) {
+        return body.toString();
+    }
+
+    @PostMapping(value = "/waf", consumes = MediaType.APPLICATION_XML_VALUE)
+    String postWafXml(@RequestBody XmlObject object) {
+        return object.toString();
+    }
+
+    @JacksonXmlRootElement
+    public static class XmlObject {
+        public XmlObject() {}
+        public XmlObject(String value) { this.value = value; }
+
+        @JacksonXmlText
+        public String value;
+
+        @JacksonXmlProperty
+        public String attack;
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("AElement{");
+            sb.append("value='").append(value).append('\'');
+            sb.append(", attack='").append(attack).append('\'');
+            sb.append('}');
+            return sb.toString();
+        }
     }
 
     @RequestMapping("/sample_rate_route/{i}")

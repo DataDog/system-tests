@@ -140,7 +140,7 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @bug(library="java", reason="under Valentin's investigations")
+    @missing_feature(library="java", reason="cookie is rejected by Coyote")
     @missing_feature(library="golang", reason="cookies are not url-decoded")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
@@ -176,7 +176,7 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", java="?", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -186,14 +186,14 @@ class Test_BodyUrlEncoded(BaseTestCase):
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
-    @missing_feature(library="java")
+    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php="?", python="?", ruby="?")
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -214,7 +214,7 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
@@ -258,7 +258,7 @@ class Test_ClientIP(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_PathParams(BaseTestCase):
     """ Appsec supports values on server.request.path_params"""
@@ -271,6 +271,7 @@ class Test_PathParams(BaseTestCase):
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(nodejs="2.0.0")
+@released(java="0.88.0")
 @released(golang="1.36.0")
 @released(dotnet="2.3.0")
 @released(python="0.58.5")
