@@ -75,7 +75,7 @@ class Test_ConfRuleSet(BaseTestCase):
         stdout.assert_absence("WAF initialization failed")
 
 
-@released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.2.2", python="0.60.0", ruby="?")
+@released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="?", ruby="?")
 class Test_NoLimitOnWafRules(BaseTestCase):
     """ Serialize WAF rules without limiting their sizes """
 
