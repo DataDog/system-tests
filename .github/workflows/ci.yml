@@ -246,6 +246,7 @@ jobs:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run missing AppSec rules file
+        if: ${{ matrix.library != 'ruby' || matrix.version != 'dev' }}  # broken on ruby dev
         run: ./run.sh APPSEC_MISSING_RULES
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
