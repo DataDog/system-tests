@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, flaky
 import pytest
 
 
@@ -76,6 +76,7 @@ class Test_ConfRuleSet(BaseTestCase):
 
 
 @released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="?", ruby="?")
+@flaky(library="php", reason="APPSEC-3859")
 class Test_NoLimitOnWafRules(BaseTestCase):
     """ Serialize WAF rules without limiting their sizes """
 
