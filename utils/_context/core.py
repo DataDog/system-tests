@@ -45,9 +45,9 @@ class _Context:
         self._warmups = []
 
         if "DD_APPSEC_RULES" in self.weblog_image.env:
-            self.appsec_rules = self.weblog_image.env["DD_APPSEC_RULES"]
+            self.appsec_rules_file = self.weblog_image.env["DD_APPSEC_RULES"]
         else:
-            self.appsec_rules = None
+            self.appsec_rules_file = None
 
         self.dd_site = os.environ.get("DD_SITE")
 
@@ -78,8 +78,8 @@ class _Context:
         else:
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
-        appsec_event_rules = self.weblog_image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_event_rules = Version(appsec_event_rules, "appsec_event_rules")
+        appsec_rules_version = self.weblog_image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
+        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules_version")
 
         agent_version = self.agent_image.env.get("SYSTEM_TESTS_AGENT_VERSION")
 
@@ -119,7 +119,7 @@ class _Context:
             "dd_site": self.dd_site,
             "sampling_rate": self.sampling_rate,
             "libddwaf_version": str(self.libddwaf_version),
-            "appsec_rules": self.appsec_rules or "*default*",
+            "appsec_rules_file": self.appsec_rules_file or "*default*",
         }
 
         if self.library == "php":
