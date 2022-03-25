@@ -112,8 +112,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def assert_presence(self, pattern, **extra_conditions):
         self.append_validation(_LogPresence(pattern, **extra_conditions))
 
-    def assert_absence(self, pattern):
-        self.append_validation(_LogAbsence(pattern))
+    def assert_absence(self, pattern, allowed_patterns=[]):
+        self.append_validation(_LogAbsence(pattern, allowed_patterns))
 
     def append_log_validation(self, validator):  # TODO rename
         self.append_validation(_LogValidation(validator))
@@ -242,13 +242,19 @@ class _LogPresence(BaseValidation):
 
 
 class _LogAbsence(BaseValidation):
-    def __init__(self, pattern):
+    def __init__(self, pattern, allowed_patterns=[]):
         super().__init__()
         self.pattern = re.compile(pattern)
+        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns]
         self.failed_logs = []
 
     def check(self, data):
         if self.pattern.search(data["raw"]):
+
+            for pattern in self.allowed_patterns:
+                if pattern.search(data["raw"]):
+                    return
+
             self.failed_logs.append(data["raw"])
 
     def final_check(self):
