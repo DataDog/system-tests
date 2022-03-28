@@ -193,6 +193,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
     @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
@@ -209,11 +210,13 @@ class Test_BodyJson(BaseTestCase):
         r = self.weblog_post("/waf", json={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
     def test_json_value(self):
         """AppSec detects attacks in JSON body values"""
         r = self.weblog_post("/waf", json={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         r = self.weblog_post("/waf", json=['<vmlframe src="xss">'])
@@ -232,6 +235,7 @@ class Test_BodyXml(BaseTestCase):
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
         return super().weblog_post(path, params, data, headers)
 
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
     def test_xml_attr_value(self):
         r = self.weblog_post("/waf", data='<a attack="var_dump ()" />', address="server.request.body")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
@@ -239,6 +243,7 @@ class Test_BodyXml(BaseTestCase):
         r = self.weblog_post("/waf", data=f'<a attack="{self.ENCODED_ATTACK}" />')
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
     def test_xml_content(self):
         r = self.weblog_post("/waf", data="<a>var_dump ()</a>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
