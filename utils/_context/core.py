@@ -7,6 +7,8 @@
 import os
 import json
 import pytest
+import requests
+import time
 
 from utils.tools import logger, get_exception_traceback
 from utils._context.cgroup_info import CGroupInfo
@@ -42,7 +44,6 @@ class _Context:
     def __init__(self):
         self.agent_image = ImageInfo("agent")
         self.weblog_image = ImageInfo("weblog")
-        self._warmups = []
 
         if "DD_APPSEC_RULES" in self.weblog_image.env:
             self.appsec_rules_file = self.weblog_image.env["DD_APPSEC_RULES"]
@@ -89,7 +90,7 @@ class _Context:
             self.agent_version = Version(agent_version, "agent")
 
     def get_weblog_container_id(self):
-        cgroup_file = "logs/weblog.cgroup"
+        cgroup_file = "logs/docker/weblog/logs/weblog.cgroup"
 
         with open(cgroup_file, mode="r") as fp:
             for line in fp:
@@ -99,12 +100,18 @@ class _Context:
 
         raise RuntimeError("Failed to get container id")
 
-    def add_warmup(self, warmup):
-        logger.debug(f"Add warmup {warmup}")
-        self._warmups.append(warmup)
-
     def execute_warmups(self):
-        for warmup in self._warmups:
+
+        agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
+
+        warmups = [
+            _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=15),
+            _HealthCheck(f"http://library_proxy:{agent_port}/info", 60),
+            _HealthCheck("http://weblog:7777", 120),
+            _wait_for_app_readiness,
+        ]
+
+        for warmup in warmups:
             logger.info(f"Executing warmup {warmup}")
             try:
                 warmup()
@@ -129,6 +136,66 @@ class _Context:
 
     def __str__(self):
         return json.dumps(self.serialize(), indent=4)
+
+
+class _HealthCheck:
+    def __init__(self, url, retries, interval=1, start_period=0):
+        self.url = url
+        self.retries = retries
+        self.interval = interval
+        self.start_period = start_period
+
+    def __call__(self):
+        if self.start_period:
+            time.sleep(self.start_period)
+
+        for i in range(self.retries + 1):
+            try:
+                r = requests.get(self.url, timeout=0.5)
+                logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
+                if r.status_code == 200:
+                    return True
+            except Exception as e:
+                logger.debug(f"Healthcheck #{i} on {self.url}: {e}")
+
+            time.sleep(self.interval)
+
+        pytest.exit(f"{self.url} never answered to healthcheck request", 1)
+
+    def __str__(self):
+        return f"Healthcheck({repr(self.url)}, retries={self.retries}, interval={self.interval}, start_period={self.start_period})"
+
+
+def _wait_for_weblog_cgroup_file():
+    max_attempts = 10  # each attempt = 1 second
+    attempt = 0
+
+    while attempt < max_attempts and not os.path.exists("logs/docker/weblog/logs/weblog.cgroup"):
+        time.sleep(1)
+        attempt += 1
+
+    if attempt == max_attempts:
+        pytest.exit("Failed to access cgroup file from weblog container", 1)
+
+    return True
+
+
+def _wait_for_app_readiness():
+    from utils import interfaces  # import here to avoid circular import
+
+    logger.debug("Wait for app readiness")
+
+    if not interfaces.library.ready.wait(40):
+        pytest.exit("Library not ready", 1)
+    logger.debug(f"Library ready")
+
+    if not interfaces.agent.ready.wait(40):
+        pytest.exit("Datadog agent not ready", 1)
+    logger.debug(f"Agent ready")
+
+    _wait_for_weblog_cgroup_file()
+
+    return
 
 
 context = _Context()

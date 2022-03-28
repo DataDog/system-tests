@@ -8,7 +8,6 @@ This files will validate data flow between agent and backend
 
 import threading
 
-from utils import context
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion

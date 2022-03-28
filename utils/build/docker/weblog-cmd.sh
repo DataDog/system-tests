@@ -14,6 +14,9 @@ set -eu
 # Zero is good!
 script_status=0
 
+echo "Get cgroup info"
+cat /proc/self/cgroup > /var/log/system-tests/weblog.cgroup
+
 echo "Configuration script executed from: ${PWD}"
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
