@@ -23,4 +23,4 @@ Once the runner is started, it waits for several signals (defined in `execute_wa
 3. A successful request on `weblog` service
 4. A successful communication between `weblog` and `agent` (observed thnaks to `library_proxy`)
 5. A successful communication between `agent` and datadog backend (observed thnaks to `agent_proxy`)
-6. The presence of `logs/weblog.cgroup` file (TODO : to be removed, this data should be loaded with an HTTP request on `/weblog/read-file/cgroup`)
+6. The presence of `logs/docker/weblog/logs/weblog.cgroup` file

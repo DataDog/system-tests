@@ -170,7 +170,7 @@ def _wait_for_weblog_cgroup_file():
     max_attempts = 10  # each attempt = 1 second
     attempt = 0
 
-    while attempt < max_attempts and not os.path.exists("logs/weblog.cgroup"):
+    while attempt < max_attempts and not os.path.exists("logs/docker/weblog/logs/weblog.cgroup"):
         time.sleep(1)
         attempt += 1
 
