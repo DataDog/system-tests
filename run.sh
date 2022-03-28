@@ -107,8 +107,6 @@ docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 echo "Starting containers in background."
 docker-compose up -d --force-recreate
 
-docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup || true
-
 export container_log_folder="unset"
 # Save docker logs
 for container in ${containers[@]}

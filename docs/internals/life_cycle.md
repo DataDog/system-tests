@@ -16,7 +16,7 @@ graph TD
 
 ## Warmup
 
-Once the runner is started, it waits for several signals (defined in `add_default_warmups` function) before starting the test session: 
+Once the runner is started, it waits for several signals (defined in `execute_warmups` function) before starting the test session: 
 
 1. A successful request on `agent` service
 2. A successful request on `library_proxy` service

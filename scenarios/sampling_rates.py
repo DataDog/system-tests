@@ -8,9 +8,6 @@ import time
 from utils import BaseTestCase, interfaces, context, missing_feature, released, bug
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans
-from utils.warmups import add_default_warmups
-
-add_default_warmups()
 
 AUTO_KEEP = 1
 USER_KEEP = 2
