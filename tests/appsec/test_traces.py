@@ -124,7 +124,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
                 assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
             return True
 
-        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
         interfaces.library.add_span_validation(r, validate_request_headers)
         interfaces.library.add_span_validation(r, validate_response_headers)
 
@@ -178,7 +178,7 @@ class Test_AppSecObfuscator(BaseTestCase):
 @missing_feature(library="java")
 @missing_feature(library="php")
 @missing_feature(library="python")
-@missing_feature(library="ruby")
+@released(ruby="1.0.0")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """
@@ -193,5 +193,5 @@ class Test_CollectRespondHeaders(BaseTestCase):
                 assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
             return True
 
-        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
         interfaces.library.add_span_validation(r, validate_response_headers)

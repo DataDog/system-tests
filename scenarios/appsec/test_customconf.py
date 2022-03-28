@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, flaky
 import pytest
 
 
@@ -73,3 +73,16 @@ class Test_ConfRuleSet(BaseTestCase):
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")
         stdout.assert_absence("WAF initialization failed")
+
+
+@released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="?", ruby="?")
+@flaky(library="php", reason="APPSEC-3859")
+class Test_NoLimitOnWafRules(BaseTestCase):
+    """ Serialize WAF rules without limiting their sizes """
+
+    def test_main(self):
+        r = self.weblog_get("/waf", headers={"attack": "first_pattern_of_a_very_long_list"})
+        interfaces.library.assert_waf_attack(r, pattern="first_pattern_of_a_very_long_list")
+
+        r = self.weblog_get("/waf", headers={"attack": "last_pattern_of_a_very_long_list"})
+        interfaces.library.assert_waf_attack(r, pattern="last_pattern_of_a_very_long_list")

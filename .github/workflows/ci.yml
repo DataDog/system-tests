@@ -78,6 +78,15 @@ jobs:
           - library: java
             weblog-variant: spring-boot
             version: prod
+          - library: java
+            weblog-variant: spring-boot-jetty
+            version: prod
+          - library: java
+            weblog-variant: jersey-grizzly2
+            version: prod
+          - library: java
+            weblog-variant: resteasy-netty3
+            version: prod
 
           - library: nodejs
             weblog-variant: express4
@@ -246,6 +255,7 @@ jobs:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run missing AppSec rules file
+        if: ${{ matrix.library != 'ruby' || matrix.version != 'dev' }}  # broken on ruby dev
         run: ./run.sh APPSEC_MISSING_RULES
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}

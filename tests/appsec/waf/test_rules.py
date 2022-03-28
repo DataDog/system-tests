@@ -248,7 +248,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"value": "sleep()"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
 
-    @irrelevant(context.appsec_event_rules >= "1.2.6", reason="crs-942-220 has been removed")
+    @irrelevant(context.appsec_rules_version >= "1.2.6", reason="crs-942-220 has been removed")
     def test_sqli1(self):
         """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf/", params={"value": "0000012345"})
@@ -272,7 +272,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
 
-    @irrelevant(context.appsec_event_rules >= "1.2.6", reason="crs-942-140 has been removed")
+    @irrelevant(context.appsec_rules_version >= "1.2.6", reason="crs-942-140 has been removed")
     def test_sqli_942_140(self):
         """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf/", cookies={"value": "db_name("})
@@ -334,6 +334,7 @@ class Test_SSRF(BaseTestCase):
 class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 
+    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""
         r = self.weblog_get("/etc/")
