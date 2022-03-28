@@ -2,11 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context
-from utils.warmups import add_default_warmups
-
-
-add_default_warmups()
+from utils import BaseTestCase, interfaces
 
 
 class TestAppSecDeactivated(BaseTestCase):

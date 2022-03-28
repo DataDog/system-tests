@@ -3,11 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, interfaces, context, irrelevant
-from utils.warmups import add_default_warmups
-
-# This warmup task runs to make sure containers are ready to receive requests
-# This is only necessary if you are running a dedicated test like sampling
-# add_default_warmups()
 
 # *ATTENTION*: Copy this file to the tests folder, modify, and rename with a prefix of `test_` to enable your new tests
 
