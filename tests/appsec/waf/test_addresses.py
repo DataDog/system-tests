@@ -129,10 +129,15 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
+@released(
+    golang="1.37.0"
+    if context.weblog_variant == "gin"
+    else "1.36.0"
+    if context.weblog_variant in ["echo", "chi"]
+    else "1.34.0"
+)
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
