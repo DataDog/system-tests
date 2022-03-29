@@ -41,7 +41,7 @@ class Test_HttpProtocol(BaseTestCase):
     @missing_feature(library="golang", reason="cookie decoding ?")
     def test_http_protocol(self):
         """ AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
-        r = self.weblog_get("/waf/", params={"key": ".cookie-%3Bdomain="})
+        r = self.weblog_get("/waf/", params={"key": ".cookie;domain="})
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_943_100)
 
     def test_http_protocol2(self):
