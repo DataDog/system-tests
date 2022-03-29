@@ -86,7 +86,7 @@ class _TelemetryProxyValidation(BaseValidation):
 
         def check(self, data):
             seq_id = data["request"]["content"]["seq_id"]
-            self.library_messages[seq_id] = data["request"]["content"]
+            self.library_messages[seq_id] = (data["request"]["content"], data["log_filename"])
 
         def final_check(self):
             return super().final_check()
@@ -100,24 +100,28 @@ class _TelemetryProxyValidation(BaseValidation):
         self.agent_messages = {}
 
     def check(self, data):
-        if not self.lib_to_agent._closed.is_set():
-            seq_id = data["request"]["content"]["seq_id"]
-            self.agent_messages[seq_id] = data["request"]["content"]
+        seq_id = data["request"]["content"]["seq_id"]
+        self.agent_messages[seq_id] = (data["request"]["content"], data["log_filename"])
 
     def final_check(self):
-        for seq_id, message in self.agent_messages.items():
-            lib_message = self.lib_to_agent.library_messages.pop(seq_id, None)
-            if lib_message is None:
+        for seq_id, (message, agent_log_file) in self.agent_messages.items():
+            from_lib = self.lib_to_agent.library_messages.pop(seq_id, None)
+            if from_lib is None:
                 self.set_failure(f"Agent proxy forwarded message a that was not sent by the library:\n{message}")
                 return
+            (lib_message, lib_log_file) = from_lib
             if message != lib_message:
                 self.set_failure(
                     f"Telemetry proxy message different\nlibrary -> agent got {lib_message}\nagent -> dd got {message}"
+                    f"in messages {lib_log_file} and {agent_log_file}"
                 )
                 return
 
         if self.lib_to_agent.library_messages:
-            self.set_failure("Some telemetry messages were not forwarded by the proxy endpoint")
+            self.set_failure(
+                f"The following telemetry messages were not forwarded by the proxy endpoint\n"
+                f"{' '.join((lm for _, lm in self.lib_to_agent.library_messages.values()))}"
+            )
 
 
 class _AppStartedLibraryValidation(BaseValidation):
