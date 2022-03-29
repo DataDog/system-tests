@@ -67,7 +67,7 @@ class Test_LFI(BaseTestCase):
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
-        r = self.weblog_get("/waf/", params={"attack": ".htaccess"})
+        r = self.weblog_get("/waf/", params={"attack": "/.htaccess"})
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_120)
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
