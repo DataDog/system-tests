@@ -28,3 +28,5 @@ bld/
 dist/
 
 !utils/build/docker/ruby/rails52/bin
+/utils/build/docker/dotnet/.vs/app/*
+/utils/build/docker/dotnet/app.csproj.user
