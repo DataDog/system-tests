@@ -1,6 +1,12 @@
-from utils import context, BaseTestCase, interfaces
+from utils import context, BaseTestCase, interfaces, missing_feature, bug
 
 
+@missing_feature(library="cpp")
+@missing_feature(library="java")
+@missing_feature(library="ruby")
+@missing_feature(library="php")
+@missing_feature(library="golang", reason="Implemented but not merged in master")
+@missing_feature(library="nodejs", reason="Implemented but not merged in master")
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
