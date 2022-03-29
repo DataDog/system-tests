@@ -38,7 +38,6 @@ class Test_HttpProtocol(BaseTestCase):
 
     @bug(context.library < "dotnet@2.1.0")
     @bug(library="java", reason="under Valentin's investigations")
-    @missing_feature(library="golang", reason="cookie decoding ?")
     def test_http_protocol(self):
         """ AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         r = self.weblog_get("/waf/", params={"key": ".cookie;domain="})
