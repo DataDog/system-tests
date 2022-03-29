@@ -69,41 +69,43 @@ class InterfaceValidator(object):
 
         logger.info(f"Wait for {self.name}'s interface validation for {timeout} seconds")
         self._closed.wait(timeout)
+        with self._lock:
 
-        try:
-            with self._lock:
+            for validation in self._validations:
 
-                for validation in self._validations:
-                    try:
-                        if not validation.closed:
-                            validation.final_check()
-                    except Exception as exc:
-                        traceback = "\n".join([format_error(l) for l in get_exception_traceback(exc)])
-                        validation.set_failure(f"Unexpected error for {m(validation.message)}:\n{traceback}")
-
+                for data in self._data_list:
                     if not validation.closed:
-                        validation.set_expired()
+                        try:
+                            validation._check(data)
+                        except Exception as exc:
+                            raise Exception(
+                                f"While validating {data['log_filename']}, unexpected error occurs for {m(validation.message)}"
+                            ) from exc
 
-                    if validation.is_success:
-                        if validation.is_xfail:
-                            self.xpassed.append(validation)
-                        else:
-                            self.passed.append(validation)
+                        if validation.closed:
+                            break
+
+                try:
+                    if not validation.closed:
+                        validation.final_check()
+                except Exception as exc:
+                    raise Exception(f"Unexpected error occurs for {m(validation.message)}") from exc
+
+                if not validation.closed:
+                    validation.set_expired()
+
+                if validation.is_success:
+                    if validation.is_xfail:
+                        self.xpassed.append(validation)
                     else:
-                        if validation.is_xfail:
-                            self.xfailed.append(validation)
-                        else:
-                            self.failed.append(validation)
+                        self.passed.append(validation)
+                else:
+                    if validation.is_xfail:
+                        self.xfailed.append(validation)
+                    else:
+                        self.failed.append(validation)
 
-                if len(self.failed) != 0:
-                    self.is_success = False
-                    return
-
-        except Exception as e:
-            self.system_test_error = e
-            raise
-
-        self.is_success = True
+            self.is_success = len(self.failed) == 0
 
     @property
     def closed(self):
@@ -124,15 +126,6 @@ class InterfaceValidator(object):
             with self._lock:
                 self._validations.append(validation)
                 self._closed.clear()
-
-                for data in self._data_list:
-                    if not validation.closed:
-                        validation._check(data)
-                        if validation.closed:
-                            break
-
-                self._check_closed_status()
-
         except Exception as e:
             self.system_test_error = e
             raise
@@ -156,16 +149,8 @@ class InterfaceValidator(object):
             with open(log_filename, "w") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
-            with self._lock:
+            self._data_list.append(data)
 
-                self._data_list.append(data)
-
-                for i, validation in enumerate(self._validations):
-                    if not validation.closed:
-                        logger.debug(f"Send [{data['host']}{data['path']}] data to #{i}: {validation}")
-                        validation._check(data)
-
-                self._check_closed_status()
         except Exception as e:
             self.system_test_error = e
             raise
@@ -174,9 +159,6 @@ class InterfaceValidator(object):
 
     def append_not_implemented_validation(self):
         self.append_validation(_NotImplementedValidation())
-
-    def check(self, message):
-        pass
 
     @property
     def validations_count(self):
@@ -245,6 +227,9 @@ class BaseValidation(object):
 
         if self.message is None:
             raise Exception(f"Please set a message for {self.frame.function}")
+
+        # remove new lines for logging
+        self.message = self.message.replace("\n", " ")
 
         if xfails.is_xfail_method(self.calling_method):
             logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
@@ -322,6 +307,10 @@ class BaseValidation(object):
 
     def _check(self, data):
         if self.path_filters is not None and all((path.fullmatch(data["path"]) is None for path in self.path_filters)):
+            return
+
+        # Java sends empty requests during endpoint discovery
+        if "request" in data and data["request"]["length"] == 0:
             return
 
         self.check(data)

@@ -53,12 +53,13 @@ class Test_HttpProtocol(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.http_protocol_violation.crs_921_160)
 
 
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(golang="1.35.0")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
 
+    @missing_feature(library="python")
     def test_lfi(self):
         """ AppSec catches LFI attacks"""
         r = self.weblog_get("/waf/", headers={"x-attack": "/../"})
@@ -73,11 +74,13 @@ class Test_LFI(BaseTestCase):
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
     @irrelevant(library="php", weblog_variant="apache-mod")
     def test_lfi_percent_2f(self):
+        """ Appsec catches encoded LFI attacks"""
         r = self.weblog_get("/waf/%2e%2e%2f")
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
 
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.92.0")
+    @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         r = self.weblog_get("/waf/..")
@@ -235,8 +238,7 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="1.35.0")
-@released(nodejs="2.0.0", php="1.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_SQLI(BaseTestCase):
@@ -246,7 +248,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"value": "sleep()"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_160)
 
-    @irrelevant(context.appsec_event_rules >= "1.2.6", reason="crs-942-220 has been removed")
+    @irrelevant(context.appsec_rules_version >= "1.2.6", reason="crs-942-220 has been removed")
     def test_sqli1(self):
         """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf/", params={"value": "0000012345"})
@@ -270,7 +272,7 @@ class Test_SQLI(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
 
-    @irrelevant(context.appsec_event_rules >= "1.2.6", reason="crs-942-140 has been removed")
+    @irrelevant(context.appsec_rules_version >= "1.2.6", reason="crs-942-140 has been removed")
     def test_sqli_942_140(self):
         """AppSec catches SQLI attacks"""
         r = self.weblog_get("/waf/", cookies={"value": "db_name("})
@@ -332,6 +334,7 @@ class Test_SSRF(BaseTestCase):
 class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 
+    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""
         r = self.weblog_get("/etc/")

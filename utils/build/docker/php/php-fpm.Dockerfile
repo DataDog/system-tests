@@ -6,7 +6,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tz
 
 RUN printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
-	apt-get install -y curl apache2 libapache2-mod-fcgid software-properties-common \
+	apt-get install -y curl apache2 libapache2-mod-fcgid software-properties-common jq \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 
@@ -48,4 +48,7 @@ RUN /install_ddtrace.sh
 ADD utils/build/docker/php/php-fpm/entrypoint.sh /
 
 WORKDIR /binaries
-ENTRYPOINT ["dumb-init", "/entrypoint.sh"]
+ENTRYPOINT []
+RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
+RUN chmod +x app.sh
+CMD [ "./app.sh" ]

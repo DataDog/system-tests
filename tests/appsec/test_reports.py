@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, flaky
+from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, flaky, rfc
 import pytest
 
 
@@ -63,35 +63,6 @@ class Test_ActorIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
-    @bug(context.library < "dotnet@2.1.0")
-    def test_http_request_headers(self):
-        """ AppSec reports the HTTP headers used for actor IP detection."""
-        r = self.weblog_get(
-            "/waf/",
-            headers={
-                "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
-                "X-Client-IP": "42.42.42.42, 43.43.43.43",
-                "X-Real-IP": "42.42.42.42, 43.43.43.43",
-                "X-Forwarded": "42.42.42.42, 43.43.43.43",
-                "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
-                "Forwarded-For": "42.42.42.42, 43.43.43.43",
-                "Forwarded": "42.42.42.42, 43.43.43.43",
-                "Via": "42.42.42.42, 43.43.43.43",
-                "True-Client-IP": "42.42.42.42, 43.43.43.43",
-                "User-Agent": "Arachni/v1",
-            },
-        )
-
-        interfaces.library.add_appsec_reported_header(r, "x-forwarded-for")
-        interfaces.library.add_appsec_reported_header(r, "x-client-ip")
-        interfaces.library.add_appsec_reported_header(r, "x-real-ip")
-        interfaces.library.add_appsec_reported_header(r, "x-forwarded")
-        interfaces.library.add_appsec_reported_header(r, "x-cluster-client-ip")
-        interfaces.library.add_appsec_reported_header(r, "forwarded-for")
-        interfaces.library.add_appsec_reported_header(r, "forwarded")
-        interfaces.library.add_appsec_reported_header(r, "via")
-        interfaces.library.add_appsec_reported_header(r, "true-client-ip")
-
     @irrelevant(library="java", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")
     @irrelevant(library="nodejs", reason="done by the backend until customer request or ip blocking features")
@@ -125,7 +96,7 @@ class Test_ActorIP(BaseTestCase):
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Info(BaseTestCase):
-    """AppSec correctly reports service and environment values"""
+    """ Environment (production, staging) from DD_ENV variable """
 
     def test_service(self):
         """ Appsec reports the service information """
@@ -148,3 +119,41 @@ class Test_Info(BaseTestCase):
             return True
 
         interfaces.library.add_appsec_validation(r, legacy_validator=_check_service_legacy, validator=_check_service)
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
+@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(dotnet="1.30.0", nodejs="2.0.0", php_appsec="0.2.0", python="?")
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+class Test_RequestHeaders(BaseTestCase):
+    """ AppSec reports request headers in events """
+
+    @bug(context.library < "dotnet@2.1.0")
+    def test_http_request_headers(self):
+        """ AppSec reports the HTTP headers used for actor IP detection."""
+        r = self.weblog_get(
+            "/waf/",
+            headers={
+                "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
+                "X-Client-IP": "42.42.42.42, 43.43.43.43",
+                "X-Real-IP": "42.42.42.42, 43.43.43.43",
+                "X-Forwarded": "42.42.42.42, 43.43.43.43",
+                "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
+                "Forwarded-For": "42.42.42.42, 43.43.43.43",
+                "Forwarded": "42.42.42.42, 43.43.43.43",
+                "Via": "42.42.42.42, 43.43.43.43",
+                "True-Client-IP": "42.42.42.42, 43.43.43.43",
+                "User-Agent": "Arachni/v1",
+            },
+        )
+
+        interfaces.library.add_appsec_reported_header(r, "x-forwarded-for")
+        interfaces.library.add_appsec_reported_header(r, "x-client-ip")
+        interfaces.library.add_appsec_reported_header(r, "x-real-ip")
+        interfaces.library.add_appsec_reported_header(r, "x-forwarded")
+        interfaces.library.add_appsec_reported_header(r, "x-cluster-client-ip")
+        interfaces.library.add_appsec_reported_header(r, "forwarded-for")
+        interfaces.library.add_appsec_reported_header(r, "forwarded")
+        interfaces.library.add_appsec_reported_header(r, "via")
+        interfaces.library.add_appsec_reported_header(r, "true-client-ip")

@@ -1,0 +1,39 @@
+version: 2.1
+
+jobs:
+  system-tests:
+    machine:
+      # https://support.circleci.com/hc/en-us/articles/360007324514-How-can-I-use-Docker-volume-mounting-on-CircleCI-
+      image: ubuntu-2004:current
+    resource_class: large
+    steps:
+      - checkout
+
+      - run:
+          name: Install good version of docker-compose
+          command: |
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+
+      - run:
+          name: versions
+          command: |
+            docker --version
+            docker-compose --version
+
+      - run:
+          name: Build
+          command: ./build.sh java
+
+      - run:
+          name: Run
+          command: DD_API_KEY=todo ./run.sh
+
+      - store_artifacts:
+          path: logs
+          destination: system-tests.tar.gz
+
+workflows:
+  test:
+    jobs:
+      - system-tests

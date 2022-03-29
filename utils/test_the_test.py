@@ -6,6 +6,10 @@ from utils.tools import logger
 from utils._context.library_version import LibraryVersion
 
 
+# monkey patch
+context.execute_warmups = lambda *args, **kwargs: None
+
+
 class Logs(list):
     def write(self, line):
         self.append(line)

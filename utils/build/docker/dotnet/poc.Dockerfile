@@ -11,7 +11,7 @@ RUN dotnet restore
 
 COPY utils/build/docker/dotnet/*.cs ./
 
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
@@ -35,4 +35,6 @@ ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
 ENV DD_INTEGRATIONS=/opt/datadog/integrations.json
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
-CMD ["dotnet", "app.dll"]
+RUN echo "#!/bin/bash\ndotnet app.dll" > app.sh
+RUN chmod +x app.sh
+CMD [ "./app.sh" ]

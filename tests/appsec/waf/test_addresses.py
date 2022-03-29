@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="1.0.0")
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -21,8 +21,9 @@ class Test_UrlQueryKey(BaseTestCase):
         r = self.weblog_get("/waf/", params={"appscan_fingerprint": "attack"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
+    @missing_feature(library="ruby")
     def test_query_key_encoded(self):
-        """ AppSec catches attacks in URL query key"""
+        """ AppSec catches attacks in URL query encoded key"""
         r = self.weblog_get("/waf/", params={"<script>": "attack"})
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
@@ -52,21 +53,21 @@ class Test_UrlQuery(BaseTestCase):
 
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0", python="0.58.5")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
     def test_path(self):
-        """ AppSec catches attacks in URL path"""
+        """ AppSec catches attacks in raw URL path"""
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", php="1.0.0")
+@released(nodejs="2.0.0", php_appsec="0.1.0")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 @missing_feature(context.library < "python@0.58.5")
@@ -139,7 +140,7 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @bug(library="java", reason="under Valentin's investigations")
+    @missing_feature(library="java", reason="cookie is rejected by Coyote")
     @missing_feature(library="golang", reason="cookies are not url-decoded")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
@@ -157,7 +158,7 @@ class Test_Cookies(BaseTestCase):
 
     @missing_feature(context.library < "golang@1.36.0")
     @bug(library="dotnet", reason="APPSEC-2290")
-    @bug(library="java", reason="under Valentin's investigations")
+    @bug(context.library < "java@0.96.0")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
@@ -172,27 +173,27 @@ class Test_BodyRaw(BaseTestCase):
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
         r = self.weblog_post("/waf", data="/.adsensepostnottherenonobook")
-        interfaces.library.assert_waf_attack(r, pattern="x", address="x")
+        interfaces.library.assert_waf_attack(r, address="server.request.body")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
-    @missing_feature(reason="matching against keys is impossible with current rules")
+    @irrelevant(reason="matching against keys is impossible with current rules")
     def test_body_key(self):
         """AppSec detects attacks in URL encoded body keys"""
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
-    @missing_feature(library="java")
+    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php="?", python="?", ruby="?")
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -213,7 +214,7 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php="?", python="?", ruby="?")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
@@ -257,7 +258,7 @@ class Test_ClientIP(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_PathParams(BaseTestCase):
     """ Appsec supports values on server.request.path_params"""
@@ -270,6 +271,7 @@ class Test_PathParams(BaseTestCase):
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(nodejs="2.0.0")
+@released(java="0.88.0")
 @released(golang="1.36.0")
 @released(dotnet="2.3.0")
 @released(python="0.58.5")
@@ -283,7 +285,7 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(golang="1.36.0", dotnet="?", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
@@ -292,6 +294,6 @@ class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
     def test_security_scanner(self):
-        """ AppSec catches attacks in URL query value"""
+        """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")

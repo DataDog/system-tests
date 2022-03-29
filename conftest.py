@@ -28,7 +28,7 @@ def pytest_sessionstart(session):
         logger.debug(f"AppSec: {context.php_appsec}")
 
     logger.debug(f"libddwaf: {context.libddwaf_version}")
-    logger.debug(f"AppSec event rules: {context.appsec_event_rules}")
+    logger.debug(f"AppSec rules version: {context.appsec_rules_version}")
     logger.debug(f"Weblog variant: {context.weblog_variant}")
     logger.debug(f"Backend: {context.dd_site}")
 
@@ -47,10 +47,10 @@ def pytest_report_header(config):
     if context.libddwaf_version:
         headers.append(f"libddwaf: {context.libddwaf_version}")
 
-    if context.appsec_rules:
-        headers.append(f"AppSec rules: {context.appsec_rules}")
+    if context.appsec_rules_file:
+        headers.append(f"AppSec rules file: {context.appsec_rules_file}")
 
-    headers.append(f"AppSec event rules: {context.appsec_event_rules}")
+    headers.append(f"AppSec rules version: {context.appsec_rules_version}")
 
     headers += [
         f"Weblog variant: {context.weblog_variant}",
@@ -111,12 +111,18 @@ def _wait_interface(interface, session):
 
     timeout = interface.expected_timeout
 
-    if timeout:
-        terminal.write_line(f"Wait {timeout}s for {interface}: {interface.validations_count} to be validated")
-        interface.wait(timeout=timeout)
-    else:
-        terminal.write_line(f"Wait for {interface}: {interface.validations_count} to be validated")
-        interface.wait()
+    try:
+        if timeout:
+            terminal.write_line(f"Wait {timeout}s for {interface}: {interface.validations_count} to be validated")
+            interface.wait(timeout=timeout)
+        else:
+            terminal.write_line(f"Wait for {interface}: {interface.validations_count} to be validated")
+            interface.wait()
+    except Exception as e:
+        session.shouldfail = f"{interface} is not validated"
+        terminal.write_line(f"{interface}: unexpected failure")
+        interface.system_test_error = e
+        return False
 
     if not interface.is_success:
         session.shouldfail = f"{interface} is not validated"
@@ -219,7 +225,6 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
         if interface.system_test_error is not None:
             terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
-            terminalreporter.line("Traceback (most recent call last):", red=True)
             for line in get_exception_traceback(interface.system_test_error):
                 terminalreporter.line(line, red=True)
             return

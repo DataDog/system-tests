@@ -4,10 +4,11 @@
 
 from random import randint
 
-from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature, flaky
+from utils import context, BaseTestCase, interfaces, bug, irrelevant, missing_feature, flaky, released
 
 
 @irrelevant(context.sampling_rate is None, reason="Sampling rates should be set for this test to be meaningful")
+@released(php="0.71.0")
 class Test_SamplingDecisions(BaseTestCase):
     """Sampling configuration"""
 
@@ -22,13 +23,14 @@ class Test_SamplingDecisions(BaseTestCase):
         cls.rid += 1
         return rid
 
-    @missing_feature(
+    @irrelevant(
         context.library in ("nodejs", "php", "dotnet"),
-        reason="sampling decision implemented differently in these tracers",
+        reason="sampling decision implemented differently in these tracers which isnt't problematic. Cf https://datadoghq.atlassian.net/browse/AIT-374 for more info.",
     )
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.92.0")
     @flaky(context.library < "python@0.57.0")
+    @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -39,7 +41,6 @@ class Test_SamplingDecisions(BaseTestCase):
         interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
-    @bug(library="php", reason="Unknown reason")
     @bug(library="ruby", reason="Unknown reason")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""

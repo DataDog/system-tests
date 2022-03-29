@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant
+from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant, rfc
 
 
 if context.library == "cpp":
@@ -18,8 +18,8 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 @missing_feature(context.library < "python@0.58.5")
-class Test_AppSecEventSpanTags(BaseTestCase):
-    """ AppSec correctly fill span tags. """
+class Test_RetainTraces(BaseTestCase):
+    """ Retain trace (manual keep & appsec.event = true) """
 
     @classmethod
     def setup_class(cls):
@@ -58,6 +58,23 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
+
+@released(golang="1.36.0")
+@released(dotnet="1.29.0", java="0.92.0")
+@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
+@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@missing_feature(context.library < "python@0.58.5")
+class Test_AppSecEventSpanTags(BaseTestCase):
+    """ AppSec correctly fill span tags. """
+
+    @classmethod
+    def setup_class(cls):
+        """Send a bunch of attack, to be sure that something is done on AppSec side"""
+        get = cls().weblog_get
+
+        get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
+
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
@@ -86,7 +103,6 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @missing_feature(context.library < "golang@1.36.0")
     @irrelevant(context.library not in ["golang", "nodejs"], reason="test")
     def test_header_collection(self):
         """
@@ -108,7 +124,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
                 assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
             return True
 
-        r = self.weblog_get("/headers/", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
         interfaces.library.add_span_validation(r, validate_request_headers)
         interfaces.library.add_span_validation(r, validate_response_headers)
 
@@ -131,3 +147,51 @@ class Test_AppSecEventSpanTags(BaseTestCase):
             return True
 
         interfaces.library.add_span_validation(validator=validator)
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
+@missing_feature(reason="Not started yet in any lib")
+class Test_AppSecObfuscator(BaseTestCase):
+    """AppSec obfuscates sensitive data."""
+
+    def test_appsec_obfuscator(self):
+        SECRET = "this is a very secret value"
+
+        def validate_appsec_span_tags(payload, chunk, span, appsec_data):
+
+            if SECRET in span["meta"]["_dd.appsec.json"]:
+                raise Exception("The secret value should be obfuscated")
+
+            return True
+
+        r = self.weblog_get(
+            "/waf/",
+            headers={"User-Agent": "Arachni/v1", "DD_API_TOKEN": f"{SECRET} token {SECRET}"},
+            params={"pwd": f"{SECRET} appscan_fingerprint {SECRET}"},
+        )
+        interfaces.library.assert_waf_attack(r)
+        interfaces.agent.add_appsec_validation(r, validate_appsec_span_tags)
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
+@missing_feature(library="dotnet")
+@missing_feature(library="java")
+@missing_feature(library="php")
+@missing_feature(library="python")
+@released(ruby="1.0.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
+class Test_CollectRespondHeaders(BaseTestCase):
+    """ AppSec should collect some headers for http.response and store them in span tags. """
+
+    def test_header_collection(self):
+        def assertHeaderInSpanMeta(span, h):
+            if h not in span["meta"]:
+                raise Exception("Can't find {header} in span's meta".format(header=h))
+
+        def validate_response_headers(span):
+            for h in ["content-type", "content-length", "content-language"]:
+                assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
+            return True
+
+        r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
+        interfaces.library.add_span_validation(r, validate_response_headers)

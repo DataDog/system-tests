@@ -17,11 +17,21 @@ class Test_TraceUniqueness(BaseTestCase):
 class Test_TraceHeaders(BaseTestCase):
     """All required headers are present in all traces submitted to the agent"""
 
+    @bug(context.library <= "golang@1.37.0")
     @bug(library="cpp")
-    @bug(library="golang")
     @bug(library="php", reason="Php tracer submits empty traces to endpoint")
     def test_traces_header_present(self):
-        interfaces.library.assert_trace_headers_present()
+        """Verify that headers described in RFC are present in traces submitted to the agent"""
+
+        request_headers = [
+            "datadog-meta-tracer-version",
+            "datadog-meta-lang",
+            "datadog-meta-lang-interpreter",
+            "datadog-meta-lang-version",
+            "x-datadog-trace-count",
+        ]
+
+        interfaces.library.assert_headers_presence(r"/v0\.[1-9]+/traces", request_headers=request_headers)
 
     @irrelevant(context.library != "php", reason="Special case of the header tests for php tracer")
     def test_traces_header_present_php(self):

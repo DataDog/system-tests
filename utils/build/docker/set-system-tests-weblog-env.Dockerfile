@@ -1,5 +1,7 @@
 FROM system_tests/weblog
 
+RUN apt-get update
+
 # Datadog setup
 ENV DD_SERVICE=weblog
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
@@ -10,7 +12,7 @@ ENV DD_ENV=system-tests
 ENV DD_APPSEC_ENABLED=true
 ENV DD_TRACE_DEBUG=true
 ENV DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
-ENV DD_APPSEC_WAF_TIMEOUT=5s
+ENV DD_APPSEC_WAF_TIMEOUT=500000000000
 ENV DD_APPSEC_TRACE_RATE_LIMIT=10000
 
 ARG SYSTEM_TESTS_LIBRARY
@@ -39,3 +41,10 @@ ENV DD_INSTRUMENTATION_TELEMETRY_INTERVAL_SECONDS=10
 
 # files for exotic scenarios
 RUN echo "corrupted::data" > /appsec_corrupted_rules.yml
+COPY scenarios/appsec/custom_rules.json /appsec_custom_rules.json
+
+RUN apt-get install socat -y
+COPY ./utils/build/docker/weblog-cmd.sh ./weblog-cmd.sh
+RUN chmod +x app.sh
+RUN chmod +x weblog-cmd.sh
+CMD [ "./weblog-cmd.sh" ]

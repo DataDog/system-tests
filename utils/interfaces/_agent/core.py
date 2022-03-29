@@ -12,6 +12,7 @@ from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._library.telemetry import _TelemetryRequestSuccessValidation, TELEMETRY_INTAKE_ENDPOINT
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
+from utils.interfaces._agent.appsec import AppSecValidation
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -46,6 +47,9 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
+
+    def add_appsec_validation(self, request, validator):
+        self.append_validation(AppSecValidation(request, validator))
 
 
 class _UseDomain(BaseValidation):

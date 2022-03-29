@@ -8,9 +8,6 @@ import time
 from utils import BaseTestCase, interfaces, context, missing_feature, released, bug
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans
-from utils.warmups import default_warmup
-
-context.add_warmup(default_warmup)
 
 AUTO_KEEP = 1
 USER_KEEP = 2
@@ -99,8 +96,7 @@ class LibrarySamplingRateValidation(BaseValidation):
 
 
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
-@released(php="1.0.0")
-@bug(context.library >= "golang@1.35.0")
+@bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
 @bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
 class Test_SamplingRates(BaseTestCase):
     """Rate at which traces are sampled is the actual sample rate"""

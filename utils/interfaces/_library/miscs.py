@@ -6,6 +6,7 @@
 
 from collections import Counter
 
+from utils.tools import m
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
 
@@ -21,13 +22,17 @@ class _TraceIdUniqueness(BaseValidation):
         self.uniqueness_exceptions = uniqueness_exceptions
 
     def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            self.log_error(f"For {data['log_filename']}, traces shoud be an array")
+            return
+
         for trace in data["request"]["content"]:
             if len(trace):
                 span = trace[0]
                 self.is_success_on_expiry = True
 
                 if "trace_id" not in span:
-                    self.set_failure(f"Can't find trace_id in request number {data['log_filename']}")
+                    self.set_failure(f"Can't find trace_id in request {data['log_filename']}")
                 else:
                     trace_id = span["trace_id"]
                     self.traces_ids[trace_id] += 1
@@ -75,26 +80,35 @@ class _SpanValidation(BaseValidation):
         self.validator = validator
 
     def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            self.log_error(f"In {data['log_filename']}, traces should be an array")
+            return  # do not fail, it's schema's job
+
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid:
                     if self.rid != _get_rid_from_span(span):
                         continue
-                    else:
-                        self.log_debug(f"Found a trace for {self.message}")
+
+                    self.log_debug(f"Found a trace for {m(self.message)}")
 
                 try:
                     if self.validator(span):
-                        self.log_debug(f"Trace in {data['log_filename']} validates {self.message}")
+                        self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                         self.is_success_on_expiry = True
                 except Exception as e:
-                    self.set_failure(f"{self.message} not validated: {e}\nSpan is: {span}")
+                    self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
 
 class _TraceExistence(BaseValidation):
     path_filters = "/v0.4/traces"
 
     def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            # do not fail here, it's schema's job, simply ignore it
+            self.log_error(f"{data['log_filename']} content should be an array")
+            return
+
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid:

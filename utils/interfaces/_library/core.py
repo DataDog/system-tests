@@ -26,7 +26,6 @@ from utils.interfaces._library.sampling import (
 from utils.interfaces._library.trace_headers import (
     _TraceHeadersContainerTags,
     _TraceHeadersCount,
-    _TraceHeadersPresent,
     _TraceHeadersPresentPhp,
     _TraceHeadersContainerTagsCpp,
 )
@@ -40,6 +39,7 @@ from utils.interfaces._library.telemetry import (
     _DependenciesLoadedValidation,
     TELEMETRY_AGENT_ENDPOINT,
 )
+from utils.interfaces._misc_validators import HeadersPresenceValidation
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
@@ -61,14 +61,16 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready.set()
         return super().append_data(data)
 
+    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(
+            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
+        )
+
     def assert_trace_headers_container_tags(self):
         self.append_validation(_TraceHeadersContainerTags())
 
     def assert_trace_headers_container_tags_cpp(self):
         self.append_validation(_TraceHeadersContainerTagsCpp())
-
-    def assert_trace_headers_present(self):
-        self.append_validation(_TraceHeadersPresent())
 
     def assert_trace_headers_present_php(self):
         self.append_validation(_TraceHeadersPresentPhp())

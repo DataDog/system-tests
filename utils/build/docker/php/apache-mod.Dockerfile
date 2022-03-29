@@ -6,7 +6,7 @@ FROM datadog/dd-appsec-php-ci:php-$PHP_VERSION-$VARIANT
 RUN printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
-		apache2 \
+		apache2 jq \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 
@@ -51,4 +51,7 @@ ADD utils/build/docker/php/apache-mod/entrypoint.sh /
 ADD utils/build/docker/php/common/php.ini /etc/php/
 
 WORKDIR /binaries
-ENTRYPOINT ["dumb-init", "/entrypoint.sh"]
+ENTRYPOINT []
+RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
+RUN chmod +x app.sh
+CMD [ "./app.sh" ]

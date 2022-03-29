@@ -155,8 +155,7 @@ elif [ "$TARGET" = "python" ]; then
     echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
-    # echo 'ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"' > ruby-load-from-bundle-add
-    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', github: 'Datadog/dd-trace-rb', branch: 'master'" > ruby-load-from-bundle-add
+    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 
 elif [ "$TARGET" = "php" ]; then
