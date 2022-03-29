@@ -209,8 +209,6 @@ class BaseValidation(object):
                 self.frame = frame_info
                 self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
                 self.calling_class = frame_info.frame.f_locals["self"].__class__
-                if hasattr(self.calling_class, "__real_test_class__"):
-                    self.calling_class = self.calling_class.__real_test_class__
 
                 break
 

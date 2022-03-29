@@ -1,7 +1,7 @@
 import sys
 import pytest
 import logging
-from utils import interfaces, bug, context
+from utils import interfaces, bug, context, irrelevant, missing_feature
 from utils.tools import logger
 from utils._context.library_version import LibraryVersion
 
@@ -34,18 +34,19 @@ class Test_All:
         context.library = LibraryVersion("java", "0.66.0")
 
         def is_skipped(item, reason):
-            if hasattr(item, "pytestmark"):
+            if not hasattr(item, "pytestmark"):
+                print(f"{item} has not pytestmark attribute")
+            else:
                 for mark in item.pytestmark:
                     if mark.name in ("skip", "expected_failure"):
 
-                        if mark.kwargs["reason"] != reason:
-                            raise Exception(
-                                f"{item} is skipped, but reason is {repr(mark.kwargs['reason'])} io {repr(reason)}"
-                            )
+                        if mark.kwargs["reason"] == reason:
+                            print(f"Found expected {mark} for {item}")
+                            return True
 
-                        return True
+                        print(f"{item} is skipped, but reason is {repr(mark.kwargs['reason'])} io {repr(reason)}")
 
-            raise Exception(f"{item} is not skipped")
+            raise Exception(f"{item} is not skipped, or not with the good reason")
 
         def is_not_skipped(item):
             if hasattr(item, "pytestmark"):
@@ -59,9 +60,6 @@ class Test_All:
         def test_function():
             pass
 
-        assert is_skipped(test_function, "known bug: test")
-        assert "test_function function, known bug: test => xfail\n" in logs
-
         @bug(library="java", reason="test")
         class Test_Class:
             @irrelevant(library="java")
@@ -72,11 +70,25 @@ class Test_All:
             def test_method2(self):
                 pass
 
+            @missing_feature(True, reason="missing feature")
+            @irrelevant(True, reason="irrelevant")
+            def test_method3(self):
+                pass
+
+            @irrelevant(True, reason="irrelevant")
+            @missing_feature(True, reason="missing feature")
+            def test_method4(self):
+                pass
+
+        assert is_skipped(test_function, "known bug: test")
+        assert "test_function => known bug: test => xfail\n" in logs
         assert is_skipped(Test_Class, "known bug: test")
         assert is_skipped(Test_Class.test_method, "not relevant")
         assert is_not_skipped(Test_Class.test_method2)
-        assert "test_method function, not relevant => skipped\n" in logs
-        assert "Test_Class class, known bug: test => xfail\n" in logs
+        assert "test_method => not relevant => skipped\n" in logs
+        assert "Test_Class => known bug: test => xfail\n" in logs
+        assert is_skipped(Test_Class.test_method3, "not relevant: irrelevant")
+        assert is_skipped(Test_Class.test_method4, "not relevant: irrelevant")
 
         @rfc("A link")
         @released(java="99.99")
@@ -100,7 +112,7 @@ class Test_All:
                 pass
 
         except ValueError as e:
-            assert str(e) == "A java' version for Test has been declared twice"
+            assert str(e) == "A java' version for Test3 has been declared twice"
         else:
             raise Exception("Component has been declared twice, should fail")
 
@@ -270,4 +282,10 @@ class Test_Failing:
 
 
 if __name__ == "__main__":
+
+    @missing_feature(True)
+    @irrelevant(True)
+    def test():
+        pass
+
     sys.exit("Usage: pytest utils/test_the_test.py")
