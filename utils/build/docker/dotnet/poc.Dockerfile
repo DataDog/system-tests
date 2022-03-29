@@ -40,3 +40,4 @@ ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 RUN echo "#!/bin/bash\ndotnet app.dll" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
+

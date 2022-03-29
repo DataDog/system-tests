@@ -6,7 +6,8 @@ namespace weblog
 {
     public static class Sql
     {
-        public static void Setup() {
+        public static void Setup()
+        {
             var success = bool.TryParse(Environment.GetEnvironmentVariable("SETUP_DATABASE"), out var setupDatabase);
             if (success && setupDatabase)
             {

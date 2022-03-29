@@ -30,7 +30,7 @@ namespace weblog
 
             using (var scope = Tracer.Instance.StartActive("test.manual"))
             {
-                var span = scope.Span;  
+                var span = scope.Span;
                 span.Type = SpanTypes.Custom;
                 span.ResourceName = "BIM";
             }
