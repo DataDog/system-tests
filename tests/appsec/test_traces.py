@@ -139,10 +139,10 @@ class Test_AppSecEventSpanTags(BaseTestCase):
                 return
 
             if "_dd.appsec.enabled" in span["metrics"]:
-                raise Exception("_dd.appsec.enabled should be present when span type is web")
+                raise Exception("_dd.appsec.enabled should be present only when span type is web")
 
             if "_dd.runtime_family" in span["meta"]:
-                raise Exception("_dd.runtime_family should be present when span type is web")
+                raise Exception("_dd.runtime_family should be present only when span type is web")
 
             return True
 
