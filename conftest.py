@@ -125,7 +125,7 @@ def _wait_interface(interface, session):
         interface.system_test_error = e
         return False
 
-    terminal_column_count = int(os.environ["COLUMNS"])
+    terminal_column_count = int(os.environ.get("COLUMNS", "80"))
 
     for i, validation in enumerate(interface.validations):
 
