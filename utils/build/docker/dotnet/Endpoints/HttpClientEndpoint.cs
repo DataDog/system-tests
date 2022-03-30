@@ -7,9 +7,14 @@ namespace weblog
     {
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
         {
+            routeBuilder.MapGet("/dedicated-for-http-client-call", async context =>
+            {
+                await context.Response.WriteAsync("Thanks for calling!\\n");
+            });
+
             routeBuilder.MapGet("/trace/httpclient", async context =>
             {
-                var page = await HttpClientWrapper.LocalGet("/this-will-404-and-thats-ok-because-it-stops-sampling-interference");
+                var page = await HttpClientWrapper.LocalGet("/dedicated-for-http-client-call");
                 await context.Response.WriteAsync(page);
             });
         }
