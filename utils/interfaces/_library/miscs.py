@@ -10,17 +10,19 @@ from utils.tools import m
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
 
+
 def _get_spans_by_rid(rid, data):
-    trace_ids=set()
+    trace_ids = set()
     for trace in data["request"]["content"]:
-            for span in trace:
-                if rid == _get_rid_from_span(span):
-                    trace_ids.add(span["trace_id"])
-    
+        for span in trace:
+            if rid == _get_rid_from_span(span):
+                trace_ids.add(span["trace_id"])
+
     for trace in data["request"]["content"]:
-            for span in trace:
-                if span["trace_id"] in trace_ids:
-                    yield span
+        for span in trace:
+            if span["trace_id"] in trace_ids:
+                yield span
+
 
 class _TraceIdUniqueness(BaseValidation):
     path_filters = r"/v[0-9]\.[0-9]+/traces"  # Should be implemented independently from the endpoint version
@@ -95,7 +97,7 @@ class _SpanValidation(BaseValidation):
             self.log_error(f"In {data['log_filename']}, traces should be an array")
             return  # do not fail, it's schema's job
 
-        spans_by_rid=_get_spans_by_rid(self.rid, data)
+        spans_by_rid = _get_spans_by_rid(self.rid, data)
 
         if spans_by_rid:
             self.log_debug(f"Found a trace for {m(self.message)}")
