@@ -10,6 +10,17 @@ from utils.tools import m
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
 
+def _get_spans_by_rid(rid, data):
+    trace_ids=set()
+    for trace in data["request"]["content"]:
+            for span in trace:
+                if rid == _get_rid_from_span(span):
+                    trace_ids.add(span["trace_id"])
+    
+    for trace in data["request"]["content"]:
+            for span in trace:
+                if span["trace_id"] in trace_ids:
+                    yield span
 
 class _TraceIdUniqueness(BaseValidation):
     path_filters = r"/v[0-9]\.[0-9]+/traces"  # Should be implemented independently from the endpoint version
@@ -84,20 +95,18 @@ class _SpanValidation(BaseValidation):
             self.log_error(f"In {data['log_filename']}, traces should be an array")
             return  # do not fail, it's schema's job
 
-        for trace in data["request"]["content"]:
-            for span in trace:
-                if self.rid:
-                    if self.rid != _get_rid_from_span(span):
-                        continue
+        spans_by_rid=_get_spans_by_rid(self.rid, data)
 
-                    self.log_debug(f"Found a trace for {m(self.message)}")
+        if spans_by_rid:
+            self.log_debug(f"Found a trace for {m(self.message)}")
 
-                try:
-                    if self.validator(span):
-                        self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
-                        self.is_success_on_expiry = True
-                except Exception as e:
-                    self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
+        for span in spans_by_rid:
+            try:
+                if self.validator(span):
+                    self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
+                    self.is_success_on_expiry = True
+            except Exception as e:
+                self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
 
 class _TraceExistence(BaseValidation):
@@ -117,14 +126,11 @@ class _TraceExistence(BaseValidation):
         span_types = []
         span_count = len(span_types)
 
-        for trace in data["request"]["content"]:
-            for span in trace:
-                if self.rid:
-                    if self.rid == _get_rid_from_span(span):
-                        span_count = span_count + 1
-                        span_types.append(span["type"])
-                        if self.span_type is None or self.span_type == span["type"]:
-                            check_pass = True
+        for span in _get_spans_by_rid(self.rid, data):
+            span_count = span_count + 1
+            span_types.append(span["type"])
+            if self.span_type is None or self.span_type == span["type"]:
+                check_pass = True
 
         if check_pass:
             self.log_debug(f"Found a trace for {self.message}")
