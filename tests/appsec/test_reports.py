@@ -127,7 +127,7 @@ class Test_Info(BaseTestCase):
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_RequestHeaders(BaseTestCase):
-    """ AppSec reports request headers in events """
+    """ Request Headers for IP resolution """
 
     @bug(context.library < "dotnet@2.1.0")
     def test_http_request_headers(self):
