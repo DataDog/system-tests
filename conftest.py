@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import os
 import collections
 import inspect
 
@@ -113,10 +114,10 @@ def _wait_interface(interface, session):
 
     try:
         if timeout:
-            terminal.write_line(f"Wait {timeout}s for {interface}: {interface.validations_count} to be validated")
+            terminal.write_line(f"Wait {timeout}s for {len(interface.validations)} validations on {interface}")
             interface.wait(timeout=timeout)
         else:
-            terminal.write_line(f"Wait for {interface}: {interface.validations_count} to be validated")
+            terminal.write_line(f"Wait for {len(interface.validations)} validation on {interface}")
             interface.wait()
     except Exception as e:
         session.shouldfail = f"{interface} is not validated"
@@ -124,9 +125,26 @@ def _wait_interface(interface, session):
         interface.system_test_error = e
         return False
 
+    terminal_column_count = int(os.environ["COLUMNS"])
+
+    for i, validation in enumerate(interface.validations):
+
+        if (i + 1) % terminal_column_count == 0:
+            terminal.write_line("")
+
+        if validation in interface.passed:
+            terminal.write(".", bold=True, green=True)
+        elif validation in interface.failed:
+            terminal.write("F", bold=True, red=True)
+        elif validation in interface.xpassed:
+            terminal.write("X", yellow=True)
+        elif validation in interface.xfailed:
+            terminal.write("x", yellow=True)
+
+    terminal.write_line("")
+
     if not interface.is_success:
         session.shouldfail = f"{interface} is not validated"
-        terminal.write_line(f"{interface}: failure")
         return False
 
     return True
