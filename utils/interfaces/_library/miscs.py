@@ -79,7 +79,6 @@ class _ReceiveRequestRootTrace(BaseValidation):
 class _SpanValidation(BaseValidation):
     """ will run an arbitrary check on spans. If a request is provided, only span
         related to this request will be checked.
-
         Validator function can :
         * returns true => validation will be validated at the end (but trace will continue to be checked)
         * returns False or None => nothing is done
@@ -97,18 +96,20 @@ class _SpanValidation(BaseValidation):
             self.log_error(f"In {data['log_filename']}, traces should be an array")
             return  # do not fail, it's schema's job
 
-        spans_by_rid = _get_spans_by_rid(self.rid, data)
+        for trace in data["request"]["content"]:
+            for span in trace:
+                if self.rid:
+                    if self.rid != _get_rid_from_span(span):
+                        continue
 
-        if spans_by_rid:
-            self.log_debug(f"Found a trace for {m(self.message)}")
+                    self.log_debug(f"Found a trace for {m(self.message)}")
 
-        for span in spans_by_rid:
-            try:
-                if self.validator(span):
-                    self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
-                    self.is_success_on_expiry = True
-            except Exception as e:
-                self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
+                try:
+                    if self.validator(span):
+                        self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
+                        self.is_success_on_expiry = True
+                except Exception as e:
+                    self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
 
 class _TraceExistence(BaseValidation):
