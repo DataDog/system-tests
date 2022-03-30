@@ -5,7 +5,7 @@
 from utils import BaseTestCase, interfaces, context, irrelevant
 
 
-@irrelevant(context.library not in ["dotnet", "java"], reason="Need to build endpoint on weblog")
+@irrelevant(context.library != "java", reason="Need to build endpoint on weblog")
 class Test_Misc(BaseTestCase):
     """ Check that traces are reported for some services """
 
