@@ -122,7 +122,6 @@ class _TraceExistence(BaseValidation):
             for span in trace:
                 if self.rid:
                     if self.rid == _get_rid_from_span(span):
-                        self.log_info("Found a span with {self.rid}")
                         span_count = span_count + 1
                         span_types.append(span["type"])
                         if self.span_type == span["type"]:
@@ -131,7 +130,7 @@ class _TraceExistence(BaseValidation):
         if check_pass:
             self.log_debug(f"Found a trace for {self.message}")
             self.set_status(True)
-        else:
+        elif span_count > 0:
             log_messages = []
             log_messages.append(f"Expected span with rid {self.rid} and span type {self.span_type}")
             log_messages.append(f"Found {span_count} spans with matching rid")
