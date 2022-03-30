@@ -101,9 +101,11 @@ class _SpanValidation(BaseValidation):
 
 
 class _TraceExistence(BaseValidation):
-    def __init__(self, request, span_type):
+    def __init__(self, request, span_type, status_code):
         super().__init__(request=request)
-        self.span_type = span_type.lower()
+        self.span_type = span_type
+        if status_code is not None and status_code != request.status_code:
+            self.log_error("Expected status code {status_code}, but received {request.status_code}")
 
     path_filters = "/v0.4/traces"
 
@@ -123,7 +125,7 @@ class _TraceExistence(BaseValidation):
                     if self.rid == _get_rid_from_span(span):
                         span_count = span_count + 1
                         span_types.append(span["type"])
-                        if self.span_type == span["type"]:
+                        if self.span_type is None or self.span_type == span["type"]:
                             check_pass = True
 
         if check_pass:
@@ -136,13 +138,3 @@ class _TraceExistence(BaseValidation):
             span_types_message = ", ".join(span_types)
             log_messages.append(f"Span types found: {span_types_message}")
             self.log_error("\n".join(log_messages))
-
-
-class _StatusCodeValidation(BaseValidation):
-    def __init__(self, request, expected_status_code):
-        super().__init__(request=request)
-        received_status_code = request.status_code
-        if expected_status_code == received_status_code:
-            self.set_status(True)
-        else:
-            self.log_error("Expected status code {self.expected_status_code}, but received {received_status_code}")

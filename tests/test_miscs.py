@@ -16,4 +16,4 @@ class Test_Basic(BaseTestCase):
 
     def test_spans_generation(self):
         r = self.weblog_get("/spans")
-        interfaces.library.assert_trace_exists(r, span_type="web")
+        interfaces.library.assert_trace_exists(r, span_type="web", status_code=200)

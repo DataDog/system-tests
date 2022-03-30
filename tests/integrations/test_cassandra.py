@@ -11,4 +11,4 @@ class Test_Misc(BaseTestCase):
 
     def test_main(self):
         r = self.weblog_get("/trace/cassandra")
-        interfaces.library.assert_trace_exists(r, span_type="cassandra")
+        interfaces.library.assert_trace_exists(r, span_type="cassandra"), status_code=200
