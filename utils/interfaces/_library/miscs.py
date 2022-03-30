@@ -138,3 +138,16 @@ class _TraceExistence(BaseValidation):
                 span_types_message = ", ".join(span_types)
                 log_messages.append(f"Span types found: {span_types_message}")
             self.log_error("\n".join(log_messages))
+
+
+class _StatusCodeValidation(BaseValidation):
+    def __init__(self, request, status_code):
+        super().__init__(request=request)
+        self.expected_status_code = status_code
+
+    def check(self, data):
+        received_status_code = data["response"]["status_code"]
+        if self.expected_status_code == received_status_code:
+            self.set_status(True)
+        else:
+            self.log_error("Expected status code {self.expected_status_code}, but received {received_status_code}")

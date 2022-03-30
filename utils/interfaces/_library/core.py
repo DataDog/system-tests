@@ -16,6 +16,7 @@ from utils.interfaces._library.miscs import (
     _ReceiveRequestRootTrace,
     _SpanValidation,
     _TraceExistence,
+    _StatusCodeValidation,
 )
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
@@ -125,6 +126,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
     def assert_trace_exists(self, request, span_type):
+        self.append_validation(_StatusCodeValidation(request=request, status_code=200))
         self.append_validation(_TraceExistence(request=request, span_type=span_type))
 
 
