@@ -101,11 +101,9 @@ class _SpanValidation(BaseValidation):
 
 
 class _TraceExistence(BaseValidation):
-    def __init__(self, request, span_type, status_code):
+    def __init__(self, request, span_type=None):
         super().__init__(request=request)
         self.span_type = span_type
-        if status_code is not None and status_code != request.status_code:
-            self.log_error("Expected status code {status_code}, but received {request.status_code}")
 
     path_filters = "/v0.4/traces"
 

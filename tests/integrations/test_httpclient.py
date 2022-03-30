@@ -11,4 +11,4 @@ class Test_Misc(BaseTestCase):
 
     def test_main(self):
         r = self.weblog_get("/trace/httpclient")
-        interfaces.library.assert_trace_exists(r, span_type="http", status_code=200)
+        interfaces.library.assert_trace_exists(r, span_type="http")
