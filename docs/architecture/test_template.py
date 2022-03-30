@@ -29,7 +29,7 @@ class Test_Misc(BaseTestCase):
         interfaces.library.assert_trace_exists(request, span_type="web")
 
         request = self.weblog_get("/trace/mongo")
-        interfaces.library.assert_trace_exists(request, span_type="mongo", status_code=200)
+        interfaces.library.assert_trace_exists(request, span_type="mongo")
 
         # The interfaces.library namespace is used to expose valuable assertions
 
