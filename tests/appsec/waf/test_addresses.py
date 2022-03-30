@@ -269,17 +269,6 @@ class Test_ClientIP(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
-class Test_PathParams(BaseTestCase):
-    """ Appsec supports values on server.request.path_params"""
-
-    def test_file_access(self):
-        """ Appsec detects file access attempts in path_params"""
-        r = self.weblog_get("/waf/.htaccess")
-        interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.path_params")
-
-
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(nodejs="2.0.0")
 @released(java="0.88.0")
@@ -296,7 +285,7 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(golang="1.36.0", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
+@released(golang="1.36.0", dotnet="?", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
@@ -304,6 +293,7 @@ class Test_ResponseStatus(BaseTestCase):
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
+    @missing_feature(library="java")
     def test_security_scanner(self):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
