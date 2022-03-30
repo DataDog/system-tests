@@ -9,7 +9,7 @@ namespace weblog
         {
             routeBuilder.MapGet("/trace/httpclient", async context =>
             {
-                var page = await HttpClientWrapper.LocalGet("/");
+                var page = await HttpClientWrapper.LocalGet("/this-will-404-and-thats-ok-because-it-stops-sampling-interference");
                 await context.Response.WriteAsync(page);
             });
         }
