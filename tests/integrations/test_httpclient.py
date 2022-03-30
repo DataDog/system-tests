@@ -5,10 +5,10 @@
 from utils import BaseTestCase, interfaces, context, irrelevant
 
 
-@irrelevant(context.library != "java", reason="Need to build endpoint on weblog")
+# @irrelevant(context.library != "dotnet", reason="Need to build endpoint on weblog")
 class Test_Misc(BaseTestCase):
     """ Check that traces are reported for some services """
 
     def test_main(self):
-        r = self.weblog_get("/rasp/sqli")
-        interfaces.library.assert_trace_exists(r, span_type="sql")
+        r = self.weblog_get("/trace/httpclient")
+        interfaces.library.assert_trace_exists(r, span_type="http")

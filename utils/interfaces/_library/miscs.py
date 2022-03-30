@@ -4,7 +4,6 @@
 
 """ Misc validations """
 
-from ast import And
 from collections import Counter
 
 from utils.tools import m
@@ -116,7 +115,7 @@ class _TraceExistence(BaseValidation):
 
         check_pass = False
         span_types = []
-        span_count = 0
+        span_count = len(span_types)
 
         for trace in data["request"]["content"]:
             for span in trace:
@@ -134,20 +133,16 @@ class _TraceExistence(BaseValidation):
             log_messages = []
             log_messages.append(f"Expected span with rid {self.rid} and span type {self.span_type}")
             log_messages.append(f"Found {span_count} spans with matching rid")
-            if span_types:
-                span_types_message = ", ".join(span_types)
-                log_messages.append(f"Span types found: {span_types_message}")
+            span_types_message = ", ".join(span_types)
+            log_messages.append(f"Span types found: {span_types_message}")
             self.log_error("\n".join(log_messages))
 
 
 class _StatusCodeValidation(BaseValidation):
-    def __init__(self, request, status_code):
+    def __init__(self, request, expected_status_code):
         super().__init__(request=request)
-        self.expected_status_code = status_code
-
-    def check(self, data):
-        received_status_code = data["response"]["status_code"]
-        if self.expected_status_code == received_status_code:
+        received_status_code = request.status_code
+        if expected_status_code == received_status_code:
             self.set_status(True)
         else:
             self.log_error("Expected status code {self.expected_status_code}, but received {received_status_code}")
