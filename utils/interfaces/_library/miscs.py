@@ -125,26 +125,17 @@ class _TraceExistence(BaseValidation):
             self.log_error(f"{data['log_filename']} content should be an array")
             return
 
-        check_pass = False
         span_types = []
-        span_count = len(span_types)
 
-        for span in _get_spans_by_rid(self.rid, data):
-            span_count = span_count + 1
-            if not hasattr(span, "type"):
-                self.log_error("Span is missing type attribute --> {0}".format(span))
-            else:
-                span_types.append(span["type"])
-                if self.span_type is None or self.span_type == span["type"]:
-                    check_pass = True
-
-        if check_pass:
-            self.log_debug(f"Found a trace for {self.message}")
-            self.set_status(True)
-        elif span_count > 0:
-            log_messages = []
-            log_messages.append(f"Expected span with rid {self.rid} and span type {self.span_type}")
-            log_messages.append(f"Found {span_count} spans with matching rid")
-            span_types_message = ", ".join(span_types)
-            log_messages.append(f"Span types found: {span_types_message}")
-            self.log_error("\n".join(log_messages))
+        for trace in data["request"]["content"]:
+            for span in trace:
+                if self.rid == _get_rid_from_span(span):
+                    self.log_debug(f"Found a trace for {self.message}")
+                    if self.span_type is None:  # no need to check for span type
+                        self.set_status(True)
+                    else: # check for the span type in all spans included in this trace
+                        span_types = [span.get("type") for span in trace]
+                        if self.span_type in span_types:
+                           self.set_status(True)
+                        else:
+                           self.log_error(f"Did not find {self.span_type} in {span_types}")
