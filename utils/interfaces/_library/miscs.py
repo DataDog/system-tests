@@ -10,6 +10,7 @@ from utils.tools import m
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
 
+
 class _TraceIdUniqueness(BaseValidation):
     path_filters = r"/v[0-9]\.[0-9]+/traces"  # Should be implemented independently from the endpoint version
 
@@ -124,4 +125,6 @@ class _TraceExistence(BaseValidation):
                         if self.span_type in span_types:
                             self.set_status(True)
                         else:
-                            self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
+                            self.log_error(
+                                f"Did not find span type '{self.span_type}' in reported span types: {span_types}"
+                            )
