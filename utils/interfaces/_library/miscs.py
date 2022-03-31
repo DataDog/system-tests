@@ -134,7 +134,7 @@ class _TraceExistence(BaseValidation):
                     if self.span_type is None:  # no need to check for span type
                         self.set_status(True)
                     else:  # check for the span type in all spans included in this trace
-                        span_types = [span.get("type") for span in trace]
+                        span_types = [s.get("type") for s in trace]
                         if self.span_type in span_types:
                             self.set_status(True)
                         else:
