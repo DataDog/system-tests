@@ -25,19 +25,17 @@ class Test_Cookies(BaseTestCase):
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
-        interfaces.library.assert_waf_attack(r, rule="aaa", pattern=".htaccess", address="server.request.cookies")
+        interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
     @missing_feature(library="java", reason="cookie is rejected by Coyote")
     @missing_feature(library="golang", reason="cookies are not url-decoded")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
-        interfaces.library.assert_waf_attack(r, rule="aaa", pattern=";shutdown--", address="server.request.cookies")
+        interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
 
         r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
-        interfaces.library.assert_waf_attack(
-            r, rule="aaa", pattern=".cookie-;domain=", address="server.request.cookies"
-        )
+        interfaces.library.assert_waf_attack(r, pattern=".cookie-;domain=", address="server.request.cookies")
 
     @bug(library="dotnet", reason="APPSEC-2290")
     def test_cookies_with_spaces(self):

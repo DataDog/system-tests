@@ -4,270 +4,7 @@
     "rules_version": "1.2.6"
   },
   "rules": [
-    {
-      "id": "crs-913-110",
-      "name": "Acunetix",
-      "tags": {
-        "type": "security_scanner",
-        "crs_id": "913110",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies"
-              }
-            ],
-            "list": [
-              "acunetix-product",
-              "(acunetix web vulnerability scanner",
-              "acunetix-scanning-agreement",
-              "acunetix-user-agreement",
-              "md5(acunetix_wvs_security_test)"
-            ]
-          },
-          "operator": "phrase_match"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-913-120",
-      "name": "Known security scanner filename/argument",
-      "tags": {
-        "type": "security_scanner",
-        "crs_id": "913120",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              }
-            ],
-            "list": [
-              "/.adsensepostnottherenonobook",
-              "/<invalid>hello.html",
-              "/actsensepostnottherenonotive",
-              "/acunetix-wvs-test-for-some-inexistent-file",
-              "/antidisestablishmentarianism",
-              "/appscan_fingerprint/mac_address",
-              "/arachni-",
-              "/cybercop",
-              "/nessus_is_probing_you_",
-              "/nessustest",
-              "/netsparker-",
-              "/rfiinc.txt",
-              "/thereisnowaythat-you-canbethere",
-              "/w3af/remotefileinclude.html",
-              "appscan_fingerprint",
-              "w00tw00t.at.isc.sans.dfind",
-              "w00tw00t.at.blackhats.romanian.anti-sec"
-            ]
-          },
-          "operator": "phrase_match"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-920-260",
-      "name": "Unicode Full/Half Width Abuse Attack Attempt",
-      "tags": {
-        "type": "http_protocol_violation",
-        "crs_id": "920260",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "\\%u[fF]{2}[0-9a-fA-F]{2}",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 6
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-921-110",
-      "name": "HTTP Request Smuggling Attack",
-      "tags": {
-        "type": "http_protocol_violation",
-        "crs_id": "921110",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              }
-            ],
-            "regex": "(?:get|post|head|options|connect|put|delete|trace|track|patch|propfind|propatch|mkcol|copy|move|lock|unlock)\\s+[^\\s]+\\s+http/\\d",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 12
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-921-140",
-      "name": "HTTP Header Injection Attack via headers",
-      "tags": {
-        "type": "http_protocol_violation",
-        "crs_id": "921140",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies"
-              }
-            ],
-            "regex": "[\\n\\r]",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 1
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-921-160",
-      "name": "HTTP Header Injection Attack via payload (CR/LF and header-name detected)",
-      "tags": {
-        "type": "http_protocol_violation",
-        "crs_id": "921160",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.path_params"
-              }
-            ],
-            "regex": "[\\n\\r]+(?:\\s|location|refresh|(?:set-)?cookie|(?:x-)?(?:forwarded-(?:for|host|server)|host|via|remote-ip|remote-addr|originating-IP))\\s*:",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 3
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-930-100",
-      "name": "Obfuscated Path Traversal Attack (/../)",
-      "tags": {
-        "type": "lfi",
-        "crs_id": "930100",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              }
-            ],
-            "regex": "(?:\\x5c|(?:%(?:c(?:0%(?:[2aq]f|5c|9v)|1%(?:[19p]c|8s|af))|2(?:5(?:c(?:0%25af|1%259c)|2f|5c)|%46|f)|(?:(?:f(?:8%8)?0%8|e)0%80%a|bg%q)f|%3(?:2(?:%(?:%6|4)6|F)|5%%63)|u(?:221[56]|002f|EFC8|F025)|1u|5c)|0x(?:2f|5c)|/))(?:%(?:(?:f(?:(?:c%80|8)%8)?0%8|e)0%80%ae|2(?:(?:5(?:c0%25a|2))?e|%45)|u(?:(?:002|ff0)e|2024)|%32(?:%(?:%6|4)5|E)|c0(?:%[256aef]e|\\.))|\\.(?:%0[01]|\\?)?|\\?\\.?|0x2e){2}(?:\\x5c|(?:%(?:c(?:0%(?:[2aq]f|5c|9v)|1%(?:[19p]c|8s|af))|2(?:5(?:c(?:0%25af|1%259c)|2f|5c)|%46|f)|(?:(?:f(?:8%8)?0%8|e)0%80%a|bg%q)f|%3(?:2(?:%(?:%6|4)6|F)|5%%63)|u(?:221[56]|002f|EFC8|F025)|1u|5c)|0x(?:2f|5c)|/))",
-            "options": {
-              "min_length": 4
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "normalizePath"
-      ]
-    },
-    {
-      "id": "crs-930-110",
-      "name": "Simple Path Traversal Attack (/../)",
-      "tags": {
-        "type": "lfi",
-        "crs_id": "930110",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              }
-            ],
-            "regex": "(?:(?:^|[\\\\/])\\.\\.[\\\\/]|[\\\\/]\\.\\.(?:[\\\\/]|$))",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 3
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
+
     {
       "id": "crs-930-120",
       "name": "OS File Access Attempt",
@@ -1411,70 +1148,11 @@
       ]
     },
     {
-      "id": "crs-931-110",
-      "name": "RFI: Common RFI Vulnerable Parameter Name used w/ URL Payload",
+      "id": "crs-942-280",
+      "name": "SQL Injection with delay functions",
       "tags": {
-        "type": "rfi",
-        "crs_id": "931110",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              }
-            ],
-            "regex": "(?:\\binclude\\s*\\([^)]*|mosConfig_absolute_path|_CONF\\[path\\]|_SERVER\\[DOCUMENT_ROOT\\]|GALLERY_BASEDIR|path\\[docroot\\]|appserv_root|config\\[root_dir\\])=(?:file|ftps?|https?)://",
-            "options": {
-              "min_length": 15
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-931-120",
-      "name": "RFI: URL Payload Used w/Trailing Question Mark Character (?)",
-      "tags": {
-        "type": "rfi",
-        "crs_id": "931120",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              }
-            ],
-            "regex": "^(?i:file|ftps?|https?).*?\\?+$",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 4
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-932-160",
-      "name": "Remote Command Execution: Unix Shell Code Found",
-      "tags": {
-        "type": "command_injection",
-        "crs_id": "932160",
+        "type": "sql_injection",
+        "crs_id": "942280",
         "category": "attack_attempt"
       },
       "conditions": [
@@ -1497,525 +1175,9 @@
                 "address": "grpc.server.request.message"
               }
             ],
-            "list": [
-              "${cdpath}",
-              "${dirstack}",
-              "${home}",
-              "${hostname}",
-              "${ifs}",
-              "${oldpwd}",
-              "${ostype}",
-              "${path}",
-              "${pwd}",
-              "$cdpath",
-              "$dirstack",
-              "$home",
-              "$hostname",
-              "$ifs",
-              "$oldpwd",
-              "$ostype",
-              "$path",
-              "$pwd",
-              "bin/bash",
-              "bin/cat",
-              "bin/csh",
-              "bin/dash",
-              "bin/du",
-              "bin/echo",
-              "bin/grep",
-              "bin/less",
-              "bin/ls",
-              "bin/mknod",
-              "bin/more",
-              "bin/nc",
-              "bin/ps",
-              "bin/rbash",
-              "bin/sh",
-              "bin/sleep",
-              "bin/su",
-              "bin/tcsh",
-              "bin/uname",
-              "dev/fd/",
-              "dev/null",
-              "dev/stderr",
-              "dev/stdin",
-              "dev/stdout",
-              "dev/tcp/",
-              "dev/udp/",
-              "dev/zero",
-              "etc/group",
-              "etc/master.passwd",
-              "etc/passwd",
-              "etc/pwd.db",
-              "etc/shadow",
-              "etc/shells",
-              "etc/spwd.db",
-              "proc/self/",
-              "usr/bin/awk",
-              "usr/bin/base64",
-              "usr/bin/cat",
-              "usr/bin/cc",
-              "usr/bin/clang",
-              "usr/bin/clang++",
-              "usr/bin/curl",
-              "usr/bin/diff",
-              "usr/bin/env",
-              "usr/bin/fetch",
-              "usr/bin/file",
-              "usr/bin/find",
-              "usr/bin/ftp",
-              "usr/bin/gawk",
-              "usr/bin/gcc",
-              "usr/bin/head",
-              "usr/bin/hexdump",
-              "usr/bin/id",
-              "usr/bin/less",
-              "usr/bin/ln",
-              "usr/bin/mkfifo",
-              "usr/bin/more",
-              "usr/bin/nc",
-              "usr/bin/ncat",
-              "usr/bin/nice",
-              "usr/bin/nmap",
-              "usr/bin/perl",
-              "usr/bin/php",
-              "usr/bin/php5",
-              "usr/bin/php7",
-              "usr/bin/php-cgi",
-              "usr/bin/printf",
-              "usr/bin/psed",
-              "usr/bin/python",
-              "usr/bin/python2",
-              "usr/bin/python3",
-              "usr/bin/ruby",
-              "usr/bin/sed",
-              "usr/bin/socat",
-              "usr/bin/tail",
-              "usr/bin/tee",
-              "usr/bin/telnet",
-              "usr/bin/top",
-              "usr/bin/uname",
-              "usr/bin/wget",
-              "usr/bin/who",
-              "usr/bin/whoami",
-              "usr/bin/xargs",
-              "usr/bin/xxd",
-              "usr/bin/yes",
-              "usr/local/bin/bash",
-              "usr/local/bin/curl",
-              "usr/local/bin/ncat",
-              "usr/local/bin/nmap",
-              "usr/local/bin/perl",
-              "usr/local/bin/php",
-              "usr/local/bin/python",
-              "usr/local/bin/python2",
-              "usr/local/bin/python3",
-              "usr/local/bin/rbash",
-              "usr/local/bin/ruby",
-              "usr/local/bin/wget"
-            ]
-          },
-          "operator": "phrase_match"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-932-171",
-      "name": "Remote Command Execution: Shellshock (CVE-2014-6271)",
-      "tags": {
-        "type": "command_injection",
-        "crs_id": "932171",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "^\\(\\s*\\)\\s+{",
+            "regex": "(?:;\\s*?shutdown\\s*?(?:[#;{]|\\/\\*|--)|waitfor\\s*?delay\\s?[\\\"'`]+\\s?\\d|select\\s*?pg_sleep)",
             "options": {
-              "case_sensitive": true,
-              "min_length": 4
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-932-180",
-      "name": "Restricted File Upload Attempt",
-      "tags": {
-        "type": "command_injection",
-        "crs_id": "932180",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "x-filename"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "x_filename"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "x-file-name"
-                ]
-              }
-            ],
-            "list": [
-              ".htaccess",
-              ".htdigest",
-              ".htpasswd",
-              "wp-config.php",
-              "config.yml",
-              "config_dev.yml",
-              "config_prod.yml",
-              "config_test.yml",
-              "parameters.yml",
-              "routing.yml",
-              "security.yml",
-              "services.yml",
-              "default.settings.php",
-              "settings.php",
-              "settings.local.php",
-              "local.xml",
-              ".env"
-            ]
-          },
-          "operator": "phrase_match"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-933-111",
-      "name": "PHP Injection Attack: PHP Script File Upload Found",
-      "tags": {
-        "type": "unrestricted_file_upload",
-        "crs_id": "933111",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "x-filename"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "x_filename"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "x.filename"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "x-file-name"
-                ]
-              }
-            ],
-            "regex": ".*\\.(?:php\\d*|phtml)\\..*$",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 5
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-933-130",
-      "name": "PHP Injection Attack: Global Variables Found",
-      "tags": {
-        "type": "php_code_injection",
-        "crs_id": "933130",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "list": [
-              "$globals",
-              "$http_cookie_vars",
-              "$http_env_vars",
-              "$http_get_vars",
-              "$http_post_files",
-              "$http_post_vars",
-              "$http_raw_post_data",
-              "$http_request_vars",
-              "$http_server_vars",
-              "$_cookie",
-              "$_env",
-              "$_files",
-              "$_get",
-              "$_post",
-              "$_request",
-              "$_server",
-              "$_session",
-              "$argc",
-              "$argv"
-            ]
-          },
-          "operator": "phrase_match"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-933-131",
-      "name": "PHP Injection Attack: HTTP Headers Values Found",
-      "tags": {
-        "type": "php_code_injection",
-        "crs_id": "933131",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:HTTP_(?:ACCEPT(?:_(?:ENCODING|LANGUAGE|CHARSET))?|(?:X_FORWARDED_FO|REFERE)R|(?:USER_AGEN|HOS)T|CONNECTION|KEEP_ALIVE)|PATH_(?:TRANSLATED|INFO)|ORIG_PATH_INFO|QUERY_STRING|REQUEST_URI|AUTH_TYPE)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 9
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-933-140",
-      "name": "PHP Injection Attack: I/O Stream Found",
-      "tags": {
-        "type": "php_code_injection",
-        "crs_id": "933140",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "php://(?:std(?:in|out|err)|(?:in|out)put|fd|memory|temp|filter)",
-            "options": {
-              "min_length": 8
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-933-150",
-      "name": "PHP Injection Attack: High-Risk PHP Function Name Found",
-      "tags": {
-        "type": "php_code_injection",
-        "crs_id": "933150",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "list": [
-              "__halt_compiler",
-              "apache_child_terminate",
-              "base64_decode",
-              "bzdecompress",
-              "call_user_func",
-              "call_user_func_array",
-              "call_user_method",
-              "call_user_method_array",
-              "convert_uudecode",
-              "file_get_contents",
-              "file_put_contents",
-              "fsockopen",
-              "get_class_methods",
-              "get_class_vars",
-              "get_defined_constants",
-              "get_defined_functions",
-              "get_defined_vars",
-              "gzdecode",
-              "gzinflate",
-              "gzuncompress",
-              "include_once",
-              "invokeargs",
-              "pcntl_exec",
-              "pcntl_fork",
-              "pfsockopen",
-              "posix_getcwd",
-              "posix_getpwuid",
-              "posix_getuid",
-              "posix_uname",
-              "reflectionfunction",
-              "require_once",
-              "shell_exec",
-              "str_rot13",
-              "sys_get_temp_dir",
-              "wp_remote_fopen",
-              "wp_remote_get",
-              "wp_remote_head",
-              "wp_remote_post",
-              "wp_remote_request",
-              "wp_safe_remote_get",
-              "wp_safe_remote_head",
-              "wp_safe_remote_post",
-              "wp_safe_remote_request",
-              "zlib_decode"
-            ]
-          },
-          "operator": "phrase_match"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-933-160",
-      "name": "PHP Injection Attack: High-Risk PHP Function Call Found",
-      "tags": {
-        "type": "php_code_injection",
-        "crs_id": "933160",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "\\b(?:s(?:e(?:t(?:_(?:e(?:xception|rror)_handler|magic_quotes_runtime|include_path)|defaultstub)|ssion_s(?:et_save_handler|tart))|qlite_(?:(?:(?:unbuffered|single|array)_)?query|create_(?:aggregate|function)|p?open|exec)|tr(?:eam_(?:context_create|socket_client)|ipc?slashes|rev)|implexml_load_(?:string|file)|ocket_c(?:onnect|reate)|h(?:ow_sourc|a1_fil)e|pl_autoload_register|ystem)|p(?:r(?:eg_(?:replace(?:_callback(?:_array)?)?|match(?:_all)?|split)|oc_(?:(?:terminat|clos|nic)e|get_status|open)|int_r)|o(?:six_(?:get(?:(?:e[gu]|g)id|login|pwnam)|mk(?:fifo|nod)|ttyname|kill)|pen)|hp(?:_(?:strip_whitespac|unam)e|version|info)|g_(?:(?:execut|prepar)e|connect|query)|a(?:rse_(?:ini_file|str)|ssthru)|utenv)|r(?:unkit_(?:function_(?:re(?:defin|nam)e|copy|add)|method_(?:re(?:defin|nam)e|copy|add)|constant_(?:redefine|add))|e(?:(?:gister_(?:shutdown|tick)|name)_function|ad(?:(?:gz)?file|_exif_data|dir))|awurl(?:de|en)code)|i(?:mage(?:createfrom(?:(?:jpe|pn)g|x[bp]m|wbmp|gif)|(?:jpe|pn)g|g(?:d2?|if)|2?wbmp|xbm)|s_(?:(?:(?:execut|write?|read)ab|fi)le|dir)|ni_(?:get(?:_all)?|set)|terator_apply|ptcembed)|g(?:et(?:_(?:c(?:urrent_use|fg_va)r|meta_tags)|my(?:[gpu]id|inode)|(?:lastmo|cw)d|imagesize|env)|z(?:(?:(?:defla|wri)t|encod|fil)e|compress|open|read)|lob)|a(?:rray_(?:u(?:intersect(?:_u?assoc)?|diff(?:_u?assoc)?)|intersect_u(?:assoc|key)|diff_u(?:assoc|key)|filter|reduce|map)|ssert(?:_options)?)|h(?:tml(?:specialchars(?:_decode)?|_entity_decode|entities)|(?:ash(?:_(?:update|hmac))?|ighlight)_file|e(?:ader_register_callback|x2bin))|f(?:i(?:le(?:(?:[acm]tim|inod)e|(?:_exist|perm)s|group)?|nfo_open)|tp_(?:nb_(?:ge|pu)|connec|ge|pu)t|(?:unction_exis|pu)ts|write|open)|o(?:b_(?:get_(?:c(?:ontents|lean)|flush)|end_(?:clean|flush)|clean|flush|start)|dbc_(?:result(?:_all)?|exec(?:ute)?|connect)|pendir)|m(?:b_(?:ereg(?:_(?:replace(?:_callback)?|match)|i(?:_replace)?)?|parse_str)|(?:ove_uploaded|d5)_file|ethod_exists|ysql_query|kdir)|e(?:x(?:if_(?:t(?:humbnail|agname)|imagetype|read_data)|ec)|scapeshell(?:arg|cmd)|rror_reporting|val)|c(?:url_(?:file_create|exec|init)|onvert_uuencode|reate_function|hr)|u(?:n(?:serialize|pack)|rl(?:de|en)code|[ak]?sort)|(?:json_(?:de|en)cod|debug_backtrac|tmpfil)e|b(?:(?:son_(?:de|en)|ase64_en)code|zopen)|var_dump)(?:\\s|/\\*.*\\*/|//.*|#.*)*\\(.*\\)",
-            "options": {
-              "min_length": 5
+              "min_length": 10
             }
           },
           "operator": "match_regex"
@@ -2066,11 +1228,11 @@
       "transformers": []
     },
     {
-      "id": "crs-933-200",
-      "name": "PHP Injection Attack: Wrapper scheme detected",
+      "id": "crs-933-160",
+      "name": "PHP Injection Attack: High-Risk PHP Function Call Found",
       "tags": {
         "type": "php_code_injection",
-        "crs_id": "933200",
+        "crs_id": "933160",
         "category": "attack_attempt"
       },
       "conditions": [
@@ -2093,50 +1255,8 @@
                 "address": "grpc.server.request.message"
               }
             ],
-            "regex": "(?i:zlib|glob|phar|ssh2|rar|ogg|expect|zip)://",
+            "regex": "\\b(?:s(?:e(?:t(?:_(?:e(?:xception|rror)_handler|magic_quotes_runtime|include_path)|defaultstub)|ssion_s(?:et_save_handler|tart))|qlite_(?:(?:(?:unbuffered|single|array)_)?query|create_(?:aggregate|function)|p?open|exec)|tr(?:eam_(?:context_create|socket_client)|ipc?slashes|rev)|implexml_load_(?:string|file)|ocket_c(?:onnect|reate)|h(?:ow_sourc|a1_fil)e|pl_autoload_register|ystem)|p(?:r(?:eg_(?:replace(?:_callback(?:_array)?)?|match(?:_all)?|split)|oc_(?:(?:terminat|clos|nic)e|get_status|open)|int_r)|o(?:six_(?:get(?:(?:e[gu]|g)id|login|pwnam)|mk(?:fifo|nod)|ttyname|kill)|pen)|hp(?:_(?:strip_whitespac|unam)e|version|info)|g_(?:(?:execut|prepar)e|connect|query)|a(?:rse_(?:ini_file|str)|ssthru)|utenv)|r(?:unkit_(?:function_(?:re(?:defin|nam)e|copy|add)|method_(?:re(?:defin|nam)e|copy|add)|constant_(?:redefine|add))|e(?:(?:gister_(?:shutdown|tick)|name)_function|ad(?:(?:gz)?file|_exif_data|dir))|awurl(?:de|en)code)|i(?:mage(?:createfrom(?:(?:jpe|pn)g|x[bp]m|wbmp|gif)|(?:jpe|pn)g|g(?:d2?|if)|2?wbmp|xbm)|s_(?:(?:(?:execut|write?|read)ab|fi)le|dir)|ni_(?:get(?:_all)?|set)|terator_apply|ptcembed)|g(?:et(?:_(?:c(?:urrent_use|fg_va)r|meta_tags)|my(?:[gpu]id|inode)|(?:lastmo|cw)d|imagesize|env)|z(?:(?:(?:defla|wri)t|encod|fil)e|compress|open|read)|lob)|a(?:rray_(?:u(?:intersect(?:_u?assoc)?|diff(?:_u?assoc)?)|intersect_u(?:assoc|key)|diff_u(?:assoc|key)|filter|reduce|map)|ssert(?:_options)?)|h(?:tml(?:specialchars(?:_decode)?|_entity_decode|entities)|(?:ash(?:_(?:update|hmac))?|ighlight)_file|e(?:ader_register_callback|x2bin))|f(?:i(?:le(?:(?:[acm]tim|inod)e|(?:_exist|perm)s|group)?|nfo_open)|tp_(?:nb_(?:ge|pu)|connec|ge|pu)t|(?:unction_exis|pu)ts|write|open)|o(?:b_(?:get_(?:c(?:ontents|lean)|flush)|end_(?:clean|flush)|clean|flush|start)|dbc_(?:result(?:_all)?|exec(?:ute)?|connect)|pendir)|m(?:b_(?:ereg(?:_(?:replace(?:_callback)?|match)|i(?:_replace)?)?|parse_str)|(?:ove_uploaded|d5)_file|ethod_exists|ysql_query|kdir)|e(?:x(?:if_(?:t(?:humbnail|agname)|imagetype|read_data)|ec)|scapeshell(?:arg|cmd)|rror_reporting|val)|c(?:url_(?:file_create|exec|init)|onvert_uuencode|reate_function|hr)|u(?:n(?:serialize|pack)|rl(?:de|en)code|[ak]?sort)|(?:json_(?:de|en)cod|debug_backtrac|tmpfil)e|b(?:(?:son_(?:de|en)|ase64_en)code|zopen)|var_dump)(?:\\s|/\\*.*\\*/|//.*|#.*)*\\(.*\\)",
             "options": {
-              "case_sensitive": true,
-              "min_length": 6
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-934-100",
-      "name": "Node.js Injection Attack",
-      "tags": {
-        "type": "js_code_injection",
-        "crs_id": "934100",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:(?:_(?:\\$\\$ND_FUNC\\$\\$_|_js_function)|(?:new\\s+Function|\\beval)\\s*\\(|String\\s*\\.\\s*fromCharCode|function\\s*\\(\\s*\\)\\s*{|this\\.constructor)|module\\.exports\\s*=)",
-            "options": {
-              "case_sensitive": true,
               "min_length": 5
             }
           },
@@ -2145,3585 +1265,1556 @@
       ],
       "transformers": []
     },
+    
     {
-      "id": "crs-941-100",
-      "name": "XSS Attack Detected via libinjection",
+      "id": "custom-rule-for-system-tests",
+      "name": "noname",
       "tags": {
-        "type": "xss",
-        "crs_id": "941100",
-        "category": "attack_attempt"
+        "type": "testing",
+        "crs_id": "0",
+        "category": "testing"
       },
       "conditions": [
         {
           "parameters": {
             "inputs": [
               {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "referer"
-                ]
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ]
-          },
-          "operator": "is_xss"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-110",
-      "name": "XSS Filter - Category 1: Script Tag Vector",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941110",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "referer"
-                ]
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "<script[^>]*>[\\s\\S]*?",
-            "options": {
-              "min_length": 8
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-120",
-      "name": "XSS Filter - Category 2: Event Handler Vector",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941120",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "referer"
-                ]
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "[\\s\\\"'`;\\/0-9=\\x0B\\x09\\x0C\\x3B\\x2C\\x28\\x3B]on[a-zA-Z]{3,25}[\\s\\x0B\\x09\\x0C\\x3B\\x2C\\x28\\x3B]*?=[^=]",
-            "options": {
-              "min_length": 8
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-140",
-      "name": "XSS Filter - Category 4: Javascript URI Vector",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941140",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              },
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "referer"
-                ]
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "[a-z]+=(?:[^:=]+:.+;)*?[^:=]+:url\\(javascript",
-            "options": {
-              "min_length": 18
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-180",
-      "name": "Node-Validator Deny List Keywords",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941180",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
+                "address": "server.request.headers.no_cookies"
               }
             ],
             "list": [
-              "document.cookie",
-              "document.write",
-              ".parentnode",
-              ".innerhtml",
-              "window.location",
-              "-moz-binding",
-              "<![cdata["
+              "dedicated-value-for-testing-purpose"
             ]
           },
           "operator": "phrase_match"
         }
-      ],
-      "transformers": [
-        "removeNulls",
-        "lowercase"
       ]
     },
     {
-      "id": "crs-941-200",
-      "name": "IE XSS Filters - Attack Detected via vmlframe tag",
+      "id": "long-rule",
+      "name": "long rule that shouldn't be truncated",
       "tags": {
-        "type": "xss",
-        "crs_id": "941200",
-        "category": "attack_attempt"
+        "type": "lfi",
+        "crs_id": "0",
+        "category": "testing"
       },
       "conditions": [
         {
           "parameters": {
             "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i:<.*[:]?vmlframe.*?[\\s/+]*?src[\\s/+]*=)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 13
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-210",
-      "name": "IE XSS Filters - Obfuscated Attack Detected via javascript injection",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941210",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i:(?:j|&#x?0*(?:74|4A|106|6A);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:a|&#x?0*(?:65|41|97|61);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:v|&#x?0*(?:86|56|118|76);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:a|&#x?0*(?:65|41|97|61);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:s|&#x?0*(?:83|53|115|73);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:c|&#x?0*(?:67|43|99|63);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:r|&#x?0*(?:82|52|114|72);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:i|&#x?0*(?:73|49|105|69);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:p|&#x?0*(?:80|50|112|70);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:t|&#x?0*(?:84|54|116|74);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?::|&(?:#x?0*(?:58|3A);?|colon;)).)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 12
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-220",
-      "name": "IE XSS Filters - Obfuscated Attack Detected via vbscript injection",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941220",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i:(?:v|&#x?0*(?:86|56|118|76);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:b|&#x?0*(?:66|42|98|62);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:s|&#x?0*(?:83|53|115|73);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:c|&#x?0*(?:67|43|99|63);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:r|&#x?0*(?:82|52|114|72);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:i|&#x?0*(?:73|49|105|69);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:p|&#x?0*(?:80|50|112|70);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?:t|&#x?0*(?:84|54|116|74);?)(?:\\t|&(?:#x?0*(?:9|13|10|A|D);?|tab;|newline;))*(?::|&(?:#x?0*(?:58|3A);?|colon;)).)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 10
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-230",
-      "name": "IE XSS Filters - Attack Detected via embed tag",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941230",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "<EMBED[\\s/+].*?(?:src|type).*?=",
-            "options": {
-              "min_length": 11
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-240",
-      "name": "IE XSS Filters - Attack Detected via import tag",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941240",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "<[?]?import[\\s/+\\S]*?implementation[\\s/+]*?=",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 22
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase",
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-270",
-      "name": "IE XSS Filters - Attack Detected via link tag",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941270",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "<LINK[\\s/+].*?href[\\s/+]*=",
-            "options": {
-              "min_length": 11
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-280",
-      "name": "IE XSS Filters - Attack Detected via base tag",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941280",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "<BASE[\\s/+].*?href[\\s/+]*=",
-            "options": {
-              "min_length": 11
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-290",
-      "name": "IE XSS Filters - Attack Detected via applet tag",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941290",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "<APPLET[\\s/+>]",
-            "options": {
-              "min_length": 8
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-300",
-      "name": "IE XSS Filters - Attack Detected via object tag",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941300",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "<OBJECT[\\s/+].*?(?:type|codetype|classid|code|data)[\\s/+]*=",
-            "options": {
-              "min_length": 13
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-941-350",
-      "name": "UTF-7 Encoding IE XSS - Attack Detected",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941350",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "\\+ADw-.*(?:\\+AD4-|>)|<.*\\+AD4-",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 6
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-941-360",
-      "name": "JSFuck / Hieroglyphy obfuscation detected",
-      "tags": {
-        "type": "xss",
-        "crs_id": "941360",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "![!+ ]\\[\\]",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 4
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-100",
-      "name": "SQL Injection Attack Detected via libinjection",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942100",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ]
-          },
-          "operator": "is_sqli"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "crs-942-160",
-      "name": "Detects blind sqli tests using sleep() or benchmark()",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942160",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i:sleep\\(\\s*?\\d*?\\s*?\\)|benchmark\\(.*?\\,.*?\\))",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 7
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-190",
-      "name": "Detects MSSQL code execution and information gathering attempts",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942190",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:\\b(?:(?:c(?:onnection_id|urrent_user)|database)\\s*?\\([^\\)]*?|u(?:nion(?:[\\w(?:\\s]*?select| select @)|ser\\s*?\\([^\\)]*?)|s(?:chema\\s*?\\([^\\)]*?|elect.*?\\w?user\\()|into[\\s+]+(?:dump|out)file\\s*?[\\\"'`]|from\\W+information_schema\\W|exec(?:ute)?\\s+master\\.)|[\\\"'`](?:;?\\s*?(?:union\\b\\s*?(?:(?:distin|sele)ct|all)|having|select)\\b\\s*?[^\\s]|\\s*?!\\s*?[\\\"'`\\w])|\\s*?exec(?:ute)?.*?\\Wxp_cmdshell|\\Wiif\\s*?\\()",
-            "options": {
-              "min_length": 3
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-240",
-      "name": "Detects MySQL charset switch and MSSQL DoS attempts",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942240",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:[\\\"'`](?:;*?\\s*?waitfor\\s+(?:delay|time)\\s+[\\\"'`]|;.*?:\\s*?goto)|alter\\s*?\\w+.*?cha(?:racte)?r\\s+set\\s+\\w+)",
-            "options": {
-              "min_length": 7
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-250",
-      "name": "Detects MATCH AGAINST, MERGE and EXECUTE IMMEDIATE injections",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942250",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i:merge.*?using\\s*?\\(|execute\\s*?immediate\\s*?[\\\"'`]|match\\s*?[\\w(?:),+-]+\\s*?against\\s*?\\()",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 11
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-270",
-      "name": "Basic SQL injection",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942270",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "union.*?select.*?from",
-            "options": {
-              "min_length": 15
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-280",
-      "name": "SQL Injection with delay functions",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942280",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:;\\s*?shutdown\\s*?(?:[#;{]|\\/\\*|--)|waitfor\\s*?delay\\s?[\\\"'`]+\\s?\\d|select\\s*?pg_sleep)",
-            "options": {
-              "min_length": 10
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-290",
-      "name": "Finds basic MongoDB SQL injection attempts",
-      "tags": {
-        "type": "nosql_injection",
-        "crs_id": "942290",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i:(?:\\[\\$(?:ne|eq|lte?|gte?|n?in|mod|all|size|exists|type|slice|x?or|div|like|between|and)\\]))",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 5
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-360",
-      "name": "Detects concatenated basic SQL injection and SQLLFI attempts",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942360",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:^[\\W\\d]+\\s*?(?:alter\\s*(?:a(?:(?:pplication\\s*rol|ggregat)e|s(?:ymmetric\\s*ke|sembl)y|u(?:thorization|dit)|vailability\\s*group)|c(?:r(?:yptographic\\s*provider|edential)|o(?:l(?:latio|um)|nversio)n|ertificate|luster)|s(?:e(?:rv(?:ice|er)|curity|quence|ssion|arch)|y(?:mmetric\\s*key|nonym)|togroup|chema)|m(?:a(?:s(?:ter\\s*key|k)|terialized)|e(?:ssage\\s*type|thod)|odule)|l(?:o(?:g(?:file\\s*group|in)|ckdown)|a(?:ngua|r)ge|ibrary)|t(?:(?:abl(?:espac)?|yp)e|r(?:igger|usted)|hreshold|ext)|p(?:a(?:rtition|ckage)|ro(?:cedur|fil)e|ermission)|d(?:i(?:mension|skgroup)|atabase|efault|omain)|r(?:o(?:l(?:lback|e)|ute)|e(?:sourc|mot)e)|f(?:u(?:lltext|nction)|lashback|oreign)|e(?:xte(?:nsion|rnal)|(?:ndpoi|ve)nt)|in(?:dex(?:type)?|memory|stance)|b(?:roker\\s*priority|ufferpool)|x(?:ml\\s*schema|srobject)|w(?:ork(?:load)?|rapper)|hi(?:erarchy|stogram)|o(?:perator|utline)|(?:nicknam|queu)e|us(?:age|er)|group|java|view)\\b|(?:(?:(?:trunc|cre)at|renam)e|d(?:e(?:lete|sc)|rop)|(?:inser|selec)t|load)\\s+\\w+|u(?:nion\\s*(?:(?:distin|sele)ct|all)\\b|pdate\\s+\\w+))|\\b(?:(?:(?:(?:trunc|cre|upd)at|renam)e|(?:inser|selec)t|de(?:lete|sc)|alter|load)\\s+(?:group_concat|load_file|char)\\b\\s*\\(?|end\\s*?\\);)|[\\\"'`\\w]\\s+as\\b\\s*[\\\"'`\\w]+\\s*\\bfrom|[\\s(?:]load_file\\s*?\\(|[\\\"'`]\\s+regexp\\W)",
-            "options": {
-              "min_length": 5
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-942-500",
-      "name": "MySQL in-line comment detected",
-      "tags": {
-        "type": "sql_injection",
-        "crs_id": "942500",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i:/\\*[!+](?:[\\w\\s=_\\-(?:)]+)?\\*/)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 5
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-943-100",
-      "name": "Possible Session Fixation Attack: Setting Cookie Values in HTML",
-      "tags": {
-        "type": "http_protocol_violation",
-        "crs_id": "943100",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              }
-            ],
-            "regex": "(?i:\\.cookie\\b.*?;\\W*?(?:expires|domain)\\W*?=|\\bhttp-equiv\\W+set-cookie\\b)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 15
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "crs-944-100",
-      "name": "Remote Command Execution: Suspicious Java class detected",
-      "tags": {
-        "type": "java_code_injection",
-        "crs_id": "944100",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.cookies"
-              },
               {
                 "address": "server.request.headers.no_cookies"
               },
               {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "java\\.lang\\.(?:runtime|processbuilder)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 17
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-944-110",
-      "name": "Remote Command Execution: Java process spawn (CVE-2017-9805)",
-      "tags": {
-        "type": "java_code_injection",
-        "crs_id": "944110",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
                 "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:runtime|processbuilder)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 7
-            }
-          },
-          "operator": "match_regex"
-        },
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?:unmarshaller|base64data|java\\.)",
-            "options": {
-              "case_sensitive": true,
-              "min_length": 5
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "crs-944-130",
-      "name": "Suspicious Java class detected",
-      "tags": {
-        "type": "java_code_injection",
-        "crs_id": "944130",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
               }
             ],
             "list": [
-              "com.opensymphony.xwork2",
-              "com.sun.org.apache",
-              "java.io.bufferedinputstream",
-              "java.io.bufferedreader",
-              "java.io.bytearrayinputstream",
-              "java.io.bytearrayoutputstream",
-              "java.io.chararrayreader",
-              "java.io.datainputstream",
-              "java.io.file",
-              "java.io.fileoutputstream",
-              "java.io.filepermission",
-              "java.io.filewriter",
-              "java.io.filterinputstream",
-              "java.io.filteroutputstream",
-              "java.io.filterreader",
-              "java.io.inputstream",
-              "java.io.inputstreamreader",
-              "java.io.linenumberreader",
-              "java.io.objectoutputstream",
-              "java.io.outputstream",
-              "java.io.pipedoutputstream",
-              "java.io.pipedreader",
-              "java.io.printstream",
-              "java.io.pushbackinputstream",
-              "java.io.reader",
-              "java.io.stringreader",
-              "java.lang.class",
-              "java.lang.integer",
-              "java.lang.number",
-              "java.lang.object",
-              "java.lang.process",
-              "java.lang.processbuilder",
-              "java.lang.reflect",
-              "java.lang.runtime",
-              "java.lang.string",
-              "java.lang.stringbuilder",
-              "java.lang.system",
-              "javax.script.scriptenginemanager",
-              "org.apache.commons",
-              "org.apache.struts",
-              "org.apache.struts2",
-              "org.omg.corba",
-              "java.beans.xmldecode"
+              "first_pattern_of_a_very_long_list",
+              "never_matching_pattern_2",
+              "never_matching_pattern_3",
+              "never_matching_pattern_4",
+              "never_matching_pattern_5",
+              "never_matching_pattern_6",
+              "never_matching_pattern_7",
+              "never_matching_pattern_8",
+              "never_matching_pattern_9",
+              "never_matching_pattern_10",
+              "never_matching_pattern_11",
+              "never_matching_pattern_12",
+              "never_matching_pattern_13",
+              "never_matching_pattern_14",
+              "never_matching_pattern_15",
+              "never_matching_pattern_16",
+              "never_matching_pattern_17",
+              "never_matching_pattern_18",
+              "never_matching_pattern_19",
+              "never_matching_pattern_20",
+              "never_matching_pattern_21",
+              "never_matching_pattern_22",
+              "never_matching_pattern_23",
+              "never_matching_pattern_24",
+              "never_matching_pattern_25",
+              "never_matching_pattern_26",
+              "never_matching_pattern_27",
+              "never_matching_pattern_28",
+              "never_matching_pattern_29",
+              "never_matching_pattern_30",
+              "never_matching_pattern_31",
+              "never_matching_pattern_32",
+              "never_matching_pattern_33",
+              "never_matching_pattern_34",
+              "never_matching_pattern_35",
+              "never_matching_pattern_36",
+              "never_matching_pattern_37",
+              "never_matching_pattern_38",
+              "never_matching_pattern_39",
+              "never_matching_pattern_40",
+              "never_matching_pattern_41",
+              "never_matching_pattern_42",
+              "never_matching_pattern_43",
+              "never_matching_pattern_44",
+              "never_matching_pattern_45",
+              "never_matching_pattern_46",
+              "never_matching_pattern_47",
+              "never_matching_pattern_48",
+              "never_matching_pattern_49",
+              "never_matching_pattern_50",
+              "never_matching_pattern_51",
+              "never_matching_pattern_52",
+              "never_matching_pattern_53",
+              "never_matching_pattern_54",
+              "never_matching_pattern_55",
+              "never_matching_pattern_56",
+              "never_matching_pattern_57",
+              "never_matching_pattern_58",
+              "never_matching_pattern_59",
+              "never_matching_pattern_60",
+              "never_matching_pattern_61",
+              "never_matching_pattern_62",
+              "never_matching_pattern_63",
+              "never_matching_pattern_64",
+              "never_matching_pattern_65",
+              "never_matching_pattern_66",
+              "never_matching_pattern_67",
+              "never_matching_pattern_68",
+              "never_matching_pattern_69",
+              "never_matching_pattern_70",
+              "never_matching_pattern_71",
+              "never_matching_pattern_72",
+              "never_matching_pattern_73",
+              "never_matching_pattern_74",
+              "never_matching_pattern_75",
+              "never_matching_pattern_76",
+              "never_matching_pattern_77",
+              "never_matching_pattern_78",
+              "never_matching_pattern_79",
+              "never_matching_pattern_80",
+              "never_matching_pattern_81",
+              "never_matching_pattern_82",
+              "never_matching_pattern_83",
+              "never_matching_pattern_84",
+              "never_matching_pattern_85",
+              "never_matching_pattern_86",
+              "never_matching_pattern_87",
+              "never_matching_pattern_88",
+              "never_matching_pattern_89",
+              "never_matching_pattern_90",
+              "never_matching_pattern_91",
+              "never_matching_pattern_92",
+              "never_matching_pattern_93",
+              "never_matching_pattern_94",
+              "never_matching_pattern_95",
+              "never_matching_pattern_96",
+              "never_matching_pattern_97",
+              "never_matching_pattern_98",
+              "never_matching_pattern_99",
+              "never_matching_pattern_100",
+              "never_matching_pattern_101",
+              "never_matching_pattern_102",
+              "never_matching_pattern_103",
+              "never_matching_pattern_104",
+              "never_matching_pattern_105",
+              "never_matching_pattern_106",
+              "never_matching_pattern_107",
+              "never_matching_pattern_108",
+              "never_matching_pattern_109",
+              "never_matching_pattern_110",
+              "never_matching_pattern_111",
+              "never_matching_pattern_112",
+              "never_matching_pattern_113",
+              "never_matching_pattern_114",
+              "never_matching_pattern_115",
+              "never_matching_pattern_116",
+              "never_matching_pattern_117",
+              "never_matching_pattern_118",
+              "never_matching_pattern_119",
+              "never_matching_pattern_120",
+              "never_matching_pattern_121",
+              "never_matching_pattern_122",
+              "never_matching_pattern_123",
+              "never_matching_pattern_124",
+              "never_matching_pattern_125",
+              "never_matching_pattern_126",
+              "never_matching_pattern_127",
+              "never_matching_pattern_128",
+              "never_matching_pattern_129",
+              "never_matching_pattern_130",
+              "never_matching_pattern_131",
+              "never_matching_pattern_132",
+              "never_matching_pattern_133",
+              "never_matching_pattern_134",
+              "never_matching_pattern_135",
+              "never_matching_pattern_136",
+              "never_matching_pattern_137",
+              "never_matching_pattern_138",
+              "never_matching_pattern_139",
+              "never_matching_pattern_140",
+              "never_matching_pattern_141",
+              "never_matching_pattern_142",
+              "never_matching_pattern_143",
+              "never_matching_pattern_144",
+              "never_matching_pattern_145",
+              "never_matching_pattern_146",
+              "never_matching_pattern_147",
+              "never_matching_pattern_148",
+              "never_matching_pattern_149",
+              "never_matching_pattern_150",
+              "never_matching_pattern_151",
+              "never_matching_pattern_152",
+              "never_matching_pattern_153",
+              "never_matching_pattern_154",
+              "never_matching_pattern_155",
+              "never_matching_pattern_156",
+              "never_matching_pattern_157",
+              "never_matching_pattern_158",
+              "never_matching_pattern_159",
+              "never_matching_pattern_160",
+              "never_matching_pattern_161",
+              "never_matching_pattern_162",
+              "never_matching_pattern_163",
+              "never_matching_pattern_164",
+              "never_matching_pattern_165",
+              "never_matching_pattern_166",
+              "never_matching_pattern_167",
+              "never_matching_pattern_168",
+              "never_matching_pattern_169",
+              "never_matching_pattern_170",
+              "never_matching_pattern_171",
+              "never_matching_pattern_172",
+              "never_matching_pattern_173",
+              "never_matching_pattern_174",
+              "never_matching_pattern_175",
+              "never_matching_pattern_176",
+              "never_matching_pattern_177",
+              "never_matching_pattern_178",
+              "never_matching_pattern_179",
+              "never_matching_pattern_180",
+              "never_matching_pattern_181",
+              "never_matching_pattern_182",
+              "never_matching_pattern_183",
+              "never_matching_pattern_184",
+              "never_matching_pattern_185",
+              "never_matching_pattern_186",
+              "never_matching_pattern_187",
+              "never_matching_pattern_188",
+              "never_matching_pattern_189",
+              "never_matching_pattern_190",
+              "never_matching_pattern_191",
+              "never_matching_pattern_192",
+              "never_matching_pattern_193",
+              "never_matching_pattern_194",
+              "never_matching_pattern_195",
+              "never_matching_pattern_196",
+              "never_matching_pattern_197",
+              "never_matching_pattern_198",
+              "never_matching_pattern_199",
+              "never_matching_pattern_200",
+              "never_matching_pattern_201",
+              "never_matching_pattern_202",
+              "never_matching_pattern_203",
+              "never_matching_pattern_204",
+              "never_matching_pattern_205",
+              "never_matching_pattern_206",
+              "never_matching_pattern_207",
+              "never_matching_pattern_208",
+              "never_matching_pattern_209",
+              "never_matching_pattern_210",
+              "never_matching_pattern_211",
+              "never_matching_pattern_212",
+              "never_matching_pattern_213",
+              "never_matching_pattern_214",
+              "never_matching_pattern_215",
+              "never_matching_pattern_216",
+              "never_matching_pattern_217",
+              "never_matching_pattern_218",
+              "never_matching_pattern_219",
+              "never_matching_pattern_220",
+              "never_matching_pattern_221",
+              "never_matching_pattern_222",
+              "never_matching_pattern_223",
+              "never_matching_pattern_224",
+              "never_matching_pattern_225",
+              "never_matching_pattern_226",
+              "never_matching_pattern_227",
+              "never_matching_pattern_228",
+              "never_matching_pattern_229",
+              "never_matching_pattern_230",
+              "never_matching_pattern_231",
+              "never_matching_pattern_232",
+              "never_matching_pattern_233",
+              "never_matching_pattern_234",
+              "never_matching_pattern_235",
+              "never_matching_pattern_236",
+              "never_matching_pattern_237",
+              "never_matching_pattern_238",
+              "never_matching_pattern_239",
+              "never_matching_pattern_240",
+              "never_matching_pattern_241",
+              "never_matching_pattern_242",
+              "never_matching_pattern_243",
+              "never_matching_pattern_244",
+              "never_matching_pattern_245",
+              "never_matching_pattern_246",
+              "never_matching_pattern_247",
+              "never_matching_pattern_248",
+              "never_matching_pattern_249",
+              "never_matching_pattern_250",
+              "never_matching_pattern_251",
+              "never_matching_pattern_252",
+              "never_matching_pattern_253",
+              "never_matching_pattern_254",
+              "never_matching_pattern_255",
+              "never_matching_pattern_256",
+              "never_matching_pattern_257",
+              "never_matching_pattern_258",
+              "never_matching_pattern_259",
+              "never_matching_pattern_260",
+              "never_matching_pattern_261",
+              "never_matching_pattern_262",
+              "never_matching_pattern_263",
+              "never_matching_pattern_264",
+              "never_matching_pattern_265",
+              "never_matching_pattern_266",
+              "never_matching_pattern_267",
+              "never_matching_pattern_268",
+              "never_matching_pattern_269",
+              "never_matching_pattern_270",
+              "never_matching_pattern_271",
+              "never_matching_pattern_272",
+              "never_matching_pattern_273",
+              "never_matching_pattern_274",
+              "never_matching_pattern_275",
+              "never_matching_pattern_276",
+              "never_matching_pattern_277",
+              "never_matching_pattern_278",
+              "never_matching_pattern_279",
+              "never_matching_pattern_280",
+              "never_matching_pattern_281",
+              "never_matching_pattern_282",
+              "never_matching_pattern_283",
+              "never_matching_pattern_284",
+              "never_matching_pattern_285",
+              "never_matching_pattern_286",
+              "never_matching_pattern_287",
+              "never_matching_pattern_288",
+              "never_matching_pattern_289",
+              "never_matching_pattern_290",
+              "never_matching_pattern_291",
+              "never_matching_pattern_292",
+              "never_matching_pattern_293",
+              "never_matching_pattern_294",
+              "never_matching_pattern_295",
+              "never_matching_pattern_296",
+              "never_matching_pattern_297",
+              "never_matching_pattern_298",
+              "never_matching_pattern_299",
+              "never_matching_pattern_300",
+              "never_matching_pattern_301",
+              "never_matching_pattern_302",
+              "never_matching_pattern_303",
+              "never_matching_pattern_304",
+              "never_matching_pattern_305",
+              "never_matching_pattern_306",
+              "never_matching_pattern_307",
+              "never_matching_pattern_308",
+              "never_matching_pattern_309",
+              "never_matching_pattern_310",
+              "never_matching_pattern_311",
+              "never_matching_pattern_312",
+              "never_matching_pattern_313",
+              "never_matching_pattern_314",
+              "never_matching_pattern_315",
+              "never_matching_pattern_316",
+              "never_matching_pattern_317",
+              "never_matching_pattern_318",
+              "never_matching_pattern_319",
+              "never_matching_pattern_320",
+              "never_matching_pattern_321",
+              "never_matching_pattern_322",
+              "never_matching_pattern_323",
+              "never_matching_pattern_324",
+              "never_matching_pattern_325",
+              "never_matching_pattern_326",
+              "never_matching_pattern_327",
+              "never_matching_pattern_328",
+              "never_matching_pattern_329",
+              "never_matching_pattern_330",
+              "never_matching_pattern_331",
+              "never_matching_pattern_332",
+              "never_matching_pattern_333",
+              "never_matching_pattern_334",
+              "never_matching_pattern_335",
+              "never_matching_pattern_336",
+              "never_matching_pattern_337",
+              "never_matching_pattern_338",
+              "never_matching_pattern_339",
+              "never_matching_pattern_340",
+              "never_matching_pattern_341",
+              "never_matching_pattern_342",
+              "never_matching_pattern_343",
+              "never_matching_pattern_344",
+              "never_matching_pattern_345",
+              "never_matching_pattern_346",
+              "never_matching_pattern_347",
+              "never_matching_pattern_348",
+              "never_matching_pattern_349",
+              "never_matching_pattern_350",
+              "never_matching_pattern_351",
+              "never_matching_pattern_352",
+              "never_matching_pattern_353",
+              "never_matching_pattern_354",
+              "never_matching_pattern_355",
+              "never_matching_pattern_356",
+              "never_matching_pattern_357",
+              "never_matching_pattern_358",
+              "never_matching_pattern_359",
+              "never_matching_pattern_360",
+              "never_matching_pattern_361",
+              "never_matching_pattern_362",
+              "never_matching_pattern_363",
+              "never_matching_pattern_364",
+              "never_matching_pattern_365",
+              "never_matching_pattern_366",
+              "never_matching_pattern_367",
+              "never_matching_pattern_368",
+              "never_matching_pattern_369",
+              "never_matching_pattern_370",
+              "never_matching_pattern_371",
+              "never_matching_pattern_372",
+              "never_matching_pattern_373",
+              "never_matching_pattern_374",
+              "never_matching_pattern_375",
+              "never_matching_pattern_376",
+              "never_matching_pattern_377",
+              "never_matching_pattern_378",
+              "never_matching_pattern_379",
+              "never_matching_pattern_380",
+              "never_matching_pattern_381",
+              "never_matching_pattern_382",
+              "never_matching_pattern_383",
+              "never_matching_pattern_384",
+              "never_matching_pattern_385",
+              "never_matching_pattern_386",
+              "never_matching_pattern_387",
+              "never_matching_pattern_388",
+              "never_matching_pattern_389",
+              "never_matching_pattern_390",
+              "never_matching_pattern_391",
+              "never_matching_pattern_392",
+              "never_matching_pattern_393",
+              "never_matching_pattern_394",
+              "never_matching_pattern_395",
+              "never_matching_pattern_396",
+              "never_matching_pattern_397",
+              "never_matching_pattern_398",
+              "never_matching_pattern_399",
+              "never_matching_pattern_400",
+              "never_matching_pattern_401",
+              "never_matching_pattern_402",
+              "never_matching_pattern_403",
+              "never_matching_pattern_404",
+              "never_matching_pattern_405",
+              "never_matching_pattern_406",
+              "never_matching_pattern_407",
+              "never_matching_pattern_408",
+              "never_matching_pattern_409",
+              "never_matching_pattern_410",
+              "never_matching_pattern_411",
+              "never_matching_pattern_412",
+              "never_matching_pattern_413",
+              "never_matching_pattern_414",
+              "never_matching_pattern_415",
+              "never_matching_pattern_416",
+              "never_matching_pattern_417",
+              "never_matching_pattern_418",
+              "never_matching_pattern_419",
+              "never_matching_pattern_420",
+              "never_matching_pattern_421",
+              "never_matching_pattern_422",
+              "never_matching_pattern_423",
+              "never_matching_pattern_424",
+              "never_matching_pattern_425",
+              "never_matching_pattern_426",
+              "never_matching_pattern_427",
+              "never_matching_pattern_428",
+              "never_matching_pattern_429",
+              "never_matching_pattern_430",
+              "never_matching_pattern_431",
+              "never_matching_pattern_432",
+              "never_matching_pattern_433",
+              "never_matching_pattern_434",
+              "never_matching_pattern_435",
+              "never_matching_pattern_436",
+              "never_matching_pattern_437",
+              "never_matching_pattern_438",
+              "never_matching_pattern_439",
+              "never_matching_pattern_440",
+              "never_matching_pattern_441",
+              "never_matching_pattern_442",
+              "never_matching_pattern_443",
+              "never_matching_pattern_444",
+              "never_matching_pattern_445",
+              "never_matching_pattern_446",
+              "never_matching_pattern_447",
+              "never_matching_pattern_448",
+              "never_matching_pattern_449",
+              "never_matching_pattern_450",
+              "never_matching_pattern_451",
+              "never_matching_pattern_452",
+              "never_matching_pattern_453",
+              "never_matching_pattern_454",
+              "never_matching_pattern_455",
+              "never_matching_pattern_456",
+              "never_matching_pattern_457",
+              "never_matching_pattern_458",
+              "never_matching_pattern_459",
+              "never_matching_pattern_460",
+              "never_matching_pattern_461",
+              "never_matching_pattern_462",
+              "never_matching_pattern_463",
+              "never_matching_pattern_464",
+              "never_matching_pattern_465",
+              "never_matching_pattern_466",
+              "never_matching_pattern_467",
+              "never_matching_pattern_468",
+              "never_matching_pattern_469",
+              "never_matching_pattern_470",
+              "never_matching_pattern_471",
+              "never_matching_pattern_472",
+              "never_matching_pattern_473",
+              "never_matching_pattern_474",
+              "never_matching_pattern_475",
+              "never_matching_pattern_476",
+              "never_matching_pattern_477",
+              "never_matching_pattern_478",
+              "never_matching_pattern_479",
+              "never_matching_pattern_480",
+              "never_matching_pattern_481",
+              "never_matching_pattern_482",
+              "never_matching_pattern_483",
+              "never_matching_pattern_484",
+              "never_matching_pattern_485",
+              "never_matching_pattern_486",
+              "never_matching_pattern_487",
+              "never_matching_pattern_488",
+              "never_matching_pattern_489",
+              "never_matching_pattern_490",
+              "never_matching_pattern_491",
+              "never_matching_pattern_492",
+              "never_matching_pattern_493",
+              "never_matching_pattern_494",
+              "never_matching_pattern_495",
+              "never_matching_pattern_496",
+              "never_matching_pattern_497",
+              "never_matching_pattern_498",
+              "never_matching_pattern_499",
+              "never_matching_pattern_500",
+              "never_matching_pattern_501",
+              "never_matching_pattern_502",
+              "never_matching_pattern_503",
+              "never_matching_pattern_504",
+              "never_matching_pattern_505",
+              "never_matching_pattern_506",
+              "never_matching_pattern_507",
+              "never_matching_pattern_508",
+              "never_matching_pattern_509",
+              "never_matching_pattern_510",
+              "never_matching_pattern_511",
+              "never_matching_pattern_512",
+              "never_matching_pattern_513",
+              "never_matching_pattern_514",
+              "never_matching_pattern_515",
+              "never_matching_pattern_516",
+              "never_matching_pattern_517",
+              "never_matching_pattern_518",
+              "never_matching_pattern_519",
+              "never_matching_pattern_520",
+              "never_matching_pattern_521",
+              "never_matching_pattern_522",
+              "never_matching_pattern_523",
+              "never_matching_pattern_524",
+              "never_matching_pattern_525",
+              "never_matching_pattern_526",
+              "never_matching_pattern_527",
+              "never_matching_pattern_528",
+              "never_matching_pattern_529",
+              "never_matching_pattern_530",
+              "never_matching_pattern_531",
+              "never_matching_pattern_532",
+              "never_matching_pattern_533",
+              "never_matching_pattern_534",
+              "never_matching_pattern_535",
+              "never_matching_pattern_536",
+              "never_matching_pattern_537",
+              "never_matching_pattern_538",
+              "never_matching_pattern_539",
+              "never_matching_pattern_540",
+              "never_matching_pattern_541",
+              "never_matching_pattern_542",
+              "never_matching_pattern_543",
+              "never_matching_pattern_544",
+              "never_matching_pattern_545",
+              "never_matching_pattern_546",
+              "never_matching_pattern_547",
+              "never_matching_pattern_548",
+              "never_matching_pattern_549",
+              "never_matching_pattern_550",
+              "never_matching_pattern_551",
+              "never_matching_pattern_552",
+              "never_matching_pattern_553",
+              "never_matching_pattern_554",
+              "never_matching_pattern_555",
+              "never_matching_pattern_556",
+              "never_matching_pattern_557",
+              "never_matching_pattern_558",
+              "never_matching_pattern_559",
+              "never_matching_pattern_560",
+              "never_matching_pattern_561",
+              "never_matching_pattern_562",
+              "never_matching_pattern_563",
+              "never_matching_pattern_564",
+              "never_matching_pattern_565",
+              "never_matching_pattern_566",
+              "never_matching_pattern_567",
+              "never_matching_pattern_568",
+              "never_matching_pattern_569",
+              "never_matching_pattern_570",
+              "never_matching_pattern_571",
+              "never_matching_pattern_572",
+              "never_matching_pattern_573",
+              "never_matching_pattern_574",
+              "never_matching_pattern_575",
+              "never_matching_pattern_576",
+              "never_matching_pattern_577",
+              "never_matching_pattern_578",
+              "never_matching_pattern_579",
+              "never_matching_pattern_580",
+              "never_matching_pattern_581",
+              "never_matching_pattern_582",
+              "never_matching_pattern_583",
+              "never_matching_pattern_584",
+              "never_matching_pattern_585",
+              "never_matching_pattern_586",
+              "never_matching_pattern_587",
+              "never_matching_pattern_588",
+              "never_matching_pattern_589",
+              "never_matching_pattern_590",
+              "never_matching_pattern_591",
+              "never_matching_pattern_592",
+              "never_matching_pattern_593",
+              "never_matching_pattern_594",
+              "never_matching_pattern_595",
+              "never_matching_pattern_596",
+              "never_matching_pattern_597",
+              "never_matching_pattern_598",
+              "never_matching_pattern_599",
+              "never_matching_pattern_600",
+              "never_matching_pattern_601",
+              "never_matching_pattern_602",
+              "never_matching_pattern_603",
+              "never_matching_pattern_604",
+              "never_matching_pattern_605",
+              "never_matching_pattern_606",
+              "never_matching_pattern_607",
+              "never_matching_pattern_608",
+              "never_matching_pattern_609",
+              "never_matching_pattern_610",
+              "never_matching_pattern_611",
+              "never_matching_pattern_612",
+              "never_matching_pattern_613",
+              "never_matching_pattern_614",
+              "never_matching_pattern_615",
+              "never_matching_pattern_616",
+              "never_matching_pattern_617",
+              "never_matching_pattern_618",
+              "never_matching_pattern_619",
+              "never_matching_pattern_620",
+              "never_matching_pattern_621",
+              "never_matching_pattern_622",
+              "never_matching_pattern_623",
+              "never_matching_pattern_624",
+              "never_matching_pattern_625",
+              "never_matching_pattern_626",
+              "never_matching_pattern_627",
+              "never_matching_pattern_628",
+              "never_matching_pattern_629",
+              "never_matching_pattern_630",
+              "never_matching_pattern_631",
+              "never_matching_pattern_632",
+              "never_matching_pattern_633",
+              "never_matching_pattern_634",
+              "never_matching_pattern_635",
+              "never_matching_pattern_636",
+              "never_matching_pattern_637",
+              "never_matching_pattern_638",
+              "never_matching_pattern_639",
+              "never_matching_pattern_640",
+              "never_matching_pattern_641",
+              "never_matching_pattern_642",
+              "never_matching_pattern_643",
+              "never_matching_pattern_644",
+              "never_matching_pattern_645",
+              "never_matching_pattern_646",
+              "never_matching_pattern_647",
+              "never_matching_pattern_648",
+              "never_matching_pattern_649",
+              "never_matching_pattern_650",
+              "never_matching_pattern_651",
+              "never_matching_pattern_652",
+              "never_matching_pattern_653",
+              "never_matching_pattern_654",
+              "never_matching_pattern_655",
+              "never_matching_pattern_656",
+              "never_matching_pattern_657",
+              "never_matching_pattern_658",
+              "never_matching_pattern_659",
+              "never_matching_pattern_660",
+              "never_matching_pattern_661",
+              "never_matching_pattern_662",
+              "never_matching_pattern_663",
+              "never_matching_pattern_664",
+              "never_matching_pattern_665",
+              "never_matching_pattern_666",
+              "never_matching_pattern_667",
+              "never_matching_pattern_668",
+              "never_matching_pattern_669",
+              "never_matching_pattern_670",
+              "never_matching_pattern_671",
+              "never_matching_pattern_672",
+              "never_matching_pattern_673",
+              "never_matching_pattern_674",
+              "never_matching_pattern_675",
+              "never_matching_pattern_676",
+              "never_matching_pattern_677",
+              "never_matching_pattern_678",
+              "never_matching_pattern_679",
+              "never_matching_pattern_680",
+              "never_matching_pattern_681",
+              "never_matching_pattern_682",
+              "never_matching_pattern_683",
+              "never_matching_pattern_684",
+              "never_matching_pattern_685",
+              "never_matching_pattern_686",
+              "never_matching_pattern_687",
+              "never_matching_pattern_688",
+              "never_matching_pattern_689",
+              "never_matching_pattern_690",
+              "never_matching_pattern_691",
+              "never_matching_pattern_692",
+              "never_matching_pattern_693",
+              "never_matching_pattern_694",
+              "never_matching_pattern_695",
+              "never_matching_pattern_696",
+              "never_matching_pattern_697",
+              "never_matching_pattern_698",
+              "never_matching_pattern_699",
+              "never_matching_pattern_700",
+              "never_matching_pattern_701",
+              "never_matching_pattern_702",
+              "never_matching_pattern_703",
+              "never_matching_pattern_704",
+              "never_matching_pattern_705",
+              "never_matching_pattern_706",
+              "never_matching_pattern_707",
+              "never_matching_pattern_708",
+              "never_matching_pattern_709",
+              "never_matching_pattern_710",
+              "never_matching_pattern_711",
+              "never_matching_pattern_712",
+              "never_matching_pattern_713",
+              "never_matching_pattern_714",
+              "never_matching_pattern_715",
+              "never_matching_pattern_716",
+              "never_matching_pattern_717",
+              "never_matching_pattern_718",
+              "never_matching_pattern_719",
+              "never_matching_pattern_720",
+              "never_matching_pattern_721",
+              "never_matching_pattern_722",
+              "never_matching_pattern_723",
+              "never_matching_pattern_724",
+              "never_matching_pattern_725",
+              "never_matching_pattern_726",
+              "never_matching_pattern_727",
+              "never_matching_pattern_728",
+              "never_matching_pattern_729",
+              "never_matching_pattern_730",
+              "never_matching_pattern_731",
+              "never_matching_pattern_732",
+              "never_matching_pattern_733",
+              "never_matching_pattern_734",
+              "never_matching_pattern_735",
+              "never_matching_pattern_736",
+              "never_matching_pattern_737",
+              "never_matching_pattern_738",
+              "never_matching_pattern_739",
+              "never_matching_pattern_740",
+              "never_matching_pattern_741",
+              "never_matching_pattern_742",
+              "never_matching_pattern_743",
+              "never_matching_pattern_744",
+              "never_matching_pattern_745",
+              "never_matching_pattern_746",
+              "never_matching_pattern_747",
+              "never_matching_pattern_748",
+              "never_matching_pattern_749",
+              "never_matching_pattern_750",
+              "never_matching_pattern_751",
+              "never_matching_pattern_752",
+              "never_matching_pattern_753",
+              "never_matching_pattern_754",
+              "never_matching_pattern_755",
+              "never_matching_pattern_756",
+              "never_matching_pattern_757",
+              "never_matching_pattern_758",
+              "never_matching_pattern_759",
+              "never_matching_pattern_760",
+              "never_matching_pattern_761",
+              "never_matching_pattern_762",
+              "never_matching_pattern_763",
+              "never_matching_pattern_764",
+              "never_matching_pattern_765",
+              "never_matching_pattern_766",
+              "never_matching_pattern_767",
+              "never_matching_pattern_768",
+              "never_matching_pattern_769",
+              "never_matching_pattern_770",
+              "never_matching_pattern_771",
+              "never_matching_pattern_772",
+              "never_matching_pattern_773",
+              "never_matching_pattern_774",
+              "never_matching_pattern_775",
+              "never_matching_pattern_776",
+              "never_matching_pattern_777",
+              "never_matching_pattern_778",
+              "never_matching_pattern_779",
+              "never_matching_pattern_780",
+              "never_matching_pattern_781",
+              "never_matching_pattern_782",
+              "never_matching_pattern_783",
+              "never_matching_pattern_784",
+              "never_matching_pattern_785",
+              "never_matching_pattern_786",
+              "never_matching_pattern_787",
+              "never_matching_pattern_788",
+              "never_matching_pattern_789",
+              "never_matching_pattern_790",
+              "never_matching_pattern_791",
+              "never_matching_pattern_792",
+              "never_matching_pattern_793",
+              "never_matching_pattern_794",
+              "never_matching_pattern_795",
+              "never_matching_pattern_796",
+              "never_matching_pattern_797",
+              "never_matching_pattern_798",
+              "never_matching_pattern_799",
+              "never_matching_pattern_800",
+              "never_matching_pattern_801",
+              "never_matching_pattern_802",
+              "never_matching_pattern_803",
+              "never_matching_pattern_804",
+              "never_matching_pattern_805",
+              "never_matching_pattern_806",
+              "never_matching_pattern_807",
+              "never_matching_pattern_808",
+              "never_matching_pattern_809",
+              "never_matching_pattern_810",
+              "never_matching_pattern_811",
+              "never_matching_pattern_812",
+              "never_matching_pattern_813",
+              "never_matching_pattern_814",
+              "never_matching_pattern_815",
+              "never_matching_pattern_816",
+              "never_matching_pattern_817",
+              "never_matching_pattern_818",
+              "never_matching_pattern_819",
+              "never_matching_pattern_820",
+              "never_matching_pattern_821",
+              "never_matching_pattern_822",
+              "never_matching_pattern_823",
+              "never_matching_pattern_824",
+              "never_matching_pattern_825",
+              "never_matching_pattern_826",
+              "never_matching_pattern_827",
+              "never_matching_pattern_828",
+              "never_matching_pattern_829",
+              "never_matching_pattern_830",
+              "never_matching_pattern_831",
+              "never_matching_pattern_832",
+              "never_matching_pattern_833",
+              "never_matching_pattern_834",
+              "never_matching_pattern_835",
+              "never_matching_pattern_836",
+              "never_matching_pattern_837",
+              "never_matching_pattern_838",
+              "never_matching_pattern_839",
+              "never_matching_pattern_840",
+              "never_matching_pattern_841",
+              "never_matching_pattern_842",
+              "never_matching_pattern_843",
+              "never_matching_pattern_844",
+              "never_matching_pattern_845",
+              "never_matching_pattern_846",
+              "never_matching_pattern_847",
+              "never_matching_pattern_848",
+              "never_matching_pattern_849",
+              "never_matching_pattern_850",
+              "never_matching_pattern_851",
+              "never_matching_pattern_852",
+              "never_matching_pattern_853",
+              "never_matching_pattern_854",
+              "never_matching_pattern_855",
+              "never_matching_pattern_856",
+              "never_matching_pattern_857",
+              "never_matching_pattern_858",
+              "never_matching_pattern_859",
+              "never_matching_pattern_860",
+              "never_matching_pattern_861",
+              "never_matching_pattern_862",
+              "never_matching_pattern_863",
+              "never_matching_pattern_864",
+              "never_matching_pattern_865",
+              "never_matching_pattern_866",
+              "never_matching_pattern_867",
+              "never_matching_pattern_868",
+              "never_matching_pattern_869",
+              "never_matching_pattern_870",
+              "never_matching_pattern_871",
+              "never_matching_pattern_872",
+              "never_matching_pattern_873",
+              "never_matching_pattern_874",
+              "never_matching_pattern_875",
+              "never_matching_pattern_876",
+              "never_matching_pattern_877",
+              "never_matching_pattern_878",
+              "never_matching_pattern_879",
+              "never_matching_pattern_880",
+              "never_matching_pattern_881",
+              "never_matching_pattern_882",
+              "never_matching_pattern_883",
+              "never_matching_pattern_884",
+              "never_matching_pattern_885",
+              "never_matching_pattern_886",
+              "never_matching_pattern_887",
+              "never_matching_pattern_888",
+              "never_matching_pattern_889",
+              "never_matching_pattern_890",
+              "never_matching_pattern_891",
+              "never_matching_pattern_892",
+              "never_matching_pattern_893",
+              "never_matching_pattern_894",
+              "never_matching_pattern_895",
+              "never_matching_pattern_896",
+              "never_matching_pattern_897",
+              "never_matching_pattern_898",
+              "never_matching_pattern_899",
+              "never_matching_pattern_900",
+              "never_matching_pattern_901",
+              "never_matching_pattern_902",
+              "never_matching_pattern_903",
+              "never_matching_pattern_904",
+              "never_matching_pattern_905",
+              "never_matching_pattern_906",
+              "never_matching_pattern_907",
+              "never_matching_pattern_908",
+              "never_matching_pattern_909",
+              "never_matching_pattern_910",
+              "never_matching_pattern_911",
+              "never_matching_pattern_912",
+              "never_matching_pattern_913",
+              "never_matching_pattern_914",
+              "never_matching_pattern_915",
+              "never_matching_pattern_916",
+              "never_matching_pattern_917",
+              "never_matching_pattern_918",
+              "never_matching_pattern_919",
+              "never_matching_pattern_920",
+              "never_matching_pattern_921",
+              "never_matching_pattern_922",
+              "never_matching_pattern_923",
+              "never_matching_pattern_924",
+              "never_matching_pattern_925",
+              "never_matching_pattern_926",
+              "never_matching_pattern_927",
+              "never_matching_pattern_928",
+              "never_matching_pattern_929",
+              "never_matching_pattern_930",
+              "never_matching_pattern_931",
+              "never_matching_pattern_932",
+              "never_matching_pattern_933",
+              "never_matching_pattern_934",
+              "never_matching_pattern_935",
+              "never_matching_pattern_936",
+              "never_matching_pattern_937",
+              "never_matching_pattern_938",
+              "never_matching_pattern_939",
+              "never_matching_pattern_940",
+              "never_matching_pattern_941",
+              "never_matching_pattern_942",
+              "never_matching_pattern_943",
+              "never_matching_pattern_944",
+              "never_matching_pattern_945",
+              "never_matching_pattern_946",
+              "never_matching_pattern_947",
+              "never_matching_pattern_948",
+              "never_matching_pattern_949",
+              "never_matching_pattern_950",
+              "never_matching_pattern_951",
+              "never_matching_pattern_952",
+              "never_matching_pattern_953",
+              "never_matching_pattern_954",
+              "never_matching_pattern_955",
+              "never_matching_pattern_956",
+              "never_matching_pattern_957",
+              "never_matching_pattern_958",
+              "never_matching_pattern_959",
+              "never_matching_pattern_960",
+              "never_matching_pattern_961",
+              "never_matching_pattern_962",
+              "never_matching_pattern_963",
+              "never_matching_pattern_964",
+              "never_matching_pattern_965",
+              "never_matching_pattern_966",
+              "never_matching_pattern_967",
+              "never_matching_pattern_968",
+              "never_matching_pattern_969",
+              "never_matching_pattern_970",
+              "never_matching_pattern_971",
+              "never_matching_pattern_972",
+              "never_matching_pattern_973",
+              "never_matching_pattern_974",
+              "never_matching_pattern_975",
+              "never_matching_pattern_976",
+              "never_matching_pattern_977",
+              "never_matching_pattern_978",
+              "never_matching_pattern_979",
+              "never_matching_pattern_980",
+              "never_matching_pattern_981",
+              "never_matching_pattern_982",
+              "never_matching_pattern_983",
+              "never_matching_pattern_984",
+              "never_matching_pattern_985",
+              "never_matching_pattern_986",
+              "never_matching_pattern_987",
+              "never_matching_pattern_988",
+              "never_matching_pattern_989",
+              "never_matching_pattern_990",
+              "never_matching_pattern_991",
+              "never_matching_pattern_992",
+              "never_matching_pattern_993",
+              "never_matching_pattern_994",
+              "never_matching_pattern_995",
+              "never_matching_pattern_996",
+              "never_matching_pattern_997",
+              "never_matching_pattern_998",
+              "never_matching_pattern_999",
+              "never_matching_pattern_1000",
+              "never_matching_pattern_1001",
+              "never_matching_pattern_1002",
+              "never_matching_pattern_1003",
+              "never_matching_pattern_1004",
+              "never_matching_pattern_1005",
+              "never_matching_pattern_1006",
+              "never_matching_pattern_1007",
+              "never_matching_pattern_1008",
+              "never_matching_pattern_1009",
+              "never_matching_pattern_1010",
+              "never_matching_pattern_1011",
+              "never_matching_pattern_1012",
+              "never_matching_pattern_1013",
+              "never_matching_pattern_1014",
+              "never_matching_pattern_1015",
+              "never_matching_pattern_1016",
+              "never_matching_pattern_1017",
+              "never_matching_pattern_1018",
+              "never_matching_pattern_1019",
+              "never_matching_pattern_1020",
+              "never_matching_pattern_1021",
+              "never_matching_pattern_1022",
+              "never_matching_pattern_1023",
+              "never_matching_pattern_1024",
+              "never_matching_pattern_1025",
+              "never_matching_pattern_1026",
+              "never_matching_pattern_1027",
+              "never_matching_pattern_1028",
+              "never_matching_pattern_1029",
+              "never_matching_pattern_1030",
+              "never_matching_pattern_1031",
+              "never_matching_pattern_1032",
+              "never_matching_pattern_1033",
+              "never_matching_pattern_1034",
+              "never_matching_pattern_1035",
+              "never_matching_pattern_1036",
+              "never_matching_pattern_1037",
+              "never_matching_pattern_1038",
+              "never_matching_pattern_1039",
+              "never_matching_pattern_1040",
+              "never_matching_pattern_1041",
+              "never_matching_pattern_1042",
+              "never_matching_pattern_1043",
+              "never_matching_pattern_1044",
+              "never_matching_pattern_1045",
+              "never_matching_pattern_1046",
+              "never_matching_pattern_1047",
+              "never_matching_pattern_1048",
+              "never_matching_pattern_1049",
+              "never_matching_pattern_1050",
+              "never_matching_pattern_1051",
+              "never_matching_pattern_1052",
+              "never_matching_pattern_1053",
+              "never_matching_pattern_1054",
+              "never_matching_pattern_1055",
+              "never_matching_pattern_1056",
+              "never_matching_pattern_1057",
+              "never_matching_pattern_1058",
+              "never_matching_pattern_1059",
+              "never_matching_pattern_1060",
+              "never_matching_pattern_1061",
+              "never_matching_pattern_1062",
+              "never_matching_pattern_1063",
+              "never_matching_pattern_1064",
+              "never_matching_pattern_1065",
+              "never_matching_pattern_1066",
+              "never_matching_pattern_1067",
+              "never_matching_pattern_1068",
+              "never_matching_pattern_1069",
+              "never_matching_pattern_1070",
+              "never_matching_pattern_1071",
+              "never_matching_pattern_1072",
+              "never_matching_pattern_1073",
+              "never_matching_pattern_1074",
+              "never_matching_pattern_1075",
+              "never_matching_pattern_1076",
+              "never_matching_pattern_1077",
+              "never_matching_pattern_1078",
+              "never_matching_pattern_1079",
+              "never_matching_pattern_1080",
+              "never_matching_pattern_1081",
+              "never_matching_pattern_1082",
+              "never_matching_pattern_1083",
+              "never_matching_pattern_1084",
+              "never_matching_pattern_1085",
+              "never_matching_pattern_1086",
+              "never_matching_pattern_1087",
+              "never_matching_pattern_1088",
+              "never_matching_pattern_1089",
+              "never_matching_pattern_1090",
+              "never_matching_pattern_1091",
+              "never_matching_pattern_1092",
+              "never_matching_pattern_1093",
+              "never_matching_pattern_1094",
+              "never_matching_pattern_1095",
+              "never_matching_pattern_1096",
+              "never_matching_pattern_1097",
+              "never_matching_pattern_1098",
+              "never_matching_pattern_1099",
+              "never_matching_pattern_1100",
+              "never_matching_pattern_1101",
+              "never_matching_pattern_1102",
+              "never_matching_pattern_1103",
+              "never_matching_pattern_1104",
+              "never_matching_pattern_1105",
+              "never_matching_pattern_1106",
+              "never_matching_pattern_1107",
+              "never_matching_pattern_1108",
+              "never_matching_pattern_1109",
+              "never_matching_pattern_1110",
+              "never_matching_pattern_1111",
+              "never_matching_pattern_1112",
+              "never_matching_pattern_1113",
+              "never_matching_pattern_1114",
+              "never_matching_pattern_1115",
+              "never_matching_pattern_1116",
+              "never_matching_pattern_1117",
+              "never_matching_pattern_1118",
+              "never_matching_pattern_1119",
+              "never_matching_pattern_1120",
+              "never_matching_pattern_1121",
+              "never_matching_pattern_1122",
+              "never_matching_pattern_1123",
+              "never_matching_pattern_1124",
+              "never_matching_pattern_1125",
+              "never_matching_pattern_1126",
+              "never_matching_pattern_1127",
+              "never_matching_pattern_1128",
+              "never_matching_pattern_1129",
+              "never_matching_pattern_1130",
+              "never_matching_pattern_1131",
+              "never_matching_pattern_1132",
+              "never_matching_pattern_1133",
+              "never_matching_pattern_1134",
+              "never_matching_pattern_1135",
+              "never_matching_pattern_1136",
+              "never_matching_pattern_1137",
+              "never_matching_pattern_1138",
+              "never_matching_pattern_1139",
+              "never_matching_pattern_1140",
+              "never_matching_pattern_1141",
+              "never_matching_pattern_1142",
+              "never_matching_pattern_1143",
+              "never_matching_pattern_1144",
+              "never_matching_pattern_1145",
+              "never_matching_pattern_1146",
+              "never_matching_pattern_1147",
+              "never_matching_pattern_1148",
+              "never_matching_pattern_1149",
+              "never_matching_pattern_1150",
+              "never_matching_pattern_1151",
+              "never_matching_pattern_1152",
+              "never_matching_pattern_1153",
+              "never_matching_pattern_1154",
+              "never_matching_pattern_1155",
+              "never_matching_pattern_1156",
+              "never_matching_pattern_1157",
+              "never_matching_pattern_1158",
+              "never_matching_pattern_1159",
+              "never_matching_pattern_1160",
+              "never_matching_pattern_1161",
+              "never_matching_pattern_1162",
+              "never_matching_pattern_1163",
+              "never_matching_pattern_1164",
+              "never_matching_pattern_1165",
+              "never_matching_pattern_1166",
+              "never_matching_pattern_1167",
+              "never_matching_pattern_1168",
+              "never_matching_pattern_1169",
+              "never_matching_pattern_1170",
+              "never_matching_pattern_1171",
+              "never_matching_pattern_1172",
+              "never_matching_pattern_1173",
+              "never_matching_pattern_1174",
+              "never_matching_pattern_1175",
+              "never_matching_pattern_1176",
+              "never_matching_pattern_1177",
+              "never_matching_pattern_1178",
+              "never_matching_pattern_1179",
+              "never_matching_pattern_1180",
+              "never_matching_pattern_1181",
+              "never_matching_pattern_1182",
+              "never_matching_pattern_1183",
+              "never_matching_pattern_1184",
+              "never_matching_pattern_1185",
+              "never_matching_pattern_1186",
+              "never_matching_pattern_1187",
+              "never_matching_pattern_1188",
+              "never_matching_pattern_1189",
+              "never_matching_pattern_1190",
+              "never_matching_pattern_1191",
+              "never_matching_pattern_1192",
+              "never_matching_pattern_1193",
+              "never_matching_pattern_1194",
+              "never_matching_pattern_1195",
+              "never_matching_pattern_1196",
+              "never_matching_pattern_1197",
+              "never_matching_pattern_1198",
+              "never_matching_pattern_1199",
+              "never_matching_pattern_1200",
+              "never_matching_pattern_1201",
+              "never_matching_pattern_1202",
+              "never_matching_pattern_1203",
+              "never_matching_pattern_1204",
+              "never_matching_pattern_1205",
+              "never_matching_pattern_1206",
+              "never_matching_pattern_1207",
+              "never_matching_pattern_1208",
+              "never_matching_pattern_1209",
+              "never_matching_pattern_1210",
+              "never_matching_pattern_1211",
+              "never_matching_pattern_1212",
+              "never_matching_pattern_1213",
+              "never_matching_pattern_1214",
+              "never_matching_pattern_1215",
+              "never_matching_pattern_1216",
+              "never_matching_pattern_1217",
+              "never_matching_pattern_1218",
+              "never_matching_pattern_1219",
+              "never_matching_pattern_1220",
+              "never_matching_pattern_1221",
+              "never_matching_pattern_1222",
+              "never_matching_pattern_1223",
+              "never_matching_pattern_1224",
+              "never_matching_pattern_1225",
+              "never_matching_pattern_1226",
+              "never_matching_pattern_1227",
+              "never_matching_pattern_1228",
+              "never_matching_pattern_1229",
+              "never_matching_pattern_1230",
+              "never_matching_pattern_1231",
+              "never_matching_pattern_1232",
+              "never_matching_pattern_1233",
+              "never_matching_pattern_1234",
+              "never_matching_pattern_1235",
+              "never_matching_pattern_1236",
+              "never_matching_pattern_1237",
+              "never_matching_pattern_1238",
+              "never_matching_pattern_1239",
+              "never_matching_pattern_1240",
+              "never_matching_pattern_1241",
+              "never_matching_pattern_1242",
+              "never_matching_pattern_1243",
+              "never_matching_pattern_1244",
+              "never_matching_pattern_1245",
+              "never_matching_pattern_1246",
+              "never_matching_pattern_1247",
+              "never_matching_pattern_1248",
+              "never_matching_pattern_1249",
+              "never_matching_pattern_1250",
+              "never_matching_pattern_1251",
+              "never_matching_pattern_1252",
+              "never_matching_pattern_1253",
+              "never_matching_pattern_1254",
+              "never_matching_pattern_1255",
+              "never_matching_pattern_1256",
+              "never_matching_pattern_1257",
+              "never_matching_pattern_1258",
+              "never_matching_pattern_1259",
+              "never_matching_pattern_1260",
+              "never_matching_pattern_1261",
+              "never_matching_pattern_1262",
+              "never_matching_pattern_1263",
+              "never_matching_pattern_1264",
+              "never_matching_pattern_1265",
+              "never_matching_pattern_1266",
+              "never_matching_pattern_1267",
+              "never_matching_pattern_1268",
+              "never_matching_pattern_1269",
+              "never_matching_pattern_1270",
+              "never_matching_pattern_1271",
+              "never_matching_pattern_1272",
+              "never_matching_pattern_1273",
+              "never_matching_pattern_1274",
+              "never_matching_pattern_1275",
+              "never_matching_pattern_1276",
+              "never_matching_pattern_1277",
+              "never_matching_pattern_1278",
+              "never_matching_pattern_1279",
+              "never_matching_pattern_1280",
+              "never_matching_pattern_1281",
+              "never_matching_pattern_1282",
+              "never_matching_pattern_1283",
+              "never_matching_pattern_1284",
+              "never_matching_pattern_1285",
+              "never_matching_pattern_1286",
+              "never_matching_pattern_1287",
+              "never_matching_pattern_1288",
+              "never_matching_pattern_1289",
+              "never_matching_pattern_1290",
+              "never_matching_pattern_1291",
+              "never_matching_pattern_1292",
+              "never_matching_pattern_1293",
+              "never_matching_pattern_1294",
+              "never_matching_pattern_1295",
+              "never_matching_pattern_1296",
+              "never_matching_pattern_1297",
+              "never_matching_pattern_1298",
+              "never_matching_pattern_1299",
+              "never_matching_pattern_1300",
+              "never_matching_pattern_1301",
+              "never_matching_pattern_1302",
+              "never_matching_pattern_1303",
+              "never_matching_pattern_1304",
+              "never_matching_pattern_1305",
+              "never_matching_pattern_1306",
+              "never_matching_pattern_1307",
+              "never_matching_pattern_1308",
+              "never_matching_pattern_1309",
+              "never_matching_pattern_1310",
+              "never_matching_pattern_1311",
+              "never_matching_pattern_1312",
+              "never_matching_pattern_1313",
+              "never_matching_pattern_1314",
+              "never_matching_pattern_1315",
+              "never_matching_pattern_1316",
+              "never_matching_pattern_1317",
+              "never_matching_pattern_1318",
+              "never_matching_pattern_1319",
+              "never_matching_pattern_1320",
+              "never_matching_pattern_1321",
+              "never_matching_pattern_1322",
+              "never_matching_pattern_1323",
+              "never_matching_pattern_1324",
+              "never_matching_pattern_1325",
+              "never_matching_pattern_1326",
+              "never_matching_pattern_1327",
+              "never_matching_pattern_1328",
+              "never_matching_pattern_1329",
+              "never_matching_pattern_1330",
+              "never_matching_pattern_1331",
+              "never_matching_pattern_1332",
+              "never_matching_pattern_1333",
+              "never_matching_pattern_1334",
+              "never_matching_pattern_1335",
+              "never_matching_pattern_1336",
+              "never_matching_pattern_1337",
+              "never_matching_pattern_1338",
+              "never_matching_pattern_1339",
+              "never_matching_pattern_1340",
+              "never_matching_pattern_1341",
+              "never_matching_pattern_1342",
+              "never_matching_pattern_1343",
+              "never_matching_pattern_1344",
+              "never_matching_pattern_1345",
+              "never_matching_pattern_1346",
+              "never_matching_pattern_1347",
+              "never_matching_pattern_1348",
+              "never_matching_pattern_1349",
+              "never_matching_pattern_1350",
+              "never_matching_pattern_1351",
+              "never_matching_pattern_1352",
+              "never_matching_pattern_1353",
+              "never_matching_pattern_1354",
+              "never_matching_pattern_1355",
+              "never_matching_pattern_1356",
+              "never_matching_pattern_1357",
+              "never_matching_pattern_1358",
+              "never_matching_pattern_1359",
+              "never_matching_pattern_1360",
+              "never_matching_pattern_1361",
+              "never_matching_pattern_1362",
+              "never_matching_pattern_1363",
+              "never_matching_pattern_1364",
+              "never_matching_pattern_1365",
+              "never_matching_pattern_1366",
+              "never_matching_pattern_1367",
+              "never_matching_pattern_1368",
+              "never_matching_pattern_1369",
+              "never_matching_pattern_1370",
+              "never_matching_pattern_1371",
+              "never_matching_pattern_1372",
+              "never_matching_pattern_1373",
+              "never_matching_pattern_1374",
+              "never_matching_pattern_1375",
+              "never_matching_pattern_1376",
+              "never_matching_pattern_1377",
+              "never_matching_pattern_1378",
+              "never_matching_pattern_1379",
+              "never_matching_pattern_1380",
+              "never_matching_pattern_1381",
+              "never_matching_pattern_1382",
+              "never_matching_pattern_1383",
+              "never_matching_pattern_1384",
+              "never_matching_pattern_1385",
+              "never_matching_pattern_1386",
+              "never_matching_pattern_1387",
+              "never_matching_pattern_1388",
+              "never_matching_pattern_1389",
+              "never_matching_pattern_1390",
+              "never_matching_pattern_1391",
+              "never_matching_pattern_1392",
+              "never_matching_pattern_1393",
+              "never_matching_pattern_1394",
+              "never_matching_pattern_1395",
+              "never_matching_pattern_1396",
+              "never_matching_pattern_1397",
+              "never_matching_pattern_1398",
+              "never_matching_pattern_1399",
+              "never_matching_pattern_1400",
+              "never_matching_pattern_1401",
+              "never_matching_pattern_1402",
+              "never_matching_pattern_1403",
+              "never_matching_pattern_1404",
+              "never_matching_pattern_1405",
+              "never_matching_pattern_1406",
+              "never_matching_pattern_1407",
+              "never_matching_pattern_1408",
+              "never_matching_pattern_1409",
+              "never_matching_pattern_1410",
+              "never_matching_pattern_1411",
+              "never_matching_pattern_1412",
+              "never_matching_pattern_1413",
+              "never_matching_pattern_1414",
+              "never_matching_pattern_1415",
+              "never_matching_pattern_1416",
+              "never_matching_pattern_1417",
+              "never_matching_pattern_1418",
+              "never_matching_pattern_1419",
+              "never_matching_pattern_1420",
+              "never_matching_pattern_1421",
+              "never_matching_pattern_1422",
+              "never_matching_pattern_1423",
+              "never_matching_pattern_1424",
+              "never_matching_pattern_1425",
+              "never_matching_pattern_1426",
+              "never_matching_pattern_1427",
+              "never_matching_pattern_1428",
+              "never_matching_pattern_1429",
+              "never_matching_pattern_1430",
+              "never_matching_pattern_1431",
+              "never_matching_pattern_1432",
+              "never_matching_pattern_1433",
+              "never_matching_pattern_1434",
+              "never_matching_pattern_1435",
+              "never_matching_pattern_1436",
+              "never_matching_pattern_1437",
+              "never_matching_pattern_1438",
+              "never_matching_pattern_1439",
+              "never_matching_pattern_1440",
+              "never_matching_pattern_1441",
+              "never_matching_pattern_1442",
+              "never_matching_pattern_1443",
+              "never_matching_pattern_1444",
+              "never_matching_pattern_1445",
+              "never_matching_pattern_1446",
+              "never_matching_pattern_1447",
+              "never_matching_pattern_1448",
+              "never_matching_pattern_1449",
+              "never_matching_pattern_1450",
+              "never_matching_pattern_1451",
+              "never_matching_pattern_1452",
+              "never_matching_pattern_1453",
+              "never_matching_pattern_1454",
+              "never_matching_pattern_1455",
+              "never_matching_pattern_1456",
+              "never_matching_pattern_1457",
+              "never_matching_pattern_1458",
+              "never_matching_pattern_1459",
+              "never_matching_pattern_1460",
+              "never_matching_pattern_1461",
+              "never_matching_pattern_1462",
+              "never_matching_pattern_1463",
+              "never_matching_pattern_1464",
+              "never_matching_pattern_1465",
+              "never_matching_pattern_1466",
+              "never_matching_pattern_1467",
+              "never_matching_pattern_1468",
+              "never_matching_pattern_1469",
+              "never_matching_pattern_1470",
+              "never_matching_pattern_1471",
+              "never_matching_pattern_1472",
+              "never_matching_pattern_1473",
+              "never_matching_pattern_1474",
+              "never_matching_pattern_1475",
+              "never_matching_pattern_1476",
+              "never_matching_pattern_1477",
+              "never_matching_pattern_1478",
+              "never_matching_pattern_1479",
+              "never_matching_pattern_1480",
+              "never_matching_pattern_1481",
+              "never_matching_pattern_1482",
+              "never_matching_pattern_1483",
+              "never_matching_pattern_1484",
+              "never_matching_pattern_1485",
+              "never_matching_pattern_1486",
+              "never_matching_pattern_1487",
+              "never_matching_pattern_1488",
+              "never_matching_pattern_1489",
+              "never_matching_pattern_1490",
+              "never_matching_pattern_1491",
+              "never_matching_pattern_1492",
+              "never_matching_pattern_1493",
+              "never_matching_pattern_1494",
+              "never_matching_pattern_1495",
+              "never_matching_pattern_1496",
+              "never_matching_pattern_1497",
+              "never_matching_pattern_1498",
+              "never_matching_pattern_1499",
+              "last_pattern_of_a_very_long_list"
             ]
           },
           "operator": "phrase_match"
         }
-      ],
-      "transformers": [
-        "lowercase"
       ]
-    },
-    {
-      "id": "dog-000-001",
-      "name": "Look for Cassandra injections",
-      "tags": {
-        "type": "nosql_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              }
-            ],
-            "regex": "\\ballow\\s+filtering\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeComments"
-      ]
-    },
-    {
-      "id": "dog-000-002",
-      "name": "OGNL - Look for formatting injection patterns",
-      "tags": {
-        "type": "java_code_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "[#%$]{[^}]+[^\\w\\s][^}]+}",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "dog-000-003",
-      "name": "OGNL - Detect OGNL exploitation primitives",
-      "tags": {
-        "type": "java_code_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.cookies"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "[@#]ognl",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-001",
-      "name": "Detect common directory discovery scans",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "phrase_match",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "list": [
-              "/wordpress/",
-              "/etc/",
-              "/login.php",
-              "/install.php",
-              "/administrator",
-              "/admin.php",
-              "/wp-config",
-              "/phpmyadmin",
-              "/fckeditor",
-              "/mysql",
-              "/manager/html",
-              ".htaccess",
-              "/config.php",
-              "/configuration",
-              "/cgi-bin/php",
-              "/search.php",
-              "/tinymce",
-              "/tiny_mce",
-              "/settings.php",
-              "../../..",
-              "/install/",
-              "/download.php",
-              "/webdav",
-              "/forum.php",
-              "/user.php",
-              "/style.php",
-              "/jmx-console",
-              "/modules.php",
-              "/include.php",
-              "/default.asp",
-              "/help.php",
-              "/database.yml",
-              "/database.yml.pgsql",
-              "/database.yml.sqlite3",
-              "/database.yml.sqlite",
-              "/database.yml.mysql",
-              ".%2e/",
-              "/view.php",
-              "/header.php",
-              "/search.asp",
-              "%5c%5c",
-              "/server/php/",
-              "/invoker/jmxinvokerservlet",
-              "/phpmyadmin/index.php",
-              "/data/admin/allowurl.txt",
-              "/verify.php",
-              "/misc/ajax.js",
-              "/.idea",
-              "/module.php",
-              "/backup.rar",
-              "/backup.tar",
-              "/backup.zip",
-              "/backup.7z",
-              "/backup.gz",
-              "/backup.tgz",
-              "/backup.tar.gz",
-              "waitfor%20delay",
-              "/calendar.php",
-              "/news.php",
-              "/dompdf.php",
-              "))))))))))))))))",
-              "/web.config",
-              "tree.php",
-              "/cgi-bin-sdb/printenv",
-              "/comments.php",
-              "/detail.asp",
-              "/license.txt",
-              "/admin.asp",
-              "/auth.php",
-              "/list.php",
-              "/content.php",
-              "/mod.php",
-              "/mini.php",
-              "/install.pgsql",
-              "/install.mysql",
-              "/install.sqlite",
-              "/install.sqlite3",
-              "/install.txt",
-              "/install.md",
-              "/doku.php",
-              "/main.asp",
-              "/myadmin",
-              "/force-download.php",
-              "/iisprotect/admin",
-              "/.gitignore",
-              "/print.php",
-              "/common.php",
-              "/mainfile.php",
-              "/functions.php",
-              "/scripts/setup.php",
-              "/faq.php",
-              "/op/op.login.php",
-              "/home.php",
-              "/includes/hnmain.inc.php3",
-              "/preview.php",
-              "/dump.rar",
-              "/dump.tar",
-              "/dump.zip",
-              "/dump.7z",
-              "/dump.gz",
-              "/dump.tgz",
-              "/dump.tar.gz",
-              "/thumbnail.php",
-              "/sendcard.php",
-              "/global.asax",
-              "/directory.php",
-              "/footer.php",
-              "/error.asp",
-              "/forum.asp",
-              "/save.php",
-              "/htmlsax3.php",
-              "/adm/krgourl.php",
-              "/includes/converter.inc.php",
-              "/nucleus/libs/pluginadmin.php",
-              "/base_qry_common.php",
-              "/fileadmin",
-              "/bitrix/admin/",
-              "/adm.php",
-              "/util/barcode.php",
-              "/action.php",
-              "/rss.asp",
-              "/downloads.php",
-              "/page.php",
-              "/snarf_ajax.php",
-              "/fck/editor",
-              "/sendmail.php",
-              "/detail.php",
-              "/iframe.php",
-              "/swfupload.swf",
-              "/jenkins/login",
-              "/phpmyadmin/main.php",
-              "/phpmyadmin/scripts/setup.php",
-              "/user/index.php",
-              "/checkout.php",
-              "/process.php",
-              "/ks_inc/ajax.js",
-              "/export.php",
-              "/register.php",
-              "/cart.php",
-              "/console.php",
-              "/friend.php",
-              "/readmsg.php",
-              "/install.asp",
-              "/dagent/downloadreport.asp",
-              "/system/index.php",
-              "/core/changelog.txt",
-              "/js/util.js",
-              "/interna.php",
-              "/gallery.php",
-              "/links.php",
-              "/data/admin/ver.txt",
-              "/language/zh-cn.xml",
-              "/productdetails.asp",
-              "/admin/template/article_more/config.htm",
-              "/components/com_moofaq/includes/file_includer.php",
-              "/licence.txt",
-              "/rss.xsl",
-              "/vtigerservice.php",
-              "/mysql/main.php",
-              "/passwiki.php",
-              "/scr/soustab.php",
-              "/global.php",
-              "/email.php",
-              "/user.asp",
-              "/msd",
-              "/products.php",
-              "/cultbooking.php",
-              "/cron.php",
-              "/static/js/admincp.js",
-              "/comment.php",
-              "/maintainers",
-              "/modules/plain/adminpart/addplain.php",
-              "/wp-content/plugins/ungallery/source_vuln.php",
-              "/upgrade.txt",
-              "/category.php",
-              "/index_logged.php",
-              "/members.asp",
-              "/script/html.js",
-              "/images/ad.js",
-              "/awstats/awstats.pl",
-              "/includes/esqueletos/skel_null.php",
-              "/modules/profile/user.php",
-              "/window_top.php",
-              "/openbrowser.php",
-              "/thread.php",
-              "tinfoil_xss",
-              "/includes/include.php",
-              "/urheber.php",
-              "/header.inc.php",
-              "/mysqldumper",
-              "/display.php",
-              "/website.php",
-              "/stats.php",
-              "/assets/plugins/mp3_id/mp3_id.php",
-              "/siteminderagent/forms/smpwservices.fcc"
-            ]
-          }
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "nfd-000-002",
-      "name": "Detect failed attempt to fetch readme files",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "readme\\.[\\.a-z0-9]+$",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-003",
-      "name": "Detect failed attempt to fetch Java EE resource files",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "^(?:.*web\\-inf)(?:.*web\\.xml).*$",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-004",
-      "name": "Detect failed attempt to fetch code files",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "\\.(java|pyc?|rb|class)\\b",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-005",
-      "name": "Detect failed attempt to fetch source code archives",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "\\.(sql|log|ndb|gz|zip|tar\\.gz|tar|regVV|reg|conf|bz2|ini|db|war|bat|inc|btr|server|ds|conf|config|admin|master|sln|bak)\\b(?:[^.]|$)",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-006",
-      "name": "Detect failed attempt to fetch sensitive files",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "\\.(cgi|bat|dll|exe|key|cert|crt|pem|der|pkcs|pkcs|pkcs[0-9]*|nsf|jsa|war|java|class|vb|vba|so|git|svn|hg|cvs)([^a-zA-Z0-9_]|$)",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-007",
-      "name": "Detect failed attempt to fetch archives",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "/[\\d\\-_]*\\.(rar|tar|zip|7z|gz|tgz|tar.gz)",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-008",
-      "name": "Detect failed attempt to trigger incorrect application behavior",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "(/(administrator/components/com.*\\.php|response\\.write\\(.+\\))|select\\(.+\\)from|\\(.*sleep\\(.+\\)|(%[a-zA-Z0-9]{2}[a-zA-Z]{0,1})+\\))",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "nfd-000-009",
-      "name": "Detect failed attempt to leak the structure of the application",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.response.status"
-              }
-            ],
-            "regex": "^404$",
-            "options": {
-              "case_sensitive": true
-            }
-          }
-        },
-        {
-          "operator": "match_regex",
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              }
-            ],
-            "regex": "/(login\\.rol|LICENSE|[\\w-]+\\.(plx|pwd))$",
-            "options": {
-              "case_sensitive": false
-            }
-          }
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "sqr-000-001",
-      "name": "SSRF: Try to access the credential manager of the main cloud services",
-      "tags": {
-        "type": "ssrf",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i)^\\W*((http|ftp)s?://)?\\W*((::f{4}:)?(169|(0x)?0*a9|0+251)\\.?(254|(0x)?0*fe|0+376)[0-9a-fx\\.:]+|metadata\\.google\\.internal|metadata\\.goog)\\W*/",
-            "options": {
-              "min_length": 4
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "sqr-000-002",
-      "name": "Server-side Javascript injection: Try to detect obvious JS injection",
-      "tags": {
-        "type": "js_code_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "require\\(['\"][\\w\\.]+['\"]\\)|process\\.\\w+\\([\\w\\.]*\\)|\\.toString\\(\\)",
-            "options": {
-              "min_length": 4
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "removeNulls"
-      ]
-    },
-    {
-      "id": "sqr-000-007",
-      "name": "NoSQL: Detect common exploitation strategy",
-      "tags": {
-        "type": "nosql_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies"
-              }
-            ],
-            "regex": "\\$(eq|ne|lte?|gte?|n?in)\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "sqr-000-008",
-      "name": "Windows: Detect attempts to exfiltrate .ini files",
-      "tags": {
-        "type": "command_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i)[&|]\\s*type\\s+%\\w+%\\\\+\\w+\\.ini\\s*[&|]"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "sqr-000-009",
-      "name": "Linux: Detect attempts to exfiltrate passwd files",
-      "tags": {
-        "type": "command_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i)[&|]\\s*cat\\s+\\/etc\\/[\\w\\.\\/]*passwd\\s*[&|]"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "sqr-000-010",
-      "name": "Windows: Detect attempts to timeout a shell",
-      "tags": {
-        "type": "command_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "(?i)[&|]\\s*timeout\\s+/t\\s+\\d+\\s*[&|]"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "sqr-000-011",
-      "name": "SSRF: Try to access internal OMI service (CVE-2021-38647)",
-      "tags": {
-        "type": "ssrf",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "http(s?):\\/\\/([A-Za-z0-9\\.\\-\\_]+|\\[[A-Fa-f0-9\\:]+\\]|):5986\\/wsman",
-            "options": {
-              "min_length": 4
-            }
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "sqr-000-012",
-      "name": "SSRF: Detect SSRF attempt on internal service",
-      "tags": {
-        "type": "ssrf",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "^(jar:)?(http|https):\\/\\/([0-9oq]{1,5}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}|[0-9]{1,10}|localhost)(:[0-9]{1,5})?(\\/.*|)$"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "sqr-000-013",
-      "name": "SSRF: Detect SSRF attempts using IPv6 or octal/hexdecimal obfuscation",
-      "tags": {
-        "type": "ssrf",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "^(jar:)?(http|https):\\/\\/((\\[)?[:0-9a-f\\.x]{2,}(\\])?)(:[0-9]{1,5})?(\\/.*)?$"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "sqr-000-014",
-      "name": "SSRF: Detect SSRF domain redirection bypass",
-      "tags": {
-        "type": "ssrf",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "^(http|https):\\/\\/(.*burpcollaborator\\.net|localtest\\.me|mail\\.ebc\\.apple\\.com|bugbounty\\.dod\\.network|.*\\.[nx]ip\\.io)"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "sqr-000-015",
-      "name": "SSRF: Detect SSRF attempt using non HTTP protocol",
-      "tags": {
-        "type": "ssrf",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "^(jar:)?((file|netdoc):\\/\\/[\\\\\\/]+|(dict|gopher|ldap|sftp|tftp):\\/\\/.*:[0-9]{1,5})"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": [
-        "lowercase"
-      ]
-    },
-    {
-      "id": "sqr-000-017",
-      "name": "JNDI: Attempt to exploit log4j CVE-2021-44228",
-      "tags": {
-        "type": "java_code_injection",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.uri.raw"
-              },
-              {
-                "address": "server.request.query"
-              },
-              {
-                "address": "server.request.body"
-              },
-              {
-                "address": "server.request.path_params"
-              },
-              {
-                "address": "server.request.headers.no_cookies"
-              },
-              {
-                "address": "grpc.server.request.message"
-              }
-            ],
-            "regex": "\\${[^j]*j[^n]*n[^d]*d[^i]*i[^:]*:[^}]*}"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-0xx",
-      "name": "Joomla exploitation tool",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "JDatabaseDriverMysqli"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-10x",
-      "name": "Nessus",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)^Nessus(/|([ :]+SOAP))"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-12x",
-      "name": "Arachni",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "^Arachni\\/v"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-13x",
-      "name": "Jorgee",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bJorgee\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-14x",
-      "name": "Probely",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bProbely\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-15x",
-      "name": "Metis",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bmetis\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-16x",
-      "name": "SQL power injector",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "sql power injector"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-18x",
-      "name": "N-Stealth",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bn-stealth\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-19x",
-      "name": "Brutus",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bbrutus\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-1xx",
-      "name": "Shellshock exploitation tool",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "\\(\\) \\{ :; *\\}"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-20x",
-      "name": "Netsparker",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)(<script>netsparker\\(0x0|ns:netsparker.*=vuln)"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-22x",
-      "name": "JAASCois",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bjaascois\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-23x",
-      "name": "PMAFind",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bpmafind\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-25x",
-      "name": "Webtrends",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "webtrends security analyzer"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-26x",
-      "name": "Nsauditor",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bnsauditor\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-27x",
-      "name": "Paros",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)Mozilla/.* Paros/"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-28x",
-      "name": "DirBuster",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bdirbuster\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-29x",
-      "name": "Pangolin",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bpangolin\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-2xx",
-      "name": "Qualys",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bqualys\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-30x",
-      "name": "SQLNinja",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bsqlninja\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-31x",
-      "name": "Nikto",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "\\(Nikto/[\\d\\.]+\\)"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-32x",
-      "name": "WebInspect",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bwebinspect\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-33x",
-      "name": "BlackWidow",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bblack\\s?widow\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-34x",
-      "name": "Grendel-Scan",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bgrendel-scan\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-35x",
-      "name": "Havij",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bhavij\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-36x",
-      "name": "w3af",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bw3af\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-37x",
-      "name": "Nmap",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "nmap (nse|scripting engine)"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-39x",
-      "name": "Nessus Scripted",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)^'?[a-z0-9]+\\.nasl'?$"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-3xx",
-      "name": "Evil Scanner",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bevilScanner\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-40x",
-      "name": "WebFuck",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bWebFuck\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-42x",
-      "name": "OpenVAS",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)OpenVAS\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-43x",
-      "name": "Spider-Pig",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "Powered by Spider-Pig by tinfoilsecurity\\.com"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-44x",
-      "name": "Zgrab",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "Mozilla/\\d+.\\d+ zgrab"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-45x",
-      "name": "Zmeu",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bZmEu\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-46x",
-      "name": "Crowdstrike",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bcrowdstrike\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-47x",
-      "name": "GoogleSecurityScanner",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bGoogleSecurityScanner\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-48x",
-      "name": "Commix",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "^commix\\/"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-49x",
-      "name": "Gobuster",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "^gobuster\\/"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-4xx",
-      "name": "CGIchk",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bcgichk\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-51x",
-      "name": "FFUF",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)^Fuzz Faster U Fool\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-52x",
-      "name": "Nuclei",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)^Nuclei\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-53x",
-      "name": "Tsunami",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bTsunamiSecurityScanner\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-54x",
-      "name": "Nimbostratus",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bnimbostratus-bot\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-55x",
-      "name": "Datadog test scanner: user-agent",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              },
-              {
-                "address": "grpc.server.request.metadata",
-                "key_path": [
-                  "dd-canary"
-                ]
-              }
-            ],
-            "regex": "^dd-test-scanner-log$"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-5xx",
-      "name": "Blind SQL Injection Brute Forcer",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)\\bbsqlbf\\b"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-6xx",
-      "name": "Suspicious user agent",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "mozilla/4\\.0 \\(compatible(; msie 6\\.0; win32)?\\)"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-7xx",
-      "name": "SQLmap",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "^sqlmap/"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
-    },
-    {
-      "id": "ua0-600-9xx",
-      "name": "Skipfish",
-      "tags": {
-        "type": "security_scanner",
-        "category": "attack_attempt"
-      },
-      "conditions": [
-        {
-          "parameters": {
-            "inputs": [
-              {
-                "address": "server.request.headers.no_cookies",
-                "key_path": [
-                  "user-agent"
-                ]
-              }
-            ],
-            "regex": "(?i)mozilla/5\\.0 sf/"
-          },
-          "operator": "match_regex"
-        }
-      ],
-      "transformers": []
     }
   ]
 }
