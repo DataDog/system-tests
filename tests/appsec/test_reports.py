@@ -63,11 +63,11 @@ class Test_ActorIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
-    @irrelevant(library="java", reason="done by the backend until customer request or ip blocking features")
-    @irrelevant(library="golang", reason="done by the backend until customer request or ip blocking features")
-    @irrelevant(library="nodejs", reason="done by the backend until customer request or ip blocking features")
-    @irrelevant(library="php", reason="done by the backend until customer request or ip blocking features")
-    @irrelevant(library="ruby", reason="neither rack or puma provides this info")
+    @missing_feature(library="java", reason="Not clear if it must be done on backend side. Waiting for clarification")
+    @missing_feature(library="golang", reason="Not clear if it must be done on backend side. Waiting for clarification")
+    @missing_feature(library="nodejs", reason="Not clear if it must be done on backend side. Waiting for clarification")
+    @missing_feature(library="php", reason="Not clear if it must be done on backend side. Waiting for clarification")
+    @missing_feature(library="ruby", reason="Not clear if it must be done on backend side. Waiting for clarification")
     def test_actor_ip(self):
         """ AppSec reports the correct actor ip. """
 

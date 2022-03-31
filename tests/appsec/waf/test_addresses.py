@@ -138,8 +138,11 @@ class Test_Headers(BaseTestCase):
     else "1.34.0"
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
-class Test_Cookies(BaseTestCase):
+class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
     """Appsec supports server.request.cookies"""
+
+    # Cookies rules has been removed in rules version 1.2.7. Test on cookies are now done on custom rules scenario.
+    # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
 
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
