@@ -131,7 +131,7 @@ class _TraceExistence(BaseValidation):
 
         for span in _get_spans_by_rid(self.rid, data):
             span_count = span_count + 1
-            if (not hasattr(span, "type")):
+            if not hasattr(span, "type"):
                 self.log_error("Span is missing type attribute --> {0}".format(span))
             else:
                 span_types.append(span["type"])
