@@ -34,9 +34,6 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
 
-        r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
-        interfaces.library.assert_waf_attack(r, pattern=".cookie-;domain=", address="server.request.cookies")
-
     @bug(library="dotnet", reason="APPSEC-2290")
     def test_cookies_with_spaces(self):
         """ Cookie with pattern containing a space """
