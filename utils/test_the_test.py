@@ -282,10 +282,4 @@ class Test_Failing:
 
 
 if __name__ == "__main__":
-
-    @missing_feature(True)
-    @irrelevant(True)
-    def test():
-        pass
-
     sys.exit("Usage: pytest utils/test_the_test.py")

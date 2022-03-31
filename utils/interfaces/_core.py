@@ -161,8 +161,9 @@ class InterfaceValidator(object):
         self.append_validation(_NotImplementedValidation())
 
     @property
-    def validations_count(self):
-        return len(self._validations)
+    def validations(self):
+        # to avoid any mistake, provide a copy
+        return list(self._validations)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
