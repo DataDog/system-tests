@@ -170,7 +170,7 @@ class Test_AppSecObfuscator(BaseTestCase):
             params={"pwd": f"{SECRET} appscan_fingerprint {SECRET}"},
         )
         interfaces.library.assert_waf_attack(r)
-        interfaces.agent.add_appsec_validation(r, validate_appsec_span_tags)  # bug !
+        interfaces.agent.add_appsec_validation(r, validate_appsec_span_tags)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
