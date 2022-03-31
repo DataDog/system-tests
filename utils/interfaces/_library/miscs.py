@@ -11,6 +11,19 @@ from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
 
 
+def _get_spans_by_rid(rid, data):
+    trace_ids = set()
+    for trace in data["request"]["content"]:
+        for span in trace:
+            if rid == _get_rid_from_span(span):
+                trace_ids.add(span["trace_id"])
+
+    for trace in data["request"]["content"]:
+        for span in trace:
+            if span["trace_id"] in trace_ids:
+                yield span
+
+
 class _TraceIdUniqueness(BaseValidation):
     path_filters = r"/v[0-9]\.[0-9]+/traces"  # Should be implemented independently from the endpoint version
 
@@ -113,18 +126,22 @@ class _TraceExistence(BaseValidation):
             return
 
         span_types = []
+        span_count = len(span_types)
 
-        for trace in data["request"]["content"]:
-            for span in trace:
-                if self.rid == _get_rid_from_span(span):
-                    self.log_debug(f"Found a trace for {self.message}")
-                    if self.span_type is None:  # no need to check for span type
-                        self.set_status(True)
-                    else:  # check for the span type in all spans included in this trace
-                        span_types = [s.get("type") for s in trace]
-                        if self.span_type in span_types:
-                            self.set_status(True)
-                        else:
-                            self.log_error(
-                                f"Did not find span type '{self.span_type}' in reported span types: {span_types}"
-                            )
+        for span in _get_spans_by_rid(self.rid, data):
+            span_count = span_count + 1
+            if not hasattr(span, "type"):
+                self.log_error("Span is missing type attribute --> {0}".format(span))
+            else:
+                span_types.append(span["type"])
+
+        if span_count == 0:
+            self.log_error("Trace not found for rid {self.rid}")
+        elif self.span_type is None:
+            self.log_debug(f"Found a trace for {self.message}")
+            self.set_status(True)
+        elif self.span_type in span_types:
+            self.log_debug(f"Found a span with type {self.span_type}")
+            self.set_status(True)
+        else:
+            self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
