@@ -133,9 +133,9 @@ class _TraceExistence(BaseValidation):
                     self.log_debug(f"Found a trace for {self.message}")
                     if self.span_type is None:  # no need to check for span type
                         self.set_status(True)
-                    else: # check for the span type in all spans included in this trace
+                    else:  # check for the span type in all spans included in this trace
                         span_types = [span.get("type") for span in trace]
                         if self.span_type in span_types:
-                           self.set_status(True)
+                            self.set_status(True)
                         else:
-                           self.log_error(f"Did not find {self.span_type} in {span_types}")
+                            self.log_error(f"Did not find {self.span_type} in {span_types}")
