@@ -11,4 +11,4 @@ class Test_Misc(BaseTestCase):
 
     def test_main(self):
         r = self.weblog_get("/trace/ognl")
-        interfaces.library.assert_trace_exists(r, span_type="ognl")
+        interfaces.library.assert_trace_exists(r)

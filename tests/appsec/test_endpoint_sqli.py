@@ -11,4 +11,4 @@ class Test_Misc(BaseTestCase):
 
     def test_main(self):
         r = self.weblog_get("/rasp/sqli")
-        interfaces.library.assert_trace_exists(r, span_type="web")
+        interfaces.library.assert_trace_exists(r)
