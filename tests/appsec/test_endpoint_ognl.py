@@ -6,8 +6,8 @@ from utils import BaseTestCase, interfaces, context, irrelevant
 
 
 @irrelevant(context.library != "java", reason="Need to build endpoint on weblog")
-class Test_Misc(BaseTestCase):
-    """ Check that traces are reported for some services """
+class Test_Ognl(BaseTestCase):
+    """ Verify the /trace/ognl endpoint is setup """
 
     def test_main(self):
         r = self.weblog_get("/trace/ognl")
