@@ -53,6 +53,7 @@ func main() {
 	})
 
 	initDatadog()
+	go listenAndServeGRPC()
 	http.ListenAndServe(":7777", mux)
 }
 
