@@ -5,7 +5,7 @@
 from utils import BaseTestCase, interfaces, context, irrelevant
 
 
-@irrelevant(context.library != "java", reason="Need to build endpoint on weblog")
+@irrelevant(reason="Endpoint is unimplemented on weblog")
 class Test_Sql(BaseTestCase):
     """ Verify that a sql span is created """
 

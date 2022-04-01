@@ -132,7 +132,7 @@ class _TraceExistence(BaseValidation):
         for span in _get_spans_by_rid(self.rid, data):
             span_count = span_count + 1
             span_types.append(span.get("type"))
-            diagnostics.append("{0}".format(span))
+            diagnostics.append(str("{0}"))
 
         if span_count > 0:
             if self.span_type is None:
