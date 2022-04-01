@@ -72,6 +72,7 @@ class Test_LFI(BaseTestCase):
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
     @irrelevant(library="php", weblog_variant="apache-mod")
+    @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_percent_2f(self):
         """ Appsec catches encoded LFI attacks"""
         r = self.weblog_get("/waf/%2e%2e%2f")
@@ -80,6 +81,7 @@ class Test_LFI(BaseTestCase):
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.92.0")
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
+    @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         r = self.weblog_get("/waf/..")
