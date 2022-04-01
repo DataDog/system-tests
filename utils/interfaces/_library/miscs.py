@@ -125,12 +125,14 @@ class _TraceExistence(BaseValidation):
             self.log_error(f"{data['log_filename']} content should be an array")
             return
 
+        diagnostics = ["Diagnostics:"]
         span_types = []
         span_count = len(span_types)
 
         for span in _get_spans_by_rid(self.rid, data):
             span_count = span_count + 1
             span_types.append(span.get("type"))
+            diagnostics.append("{0}".format(span))
 
         if span_count > 0:
             if self.span_type is None:
@@ -141,3 +143,4 @@ class _TraceExistence(BaseValidation):
                 self.set_status(True)
             else:
                 self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
+                self.log_error("\n".join(diagnostics))
