@@ -287,7 +287,7 @@ class Test_SQLI(BaseTestCase):
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
-    @irrelevant(context.appsec_rules_version >= "1.3.0", reason="rules run on keys now")
+    @irrelevant(context.appsec_rules_version >= "1.3.0", reason="rules run only on keys starting 1.3.0")
     def test_nosqli_value(self):
         """AppSec catches NoSQLI attacks"""
         r = self.weblog_get("/waf/", params={"value": "[$ne]"})
@@ -296,7 +296,7 @@ class Test_NoSqli(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"x-attack": "$nin"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
-    # @irrelevant(context.appsec_rules_version < "1.3.0", reason="rules run on keys now")
+    # @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     # def test_nosqli_keys(self):
     #     """AppSec catches NoSQLI attacks"""
     #     r = self.weblog_get("/waf/", params={"[$ne]": "value"})
