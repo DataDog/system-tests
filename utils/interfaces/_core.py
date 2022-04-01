@@ -196,7 +196,8 @@ class BaseValidation(object):
             self.path_filters = [re.compile(path) for path in self.path_filters]
 
         if request is not None:
-            self.rid = request.request.headers["User-Agent"][-36:]
+            user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
+            self.rid = user_agent[-36:]
         else:
             self.rid = None
 

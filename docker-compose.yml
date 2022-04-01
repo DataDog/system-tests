@@ -44,6 +44,7 @@ services:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
       - "7777:7777"
+      - "7778:7778"
     depends_on:
       runner:
         condition: service_healthy

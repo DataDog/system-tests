@@ -298,3 +298,19 @@ class Test_PathParams(BaseTestCase):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
+
+
+@released(dotnet="?", golang="1.36.0", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_gRPC(BaseTestCase):
+    """Appsec supports address grpc.server.request.message"""
+
+    def test_basic(self):
+        """AppSec detects some basic attack"""
+        r = self.weblog_grpc('" OR TRUE --')
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+        r = self.weblog_grpc("SELECT * FROM users WHERE name='com.sun.org.apache' UNION SELECT creditcard FROM users")
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+        r = self.weblog_grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users")
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
