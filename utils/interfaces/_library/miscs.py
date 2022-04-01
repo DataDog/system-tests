@@ -130,18 +130,14 @@ class _TraceExistence(BaseValidation):
 
         for span in _get_spans_by_rid(self.rid, data):
             span_count = span_count + 1
-            if not hasattr(span, "type"):
-                self.log_error("Span is missing type attribute --> {0}".format(span))
-            else:
-                span_types.append(span["type"])
+            span_types.append(span.get("type"))
 
-        if span_count == 0:
-            self.log_error("Trace not found for rid {self.rid}")
-        elif self.span_type is None:
-            self.log_debug(f"Found a trace for {self.message}")
-            self.set_status(True)
-        elif self.span_type in span_types:
-            self.log_debug(f"Found a span with type {self.span_type}")
-            self.set_status(True)
-        else:
-            self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
+        if span_count > 0:
+            if self.span_type is None:
+                self.log_debug(f"Found a trace for {self.message}")
+                self.set_status(True)
+            elif self.span_type in span_types:
+                self.log_debug(f"Found a span with type {self.span_type}")
+                self.set_status(True)
+            else:
+                self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
