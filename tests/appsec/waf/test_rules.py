@@ -287,13 +287,23 @@ class Test_SQLI(BaseTestCase):
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
-    def test_nosqli(self):
+    @irrelevant(context.appsec_rules_version >= "1.3.0", reason="rules run on keys now")
+    def test_nosqli_value(self):
         """AppSec catches NoSQLI attacks"""
         r = self.weblog_get("/waf/", params={"value": "[$ne]"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
 
         r = self.weblog_get("/waf/", headers={"x-attack": "$nin"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
+
+    # @irrelevant(context.appsec_rules_version < "1.3.0", reason="rules run on keys now")
+    # def test_nosqli_keys(self):
+    #     """AppSec catches NoSQLI attacks"""
+    #     r = self.weblog_get("/waf/", params={"[$ne]": "value"})
+    #     interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
+
+    #     r = self.weblog_get("/waf/", headers={"$nin": "value"})
+    #     interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
 
 @released(golang="1.35.0")
