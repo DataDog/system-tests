@@ -4,7 +4,7 @@
 * Tony Redondo
 * Kevin Gosse
 * Anna Yafi
-* Pierre Bonnet
+* Pierre Bonet
 * Lucas Pimentel
 * Zach Montoya
 
