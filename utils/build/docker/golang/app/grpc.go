@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -42,8 +43,16 @@ func (s server) Unary(ctx context.Context, req *structpb.Value) (*structpb.Value
 }
 
 func (s server) ServerStream(req *structpb.Value, stream Weblog_ServerStreamServer) error {
-	//TODO implement me
-	panic("implement me")
+	for c := 0; c < 10; c++ {
+		err := stream.Send(structpb.NewStringValue(fmt.Sprintf("hello from grpc go server %d", c)))
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s server) ClientStream(stream Weblog_ClientStreamServer) error {
