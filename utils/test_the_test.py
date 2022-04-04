@@ -122,10 +122,10 @@ class Test_All:
 
         assert is_skipped(Test4, "missing feature: release not yet planned")
 
-    def test_version(self):
+    def test_version_comparizon(self):
         from utils._context.library_version import Version
 
-        v = Version("1.0")
+        v = Version("1.0", "some_component")
 
         assert v == "1.0"
         assert v != "1.1"
@@ -146,19 +146,32 @@ class Test_All:
         assert v > "0.9"
         assert "0.9" < v
 
-        v = Version("0.53.0.dev70+g494e6dc0")
+        assert Version("1.31.1", "") < "v1.34.1"
+        assert "1.31.1" < Version("v1.34.1", "")
+        assert Version("1.31.1", "") < Version("v1.34.1", "")
 
+    def test_version_serialization(self):
+        from utils._context.library_version import Version
+
+        assert Version("v1.3.1", "cpp") == "1.3.1"
+        assert str(Version("v1.3.1", "cpp")) == "1.3.1"
+
+        v = Version("0.53.0.dev70+g494e6dc0", "some comp")
         assert v == "0.53.0.dev70+g494e6dc0"
-
-        assert Version("1.31.1") < "v1.34.1-0.20211116150256-dd5b7c8a7caf"
-        assert "1.31.1" < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
-        assert Version("1.31.1") < Version("v1.34.1-0.20211116150256-dd5b7c8a7caf")
+        assert str(v) == "0.53.0.dev70+g494e6dc0"
 
         v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
-        assert v == Version("0.53.0")
+        assert v == Version("0.53.0appsec.180045", "ruby")
+        assert v == "0.53.0appsec.180045"
+
+        v = Version("  * ddtrace (1.0.0.beta1)", "ruby")
+        assert v == Version("1.0.0beta1", "ruby")
+
+        v = Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
+        assert v == Version("1.0.0beta1+de82857", "ruby")
 
         v = Version("* libddwaf (1.0.14.1.0.beta1)", "libddwaf")
-        assert v == Version("1.0.14.1.0.beta1")
+        assert v == Version("1.0.14.1.0.beta1", "libddwaf")
         assert v == "1.0.14.1.0.beta1"
 
         v = Version("Agent 7.33.0 - Commit: e6cfcb9 - Serialization version: v5.0.4 - Go version: go1.16.7", "agent")

@@ -68,7 +68,7 @@ class _Context:
             self.sampling_rate = None
 
         if self.library == "php":
-            self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION", None))
+            self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
         else:
             self.php_appsec = None
 
@@ -80,7 +80,7 @@ class _Context:
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
         appsec_rules_version = self.weblog_image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules_version")
+        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules")
 
         agent_version = self.agent_image.env.get("SYSTEM_TESTS_AGENT_VERSION")
 
