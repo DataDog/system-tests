@@ -130,7 +130,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
     @missing_feature(library="python")
     @bug(context.library < "java@0.93.0")
-    @missing_feature(library="php")  # need to generate a user trace
+    @irrelevant(library="php", reason="Trace outside a context of a web request is not possible on PHP")
     def test_root_span_coherence(self):
         """ Appsec tags are not on span where type is not web """
 
