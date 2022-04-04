@@ -11,19 +11,6 @@ from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
 
 
-def _get_spans_by_rid(rid, data):
-    trace_ids = set()
-    for trace in data["request"]["content"]:
-        for span in trace:
-            if rid == _get_rid_from_span(span):
-                trace_ids.add(span["trace_id"])
-
-    for trace in data["request"]["content"]:
-        for span in trace:
-            if span["trace_id"] in trace_ids:
-                yield span
-
-
 class _TraceIdUniqueness(BaseValidation):
     path_filters = r"/v[0-9]\.[0-9]+/traces"  # Should be implemented independently from the endpoint version
 
@@ -129,10 +116,14 @@ class _TraceExistence(BaseValidation):
         span_types = []
         span_count = len(span_types)
 
-        for span in _get_spans_by_rid(self.rid, data):
-            span_count = span_count + 1
-            span_types.append(span.get("type"))
-            diagnostics.append(str("{0}"))
+        for trace in data["request"]["content"]:
+            for span in trace:
+                if self.rid == _get_rid_from_span(span):
+                    for correlated_span in trace:
+                        span_count = span_count + 1
+                        span_types.append(correlated_span.get("type"))
+                        diagnostics.append(str(correlated_span))
+                    continue
 
         if span_count > 0:
             if self.span_type is None:
