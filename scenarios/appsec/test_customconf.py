@@ -37,7 +37,7 @@ class Test_CorruptedRules(_BaseNoAppSec):
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
 
 
-@released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
+@released(java="0.93.0", nodejs="2.4.1", php_appsec="0.3.0", ruby="?")
 class Test_MissingRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is missing"""
 
@@ -70,6 +70,7 @@ class Test_ConfRuleSet(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="dedicated-value-for-testing-purpose")
 
     def test_log(self):
+        """ Check there is no error reported in logs """
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")
         stdout.assert_absence("WAF initialization failed")
