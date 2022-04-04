@@ -37,7 +37,7 @@ class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
     @bug(context.library < "dotnet@2.1.0")
-    @bug(library="java", reason="under Valentin's investigations")
+    @bug(context.library < "java@0.98.1")
     def test_http_protocol(self):
         """ AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         r = self.weblog_get("/waf/", params={"key": ".cookie;domain="})
@@ -158,7 +158,6 @@ class Test_PhpCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_200)
 
     @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
-    @bug(library="dotnet", reason="APPSEC-2290")
     def test_php_code_injection_bug(self):
         """ Appsec WAF detects other php injection rules """
         r = self.weblog_get("/waf/", params={"x-attack": " var_dump ()"})
@@ -224,9 +223,6 @@ class Test_XSS(BaseTestCase):
         r = self.weblog_get("/waf/", params={"key": "!![]"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
-    @bug(library="ruby", reason="need to be investiged")
-    def test_xss1(self):
-        """AppSec catches XSS attacks"""
         r = self.weblog_get("/waf/", params={"key": "+ADw->|<+AD$-"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
@@ -257,9 +253,8 @@ class Test_SQLI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_220)
 
     @flaky(context.library <= "php@0.68.2")
-    @bug(library="dotnet", reason="APPSEC-2290")
     def test_sqli2(self):
-        """Other SQLI patterns, to be merged once issue are corrected"""
+        """Other SQLI patterns"""
         r = self.weblog_get("/waf/", params={"value": "alter d char set f"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_240)
 
@@ -271,7 +266,7 @@ class Test_SQLI(BaseTestCase):
     @missing_feature(library="golang", reason="cookies are not url-decoded and this attack works with a ;")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_sqli3(self):
-        """Other SQLI patterns, to be merged once issue are corrected"""
+        """SQLI patterns in cookie"""
         r = self.weblog_get("/waf/", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
 
