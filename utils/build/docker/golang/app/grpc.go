@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"net"
 
@@ -46,11 +47,25 @@ func (s server) ServerStream(req *structpb.Value, stream Weblog_ServerStreamServ
 }
 
 func (s server) ClientStream(stream Weblog_ClientStreamServer) error {
-	//TODO implement me
-	panic("implement me")
+	for {
+		_, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(structpb.NewStringValue("hello from grpc go server"))
+		}
+		if err != nil {
+			return err
+		}
+	}
 }
 
 func (s server) Bidi(stream Weblog_BidiServer) error {
-	//TODO implement me
-	panic("implement me")
+	for {
+		_, err := stream.Recv()
+		if err == io.EOF {
+			return stream.Send(structpb.NewStringValue("hello from grpc go server"))
+		}
+		if err != nil {
+			return err
+		}
+	}
 }
