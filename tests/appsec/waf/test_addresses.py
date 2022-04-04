@@ -150,7 +150,7 @@ class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
     @missing_feature(library="java", reason="cookie is rejected by Coyote")
-    @missing_feature(library="golang", reason="cookies are not url-decoded")
+    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
@@ -165,7 +165,7 @@ class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
-    @missing_feature(context.library < "golang@1.36.0")
+    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.96.0")
     def test_cookies_with_special_chars2(self):
