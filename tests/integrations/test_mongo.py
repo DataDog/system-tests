@@ -4,8 +4,7 @@
 
 from utils import BaseTestCase, interfaces, context, irrelevant
 
-# FORCE FAILURE FOR VERIFICATION, TODO REMOVE
-# @irrelevant(reason="Endpoint is unimplemented on weblog")
+@irrelevant(reason="Endpoint is unimplemented on weblog")
 class Test_Mongo(BaseTestCase):
     """ Verify that a mongodb span is created """
 
