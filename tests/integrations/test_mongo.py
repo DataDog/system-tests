@@ -4,6 +4,7 @@
 
 from utils import BaseTestCase, interfaces, context, irrelevant
 
+
 @irrelevant(reason="Endpoint is unimplemented on weblog")
 class Test_Mongo(BaseTestCase):
     """ Verify that a mongodb span is created """
