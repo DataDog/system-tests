@@ -5,10 +5,10 @@ WORKDIR /app
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-COPY ./utils/build/docker/java/jersey-grizzly2/pom.xml .
+COPY ./utils/build/docker/java/vertx3/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
-COPY ./utils/build/docker/java/jersey-grizzly2/src ./src
+COPY ./utils/build/docker/java/vertx3/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
 
 FROM adoptopenjdk:11-jre-hotspot
@@ -17,9 +17,9 @@ WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-COPY --from=build /app/target/jersey-grizzly2-1.0-SNAPSHOT.jar .
+COPY --from=build /app/target/vertx3-1.0-SNAPSHOT.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
-RUN echo "#!/bin/bash\njava -Xmx362m -Ddd.integration.grizzly.enabled=true -javaagent:/app/dd-java-agent.jar -jar /app/jersey-grizzly2-1.0-SNAPSHOT.jar" > app.sh
+RUN echo "#!/bin/bash\njava -Xmx362m -javaagent:/app/dd-java-agent.jar -jar /app/vertx3-1.0-SNAPSHOT.jar" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]

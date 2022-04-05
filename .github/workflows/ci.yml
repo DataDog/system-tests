@@ -90,6 +90,9 @@ jobs:
           - library: java
             weblog-variant: ratpack
             version: prod
+          - library: java
+            weblog-variant: vertx3
+            version: prod
 
           - library: nodejs
             weblog-variant: express4
