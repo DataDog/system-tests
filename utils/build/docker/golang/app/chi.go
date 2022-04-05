@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +16,22 @@ func main() {
 	defer tracer.Stop()
 
 	mux := chi.NewRouter().With(chitrace.Middleware())
+
+	mux.HandleFunc("/trace/distributed-http", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := http.Get("http://weblog:7777/trace/distributed-http/end")
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("An error has occurred"))
+			return
+		}
+		sb := string(body)
+		w.Write([]byte(sb))
+	})
+
+	mux.HandleFunc("/trace/distributed-http/end", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello, end of the world!!\n"))
+	})
 
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
 		body, err := parseBody(r)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
@@ -13,6 +14,22 @@ func main() {
 	defer tracer.Stop()
 
 	mux := muxtrace.NewRouter()
+
+	mux.HandleFunc("/trace/distributed-http", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := http.Get("http://weblog:7777/trace/distributed-http/end")
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("An error has occurred"))
+			return
+		}
+		sb := string(body)
+		w.Write([]byte(sb))
+	})
+
+	mux.HandleFunc("/trace/distributed-http/end", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello, end of the world!!\n"))
+	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

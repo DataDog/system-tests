@@ -34,3 +34,4 @@ dist/
 # VSCode
 .ionide/
 /utils/build/docker/dotnet/Properties/launchSettings.json
+/utils/build/docker/dotnet/app.sln

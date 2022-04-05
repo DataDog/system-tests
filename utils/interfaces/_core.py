@@ -12,6 +12,7 @@ import inspect
 import gc
 import json
 import re
+import sys
 
 from utils._xfail import xfails
 from utils.tools import get_logger, m, e as format_error, get_exception_traceback
@@ -269,6 +270,18 @@ class BaseValidation(object):
 
     def log_error(self, message):
         self._log(logging.ERROR, message)
+
+    def log_exception(self, message, exc_info):
+        # based on https://github.com/python/cpython/blob/ef6a482b0285870c45f39c9b17ed827362b334ae/Lib/logging/__init__.py#L1625-L1630
+        if isinstance(exc_info, BaseException):
+            exc_info = (type(exc_info), exc_info, exc_info.__traceback__)
+        elif not isinstance(exc_info, tuple):
+            exc_info = sys.exc_info()
+        record = logger.makeRecord(
+            name="", level=logging.ERROR, fn="", lno=0, msg=message, args=None, exc_info=exc_info
+        )
+        self.logs.append(record)
+        logger.handle(record)
 
     def _log(self, level, message):
         record = logger.makeRecord("", level, "", 0, message, None, None)

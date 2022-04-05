@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -17,6 +18,20 @@ func main() {
 	r := echo.New()
 
 	r.Use(echotrace.Middleware())
+
+	r.Any("/trace/distributed-http", func(c echo.Context) error {
+		resp, err := http.Get("http://weblog:7777/trace/distributed-http/end")
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		sb := string(body)
+		return c.String(http.StatusOK, sb)
+	})
+
+	r.Any("/trace/distributed-http/end", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, end of the world!!\n")
+	})
 
 	r.Any("/", func(c echo.Context) error {
 		return c.NoContent(http.StatusOK)

@@ -112,9 +112,14 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
-    def assert_trace_exists(self, request, span_type=None, custom_traces_validation=None):
+    def assert_trace_exists(self, request, span_type=None, custom_traces_validation=None, custom_wait=None):
         self.append_validation(
-            _TracesValidation(request=request, span_type=span_type, custom_traces_validation=custom_traces_validation)
+            _TracesValidation(
+                request=request,
+                span_type=span_type,
+                custom_traces_validation=custom_traces_validation,
+                custom_wait=custom_wait,
+            )
         )
 
 

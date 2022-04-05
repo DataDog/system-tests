@@ -123,9 +123,10 @@ class _SpanValidation(BaseValidation):
 
 
 class _TracesValidation(BaseValidation):
-    def __init__(self, request, min_trace_count=1, span_type=None, custom_traces_validation=None):
+    def __init__(self, request, min_trace_count=1, span_type=None, custom_traces_validation=None, custom_wait=None):
         super().__init__(request=request)
         self.min_trace_count = min_trace_count
+        self.custom_wait = custom_wait
         self.span_type = span_type
         self.custom_traces_validation = custom_traces_validation
 
@@ -158,14 +159,20 @@ class _TracesValidation(BaseValidation):
 
         validation_messages = []
 
-        if len(correlated_local_traces) >= self.min_trace_count:
-            self.log_debug(f"Traces found for  {self.message}")
-            if self.custom_traces_validation is not None:
-                validation_messages += self.custom_traces_validation(correlated_local_traces)
-            if self.span_type is not None and self.span_type not in span_types:
-                validation_messages.append(
-                    f"Did not find span type '{self.span_type}' in reported span types: {span_types}"
-                )
+        if len(correlated_local_traces) >= self.min_trace_count and (
+            self.custom_wait is None or self.custom_wait(correlated_local_traces)
+        ):
+            try:
+                self.log_debug(f"Traces found for  {self.message}")
+                if self.custom_traces_validation is not None:
+                    validation_messages += self.custom_traces_validation(correlated_local_traces)
+                if self.span_type is not None and self.span_type not in span_types:
+                    validation_messages.append(
+                        f"Did not find span type '{self.span_type}' in reported span types: {span_types}"
+                    )
+            except BaseException as err:
+                self.log_exception("An unexpected exception has occurred within the validations.", err)
+                validation_messages.append("The validations failed to execute")
 
             total_errors = len(validation_messages)
             if total_errors > 0:

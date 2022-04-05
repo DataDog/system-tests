@@ -1,6 +1,7 @@
+import requests
+
 from ddtrace import tracer
 from flask import Flask, request
-
 
 app = Flask(__name__)
 
@@ -34,3 +35,14 @@ def read_file():
 
     with open(filename, "r") as f:
         return f.read()
+
+
+@app.route("/trace/distributed-http")
+def distributed_http():
+    end_hello = requests.get("http://weblog:7777/trace/distributed-http/end")
+    return end_hello.content
+
+
+@app.route("/trace/distributed-http/end")
+def distributed_http_end():
+    return "Hello, World!\\n"
