@@ -151,7 +151,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @missing_feature(reason="Not started yet in any lib")
-class Test_AppSecObfuscator(BaseTestCase):
+class Test_AppSecObfuscator_ToBeRestoredOnceWeHaveRules(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
     def test_appsec_obfuscator(self):
@@ -159,7 +159,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         # Validate that the AppSec events do not contain the following secret value.
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
-        SECRET = "this is a very secret value having the appscan_fingerprint attack"
+        SECRET = "this is a very secret value having the .htaccess attack"
 
         def validate_appsec_span_tags(payload, chunk, span, appsec_data):
             if SECRET in span["meta"]["_dd.appsec.json"]:
@@ -168,7 +168,7 @@ class Test_AppSecObfuscator(BaseTestCase):
 
         r = self.weblog_get(
             "/waf/",
-            headers={"User-Agent": f"Arachni/v1", "DD_API_TOKEN": SECRET},
+            headers={"DD_API_TOKEN": SECRET},
             cookies={"Bearer": SECRET},
             params={"pwd": SECRET},
         )
@@ -184,8 +184,8 @@ class Test_AppSecObfuscator(BaseTestCase):
         # Validate that the AppSec events do not contain the following secret value.
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
-        SECRET_VALUE_WITH_SENSITIVE_KEY = "this is a very sensitive cookie value having the appscan_fingerprint attack"
-        SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not a sensitive cookie value having an appscan_fingerprint attack"
+        SECRET_VALUE_WITH_SENSITIVE_KEY = "this is a very sensitive cookie value having the .htaccess attack"
+        SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not a sensitive cookie value having an .htaccess attack"
 
         def validate_appsec_span_tags(payload, chunk, span, appsec_data):
             if SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
