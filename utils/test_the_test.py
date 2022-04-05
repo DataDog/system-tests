@@ -150,6 +150,11 @@ class Test_All:
         assert "1.31.1" < Version("v1.34.1", "")
         assert Version("1.31.1", "") < Version("v1.34.1", "")
 
+        assert Version("  * ddtrace (1.0.0.beta1)", "ruby") == Version("1.0.0.beta1", "ruby")
+        assert Version("  * ddtrace (1.0.0.beta1)", "ruby")
+        assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
+        assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version("1.0.0", "ruby")
+
     def test_version_serialization(self):
         from utils._context.library_version import Version
 

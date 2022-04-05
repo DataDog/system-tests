@@ -31,7 +31,8 @@ class Test_404(BaseTestCase):
         )
 
 
-@released(golang="1.36.0", dotnet="2.3.0", java="0.95.0", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="1.0.0")
+@released(golang="1.36.0", dotnet="2.3.0", java="0.95.0", nodejs="2.0.0")
+@released(php_appsec="0.2.0", python="?", ruby="1.0.0.beta1")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec reports multiple attacks on same request """
