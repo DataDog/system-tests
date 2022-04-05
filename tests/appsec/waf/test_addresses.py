@@ -242,6 +242,7 @@ class Test_BodyXml(BaseTestCase):
         return super().weblog_post(path, params, data, headers)
 
     @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
+    @missing_feature(context.weblog_variant == "vertx3")
     def test_xml_attr_value(self):
         r = self.weblog_post("/waf", data='<a attack="var_dump ()" />', address="server.request.body")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
@@ -250,6 +251,7 @@ class Test_BodyXml(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
     @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
+    @missing_feature(context.weblog_variant == "vertx3")
     def test_xml_content(self):
         r = self.weblog_post("/waf", data="<a>var_dump ()</a>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
