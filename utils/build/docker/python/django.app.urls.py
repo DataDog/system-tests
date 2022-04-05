@@ -1,7 +1,10 @@
 # pages/urls.py
 from django.urls import path
 from django.http import HttpResponse
+from ddtrace import tracer
 
+
+tracer.trace("init.service").finish()
 
 def hello_world(request):
     return HttpResponse("Hello, World!")
