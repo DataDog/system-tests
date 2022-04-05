@@ -197,7 +197,6 @@ class Test_BodyUrlEncoded(BaseTestCase):
 
     @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
-    @missing_feature(context.library < "java@0.100.0" and context.weblog_variant == "vertx3")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
@@ -215,14 +214,12 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
     @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
-    @missing_feature(context.library < "java@0.100.0" and context.weblog_variant == "vertx3")
     def test_json_value(self):
         """AppSec detects attacks in JSON body values"""
         r = self.weblog_post("/waf", json={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
     @missing_feature(context.library < "java@0.99.0" and context.weblog_variant == "ratpack")
-    @missing_feature(context.library < "java@0.100.0" and context.weblog_variant == "vertx3")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         r = self.weblog_post("/waf", json=['<vmlframe src="xss">'])
