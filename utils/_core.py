@@ -14,7 +14,7 @@ from utils.tools import logger, m
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 
-class _FailedResponse:
+class _FailedQuery:
     def __init__(self, request):
         self.request = request
         self.status_code = None
@@ -71,7 +71,7 @@ class BaseTestCase(unittest.TestCase):
             r = requests.Session().send(r, timeout=5, stream=stream)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            return _FailedResponse(request=r)
+            return _FailedQuery(request=r)
 
         logger.debug(f"Request {rid}: {r.status_code}")
 
@@ -99,5 +99,10 @@ class BaseTestCase(unittest.TestCase):
 
         request = pb.Value(string_value=string_value)
 
-        response = self._grpc_client.Unary(request, metadata=metadata)
+        try:
+            response = self._grpc_client.Unary(request, metadata=metadata)
+        except Exception as e:
+            logger.error(f"Request {rid} raise an error: {e}")
+            return _GrpcQuery(request, metadata, None)
+
         return _GrpcQuery(request, metadata, response)
