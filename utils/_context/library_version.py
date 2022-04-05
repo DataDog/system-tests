@@ -92,6 +92,9 @@ class Version(version_module.Version):
         elif component == "dotnet":
             version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
 
+        elif component == "php":
+            version = version.replace("-nightly", "")
+
         self._regex = re.compile(r"^\s*" + pattern + r"\s*$", re.VERBOSE | re.IGNORECASE)
 
         super().__init__(version)
