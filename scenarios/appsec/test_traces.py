@@ -29,10 +29,7 @@ class Test_AppSecObfuscator(BaseTestCase):
             return True
 
         r = self.weblog_get(
-            "/waf/",
-            headers={"DD_API_TOKEN": SECRET},
-            cookies={"Bearer": SECRET},
-            params={"pwd": SECRET},
+            "/waf/", headers={"DD_API_TOKEN": SECRET}, cookies={"Bearer": SECRET}, params={"pwd": SECRET},
         )
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
