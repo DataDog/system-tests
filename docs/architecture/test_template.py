@@ -21,12 +21,15 @@ class Test_Misc(BaseTestCase):
 
     def test_main(self):
         # This is where you make your requests and assertions
-        request = self.weblog_get("/trace/http")
+        request = self.weblog_get("/")
         interfaces.library.assert_trace_exists(request)
 
         # You can make several requests and assertions to fulfill the needs of a test
+        request = self.weblog_get("/trace/http")
+        interfaces.library.assert_trace_exists(request, span_type="web")
+
         request = self.weblog_get("/trace/mongo")
-        interfaces.library.assert_trace_exists(request)
+        interfaces.library.assert_trace_exists(request, span_type="mongo")
 
         # The interfaces.library namespace is used to expose valuable assertions
 

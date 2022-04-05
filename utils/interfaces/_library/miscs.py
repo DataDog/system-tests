@@ -66,7 +66,6 @@ class _ReceiveRequestRootTrace(BaseValidation):
 class _SpanValidation(BaseValidation):
     """ will run an arbitrary check on spans. If a request is provided, only span
         related to this request will be checked.
-
         Validator function can :
         * returns true => validation will be validated at the end (but trace will continue to be checked)
         * returns False or None => nothing is done
@@ -101,6 +100,10 @@ class _SpanValidation(BaseValidation):
 
 
 class _TraceExistence(BaseValidation):
+    def __init__(self, request, span_type=None):
+        super().__init__(request=request)
+        self.span_type = span_type
+
     path_filters = "/v0.4/traces"
 
     def check(self, data):
@@ -109,9 +112,26 @@ class _TraceExistence(BaseValidation):
             self.log_error(f"{data['log_filename']} content should be an array")
             return
 
+        diagnostics = ["Diagnostics:"]
+        span_types = []
+        span_count = len(span_types)
+
         for trace in data["request"]["content"]:
             for span in trace:
-                if self.rid:
-                    if self.rid == _get_rid_from_span(span):
-                        self.log_debug(f"Found a trace for {self.message}")
-                        self.set_status(True)
+                if self.rid == _get_rid_from_span(span):
+                    for correlated_span in trace:
+                        span_count = span_count + 1
+                        span_types.append(correlated_span.get("type"))
+                        diagnostics.append(str(correlated_span))
+                    continue
+
+        if span_count > 0:
+            if self.span_type is None:
+                self.log_debug(f"Found a trace for {self.message}")
+                self.set_status(True)
+            elif self.span_type in span_types:
+                self.log_debug(f"Found a span with type {self.span_type}")
+                self.set_status(True)
+            else:
+                self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
+                self.log_error("\n".join(diagnostics))
