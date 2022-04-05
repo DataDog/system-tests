@@ -194,10 +194,7 @@ class Test_AppSecObfuscator(BaseTestCase):
                 raise Exception("Could not find the non-sensitive cookie data")
             return True
 
-        r = self.weblog_get(
-            "/waf/",
-            cookies={"Bearer": SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": SECRET_VALUE_WITH_NON_SENSITIVE_KEY},
-        )
+        r = self.weblog_get("/waf/", cookies={"Bearer": SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": SECRET_VALUE_WITH_NON_SENSITIVE_KEY})
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
 
