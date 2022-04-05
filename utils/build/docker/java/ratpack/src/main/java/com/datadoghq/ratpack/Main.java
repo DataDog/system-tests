@@ -3,6 +3,7 @@ package com.datadoghq.ratpack;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ratpack.http.HttpMethod;
+import ratpack.http.Response;
 import ratpack.server.RatpackServer;
 
 import java.io.IOException;
@@ -42,6 +43,12 @@ public class Main {
                             } finally {
                                 span.finish();
                             }
+                        })
+                        .get("headers", ctx -> {
+                            Response response = ctx.getResponse();
+                            response.getHeaders()
+                                    .add("content-language", "en-US");
+                            response.send("text/plain", "012345678901234567890123456789012345678901");
                         })
                         .path("waf", ctx -> {
                             HttpMethod method = ctx.getRequest().getMethod();
