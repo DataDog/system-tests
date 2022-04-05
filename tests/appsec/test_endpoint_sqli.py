@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, irrelevant
+from utils import BaseTestCase, interfaces, context, missing_feature
 
 
-@irrelevant(context.library != "java", reason="Need to build endpoint on weblog")
+@missing_feature(context.library != "java", reason="Need to build endpoint on weblog")
 class Test_Sqli(BaseTestCase):
     """ Verify the /rasp/sqli endpoint is setup """
 
