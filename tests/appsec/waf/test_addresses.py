@@ -301,15 +301,17 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(golang="1.36.0", dotnet="?", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
+@released(dotnet="?", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @missing_feature(library="java")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant != "sprint-boot", reason="Endpoint is missing in weblog"
+    )
     def test_security_scanner(self):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")

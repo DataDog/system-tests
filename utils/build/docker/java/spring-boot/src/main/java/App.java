@@ -111,6 +111,11 @@ public class App {
         return "OK";
     }
 
+    @RequestMapping("/params/{str}")
+    String params_route(@PathVariable("str") String str) {
+        return "OK";
+    }
+
     @RequestMapping("/trace/sql")
     String traceSQL() {
         final Span span = GlobalTracer.get().activeSpan();
