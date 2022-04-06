@@ -103,7 +103,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @irrelevant(context.library not in ["golang", "nodejs", "java"], reason="test")
+    @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     def test_header_collection(self):
         """
         AppSec should collect some headers for http.request and http.response and store them in span tags.
@@ -198,10 +198,9 @@ class Test_AppSecObfuscator_ToBeRestoredOnceWeHaveRules(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@missing_feature(library="dotnet")
 @missing_feature(library="php")
 @missing_feature(library="python")
-@released(ruby="1.0.0.beta1")
+@released(dotnet="2.5.1", ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """
