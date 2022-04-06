@@ -28,20 +28,20 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
     @missing_feature(library="java", reason="cookie is rejected by Coyote")
-    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
+    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
 
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     def test_cookies_with_spaces(self):
         """ Cookie with pattern containing a space """
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
-    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
+    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
     @bug(context.library < "java@0.96.0")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
