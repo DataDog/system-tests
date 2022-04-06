@@ -31,7 +31,12 @@ class Test_TraceHeaders(BaseTestCase):
             "x-datadog-trace-count",
         ]
 
-        interfaces.library.assert_headers_presence(r"/v0\.[1-9]+/traces", request_headers=request_headers)
+        def check_condition(data):
+            return len(data["request"]["content"]) != 0
+
+        interfaces.library.assert_headers_presence(
+            r"/v[0-9]+\.[0-9]+/traces", request_headers=request_headers, check_condition=check_condition
+        )
 
     @irrelevant(context.library != "php", reason="Special case of the header tests for php tracer")
     def test_traces_header_present_php(self):

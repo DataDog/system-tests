@@ -14,6 +14,8 @@ services:
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
+    ports:
+      - "8082:8082"
 
   library_proxy:
     container_name: library_proxy
@@ -25,9 +27,6 @@ services:
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
-    depends_on:
-      agent:
-        condition: service_healthy
 
   weblog:
     container_name: weblog
@@ -47,8 +46,8 @@ services:
     depends_on:
       runner:
         condition: service_healthy
-      library_proxy:
-        condition: service_started
+      agent:
+        condition: service_healthy
       cassandra_db:
         condition: service_started
       mongodb:
@@ -86,6 +85,8 @@ services:
       runner:
         condition: service_healthy
       agent_proxy:
+        condition: service_started
+      library_proxy:
         condition: service_started
 
   runner:
