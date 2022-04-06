@@ -139,7 +139,7 @@ class Test_Headers(BaseTestCase):
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
 class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
-    """Appsec supports server.request.cookies"""
+    """Appsec supports server.request.cookies, legacy test"""
 
     # Cookies rules has been removed in rules version 1.2.7. Test on cookies are now done on custom rules scenario.
     # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
@@ -159,14 +159,14 @@ class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
         interfaces.library.assert_waf_attack(r, pattern=".cookie-;domain=", address="server.request.cookies")
 
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     def test_cookies_with_spaces(self):
         """ Cookie with pattern containing a space """
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
     @bug(context.library < "java@0.96.0")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
