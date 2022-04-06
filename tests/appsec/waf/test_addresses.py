@@ -310,7 +310,8 @@ class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
     @missing_feature(
-        context.library == "java" and context.weblog_variant != "sprint-boot", reason="Endpoint is missing in weblog"
+        context.library == "java" and context.weblog_variant not in ["spring-boot", "spring-boot-jetty"],
+        reason="Endpoint is missing in weblog",
     )
     @bug(library="dotnet", reason="attack is not reported")
     def test_security_scanner(self):
