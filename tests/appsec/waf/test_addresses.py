@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="1.0.0.beta1")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", ruby="1.0.0.beta1", python="0.58")  # FIXME: real version for py)
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -29,7 +29,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2", python="0.58")  # FIXME: real version for py
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
@@ -74,7 +74,6 @@ class Test_UrlRaw(BaseTestCase):
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 
-    @missing_feature(library="python")
     def test_value(self):
         """ Appsec WAF detects attacks in header value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -82,7 +81,6 @@ class Test_Headers(BaseTestCase):
             r, pattern="Arachni/v", address="server.request.headers.no_cookies", key_path=["user-agent"]
         )
 
-    @missing_feature(library="python")
     def test_specific_key(self):
         """ Appsec WAF detects attacks on specific header x-file-name or referer, and report it """
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
@@ -100,7 +98,6 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
         )
 
-    @missing_feature(library="python")
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     def test_specific_key2(self):
@@ -110,7 +107,6 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
         )
 
-    @missing_feature(library="python")
     @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
     def test_specific_key3(self):
         """ When a specific header key is specified, other key are ignored """

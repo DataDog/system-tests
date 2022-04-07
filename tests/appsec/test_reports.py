@@ -12,6 +12,7 @@ if context.library == "cpp":
 
 @released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(python="0.58")  # FIXME: real version for py
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
@@ -65,6 +66,7 @@ class Test_ActorIP(BaseTestCase):
 
     @missing_feature(library="golang", reason="Not clear if it must be done on backend side. Waiting for clarification")
     @missing_feature(library="nodejs", reason="Not clear if it must be done on backend side. Waiting for clarification")
+    @missing_feature(library="python", reason="Not clear if it must be done on backend side. Waiting for clarification")
     @missing_feature(library="php", reason="Not clear if it must be done on backend side. Waiting for clarification")
     @missing_feature(library="ruby", reason="Not clear if it must be done on backend side. Waiting for clarification")
     def test_actor_ip(self):
@@ -91,7 +93,7 @@ class Test_ActorIP(BaseTestCase):
 
 
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
-@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0", php="0.68.2", python="0.39.0")
+@released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0", php="0.68.2", python="0.39.0")  # FIXME: real version for py
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Info(BaseTestCase):
@@ -122,7 +124,7 @@ class Test_Info(BaseTestCase):
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
-@released(dotnet="1.30.0", nodejs="2.0.0", php_appsec="0.2.0", python="?")
+@released(dotnet="1.30.0", nodejs="2.0.0", php_appsec="0.2.0", python="0.58")  # FIXME: real version for py
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_RequestHeaders(BaseTestCase):
