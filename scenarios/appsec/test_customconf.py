@@ -78,7 +78,6 @@ class Test_ConfRuleSet(BaseTestCase):
 
 
 @released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="?")
-@flaky(library="php", reason="APPSEC-3859")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
 class Test_NoLimitOnWafRules(BaseTestCase):
     """ Serialize WAF rules without limiting their sizes """
