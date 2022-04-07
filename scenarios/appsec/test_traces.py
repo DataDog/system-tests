@@ -21,9 +21,9 @@ class Test_AppSecObfuscator(BaseTestCase):
         # Validate that the AppSec events do not contain the following secret value.
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
-        SECRET = "this is a very secret value having the appscan_fingerprint attack"
+        SECRET = "this is a very secret value having the .htaccess attack"
 
-        def validate_appsec_span_tags(payload, chunk, span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):
             if SECRET in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             return True
@@ -46,9 +46,9 @@ class Test_AppSecObfuscator(BaseTestCase):
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
         SECRET_VALUE_WITH_SENSITIVE_KEY = "this is a very sensitive cookie value having the .htaccess attack"
-        SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not a sensitive cookie value having an .htaccess attack"
+        SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not a sensitive cookie value having an select pg_sleep attack"
 
-        def validate_appsec_span_tags(payload, chunk, span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):
             if SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             if SECRET_VALUE_WITH_NON_SENSITIVE_KEY not in span["meta"]["_dd.appsec.json"]:
