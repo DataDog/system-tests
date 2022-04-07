@@ -12,7 +12,9 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", ruby="1.0.0.beta1", python="0.58")  # FIXME: real version for py)
+@released(
+    golang="?", dotnet="?", java="?", nodejs="?", php="?", ruby="1.0.0.beta1", python="0.58"
+)  # FIXME: real version for py)
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -29,7 +31,9 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2", python="0.58")  # FIXME: real version for py
+@released(
+    dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2", python="0.58"
+)  # FIXME: real version for py
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
