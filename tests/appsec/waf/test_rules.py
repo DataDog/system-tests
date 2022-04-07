@@ -58,7 +58,7 @@ class Test_HttpProtocol(BaseTestCase):
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
 
-    @missing_feature(library="python")
+    @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi(self):
         """ AppSec catches LFI attacks"""
         r = self.weblog_get("/waf/", headers={"x-attack": "/../"})
