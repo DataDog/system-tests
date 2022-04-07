@@ -185,7 +185,7 @@ class Test_JsInjection(BaseTestCase):
 
 
 @released(golang="1.35.0")
-@released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="0.58.0")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
@@ -236,7 +236,7 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="1.35.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.35.0", nodejs="2.0.0", php_appsec="0.1.0", python="0.58.0")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_SQLI(BaseTestCase):
@@ -278,7 +278,7 @@ class Test_SQLI(BaseTestCase):
 
 
 @released(golang="1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="0.58.0")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_NoSqli(BaseTestCase):
