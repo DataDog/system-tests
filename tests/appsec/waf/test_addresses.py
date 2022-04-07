@@ -149,7 +149,8 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @missing_feature(library="java", reason="cookie is rejected by Coyote")
+    @irrelevant(library="java", reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
+                                       "encoded to represent disallowed octets")
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
@@ -187,7 +188,7 @@ class Test_BodyRaw(BaseTestCase):
 
 @released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
 @released(
-    java="0.100.0"
+    java="0.99.0"
     if context.weblog_variant == "vertx3"
     else "0.99.0"
     if context.weblog_variant == "ratpack"
@@ -212,7 +213,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
 
 @released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
-    java="0.100.0"
+    java="0.99.0"
     if context.weblog_variant == "vertx3"
     else "0.99.0"
     if context.weblog_variant == "ratpack"
@@ -309,11 +310,8 @@ class Test_ResponseStatus(BaseTestCase):
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @missing_feature(
-        context.library == "java" and context.weblog_variant not in ["spring-boot", "spring-boot-jetty"],
-        reason="Endpoint is missing in weblog",
-    )
     @bug(library="dotnet", reason="attack is not reported")
+    @missing_feature(context.library < 'java@0.99.0' and context.weblog_variant in ['vertx3', 'ratpack'])
     def test_security_scanner(self):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")

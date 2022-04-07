@@ -61,7 +61,7 @@ public class Main {
                                 ctx.next();
                             }
                         })
-                        .get("waf/:params?:.*",
+                        .get("params/:params?:.*",
                                 ctx -> ctx.getResponse().send("text/plain", ctx.getPathTokens().toString()))
                 )
         );
