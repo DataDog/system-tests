@@ -19,10 +19,11 @@ if context.library == "cpp":
 @missing_feature(library="python")
 @missing_feature(library="ruby")
 class Test_Metrics(BaseTestCase):
-    """ Support In-App WAF monitoring metrics  """
+    """ Support In-App WAF monitoring tags and metrics  """
 
-    def test_request_metrics(self):
-        """ Test the WAF monitoring span tags that are expected to be sent on each request """
+    def test_request_data(self):
+        """ WAF monitoring span tags and metrics are expected to be sent on each request """
+
         expected_waf_version_tag = "_dd.appsec.event_rules.version"
         expected_meta_tags = [expected_waf_version_tag]
         expected_waf_duration_metric = "_dd.appsec.waf.duration"
@@ -51,3 +52,8 @@ class Test_Metrics(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": f"Arachni/v1"})
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
+
+    def test_request_data_once(self):
+        """ WAF monitoring span tags and metrics are expected to be sent at least once at some point """
+
+        interfaces.library.append_not_implemented_validation()
