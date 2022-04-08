@@ -42,9 +42,11 @@ class Test_Metrics(BaseTestCase):
                     raise Exception(f"missing span metric tag `{m}` in {meta}")
 
             if metrics[expected_bindings_duration_metric] < metrics[expected_waf_duration_metric]:
-                raise Exception(f"unexpected waf duration metrics: the overall execution duration (with bindings) is less than the internal waf duration")
+                raise Exception(
+                    f"unexpected waf duration metrics: the overall execution duration (with bindings) `{metrics[expected_bindings_duration_metric]}` is less than the internal waf duration `{metrics[expected_waf_duration_metric]}`"
+                )
 
-            if re.match(r'[0-9]+\.[0-9]+\.[0-9]+', meta[expected_waf_version_tag], 0) is None:
+            if re.match(r"[0-9]+\.[0-9]+\.[0-9]+", meta[expected_waf_version_tag], 0) is None:
                 raise Exception(f"the span meta tag `{meta[expected_waf_version_tag]}` doesn't match the version regex")
 
             return True
