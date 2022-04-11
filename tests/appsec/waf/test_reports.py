@@ -75,7 +75,7 @@ class Test_Monitoring(BaseTestCase):
         expected_rules_monitoring_nb_errors_tag = "_dd.appsec.event_rules.error_count"
         expected_rules_monitoring_metrics_tags = [
             expected_rules_monitoring_nb_loaded_tag,
-            expected_rules_monitoring_nb_errors_tag
+            expected_rules_monitoring_nb_errors_tag,
         ]
 
         def validate_rules_monitoring_span_tags(span):
@@ -98,14 +98,16 @@ class Test_Monitoring(BaseTestCase):
                 raise Exception(f"the span meta tag `{meta[expected_waf_version_tag]}` doesn't match the version regex")
 
             if (
-                    expected_rules_monitoring_nb_loaded_tag in metrics and metrics[expected_rules_monitoring_nb_loaded_tag] <= 0
+                expected_rules_monitoring_nb_loaded_tag in metrics
+                and metrics[expected_rules_monitoring_nb_loaded_tag] <= 0
             ):
                 raise Exception(
                     f"the number of loaded rules should be strictly positive when using the recommended rules"
                 )
 
             if (
-                    expected_rules_monitoring_nb_errors_tag in metrics and metrics[expected_rules_monitoring_nb_errors_tag] != 0
+                expected_rules_monitoring_nb_errors_tag in metrics
+                and metrics[expected_rules_monitoring_nb_errors_tag] != 0
             ):
                 raise Exception(f"the number of rule errors should be 0")
 
