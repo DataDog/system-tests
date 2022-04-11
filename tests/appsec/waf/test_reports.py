@@ -49,10 +49,14 @@ class Test_Metrics(BaseTestCase):
                     raise Exception(f"missing span metric tag `{m}` in {metrics}")
 
             if re.match(expected_version_regex, meta[expected_rules_version_tag], 0) is None:
-                raise Exception(f"the span meta tag `{meta[expected_rules_version_tag]}` doesn't match the version regex")
+                raise Exception(
+                    f"the span meta tag `{meta[expected_rules_version_tag]}` doesn't match the version regex"
+                )
 
             if meta[expected_rules_version_tag] != str(context.appsec_rules_version):
-                raise Exception(f"the event rules version `{meta[expected_rules_version_tag]}` reported in the span tag {expected_rules_version_tag} isn't equal to the weblog context version `{context.appsec_rules_version}`")
+                raise Exception(
+                    f"the event rules version `{meta[expected_rules_version_tag]}` reported in the span tag {expected_rules_version_tag} isn't equal to the weblog context version `{context.appsec_rules_version}`"
+                )
 
             return True
 
