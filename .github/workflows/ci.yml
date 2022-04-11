@@ -111,8 +111,14 @@ jobs:
             weblog-variant: apache-mod
             version: prod
           - library: php
+            weblog-variant: apache-mod
+            version: dev
+          - library: php
             weblog-variant: php-fpm
             version: prod
+          - library: php
+            weblog-variant: php-fpm
+            version: dev
 
           - library: python
             weblog-variant: flask-poc
@@ -234,7 +240,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library != 'python'  }}
+        if: ${{ matrix.version == 'dev' && matrix.library != 'python' && matrix.library != 'php' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
 
       - name: Load library binary
