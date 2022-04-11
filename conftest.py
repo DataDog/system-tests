@@ -5,20 +5,57 @@
 import os
 import collections
 import inspect
+import time
 
 from utils import context, data_collector, interfaces
 from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
 from utils._xfail import xfails
 
 from pytest_jsonreport.plugin import JSONReport
+import _pytest
+
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+
+
+class CustomTerminalReporter(_pytest.terminal.TerminalReporter):
+    def pytest_sessionstart(self, session):
+        self._session = session
+        self._sessionstarttime = time.time()
+
+        self.write_sep("=", "test session starts", bold=True)
+        self.write_line(f"Library: {context.library}")
+        self.write_line(f"Agent: {context.agent_version}")
+
+        if context.library == "php":
+            self.write_line(f"AppSec: {context.php_appsec}")
+
+        if context.libddwaf_version:
+            self.write_line(f"libddwaf: {context.libddwaf_version}")
+
+        if context.appsec_rules_file:
+            self.write_line(f"AppSec rules file: {context.appsec_rules_file}")
+
+        self.write_line(f"AppSec rules version: {context.appsec_rules_version}")
+        self.write_line(f"Weblog variant: {context.weblog_variant}")
+        self.write_line(f"Backend: {context.dd_site}")
+
+
+_pytest.terminal.TerminalReporter = CustomTerminalReporter
 
 _docs = {}
 _skip_reasons = {}
 _release_versions = {}
 _rfcs = {}
+
+
+def pytest_report_teststatus(report, config):
+    if report.when != "call":
+        return
+
+    if report.keywords.get("expected_failure") == 1:
+        return "xfail", "x", "XFAIL"
 
 
 def pytest_sessionstart(session):
@@ -37,27 +74,6 @@ def pytest_sessionstart(session):
     data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
     data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
     data_collector.start()
-
-
-def pytest_report_header(config):
-    headers = [f"Library: {context.library}", f"Agent: {context.agent_version}"]
-
-    if context.library == "php":
-        headers.append(f"AppSec: {context.php_appsec}")
-
-    if context.libddwaf_version:
-        headers.append(f"libddwaf: {context.libddwaf_version}")
-
-    if context.appsec_rules_file:
-        headers.append(f"AppSec rules file: {context.appsec_rules_file}")
-
-    headers.append(f"AppSec rules version: {context.appsec_rules_version}")
-
-    headers += [
-        f"Weblog variant: {context.weblog_variant}",
-        f"Backend: {context.dd_site}",
-    ]
-    return headers
 
 
 def _get_skip_reason_from_marker(marker):
@@ -113,35 +129,53 @@ def _wait_interface(interface, session):
     timeout = interface.expected_timeout
 
     try:
+        if len(interface.validations) != 0:
+            terminal.write_line("")
+            if timeout:
+                terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
+            else:
+                terminal.write_sep("-", f"Async validations for {interface}")
+
         if timeout:
-            terminal.write_line(f"Wait {timeout}s for {len(interface.validations)} validations on {interface}")
             interface.wait(timeout=timeout)
         else:
-            terminal.write_line(f"Wait for {len(interface.validations)} validation on {interface}")
             interface.wait()
+
     except Exception as e:
         session.shouldfail = f"{interface} is not validated"
         terminal.write_line(f"{interface}: unexpected failure")
         interface.system_test_error = e
         return False
 
+    filenames = collections.defaultdict(list)
+    # build a dictwhere keys are filenames, values are a list of validation in thoses file
+    for validation in interface.validations:
+        filename, _, _ = validation.get_test_source_info()
+        filenames[filename].append(validation)
+
     terminal_column_count = int(os.environ.get("COLUMNS", "80"))
 
-    for i, validation in enumerate(interface.validations):
+    for filename in sorted(filenames):
+        terminal.write(f"{filename} ")
+        current_column = len(filename)
 
-        if (i + 1) % terminal_column_count == 0:
-            terminal.write_line("")
+        for i, validation in enumerate(filenames[filename]):
 
-        if validation in interface.passed:
-            terminal.write(".", bold=True, green=True)
-        elif validation in interface.failed:
-            terminal.write("F", bold=True, red=True)
-        elif validation in interface.xpassed:
-            terminal.write("X", yellow=True)
-        elif validation in interface.xfailed:
-            terminal.write("x", yellow=True)
+            current_column += 1
+            if (current_column) % terminal_column_count == 0:
+                terminal.write_line("")
+                current_column = 0
 
-    terminal.write_line("")
+            if validation in interface.passed:
+                terminal.write(".", bold=True, green=True)
+            elif validation in interface.failed:
+                terminal.write("F", bold=True, red=True)
+            elif validation in interface.xpassed:
+                terminal.write("X", yellow=True)
+            elif validation in interface.xfailed:
+                terminal.write("x", green=True)
+
+        terminal.write_line("")
 
     if not interface.is_success:
         session.shouldfail = f"{interface} is not validated"
@@ -173,9 +207,6 @@ def pytest_runtestloop(session):
             raise session.Failed(session.shouldfail)
         if session.shouldstop:
             raise session.Interrupted(session.shouldstop)
-
-    terminal.write_line("")
-    terminal.write_sep("-", f"Wait for async validations")
 
     success = True
 
@@ -320,13 +351,14 @@ def _print_async_failure_report(terminalreporter, failed, passed):
                     terminalreporter.line("")
 
     xpassed_methods = []
+
     for validations in xfails.methods.values():
-        if len([v for v in validations if not v.is_success]) == 0 and len(validations) != 0:
+        if len([v for v in validations if v.is_success]) != 0 and len(validations) != 0:
             xpassed_methods.append(validations[0])
 
     xpassed_classes = []
     for validations in xfails.classes.values():
-        if len([v for v in validations if not v.is_success]) == 0 and len(validations) != 0:
+        if len([v for v in validations if v.is_success]) != 0 and len(validations) != 0:
             xpassed_classes.append(validations[0])
 
     if len(failed) != 0 or len(xpassed_methods) != 0 or len(xpassed_classes) != 0:
