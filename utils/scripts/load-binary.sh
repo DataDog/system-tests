@@ -100,14 +100,15 @@ get_github_action_artifact() {
     SLUG=$1
     WORKFLOW=$2
     BRANCH=$3
-    EVENT=$4
-    PATTERN=$5
+    PATTERN=$4
 
-    WORKFLOWS=$(curl --silent -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?branch=$BRANCH&event=$EVENT&per_page=10")
+    # query filter seems not to be working ??
+    WORKFLOWS=$(curl --silent -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
-    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\")][0] | .artifacts_url"
-    ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY")
-    echo "Load artifact $ARTIFACT_URL" 
+    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+    ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
+    HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
+    echo "Load artifact $HTML_URL" 
     ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
 
     ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
@@ -150,8 +151,6 @@ elif [ "$TARGET" = "dotnet" ]; then
     curl -L --silent $URL --output $ARCHIVE
 
 elif [ "$TARGET" = "python" ]; then
-    # rm -rf *.whl
-    # get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" "master" "schedule" 'ddtrace-*-cp39-cp39-manylinux2010_x86_64.whl'
     echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
@@ -201,7 +200,7 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 elif [ "$TARGET" = "php_appsec" ]; then
-    get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "push" "dd-appsec-php-*-amd64.tar.gz"
+    get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "dd-appsec-php-*-amd64.tar.gz"
 
 else
     echo "Unknown target: $1"
