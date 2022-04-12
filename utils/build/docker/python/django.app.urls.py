@@ -6,6 +6,7 @@ from ddtrace import tracer
 
 tracer.trace("init.service").finish()
 
+
 def hello_world(request):
     return HttpResponse("Hello, World!")
 
