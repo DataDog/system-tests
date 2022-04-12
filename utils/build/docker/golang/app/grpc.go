@@ -12,13 +12,9 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	grpctrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/google.golang.org/grpc"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func listenAndServeGRPC() {
-	tracer.Start()
-	defer tracer.Stop()
-
 	lis, err := net.Listen("tcp", ":7778")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

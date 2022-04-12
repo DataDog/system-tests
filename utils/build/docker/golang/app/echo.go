@@ -62,7 +62,7 @@ func main() {
 	})
 
 	initDatadog()
-	// go listenAndServeGRPC()
+	go listenAndServeGRPC()
 	r.Start(":7777")
 }
 
