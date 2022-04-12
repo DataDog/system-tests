@@ -52,7 +52,7 @@ func main() {
 	})
 
 	initDatadog()
-	go listenAndServeGRPC()
+	// go listenAndServeGRPC()
 	http.ListenAndServe(":7777", r)
 }
 
