@@ -63,6 +63,29 @@ class _ReceiveRequestRootTrace(BaseValidation):
             )
 
 
+class _TracesValidation(BaseValidation):
+    """ will run an arbitrary check on traces. Validator function can :
+        * returns true => validation will be validated at the end (but trace will continue to be checked)
+        * returns False or None => nothing is done
+        * raise an exception => validation will fail
+    """
+
+    path_filters = r"/v0\.[1-9]+/traces"
+
+    def __init__(self, validator, is_success_on_expiry):
+        super().__init__()
+        self.is_success_on_expiry = is_success_on_expiry
+        self.validator = validator
+
+    def check(self, data):
+        try:
+            if self.validator(data):
+                self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
+                self.is_success_on_expiry = True
+        except Exception as e:
+            self.set_failure(f"{m(self.message)} not validated: {e}\npayload is: {data['log_filename']}")
+
+
 class _SpanValidation(BaseValidation):
     """ will run an arbitrary check on spans. If a request is provided, only span
         related to this request will be checked.
