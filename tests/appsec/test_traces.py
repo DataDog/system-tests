@@ -149,13 +149,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@released(golang="1.38.0")
-@missing_feature(library="java")
-@missing_feature(library="dotnet")
-@missing_feature(library="nodejs")
-@missing_feature(library="python")
-@missing_feature(library="ruby")
-@released(php_appsec="0.3.0")
+@released(golang="1.38.0", dotnet="?", java="?", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
 class Test_AppSecObfuscator_ToBeRestoredOnceWeHaveRules(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
