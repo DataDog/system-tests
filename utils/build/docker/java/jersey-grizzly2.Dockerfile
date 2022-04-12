@@ -20,6 +20,6 @@ COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS
 COPY --from=build /app/target/jersey-grizzly2-1.0-SNAPSHOT.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
-RUN echo "#!/bin/bash\njava -Ddd.integration.grizzly.enabled=true -javaagent:/app/dd-java-agent.jar -jar /app/jersey-grizzly2-1.0-SNAPSHOT.jar" > app.sh
+RUN echo "#!/bin/bash\njava -Xmx362m -Ddd.integration.grizzly.enabled=true -javaagent:/app/dd-java-agent.jar -jar /app/jersey-grizzly2-1.0-SNAPSHOT.jar" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]

@@ -15,6 +15,7 @@ from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
     _ReceiveRequestRootTrace,
     _SpanValidation,
+    _TracesValidation,
     _TraceExistence,
 )
 from utils.interfaces._library.sampling import (
@@ -23,12 +24,7 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidation,
     _DistributedTracesDeterministicSamplingDecisisonValidation,
 )
-from utils.interfaces._library.trace_headers import (
-    _TraceHeadersContainerTags,
-    _TraceHeadersCount,
-    _TraceHeadersPresentPhp,
-    _TraceHeadersContainerTagsCpp,
-)
+from utils.interfaces._library.trace_headers import _TraceHeadersContainerTags
 from utils.interfaces._misc_validators import HeadersPresenceValidation
 
 
@@ -58,15 +54,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def assert_trace_headers_container_tags(self):
         self.append_validation(_TraceHeadersContainerTags())
-
-    def assert_trace_headers_container_tags_cpp(self):
-        self.append_validation(_TraceHeadersContainerTagsCpp())
-
-    def assert_trace_headers_present_php(self):
-        self.append_validation(_TraceHeadersPresentPhp())
-
-    def assert_trace_headers_count_match(self):
-        self.append_validation(_TraceHeadersCount())
 
     def assert_receive_request_root_trace(self):
         self.append_validation(_ReceiveRequestRootTrace())
@@ -107,6 +94,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_metric_absence(self, metric_name):
         self.append_validation(_MetricAbsence(metric_name))
 
+    def add_traces_validation(self, validator, is_success_on_expiry=False):
+        self.append_validation(_TracesValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+
     def add_span_validation(self, request=None, validator=None):
         self.append_validation(_SpanValidation(request=request, validator=validator))
 
@@ -124,8 +114,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
-    def assert_trace_exists(self, request):
-        self.append_validation(_TraceExistence(request=request))
+    def assert_trace_exists(self, request, span_type=None):
+        self.append_validation(_TraceExistence(request=request, span_type=span_type))
 
 
 class _TraceIdUniquenessExceptions:

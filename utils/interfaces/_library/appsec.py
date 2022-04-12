@@ -144,6 +144,9 @@ class _NoAppsecEvent(_BaseAppSecValidation):
     def validate_legacy(self, event):
         self.set_failure(f"{m(self.message)} => request has been reported")
 
+    def validate(self, span, appsec_data):
+        self.set_failure(f"{m(self.message)} => request has been reported")
+
 
 class _WafAttack(_BaseAppSecValidation):
     def __init__(self, request, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None):
@@ -222,10 +225,10 @@ class _WafAttack(_BaseAppSecValidation):
                         full_addresses.append((parameter["address"], key_path))
 
             if self.rule_id and self.rule_id != rule_id:
-                self.log_info(f"{self.message} => saw {rule_id}")
+                self.log_info(f"{self.message} => saw {rule_id}, expecting {self.rule_id}")
 
-            if self.rule_type and self.rule_type != rule_type:
-                self.log_info(f"{self.message} => saw rule type {rule_type}")
+            elif self.rule_type and self.rule_type != rule_type:
+                self.log_info(f"{self.message} => saw rule type {rule_type}, expecting {self.rule_type}")
 
             elif self.pattern and self.pattern not in patterns:
                 self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
@@ -262,10 +265,10 @@ class _WafAttack(_BaseAppSecValidation):
         key_path = self.key_path if event_version != "0.1.0" else None
 
         if self.rule_id and self.rule_id != rule_id:
-            self.log_info(f"{self.message} => saw rule id {rule_id}")
+            self.log_info(f"{self.message} => saw rule id {rule_id}, expecting {self.rule_id}")
 
-        if self.rule_type and self.rule_type != rule_type:
-            self.log_info(f"{self.message} => saw rule type {rule_type}")
+        elif self.rule_type and self.rule_type != rule_type:
+            self.log_info(f"{self.message} => saw rule type {rule_type}, expecting {self.rule_type}")
 
         elif self.pattern and self.pattern not in patterns:
             self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")

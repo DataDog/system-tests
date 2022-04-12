@@ -1,5 +1,8 @@
 FROM arm32v7/python:3.9
 
+RUN apt-get update
+RUN apt-get install cmake -y
+
 # print versions
 RUN python --version && curl --version
 

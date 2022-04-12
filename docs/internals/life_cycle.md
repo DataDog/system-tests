@@ -3,15 +3,13 @@
 The docker compose file includes several dependancies between each services. Here is the startup diagram of all services:
 
 ```mermaid
-graph TD
-    runner --> weblog
-    runner --> agent 
-    agent --> library_proxy
     agent_proxy --> agent
-    library_proxy --> weblog
-    weblog
-    cassandra[(cassandra)] ----> weblog 
-    mongo[(mongo)] ----> weblog 
+    library_proxy --> agent
+    runner --> agent 
+    agent --> weblog
+    runner --> weblog
+    cassandra[(cassandra)] ----> weblog
+    mongo[(mongo)] ----> weblog
 ```
 
 ## Warmup

@@ -1,16 +1,19 @@
 package com.datadoghq.resteasy;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
@@ -29,6 +32,15 @@ public class MyResource {
         } finally {
             span.finish();
         }
+    }
+
+    @GET
+    @Path("/headers")
+    public Response headers() {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .header("content-language", "en-US")
+                .entity("012345678901234567890123456789012345678901").build();
     }
 
     @GET

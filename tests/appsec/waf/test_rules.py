@@ -37,7 +37,7 @@ class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
     @bug(context.library < "dotnet@2.1.0")
-    @bug(library="java", reason="under Valentin's investigations")
+    @bug(context.library < "java@0.98.1")
     def test_http_protocol(self):
         """ AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         r = self.weblog_get("/waf/", params={"key": ".cookie;domain="})
@@ -62,7 +62,7 @@ class Test_LFI(BaseTestCase):
     def test_lfi(self):
         """ AppSec catches LFI attacks"""
         r = self.weblog_get("/waf/", headers={"x-attack": "/../"})
-        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
+        interfaces.library.assert_waf_attack(r, rules.lfi)
 
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
@@ -72,14 +72,16 @@ class Test_LFI(BaseTestCase):
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
     @irrelevant(library="php", weblog_variant="apache-mod")
+    @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_percent_2f(self):
         """ Appsec catches encoded LFI attacks"""
         r = self.weblog_get("/waf/%2e%2e%2f")
-        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100)
+        interfaces.library.assert_waf_attack(r, rules.lfi)
 
     @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.92.0")
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
+    @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         r = self.weblog_get("/waf/..")
@@ -156,7 +158,6 @@ class Test_PhpCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_200)
 
     @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
-    @bug(library="dotnet", reason="APPSEC-2290")
     def test_php_code_injection_bug(self):
         """ Appsec WAF detects other php injection rules """
         r = self.weblog_get("/waf/", params={"x-attack": " var_dump ()"})
@@ -222,9 +223,6 @@ class Test_XSS(BaseTestCase):
         r = self.weblog_get("/waf/", params={"key": "!![]"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
-    @bug(library="ruby", reason="need to be investiged")
-    def test_xss1(self):
-        """AppSec catches XSS attacks"""
         r = self.weblog_get("/waf/", params={"key": "+ADw->|<+AD$-"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
@@ -255,9 +253,8 @@ class Test_SQLI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_220)
 
     @flaky(context.library <= "php@0.68.2")
-    @bug(library="dotnet", reason="APPSEC-2290")
     def test_sqli2(self):
-        """Other SQLI patterns, to be merged once issue are corrected"""
+        """Other SQLI patterns"""
         r = self.weblog_get("/waf/", params={"value": "alter d char set f"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_240)
 
@@ -269,7 +266,7 @@ class Test_SQLI(BaseTestCase):
     @missing_feature(library="golang", reason="cookies are not url-decoded and this attack works with a ;")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_sqli3(self):
-        """Other SQLI patterns, to be merged once issue are corrected"""
+        """SQLI patterns in cookie"""
         r = self.weblog_get("/waf/", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_280)
 
@@ -287,12 +284,24 @@ class Test_SQLI(BaseTestCase):
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
-    def test_nosqli(self):
+    @irrelevant(context.appsec_rules_version >= "1.3.0", reason="rules run only on keys starting 1.3.0")
+    def test_nosqli_value(self):
         """AppSec catches NoSQLI attacks"""
         r = self.weblog_get("/waf/", params={"value": "[$ne]"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
 
         r = self.weblog_get("/waf/", headers={"x-attack": "$nin"})
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
+
+    @missing_feature(context.library != "java", reason="Need to use last WAF version")
+    @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
+    @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
+    def test_nosqli_keys(self):
+        """AppSec catches NoSQLI attacks"""
+        r = self.weblog_get("/waf/", params={"[$ne]": "value"})
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
+
+        r = self.weblog_get("/waf/", params={"$nin": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
 
@@ -339,35 +348,35 @@ class Test_DiscoveryScan(BaseTestCase):
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""
         r = self.weblog_get("/etc/")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_001)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_001)
 
         r = self.weblog_get("/mysql")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_001)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_001)
 
         r = self.weblog_get("/myadmin")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_001)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_001)
 
         r = self.weblog_get("/readme.md")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_002)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_002)
 
         r = self.weblog_get("/web-inf/web.xml")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_003)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_003)
 
         r = self.weblog_get("/src/main.rb")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_004)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_004)
 
         r = self.weblog_get("/access.log")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_005)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_005)
 
         r = self.weblog_get("/mykey.pem")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_006)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_006)
 
-        r = self.weblog_get("/logs.tar")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_007)
+        # need some match for those two rules
+        # r = self.weblog_get("/logs.tar")
+        # interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_007)
 
-        # Need a match for rule 8
-        r = self.weblog_get("/administrator/components/component.php")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_008)
+        # r = self.weblog_get("/administrator/components/component.php")
+        # interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_008)
 
         r = self.weblog_get("/login.pwd")
-        interfaces.library.assert_waf_attack(r, rules.discovery_scan.ndf_000_009)
+        interfaces.library.assert_waf_attack(r, rules.discovery_scan.nfd_000_009)
