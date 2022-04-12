@@ -320,8 +320,7 @@ class Test_PathParams(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
 
 
-@released(dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-@missing_feature(library="golang", reason="AppSec not working when a weblog contains an HTTP server AND a gRPC server")
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_gRPC(BaseTestCase):
     """Appsec supports address grpc.server.request.message"""
 
