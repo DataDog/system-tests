@@ -33,14 +33,11 @@ class Test_Monitoring_With_Rules_Errors(BaseTestCase):
         ]
         expected_rules_monitoring_metrics_tags = [
             expected_rules_monitoring_nb_loaded_tag,
-            expected_rules_monitoring_nb_errors_tag
+            expected_rules_monitoring_nb_errors_tag,
         ]
         expected_nb_loaded = 4
         expected_nb_errors = 2
-        expected_error_details = {
-            "missing key 'name'": ["missing-name"],
-            "missing key 'tags'": ["missing-tags"]
-        }
+        expected_error_details = {"missing key 'name'": ["missing-name"], "missing key 'tags'": ["missing-tags"]}
 
         def validate_rules_monitoring_span_tags(span):
             """
