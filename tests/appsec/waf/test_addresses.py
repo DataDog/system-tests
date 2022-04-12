@@ -149,8 +149,11 @@ class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @irrelevant(library="java", reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
-                                       "encoded to represent disallowed octets")
+    @irrelevant(
+        library="java",
+        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
+        "encoded to represent disallowed octets",
+    )
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
@@ -311,7 +314,7 @@ class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
     @bug(library="dotnet", reason="attack is not reported")
-    @missing_feature(context.library < 'java@0.99.0' and context.weblog_variant in ['vertx3', 'ratpack'])
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant in ["vertx3", "ratpack"])
     def test_security_scanner(self):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
