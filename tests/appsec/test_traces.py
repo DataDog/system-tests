@@ -149,7 +149,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@missing_feature(library="golang")
+@released(golang="1.38.0")
 @missing_feature(library="java")
 @missing_feature(library="dotnet")
 @missing_feature(library="nodejs")
