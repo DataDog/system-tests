@@ -38,8 +38,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         if context.library == "java":
             self.expected_timeout = 80
-        elif context.library.library in ("php", "nodejs"):
+        elif context.library.library in ("nodejs",):
             self.expected_timeout = 5
+        elif context.library.library in ("php",):
+            self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
         else:
             self.expected_timeout = 40
 
