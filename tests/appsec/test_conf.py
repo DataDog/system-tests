@@ -52,13 +52,10 @@ class Test_RuleSet_1_2_5(BaseTestCase):
 class Test_RuleSet_1_3_1(BaseTestCase):
     """ AppSec uses rule set 1.3.1 or higher """
 
-    # dirty hack waiting for a proper way to handle sync failures
-    @missing_feature(context.appsec_rules_version < "1.3.1")
     def test_main(self):
         """ Test rule set version number"""
-        assert context.appsec_rules_version >= "1.3.1"
+        interfaces.library.add_assertion(context.appsec_rules_version >= "1.3.1")
 
-    @missing_feature(context.library != "java", reason="Need to use last WAF version")
     def test_nosqli_keys(self):
         """Test a rule defined on this rules version: nosql on keys"""
         r = self.weblog_get("/waf/", params={"[$ne]": "value"})
