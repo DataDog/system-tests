@@ -155,6 +155,8 @@ class Test_All:
         assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
         assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version("1.0.0", "ruby")
 
+        assert Version("1.0.0beta1", "ruby") < Version("1.0.0beta1+8a50f1f", "ruby")
+
     def test_version_serialization(self):
         from utils._context.library_version import Version
 
@@ -184,6 +186,9 @@ class Test_All:
 
         v = Version("1.0.0-nightly", "php")
         assert v == "1.0.0"
+
+        v = Version("3.0.0pre0", "nodejs")
+        assert v == "3.0.0pre0"
 
     def test_library_version(self):
         from utils._context.library_version import LibraryVersion

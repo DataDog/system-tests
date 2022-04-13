@@ -2,8 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, missing_feature, irrelevant
 import pytest
+from utils import BaseTestCase, context, interfaces, released, missing_feature, irrelevant
+from .waf.utils import rules
 
 
 if context.library == "cpp":
@@ -46,8 +47,22 @@ class Test_RuleSet_1_2_5(BaseTestCase):
         assert context.appsec_rules_version >= "1.2.5"
 
 
+@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="3.0.0pre0", php_appsec="0.3.0", python="?")
+@missing_feature(context.library <= "ruby@1.0.0beta1")
 class Test_RuleSet_1_3_1(BaseTestCase):
     """ AppSec uses rule set 1.3.1 or higher """
 
+    # dirty hack waiting for a proper way to handle sync failures
+    @missing_feature(context.appsec_rules_version < "1.3.1")
     def test_main(self):
+        """ Test rule set version number"""
         assert context.appsec_rules_version >= "1.3.1"
+
+    @missing_feature(context.library != "java", reason="Need to use last WAF version")
+    def test_nosqli_keys(self):
+        """Test a rule defined on this rules version: nosql on keys"""
+        r = self.weblog_get("/waf/", params={"[$ne]": "value"})
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
+
+        r = self.weblog_get("/waf/", params={"$nin": "value"})
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
