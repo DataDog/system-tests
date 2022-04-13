@@ -44,3 +44,10 @@ class Test_RuleSet_1_2_5(BaseTestCase):
 
     def test_main(self):
         assert context.appsec_rules_version >= "1.2.5"
+
+
+class Test_RuleSet_1_3_1(BaseTestCase):
+    """ AppSec uses rule set 1.3.1 or higher """
+
+    def test_main(self):
+        assert context.appsec_rules_version >= "1.3.1"
