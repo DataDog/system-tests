@@ -12,6 +12,8 @@ RUN dotnet restore
 COPY utils/build/docker/dotnet/*.cs ./
 COPY utils/build/docker/dotnet/Dependencies/*.cs ./Dependencies/
 COPY utils/build/docker/dotnet/Endpoints/*.cs ./Endpoints/
+COPY utils/build/docker/dotnet/Controllers/*.cs ./Controllers/
+COPY utils/build/docker/dotnet/Models/*.cs ./Models/
 
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh

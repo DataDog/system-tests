@@ -185,7 +185,7 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
 @released(
     java="0.100.0"
     if context.weblog_variant == "vertx3"

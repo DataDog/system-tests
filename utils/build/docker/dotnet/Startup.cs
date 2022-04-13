@@ -26,6 +26,9 @@ namespace weblog
             app.UseEndpoints(routeBuilder =>
             {
                 EndpointRegistry.RegisterAll(routeBuilder);
+                routeBuilder.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
 
             using (var scope = Tracer.Instance.StartActive("test.manual"))
