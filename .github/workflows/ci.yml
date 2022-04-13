@@ -276,6 +276,11 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run AppSec rules monitoring with errors
+        run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run profiling test
         if: ${{ matrix.library == 'nodejs' }}
         run: ./run.sh PROFILING
