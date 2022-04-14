@@ -167,7 +167,7 @@ class Test_AppSecObfuscator_ToBeRestoredOnceWeHaveRules(BaseTestCase):
 
         r = self.weblog_get(
             "/waf/",
-            headers={"HTTP_API_TOKEN": f"{SECRET} acunetix-product"},
+            headers={"Http-Api-Token": f"{SECRET} acunetix-product"},
             params={"pwd": f"{SECRET} select pg_sleep"},
         )
         interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies")
