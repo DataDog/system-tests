@@ -12,10 +12,8 @@ if context.library == "cpp":
 
 
 @released(golang="1.38.0", dotnet="?", java="?", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
-class Test_Monitoring_With_Rules_Errors(BaseTestCase):
-    """
-    Validate the WAF monitoring tags and metrics when having errors in the rules
-    """
+class Test_Monitoring(BaseTestCase):
+    """ Support In-App WAF monitoring tags and metrics  """
 
     def test_waf_monitoring(self):
         """
