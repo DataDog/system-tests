@@ -29,7 +29,7 @@ class Test_AppSecObfuscator(BaseTestCase):
             return True
 
         r = self.weblog_get(
-            "/waf/", cookies={"Bearer": f"{SECRET} select pg_sleep"}, params={"pwd": f"{SECRET} o:3:\"d\":3:{{}}"},
+            "/waf/", cookies={"Bearer": f"{SECRET} select pg_sleep"}, params={"pwd": f'{SECRET} o:3:"d":3:{{}}'},
         )
         interfaces.library.assert_waf_attack(r, address="server.request.cookies")
         interfaces.library.assert_waf_attack(r, address="server.request.query")

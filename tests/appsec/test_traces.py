@@ -166,7 +166,9 @@ class Test_AppSecObfuscator_ToBeRestoredOnceWeHaveRules(BaseTestCase):
             return True
 
         r = self.weblog_get(
-            "/waf/", headers={"DD_API_TOKEN": f"{SECRET} acunetix-product"}, params={"pwd": f"{SECRET} select pg_sleep"},
+            "/waf/",
+            headers={"DD_API_TOKEN": f"{SECRET} acunetix-product"},
+            params={"pwd": f"{SECRET} select pg_sleep"},
         )
         interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(r, address="server.request.query")
@@ -235,7 +237,9 @@ class Test_AppSecObfuscator_ToBeRestoredOnceWeHaveRules(BaseTestCase):
             return True
 
         r = self.weblog_get(
-            "/waf/", headers={"my-header": f"password={SECRET} acunetix-product"}, params={"payload": sensitive_raw_payload},
+            "/waf/",
+            headers={"my-header": f"password={SECRET} acunetix-product"},
+            params={"payload": sensitive_raw_payload},
         )
         interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(r, address="server.request.query")
