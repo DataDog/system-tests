@@ -16,6 +16,8 @@ services:
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
     ports:
       - "8082:8082"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   library_proxy:
     container_name: library_proxy
@@ -27,6 +29,8 @@ services:
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   weblog:
     container_name: weblog
@@ -52,6 +56,8 @@ services:
         condition: service_started
       mongodb:
         condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   cassandra_db:
     container_name: cassandra
@@ -111,3 +117,5 @@ services:
       - ./scenarios/:/app/scenarios/
       - /var/run/docker.sock:/var/run/docker.sock
     command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
