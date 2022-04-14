@@ -310,6 +310,9 @@ class Test_ResponseStatus(BaseTestCase):
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
+@missing_feature(
+    context.library < 'java@0.101.0' and context.weblog_variant in ['jersey-grizzly2', 'resteasy-netty3']
+)
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
