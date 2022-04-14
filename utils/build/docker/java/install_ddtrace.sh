@@ -26,9 +26,13 @@ touch /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 
-bsdtar -O - -xf /dd-tracer/dd-java-agent.jar appsec/default_config.json | \
-  grep rules_version | head -1 | awk -F'"' '{print $4;}' \
-  > /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+if [[ $SYSTEM_TESTS_LIBRARY_VERSION == 0.96* ]]; then
+  echo "1.2.5" > /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+else
+  bsdtar -O - -xf /dd-tracer/dd-java-agent.jar appsec/default_config.json | \
+    grep rules_version | head -1 | awk -F'"' '{print $4;}' \
+    > /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+fi
 
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
 echo "libddwaf version: $(cat /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION)"
