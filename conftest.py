@@ -49,15 +49,7 @@ _skip_reasons = {}
 _release_versions = {}
 _rfcs = {}
 
-
-def pytest_report_teststatus(report, config):
-    if report.when != "call":
-        return
-
-    if report.keywords.get("expected_failure") == 1:
-        return "xfail", "x", "XFAIL"
-
-
+# Called at the very begening
 def pytest_sessionstart(session):
 
     logger.debug(f"Library: {context.library}")
@@ -76,19 +68,7 @@ def pytest_sessionstart(session):
     data_collector.start()
 
 
-def _get_skip_reason_from_marker(marker):
-    if marker.name == "skipif":
-        if all(marker.args):
-            return marker.kwargs.get("reason", "")
-    elif marker.name in ("skip", "expected_failure"):
-        if len(marker.args):  # if un-named arguments are present, the first one is the reason
-            return marker.args[0]
-        else:  #  otherwise, search in named arguments
-            return marker.kwargs.get("reason", "")
-
-    return None
-
-
+# called when each test item is collected
 def pytest_itemcollected(item):
 
     _docs[item.nodeid] = item.obj.__doc__
@@ -120,37 +100,17 @@ def pytest_itemcollected(item):
             break
 
 
-def _wait_interface(interface, session):
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+def _get_skip_reason_from_marker(marker):
+    if marker.name == "skipif":
+        if all(marker.args):
+            return marker.kwargs.get("reason", "")
+    elif marker.name in ("skip", "expected_failure"):
+        if len(marker.args):  # if un-named arguments are present, the first one is the reason
+            return marker.args[0]
+        else:  #  otherwise, search in named arguments
+            return marker.kwargs.get("reason", "")
 
-    # side note : do NOT skip this function even if interface has no validations
-    # internal errors may cause no validation in interface
-
-    timeout = interface.expected_timeout
-
-    try:
-        if len(interface.validations) != 0:
-            if timeout:
-                terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
-            else:
-                terminal.write_sep("-", f"Async validations for {interface}")
-
-        if timeout:
-            interface.wait(timeout=timeout)
-        else:
-            interface.wait()
-
-    except Exception as e:
-        session.shouldfail = f"{interface} is not validated"
-        terminal.write_line(f"{interface}: unexpected failure")
-        interface.system_test_error = e
-        return False
-
-    if not interface.is_success:
-        session.shouldfail = f"{interface} is not validated"
-        return False
-
-    return True
+    return None
 
 
 def pytest_runtestloop(session):
@@ -192,48 +152,45 @@ def pytest_runtestloop(session):
     return True
 
 
-def pytest_json_modifyreport(json_report):
+def pytest_report_teststatus(report, config):
+    if report.when != "call":
+        return
+
+    if report.keywords.get("expected_failure") == 1:
+        return "xfail", "x", "XFAIL"
+
+
+def _wait_interface(interface, session):
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+
+    # side note : do NOT skip this function even if interface has no validations
+    # internal errors may cause no validation in interface
+
+    timeout = interface.expected_timeout
 
     try:
-        logger.debug("Modifying JSON report")
+        if len(interface.validations) != 0:
+            if timeout:
+                terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
+            else:
+                terminal.write_sep("-", f"Async validations for {interface}")
 
-        # report test with a failing asyn validation as failed
-        failed_nodeids = set()
+        if timeout:
+            interface.wait(timeout=timeout)
+        else:
+            interface.wait()
 
-        for interface in interfaces.all:
-            for validation in interface._validations:
-                if validation.closed and not validation.is_success:
-                    filename, klass, function = validation.get_test_source_info()
-                    nodeid = f"{filename}::{klass}::{function}"
-                    failed_nodeids.add(nodeid)
-
-        # populate and adjust some data
-        for test in json_report["tests"]:
-            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
-            if test["nodeid"] in failed_nodeids:
-                test["outcome"] = "failed"
-            elif test["outcome"] in ("xfail", "xfailed"):
-                # it means that the synchronous test is marked as expected failure
-                # but all asynchronous test are ok
-                test["outcome"] = "xpassed"
-
-        # add usefull data for reporting
-        json_report["docs"] = _docs
-        json_report["context"] = context.serialize()
-        json_report["release_versions"] = _release_versions
-        json_report["rfcs"] = _rfcs
-
-        # clean useless and volumetric data
-        del json_report["collectors"]
-
-        for test in json_report["tests"]:
-            for k in ("setup", "call", "teardown", "keywords", "lineno"):
-                if k in test:
-                    del test[k]
-
-        logger.debug("Modifying JSON report finished")
     except Exception as e:
-        logger.error(f"Fail to modify json report", exc_info=True)
+        session.shouldfail = f"{interface} is not validated"
+        terminal.write_line(f"{interface}: unexpected failure")
+        interface.system_test_error = e
+        return False
+
+    if not interface.is_success:
+        session.shouldfail = f"{interface} is not validated"
+        return False
+
+    return True
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -386,6 +343,50 @@ def _print_async_failure_report(terminalreporter, failed, passed):
             terminalreporter.line(f"XPASSED {method} - Expected to fail, but all is ok", yellow=True)
 
         terminalreporter.line("")
+
+
+def pytest_json_modifyreport(json_report):
+
+    try:
+        logger.debug("Modifying JSON report")
+
+        # report test with a failing asyn validation as failed
+        failed_nodeids = set()
+
+        for interface in interfaces.all:
+            for validation in interface._validations:
+                if validation.closed and not validation.is_success:
+                    filename, klass, function = validation.get_test_source_info()
+                    nodeid = f"{filename}::{klass}::{function}"
+                    failed_nodeids.add(nodeid)
+
+        # populate and adjust some data
+        for test in json_report["tests"]:
+            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
+            if test["nodeid"] in failed_nodeids:
+                test["outcome"] = "failed"
+            elif test["outcome"] in ("xfail", "xfailed"):
+                # it means that the synchronous test is marked as expected failure
+                # but all asynchronous test are ok
+                test["outcome"] = "xpassed"
+
+        # add usefull data for reporting
+        json_report["docs"] = _docs
+        json_report["context"] = context.serialize()
+        json_report["release_versions"] = _release_versions
+        json_report["rfcs"] = _rfcs
+
+        # clean useless and volumetric data
+        del json_report["collectors"]
+
+        for test in json_report["tests"]:
+            for k in ("setup", "call", "teardown", "keywords", "lineno"):
+                if k in test:
+                    del test[k]
+
+        logger.debug("Modifying JSON report finished")
+    except Exception as e:
+        logger.error(f"Fail to modify json report", exc_info=True)
 
 
 def pytest_sessionfinish(session, exitstatus):
