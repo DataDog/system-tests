@@ -22,20 +22,21 @@ class _FailedQuery:
 
 # some GRPC request wrapper to fit into validator model
 class _GrpcRequest:
-    def __init__(self, request, metadata):
+    def __init__(self, request, rid):
         self.content = request
-        self.headers = {k: v for k, v in metadata}
+        # fake the HTTP header model
+        self.headers = {"user-agent": f"rid/{rid}"}
 
 
 class _GrpcQuery:
-    def __init__(self, request, metadata, response):
-        self.request = _GrpcRequest(request, metadata)
+    def __init__(self, rid, request, response):
+        self.request = _GrpcRequest(request, rid)
         self.response = response
 
 
 class BaseTestCase(unittest.TestCase):
     _weblog_url_prefix = "http://weblog:7777"
-    _grpc_client = grpcapi.WeblogStub(grpc.insecure_channel("weblog:7778", options=(("grpc.enable_http_proxy", 0),)))
+    _weblog_grpc_target = "weblog:7778"
 
     def weblog_get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self._weblog_request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
@@ -94,15 +95,22 @@ class BaseTestCase(unittest.TestCase):
     def weblog_grpc(self, string_value, metadata=[]):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
-        metadata.append(["user-agent", f"system_tests rid/{rid}"])
+        # We cannot set the user agent for each request. For now, start a new channel for each query
+        _grpc_client = grpcapi.WeblogStub(
+            grpc.insecure_channel(
+                self._weblog_grpc_target,
+                options=(("grpc.enable_http_proxy", 0), ("grpc.primary_user_agent", f"system_tests rid/{rid}")),
+            )
+        )
+
         logger.debug(f"Sending grpc request {rid}")
 
         request = pb.Value(string_value=string_value)
 
         try:
-            response = self._grpc_client.Unary(request, metadata=metadata)
+            response = _grpc_client.Unary(request)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            return _GrpcQuery(request, metadata, None)
+            return _GrpcQuery(rid, request, None)
 
-        return _GrpcQuery(request, metadata, response)
+        return _GrpcQuery(rid, request, response)

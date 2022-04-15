@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import re
 from utils.tools import logger
 
 
@@ -26,24 +27,33 @@ def _get_rid_from_span(span):
         logger.error(f"Span should be an object, not {type(span)}")
         return None
 
-    # code version
-    user_agent = span.get("meta", {}).get("http.request.headers.user-agent", None)
+    meta = span.get("meta", {})
 
-    if not user_agent:  # try something for .NET
-        user_agent = span.get("meta", {}).get("http_request_headers_user-agent", None)
+    if span.get("type") == "rpc":
+        user_agent = meta.get("grpc.metadata.user-agent")
+    else:
+        # code version
+        user_agent = meta.get("http.request.headers.user-agent")
 
-    if not user_agent:  # last hope
-        user_agent = span.get("meta", {}).get("http.useragent", None)
+        if not user_agent:  # try something for .NET
+            user_agent = meta.get("http_request_headers_user-agent")
+
+        if not user_agent:  # last hope
+            user_agent = meta.get("http.useragent")
 
     return get_rid_from_user_agent(user_agent)
 
 
 def get_rid_from_user_agent(user_agent):
-    if not user_agent or "rid/" not in user_agent:
+    if not user_agent:
         return None
 
-    rid = user_agent[-36:]
-    return rid
+    match = re.search("rid/([A-Z]{36})", user_agent)
+
+    if not match:
+        return None
+
+    return match.group(1)
 
 
 def get_spans_related_to_rid(traces, rid):
