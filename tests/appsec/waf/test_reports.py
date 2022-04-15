@@ -11,13 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@missing_feature(library="golang")
-@missing_feature(library="java")
-@missing_feature(library="dotnet")
-@missing_feature(library="nodejs")
-@missing_feature(library="python")
-@missing_feature(library="ruby")
-@released(php_appsec="0.3.0")
+@released(golang="1.38.0", dotnet="?", java="?", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
 class Test_Monitoring(BaseTestCase):
     """ Support In-App WAF monitoring tags and metrics  """
 

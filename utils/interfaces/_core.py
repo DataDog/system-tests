@@ -165,6 +165,9 @@ class InterfaceValidator(object):
         # to avoid any mistake, provide a copy
         return list(self._validations)
 
+    def add_assertion(self, condition):
+        self.append_validation(_StaticValidation(condition))
+
 
 class ObjectDumpEncoder(json.JSONEncoder):
     def default(self, o):
@@ -335,3 +338,12 @@ class _NotImplementedValidation(BaseValidation):
     def __init__(self, message=None, request=None):
         super().__init__(message=message, request=request)
         self.set_status(False)
+
+
+class _StaticValidation(BaseValidation):
+    def __init__(self, condition):
+        super().__init__()
+        self.set_status(condition)
+
+    def check(self, data):
+        pass
