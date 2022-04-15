@@ -240,7 +240,7 @@ class BaseValidation(object):
 
         if xfails.is_xfail_class(self.calling_class):
             logger.debug(f"{self} is called from {self.calling_class}, which is xfail")
-            xfails.add_validation_from_class(self.calling_class, self)
+            xfails.add_validation_from_class(self.calling_class, self.calling_method, self)
             self.is_xfail = True
 
         self.message = self.message.strip()

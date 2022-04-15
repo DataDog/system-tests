@@ -130,7 +130,6 @@ def _wait_interface(interface, session):
 
     try:
         if len(interface.validations) != 0:
-            terminal.write_line("")
             if timeout:
                 terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
             else:
@@ -146,36 +145,6 @@ def _wait_interface(interface, session):
         terminal.write_line(f"{interface}: unexpected failure")
         interface.system_test_error = e
         return False
-
-    filenames = collections.defaultdict(list)
-    # build a dictwhere keys are filenames, values are a list of validation in thoses file
-    for validation in interface.validations:
-        filename, _, _ = validation.get_test_source_info()
-        filenames[filename].append(validation)
-
-    terminal_column_count = int(os.environ.get("COLUMNS", "80"))
-
-    for filename in sorted(filenames):
-        terminal.write(f"{filename} ")
-        current_column = len(filename)
-
-        for i, validation in enumerate(filenames[filename]):
-
-            current_column += 1
-            if (current_column) % terminal_column_count == 0:
-                terminal.write_line("")
-                current_column = 0
-
-            if validation in interface.passed:
-                terminal.write(".", bold=True, green=True)
-            elif validation in interface.failed:
-                terminal.write("F", bold=True, red=True)
-            elif validation in interface.xpassed:
-                terminal.write("X", yellow=True)
-            elif validation in interface.xfailed:
-                terminal.write("x", green=True)
-
-        terminal.write_line("")
 
     if not interface.is_success:
         session.shouldfail = f"{interface} is not validated"
@@ -208,6 +177,8 @@ def pytest_runtestloop(session):
         if session.shouldstop:
             raise session.Interrupted(session.shouldstop)
 
+    terminal.write_line("")
+
     success = True
 
     success = _wait_interface(interfaces.library, session) and success
@@ -236,10 +207,15 @@ def pytest_json_modifyreport(json_report):
                     nodeid = f"{filename}::{klass}::{function}"
                     failed_nodeids.add(nodeid)
 
+        # populate and adjust some data
         for test in json_report["tests"]:
             test["skip_reason"] = _skip_reasons.get(test["nodeid"])
             if test["nodeid"] in failed_nodeids:
                 test["outcome"] = "failed"
+            elif test["outcome"] in ("xfail", "xfailed"):
+                # it means that the synchronous test is marked as expected failure
+                # but all asynchronous test are ok
+                test["outcome"] = "xpassed"
 
         # add usefull data for reporting
         json_report["docs"] = _docs
@@ -251,9 +227,6 @@ def pytest_json_modifyreport(json_report):
         del json_report["collectors"]
 
         for test in json_report["tests"]:
-            if test["nodeid"] in failed_nodeids:
-                test["outcome"] = "failed"
-
             for k in ("setup", "call", "teardown", "keywords", "lineno"):
                 if k in test:
                     del test[k]
@@ -265,6 +238,7 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
+    validations = []
     passed = []
     failed = []
     xpassed = []
@@ -278,22 +252,56 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                 terminalreporter.line(line, red=True)
             return
 
+        validations += interface.validations
         passed += interface.passed
         failed += interface.failed
         xpassed += interface.xpassed
         xfailed += interface.xfailed
 
+    _print_async_test_list(terminalreporter, validations, passed, failed, xpassed, xfailed)
     _print_async_failure_report(terminalreporter, failed, passed)
 
 
-def pytest_sessionfinish(session, exitstatus):
+def _print_async_test_list(terminal, validations, passed, failed, xpassed, xfailed):
+    """ build list of test file, with a letter for each test method describing the state of the method regarding async validations """
+    # Create a tree filename > methods > fails
+    files = collections.defaultdict(lambda: collections.defaultdict(list))
 
-    data_collector.shutdown()
-    data_collector.join(timeout=10)
+    for validation in validations:
+        filename, _, method = validation.get_test_source_info()
+        files[filename][method].append(validation)
 
-    # Is it really a test ?
-    if data_collector.is_alive():
-        logger.error("Can't terminate data collector")
+    terminal_column_count = int(os.environ.get("COLUMNS", "80"))
+
+    for filename, methods in files.items():
+        terminal.write(f"{filename} ")
+        current_column = len(filename)
+
+        for method, validations in methods.items():
+            is_passed = len([v for v in validations if v in passed]) == len(validations)
+            is_failed = len([v for v in validations if v in failed]) != 0
+            is_xpassed = len([v for v in validations if v in xpassed]) == len(validations)
+            is_xfailed = len([v for v in validations if v in xfailed]) != 0
+
+            current_column += 1
+            if (current_column) % terminal_column_count == 0:
+                terminal.write_line("")
+                current_column = 0
+
+            if is_passed:
+                terminal.write(".", bold=True, green=True)
+            elif is_failed:
+                terminal.write("F", bold=True, red=True)
+            elif is_xpassed:
+                terminal.write("X", yellow=True)
+            elif is_xfailed:
+                terminal.write("x", green=True)
+            else:
+                terminal.write("O", red=True)
+
+        terminal.write_line("")
+
+    terminal.write_line("")
 
 
 def _print_async_failure_report(terminalreporter, failed, passed):
@@ -302,13 +310,13 @@ def _print_async_failure_report(terminalreporter, failed, passed):
     # Create a tree filename > functions > fails
     files = collections.defaultdict(lambda: collections.defaultdict(list))
 
+    for fail in failed:
+        filename, _, function = fail.get_test_source_info()
+        files[filename][function].append(fail)
+
     if len(failed) != 0:
         terminalreporter.line("")
         terminalreporter.write_sep("=", "ASYNC FAILURE" if len(failed) == 1 else "ASYNC FAILURES", red=True, bold=True)
-
-        for fail in failed:
-            filename, _, function = fail.get_test_source_info()
-            files[filename][function].append(fail)
 
         for filename, functions in files.items():
 
@@ -351,17 +359,22 @@ def _print_async_failure_report(terminalreporter, failed, passed):
                     terminalreporter.line("")
 
     xpassed_methods = []
-
+    logger.info("xxx")
+    logger.info(xfails.methods)
     for validations in xfails.methods.values():
-        if len([v for v in validations if v.is_success]) != 0 and len(validations) != 0:
-            xpassed_methods.append(validations[0])
 
-    xpassed_classes = []
-    for validations in xfails.classes.values():
-        if len([v for v in validations if v.is_success]) != 0 and len(validations) != 0:
-            xpassed_classes.append(validations[0])
+        failed_validations = [v for v in validations if not v.is_success]
+        logger.info(validations)
+        logger.info([v.is_success for v in validations])
+        logger.info(failed_validations)
 
-    if len(failed) != 0 or len(xpassed_methods) != 0 or len(xpassed_classes) != 0:
+        if len(failed_validations) == 0 and len(validations) != 0:
+            filename, klass, function = validations[0].get_test_source_info()
+
+            logger.info(f"{filename}::{klass}::{function}")
+            xpassed_methods.append(f"{filename}::{klass}::{function}")
+
+    if len(failed) != 0 or len(xpassed_methods) != 0:
         terminalreporter.write_sep("=", "short async test summary info")
 
         for filename, functions in files.items():
@@ -369,14 +382,17 @@ def _print_async_failure_report(terminalreporter, failed, passed):
                 filename, klass, function = fails[0].get_test_source_info()
                 terminalreporter.line(f"FAILED {filename}::{klass}::{function} - {len(fails)} fails", red=True)
 
-        for validation in xpassed_methods:
-            filename, klass, function = validation.get_test_source_info()
-            terminalreporter.line(
-                f"XPASSED {filename}::{klass}::{function} - Expected to fail, but all is ok", yellow=True
-            )
-
-        for validation in xpassed_classes:
-            filename, klass, function = validation.get_test_source_info()
-            terminalreporter.line(f"XPASSED {filename}::{klass} - Expected to fail, but all is ok", yellow=True)
+        for method in xpassed_methods:
+            terminalreporter.line(f"XPASSED {method} - Expected to fail, but all is ok", yellow=True)
 
         terminalreporter.line("")
+
+
+def pytest_sessionfinish(session, exitstatus):
+
+    data_collector.shutdown()
+    data_collector.join(timeout=10)
+
+    # Is it really a test ?
+    if data_collector.is_alive():
+        logger.error("Can't terminate data collector")
