@@ -134,7 +134,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         """ Appsec tags are not on span where type is not web """
 
         def validator(span):
-            if span.get("type") == "web":
+            if span.get("type") in ["web", "http", "rpc"]:
                 return
 
             if "metrics" in span and "_dd.appsec.enabled" in span["metrics"]:
