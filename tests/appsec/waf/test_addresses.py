@@ -252,7 +252,8 @@ class Test_BodyXml(BaseTestCase):
     ATTACK = '<vmlframe src="xss">'
     ENCODED_ATTACK = "&lt;vmlframe src=&quot;xss&quot;&gt;"
 
-    def weblog_post(self, path="/", params=None, data=None, headers={}, **kwargs):
+    def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
+        headers = headers or {}
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
         return super().weblog_post(path, params, data, headers)
