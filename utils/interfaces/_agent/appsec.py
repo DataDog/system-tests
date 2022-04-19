@@ -16,6 +16,9 @@ class _BaseAppSecValidation(BaseValidation):
     path_filters = ["/api/v0.2/traces"]
 
     def _get_related_events(self, data):
+        if "tracerPayloads" not in data["request"]["content"]:
+            return
+
         content = data["request"]["content"]["tracerPayloads"]
 
         for payload in content:
