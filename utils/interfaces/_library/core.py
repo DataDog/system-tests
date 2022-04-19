@@ -37,7 +37,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
         if context.library == "java":
-            self.expected_timeout = 80
+            self.expected_timeout = 30
         elif context.library.library in ("nodejs", "golang",):
             self.expected_timeout = 5
         elif context.library.library in ("php",):
