@@ -35,5 +35,5 @@ class Test_Basic(BaseTestCase):
             return True
 
         # Send a random attack on the identify endpoint
-        r = self.weblog_get("/identify/", headers={"User-Agent": "Arachni/v1"})
+        r = self.weblog_get("/identify", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.add_span_validation(r, validate_identify_tags)
