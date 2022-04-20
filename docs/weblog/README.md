@@ -2,6 +2,12 @@
 
 A weblog is a web app that system uses to test the library. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different end points.
 
+## Disclaimer
+
+This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
+
+**You are strongly encouraged to help others by submitting corrections when you notice issues with this document.**
+
 # Endpoints
 
 ## GET / (aka plain text end point)
@@ -82,7 +88,9 @@ The end point should accept a query string parameter `q`. This parameter should 
 
 The output of the query should be written to the body of the response.
 
-## GET /waf
+## \[All HTTP verbs\] /waf
+
+This is a generic endpoint. It must accept all methods, all content types, all queries and all sub paths.
 
 The following text should be written to the body of the response:
 
