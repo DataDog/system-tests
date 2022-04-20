@@ -50,7 +50,7 @@ func main() {
 	r.Any("/headers/", headers)
 	r.Any("/headers", headers)
 
-	r.Any("/identify/", func(c echo.Context) error {
+	identify := func(c echo.Context) error {
 		if span, ok := tracer.SpanFromContext(c.Request().Context()); ok {
 			tracer.SetUser(
 				span, "usr.id", tracer.WithUserEmail("usr.email"),
@@ -59,7 +59,9 @@ func main() {
 			)
 		}
 		return c.String(http.StatusOK, "Hello, identify!")
-	})
+	}
+	r.Any("/identify/", identify)
+	r.Any("/identify", identify)
 
 	initDatadog()
 	go listenAndServeGRPC()
