@@ -36,7 +36,7 @@ module QueryVersions =
         let waf =
             match createMethodParameters.Length with
             | 1 ->  createMethod.Invoke(null, [| null |])
-            | 3 ->  createMethod.Invoke(null, [| String.Empty, String.Empty, null |])
+            | 3 ->  createMethod.Invoke(null, [| String.Empty; String.Empty; null |])
             | _ -> failwith "Unknown number of parameters"
         let version = versionProp.GetValue(waf)
         File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", (version.ToString()))
