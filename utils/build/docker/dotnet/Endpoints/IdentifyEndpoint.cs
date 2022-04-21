@@ -17,6 +17,7 @@ namespace weblog
                     Name = "usr.name",
                     SessionId = "usr.session_id",
                     Role = "usr.role",
+                    Scope = "usr.scope",
                 };
                 Tracer.Instance.ActiveScope?.Span.SetUser(userDetails);
                 await context.Response.WriteAsync("Hello world!\\n");
