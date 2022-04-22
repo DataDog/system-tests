@@ -1,3 +1,26 @@
+## TL;DR.
+
+We'll implement a mechanism that will put metadata on each test class about the coverage/completness of the test. Two questions : 
+
+* There will be three level, `basic`, `good`, `complete`. It's a compromise, do you think it's too many? not enough?
+* There two proposition of implementations, one , one using class inheritance : 
+
+
+```python
+@coverage.good
+class Test_Feature():
+    pass
+```
+
+Or
+
+```python
+class Test_Feature(BaseTestCase.GoodCoverage):
+    pass
+```
+
+There are [pro and con](#Implementations possibility), which one do you prefer ? 
+
 ## Currently
 
 For a given feature, a test can have two informal coverage status:
