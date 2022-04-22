@@ -293,6 +293,11 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run CGROUP scenario
+        run: ./run.sh CGROUP
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
