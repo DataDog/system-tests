@@ -19,7 +19,9 @@ namespace weblog
                     Role = "usr.role",
                     Scope = "usr.scope",
                 };
-                Tracer.Instance.ActiveScope?.Span.SetUser(userDetails);
+                var scope = Tracer.Instance.ActiveScope;
+                scope?.Span.SetUser(userDetails);
+
                 await context.Response.WriteAsync("Hello world!\\n");
             });
         }
