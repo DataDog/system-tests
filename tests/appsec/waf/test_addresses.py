@@ -68,9 +68,9 @@ class Test_UrlRaw(BaseTestCase):
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0")
+@released(python="1.1.0rc1")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
-@missing_feature(context.library < "python@0.58.5")
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -306,7 +306,7 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
+@released(dotnet="2.5.1", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc1", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
