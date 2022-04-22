@@ -29,7 +29,6 @@ class Test_Basic(BaseTestCase):
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
-    @missing_feature(library="python")
     def test_headers(self):
         """
         Via server.request.headers.no_cookies
@@ -42,7 +41,6 @@ class Test_Basic(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
 
-    @missing_feature(library="python")
     def test_no_cookies(self):
         """
         Address server.request.headers.no_cookies should not include cookies.
