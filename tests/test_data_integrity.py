@@ -67,8 +67,3 @@ class Test_TraceHeaders(BaseTestCase):
                         )
 
         interfaces.library.add_traces_validation(validator=validator, is_success_on_expiry=True)
-
-    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
-    def test_trace_header_container_tags(self):
-        """Datadog-Container-ID header value is right in all traces submitted to the agent"""
-        interfaces.library.assert_trace_headers_container_tags()
