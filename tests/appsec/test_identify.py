@@ -13,10 +13,10 @@ if context.library == "cpp":
 @missing_feature(library="dotnet")
 @missing_feature(library="java")
 @missing_feature(library="python")
-@missing_feature(library="ruby")
 @released(golang="1.37.0")
 @released(nodejs="2.4.0")
 @released(php="0.72.0")
+@released(ruby="1.0.0.beta2")
 class Test_Basic(BaseTestCase):
     """ Basic tests for Identify SDK """
 
