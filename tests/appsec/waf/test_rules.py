@@ -14,7 +14,7 @@ if context.library == "cpp":
 
 
 @released(golang="1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc1")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Scanners(BaseTestCase):
     """ Appsec WAF tests on scanners rules """
