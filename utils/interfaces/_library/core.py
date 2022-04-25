@@ -16,7 +16,6 @@ from utils.interfaces._library.miscs import (
     _ReceiveRequestRootTrace,
     _SpanValidation,
     _TracesValidation,
-    _TraceExistence,
 )
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
