@@ -122,7 +122,7 @@ class _SpanValidation(BaseValidation):
                     self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
 
-class _TracesValidation(BaseValidation):
+class _TraceValidation(BaseValidation):
     def __init__(self, request, min_trace_count=1, span_type=None, custom_traces_validation=None, custom_wait=None):
         super().__init__(request=request)
         self.min_trace_count = min_trace_count

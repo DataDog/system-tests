@@ -15,6 +15,7 @@ from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
     _ReceiveRequestRootTrace,
     _SpanValidation,
+    _TraceValidation,
     _TracesValidation,
 )
 from utils.interfaces._library.sampling import (
@@ -113,7 +114,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def assert_trace_exists(self, request, span_type=None, custom_traces_validation=None, custom_wait=None):
         self.append_validation(
-            _TracesValidation(
+            _TraceValidation(
                 request=request,
                 span_type=span_type,
                 custom_traces_validation=custom_traces_validation,
