@@ -6,6 +6,7 @@ from utils import BaseTestCase, interfaces, context, missing_feature
 
 # ./build.sh ${language} --weblog-variant ${weblogvariant}
 # ./run.sh /tests/integrations/test_distributed_http.py::Test_DistributedHttp::test_main
+@missing_feature(library="python", reason="Endpoint is not implemented on weblog")
 @missing_feature(library="java", reason="Endpoint is not implemented on weblog")
 @missing_feature(library="nodejs", reason="Endpoint is not implemented on weblog")
 @missing_feature(library="php", reason="Endpoint is not implemented on weblog")
