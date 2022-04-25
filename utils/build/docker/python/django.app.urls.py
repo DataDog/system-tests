@@ -25,5 +25,5 @@ urlpatterns = [
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
-    path("params/<appscan_fingerprint>", waf)
+    path("params/<appscan_fingerprint>", waf),
 ]
