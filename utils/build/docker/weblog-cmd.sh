@@ -14,14 +14,16 @@ set -eu
 # Zero is good!
 script_status=0
 
-echo "Get cgroup info"
-cat /proc/self/cgroup > /var/log/system-tests/weblog.cgroup
 
 echo "Configuration script executed from: ${PWD}"
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
 
-if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
+if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "CGROUP" ]; then
+    echo "Get cgroup info"
+    cat /proc/self/cgroup > /var/log/system-tests/weblog.cgroup
+
+elif [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "UDS" ]; then
 
     export EXPECTED_APM_SOCKET=${DD_APM_RECEIVER_SOCKET:-/var/run/datadog/apm.socket}
     echo "Setting up UDS with ${EXPECTED_APM_SOCKET}."

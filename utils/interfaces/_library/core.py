@@ -15,6 +15,7 @@ from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
     _ReceiveRequestRootTrace,
     _SpanValidation,
+    _TracesValidation,
     _TraceExistence,
 )
 from utils.interfaces._library.sampling import (
@@ -22,12 +23,6 @@ from utils.interfaces._library.sampling import (
     _AllRequestsTransmitted,
     _AddSamplingDecisionValidation,
     _DistributedTracesDeterministicSamplingDecisisonValidation,
-)
-from utils.interfaces._library.trace_headers import (
-    _TraceHeadersContainerTags,
-    _TraceHeadersCount,
-    _TraceHeadersPresentPhp,
-    _TraceHeadersContainerTagsCpp,
 )
 from utils.interfaces._library.telemetry import (
     _TelemetryRequestSuccessValidation,
@@ -51,9 +46,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
         if context.library == "java":
-            self.expected_timeout = 80
-        elif context.library.library in ("php", "nodejs"):
+            self.expected_timeout = 30
+        elif context.library.library in ("nodejs", "golang",):
             self.expected_timeout = 5
+        elif context.library.library in ("php",):
+            self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
         else:
             self.expected_timeout = 40
 
@@ -65,18 +62,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(
             HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
         )
-
-    def assert_trace_headers_container_tags(self):
-        self.append_validation(_TraceHeadersContainerTags())
-
-    def assert_trace_headers_container_tags_cpp(self):
-        self.append_validation(_TraceHeadersContainerTagsCpp())
-
-    def assert_trace_headers_present_php(self):
-        self.append_validation(_TraceHeadersPresentPhp())
-
-    def assert_trace_headers_count_match(self):
-        self.append_validation(_TraceHeadersCount())
 
     def assert_receive_request_root_trace(self):
         self.append_validation(_ReceiveRequestRootTrace())
@@ -117,6 +102,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_metric_absence(self, metric_name):
         self.append_validation(_MetricAbsence(metric_name))
 
+    def add_traces_validation(self, validator, is_success_on_expiry=False):
+        self.append_validation(_TracesValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+
     def add_span_validation(self, request=None, validator=None):
         self.append_validation(_SpanValidation(request=request, validator=validator))
 
@@ -155,8 +143,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
-    def assert_trace_exists(self, request):
-        self.append_validation(_TraceExistence(request=request))
+    def assert_trace_exists(self, request, span_type=None):
+        self.append_validation(_TraceExistence(request=request, span_type=span_type))
 
 
 class _TraceIdUniquenessExceptions:

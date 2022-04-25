@@ -1,10 +1,10 @@
 class _Xfails:
     def __init__(self):
         self.methods = {}
-        self.classes = {}
+        self.classes = set()
 
     def add_xfailed_class(self, klass):
-        self.classes[klass] = []
+        self.classes.add(klass)
 
     def add_xfailed_method(self, method):
         self.methods[method] = []
@@ -19,9 +19,12 @@ class _Xfails:
         """ The validation is xfail because the calling method is xfail"""
         self.methods[method].append(validation)
 
-    def add_validation_from_class(self, klass, validation):
+    def add_validation_from_class(self, klass, method, validation):
         """ The validation is xfail because the parent class of calling method is xfail"""
-        self.classes[klass].append(validation)
+        assert self.is_xfail_class(klass)
+        if not self.is_xfail_method(method):
+            self.add_xfailed_method(method)
+        self.add_validation_from_method(method, validation)
 
 
 xfails = _Xfails()

@@ -87,6 +87,12 @@ jobs:
           - library: java
             weblog-variant: resteasy-netty3
             version: prod
+          - library: java
+            weblog-variant: ratpack
+            version: prod
+          - library: java
+            weblog-variant: vertx3
+            version: prod
 
           - library: nodejs
             weblog-variant: express4
@@ -105,8 +111,14 @@ jobs:
             weblog-variant: apache-mod
             version: prod
           - library: php
+            weblog-variant: apache-mod
+            version: dev
+          - library: php
             weblog-variant: php-fpm
             version: prod
+          - library: php
+            weblog-variant: php-fpm
+            version: dev
 
           - library: python
             weblog-variant: flask-poc
@@ -228,7 +240,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library != 'python'  }}
+        if: ${{ matrix.version == 'dev' && matrix.library != 'python' && matrix.library != 'php' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
 
       - name: Load library binary
@@ -255,13 +267,17 @@ jobs:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run missing AppSec rules file
-        if: ${{ matrix.library != 'ruby' || matrix.version != 'dev' }}  # broken on ruby dev
         run: ./run.sh APPSEC_MISSING_RULES
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run custom AppSec rules file
         run: ./run.sh APPSEC_CUSTOM_RULES
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run AppSec rules monitoring with errors
+        run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
@@ -274,6 +290,11 @@ jobs:
       - name: Run UDS scenario
         if: ${{ matrix.library != 'php' && matrix.library != 'cpp' }}
         run: ./run.sh UDS
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run CGROUP scenario
+        run: ./run.sh CGROUP
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

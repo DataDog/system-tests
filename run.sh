@@ -64,9 +64,14 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
-    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_ConfRuleSet scenarios/appsec/test_customconf.py::Test_NoLimitOnWafRules"
+    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_ConfRuleSet scenarios/appsec/test_customconf.py::Test_NoLimitOnWafRules scenarios/appsec/waf/test_addresses.py scenarios/appsec/test_traces.py"
     export SYSTEMTESTS_LOG_FOLDER=logs_custom_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_custom_rules.json"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
+    export RUNNER_ARGS="scenarios/appsec/waf/test_reports.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_rules_monitoring_with_errors
+    WEBLOG_ENV="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
 
 elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
@@ -76,6 +81,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     # armv7 tests
     export RUNNER_ARGS=scenarios/appsec/test_unsupported.py
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
+
+elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
+    # cgroup test
+    export RUNNER_ARGS=scenarios/test_data_integrity.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_cgroup
 
 else # Let user choose the target
     export RUNNER_ARGS=$@

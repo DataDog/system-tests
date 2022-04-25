@@ -162,12 +162,12 @@ class ssrf:
 
 
 class discovery_scan:
-    ndf_000_001 = "ndf-000-001"  # Detect common directory discovery scans
-    ndf_000_002 = "ndf-000-002"  # Detect failed attempt to fetch readme files
-    ndf_000_003 = "ndf-000-003"  # Detect failed attempt to fetch Java EE resource files
-    ndf_000_004 = "ndf-000-004"  # Detect failed attempt to fetch code files
-    ndf_000_005 = "ndf-000-005"  # Detect failed attempt to fetch source code archives
-    ndf_000_006 = "ndf-000-006"  # Detect failed attempt to fetch sensitive files
-    ndf_000_007 = "ndf-000-007"  # Detect failed attempt to fetch archives
-    ndf_000_008 = "ndf-000-008"  # Detect failed attempt to trigger incorrect application behavior
-    ndf_000_009 = "ndf-000-009"  # Detect failed attempt to leak the structure of the application
+    nfd_000_001 = "nfd-000-001"  # Detect common directory discovery scans
+    nfd_000_002 = "nfd-000-002"  # Detect failed attempt to fetch readme files
+    nfd_000_003 = "nfd-000-003"  # Detect failed attempt to fetch Java EE resource files
+    nfd_000_004 = "nfd-000-004"  # Detect failed attempt to fetch code files
+    nfd_000_005 = "nfd-000-005"  # Detect failed attempt to fetch source code archives
+    nfd_000_006 = "nfd-000-006"  # Detect failed attempt to fetch sensitive files
+    nfd_000_007 = "nfd-000-007"  # Detect failed attempt to fetch archives
+    nfd_000_008 = "nfd-000-008"  # Detect failed attempt to trigger incorrect application behavior
+    nfd_000_009 = "nfd-000-009"  # Detect failed attempt to leak the structure of the application

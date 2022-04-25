@@ -14,6 +14,8 @@ services:
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
+    ports:
+      - "8082:8082"
 
   library_proxy:
     container_name: library_proxy
@@ -25,9 +27,6 @@ services:
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
-    depends_on:
-      agent:
-        condition: service_healthy
 
   weblog:
     container_name: weblog
@@ -44,11 +43,12 @@ services:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
       - "7777:7777"
+      - "7778:7778"
     depends_on:
       runner:
         condition: service_healthy
-      library_proxy:
-        condition: service_started
+      agent:
+        condition: service_healthy
       cassandra_db:
         condition: service_started
       mongodb:
@@ -87,6 +87,8 @@ services:
         condition: service_healthy
       agent_proxy:
         condition: service_started
+      library_proxy:
+        condition: service_started
 
   runner:
     container_name: runner
@@ -101,6 +103,7 @@ services:
       - PYTHONPATH=/app
       - DD_SITE=${DD_SITE:-datad0g.com}
       - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
+      - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
       - ./pytest.ini:/app/pytest.ini
       - ./conftest.py:/app/conftest.py

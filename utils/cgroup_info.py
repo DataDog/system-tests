@@ -7,8 +7,15 @@ from typing import Optional
 import attr
 
 
+def get_container_id(infos):
+    for line in infos:
+        info = _CGroupInfo.from_line(line)
+        if info:
+            return info.container_id
+
+
 @attr.s(slots=True)
-class CGroupInfo(object):
+class _CGroupInfo(object):
     """
     CGroup class for container information parsed from a group cgroup file.
 
@@ -37,7 +44,7 @@ class CGroupInfo(object):
 
     @classmethod
     def from_line(cls, line):
-        # type: (str) -> Optional[CGroupInfo]
+        # type: (str) -> Optional[_CGroupInfo]
         """
         Parse a new :class:`CGroupInfo` from the provided line
         :param line: A line from a cgroup file (e.g. /proc/self/cgroup) to parse information from

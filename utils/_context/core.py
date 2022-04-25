@@ -11,7 +11,6 @@ import requests
 import time
 
 from utils.tools import logger, get_exception_traceback
-from utils._context.cgroup_info import CGroupInfo
 from utils._context.library_version import LibraryVersion, Version
 
 
@@ -52,6 +51,8 @@ class _Context:
 
         self.dd_site = os.environ.get("DD_SITE")
 
+        self.scenario = self.weblog_image.env.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
+
         library = self.weblog_image.env.get("SYSTEM_TESTS_LIBRARY", None)
         version = self.weblog_image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None)
         self.library = LibraryVersion(library, version)
@@ -68,7 +69,7 @@ class _Context:
             self.sampling_rate = None
 
         if self.library == "php":
-            self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION", None))
+            self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
         else:
             self.php_appsec = None
 
@@ -80,7 +81,7 @@ class _Context:
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
         appsec_rules_version = self.weblog_image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules_version")
+        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules")
 
         agent_version = self.agent_image.env.get("SYSTEM_TESTS_AGENT_VERSION")
 
@@ -88,17 +89,6 @@ class _Context:
             self.agent_version = None
         else:
             self.agent_version = Version(agent_version, "agent")
-
-    def get_weblog_container_id(self):
-        cgroup_file = "logs/docker/weblog/logs/weblog.cgroup"
-
-        with open(cgroup_file, mode="r") as fp:
-            for line in fp:
-                info = CGroupInfo.from_line(line)
-                if info:
-                    return info.container_id
-
-        raise RuntimeError("Failed to get container id")
 
     def execute_warmups(self):
 
@@ -110,6 +100,9 @@ class _Context:
             _HealthCheck("http://weblog:7777", 120),
             _wait_for_app_readiness,
         ]
+
+        if self.scenario == "CGROUP":
+            warmups.append(_wait_for_weblog_cgroup_file)
 
         for warmup in warmups:
             logger.info(f"Executing warmup {warmup}")
@@ -171,6 +164,8 @@ def _wait_for_weblog_cgroup_file():
     attempt = 0
 
     while attempt < max_attempts and not os.path.exists("logs/docker/weblog/logs/weblog.cgroup"):
+
+        logger.debug("logs/docker/weblog/logs/weblog.cgroup is missing, wait")
         time.sleep(1)
         attempt += 1
 
@@ -192,8 +187,6 @@ def _wait_for_app_readiness():
     if not interfaces.agent.ready.wait(40):
         pytest.exit("Datadog agent not ready", 1)
     logger.debug(f"Agent ready")
-
-    _wait_for_weblog_cgroup_file()
 
     return
 

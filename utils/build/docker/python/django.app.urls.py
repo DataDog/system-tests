@@ -1,6 +1,10 @@
 # pages/urls.py
 from django.urls import path
 from django.http import HttpResponse
+from ddtrace import tracer
+
+
+tracer.trace("init.service").finish()
 
 
 def hello_world(request):
@@ -14,6 +18,7 @@ def sample_rate(request, i):
 def waf(request, url=""):
     return HttpResponse("Hello, World!")
 
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -21,4 +26,3 @@ urlpatterns = [
     path("waf/", waf),
     path("waf/<url>", waf),
 ]
-

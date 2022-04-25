@@ -37,7 +37,7 @@ class Test_CorruptedRules(_BaseNoAppSec):
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
 
 
-@released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
+@released(java="0.93.0", nodejs="2.4.1", php_appsec="0.3.0", ruby="?")
 class Test_MissingRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is missing"""
 
@@ -57,7 +57,8 @@ class Test_MissingRules(_BaseNoAppSec):
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="?", ruby="?")
+@released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="?")
+@missing_feature(context.library <= "ruby@1.0.0.beta1")
 class Test_ConfRuleSet(BaseTestCase):
     """AppSec support env var DD_APPSEC_RULES"""
 
@@ -70,13 +71,14 @@ class Test_ConfRuleSet(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="dedicated-value-for-testing-purpose")
 
     def test_log(self):
+        """ Check there is no error reported in logs """
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")
         stdout.assert_absence("WAF initialization failed")
 
 
-@released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="?", ruby="?")
-@flaky(library="php", reason="APPSEC-3859")
+@released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="?")
+@missing_feature(context.library <= "ruby@1.0.0.beta1")
 class Test_NoLimitOnWafRules(BaseTestCase):
     """ Serialize WAF rules without limiting their sizes """
 

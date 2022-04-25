@@ -13,6 +13,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Response;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
@@ -35,7 +36,17 @@ public class MyResource {
     }
 
     @GET
-    @Path("/waf/{params: .*}")
+    @Path("/headers")
+    public Response headers() {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .header("content-length", "42")
+                .header("content-language", "en-US")
+                .entity("012345678901234567890123456789012345678901").build();
+    }
+
+    @GET
+    @Path("/params/{params: .*}")
     public String waf(@PathParam("params") List<PathSegment> params) {
         return params.toString();
     }

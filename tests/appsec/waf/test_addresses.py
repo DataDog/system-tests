@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="1.0.0")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="1.0.0.beta1")
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -129,19 +129,32 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
+@released(
+    golang="1.37.0"
+    if context.weblog_variant == "gin"
+    else "1.36.0"
+    if context.weblog_variant in ["echo", "chi"]
+    else "1.34.0"
+)
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
+
+    # Cookies rules has been removed in rules version 1.2.7. Test on cookies are now done on custom rules scenario.
+    # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
 
     def test_cookies(self):
         """ Appsec WAF detects attackes in cookies """
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @missing_feature(library="java", reason="cookie is rejected by Coyote")
-    @missing_feature(library="golang", reason="cookies are not url-decoded")
+    @irrelevant(
+        library="java",
+        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
+        "encoded to represent disallowed octets",
+    )
+    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
@@ -150,14 +163,14 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf", cookies={"key": ".cookie-%3Bdomain="})
         interfaces.library.assert_waf_attack(r, pattern=".cookie-;domain=", address="server.request.cookies")
 
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     def test_cookies_with_spaces(self):
         """ Cookie with pattern containing a space """
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
-    @missing_feature(context.library < "golang@1.36.0")
-    @bug(library="dotnet", reason="APPSEC-2290")
+    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
+    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
     @bug(context.library < "java@0.96.0")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
@@ -176,7 +189,16 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(
+    java="0.99.0"
+    if context.weblog_variant == "vertx3"
+    else "0.99.0"
+    if context.weblog_variant == "ratpack"
+    else "0.98.0"
+    if context.weblog_variant == "spring-boot-undertow"
+    else "0.95.1"
+)
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -186,18 +208,24 @@ class Test_BodyUrlEncoded(BaseTestCase):
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
-    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(
+    java="0.99.0"
+    if context.weblog_variant == "vertx3"
+    else "0.99.0"
+    if context.weblog_variant == "ratpack"
+    else "0.95.1"
+)
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
-    @missing_feature(reason="matching against keys is impossible with current rules")
+    @irrelevant(reason="matching against keys is impossible with current rules")
     def test_json_key(self):
         """AppSec detects attacks in JSON body keys"""
         r = self.weblog_post("/waf", json={'<vmlframe src="xss">': "value"})
@@ -214,14 +242,18 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", java="0.95.1", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(
+    java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
+)
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
     ATTACK = '<vmlframe src="xss">'
     ENCODED_ATTACK = "&lt;vmlframe src=&quot;xss&quot;&gt;"
 
-    def weblog_post(self, path="/", params=None, data=None, headers={}, **kwargs):
+    def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
+        headers = headers or {}
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
         return super().weblog_post(path, params, data, headers)
@@ -258,17 +290,6 @@ class Test_ClientIP(BaseTestCase):
         interfaces.library.append_not_implemented_validation()
 
 
-@released(golang="?", dotnet="?", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
-class Test_PathParams(BaseTestCase):
-    """ Appsec supports values on server.request.path_params"""
-
-    def test_file_access(self):
-        """ Appsec detects file access attempts in path_params"""
-        r = self.weblog_get("/waf/.htaccess")
-        interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.path_params")
-
-
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(nodejs="2.0.0")
 @released(java="0.88.0")
@@ -285,15 +306,34 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(golang="1.36.0", dotnet="?", java="?", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
+@released(dotnet="2.5.1", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.1", python="?", ruby="?")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@missing_feature(context.library < "java@0.101.0" and context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"])
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
+    @bug(library="dotnet", reason="attack is not reported")
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant in ["vertx3", "ratpack"])
     def test_security_scanner(self):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
+
+
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_gRPC(BaseTestCase):
+    """Appsec supports address grpc.server.request.message"""
+
+    def test_basic(self):
+        """AppSec detects some basic attack"""
+        r = self.weblog_grpc('" OR TRUE --')
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+        r = self.weblog_grpc("SELECT * FROM users WHERE name='com.sun.org.apache' UNION SELECT creditcard FROM users")
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+        r = self.weblog_grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users")
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")

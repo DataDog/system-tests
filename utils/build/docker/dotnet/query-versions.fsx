@@ -32,11 +32,14 @@ module QueryVersions =
         let wafType = assem.GetType("Datadog.Trace.AppSec.Waf.Waf")
         let versionProp = wafType.GetProperty("Version")
         let createMethod = wafType.GetMethod("Create", BindingFlags.NonPublic ||| BindingFlags.Static)
-        let waf = createMethod.Invoke(null, [| null |])
+        let createMethodParameters = createMethod.GetParameters()
+        let waf =
+            match createMethodParameters.Length with
+            | 1 ->  createMethod.Invoke(null, [| null |])
+            | 3 ->  createMethod.Invoke(null, [| String.Empty; String.Empty; null |])
+            | _ -> failwith "Unknown number of parameters"
         let version = versionProp.GetValue(waf)
         File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", (version.ToString()))
-
-    File.WriteAllText("/app/DEBUG", "Yes, we can")
 
     writeRulesVersion ()
     writeWafVersion ()

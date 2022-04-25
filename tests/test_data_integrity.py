@@ -19,7 +19,6 @@ class Test_TraceHeaders(BaseTestCase):
 
     @bug(context.library <= "golang@1.37.0")
     @bug(library="cpp")
-    @bug(library="php", reason="Php tracer submits empty traces to endpoint")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
@@ -31,22 +30,40 @@ class Test_TraceHeaders(BaseTestCase):
             "x-datadog-trace-count",
         ]
 
-        interfaces.library.assert_headers_presence(r"/v0\.[1-9]+/traces", request_headers=request_headers)
+        def check_condition(data):
+            # if there is not trace, don't check anything
+            return len(data["request"]["content"]) != 0
 
-    @irrelevant(context.library != "php", reason="Special case of the header tests for php tracer")
-    def test_traces_header_present_php(self):
-        interfaces.library.assert_trace_headers_present_php()
+        interfaces.library.assert_headers_presence(
+            r"/v[0-9]+\.[0-9]+/traces", request_headers=request_headers, check_condition=check_condition
+        )
+
+    def test_trace_header_diagnostic_check(self):
+        """ x-datadog-diagnostic-check header is present iif content is empty """
+
+        def validator(data):
+            request_headers = {h[0].lower() for h in data["request"]["headers"]}
+            if "x-datadog-diagnostic-check" in request_headers and len(data["request"]["content"]) != 0:
+                raise Exception("Tracer sent a dignostic request with traces in it")
+
+        interfaces.library.add_traces_validation(validator=validator, is_success_on_expiry=True)
 
     def test_trace_header_count_match(self):
         """X-Datadog-Trace-Count header value is right in all traces submitted to the agent"""
-        interfaces.library.assert_trace_headers_count_match()
 
-    @irrelevant(context.library != "cpp", reason="Special case of Datadog-Container-ID test for C++ tracer")
-    def test_trace_header_container_tags_cpp(self):
-        """Datadog-Container-ID header value is right in all traces submitted to the agent"""
-        interfaces.library.assert_trace_headers_container_tags_cpp()
+        def validator(data):
+            for header, value in data["request"]["headers"]:
+                if header.lower() == "x-datadog-trace-count":
+                    try:
+                        trace_count = int(value)
+                    except ValueError:
+                        raise Exception(
+                            f"{self.count_header} request header in {data['log_filename']} wasn't an integer: {value}"
+                        )
 
-    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
-    def test_trace_header_container_tags(self):
-        """Datadog-Container-ID header value is right in all traces submitted to the agent"""
-        interfaces.library.assert_trace_headers_container_tags()
+                    if trace_count != len(data["request"]["content"]):
+                        raise Exception(
+                            f"x-datadog-trace-count request header in {data['log_filename']} didn't match the number of traces"
+                        )
+
+        interfaces.library.add_traces_validation(validator=validator, is_success_on_expiry=True)
