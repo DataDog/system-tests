@@ -250,6 +250,7 @@ class Test_AppSecObfuscator(BaseTestCase):
 @missing_feature(library="python")
 @released(dotnet="2.5.1", php_appsec="0.2.2", ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
+@released(nodejs="2.0.0")
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """
 
