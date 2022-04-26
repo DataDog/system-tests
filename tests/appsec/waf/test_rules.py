@@ -293,7 +293,7 @@ class Test_NoSqli(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"x-attack": "$nin"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
-    @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
+    @irrelevant(context.libddwaf_version < "1.1.0", reason="Key matching is not supported before this version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
     def test_nosqli_keys_with_brackets(self):
@@ -301,7 +301,7 @@ class Test_NoSqli(BaseTestCase):
         r = self.weblog_get("/waf/", params={"[$ne]": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
 
-    @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
+    @irrelevant(context.libddwaf_version < "1.1.0", reason="Key matching is not supported before this version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     def test_nosqli_keys(self):
         """AppSec catches NoSQLI attacks"""
