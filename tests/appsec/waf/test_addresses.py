@@ -138,8 +138,8 @@ class Test_Headers(BaseTestCase):
     else "1.34.0"
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
-class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
-    """Appsec supports server.request.cookies, legacy test"""
+class Test_Cookies(BaseTestCase):
+    """Appsec supports server.request.cookies"""
 
     # Cookies rules has been removed in rules version 1.2.7. Test on cookies are now done on custom rules scenario.
     # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
@@ -149,7 +149,11 @@ class Test_Cookies_ToBeRestoredOnceWeHaveRules(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @missing_feature(library="java", reason="cookie is rejected by Coyote")
+    @irrelevant(
+        library="java",
+        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
+        "encoded to represent disallowed octets",
+    )
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
@@ -185,9 +189,9 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
 @released(
-    java="0.100.0"
+    java="0.99.0"
     if context.weblog_variant == "vertx3"
     else "0.99.0"
     if context.weblog_variant == "ratpack"
@@ -212,7 +216,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
 
 @released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
-    java="0.100.0"
+    java="0.99.0"
     if context.weblog_variant == "vertx3"
     else "0.99.0"
     if context.weblog_variant == "ratpack"
@@ -248,7 +252,8 @@ class Test_BodyXml(BaseTestCase):
     ATTACK = '<vmlframe src="xss">'
     ENCODED_ATTACK = "&lt;vmlframe src=&quot;xss&quot;&gt;"
 
-    def weblog_post(self, path="/", params=None, data=None, headers={}, **kwargs):
+    def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
+        headers = headers or {}
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
         return super().weblog_post(path, params, data, headers)
@@ -306,15 +311,29 @@ class Test_ResponseStatus(BaseTestCase):
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
+@missing_feature(context.library < "java@0.101.0" and context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"])
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @missing_feature(
-        context.library == "java" and context.weblog_variant not in ["spring-boot", "spring-boot-jetty"],
-        reason="Endpoint is missing in weblog",
-    )
     @bug(library="dotnet", reason="attack is not reported")
+    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant in ["vertx3", "ratpack"])
     def test_security_scanner(self):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
+
+
+@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_gRPC(BaseTestCase):
+    """Appsec supports address grpc.server.request.message"""
+
+    def test_basic(self):
+        """AppSec detects some basic attack"""
+        r = self.weblog_grpc('" OR TRUE --')
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+        r = self.weblog_grpc("SELECT * FROM users WHERE name='com.sun.org.apache' UNION SELECT creditcard FROM users")
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+        r = self.weblog_grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users")
+        interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")

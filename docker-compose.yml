@@ -43,6 +43,7 @@ services:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
       - "7777:7777"
+      - "7778:7778"
     depends_on:
       runner:
         condition: service_healthy
@@ -102,6 +103,7 @@ services:
       - PYTHONPATH=/app
       - DD_SITE=${DD_SITE:-datad0g.com}
       - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
+      - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
       - ./pytest.ini:/app/pytest.ini
       - ./conftest.py:/app/conftest.py

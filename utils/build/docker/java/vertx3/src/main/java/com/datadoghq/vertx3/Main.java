@@ -49,7 +49,7 @@ public class Main {
                         .putHeader("content-length", "42")
                         .putHeader("content-language", "en-US")
                         .end("012345678901234567890123456789012345678901"));
-        router.getWithRegex("/waf(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?")
+        router.getWithRegex("/params(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?")
                 .produces("text/plain")
                 .handler(ctx ->
                         ctx.response().setStatusCode(200).end(ctx.pathParams().toString()));
@@ -72,7 +72,7 @@ public class Main {
                     }
                 });
 
-        server.requestHandler(router).listen(7777);
+        server.requestHandler(router::accept).listen(7777);
     }
 
 

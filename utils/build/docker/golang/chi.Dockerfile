@@ -10,7 +10,7 @@ WORKDIR /app
 
 RUN /binaries/install_ddtrace.sh
 
-RUN go build -v -tags appsec -o weblog ./chi.go ./common.go
+RUN go build -v -tags appsec -o weblog ./chi.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
 
 RUN echo "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh

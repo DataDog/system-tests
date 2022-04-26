@@ -2,8 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, missing_feature, irrelevant
 import pytest
+from utils import BaseTestCase, context, interfaces, released, missing_feature, irrelevant
+from .waf.utils import rules
 
 
 if context.library == "cpp":
@@ -44,3 +45,23 @@ class Test_RuleSet_1_2_5(BaseTestCase):
 
     def test_main(self):
         assert context.appsec_rules_version >= "1.2.5"
+
+
+@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+class Test_RuleSet_1_3_1(BaseTestCase):
+    """ AppSec uses rule set 1.3.1 or higher """
+
+    def test_main(self):
+        """ Test rule set version number"""
+        interfaces.library.add_assertion(context.appsec_rules_version >= "1.3.1")
+
+    def test_nosqli_keys(self):
+        """Test a rule defined on this rules version: nosql on keys"""
+        r = self.weblog_get("/waf/", params={"$nin": "value"})
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
+
+    @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
+    def test_nosqli_keys_with_brackets(self):
+        """Test a rule defined on this rules version: nosql on keys with brackets"""
+        r = self.weblog_get("/waf/", params={"[$ne]": "value"})
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)

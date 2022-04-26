@@ -5,22 +5,51 @@
 import os
 import collections
 import inspect
+import time
 
 from utils import context, data_collector, interfaces
 from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
 from utils._xfail import xfails
 
 from pytest_jsonreport.plugin import JSONReport
+import _pytest
+
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+
+
+class CustomTerminalReporter(_pytest.terminal.TerminalReporter):
+    def pytest_sessionstart(self, session):
+        self._session = session
+        self._sessionstarttime = time.time()
+
+        self.write_sep("=", "test session starts", bold=True)
+        self.write_line(f"Library: {context.library}")
+        self.write_line(f"Agent: {context.agent_version}")
+
+        if context.library == "php":
+            self.write_line(f"AppSec: {context.php_appsec}")
+
+        if context.libddwaf_version:
+            self.write_line(f"libddwaf: {context.libddwaf_version}")
+
+        if context.appsec_rules_file:
+            self.write_line(f"AppSec rules file: {context.appsec_rules_file}")
+
+        self.write_line(f"AppSec rules version: {context.appsec_rules_version}")
+        self.write_line(f"Weblog variant: {context.weblog_variant}")
+        self.write_line(f"Backend: {context.dd_site}")
+
+
+_pytest.terminal.TerminalReporter = CustomTerminalReporter
 
 _docs = {}
 _skip_reasons = {}
 _release_versions = {}
 _rfcs = {}
 
-
+# Called at the very begening
 def pytest_sessionstart(session):
 
     logger.debug(f"Library: {context.library}")
@@ -39,40 +68,7 @@ def pytest_sessionstart(session):
     data_collector.start()
 
 
-def pytest_report_header(config):
-    headers = [f"Library: {context.library}", f"Agent: {context.agent_version}"]
-
-    if context.library == "php":
-        headers.append(f"AppSec: {context.php_appsec}")
-
-    if context.libddwaf_version:
-        headers.append(f"libddwaf: {context.libddwaf_version}")
-
-    if context.appsec_rules_file:
-        headers.append(f"AppSec rules file: {context.appsec_rules_file}")
-
-    headers.append(f"AppSec rules version: {context.appsec_rules_version}")
-
-    headers += [
-        f"Weblog variant: {context.weblog_variant}",
-        f"Backend: {context.dd_site}",
-    ]
-    return headers
-
-
-def _get_skip_reason_from_marker(marker):
-    if marker.name == "skipif":
-        if all(marker.args):
-            return marker.kwargs.get("reason", "")
-    elif marker.name in ("skip", "expected_failure"):
-        if len(marker.args):  # if un-named arguments are present, the first one is the reason
-            return marker.args[0]
-        else:  #  otherwise, search in named arguments
-            return marker.kwargs.get("reason", "")
-
-    return None
-
-
+# called when each test item is collected
 def pytest_itemcollected(item):
 
     _docs[item.nodeid] = item.obj.__doc__
@@ -104,50 +100,17 @@ def pytest_itemcollected(item):
             break
 
 
-def _wait_interface(interface, session):
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+def _get_skip_reason_from_marker(marker):
+    if marker.name == "skipif":
+        if all(marker.args):
+            return marker.kwargs.get("reason", "")
+    elif marker.name in ("skip", "expected_failure"):
+        if len(marker.args):  # if un-named arguments are present, the first one is the reason
+            return marker.args[0]
+        else:  #  otherwise, search in named arguments
+            return marker.kwargs.get("reason", "")
 
-    # side note : do NOT skip this function even if interface has no validations
-    # internal errors may cause no validation in interface
-
-    timeout = interface.expected_timeout
-
-    try:
-        if timeout:
-            terminal.write_line(f"Wait {timeout}s for {len(interface.validations)} validations on {interface}")
-            interface.wait(timeout=timeout)
-        else:
-            terminal.write_line(f"Wait for {len(interface.validations)} validation on {interface}")
-            interface.wait()
-    except Exception as e:
-        session.shouldfail = f"{interface} is not validated"
-        terminal.write_line(f"{interface}: unexpected failure")
-        interface.system_test_error = e
-        return False
-
-    terminal_column_count = int(os.environ.get("COLUMNS", "80"))
-
-    for i, validation in enumerate(interface.validations):
-
-        if (i + 1) % terminal_column_count == 0:
-            terminal.write_line("")
-
-        if validation in interface.passed:
-            terminal.write(".", bold=True, green=True)
-        elif validation in interface.failed:
-            terminal.write("F", bold=True, red=True)
-        elif validation in interface.xpassed:
-            terminal.write("X", yellow=True)
-        elif validation in interface.xfailed:
-            terminal.write("x", yellow=True)
-
-    terminal.write_line("")
-
-    if not interface.is_success:
-        session.shouldfail = f"{interface} is not validated"
-        return False
-
-    return True
+    return None
 
 
 def pytest_runtestloop(session):
@@ -175,7 +138,6 @@ def pytest_runtestloop(session):
             raise session.Interrupted(session.shouldstop)
 
     terminal.write_line("")
-    terminal.write_sep("-", f"Wait for async validations")
 
     success = True
 
@@ -190,50 +152,50 @@ def pytest_runtestloop(session):
     return True
 
 
-def pytest_json_modifyreport(json_report):
+def pytest_report_teststatus(report, config):
+    if report.when != "call":
+        return
+
+    if report.keywords.get("expected_failure") == 1:
+        return "xfail", "x", "XFAIL"
+
+
+def _wait_interface(interface, session):
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+
+    # side note : do NOT skip this function even if interface has no validations
+    # internal errors may cause no validation in interface
+
+    timeout = interface.expected_timeout
 
     try:
-        logger.debug("Modifying JSON report")
+        if len(interface.validations) != 0:
+            if timeout:
+                terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
+            else:
+                terminal.write_sep("-", f"Async validations for {interface}")
 
-        # report test with a failing asyn validation as failed
-        failed_nodeids = set()
+        if timeout:
+            interface.wait(timeout=timeout)
+        else:
+            interface.wait()
 
-        for interface in interfaces.all:
-            for validation in interface._validations:
-                if validation.closed and not validation.is_success:
-                    filename, klass, function = validation.get_test_source_info()
-                    nodeid = f"{filename}::{klass}::{function}"
-                    failed_nodeids.add(nodeid)
-
-        for test in json_report["tests"]:
-            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
-            if test["nodeid"] in failed_nodeids:
-                test["outcome"] = "failed"
-
-        # add usefull data for reporting
-        json_report["docs"] = _docs
-        json_report["context"] = context.serialize()
-        json_report["release_versions"] = _release_versions
-        json_report["rfcs"] = _rfcs
-
-        # clean useless and volumetric data
-        del json_report["collectors"]
-
-        for test in json_report["tests"]:
-            if test["nodeid"] in failed_nodeids:
-                test["outcome"] = "failed"
-
-            for k in ("setup", "call", "teardown", "keywords", "lineno"):
-                if k in test:
-                    del test[k]
-
-        logger.debug("Modifying JSON report finished")
     except Exception as e:
-        logger.error(f"Fail to modify json report", exc_info=True)
+        session.shouldfail = f"{interface} is not validated"
+        terminal.write_line(f"{interface}: unexpected failure")
+        interface.system_test_error = e
+        return False
+
+    if not interface.is_success:
+        session.shouldfail = f"{interface} is not validated"
+        return False
+
+    return True
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
+    validations = []
     passed = []
     failed = []
     xpassed = []
@@ -247,22 +209,56 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                 terminalreporter.line(line, red=True)
             return
 
+        validations += interface.validations
         passed += interface.passed
         failed += interface.failed
         xpassed += interface.xpassed
         xfailed += interface.xfailed
 
+    _print_async_test_list(terminalreporter, validations, passed, failed, xpassed, xfailed)
     _print_async_failure_report(terminalreporter, failed, passed)
 
 
-def pytest_sessionfinish(session, exitstatus):
+def _print_async_test_list(terminal, validations, passed, failed, xpassed, xfailed):
+    """ build list of test file, with a letter for each test method describing the state of the method regarding async validations """
+    # Create a tree filename > methods > fails
+    files = collections.defaultdict(lambda: collections.defaultdict(list))
 
-    data_collector.shutdown()
-    data_collector.join(timeout=10)
+    for validation in validations:
+        filename, _, method = validation.get_test_source_info()
+        files[filename][method].append(validation)
 
-    # Is it really a test ?
-    if data_collector.is_alive():
-        logger.error("Can't terminate data collector")
+    terminal_column_count = int(os.environ.get("COLUMNS", "80"))
+
+    for filename, methods in files.items():
+        terminal.write(f"{filename} ")
+        current_column = len(filename)
+
+        for method, validations in methods.items():
+            is_passed = len([v for v in validations if v in passed]) == len(validations)
+            is_failed = len([v for v in validations if v in failed]) != 0
+            is_xpassed = len([v for v in validations if v in xpassed]) == len(validations)
+            is_xfailed = len([v for v in validations if v in xfailed]) != 0
+
+            current_column += 1
+            if (current_column) % terminal_column_count == 0:
+                terminal.write_line("")
+                current_column = 0
+
+            if is_passed:
+                terminal.write(".", bold=True, green=True)
+            elif is_failed:
+                terminal.write("F", bold=True, red=True)
+            elif is_xpassed:
+                terminal.write("X", yellow=True)
+            elif is_xfailed:
+                terminal.write("x", green=True)
+            else:
+                terminal.write("O", red=True)
+
+        terminal.write_line("")
+
+    terminal.write_line("")
 
 
 def _print_async_failure_report(terminalreporter, failed, passed):
@@ -271,13 +267,13 @@ def _print_async_failure_report(terminalreporter, failed, passed):
     # Create a tree filename > functions > fails
     files = collections.defaultdict(lambda: collections.defaultdict(list))
 
+    for fail in failed:
+        filename, _, function = fail.get_test_source_info()
+        files[filename][function].append(fail)
+
     if len(failed) != 0:
         terminalreporter.line("")
         terminalreporter.write_sep("=", "ASYNC FAILURE" if len(failed) == 1 else "ASYNC FAILURES", red=True, bold=True)
-
-        for fail in failed:
-            filename, _, function = fail.get_test_source_info()
-            files[filename][function].append(fail)
 
         for filename, functions in files.items():
 
@@ -320,16 +316,22 @@ def _print_async_failure_report(terminalreporter, failed, passed):
                     terminalreporter.line("")
 
     xpassed_methods = []
+    logger.info("xxx")
+    logger.info(xfails.methods)
     for validations in xfails.methods.values():
-        if len([v for v in validations if not v.is_success]) == 0 and len(validations) != 0:
-            xpassed_methods.append(validations[0])
 
-    xpassed_classes = []
-    for validations in xfails.classes.values():
-        if len([v for v in validations if not v.is_success]) == 0 and len(validations) != 0:
-            xpassed_classes.append(validations[0])
+        failed_validations = [v for v in validations if not v.is_success]
+        logger.info(validations)
+        logger.info([v.is_success for v in validations])
+        logger.info(failed_validations)
 
-    if len(failed) != 0 or len(xpassed_methods) != 0 or len(xpassed_classes) != 0:
+        if len(failed_validations) == 0 and len(validations) != 0:
+            filename, klass, function = validations[0].get_test_source_info()
+
+            logger.info(f"{filename}::{klass}::{function}")
+            xpassed_methods.append(f"{filename}::{klass}::{function}")
+
+    if len(failed) != 0 or len(xpassed_methods) != 0:
         terminalreporter.write_sep("=", "short async test summary info")
 
         for filename, functions in files.items():
@@ -337,14 +339,61 @@ def _print_async_failure_report(terminalreporter, failed, passed):
                 filename, klass, function = fails[0].get_test_source_info()
                 terminalreporter.line(f"FAILED {filename}::{klass}::{function} - {len(fails)} fails", red=True)
 
-        for validation in xpassed_methods:
-            filename, klass, function = validation.get_test_source_info()
-            terminalreporter.line(
-                f"XPASSED {filename}::{klass}::{function} - Expected to fail, but all is ok", yellow=True
-            )
-
-        for validation in xpassed_classes:
-            filename, klass, function = validation.get_test_source_info()
-            terminalreporter.line(f"XPASSED {filename}::{klass} - Expected to fail, but all is ok", yellow=True)
+        for method in xpassed_methods:
+            terminalreporter.line(f"XPASSED {method} - Expected to fail, but all is ok", yellow=True)
 
         terminalreporter.line("")
+
+
+def pytest_json_modifyreport(json_report):
+
+    try:
+        logger.debug("Modifying JSON report")
+
+        # report test with a failing asyn validation as failed
+        failed_nodeids = set()
+
+        for interface in interfaces.all:
+            for validation in interface._validations:
+                if validation.closed and not validation.is_success:
+                    filename, klass, function = validation.get_test_source_info()
+                    nodeid = f"{filename}::{klass}::{function}"
+                    failed_nodeids.add(nodeid)
+
+        # populate and adjust some data
+        for test in json_report["tests"]:
+            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
+            if test["nodeid"] in failed_nodeids:
+                test["outcome"] = "failed"
+            elif test["outcome"] in ("xfail", "xfailed"):
+                # it means that the synchronous test is marked as expected failure
+                # but all asynchronous test are ok
+                test["outcome"] = "xpassed"
+
+        # add usefull data for reporting
+        json_report["docs"] = _docs
+        json_report["context"] = context.serialize()
+        json_report["release_versions"] = _release_versions
+        json_report["rfcs"] = _rfcs
+
+        # clean useless and volumetric data
+        del json_report["collectors"]
+
+        for test in json_report["tests"]:
+            for k in ("setup", "call", "teardown", "keywords", "lineno"):
+                if k in test:
+                    del test[k]
+
+        logger.debug("Modifying JSON report finished")
+    except Exception as e:
+        logger.error(f"Fail to modify json report", exc_info=True)
+
+
+def pytest_sessionfinish(session, exitstatus):
+
+    data_collector.shutdown()
+    data_collector.join(timeout=10)
+
+    # Is it really a test ?
+    if data_collector.is_alive():
+        logger.error("Can't terminate data collector")

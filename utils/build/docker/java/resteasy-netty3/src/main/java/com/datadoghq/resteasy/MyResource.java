@@ -44,7 +44,7 @@ public class MyResource {
     }
 
     @GET
-    @Path("/waf/{params: .*}")
+    @Path("/params/{params: .*}")
     public String waf(@PathParam("params") List<PathSegment> params) {
         return params.toString();
     }

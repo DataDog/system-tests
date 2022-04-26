@@ -165,6 +165,9 @@ class InterfaceValidator(object):
         # to avoid any mistake, provide a copy
         return list(self._validations)
 
+    def add_assertion(self, condition):
+        self.append_validation(_StaticValidation(condition))
+
 
 class ObjectDumpEncoder(json.JSONEncoder):
     def default(self, o):
@@ -196,7 +199,8 @@ class BaseValidation(object):
             self.path_filters = [re.compile(path) for path in self.path_filters]
 
         if request is not None:
-            self.rid = request.request.headers["User-Agent"][-36:]
+            user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
+            self.rid = user_agent[-36:]
         else:
             self.rid = None
 
@@ -237,7 +241,7 @@ class BaseValidation(object):
 
         if xfails.is_xfail_class(self.calling_class):
             logger.debug(f"{self} is called from {self.calling_class}, which is xfail")
-            xfails.add_validation_from_class(self.calling_class, self)
+            xfails.add_validation_from_class(self.calling_class, self.calling_method, self)
             self.is_xfail = True
 
         self.message = self.message.strip()
@@ -334,3 +338,12 @@ class _NotImplementedValidation(BaseValidation):
     def __init__(self, message=None, request=None):
         super().__init__(message=message, request=request)
         self.set_status(False)
+
+
+class _StaticValidation(BaseValidation):
+    def __init__(self, condition):
+        super().__init__()
+        self.set_status(condition)
+
+    def check(self, data):
+        pass

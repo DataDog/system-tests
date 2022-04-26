@@ -41,7 +41,7 @@ func main() {
 	mux.HandleFunc("/headers/", headers)
 	mux.HandleFunc("/headers", headers)
 
-	mux.HandleFunc("/identify/", func(w http.ResponseWriter, r *http.Request) {
+	identify := func(w http.ResponseWriter, r *http.Request) {
 		if span, ok := tracer.SpanFromContext(r.Context()); ok {
 			tracer.SetUser(
 				span, "usr.id", tracer.WithUserEmail("usr.email"),
@@ -50,9 +50,12 @@ func main() {
 			)
 		}
 		w.Write([]byte("Hello, identify!"))
-	})
+	}
+	mux.HandleFunc("/identify/", identify)
+	mux.HandleFunc("/identify", identify)
 
 	initDatadog()
+	go listenAndServeGRPC()
 	http.ListenAndServe(":7777", mux)
 }
 

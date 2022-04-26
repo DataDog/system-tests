@@ -27,7 +27,11 @@ class Test_Cookies(BaseTestCase):
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
-    @missing_feature(library="java", reason="cookie is rejected by Coyote")
+    @irrelevant(
+        library="java",
+        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
+        "encoded to represent disallowed octets",
+    )
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
