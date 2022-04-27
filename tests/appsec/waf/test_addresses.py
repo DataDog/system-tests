@@ -17,13 +17,13 @@ class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
     def test_query_key(self):
-        """ AppSec catches attacks in URL query key"""
+        """AppSec catches attacks in URL query key"""
         r = self.weblog_get("/waf/", params={"appscan_fingerprint": "attack"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
     @missing_feature(library="ruby")
     def test_query_key_encoded(self):
-        """ AppSec catches attacks in URL query encoded key"""
+        """AppSec catches attacks in URL query encoded key"""
         r = self.weblog_get("/waf/", params={"<script>": "attack"})
         interfaces.library.assert_waf_attack(r, pattern="<script>", address="server.request.query")
 
@@ -35,18 +35,18 @@ class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
     def test_query_argument(self):
-        """ AppSec catches attacks in URL query value"""
+        """AppSec catches attacks in URL query value"""
         r = self.weblog_get("/waf/", params={"attack": "appscan_fingerprint"})
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
 
     def test_query_encoded(self):
-        """ AppSec catches attacks in URL query value, even encoded"""
+        """AppSec catches attacks in URL query value, even encoded"""
         r = self.weblog_get("/waf/", params={"key": "<script>"})
         interfaces.library.assert_waf_attack(r, address="server.request.query")
 
     @irrelevant(context.agent_version >= "1.2.6", reason="Need to find another rule")
     def test_query_with_strict_regex(self):
-        """ AppSec catches attacks in URL query value, even with regex containing start and end char"""
+        """AppSec catches attacks in URL query value, even with regex containing start and end char"""
         r = self.weblog_get("/waf/", params={"value": "0000012345"})
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
@@ -60,7 +60,7 @@ class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
     def test_path(self):
-        """ AppSec catches attacks in raw URL path"""
+        """AppSec catches attacks in raw URL path"""
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
@@ -76,7 +76,7 @@ class Test_Headers(BaseTestCase):
 
     @missing_feature(library="python")
     def test_value(self):
-        """ Appsec WAF detects attacks in header value """
+        """Appsec WAF detects attacks in header value"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(
             r, pattern="Arachni/v", address="server.request.headers.no_cookies", key_path=["user-agent"]
@@ -84,7 +84,7 @@ class Test_Headers(BaseTestCase):
 
     @missing_feature(library="python")
     def test_specific_key(self):
-        """ Appsec WAF detects attacks on specific header x-file-name or referer, and report it """
+        """Appsec WAF detects attacks on specific header x-file-name or referer, and report it"""
         r = self.weblog_get("/waf/", headers={"x-file-name": "routing.yml"})
         interfaces.library.assert_waf_attack(
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-file-name"]
@@ -104,7 +104,7 @@ class Test_Headers(BaseTestCase):
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     def test_specific_key2(self):
-        """ attacks on specific header X_Filename, and report it """
+        """attacks on specific header X_Filename, and report it"""
         r = self.weblog_get("/waf/", headers={"X_Filename": "routing.yml"})
         interfaces.library.assert_waf_attack(
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
@@ -113,7 +113,7 @@ class Test_Headers(BaseTestCase):
     @missing_feature(library="python")
     @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
     def test_specific_key3(self):
-        """ When a specific header key is specified, other key are ignored """
+        """When a specific header key is specified, other key are ignored"""
         r = self.weblog_get("/waf/", headers={"referer": "<script >"})
         interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies", key_path=["referer"])
 
@@ -121,7 +121,7 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies", key_path=["referer"])
 
     def test_specific_wrong_key(self):
-        """ When a specific header key is specified in rules, other key are ignored """
+        """When a specific header key is specified in rules, other key are ignored"""
         r = self.weblog_get("/waf/", headers={"xfilename": "routing.yml"})
         interfaces.library.assert_no_appsec_event(r)
 
@@ -145,7 +145,7 @@ class Test_Cookies(BaseTestCase):
     # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
 
     def test_cookies(self):
-        """ Appsec WAF detects attackes in cookies """
+        """Appsec WAF detects attackes in cookies"""
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
         interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
 
@@ -156,7 +156,7 @@ class Test_Cookies(BaseTestCase):
     )
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     def test_cookies_with_semicolon(self):
-        """ Cookie with pattern containing a semicolon """
+        """Cookie with pattern containing a semicolon"""
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
         interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
 
@@ -165,7 +165,7 @@ class Test_Cookies(BaseTestCase):
 
     @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     def test_cookies_with_spaces(self):
-        """ Cookie with pattern containing a space """
+        """Cookie with pattern containing a space"""
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
         interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
 
@@ -286,7 +286,7 @@ class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""
 
     def test_client_ip(self):
-        """ Appsec WAF supports server.request.client_ip """
+        """Appsec WAF supports server.request.client_ip"""
         interfaces.library.append_not_implemented_validation()
 
 
@@ -301,7 +301,7 @@ class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
     def test_basic(self):
-        """ AppSec reports 404 responses"""
+        """AppSec reports 404 responses"""
         r = self.weblog_get("/mysql")
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
@@ -326,7 +326,7 @@ class Test_PathParams(BaseTestCase):
     @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
 
     def test_security_scanner(self):
-        """ AppSec catches attacks in URL path param"""
+        """AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
 
