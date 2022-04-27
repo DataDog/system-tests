@@ -3,7 +3,7 @@
 We'll implement a mechanism that will put metadata on each test class about the coverage/completness of the test. Two questions : 
 
 * There will be three level, `basic`, `good`, `complete`. It's a compromise, do you think it's too many? not enough?
-* There two proposition of implementations, one , one using class inheritance : 
+* Two proposition of implementations, one using decorators, and one using class inheritance :
 
 
 ```python
@@ -19,7 +19,7 @@ class Test_Feature(BaseTestCase.GoodCoverage):
     pass
 ```
 
-There are [pro and con](#Implementations possibility), which one do you prefer ? 
+There are pros and cons (see below), which one do you prefer ?
 
 ## Currently
 
@@ -66,7 +66,7 @@ The test fully cover the functionnality, and missing a bug is statistically negl
 
 ----
 
-There is three level for an implemented test. It's a compromise between too many levels with blurry boundaries, and not enough to describe what we want. Fell free to challenge them.
+There is three level for an implemented test. It's a compromise between too many levels with blurry boundaries, and not enough to describe what we want. Feel free to challenge them.
 
 ## Implementations possibility
 
