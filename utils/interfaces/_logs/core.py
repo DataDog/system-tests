@@ -203,7 +203,12 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
     def _get_files(self):
         result = []
 
-        for f in os.listdir("logs/docker/weblog/logs/"):
+        try:
+            files = os.listdir("logs/docker/weblog/logs/")
+        except FileNotFoundError:
+            files = []
+
+        for f in files:
             filename = os.path.join("logs/docker/weblog/logs/", f)
 
             if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+.log", filename):
@@ -228,11 +233,12 @@ class _LogPresence(BaseValidation):
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
-                    self.log_info(f"For {self}, pattern was found, but condition on [{key}] was not found")
+                    self.log_info(f"For {self}, {repr(self.pattern.pattern)} was found, but [{key}] field is missing")
+                    self.log_info(f"-> Log line is {data['message']}")
                     return
                 elif not extra_pattern.search(data[key]):
                     self.log_info(
-                        f"For {self}, pattern was found, but condition on [{key}] failed: "
+                        f"For {self}, {repr(self.pattern.pattern)} was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"
                     )
                     return
