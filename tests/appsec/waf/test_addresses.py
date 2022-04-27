@@ -322,7 +322,6 @@ class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
     @bug(library="dotnet", reason="attack is not reported")
-    @missing_feature(context.library < "java@0.99.0" and context.weblog_variant in ["vertx3", "ratpack"])
     @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
