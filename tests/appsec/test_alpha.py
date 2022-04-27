@@ -14,6 +14,7 @@ if context.library == "cpp":
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.2.1")
+@released(python="1.1.0rc2")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Basic(BaseTestCase):
@@ -29,7 +30,6 @@ class Test_Basic(BaseTestCase):
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
-    @missing_feature(library="python")
     def test_headers(self):
         """
         Via server.request.headers.no_cookies
@@ -42,7 +42,6 @@ class Test_Basic(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r, pattern="Arachni/v", address="server.request.headers.no_cookies")
 
-    @missing_feature(library="python")
     def test_no_cookies(self):
         """
         Address server.request.headers.no_cookies should not include cookies.
