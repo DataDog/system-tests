@@ -15,8 +15,9 @@ from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
     _ReceiveRequestRootTrace,
     _SpanValidation,
-    _TraceValidation,
+    _DistributedTraceValidation,
     _TracesValidation,
+    _TraceExistence,
 )
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
@@ -112,15 +113,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
-    def assert_trace_exists(self, request, span_type=None, custom_traces_validation=None, custom_wait=None):
-        self.append_validation(
-            _TraceValidation(
-                request=request,
-                span_type=span_type,
-                custom_traces_validation=custom_traces_validation,
-                custom_wait=custom_wait,
-            )
-        )
+    def assert_trace_exists(self, request, span_type=None):
+        self.append_validation(_TraceExistence(request=request, span_type=span_type))
+
+    def assert_against_distributed_trace(self, request, validator):
+        self.append_validation(_DistributedTraceValidation(request=request, validator=validator))
 
 
 class _TraceIdUniquenessExceptions:

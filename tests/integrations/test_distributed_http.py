@@ -6,8 +6,6 @@ from utils import BaseTestCase, interfaces, context, missing_feature
 
 # ./build.sh ${language} --weblog-variant ${weblogvariant}
 # ./run.sh /tests/integrations/test_distributed_http.py::Test_DistributedHttp::test_main
-@missing_feature(library="golang", reason="Internals do not support distributed traces yet")
-@missing_feature(library="python", reason="Internals do not support distributed traces yet")
 @missing_feature(library="java", reason="Endpoint is not implemented on weblog")
 @missing_feature(library="nodejs", reason="Endpoint is not implemented on weblog")
 @missing_feature(library="php", reason="Endpoint is not implemented on weblog")
@@ -60,17 +58,6 @@ class Test_DistributedHttp(BaseTestCase):
 
         return validations
 
-    def wait_for_two_web_spans(self, traces):
-        web_span_count = 0
-        for trace in traces:
-            for span in trace:
-                if "type" in span and span["type"] == "web":
-                    web_span_count += 1
-
-        return web_span_count >= 2 or len(traces) >= 2
-
     def test_main(self):
         r = self.weblog_get("/trace/distributed-http")
-        interfaces.library.assert_trace_exists(
-            r, custom_traces_validation=self.distributed_trace_validation, custom_wait=self.wait_for_two_web_spans
-        )
+        interfaces.library.assert_against_distributed_trace(r, validator=self.distributed_trace_validation)

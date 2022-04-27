@@ -122,13 +122,10 @@ class _SpanValidation(BaseValidation):
                     self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
 
-class _TraceValidation(BaseValidation):
-    def __init__(self, request, min_trace_count=1, span_type=None, custom_traces_validation=None, custom_wait=None):
+class _TraceExistence(BaseValidation):
+    def __init__(self, request, span_type=None):
         super().__init__(request=request)
-        self.min_trace_count = min_trace_count
-        self.custom_wait = custom_wait
         self.span_type = span_type
-        self.custom_traces_validation = custom_traces_validation
 
     path_filters = "/v0.4/traces"
 
@@ -138,38 +135,74 @@ class _TraceValidation(BaseValidation):
             self.log_error(f"{data['log_filename']} content should be an array")
             return
 
+        diagnostics = ["Diagnostics:"]
         span_types = []
-
-        rid_trace_ids = set()
-        correlated_local_traces = []
+        span_count = len(span_types)
 
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid == _get_rid_from_span(span):
-                    rid_trace_ids.add(span["trace_id"])
+                    for correlated_span in trace:
+                        span_count = span_count + 1
+                        span_types.append(correlated_span.get("type"))
+                        diagnostics.append(str(correlated_span))
+                    continue
+
+        if span_count > 0:
+            if self.span_type is None:
+                self.log_debug(f"Found a trace for {self.message}")
+                self.set_status(True)
+            elif self.span_type in span_types:
+                self.log_debug(f"Found a span with type {self.span_type}")
+                self.set_status(True)
+            else:
+                self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
+                self.log_error("\n".join(diagnostics))
+
+
+class _DistributedTraceValidation(BaseValidation):
+    def __init__(self, request, validator):
+        super().__init__(request=request)
+        self.validator = validator
+        self.traces = []
+
+    path_filters = "/v0.4/traces"
+
+    def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            # do not fail here, it's schema's job, simply ignore it
+            self.log_error(f"{data['log_filename']} content should be an array")
+            return
 
         for trace in data["request"]["content"]:
+            self.traces.append(trace)
+
+    def final_check(self):
+
+        rid_trace_ids = set()
+        correlated_local_traces = []
+        validation_messages = []
+
+        for trace in self.traces:
+            for span in trace:
+                if self.rid == _get_rid_from_span(span):
+                    rid_trace_ids.add(span["trace_id"])
+
+        for trace in self.traces:
             trace_is_connected = False
             for span in trace:
                 if span["trace_id"] in rid_trace_ids:
                     trace_is_connected = True
-                    span_types.append(span.get("type"))
+                    break
             if trace_is_connected:
                 correlated_local_traces.append(trace)
 
-        validation_messages = []
-
-        if len(correlated_local_traces) >= self.min_trace_count and (
-            self.custom_wait is None or self.custom_wait(correlated_local_traces)
-        ):
+        if len(correlated_local_traces) == 0:
+            self.log_error(f"Found zero correlated traces for rid {self.rid}")
+            self.log_error(f"All traces:\n {str(self.traces)}")
+        else:
             try:
-                self.log_debug(f"Traces found for  {self.message}")
-                if self.custom_traces_validation is not None:
-                    validation_messages += self.custom_traces_validation(correlated_local_traces)
-                if self.span_type is not None and self.span_type not in span_types:
-                    validation_messages.append(
-                        f"Did not find span type '{self.span_type}' in reported span types: {span_types}"
-                    )
+                validation_messages += self.validator(correlated_local_traces)
             except BaseException as err:
                 self.log_exception("An unexpected exception has occurred within the validations.", err)
                 validation_messages.append("The validations failed to execute")
@@ -182,5 +215,3 @@ class _TraceValidation(BaseValidation):
                 self.log_error(f"All correlated traces:\n {str(correlated_local_traces)}")
             else:
                 self.set_status(True)
-        elif len(correlated_local_traces) > 0:
-            self.log_info(f"Found {len(correlated_local_traces)} traces, waiting for {self.min_trace_count}")
