@@ -82,6 +82,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_unsupported.py
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
 
+elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
+    # cgroup test
+    export RUNNER_ARGS=scenarios/test_data_integrity.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_cgroup
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
