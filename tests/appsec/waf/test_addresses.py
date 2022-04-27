@@ -306,18 +306,25 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", java="0.95.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc1", ruby="?")
+@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc1", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(
+    java="?"
+    if context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"]
+    else "0.99.0"
+    if context.weblog_variant in ["vertx3", "ratpack"]
+    else "0.95.1"
+)
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
-@missing_feature(context.library < "java@0.101.0" and context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"])
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
     @bug(library="dotnet", reason="attack is not reported")
     @missing_feature(context.library < "java@0.99.0" and context.weblog_variant in ["vertx3", "ratpack"])
     @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
+
     def test_security_scanner(self):
         """ AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
