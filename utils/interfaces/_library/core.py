@@ -24,7 +24,6 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidation,
     _DistributedTracesDeterministicSamplingDecisisonValidation,
 )
-from utils.interfaces._library.trace_headers import _TraceHeadersContainerTags
 from utils.interfaces._misc_validators import HeadersPresenceValidation
 
 
@@ -53,9 +52,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(
             HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
         )
-
-    def assert_trace_headers_container_tags(self):
-        self.append_validation(_TraceHeadersContainerTags())
 
     def assert_receive_request_root_trace(self):
         self.append_validation(_ReceiveRequestRootTrace())
