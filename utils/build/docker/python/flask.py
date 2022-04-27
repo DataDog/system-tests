@@ -20,7 +20,7 @@ def sample_rate(i):
 @app.route("/waf", methods=["GET", "POST"])
 @app.route("/waf/", methods=["GET", "POST"])
 @app.route("/waf/<path:url>", methods=["GET", "POST"])
-@app.route("/params/<path:appscan_fingerprint>", methods=["GET", "POST"])
+@app.route("/params/<path>", methods=["GET", "POST"])
 def waf(**kwargs):
     return "Hello, World!\\n"
 
