@@ -5,6 +5,7 @@
 """ Misc validations """
 
 from collections import Counter
+from operator import truediv
 
 from utils.tools import m
 from utils.interfaces._core import BaseValidation
@@ -164,7 +165,8 @@ class _DistributedTraceValidation(BaseValidation):
     def __init__(self, request, validator):
         super().__init__(request=request)
         self.validator = validator
-        self.traces = []
+        self.root_trace_ids = set()
+        self.trace_candidates = []
 
     path_filters = "/v0.4/traces"
 
@@ -175,31 +177,35 @@ class _DistributedTraceValidation(BaseValidation):
             return
 
         for trace in data["request"]["content"]:
-            self.traces.append(trace)
+            # If the rid matches or is missing, we want to include the trace
+            # This reduces the noise in the final_check
+            for span in trace:
+                _span_rid = _get_rid_from_span(span)
+                self.log_error(f"Inspected rid {_span_rid}")
+                if _span_rid is None:
+                    self.trace_candidates.append(trace)
+                    break
+                elif self.rid == _span_rid:
+                    self.root_trace_ids.add(span["trace_id"])
+                    self.trace_candidates.append(trace)
+                    break
 
     def final_check(self):
 
-        rid_trace_ids = set()
         correlated_local_traces = []
         validation_messages = []
 
-        for trace in self.traces:
+        for trace in self.trace_candidates:
             for span in trace:
-                if self.rid == _get_rid_from_span(span):
-                    rid_trace_ids.add(span["trace_id"])
-
-        for trace in self.traces:
-            trace_is_connected = False
-            for span in trace:
-                if span["trace_id"] in rid_trace_ids:
-                    trace_is_connected = True
+                if span["trace_id"] in self.root_trace_ids:
+                    correlated_local_traces.append(trace)
                     break
-            if trace_is_connected:
-                correlated_local_traces.append(trace)
 
         if len(correlated_local_traces) == 0:
+            trace_id_msg = ", ".join(self.root_trace_ids)
             self.log_error(f"Found zero correlated traces for rid {self.rid}")
-            self.log_error(f"All traces:\n {str(self.traces)}")
+            self.log_error(f"Root traces identified:\n {trace_id_msg}")
+            self.log_error(f"All traces:\n {str(self.trace_candidates)}")
         else:
             try:
                 validation_messages += self.validator(correlated_local_traces)
