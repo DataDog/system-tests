@@ -17,7 +17,7 @@ RUN sed -i "s/ALLOWED_HOSTS\s=\s\[\]/ALLOWED_HOSTS = \[\"0.0.0.0\",\"weblog\"\]/
 
 COPY utils/build/docker/python/django.app.urls.py /app/urls.py
 
-COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # docker startup

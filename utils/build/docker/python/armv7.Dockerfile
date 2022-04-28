@@ -12,7 +12,7 @@ RUN pip install flask gunicorn
 COPY utils/build/docker/python/flask.py app.py
 ENV FLASK_APP=app.py
 
-COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # docker startup
