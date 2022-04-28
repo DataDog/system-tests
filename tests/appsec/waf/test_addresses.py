@@ -132,7 +132,8 @@ class Test_Headers(BaseTestCase):
     if context.weblog_variant in ["echo", "chi"]
     else "1.34.0"
 )
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0")
+@released(python="1.1.0rc2.dev" if context.weblog_variant == "django-poc" else "?")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
