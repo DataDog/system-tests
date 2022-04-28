@@ -1,2 +1,3 @@
 * @cbeauchesne
-/utils/build/docker/golang/* @appsec-go
+* @DataDog/system-tests-core
+/utils/build/docker/golang/* @DataDog/appsec-go
