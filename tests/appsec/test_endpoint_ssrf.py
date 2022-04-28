@@ -5,7 +5,7 @@
 from utils import BaseTestCase, interfaces, context, missing_feature
 
 
-@missing_feature(context.library != "java", reason="Need to build endpoint on weblog")
+@missing_feature(True, reason="Need to build endpoint on weblog")
 class Test_Ssrf(BaseTestCase):
     """ Verify the /trace/ssrf endpoint is setup """
 

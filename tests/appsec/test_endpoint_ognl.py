@@ -6,6 +6,10 @@ from utils import BaseTestCase, interfaces, context, missing_feature
 
 
 @missing_feature(context.library != "java", reason="Need to build endpoint on weblog")
+@missing_feature(weblog_variant="jersey-grizzly2", reason="Need to build endpoint on weblog")
+@missing_feature(weblog_variant="resteasy-netty3", reason="Need to build endpoint on weblog")
+@missing_feature(weblog_variant="ratpack", reason="Need to build endpoint on weblog")
+@missing_feature(weblog_variant="vertx3", reason="Need to build endpoint on weblog")
 class Test_Ognl(BaseTestCase):
     """ Verify the /trace/ognl endpoint is setup """
 
