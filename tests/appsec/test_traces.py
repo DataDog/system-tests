@@ -13,10 +13,9 @@ if context.library == "cpp":
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@released(golang="1.36.0")
-@released(dotnet="1.29.0", java="0.92.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(dotnet="1.29.0", java="0.92.0", python="1.1.0rc2.dev")
 @released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 @missing_feature(context.library < "python@0.58.5")
 class Test_RetainTraces(BaseTestCase):
     """ Retain trace (manual keep & appsec.event = true) """
@@ -29,7 +28,6 @@ class Test_RetainTraces(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @missing_feature(library="python")
     def test_appsec_event_span_tags(self):
         """
         Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
