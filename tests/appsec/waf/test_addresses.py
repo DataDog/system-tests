@@ -16,14 +16,8 @@ if context.library == "cpp":
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
-    @irrelevant(reason="no non-encoded rule on query yet")
     def test_query_key(self):
         """AppSec catches attacks in URL query key"""
-        r = self.weblog_get("/waf/", params={"appscan_fingerprint": "attack"})
-        interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.query")
-
-    def test_query_key_encoded(self):
-        """AppSec catches attacks in URL query encoded key"""
         r = self.weblog_get("/waf/", params={"$eq": "attack"})
         interfaces.library.assert_waf_attack(r, pattern="$eq", address="server.request.query")
 
