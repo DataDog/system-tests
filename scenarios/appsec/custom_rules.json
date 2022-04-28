@@ -1265,7 +1265,81 @@
       ],
       "transformers": []
     },
-    
+
+    {
+      "id": "easy-to-match-rule-aaaa",
+      "name": "noname",
+      "tags": {
+        "type": "testing-type-a",
+        "crs_id": "0-aaaa",
+        "category": "testing-type-a"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              },
+              {
+                "address": "server.request.query"
+              },
+              {
+                "address": "server.request.body"
+              },
+              {
+                "address": "server.request.path_params"
+              },
+              {
+                "address": "grpc.server.request.message"
+              }
+            ],
+            "regex": "aaaa",
+            "options": {
+              "case_sensitive": true
+            }
+          },
+          "operator": "match_regex"
+        }
+      ]
+    },
+    {
+      "id": "easy-to-match-rule-bbbb",
+      "name": "noname",
+      "tags": {
+        "type": "testing-type-b",
+        "crs_id": "0-bbbb",
+        "category": "testing-type-b"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              },
+              {
+                "address": "server.request.query"
+              },
+              {
+                "address": "server.request.body"
+              },
+              {
+                "address": "server.request.path_params"
+              },
+              {
+                "address": "grpc.server.request.message"
+              }
+            ],
+            "regex": "bbbb",
+            "options": {
+              "case_sensitive": true
+            }
+          },
+          "operator": "match_regex"
+        }
+      ]
+    },
     {
       "id": "custom-rule-for-system-tests",
       "name": "noname",
