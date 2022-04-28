@@ -23,7 +23,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2", ruby="0.54.2")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev", ruby="0.54.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
@@ -62,7 +62,7 @@ class Test_UrlRaw(BaseTestCase):
 @released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0")
-@released(python="1.1.0rc2")
+@released(python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Headers(BaseTestCase):
@@ -300,7 +300,7 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc2", ruby="?")
+@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc2.dev", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(
     java="?"
