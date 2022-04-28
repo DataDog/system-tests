@@ -12,3 +12,4 @@ class Test_Ssrf(BaseTestCase):
     def test_main(self):
         r = self.weblog_get("/trace/ssrf")
         interfaces.library.assert_trace_exists(r)
+        interfaces.library.add_assertion(r.status_code == 200)

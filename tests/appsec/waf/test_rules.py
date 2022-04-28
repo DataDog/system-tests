@@ -274,10 +274,9 @@ class Test_SQLI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.sql_injection.crs_942_140)
 
 
-@released(golang="1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_NoSqli(BaseTestCase):
     """ Appsec WAF tests on NoSQLi rules """
 
@@ -290,7 +289,9 @@ class Test_NoSqli(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"x-attack": "$nin"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
-    @missing_feature(context.library != "java", reason="Need to use last WAF version")
+    @missing_feature(
+        context.library in ["dotnet", "golang", "nodejs", "php", "ruby"], reason="Need to use last WAF version"
+    )
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     def test_nosqli_keys(self):

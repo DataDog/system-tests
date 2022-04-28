@@ -316,8 +316,6 @@ def _print_async_failure_report(terminalreporter, failed, passed):
                     terminalreporter.line("")
 
     xpassed_methods = []
-    logger.info("xxx")
-    logger.info(xfails.methods)
     for validations in xfails.methods.values():
 
         failed_validations = [v for v in validations if not v.is_success]
