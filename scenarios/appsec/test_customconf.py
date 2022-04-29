@@ -29,7 +29,6 @@ class Test_CorruptedRules(_BaseNoAppSec):
 
     @missing_feature(library="golang")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
     @missing_feature(library="php")
     @bug(library="dotnet", reason="ERROR io CRITICAL")
     def test_c05(self):
@@ -43,7 +42,6 @@ class Test_MissingRules(_BaseNoAppSec):
 
     @missing_feature(library="golang")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
     @missing_feature(library="php")
     @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
     def test_c04(self):
