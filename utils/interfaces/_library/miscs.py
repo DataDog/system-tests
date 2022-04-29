@@ -196,7 +196,6 @@ class _DistributedTraceValidation(BaseValidation):
                 # This was not directly triggered by a request from the test framework
                 self.trace_candidates.append(trace)
 
-
     def final_check(self):
 
         correlated_local_traces = []
