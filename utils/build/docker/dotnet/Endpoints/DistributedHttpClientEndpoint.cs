@@ -9,7 +9,7 @@ namespace weblog
         {
             routeBuilder.MapGet("/distributed-http", async context =>
             {
-                await HttpClientWrapper.LocalGet("/trace/distributed-http/end");
+                await HttpClientWrapper.LocalGet("/distributed-http-end");
             });
 
             routeBuilder.MapGet("/distributed-http-end", async context =>
