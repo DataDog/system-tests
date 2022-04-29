@@ -179,16 +179,23 @@ class _DistributedTraceValidation(BaseValidation):
         for trace in data["request"]["content"]:
             # If the rid matches or is missing, we want to include the trace
             # This reduces the noise in the final_check
+            rid_found = False
             for span in trace:
+                # Skip all non-root spans
+                if span.get("parent_id", None) is not None:
+                    continue
+
                 _span_rid = _get_rid_from_span(span)
                 self.log_error(f"Inspected rid {_span_rid}")
-                if _span_rid is None:
-                    self.trace_candidates.append(trace)
-                    break
-                elif self.rid == _span_rid:
+                if self.rid == _span_rid:
                     self.root_trace_ids.add(span["trace_id"])
                     self.trace_candidates.append(trace)
                     break
+
+            if not rid_found:
+                # This was not directly triggered by a request from the test framework
+                self.trace_candidates.append(trace)
+
 
     def final_check(self):
 
