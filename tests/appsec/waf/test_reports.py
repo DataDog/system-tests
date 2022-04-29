@@ -16,6 +16,7 @@ class Test_Monitoring(BaseTestCase):
     """ Support In-App WAF monitoring tags and metrics  """
 
     expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
+
     @missing_feature(library="dotnet", reason="_dd.appsec.event_rules.version reported only once for now")
     def test_waf_monitoring(self):
         """ WAF monitoring span tags and metrics are expected to be sent on each request """
@@ -116,8 +117,10 @@ class Test_Monitoring(BaseTestCase):
         interfaces.library.add_span_validation(validator=validate_rules_monitoring_span_tags)
 
     @irrelevant(condition=context.library not in ["golang", "dotnet"], reason="optional tags")
-    @bug(library="dotnet", reason="we report them but have a regression that makes expected_bindings_duration_metric] < metrics[expected_waf_duration_metric")
-
+    @bug(
+        library="dotnet",
+        reason="we report them but have a regression that makes expected_bindings_duration_metric] < metrics[expected_waf_duration_metric",
+    )
     def test_waf_monitoring_optional(self):
         """ WAF monitoring span tags and metrics may send extra optional tags """
 
