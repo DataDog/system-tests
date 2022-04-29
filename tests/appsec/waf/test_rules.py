@@ -13,9 +13,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Scanners(BaseTestCase):
     """ Appsec WAF tests on scanners rules """
 
@@ -31,8 +30,8 @@ class Test_Scanners(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120)
 
 
-@released(golang="1.36.1", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.1")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 class Test_HttpProtocol(BaseTestCase):
     """ Appsec WAF tests on HTTP protocol rules """
 
@@ -86,9 +85,8 @@ class Test_LFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_110)
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_RFI(BaseTestCase):
     """ Appsec WAF tests on RFI rules """
 
@@ -101,10 +99,9 @@ class Test_RFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.rfi.crs_931_120)
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_CommandInjection(BaseTestCase):
     """ Appsec WAF tests on Command injection rules """
 
@@ -129,9 +126,8 @@ class Test_CommandInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.command_injection.sqr_000_010)
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_PhpCodeInjection(BaseTestCase):
     """ Appsec WAF tests on PHP injection rules """
 
@@ -165,9 +161,8 @@ class Test_PhpCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.php_code_injection.crs_933_170)
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_JsInjection(BaseTestCase):
     """ Appsec WAF tests on Js Injection rules """
 
@@ -182,7 +177,9 @@ class Test_JsInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.js_code_injection.sqr_000_002)
 
 
-@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
+@released(
+    golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0" if context.weblog_variant == "echo" else "1.35.0"
+)
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
@@ -223,7 +220,6 @@ class Test_XSS(BaseTestCase):
         r = self.weblog_get("/waf/", params={"key": "+ADw->|<+AD$-"})
         interfaces.library.assert_waf_attack(r, rules.xss)
 
-    @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
     @bug(library="dotnet", reason="APPSEC-2290")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_xss2(self):
@@ -233,9 +229,9 @@ class Test_XSS(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.xss)
 
 
-@released(golang="1.35.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_SQLI(BaseTestCase):
     """ Appsec WAF tests on SQLI rules """
 
@@ -320,9 +316,8 @@ class Test_JavaCodeInjection(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.java_code_injection.crs_944_130)
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_SSRF(BaseTestCase):
     """ Appsec WAF tests on SSRF rules """
 
@@ -333,11 +328,8 @@ class Test_SSRF(BaseTestCase):
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@released(nodejs="2.0.0")
-@released(golang="1.36.0")
-@released(dotnet="2.3.0")
-@released(python="0.58.5")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(dotnet="2.3.0", nodejs="2.0.0", python="0.58.5")
 class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 

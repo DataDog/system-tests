@@ -22,9 +22,8 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="$eq", address="server.request.query")
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev", ruby="0.54.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -45,11 +44,16 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(
+    golang="1.37.0"
+    if context.weblog_variant == "gin"
+    else "1.36.0"
+    if context.weblog_variant in ["echo", "chi"]
+    else "1.34.0"
+)
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
@@ -287,12 +291,8 @@ class Test_ClientIP(BaseTestCase):
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@released(nodejs="2.0.0")
-@released(java="0.88.0")
-@released(golang="1.36.0")
-@released(dotnet="2.3.0")
-@released(python="0.58.5")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(dotnet="2.3.0", java="0.88.0", nodejs="2.0.0", python="0.58.5")
 class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
