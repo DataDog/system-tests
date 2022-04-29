@@ -97,6 +97,7 @@ class Test_Headers(BaseTestCase):
             r, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
         )
 
+    @missing_feature(library="python")
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     def test_specific_key2(self):
