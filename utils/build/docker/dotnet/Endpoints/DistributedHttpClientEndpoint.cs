@@ -7,12 +7,12 @@ namespace weblog
     {
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
         {
-            routeBuilder.MapGet("/trace/distributed-http", async context =>
+            routeBuilder.MapGet("/distributed-http", async context =>
             {
                 await HttpClientWrapper.LocalGet("/trace/distributed-http/end");
             });
 
-            routeBuilder.MapGet("/trace/distributed-http/end", async context =>
+            routeBuilder.MapGet("/distributed-http-end", async context =>
             {
                 await context.Response.WriteAsync("Hello end of the world!\\n");
             });

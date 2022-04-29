@@ -19,8 +19,8 @@ func main() {
 
 	r.Use(echotrace.Middleware())
 
-	r.Any("/trace/distributed-http", func(c echo.Context) error {
-		resp, err := http.Get("http://weblog:7777/trace/distributed-http/end")
+	r.Any("/distributed-http", func(c echo.Context) error {
+		resp, err := http.Get("http://weblog:7777/distributed-http-end")
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return c.NoContent(http.StatusInternalServerError)
@@ -29,7 +29,7 @@ func main() {
 		return c.String(http.StatusOK, sb)
 	})
 
-	r.Any("/trace/distributed-http/end", func(c echo.Context) error {
+	r.Any("/distributed-http-end", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, end of the world!!\n")
 	})
 

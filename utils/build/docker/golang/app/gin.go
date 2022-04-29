@@ -18,8 +18,8 @@ func main() {
 	r := gin.New()
 	r.Use(gintrace.Middleware("weblog"))
 
-	r.Any("/trace/distributed-http", func(ctx *gin.Context) {
-		resp, err := http.Get("http://weblog:7777/trace/distributed-http/end")
+	r.Any("/distributed-http", func(ctx *gin.Context) {
+		resp, err := http.Get("http://weblog:7777/distributed-http-end")
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			ctx.Writer.WriteHeader(http.StatusInternalServerError)
@@ -30,7 +30,7 @@ func main() {
 		ctx.Writer.Write([]byte(sb))
 	})
 
-	r.Any("/trace/distributed-http/end", func(ctx *gin.Context) {
+	r.Any("/distributed-http-end", func(ctx *gin.Context) {
 		ctx.Writer.Write([]byte("Hello, end of the world!!\n"))
 	})
 

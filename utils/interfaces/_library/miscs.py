@@ -187,6 +187,7 @@ class _DistributedTraceValidation(BaseValidation):
 
                 _span_rid = _get_rid_from_span(span)
                 self.log_error(f"Inspected rid {_span_rid}")
+
                 if self.rid == _span_rid:
                     self.root_trace_ids.add(span["trace_id"])
                     self.trace_candidates.append(trace)

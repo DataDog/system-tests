@@ -37,12 +37,12 @@ def read_file():
         return f.read()
 
 
-@app.route("/trace/distributed-http")
+@app.route("/distributed-http")
 def distributed_http():
-    end_hello = requests.get("http://weblog:7777/trace/distributed-http/end")
+    end_hello = requests.get("http://weblog:7777/distributed-http-end")
     return end_hello.content
 
 
-@app.route("/trace/distributed-http/end")
+@app.route("/distributed-http-end")
 def distributed_http_end():
     return "Hello, World!\\n"

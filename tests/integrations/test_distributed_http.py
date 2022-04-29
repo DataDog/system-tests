@@ -59,5 +59,5 @@ class Test_DistributedHttp(BaseTestCase):
         return validations
 
     def test_main(self):
-        r = self.weblog_get("/trace/distributed-http")
+        r = self.weblog_get("/distributed-http")
         interfaces.library.assert_against_distributed_trace(r, validator=self.distributed_trace_validation)
