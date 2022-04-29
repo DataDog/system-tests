@@ -286,7 +286,7 @@ class Test_NoSqli(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
     @missing_feature(
-        context.library in ["dotnet", "golang", "nodejs", "php", "ruby"], reason="Need to use last WAF version"
+        context.library in ["golang", "nodejs", "php", "ruby"], reason="Need to use last WAF version"
     )
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
