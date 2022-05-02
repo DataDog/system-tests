@@ -47,7 +47,8 @@ class Test_RuleSet_1_2_5(BaseTestCase):
         assert context.appsec_rules_version >= "1.2.5"
 
 
-@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="?")
+@released(php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="?")
 @coverage.good
 class Test_RuleSet_1_3_1(BaseTestCase):
     """ AppSec uses rule set 1.3.1 or higher """

@@ -10,17 +10,17 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@missing_feature(library="dotnet")
 @missing_feature(library="java")
 @missing_feature(library="python")
 @missing_feature(library="ruby")
+@released(dotnet="2.7.0")
 @released(golang="1.37.0")
 @released(nodejs="2.4.0")
 @released(php="0.72.0")
 class Test_Basic(BaseTestCase):
     """ Basic tests for Identify SDK """
 
-    def test_indentify_tags(self):
+    def test_identify_tags(self):
         def assertTagInSpanMeta(span, tag):
             if tag not in span["meta"]:
                 raise Exception(f"Can't find {tag} in span's meta")
