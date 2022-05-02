@@ -47,6 +47,7 @@ _pytest.terminal.TerminalReporter = CustomTerminalReporter
 _docs = {}
 _skip_reasons = {}
 _release_versions = {}
+_coverages = {}
 _rfcs = {}
 
 # Called at the very begening
@@ -75,6 +76,9 @@ def pytest_itemcollected(item):
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
 
     _release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
+
+    if hasattr(item.parent.obj, "__coverage__"):
+        _coverages[item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
 
     if hasattr(item.parent.obj, "__rfc__"):
         _rfcs[item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
@@ -375,6 +379,7 @@ def pytest_json_modifyreport(json_report):
         json_report["context"] = context.serialize()
         json_report["release_versions"] = _release_versions
         json_report["rfcs"] = _rfcs
+        json_report["coverages"] = _coverages
 
         # clean useless and volumetric data
         del json_report["collectors"]

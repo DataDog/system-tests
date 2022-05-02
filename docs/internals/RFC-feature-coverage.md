@@ -68,13 +68,7 @@ The test fully cover the functionnality, and missing a bug is statistically negl
 
 There is three level for an implemented test. It's a compromise between too many levels with blurry boundaries, and not enough to describe what we want. Feel free to challenge them.
 
-## Implementations possibility
-
-Feel free to propose other implememtation idea or namings
-
-### Using python decorators
-
-* pro : use same mechanism (decorator) as other metatada
+## Implementation
 
 ```python
 @coverage.not_testable
@@ -122,14 +116,17 @@ class Test_Feature():
 
 The `@overage` decorator can't be used on methods
 
-### Using base test class inheritance
+### Other implemention : Using base test class inheritance
 
-* Pro: save one code line
-* Pro: simpler to implement
-* Pro: by design, the coverage is declared, no need to add any other check to enforce it 
-* Con: but do we really want to make it mandatory ? 
-* Con: use another way to add metadata
+This implementation has not been chosen because : 
 
+* it would make the delcaration mandatory => causes friction
+* it uses another mechanism to declare metadata => causes friction
+
+Pro would be:
+
+* save one code line => code lines are free
+* simpler to implement => less effort on our side, more effort on user side. And decorator are simple enough.
 
 ```python
 class Test_Feature(BaseTestCase.NotTestable):
