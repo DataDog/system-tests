@@ -165,27 +165,28 @@ class _DistributedTraceValidation(BaseValidation):
     def __init__(self, request, validator):
         super().__init__(request=request)
         self.validator = validator
+        self.spans_correlated = set()
         self.root_trace_ids = set()
-        self.trace_candidates = []
-        self.correlated_local_traces = []
+        self.correlated_spans = []
         self.finished = False
 
     path_filters = "/v0.4/traces"
 
-    def _wait_condition_satisifed(self):
-        correlated_local_traces = []
+    def _wait_condition_satisifed(self, traces):
+        correlated_spans = []
 
-        for trace in self.trace_candidates:
+        for trace in traces:
             for span in trace:
-                if span["trace_id"] in self.root_trace_ids:
-                    correlated_local_traces.append(trace)
-                    break
+                if span["trace_id"] in self.root_trace_ids and span["span_id"] not in self.spans_correlated:
+                    correlated_spans.append(span)
+                    self.spans_correlated.add(span["span_id"])
 
-        self.correlated_local_traces = correlated_local_traces
+        self.correlated_spans = correlated_spans
 
-        if len(correlated_local_traces) > 1:
+        if len(correlated_spans) > 1:
+            # This relies on unique span IDs and proper de-duplication above
             web_span_count = 0
-            for trace in correlated_local_traces:
+            for trace in correlated_spans:
                 for span in trace:
                     if span.get("type") == "web":
                         web_span_count += 1
@@ -201,6 +202,8 @@ class _DistributedTraceValidation(BaseValidation):
             self.log_error(f"{data['log_filename']} content should be an array")
             return
 
+        trace_candidates = []
+
         for trace in data["request"]["content"]:
             # If the rid matches or is missing, we want to include the trace
             # This reduces the noise in the final_check
@@ -215,12 +218,12 @@ class _DistributedTraceValidation(BaseValidation):
 
                 if self.rid == _span_rid:
                     self.root_trace_ids.add(span["trace_id"])
-                    self.trace_candidates.append(trace)
+                    trace_candidates.append(trace)
                     break
                 else:
-                    self.trace_candidates.append(trace)
+                    trace_candidates.append(trace)
 
-        if self._wait_condition_satisifed():
+        if self._wait_condition_satisifed(trace_candidates):
             self.finished = True
             self.execute_validations()
 
@@ -232,20 +235,14 @@ class _DistributedTraceValidation(BaseValidation):
 
         validation_messages = []
 
-        for trace in self.trace_candidates:
-            for span in trace:
-                if span["trace_id"] in self.root_trace_ids:
-                    self.correlated_local_traces.append(trace)
-                    break
-
-        if len(self.correlated_local_traces) == 0:
+        if len(self.correlated_spans) == 0:
             trace_id_msg = ", ".join(self.root_trace_ids)
-            self.log_error(f"Found zero correlated traces for rid {self.rid}")
+            self.log_error(f"Found zero correlated spans for rid {self.rid}")
             self.log_error(f"Root traces identified:\n {trace_id_msg}")
-            self.log_error(f"All traces:\n {str(self.trace_candidates)}")
+            self.log_error(f"All spans:\n {str(self.correlated_spans)}")
         else:
             try:
-                validation_messages += self.validator(self.correlated_local_traces)
+                validation_messages += self.validator(self.correlated_spans)
             except BaseException as err:
                 self.log_exception("An unexpected exception has occurred within the validations.", err)
                 validation_messages.append("The validations failed to execute")
@@ -255,6 +252,6 @@ class _DistributedTraceValidation(BaseValidation):
                 final_validation_message = f"Validation messages ({total_errors}):\n - "
                 final_validation_message += "\n - ".join(validation_messages)
                 self.log_error(final_validation_message)
-                self.log_error(f"All correlated traces:\n {str(self.correlated_local_traces)}")
+                self.log_error(f"All correlated spans:\n {str(self.correlated_spans)}")
             else:
                 self.set_status(True)

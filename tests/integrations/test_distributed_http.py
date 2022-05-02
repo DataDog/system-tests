@@ -14,17 +14,14 @@ from utils import BaseTestCase, interfaces, context, missing_feature
 class Test_DistributedHttp(BaseTestCase):
     """ Verify behavior of http clients and distributed traces """
 
-    def distributed_trace_validation(self, traces):
+    def distributed_trace_validation(self, spans):
         validations = []
 
         http_span = None
 
-        for trace in traces:
-            for span in trace:
-                if "type" in span and span["type"] == "http":
-                    http_span = span
-                    break
-            if http_span is not None:
+        for span in spans:
+            if "type" in span and span["type"] == "http":
+                http_span = span
                 break
 
         if http_span is None:
@@ -33,14 +30,11 @@ class Test_DistributedHttp(BaseTestCase):
 
         distributed_child_span = None
 
-        for trace in traces:
-            for span in trace:
-                if "parent_id" not in span:
-                    continue
-                if span["parent_id"] == http_span["span_id"]:
-                    distributed_child_span = span
-                    break
-            if distributed_child_span is not None:
+        for span in spans:
+            if "parent_id" not in span:
+                continue
+            if span["parent_id"] == http_span["span_id"]:
+                distributed_child_span = span
                 break
 
         if distributed_child_span is None:
