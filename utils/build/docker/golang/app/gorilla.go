@@ -20,7 +20,7 @@ func main() {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("An error has occurred"))
+			w.Write([]byte("An error has occurred with the distributed call"))
 			return
 		}
 		sb := string(body)

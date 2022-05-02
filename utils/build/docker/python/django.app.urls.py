@@ -31,11 +31,11 @@ def distributed_http_end(request):
 
 urlpatterns = [
     path("", hello_world),
+    path("distributed-http", distributed_http),
+    path("distributed-http-end", distributed_http_end),
     path("sample_rate_route/<int:i>", sample_rate),
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
-    path("distributed-http", distributed_http),
-    path("distributed-http-end", distributed_http_end),
 ]
