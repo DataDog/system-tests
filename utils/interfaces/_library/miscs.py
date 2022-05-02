@@ -181,9 +181,17 @@ class _DistributedTraceValidation(BaseValidation):
                     correlated_local_traces.append(trace)
                     break
 
+        self.correlated_local_traces = correlated_local_traces
+
         if len(correlated_local_traces) > 1:
-            self.correlated_local_traces = correlated_local_traces
-            return True
+            web_span_count = 0
+            for trace in correlated_local_traces:
+                for span in trace:
+                    if span.get("type") == "web":
+                        web_span_count += 1
+                        
+            if web_span_count >= 2:
+                return True
 
         return False
 
