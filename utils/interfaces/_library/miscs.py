@@ -186,10 +186,9 @@ class _DistributedTraceValidation(BaseValidation):
         if len(correlated_spans) > 1:
             # This relies on unique span IDs and proper de-duplication above
             web_span_count = 0
-            for trace in correlated_spans:
-                for span in trace:
-                    if span.get("type") == "web":
-                        web_span_count += 1
+            for span in correlated_spans:
+                if span.get("type") == "web":
+                    web_span_count += 1
 
             if web_span_count >= 2:
                 return True
