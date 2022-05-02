@@ -84,6 +84,9 @@ do
 
     elif [[ $IMAGE_NAME == agent ]]; then
         BUILD_ARGS=""
+        if [ -f ./binaries/agent-image ]; then
+            read -r AGENT_BASE_IMAGE < ./binaries/agent-image
+        fi
         if [[ ! -z $AGENT_BASE_IMAGE ]]; then
             BUILD_ARGS="--build-arg AGENT_IMAGE=$AGENT_BASE_IMAGE"
         fi

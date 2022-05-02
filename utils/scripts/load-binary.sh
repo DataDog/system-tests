@@ -124,6 +124,85 @@ get_github_action_artifact() {
     rm -rf artifacts artifacts.zip
 }
 
+fetch_latest_repo_commit_hashes() {
+    REPO=${1:-"https://github.com/DataDog/datadog-agent"}
+    BRANCH=${2:-"main"}
+    NB_OF_REVS=${3:-100}
+    TMP_DIR=$(mktemp -d)
+    PWD=$(pwd)
+    echo "working in $TMP_DIR" >&2
+    cd "$TMP_DIR"
+    git clone --depth "$NB_OF_REVS" --branch "$BRANCH" --single-branch "$REPO" ./repo
+    cd repo
+    git log -n 100 --pretty=format:"%H" main |
+        xargs -I {} sh -c 'echo {} | head -c 8 ; echo'
+    cd "$PWD"
+    rm -rf "$TMP_DIR"
+}
+
+fetch_tags() {
+    if [ -z "${GITLAB_CI-}" ]; then
+        aws-vault exec build-stable-developer -- \
+        aws ecr describe-images \
+        --registry-id  486234852809 \
+        --region us-east-1 \
+        --repository-name ci/datadog-agent/agent \
+        --page-size 200        
+    else
+        aws ecr describe-images \
+        --registry-id  486234852809 \
+        --region us-east-1 \
+        --repository-name ci/datadog-agent/agent \
+        --page-size 200
+    fi
+}
+
+get_latest_agent_image_tag() {
+    AGENT_REPO="$1"
+    AGENT_BRANCH="$2"
+    AGENT_FLAVOR="$3"
+
+    echo "Fetching datadog-agent main branch commits" >&2
+    latest_commits=$(fetch_latest_repo_commit_hashes "$AGENT_REPO" "$AGENT_BRANCH")
+
+    echo "Fetching available image tags in ci repo" >&2
+    available_images=$(
+        fetch_tags |
+        jq -r '.imageDetails[].imageTags[]' |
+        sed -E 's/^v([0-9]+)(.*)$/\1 v\1\2/' |
+        sort -nr |
+        cut -d ' ' -f2 |
+        while read -r image_tag; do
+            image_flavor=$(echo $image_tag | sed -E 's/^v[0-9]+-([^-]+)-(.*)$/\2/')
+            if [ "$image_flavor" = "$AGENT_FLAVOR" ]; then
+                echo "$image_tag"
+            fi
+        done
+    )
+
+    latest_image=$(echo "$latest_commits" | while read -r commit; do
+        latest_image=$(echo "$available_images" | while read -r image_tag; do
+            image_commit=$(echo $image_tag | sed -E 's/^v[0-9]+-([^-]+)-(.*)$/\1/')
+            image_flavor=$(echo $image_tag | sed -E 's/^v[0-9]+-([^-]+)-(.*)$/\2/')
+            if [ $commit = $image_commit ]; then
+                echo "Found latest image for main branch" >&2
+                echo "$image_tag"
+                break
+            fi
+        done)
+        if [ ! -z "$latest_image" ]; then
+            echo "$latest_image"
+            break
+        fi
+    done)
+
+    if [ -z "$latest_image" ]; then
+        echo "Didn't find latest image for main branch" >&2
+    else
+        echo "$latest_image"
+    fi
+}
+
 if test -f ".env"; then
     source .env
 fi
@@ -175,8 +254,19 @@ elif [ "$TARGET" = "cpp" ]; then
     x=1
 
 elif [ "$TARGET" = "agent" ]; then
-    # ???
-    x=1
+    if [ -z "${GITLAB_CI-}" ]; then
+        echo "Loging into build-stable ecr" >&2
+        aws-vault exec build-stable-developer -- aws ecr get-login-password |
+            docker login --username AWS --password-stdin 486234852809.dkr.ecr.us-east-1.amazonaws.com >&2
+    else
+        aws ecr get-login-password --region us-east-1 |
+            docker login --username AWS --password-stdin 486234852809.dkr.ecr.us-east-1.amazonaws.com >&2
+    fi
+
+    image_tag=$(get_latest_agent_image_tag "https://github.com/Datadog/datadog-agent" "main" "7-amd64")
+    image=486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent/agent:"$image_tag"
+    docker pull "$image"
+    echo "$image" > agent-image
 
 elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master

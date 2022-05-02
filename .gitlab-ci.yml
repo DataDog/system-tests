@@ -32,3 +32,24 @@ cross-components:
       - binaries/
       - logs/
       - logs_sampling_rate/
+
+cross-component-agent:
+  extends: .base_job
+  stage: test
+  tags: ["runner:docker"]
+  parallel:
+    matrix:
+      - TEST_LIBRARY: php
+        WEBLOG_VARIANT: apache-mod
+  script:
+    - ./utils/scripts/load-binary.sh agent
+    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
+    - ./build.sh
+    - ./run.sh
+    - ./run.sh SAMPLING
+  artifacts:
+    when: always
+    paths:
+      - binaries/
+      - logs/
+      - logs_sampling_rate/
