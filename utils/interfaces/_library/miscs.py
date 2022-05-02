@@ -189,7 +189,7 @@ class _DistributedTraceValidation(BaseValidation):
                 for span in trace:
                     if span.get("type") == "web":
                         web_span_count += 1
-                        
+
             if web_span_count >= 2:
                 return True
 
