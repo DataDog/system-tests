@@ -167,8 +167,25 @@ class _DistributedTraceValidation(BaseValidation):
         self.validator = validator
         self.root_trace_ids = set()
         self.trace_candidates = []
+        self.correlated_local_traces = []
+        self.finished = False
 
     path_filters = "/v0.4/traces"
+
+    def _wait_condition_satisifed(self):
+        correlated_local_traces = []
+
+        for trace in self.trace_candidates:
+            for span in trace:
+                if span["trace_id"] in self.root_trace_ids:
+                    correlated_local_traces.append(trace)
+                    break
+
+        if len(correlated_local_traces) > 1:
+            self.correlated_local_traces = correlated_local_traces
+            return True
+
+        return False
 
     def check(self, data):
         if not isinstance(data["request"]["content"], list):
@@ -192,30 +209,35 @@ class _DistributedTraceValidation(BaseValidation):
                     self.root_trace_ids.add(span["trace_id"])
                     self.trace_candidates.append(trace)
                     break
+                else:
+                    self.trace_candidates.append(trace)
 
-            if not rid_found:
-                # This was not directly triggered by a request from the test framework
-                self.trace_candidates.append(trace)
+        if self._wait_condition_satisifed():
+            self.finished = True
+            self.execute_validations()
 
     def final_check(self):
+        if not self.finished:
+            self.execute_validations()
 
-        correlated_local_traces = []
+    def execute_validations(self):
+
         validation_messages = []
 
         for trace in self.trace_candidates:
             for span in trace:
                 if span["trace_id"] in self.root_trace_ids:
-                    correlated_local_traces.append(trace)
+                    self.correlated_local_traces.append(trace)
                     break
 
-        if len(correlated_local_traces) == 0:
+        if len(self.correlated_local_traces) == 0:
             trace_id_msg = ", ".join(self.root_trace_ids)
             self.log_error(f"Found zero correlated traces for rid {self.rid}")
             self.log_error(f"Root traces identified:\n {trace_id_msg}")
             self.log_error(f"All traces:\n {str(self.trace_candidates)}")
         else:
             try:
-                validation_messages += self.validator(correlated_local_traces)
+                validation_messages += self.validator(self.correlated_local_traces)
             except BaseException as err:
                 self.log_exception("An unexpected exception has occurred within the validations.", err)
                 validation_messages.append("The validations failed to execute")
@@ -225,6 +247,6 @@ class _DistributedTraceValidation(BaseValidation):
                 final_validation_message = f"Validation messages ({total_errors}):\n - "
                 final_validation_message += "\n - ".join(validation_messages)
                 self.log_error(final_validation_message)
-                self.log_error(f"All correlated traces:\n {str(correlated_local_traces)}")
+                self.log_error(f"All correlated traces:\n {str(self.correlated_local_traces)}")
             else:
                 self.set_status(True)
