@@ -165,7 +165,7 @@ class _DistributedTraceValidation(BaseValidation):
     def __init__(self, request, validator):
         super().__init__(request=request)
         self.validator = validator
-        self.spans_correlated = set()
+        self.correlated_span_ids = set()
         self.root_trace_ids = set()
         self.correlated_spans = []
         self.finished = False
@@ -173,20 +173,17 @@ class _DistributedTraceValidation(BaseValidation):
     path_filters = "/v0.4/traces"
 
     def _wait_condition_satisifed(self, traces):
-        correlated_spans = []
 
         for trace in traces:
             for span in trace:
-                if span["trace_id"] in self.root_trace_ids and span["span_id"] not in self.spans_correlated:
-                    correlated_spans.append(span)
-                    self.spans_correlated.add(span["span_id"])
+                if span["trace_id"] in self.root_trace_ids and span["span_id"] not in self.correlated_span_ids:
+                    self.correlated_spans.append(span)
+                    self.correlated_span_ids.add(span["span_id"])
 
-        self.correlated_spans = correlated_spans
-
-        if len(correlated_spans) > 1:
+        if len(self.correlated_span_ids) > 1:
             # This relies on unique span IDs and proper de-duplication above
             web_span_count = 0
-            for span in correlated_spans:
+            for span in self.correlated_spans:
                 if span.get("type") == "web":
                     web_span_count += 1
 
