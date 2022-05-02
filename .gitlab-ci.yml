@@ -37,6 +37,8 @@ cross-component-agent:
   extends: .base_job
   stage: test
   tags: ["runner:docker"]
+  only:
+    - schedules
   parallel:
     matrix:
       - TEST_LIBRARY: php
