@@ -20,7 +20,7 @@ if context.library == "cpp":
 class Test_Basic(BaseTestCase):
     """ Basic tests for Identify SDK """
 
-    def test_indentify_tags(self):
+    def test_identify_tags(self):
         def assertTagInSpanMeta(span, tag):
             if tag not in span["meta"]:
                 raise Exception(f"Can't find {tag} in span's meta")

@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 # WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="2.6.0", php="?", python="1.1.0rc2.dev", ruby="?")
+@released(golang="?", dotnet="2.7.0", java="?", nodejs="2.6.0", php="?", python="1.1.0rc2.dev", ruby="?")
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
