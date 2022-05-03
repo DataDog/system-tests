@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import BaseTestCase, context, coverage, interfaces, released, missing_feature, irrelevant
+from utils import BaseTestCase, context, coverage, interfaces, released, missing_feature, irrelevant, bug
 from .waf.utils import rules
 
 
@@ -57,11 +57,13 @@ class Test_RuleSet_1_3_1(BaseTestCase):
         """ Test rule set version number"""
         interfaces.library.add_assertion(context.appsec_rules_version >= "1.3.1")
 
+    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     def test_nosqli_keys(self):
         """Test a rule defined on this rules version: nosql on keys"""
         r = self.weblog_get("/waf/", params={"$nin": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
+    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
     def test_nosqli_keys_with_brackets(self):
         """Test a rule defined on this rules version: nosql on keys with brackets"""
