@@ -191,11 +191,14 @@ class _DistributedTraceValidation(BaseValidation):
                 correlated_span_ids.add(span_id)
 
         web_span_count = 0
+        http_span_count = 0
         for span in self.correlated_spans:
             if span.get("type") == "web":
                 web_span_count = web_span_count + 1
+            if span.get("type") == "http":
+                http_span_count = http_span_count + 1
 
-        if web_span_count >= 2:
+        if web_span_count >= 2 and http_span_count >= 1:
             return True
 
         return False
