@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, released, interfaces
+from utils import BaseTestCase, context, released, interfaces, coverage
 import pytest
 
 
@@ -11,8 +11,6 @@ if context.library == "cpp":
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@coverage.not_implemented
 class Test_Scrubbing(BaseTestCase):
     """Appsec scrubs all sensitive data"""
-
-    def test_basic(self):
-        interfaces.library.append_not_implemented_validation()

@@ -157,9 +157,6 @@ class InterfaceValidator(object):
 
         return data
 
-    def append_not_implemented_validation(self):
-        self.append_validation(_NotImplementedValidation())
-
     @property
     def validations(self):
         # to avoid any mistake, provide a copy
@@ -332,12 +329,6 @@ class BaseValidation(object):
             self.set_failure(err_msg)
 
         return not condition
-
-
-class _NotImplementedValidation(BaseValidation):
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
-        self.set_status(False)
 
 
 class _StaticValidation(BaseValidation):
