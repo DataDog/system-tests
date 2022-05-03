@@ -106,11 +106,13 @@ class Test_Monitoring(BaseTestCase):
             ):
                 raise Exception(f"the number of rule errors should be 0")
 
-            if expected_rules_errors_meta_tag in meta and (
-                meta[expected_rules_errors_meta_tag] != "{{}}" or meta[expected_rules_errors_meta_tag] != "null"
+            possible_errors_tag_values = ["null", "{}"]
+            if (
+                expected_rules_errors_meta_tag in meta
+                and meta[expected_rules_errors_meta_tag] not in possible_errors_tag_values
             ):
                 raise Exception(
-                    f"if there's no rule errors and if there are rule errors detail, then `{expected_rules_errors_meta_tag}` should be {{}}"
+                    f"if there's no rule errors and if there are rule errors detail, then `{expected_rules_errors_meta_tag}` should be {{}} or null but was `{meta[expected_rules_errors_meta_tag]}`"
                 )
 
             return True
