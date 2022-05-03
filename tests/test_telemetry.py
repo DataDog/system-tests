@@ -6,7 +6,6 @@ from utils import context, BaseTestCase, interfaces, missing_feature, bug
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
-@missing_feature(library="nodejs", reason="Implemented but not merged in master")
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
@@ -28,6 +27,13 @@ class Test_Telemetry(BaseTestCase):
         """Telemetry messages additional validation"""
         interfaces.library.assert_telemetry_messages_valid()
 
+    @bug(
+        library="dotnet",
+        reason="""
+            Bug in the telemetry agent proxy, that can't reopen connections if they're closed by timeout
+            https://github.com/DataDog/datadog-agent/pull/11880
+        """,
+    )
     def test_proxy_forwarding(self):
         """Test that the telemetry proxy forwards messages correctly"""
         interfaces.library.assert_all_telemetry_messages_proxied(interfaces.agent)
