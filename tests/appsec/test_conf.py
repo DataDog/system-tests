@@ -3,12 +3,17 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import BaseTestCase, context, coverage, interfaces, released, missing_feature, irrelevant, bug
+from utils import BaseTestCase, context, coverage, interfaces, released, missing_feature, irrelevant, bug, rfc
 from .waf.utils import rules
 
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
+
+
+@coverage.not_testable
+class Test_OneVariableInstallation:
+    """Installation with 1 env variable"""
 
 
 @released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="?")
@@ -26,11 +31,9 @@ class Test_StaticRuleSet(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@coverage.not_implemented
 class Test_FleetManagement(BaseTestCase):
     """ApppSec supports Fleet management"""
-
-    def test_basic(self):
-        interfaces.library.append_not_implemented_validation()
 
 
 class Test_RuleSet_1_2_4(BaseTestCase):
@@ -69,3 +72,10 @@ class Test_RuleSet_1_3_1(BaseTestCase):
         """Test a rule defined on this rules version: nosql on keys with brackets"""
         r = self.weblog_get("/waf/", params={"[$ne]": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
+@coverage.not_implemented
+@released(java="?", nodejs="?", python="?")
+class Test_ConfigurationVariables:
+    """ Configuration environment variables """

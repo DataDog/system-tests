@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, flaky, rfc
+from utils import BaseTestCase, context, coverage, interfaces, released, bug, irrelevant, missing_feature, flaky, rfc
 import pytest
 
 
@@ -158,3 +158,13 @@ class Test_RequestHeaders(BaseTestCase):
         interfaces.library.add_appsec_reported_header(r, "forwarded")
         interfaces.library.add_appsec_reported_header(r, "via")
         interfaces.library.add_appsec_reported_header(r, "true-client-ip")
+
+
+@coverage.not_implemented
+class Test_TagsFromRule:
+    """ Tags (Category & event type) from the rule """
+
+
+@coverage.not_implemented
+class Test_AttackTimestamp:
+    """ Attack timestamp """

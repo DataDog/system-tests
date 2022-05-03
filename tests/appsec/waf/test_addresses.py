@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky
+from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky, coverage, rfc
 import pytest
 
 
@@ -277,20 +277,15 @@ class Test_BodyXml(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@coverage.not_implemented
 class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 
-    def test_method(self):
-        interfaces.library.append_not_implemented_validation()
-
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@coverage.not_implemented
 class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""
-
-    def test_client_ip(self):
-        """Appsec WAF supports server.request.client_ip"""
-        interfaces.library.append_not_implemented_validation()
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
@@ -342,3 +337,22 @@ class Test_gRPC(BaseTestCase):
 
         r = self.weblog_grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users")
         interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
+@coverage.not_implemented
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_FullGrpc:
+    """ Full gRPC support"""
+
+
+@coverage.not_implemented
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_GraphQL:
+    """ GraphQL support"""
+
+
+@coverage.not_implemented
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_Lambda:
+    """ Lambda support"""

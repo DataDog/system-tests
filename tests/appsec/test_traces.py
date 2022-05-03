@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant, rfc
+from utils import BaseTestCase, context, coverage, interfaces, released, bug, missing_feature, irrelevant, rfc
 
 
 if context.library == "cpp":
@@ -264,3 +264,8 @@ class Test_CollectRespondHeaders(BaseTestCase):
 
         r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
         interfaces.library.add_span_validation(r, validate_response_headers)
+
+
+@coverage.not_implemented
+class Test_DistributedTraceInfo:
+    """ Distributed traces info (Services, URL, trace id) """
