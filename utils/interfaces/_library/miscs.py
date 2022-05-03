@@ -165,30 +165,39 @@ class _DistributedTraceValidation(BaseValidation):
     def __init__(self, request, validator):
         super().__init__(request=request)
         self.validator = validator
-        self.correlated_span_ids = set()
         self.root_trace_ids = set()
+        self.all_spans = []
         self.correlated_spans = []
+        self.all_traces = []
         self.finished = False
 
     path_filters = "/v0.4/traces"
 
     def _wait_condition_satisifed(self, traces):
 
+        self.all_traces.append(traces)
+
         for trace in traces:
             for span in trace:
-                if span["trace_id"] in self.root_trace_ids and span["span_id"] not in self.correlated_span_ids:
-                    self.correlated_spans.append(span)
-                    self.correlated_span_ids.add(span["span_id"])
+                self.all_spans.append(span)
 
-        if len(self.correlated_span_ids) > 1:
-            # This relies on unique span IDs and proper de-duplication above
-            web_span_count = 0
-            for span in self.correlated_spans:
-                if span.get("type") == "web":
-                    web_span_count += 1
+        correlated_spans = []
+        correlated_span_ids = set()
 
-            if web_span_count >= 2:
-                return True
+        for span in self.all_spans:
+            span_id = span["span_id"]
+            if span["trace_id"] in self.root_trace_ids and span_id not in correlated_span_ids:
+                correlated_spans.append(span)
+                correlated_span_ids.add(span_id)
+
+        web_span_count = 0
+        for span in correlated_spans:
+            if span.get("type") == "web":
+                web_span_count += 1
+
+        if web_span_count >= 2:
+            self.correlated_spans = correlated_spans
+            return True
 
         return False
 
@@ -203,7 +212,6 @@ class _DistributedTraceValidation(BaseValidation):
         for trace in data["request"]["content"]:
             # If the rid matches or is missing, we want to include the trace
             # This reduces the noise in the final_check
-            rid_found = False
             for span in trace:
                 # Skip all non-root spans
                 if span.get("parent_id", None) is not None:
@@ -235,7 +243,7 @@ class _DistributedTraceValidation(BaseValidation):
             trace_id_msg = ", ".join(self.root_trace_ids)
             self.log_error(f"Found zero correlated spans for rid {self.rid}")
             self.log_error(f"Root traces identified:\n {trace_id_msg}")
-            self.log_error(f"All spans:\n {str(self.correlated_spans)}")
+            self.log_error(f"All traces:\n {str(self.all_traces)}")
         else:
             try:
                 validation_messages += self.validator(self.correlated_spans)
