@@ -169,7 +169,7 @@ class _DistributedTraceValidation(BaseValidation):
         self.all_spans = []
         self.correlated_spans = []
         self.all_traces = []
-        self.finished = False
+        self.validations_started = False
 
     path_filters = "/v0.4/traces"
 
@@ -181,22 +181,21 @@ class _DistributedTraceValidation(BaseValidation):
             for span in trace:
                 self.all_spans.append(span)
 
-        correlated_spans = []
+        self.correlated_spans = []
         correlated_span_ids = set()
 
         for span in self.all_spans:
             span_id = span["span_id"]
             if span["trace_id"] in self.root_trace_ids and span_id not in correlated_span_ids:
-                correlated_spans.append(span)
+                self.correlated_spans.append(span)
                 correlated_span_ids.add(span_id)
 
         web_span_count = 0
-        for span in correlated_spans:
+        for span in self.correlated_spans:
             if span.get("type") == "web":
-                web_span_count += 1
+                web_span_count = web_span_count + 1
 
         if web_span_count >= 2:
-            self.correlated_spans = correlated_spans
             return True
 
         return False
@@ -217,10 +216,7 @@ class _DistributedTraceValidation(BaseValidation):
                 if span.get("parent_id", None) is not None:
                     continue
 
-                _span_rid = _get_rid_from_span(span)
-                self.log_error(f"Inspected rid {_span_rid}")
-
-                if self.rid == _span_rid:
+                if self.rid == _get_rid_from_span(span):
                     self.root_trace_ids.add(span["trace_id"])
                     trace_candidates.append(trace)
                     break
@@ -228,19 +224,22 @@ class _DistributedTraceValidation(BaseValidation):
                     trace_candidates.append(trace)
 
         if self._wait_condition_satisifed(trace_candidates):
-            self.finished = True
             self.execute_validations()
 
     def final_check(self):
-        if not self.finished:
-            self.execute_validations()
+        self.execute_validations()
 
     def execute_validations(self):
 
+        if self.validations_started:
+            self.log_error(f"Validations called after already finished")
+            return
+
+        self.validations_started = True
         validation_messages = []
 
         if len(self.correlated_spans) == 0:
-            trace_id_msg = ", ".join(self.root_trace_ids)
+            trace_id_msg = ", ".join([str(i) for i in self.root_trace_ids])
             self.log_error(f"Found zero correlated spans for rid {self.rid}")
             self.log_error(f"Root traces identified:\n {trace_id_msg}")
             self.log_error(f"All traces:\n {str(self.all_traces)}")
