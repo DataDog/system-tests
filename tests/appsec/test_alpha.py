@@ -5,7 +5,7 @@
 
 import pytest
 
-from utils import context, BaseTestCase, interfaces, released, irrelevant, missing_feature, flaky
+from utils import context, BaseTestCase, interfaces, released, missing_feature, bug
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -30,6 +30,7 @@ class Test_Basic(BaseTestCase):
         r = self.weblog_get("/waf/0x5c0x2e0x2e0x2f")
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
+    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     def test_headers(self):
         """
         Via server.request.headers.no_cookies

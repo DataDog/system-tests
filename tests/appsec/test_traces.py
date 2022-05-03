@@ -16,7 +16,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="1.29.0", java="0.92.0", python="1.1.0rc2.dev")
 @released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
-@missing_feature(context.library < "python@0.58.5")
+@bug(library="python@1.1.0", reason="a PR was not included in the release")
 class Test_RetainTraces(BaseTestCase):
     """ Retain trace (manual keep & appsec.event = true) """
 
@@ -101,6 +101,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
+    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     def test_header_collection(self):
         """
