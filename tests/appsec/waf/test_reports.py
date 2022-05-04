@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, flaky, rfc
+from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, coverage
 import pytest
 import re
 
@@ -12,6 +12,7 @@ if context.library == "cpp":
 
 
 @released(golang="1.38.0", dotnet="2.7.0", java="0.100.0", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+@coverage.good
 class Test_Monitoring(BaseTestCase):
     """ Support In-App WAF monitoring tags and metrics  """
 

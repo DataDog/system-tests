@@ -13,6 +13,7 @@ if context.library == "cpp":
 
 # WAF/current ruleset don't support looking at keys at all
 @released(golang="?", dotnet="2.7.0", java="?", nodejs="2.6.0", php="?", python="1.1.2", ruby="?")
+@coverage.basic
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -24,6 +25,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.2", ruby="0.54.2")
+@coverage.good
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -54,6 +56,7 @@ class Test_UrlQuery(BaseTestCase):
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
+@coverage.basic
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
@@ -75,6 +78,7 @@ class Test_UrlRaw(BaseTestCase):
 @released(python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.good
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -139,6 +143,7 @@ class Test_Headers(BaseTestCase):
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(python="1.1.0rc2.dev" if context.weblog_variant == "django-poc" else "?")
+@coverage.good
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
@@ -180,6 +185,7 @@ class Test_Cookies(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@coverage.basic
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
 
@@ -200,6 +206,7 @@ class Test_BodyRaw(BaseTestCase):
     if context.weblog_variant == "spring-boot-undertow"
     else "0.95.1"
 )
+@coverage.basic
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -223,6 +230,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
     if context.weblog_variant == "ratpack"
     else "0.95.1"
 )
+@coverage.basic
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -247,6 +255,7 @@ class Test_BodyJson(BaseTestCase):
 @released(
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
+@coverage.basic
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
@@ -289,6 +298,7 @@ class Test_ClientIP(BaseTestCase):
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="2.3.0", java="0.88.0", nodejs="2.0.0", python="0.58.5")
+@coverage.good
 class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
@@ -310,6 +320,7 @@ class Test_ResponseStatus(BaseTestCase):
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
+@coverage.basic
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
@@ -322,6 +333,7 @@ class Test_PathParams(BaseTestCase):
 
 
 @released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
 class Test_gRPC(BaseTestCase):
     """Appsec supports address grpc.server.request.message"""
 

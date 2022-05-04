@@ -17,6 +17,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(dotnet="1.29.0", java="0.92.0", python="1.1.0rc2.dev")
 @released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.good
 class Test_RetainTraces(BaseTestCase):
     """ Retain trace (manual keep & appsec.event = true) """
 
@@ -58,9 +59,9 @@ class Test_RetainTraces(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(dotnet="1.29.0", java="0.92.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
-@missing_feature(context.library < "python@0.58.5")
+@released(dotnet="1.29.0", java="0.92.0", nodejs="2.0.0")
+@released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
+@coverage.good
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 
@@ -148,6 +149,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @released(golang="1.38.0", dotnet="2.7.0", java="?", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+@coverage.good
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
@@ -245,9 +247,9 @@ class Test_AppSecObfuscator(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@missing_feature(library="python")
-@released(dotnet="2.5.1", php_appsec="0.2.2", ruby="1.0.0.beta1")
+@released(dotnet="2.5.1", php_appsec="0.2.2", python="?", ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
+@coverage.good
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """
 

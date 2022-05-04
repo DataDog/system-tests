@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, coverage, interfaces, released, bug, irrelevant, missing_feature, flaky, rfc
+from utils import BaseTestCase, context, coverage, interfaces, released, bug, coverage, missing_feature, flaky, rfc
 import pytest
 
 
@@ -19,6 +19,7 @@ if context.library == "cpp":
     else "1.34.0"
 )
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.basic
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
@@ -51,6 +52,7 @@ class Test_StatusCode(BaseTestCase):
 )
 @released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python="?")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@coverage.good
 class Test_ActorIP(BaseTestCase):
     """ AppSec reports good actor's IP"""
 
@@ -110,6 +112,7 @@ class Test_ActorIP(BaseTestCase):
 @released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0", php="0.68.2", python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.good
 class Test_Info(BaseTestCase):
     """ Environment (production, staging) from DD_ENV variable """
 
@@ -147,6 +150,7 @@ class Test_Info(BaseTestCase):
 @released(dotnet="1.30.0", nodejs="2.0.0", php_appsec="0.2.0", python="1.1.0rc2.dev")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.good
 class Test_RequestHeaders(BaseTestCase):
     """ Request Headers for IP resolution """
 

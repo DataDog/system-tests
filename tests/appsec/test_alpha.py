@@ -5,7 +5,7 @@
 
 import pytest
 
-from utils import context, BaseTestCase, interfaces, released, missing_feature, bug
+from utils import context, BaseTestCase, interfaces, released, missing_feature, bug, coverage
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -18,10 +18,9 @@ if context.library == "cpp":
     if context.weblog_variant in ["echo", "chi"]
     else "1.34.0"
 )
-@released(dotnet="1.28.6", java="0.87.0")
-@released(nodejs="2.0.0", php_appsec="0.2.1")
-@released(python="1.1.0rc2.dev")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc2.dev")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@coverage.basic
 class Test_Basic(BaseTestCase):
     """
     Detect attacks on raw URI and headers with default rules
