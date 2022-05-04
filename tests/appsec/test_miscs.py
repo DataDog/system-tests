@@ -35,7 +35,7 @@ class Test_Telemetry:
 
 
 @coverage.not_implemented
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", python="?")
 class Test_Blocking:
     """ Blocking """
 
@@ -47,7 +47,7 @@ class Test_AppsecWithoutApm:
 
 
 @coverage.not_implemented
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_BodyContentCollection:
     """ Request body content collection"""
 
