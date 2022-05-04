@@ -66,7 +66,7 @@ class Test_Monitoring(BaseTestCase):
 
         # Tags that are expected to be reported at least once at some point
         expected_waf_version_tag = "_dd.appsec.waf.version"
-        expected_rules_monitoring_meta_tags = [expected_waf_version_tag, "_dd.appsec.event_rules.errors"]
+        expected_rules_errors_meta_tag = "_dd.appsec.event_rules.errors"
         expected_rules_monitoring_nb_loaded_tag = "_dd.appsec.event_rules.loaded"
         expected_rules_monitoring_nb_errors_tag = "_dd.appsec.event_rules.error_count"
         expected_rules_monitoring_metrics_tags = [
@@ -81,9 +81,8 @@ class Test_Monitoring(BaseTestCase):
             """
 
             meta = span["meta"]
-            for m in expected_rules_monitoring_meta_tags:
-                if m not in meta:
-                    return None  # Skip this span
+            if expected_waf_version_tag not in meta:
+                return None  # Skip this span
 
             metrics = span["metrics"]
             for m in expected_rules_monitoring_metrics_tags:
@@ -106,6 +105,15 @@ class Test_Monitoring(BaseTestCase):
                 and metrics[expected_rules_monitoring_nb_errors_tag] != 0
             ):
                 raise Exception(f"the number of rule errors should be 0")
+
+            possible_errors_tag_values = ["null", "{}"]
+            if (
+                expected_rules_errors_meta_tag in meta
+                and meta[expected_rules_errors_meta_tag] not in possible_errors_tag_values
+            ):
+                raise Exception(
+                    f"if there's no rule errors and if there are rule errors detail, then `{expected_rules_errors_meta_tag}` should be {{}} or null but was `{meta[expected_rules_errors_meta_tag]}`"
+                )
 
             return True
 
