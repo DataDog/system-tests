@@ -17,6 +17,7 @@ class Test_OneVariableInstallation:
 
 
 @released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="?")
+@coverage.basic
 class Test_StaticRuleSet(BaseTestCase):
     """Appsec loads rules from a static rules file"""
 
@@ -36,6 +37,7 @@ class Test_FleetManagement(BaseTestCase):
     """ApppSec supports Fleet management"""
 
 
+@coverage.basic
 class Test_RuleSet_1_2_4(BaseTestCase):
     """ AppSec uses rule set 1.2.4 or higher """
 
@@ -43,6 +45,7 @@ class Test_RuleSet_1_2_4(BaseTestCase):
         assert context.appsec_rules_version >= "1.2.4"
 
 
+@coverage.basic
 class Test_RuleSet_1_2_5(BaseTestCase):
     """ AppSec uses rule set 1.2.5 or higher """
 
