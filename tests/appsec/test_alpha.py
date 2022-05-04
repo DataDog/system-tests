@@ -11,12 +11,17 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(
+    golang="1.37.0"
+    if context.weblog_variant == "gin"
+    else "1.36.0"
+    if context.weblog_variant in ["echo", "chi"]
+    else "1.34.0"
+)
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.2.1")
 @released(python="1.1.0rc2.dev")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_Basic(BaseTestCase):
     """
     Detect attacks on raw URI and headers with default rules

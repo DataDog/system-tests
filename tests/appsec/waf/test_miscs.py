@@ -11,9 +11,14 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(
+    golang="1.37.0"
+    if context.weblog_variant == "gin"
+    else "1.36.0"
+    if context.weblog_variant in ["echo", "chi"]
+    else "1.34.0"
+)
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
@@ -32,9 +37,9 @@ class Test_404(BaseTestCase):
         )
 
 
-@released(golang="1.36.0", dotnet="2.3.0", java="0.95.0", nodejs="2.0.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(dotnet="2.3.0", java="0.95.0", nodejs="2.0.0")
 @released(php_appsec="0.2.0", python="1.1.2", ruby="1.0.0.beta1")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec reports multiple attacks on same request """
 
@@ -46,9 +51,8 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(golang="1.35.0")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.2", ruby="0.54.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
