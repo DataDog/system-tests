@@ -33,9 +33,8 @@ class Test_404(BaseTestCase):
 
 
 @released(golang="1.36.0", dotnet="2.3.0", java="0.95.0", nodejs="2.0.0")
-@released(php_appsec="0.2.0", python="1.1.0rc2.dev", ruby="1.0.0.beta1")
+@released(php_appsec="0.2.0", python="1.1.2", ruby="1.0.0.beta1")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
-@bug(library="python@1.1.0", reason="a PR was not included in the release")
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec reports multiple attacks on same request """
 
@@ -48,12 +47,11 @@ class Test_MultipleHighlight(BaseTestCase):
 
 
 @released(golang="1.35.0")
-@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev", ruby="0.54.2")
+@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.2", ruby="0.54.2")
 @missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
-    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     def test_basic(self):
         """Basic test with more than one attack"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
@@ -66,7 +64,6 @@ class Test_MultipleAttacks(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="acunetix-user-agreement")
         interfaces.library.assert_waf_attack(r, pattern="/../")
 
-    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     def test_same_location(self):
         """Test with more than one attack in a unique property"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1 and /../"})

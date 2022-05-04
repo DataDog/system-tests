@@ -51,7 +51,7 @@ class Test_RuleSet_1_2_5(BaseTestCase):
 
 
 @released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="?")
-@released(php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="?")
+@released(php_appsec="0.3.0", python="1.1.2", ruby="?")
 @coverage.good
 class Test_RuleSet_1_3_1(BaseTestCase):
     """ AppSec uses rule set 1.3.1 or higher """
@@ -60,13 +60,11 @@ class Test_RuleSet_1_3_1(BaseTestCase):
         """ Test rule set version number"""
         interfaces.library.add_assertion(context.appsec_rules_version >= "1.3.1")
 
-    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     def test_nosqli_keys(self):
         """Test a rule defined on this rules version: nosql on keys"""
         r = self.weblog_get("/waf/", params={"$nin": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
-    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
     def test_nosqli_keys_with_brackets(self):
         """Test a rule defined on this rules version: nosql on keys with brackets"""
