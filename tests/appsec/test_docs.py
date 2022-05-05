@@ -23,6 +23,7 @@ class Test_InstallationDebugProcedure:
     """ Procedure to debug install """
 
 
+@released(python="?")
 @coverage.not_testable
 class Test_PublicDocumentation:
     """ Public documentation is published """
