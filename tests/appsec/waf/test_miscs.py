@@ -11,13 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(
-    golang="1.37.0"
-    if context.weblog_variant == "gin"
-    else "1.36.0"
-    if context.weblog_variant in ["echo", "chi"]
-    else "1.34.0"
-)
+@released(golang={"gin": "1.37.0", "echo": "1.36.0", "chi": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
 @coverage.basic
