@@ -6,6 +6,7 @@ from utils.tools import logger
 from utils._context.library_version import LibraryVersion
 
 
+context.weblog_variant = "spring"
 context.library = LibraryVersion("java", "0.66.0")
 # monkey patch
 context.execute_warmups = lambda *args, **kwargs: None
@@ -106,16 +107,22 @@ class Test_Class:
         raise Exception("Should not be executed")
 
 
-@rfc("A link")
-@released(java="0.1")
-@released(php="99.99")
 class Test_Metadata:
     def test_rfc(self):
-        assert Test_Metadata().__rfc__ == "A link"
+        @rfc("A link")
+        class Test:
+            pass
+
+        assert Test.__rfc__ == "A link"
 
     def test_released(self):
-        assert Test_Metadata().__released__["java"] == "0.1"
-        assert "php" not in Test_Metadata().__released__
+        @released(java="0.1")
+        @released(php="99.99")
+        class Test:
+            pass
+
+        assert Test.__released__["java"] == "0.1"
+        assert "php" not in Test.__released__
 
     def test_double_declaration(self):
         try:
@@ -129,6 +136,28 @@ class Test_Metadata:
             assert str(e) == "A java' version for Test has been declared twice"
         else:
             raise Exception("Component has been declared twice, should fail")
+
+    def test_version_sugar_syntax(self):
+        @released(java={"spring": "2.1", "vertx": "0.2"})
+        class Test_DictBasic:
+            pass
+
+        assert Test_DictBasic.__released__["java"] == "2.1"
+        assert (
+            "Test_DictBasic => missing feature for java: release version is 2.1, tested version is 0.66.0 => xfail\n"
+            in logs
+        )
+
+    def test_version_sugar_syntax_wildcard(self):
+        @released(java={"*": "2.1", "vertx": "0.2"})
+        class Test_DictBasic:
+            pass
+
+        assert Test_DictBasic.__released__["java"] == "2.1"
+        assert (
+            "Test_DictBasic => missing feature for java: release version is 2.1, tested version is 0.66.0 => xfail\n"
+            in logs
+        )
 
 
 class Test_Skips:
