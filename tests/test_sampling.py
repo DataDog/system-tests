@@ -31,6 +31,21 @@ class Test_SamplingDecisions(BaseTestCase):
     @bug(context.library < "java@0.92.0")
     @flaky(context.library < "python@0.57.0")
     @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
+    @flaky(
+        library="ruby",
+        weblog_variant="sinatra14",
+        reason="fails randomly for Sinatra on JSON body that dutifully keeps",
+    )
+    @flaky(
+        library="ruby",
+        weblog_variant="sinatra20",
+        reason="fails randomly for Sinatra on JSON body that dutifully keeps",
+    )
+    @flaky(
+        library="ruby",
+        weblog_variant="sinatra21",
+        reason="fails randomly for Sinatra on JSON body that dutifully keeps",
+    )
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
