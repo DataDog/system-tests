@@ -44,11 +44,3 @@ class Test_Blocking:
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_AppsecWithoutApm:
     """ AppSec without APM """
-
-
-@coverage.not_implemented
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-class Test_BodyContentCollection:
-    """ Request body content collection"""
-
-    # probably not the good place
