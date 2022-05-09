@@ -245,6 +245,7 @@ class Test_BodyJson(BaseTestCase):
         r = self.weblog_post("/waf", json={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
+    @irrelevant(reason="unsupported by framework", library="dotnet")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="rack")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
