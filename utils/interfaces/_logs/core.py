@@ -17,7 +17,9 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def __init__(self, name):
         super().__init__(name)
 
-        self._skipped_patterns = [re.compile(r"^\s*$")]
+        self._skipped_patterns = [
+            re.compile(r"^\s*$"),
+        ]
         self._new_log_line_pattern = re.compile(r".")
         self._parsers = []
 
@@ -151,7 +153,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
         elif context.library == "php":
             self._skipped_patterns += [
-                re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])")
+                re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),
             ]
 
             timestamp = p("timestamp", r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")

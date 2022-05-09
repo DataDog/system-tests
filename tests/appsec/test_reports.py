@@ -58,7 +58,7 @@ class Test_ActorIP(BaseTestCase):
 
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"}, stream=True)
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1",}, stream=True)
         actual_remote_ip = r.raw._connection.sock.getsockname()[0]
         r.close()
 

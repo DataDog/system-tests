@@ -17,10 +17,16 @@ def main():
 
     parser.add_argument("corpus", nargs="?", type=str, help="Base corpus", default="scenarios/fuzzer/corpus")
 
-    parser.add_argument("--concurrent", "-c", type=int, help="How many concurrent requests run", default=8)
-    parser.add_argument("--dump", "-d", type=str, help="Save request with this HTTP status", default="500,501")
+    parser.add_argument(
+        "--concurrent", "-c", type=int, help="How many concurrent requests run", default=8,
+    )
+    parser.add_argument(
+        "--dump", "-d", type=str, help="Save request with this HTTP status", default="500,501",
+    )
     parser.add_argument("--export", "-e", help="Export all requests in a dump", action="store_true")
-    parser.add_argument("--report_frequency", "-f", type=int, help="Report frequency (default 1s)", default=1)
+    parser.add_argument(
+        "--report_frequency", "-f", type=int, help="Report frequency (default 1s)", default=1,
+    )
     parser.add_argument("--request_count", "-n", type=int, help="How many request to send", default=None)
     parser.add_argument("--port", "-p", type=str, help="Port to request", default="7777")
     parser.add_argument("--seed", "-s", type=str, help="seed for random", default=None)

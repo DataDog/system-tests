@@ -30,7 +30,11 @@ class _RequestExtractor(HTMLParser):
 
         if tag == "form":
             attrs = {k: v for k, v in attrs}
-            self.request = {"method": attrs["method"], "path": get_path(attrs.get("action", "/")), "data": {}}
+            self.request = {
+                "method": attrs["method"],
+                "path": get_path(attrs.get("action", "/")),
+                "data": {},
+            }
 
         elif tag == "input" and self.request:
             attrs = {k: v for k, v in attrs}

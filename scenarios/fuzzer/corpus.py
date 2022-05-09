@@ -44,7 +44,11 @@ def get_big_requests_corpus():
     sys.setrecursionlimit(100000)
 
     def _get_base_request(self, comment, path="/", payload_name="json", method="GET"):
-        result = {"method": method, "path": path, "headers": {"x-fuzzing-comment": comment}}
+        result = {
+            "method": method,
+            "path": path,
+            "headers": {"x-fuzzing-comment": comment},
+        }
 
         if method != "GET":
             result[payload_name] = {}

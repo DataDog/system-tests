@@ -36,7 +36,7 @@ class _DataCollector(threading.Thread):
         logging.getLogger("werkzeug").setLevel(logging.ERROR)
         app.logger.setLevel(logging.ERROR)
 
-        @app.route("/health", methods=["GET"])
+        @app.route("/health", methods=["GET",])
         def health():
             return "Ok"
 
