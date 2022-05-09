@@ -10,11 +10,7 @@ from datetime import datetime
 from os.path import isfile
 
 from scenarios.fuzzer.tools import data, apply_method
-from scenarios.fuzzer.tools.random_strings import (
-    get_random_unicode as gru,
-    get_random_string,
-    get_random_latin1,
-)
+from scenarios.fuzzer.tools.random_strings import get_random_unicode as gru, get_random_string, get_random_latin1
 from scenarios.fuzzer.html_parser import extract_requests
 
 

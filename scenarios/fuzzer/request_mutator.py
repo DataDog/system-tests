@@ -33,20 +33,7 @@ def _clean_string(item, allowed=None, forbidden=None):
 
 
 def _mutate_int(item):
-    _integers = [
-        -(2 ** 64) - 1,
-        -1025,
-        -100000,
-        1025,
-        0,
-        1,
-        -1,
-        100000,
-        2 ** 64 + 1,
-        0.0,
-        0.1,
-        3.14,
-    ]
+    _integers = [-(2 ** 64) - 1, -1025, -100000, 1025, 0, 1, -1, 100000, 2 ** 64 + 1, 0.0, 0.1, 3.14]
 
     return random.choice(_integers)
 
@@ -532,7 +519,7 @@ class RequestMutator:
         if not allow_nested:
             return random.choice(self.payload_values)
         else:
-            return random.choice(({self.get_payload_key(): self.get_payload_value()}, [self.get_payload_value()],))
+            return random.choice(({self.get_payload_key(): self.get_payload_value()}, [self.get_payload_value()]))
 
     ################################
     def clean_request(self, request):
@@ -556,7 +543,7 @@ class RequestMutator:
             request["headers"] = [[k, v] for k, v in request["headers"] if k.lower() not in self.invalid_header_keys]
 
             request["headers"] = [
-                [_clean_string(k, allowed=self.header_characters), _clean_string(v, allowed=self.header_characters),]
+                [_clean_string(k, allowed=self.header_characters), _clean_string(v, allowed=self.header_characters)]
                 for k, v in request["headers"]
             ]
 
@@ -642,15 +629,7 @@ class NodeRequestMutator(RequestMutator):
 
 
 class RailsRequestMutator(RequestMutator):
-    invalid_methods = (
-        "PATATE",
-        "CONNECT",
-        "NOTIFY",
-        "SUBSCRIBE",
-        "UNSUBSCRIBE",
-        "M-SEARCHMERGE",
-        "PURGE",
-    )
+    invalid_methods = ("PATATE", "CONNECT", "NOTIFY", "SUBSCRIBE", "UNSUBSCRIBE", "M-SEARCHMERGE", "PURGE")
     invalid_header_keys = ("Content-length",)
     max_path_length = 2048
 

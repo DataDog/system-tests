@@ -50,8 +50,12 @@ class security_scanner:
     ua0_600_49x = "ua0-600-49x"  # Gobuster
     ua0_600_4xx = "ua0-600-4xx"  # CGIchk
     ua0_600_51x = "ua0-600-51x"  # FFUF
-    ua0_600_52x = "ua0-600-52x"  # Nuclei is a fast tool for configurable targeted scanning based on templates offering massive extensibility and ease of use
-    ua0_600_53x = "ua0-600-53x"  # Tsunami is a general purpose network security scanner with an extensible plugin system for detecting high severity vulnerabilities with high confidence
+    ua0_600_52x = (
+        "ua0-600-52x"
+    )  # Nuclei is a fast tool for configurable targeted scanning based on templates offering massive extensibility and ease of use
+    ua0_600_53x = (
+        "ua0-600-53x"
+    )  # Tsunami is a general purpose network security scanner with an extensible plugin system for detecting high severity vulnerabilities with high confidence
     ua0_600_54x = "ua0-600-54x"  # Nimbostratus is a vulnerability scanner that scan websites unprompted
     ua0_600_5xx = "ua0-600-5xx"  # Blind Sql Injection Brute Forcer
     ua0_600_6xx = "ua0-600-6xx"  # Suspicious user agent
@@ -74,8 +78,12 @@ class lfi:
 
 
 class rfi:
-    crs_931_110 = "crs-931-110"  # Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name used w/URL Payload
-    crs_931_120 = "crs-931-120"  # Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question Mark Character (?)
+    crs_931_110 = (
+        "crs-931-110"
+    )  # Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name used w/URL Payload
+    crs_931_120 = (
+        "crs-931-120"
+    )  # Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question Mark Character (?)
 
 
 class command_injection:
@@ -130,7 +138,9 @@ class sql_injection:
     crs_942_140 = "crs-942-140"  # SQL Injection Attack: Common DB Names Detected
     crs_942_160 = "crs-942-160"  # Detects blind sqli tests using sleep() or benchmark()
     crs_942_190 = "crs-942-190"  # Detects MSSQL code execution and information gathering attempts
-    crs_942_220 = "crs-942-220"  # Looking for integer overflow attacks, these are taken from skipfish, except 2.2.2250738585072011e-308 is the \"magic number\" crash
+    crs_942_220 = (
+        "crs-942-220"
+    )  # Looking for integer overflow attacks, these are taken from skipfish, except 2.2.2250738585072011e-308 is the \"magic number\" crash
     crs_942_240 = "crs-942-240"  # Detects MySQL charset switch and MSSQL DoS attempts
     crs_942_250 = "crs-942-250"  # Detects MATCH AGAINST, MERGE and EXECUTE IMMEDIATE injections
     crs_942_270 = "crs-942-270"  # Looking for basic sql injection. Common attack string for mysql, oracle and others

@@ -26,9 +26,7 @@ class Test_Monitoring(BaseTestCase):
         expected_rules_monitoring_error_details_tag = "_dd.appsec.event_rules.errors"
         expected_rules_monitoring_nb_loaded_tag = "_dd.appsec.event_rules.loaded"
         expected_rules_monitoring_nb_errors_tag = "_dd.appsec.event_rules.error_count"
-        expected_rules_monitoring_meta_tags = [
-            expected_rules_monitoring_error_details_tag,
-        ]
+        expected_rules_monitoring_meta_tags = [expected_rules_monitoring_error_details_tag]
         expected_rules_monitoring_metrics_tags = [
             expected_rules_monitoring_nb_loaded_tag,
             expected_rules_monitoring_nb_errors_tag,

@@ -192,7 +192,4 @@ class LibraryVersion:
         return self.library == library and self.version >= version
 
     def serialize(self):
-        return {
-            "library": self.library,
-            "version": str(self.version),
-        }
+        return {"library": self.library, "version": str(self.version)}

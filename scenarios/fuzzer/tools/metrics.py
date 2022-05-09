@@ -20,9 +20,7 @@ def get_readable_integer_value(value):
 
 
 class Metric(object):
-    def __init__(
-        self, name, format_string=None, display_length=5, value=0, has_raw_value=True, raw_name=None,
-    ):
+    def __init__(self, name, format_string=None, display_length=5, value=0, has_raw_value=True, raw_name=None):
         self.included_in_pulse = True
         self.name = name
         self.raw_name = raw_name if raw_name else name
@@ -210,13 +208,7 @@ class EllapsedMetric(Metric):
 class PerformanceMetric(Metric):
     def __init__(self):
 
-        self.percentiles = {
-            "10%": 0.1,
-            "50%": 0.5,
-            "70%": 0.7,
-            "90%": 0.9,
-            "99%": 0.99,
-        }
+        self.percentiles = {"10%": 0.1, "50%": 0.5, "70%": 0.7, "90%": 0.9, "99%": 0.99}
 
         name = self._format(self.percentiles.keys())
         display_length = len(name)
