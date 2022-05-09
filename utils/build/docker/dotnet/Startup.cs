@@ -11,6 +11,7 @@ namespace weblog
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+            services.AddControllers().AddXmlDataContractSerializerFormatters();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
