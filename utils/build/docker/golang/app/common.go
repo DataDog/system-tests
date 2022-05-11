@@ -29,6 +29,7 @@ func parseBody(r *http.Request) (interface{}, error) {
 
 	xmlPayload := struct {
 		XMLName xml.Name `xml:"string"`
+		Attr    string   `xml:"attack,attr"`
 		Content string   `xml:",chardata"`
 	}{}
 	// Try parsing body as XML data
