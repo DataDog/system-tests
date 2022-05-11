@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from tkinter import Misc
-from utils import BaseTestCase, coverage, interfaces, released, rfc, missing_feature, context, bug
+from utils import BaseTestCase, coverage, interfaces, released, rfc, missing_feature, context, irrelevant
 import pytest
 
 if context.library == "cpp":
@@ -19,7 +19,7 @@ class Test_ConfigurationVariables(BaseTestCase):
 
     # DD_APPSEC_TRACE_RATE_LIMIT is not tested here, there is a dedicated class on appsec/rate_limiter.py
 
-    @missing_feature(library="ruby", weblog_variant="rack")
+    @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
     @missing_feature(
         context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21"],
         reason="Conf is done in weblog instead of library",
