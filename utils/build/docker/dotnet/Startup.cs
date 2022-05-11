@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Datadog.Trace;
+using weblog.ModelBinders;
 
 namespace weblog
 {
@@ -11,7 +12,10 @@ namespace weblog
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.AddControllers().AddXmlDataContractSerializerFormatters();
+           services.AddControllers(options =>
+            {
+                options.ModelBinderProviders.Insert(0, new ModelBinderSwitcherProvider());
+            }).AddXmlSerializerFormatters();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
