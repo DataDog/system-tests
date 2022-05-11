@@ -43,7 +43,7 @@ def deserialize_http_message(path, message, data, interface, key):
 
     if content_type in ("application/json", "text/json"):
         return json.loads(data)
-    elif path == "/v0.7/config": # Kyle, please add content-type header :)
+    elif path == "/v0.7/config":  # Kyle, please add content-type header :)
         return json.loads(data)
     elif interface == "library" and key == "response" and path == "/info":
         return json.loads(data)

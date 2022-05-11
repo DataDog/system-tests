@@ -9,6 +9,7 @@ from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._library.remote_configuration import _RemoteConfigurationValidation
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
 from utils.interfaces._library.miscs import (
@@ -37,7 +38,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         if context.library == "java":
             self.expected_timeout = 30
-        elif context.library.library in ("nodejs", "golang",):
+        elif context.library.library in ("golang",):
+            self.expected_timeout = 10
+        elif context.library.library in ("nodejs",):
             self.expected_timeout = 5
         elif context.library.library in ("php",):
             self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
@@ -114,6 +117,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def assert_trace_exists(self, request, span_type=None):
         self.append_validation(_TraceExistence(request=request, span_type=span_type))
+
+    def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
+        self.append_validation(_RemoteConfigurationValidation(validator, is_success_on_expiry=is_success_on_expiry))
 
 
 class _TraceIdUniquenessExceptions:
