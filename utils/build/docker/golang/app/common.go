@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"encoding/xml"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func initDatadog() {
@@ -27,8 +28,7 @@ func parseBody(r *http.Request) (interface{}, error) {
 	}
 
 	xmlPayload := struct {
-		XMLName xml.Name `xml:"a"`
-		Attr    string   `xml:"attack,attr"`
+		XMLName xml.Name `xml:"string"`
 		Content string   `xml:",chardata"`
 	}{}
 	// Try parsing body as XML data

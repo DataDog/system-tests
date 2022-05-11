@@ -36,6 +36,10 @@ func main() {
 	})
 
 	r.Any("/waf/", func(c echo.Context) error {
+		body, err := parseBody(c.Request())
+		if err == nil {
+			appsec.MonitorParsedHTTPBody(r.Context(), body)
+		}
 		return c.String(http.StatusOK, "Hello, WAF!\n")
 	})
 
