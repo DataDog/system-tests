@@ -1,0 +1,14 @@
+{
+  "$id": "/library/v0.7/config-request.json",
+
+  "properties": {
+      "timestamp_start":{
+        "type": "integer"
+      },
+      "content": {
+          
+      }
+  },
+
+  "required": []
+}
