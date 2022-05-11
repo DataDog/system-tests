@@ -17,7 +17,7 @@ namespace weblog.ModelBinders
                 return null;
             }
 
-            var subclasses = new[] { typeof(IEnumerable<string>), typeof(Model), typeof(string) };
+            var subclasses = new[] { typeof(IEnumerable<string>), typeof(Model), typeof(Models.String), typeof(string) };
 
             var binders = new Dictionary<Type, (ModelMetadata, IModelBinder)>();
             foreach (var type in subclasses)

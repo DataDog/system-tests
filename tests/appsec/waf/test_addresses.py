@@ -272,12 +272,11 @@ class Test_BodyXml(BaseTestCase):
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
         return super().weblog_post(path, params, data, headers)
 
-    @irrelevant(context.library == "dotnet", reason="default xml deserializers dont support attributes")
     def test_xml_attr_value(self):
-        r = self.weblog_post("/waf", data='<a attack="var_dump ()" />', address="server.request.body")
+        r = self.weblog_post("/waf", data='<string attack="var_dump ()" />', address="server.request.body")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
 
-        r = self.weblog_post("/waf", data=f'<a attack="{self.ENCODED_ATTACK}" />')
+        r = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
     def test_xml_content(self):
