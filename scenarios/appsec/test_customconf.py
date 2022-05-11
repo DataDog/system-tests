@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, flaky
+from utils import BaseTestCase, context, coverage, interfaces, released, bug, missing_feature
 import pytest
 
 
@@ -24,6 +24,7 @@ class _BaseNoAppSec(BaseTestCase):
 
 
 @released(java="0.93.0", php_appsec="0.3.0", ruby="?")
+@coverage.basic
 class Test_CorruptedRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is invalid"""
 
@@ -38,6 +39,7 @@ class Test_CorruptedRules(_BaseNoAppSec):
 
 
 @released(java="0.93.0", nodejs="2.4.1", php_appsec="0.3.0", ruby="?")
+@coverage.basic
 class Test_MissingRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is missing"""
 
@@ -59,6 +61,7 @@ class Test_MissingRules(_BaseNoAppSec):
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
 @released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
+@coverage.good
 class Test_ConfRuleSet(BaseTestCase):
     """AppSec support env var DD_APPSEC_RULES"""
 
@@ -79,6 +82,7 @@ class Test_ConfRuleSet(BaseTestCase):
 
 @released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
+@coverage.basic
 class Test_NoLimitOnWafRules(BaseTestCase):
     """ Serialize WAF rules without limiting their sizes """
 
