@@ -245,7 +245,6 @@ class Test_BodyJson(BaseTestCase):
         r = self.weblog_post("/waf", json={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
-    @irrelevant(reason="unsupported by framework", library="dotnet")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="rack")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
@@ -281,19 +280,6 @@ class Test_BodyXml(BaseTestCase):
         r = self.weblog_post("/waf", data=f'<a attack="{self.ENCODED_ATTACK}" />')
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
-    @irrelevant(
-        context.library != "dotnet",
-        reason="only for .NET where namespace is needed and exact name of the model as root",
-    )
-    def test_xml_attr_content(self):
-        r = self.weblog_post(
-            "/waf",
-            data='<Model  xmlns="http://schemas.datacontract.org/2004/07/weblog"><Value>var_dump ()</Value></Model>',
-            address="server.request.body",
-        )
-        interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
-
-    @irrelevant(context.library == "dotnet", reason="default xml deserializers need a specific namespace")
     def test_xml_content(self):
         r = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
