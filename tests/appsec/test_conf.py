@@ -76,7 +76,14 @@ class Test_RuleSet_1_3_1(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
-@coverage.not_implemented
+@coverage.basic
 @released(java="?", nodejs="?", python="?")
-class Test_ConfigurationVariables:
+class Test_ConfigurationVariables(BaseTestCase):
     """ Configuration environment variables """
+
+    # some test are available in scenarios/
+
+    def test_enabled(self):
+        # test DD_APPSEC_ENABLED = true
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
+        interfaces.library.assert_waf_attack(r)

@@ -266,11 +266,6 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run missing AppSec rules file
-        run: ./run.sh APPSEC_MISSING_RULES
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-
       - name: Run custom AppSec rules file
         run: ./run.sh APPSEC_CUSTOM_RULES
         env:
@@ -295,6 +290,26 @@ jobs:
 
       - name: Run CGROUP scenario
         run: ./run.sh CGROUP
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run APPSEC_DISABLED scenario
+        run: ./run.sh APPSEC_DISABLED
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
+        run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
+        run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run missing AppSec rules file
+        run: ./run.sh APPSEC_MISSING_RULES
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

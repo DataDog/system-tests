@@ -64,7 +64,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
-    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_ConfRuleSet scenarios/appsec/test_customconf.py::Test_NoLimitOnWafRules scenarios/appsec/waf/test_addresses.py scenarios/appsec/test_traces.py"
+    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_ConfRuleSet scenarios/appsec/test_customconf.py::Test_NoLimitOnWafRules scenarios/appsec/waf/test_addresses.py scenarios/appsec/test_traces.py scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_appsec_rules"
     export SYSTEMTESTS_LOG_FOLDER=logs_custom_appsec_rules
     WEBLOG_ENV="DD_APPSEC_RULES=/appsec_custom_rules.json"
 
@@ -87,6 +87,23 @@ elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
     export RUNNER_ARGS=scenarios/test_data_integrity.py
     export SYSTEMTESTS_LOG_FOLDER=logs_cgroup
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_DISABLED" ]; then
+    # disable appsec
+    export RUNNER_ARGS=scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_disabled
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_disabled
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_LOW_WAF_TIMEOUT" ]; then
+    # disable appsec
+    export RUNNER_ARGS=scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_waf_timeout
+    export SYSTEMTESTS_LOG_FOLDER=logs_low_waf_timeout
+    WEBLOG_ENV="DD_APPSEC_WAF_TIMEOUT=1"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_custom_obfuscation
+    WEBLOG_ENV="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
@@ -106,7 +123,7 @@ done
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
 # But some var need to be overwritten by some scenarios. We use this trick because optionnaly set 
 # them in the docker-compose.yml is not possible
-echo ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
+echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
 echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
 echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
