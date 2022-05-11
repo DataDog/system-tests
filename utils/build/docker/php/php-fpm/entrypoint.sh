@@ -15,7 +15,7 @@ touch "${LOGS_APACHE[@]}"
 chown root:adm "${LOGS_APACHE[@]}"
 
 # Unused at the moment
-env | sed -rn 's#^([^=]+)=([^=]+)$#env[\1] = \2#p' | tee /dev/stderr >> /etc/php/8.0/fpm/pool.d/www.conf
+env | sed -rn 's#^([^=]+)=([^=]+)$#env[\1] = "\2"#p' | tee /dev/stderr >> /etc/php/8.0/fpm/pool.d/www.conf
 sed -i "s/;clear_env = no/clear_env = no/" /etc/php/8.0/fpm/pool.d/www.conf
 
 service apache2 start
