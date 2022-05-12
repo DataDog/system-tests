@@ -189,6 +189,16 @@ class Test_TagsFromRule:
     """ Tags (Category & event type) from the rule """
 
 
-@coverage.not_implemented
-class Test_AttackTimestamp:
+@coverage.basic
+class Test_AttackTimestamp(BaseTestCase):
     """ Attack timestamp """
+
+    def test_service(self):
+        """ attack timestamp is given by start property of span """
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+        def validator(span, appsec_data):
+            assert "start" in span, "span should contain start property"
+            assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
+
+        interfaces.library.add_appsec_validation(r, validator=validator, is_success_on_expiry=True)
