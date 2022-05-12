@@ -222,7 +222,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
     java="0.99.0"
     if context.weblog_variant == "vertx3"
@@ -255,7 +255,7 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
@@ -273,17 +273,17 @@ class Test_BodyXml(BaseTestCase):
         return super().weblog_post(path, params, data, headers)
 
     def test_xml_attr_value(self):
-        r = self.weblog_post("/waf", data='<a attack="var_dump ()" />', address="server.request.body")
+        r = self.weblog_post("/waf", data='<string attack="var_dump ()" />', address="server.request.body")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
 
-        r = self.weblog_post("/waf", data=f'<a attack="{self.ENCODED_ATTACK}" />')
+        r = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
     def test_xml_content(self):
-        r = self.weblog_post("/waf", data="<a>var_dump ()</a>")
+        r = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
 
-        r = self.weblog_post("/waf", data=f"<a>{self.ENCODED_ATTACK}</a>")
+        r = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
 
@@ -328,7 +328,6 @@ class Test_ResponseStatus(BaseTestCase):
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @bug(library="dotnet", reason="attack is not reported")
     @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
