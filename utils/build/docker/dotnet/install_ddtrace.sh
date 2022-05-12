@@ -21,7 +21,7 @@ ls datadog-dotnet-apm-*.tar.gz > /app/SYSTEM_TESTS_LIBRARY_VERSION
 mkdir -p /opt/datadog
 tar xzf $(ls datadog-dotnet-apm-*.tar.gz) -C /opt/datadog
 
-cp /opt/datadog/Datadog.Trace.ClrProfiler.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
+cp /opt/datadog/tracer/Datadog.Trace.ClrProfiler.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
 cp /opt/datadog/libddwaf.so /binaries
 dotnet fsi --langversion:preview /binaries/query-versions.fsx
 rm /binaries/libDatadog.Trace.ClrProfiler.Native.so
