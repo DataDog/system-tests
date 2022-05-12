@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@released(nodejs="?")
+@released(dotnet="?", nodejs="?")
 @coverage.basic
 class Test_Main(BaseTestCase):
     """ Basic tests for rate limiter """
@@ -33,8 +33,8 @@ class Test_Main(BaseTestCase):
         def validator():
             message = f"sent {self.request_count} in 10 s. Expecting to see 10 events but saw {self.trace_count} events"
 
-            # very permissive test. We expect 10 traces, allow from 3 to 30.
-            assert 3 <= self.trace_count < 30, message
+            # very permissive test. We expect 10 traces, allow from 1 to 30.
+            assert 1 < self.trace_count < 30, message
 
             return True
 
