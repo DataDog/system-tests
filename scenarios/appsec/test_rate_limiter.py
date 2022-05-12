@@ -34,7 +34,7 @@ class Test_Main(BaseTestCase):
             message = f"sent {self.request_count} in 10 s. Expecting to see 10 events but saw {self.trace_count} events"
 
             # very permissive test. We expect 10 traces, allow from 1 to 30.
-            assert 1 < self.trace_count < 30, message
+            assert 1 <= self.trace_count <= 30, message
 
             return True
 
