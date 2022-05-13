@@ -11,10 +11,13 @@ if context.library == "cpp":
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@released(dotnet="?", nodejs="?")
+@released(dotnet="2.6.0")
 @coverage.basic
 class Test_Main(BaseTestCase):
     """ Basic tests for rate limiter """
+
+    # TODO: a scenario with DD_TRACE_SAMPLE_RATE set to something
+    # as sampling mechnism is very different across agent, it won't be an easy task
 
     trace_count = 0
     request_count = 0
