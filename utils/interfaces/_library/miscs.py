@@ -121,6 +121,44 @@ class _SpanValidation(BaseValidation):
                 except Exception as e:
                     self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
+class _SpanTagValidation(BaseValidation):
+    """ will run an arbitrary check on spans. If a request is provided, only span
+    """
+
+    path_filters = "/v0.4/traces"
+
+    def __init__(self, request, tags):
+        super().__init__(request=request)
+        self.tags = tags
+
+    def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            self.log_error(f"In {data['log_filename']}, traces should be an array")
+            return  # do not fail, it's schema's job
+
+        for trace in data["request"]["content"]:
+            for span in trace:
+                if self.rid:
+                    if self.rid != _get_rid_from_span(span):
+                        continue
+
+                    self.log_debug(f"Found a trace for {m(self.message)}")
+
+                try:
+                    for tagKey in self.tags:
+                        if tagKey not in self.tags:
+                            raise Exception(f'{tagKey} tag not found in span\'s meta"')
+
+                        expectValue = self.tags[tagKey]
+                        actualValue = span["meta"][tagKey]
+
+                        if expectValue != actualValue:
+                            raise Exception(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
+
+                    self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
+                    self.is_success_on_expiry = True
+                except Exception as e:
+                    self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
 class _TraceExistence(BaseValidation):
     def __init__(self, request, span_type=None):
