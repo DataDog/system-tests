@@ -52,6 +52,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
+    WEBLOG_ENV="DD_TRACE_SAMPLE_RATE=0.5"
     
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
