@@ -104,6 +104,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_custom_obfuscation
     WEBLOG_ENV="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_rate_limiter.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
+    WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1"
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
