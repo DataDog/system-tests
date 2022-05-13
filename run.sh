@@ -47,12 +47,12 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
        # Test explicit config
         echo "Testing explicit UDS configuration path."
         export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
-    fi 
+    fi
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
-    
+
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
@@ -107,7 +107,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_rate_limiter.py"
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
-    WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1"
+    WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1\nDD_TRACE_SAMPLE_RATE=-1"
 
 else # Let user choose the target
     export RUNNER_ARGS=$@
@@ -126,7 +126,7 @@ do
 done
 
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
-# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set 
+# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
 # them in the docker-compose.yml is not possible
 echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 

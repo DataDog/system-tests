@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@released(dotnet="?", nodejs="?")
+@released(dotnet="2.6.0", nodejs="?")
 @coverage.basic
 class Test_Main(BaseTestCase):
     """ Basic tests for rate limiter """
