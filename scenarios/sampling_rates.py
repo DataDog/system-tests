@@ -4,6 +4,7 @@
 
 from threading import Lock
 import time
+from random import randint
 
 from utils import BaseTestCase, interfaces, context, missing_feature, released, bug, irrelevant, flaky
 from utils.interfaces._core import BaseValidation
