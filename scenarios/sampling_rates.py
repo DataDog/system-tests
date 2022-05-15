@@ -5,7 +5,7 @@
 from threading import Lock
 import time
 
-from utils import BaseTestCase, interfaces, context, missing_feature, released, bug
+from utils import BaseTestCase, interfaces, context, missing_feature, released, bug, irrelevant, flaky
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans
 
