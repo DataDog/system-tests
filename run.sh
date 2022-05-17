@@ -52,6 +52,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
+    WEBLOG_ENV="DD_TRACE_SAMPLE_RATE=0.5"
     
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
@@ -103,6 +104,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value"
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_custom_obfuscation
     WEBLOG_ENV="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_rate_limiter.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
+    WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1"
 
 else # Let user choose the target
     export RUNNER_ARGS=$@

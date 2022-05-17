@@ -288,7 +288,7 @@ class Test_NoSqli(BaseTestCase):
 
     @irrelevant(context.appsec_rules_version >= "1.3.0", reason="rules run only on keys starting 1.3.0")
     def test_nosqli_value(self):
-        """AppSec catches NoSQLI attacks"""
+        """AppSec catches NoSQLI attacks in values"""
         r = self.weblog_get("/waf/", params={"value": "[$ne]"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
 
@@ -299,7 +299,7 @@ class Test_NoSqli(BaseTestCase):
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     def test_nosqli_keys(self):
-        """AppSec catches NoSQLI attacks"""
+        """AppSec catches NoSQLI attacks in keys"""
         r = self.weblog_get("/waf/", params={"[$ne]": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
 

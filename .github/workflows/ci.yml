@@ -308,6 +308,11 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run APPSEC_RATE_LIMITER scenario
+        run: ./run.sh APPSEC_RATE_LIMITER
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run missing AppSec rules file
         run: ./run.sh APPSEC_MISSING_RULES
         env:
