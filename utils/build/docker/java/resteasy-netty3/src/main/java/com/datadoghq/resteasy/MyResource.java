@@ -71,7 +71,7 @@ public class MyResource {
     }
 
 
-    @XmlRootElement(name = "a")
+    @XmlRootElement(name = "string")
     public static class XmlObject {
         @XmlValue
         public String value;
@@ -81,7 +81,7 @@ public class MyResource {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("AElement{");
+            final StringBuilder sb = new StringBuilder("StringElement{");
             sb.append("value='").append(value).append('\'');
             sb.append(", attack='").append(attack).append('\'');
             sb.append('}');

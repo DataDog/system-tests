@@ -120,10 +120,11 @@ class _AppSecValidation(_BaseAppSecValidation):
         * raise an exception => validation will fail
     """
 
-    def __init__(self, request, validator, legacy_validator):
+    def __init__(self, request, validator, legacy_validator, is_success_on_expiry=False):
         super().__init__(request=request)
         self.legacy_validator = legacy_validator
         self.validator = validator
+        self.is_success_on_expiry = is_success_on_expiry
 
     def validate_legacy(self, event):
         if self.legacy_validator:
