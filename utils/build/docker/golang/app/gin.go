@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +17,22 @@ func main() {
 
 	r := gin.New()
 	r.Use(gintrace.Middleware("weblog"))
+
+	r.Any("/distributed-http", func(ctx *gin.Context) {
+		resp, err := http.Get("http://weblog:7777/distributed-http-end")
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			ctx.Writer.WriteHeader(http.StatusInternalServerError)
+			ctx.Writer.Write([]byte("An error has occurred with the distributed call"))
+			return
+		}
+		sb := string(body)
+		ctx.Writer.Write([]byte(sb))
+	})
+
+	r.Any("/distributed-http-end", func(ctx *gin.Context) {
+		ctx.Writer.Write([]byte("Hello, end of the world!!\n"))
+	})
 
 	r.Any("/", func(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusOK)

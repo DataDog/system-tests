@@ -5,6 +5,7 @@
 """ Misc validations """
 
 from collections import Counter
+from operator import truediv
 
 from utils.tools import m
 from utils.interfaces._core import BaseValidation
@@ -158,3 +159,105 @@ class _TraceExistence(BaseValidation):
             else:
                 self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
                 self.log_error("\n".join(diagnostics))
+
+
+class _DistributedTraceValidation(BaseValidation):
+    def __init__(self, request, validator):
+        super().__init__(request=request)
+        self.validator = validator
+        self.root_trace_ids = set()
+        self.all_spans = []
+        self.correlated_spans = []
+        self.all_traces = []
+        self.validations_started = False
+
+    path_filters = "/v0.4/traces"
+
+    def _wait_condition_satisifed(self, traces):
+
+        self.all_traces.append(traces)
+
+        for trace in traces:
+            for span in trace:
+                self.all_spans.append(span)
+
+        self.correlated_spans = []
+        correlated_span_ids = set()
+
+        for span in self.all_spans:
+            span_id = span["span_id"]
+            if span["trace_id"] in self.root_trace_ids and span_id not in correlated_span_ids:
+                self.correlated_spans.append(span)
+                correlated_span_ids.add(span_id)
+
+        web_span_count = 0
+        http_span_count = 0
+        for span in self.correlated_spans:
+            if span.get("type") == "web":
+                web_span_count = web_span_count + 1
+            if span.get("type") == "http":
+                http_span_count = http_span_count + 1
+
+        if web_span_count >= 2 and http_span_count >= 1:
+            return True
+
+        return False
+
+    def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            # do not fail here, it's schema's job, simply ignore it
+            self.log_error(f"{data['log_filename']} content should be an array")
+            return
+
+        trace_candidates = []
+
+        for trace in data["request"]["content"]:
+            # If the rid matches or is missing, we want to include the trace
+            # This reduces the noise in the final_check
+            for span in trace:
+                # Skip all non-root spans
+                if span.get("parent_id", None) is not None:
+                    continue
+
+                if self.rid == _get_rid_from_span(span):
+                    self.root_trace_ids.add(span["trace_id"])
+                    trace_candidates.append(trace)
+                    break
+                else:
+                    trace_candidates.append(trace)
+
+        if self._wait_condition_satisifed(trace_candidates):
+            self.execute_validations()
+
+    def final_check(self):
+        self.execute_validations()
+
+    def execute_validations(self):
+
+        if self.validations_started:
+            self.log_error(f"Validations called after already finished")
+            return
+
+        self.validations_started = True
+        validation_messages = []
+
+        if len(self.correlated_spans) == 0:
+            trace_id_msg = ", ".join([str(i) for i in self.root_trace_ids])
+            self.log_error(f"Found zero correlated spans for rid {self.rid}")
+            self.log_error(f"Root traces identified:\n {trace_id_msg}")
+            self.log_error(f"All traces:\n {str(self.all_traces)}")
+        else:
+            try:
+                validation_messages += self.validator(self.correlated_spans)
+            except BaseException as err:
+                self.log_exception("An unexpected exception has occurred within the validations.", err)
+                validation_messages.append("The validations failed to execute")
+
+            total_errors = len(validation_messages)
+            if total_errors > 0:
+                final_validation_message = f"Validation messages ({total_errors}):\n - "
+                final_validation_message += "\n - ".join(validation_messages)
+                self.log_error(final_validation_message)
+                self.log_error(f"All correlated spans:\n {str(self.correlated_spans)}")
+            else:
+                self.set_status(True)
