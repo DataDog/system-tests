@@ -7,6 +7,7 @@ from utils import context, coverage, BaseTestCase, interfaces, irrelevant, relea
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+
 @released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsMethod(BaseTestCase):
