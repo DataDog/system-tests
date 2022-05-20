@@ -165,6 +165,7 @@ class _SpanTagValidation(BaseValidation):
                         f"{m(self.message)} not validated in {data['log_filename']}:\n{e}\nSpan is: {span}"
                     )
 
+
 class _TraceExistence(BaseValidation):
     def __init__(self, request, span_type=None):
         super().__init__(request=request)
