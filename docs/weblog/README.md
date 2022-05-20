@@ -104,3 +104,11 @@ The following text should be written to the body of the response:
 Hello world!\n
 ```
 
+In particular, it accepts and parse JSON and XML content. A typical XML content is :
+
+```xml
+<?xml version='1.0' encoding='utf-8'?>
+<string attack="attr">
+    content
+</string>
+```

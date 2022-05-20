@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant, rfc
+from utils import BaseTestCase, context, coverage, interfaces, released, bug, missing_feature, irrelevant, rfc
 
 
 if context.library == "cpp":
@@ -16,7 +16,8 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="1.29.0", java="0.92.0", python="1.1.0rc2.dev")
 @released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
-@missing_feature(context.library < "python@0.58.5")
+@bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.good
 class Test_RetainTraces(BaseTestCase):
     """ Retain trace (manual keep & appsec.event = true) """
 
@@ -57,11 +58,10 @@ class Test_RetainTraces(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_appsec_event_span_tags)
 
 
-@released(golang="1.36.0")
-@released(dotnet="1.29.0", java="0.92.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
-@missing_feature(context.library < "python@0.58.5")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(dotnet="1.29.0", java="0.92.0", nodejs="2.0.0")
+@released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
+@coverage.good
 class Test_AppSecEventSpanTags(BaseTestCase):
     """ AppSec correctly fill span tags. """
 
@@ -101,6 +101,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
+    @bug(library="python@1.1.0", reason="a PR was not included in the release")
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     def test_header_collection(self):
         """
@@ -147,7 +148,8 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@released(golang="1.38.0", dotnet="?", java="?", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+@released(golang="1.38.0", dotnet="2.7.0", java="?", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+@coverage.good
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
@@ -245,9 +247,9 @@ class Test_AppSecObfuscator(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@missing_feature(library="python")
-@released(dotnet="2.5.1", php_appsec="0.2.2", ruby="1.0.0.beta1")
+@released(dotnet="2.5.1", php_appsec="0.2.2", python="?", ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
+@coverage.good
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """
 
@@ -263,3 +265,8 @@ class Test_CollectRespondHeaders(BaseTestCase):
 
         r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
         interfaces.library.add_span_validation(r, validate_response_headers)
+
+
+@coverage.not_implemented
+class Test_DistributedTraceInfo:
+    """ Distributed traces info (Services, URL, trace id) """

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky
+from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky, coverage, rfc
 import pytest
 
 
@@ -11,8 +11,9 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-# WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="?", java="?", nodejs="2.6.0", php="?", python="1.1.0rc2.dev", ruby="?")
+@released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
+@released(php_appsec="0.3.2", python="?", ruby="1.0.0")
+@coverage.basic
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
 
@@ -22,9 +23,9 @@ class Test_UrlQueryKey(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="$eq", address="server.request.query")
 
 
-@released(golang="1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev", ruby="0.54.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@coverage.good
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
 
@@ -45,11 +46,17 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
+@released(
+    golang="1.37.0"
+    if context.weblog_variant == "gin"
+    else "1.36.0"
+    if context.weblog_variant in ["echo", "chi"]
+    else "1.34.0"
+)
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@coverage.basic
 class Test_UrlRaw(BaseTestCase):
     """Appsec supports server.request.uri.raw"""
 
@@ -70,6 +77,8 @@ class Test_UrlRaw(BaseTestCase):
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
+@bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.good
 class Test_Headers(BaseTestCase):
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -134,6 +143,7 @@ class Test_Headers(BaseTestCase):
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(python="1.1.0rc2.dev" if context.weblog_variant == "django-poc" else "?")
+@coverage.good
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
@@ -175,6 +185,7 @@ class Test_Cookies(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@coverage.basic
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
 
@@ -195,6 +206,7 @@ class Test_BodyRaw(BaseTestCase):
     if context.weblog_variant == "spring-boot-undertow"
     else "0.95.1"
 )
+@coverage.basic
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -210,7 +222,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
     java="0.99.0"
     if context.weblog_variant == "vertx3"
@@ -218,6 +230,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
     if context.weblog_variant == "ratpack"
     else "0.95.1"
 )
+@coverage.basic
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -232,16 +245,21 @@ class Test_BodyJson(BaseTestCase):
         r = self.weblog_post("/waf", json={"value": '<vmlframe src="xss">'})
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="rack")
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra21")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         r = self.weblog_post("/waf", json=['<vmlframe src="xss">'])
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
+@coverage.basic
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
@@ -255,44 +273,36 @@ class Test_BodyXml(BaseTestCase):
         return super().weblog_post(path, params, data, headers)
 
     def test_xml_attr_value(self):
-        r = self.weblog_post("/waf", data='<a attack="var_dump ()" />', address="server.request.body")
+        r = self.weblog_post("/waf", data='<string attack="var_dump ()" />', address="server.request.body")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
 
-        r = self.weblog_post("/waf", data=f'<a attack="{self.ENCODED_ATTACK}" />')
+        r = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
     def test_xml_content(self):
-        r = self.weblog_post("/waf", data="<a>var_dump ()</a>")
+        r = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
 
-        r = self.weblog_post("/waf", data=f"<a>{self.ENCODED_ATTACK}</a>")
+        r = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@coverage.not_implemented
 class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 
-    def test_method(self):
-        interfaces.library.append_not_implemented_validation()
-
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@coverage.not_implemented
 class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""
 
-    def test_client_ip(self):
-        """Appsec WAF supports server.request.client_ip"""
-        interfaces.library.append_not_implemented_validation()
-
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@released(nodejs="2.0.0")
-@released(java="0.88.0")
-@released(golang="1.36.0")
-@released(dotnet="2.3.0")
-@released(python="0.58.5")
-@missing_feature(context.library <= "golang@1.36.2" and context.weblog_variant == "gin")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(dotnet="2.3.0", java="0.88.0", nodejs="2.0.0", python="0.58.5")
+@coverage.good
 class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
@@ -314,10 +324,10 @@ class Test_ResponseStatus(BaseTestCase):
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
+@coverage.basic
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @bug(library="dotnet", reason="attack is not reported")
     @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
@@ -326,6 +336,7 @@ class Test_PathParams(BaseTestCase):
 
 
 @released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
 class Test_gRPC(BaseTestCase):
     """Appsec supports address grpc.server.request.message"""
 
@@ -339,3 +350,22 @@ class Test_gRPC(BaseTestCase):
 
         r = self.weblog_grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users")
         interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
+@coverage.not_implemented
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_FullGrpc:
+    """ Full gRPC support"""
+
+
+@coverage.not_implemented
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_GraphQL:
+    """ GraphQL support"""
+
+
+@coverage.not_implemented
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+class Test_Lambda:
+    """ Lambda support"""

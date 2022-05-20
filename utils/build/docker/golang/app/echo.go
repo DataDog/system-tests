@@ -41,18 +41,8 @@ func main() {
 		return c.NoContent(http.StatusNotFound)
 	})
 
-	r.Any("/waf", func(c echo.Context) error {
-		req := c.Request()
-		body, err := parseBody(req)
-		if err == nil {
-			appsec.MonitorParsedHTTPBody(req.Context(), body)
-		}
-		return c.String(http.StatusOK, "Hello, WAF!\n")
-	})
-
-	r.Any("/waf/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, WAF!\n")
-	})
+	r.Any("/waf", waf)
+	r.Any("/waf/", waf)
 
 	r.Any("/sample_rate_route/:i", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
@@ -90,4 +80,13 @@ func headers(c echo.Context) error {
 	c.Response().Writer.Header().Set("content-language", "en-US")
 
 	return c.String(http.StatusOK, "Hello, headers!")
+}
+
+func waf(c echo.Context) error {
+	req := c.Request()
+	body, err := parseBody(req)
+	if err == nil {
+		appsec.MonitorParsedHTTPBody(req.Context(), body)
+	}
+	return c.String(http.StatusOK, "Hello, WAF!\n")
 }

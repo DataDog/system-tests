@@ -16,7 +16,7 @@ def sample_rate(request, i):
     return HttpResponse("OK")
 
 
-def waf(request, url=""):
+def waf(request, *args, **kwargs):
     return HttpResponse("Hello, World!")
 
 

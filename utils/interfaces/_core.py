@@ -6,6 +6,7 @@
 This file contains base class used to validate interfaces
 """
 
+import traceback
 import logging
 import threading
 import inspect
@@ -158,9 +159,6 @@ class InterfaceValidator(object):
 
         return data
 
-    def append_not_implemented_validation(self):
-        self.append_validation(_NotImplementedValidation())
-
     @property
     def validations(self):
         # to avoid any mistake, provide a copy
@@ -168,6 +166,9 @@ class InterfaceValidator(object):
 
     def add_assertion(self, condition):
         self.append_validation(_StaticValidation(condition))
+
+    def add_final_validation(self, validator):
+        self.append_validation(_FinalValidation(validator))
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -347,12 +348,6 @@ class BaseValidation(object):
         return not condition
 
 
-class _NotImplementedValidation(BaseValidation):
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
-        self.set_status(False)
-
-
 class _StaticValidation(BaseValidation):
     def __init__(self, condition):
         super().__init__()
@@ -360,3 +355,23 @@ class _StaticValidation(BaseValidation):
 
     def check(self, data):
         pass
+
+
+class _FinalValidation(BaseValidation):
+    def __init__(self, validator):
+        super().__init__()
+        self.validator = validator
+
+    def check(self, data):
+        pass
+
+    def final_check(self):
+        try:
+            if self.validator():
+                self.log_debug(f"{self} is validated")
+                self.set_status(True)
+            else:
+                self.set_status(False)
+        except Exception as e:
+            msg = traceback.format_exception_only(type(e), e)[0]
+            self.set_failure(f"{m(self.message)} not validated: {msg}")

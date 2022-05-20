@@ -20,21 +20,6 @@ Several key points:
 * One class can have several tests
 * Files can be nested (`tests/test_product/test_stuffs.py::Test_AwesomeFeature`), feature's identifier will be the entire path, include the class name
 
-## Declare versions
-
-Once you have written the test, as you have not yet implemented the feature, you must declare that the test is expected to fail until a given version number. You must use the `released` decorator for this, using the good component name and version number:
-
-```python
-from utils import BaseTestCase, released
-
-@released(java="1.2.3")
-class Test_AwesomeFeature(BaseTestCase)
-    """ Short description of Awesome feature """
-```
-
-It means that the test will be executed starting version `1.2.3`. Arguments are components names, e.g. `java`, `golang`, etc... You can mix them on a single line.
-Also, if a feature is not yet implemented, you can set the version as `?`. The test class will be be flagged as missing feature (see below). Note that it will be executed, and a warning will be reported if it succeed.
-
 ## Skip tests
 
 Three decorators will helps you to skip some test function or class, depending on the skip reason:
