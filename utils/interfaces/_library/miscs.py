@@ -147,13 +147,15 @@ class _SpanTagValidation(BaseValidation):
                 try:
                     for tagKey in self.tags:
                         if tagKey not in self.tags:
-                            raise Exception(f'{tagKey} tag not found in span\'s meta"')
+                            raise Exception(f"{tagKey} tag not found in span's meta")
 
                         expectValue = self.tags[tagKey]
                         actualValue = span["meta"][tagKey]
 
                         if expectValue != actualValue:
-                            raise Exception(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
+                            raise Exception(
+                                f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"'
+                            )
 
                     self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                     self.is_success_on_expiry = True

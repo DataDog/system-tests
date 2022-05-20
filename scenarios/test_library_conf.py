@@ -20,8 +20,8 @@ class Test_HeaderTags(BaseTestCase):
         # skip the first item, as this required to make the tests work on some platforms
         tag_config_list = full_tag_config_list[1::]
 
-        headers={"header-tag1": "header-val1", "header-tag2": "header-val2"}
-        tags={"http.request.headers." + tag: headers[tag] for tag in tag_config_list}
+        headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        tags = {"http.request.headers." + tag: headers[tag] for tag in tag_config_list}
 
         r = self.weblog_get(f"/waf", headers=headers)
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
@@ -29,14 +29,13 @@ class Test_HeaderTags(BaseTestCase):
     @released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_trace_header_tags_long_format(self):
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
-        logger.info(f"tag_conf: {tag_conf}")
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
         tag_config_list = full_tag_config_list[1::]
 
-        headers={"header-tag1": "header-val1", "header-tag2": "header-val2"}
-        tags={item.split(":")[1]: headers[item.split(":")[0]] for item in tag_config_list}
+        headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        tags = {item.split(":")[1]: headers[item.split(":")[0]] for item in tag_config_list}
 
         r = self.weblog_get(f"/waf", headers=headers)
         interfaces.library.add_span_tag_validation(request=r, tags=tags)

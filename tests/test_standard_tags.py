@@ -11,7 +11,7 @@ class Test_StandardTags(BaseTestCase):
     @released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_method(self):
 
-        verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE",  "PATCH"]
+        verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
 
         for verb in verbs:
             data = None
