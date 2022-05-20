@@ -25,6 +25,8 @@ fi
 cd -
 
 python -c "import ddtrace; print(ddtrace.__version__)" > SYSTEM_TESTS_LIBRARY_VERSION
-echo "dd-trace version is $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
+python binaries/get_appsec_rules_version.py > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
-echo "1.2.5" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+
+echo "dd-trace version is $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
+echo "appsec rules version is $(cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"

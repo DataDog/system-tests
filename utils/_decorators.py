@@ -137,6 +137,8 @@ def released(
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
 
+            released_version = _compute_released_version(released_version)
+
             test_class.__released__[component_name] = released_version
 
             if released_version == "?":
@@ -183,3 +185,19 @@ def rfc(link):
         return item
 
     return wrapper
+
+
+def _compute_released_version(released_version):
+    if isinstance(released_version, str):
+        return released_version
+
+    if isinstance(released_version, dict):
+        if context.weblog_variant in released_version:
+            return released_version[context.weblog_variant]
+
+        if "*" in released_version:
+            return released_version["*"]
+
+        return None
+
+    raise TypeError(f"Unsuported release info: {released_version}")

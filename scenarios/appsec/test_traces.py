@@ -12,7 +12,8 @@ if context.library == "cpp":
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@released(golang="1.38.0", dotnet="?", java="0.100.0", nodejs="2.6.0", php_appsec="0.3.0", python="?", ruby="?")
+@released(golang="1.38.0", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
+@released(php_appsec="0.3.0", python="?", ruby="?")
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
@@ -21,16 +22,14 @@ class Test_AppSecObfuscator(BaseTestCase):
         # Validate that the AppSec events do not contain the following secret value.
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
-        SECRET = "this is a very secret value having the attack"
+        SECRET = "this-is-a-very-secret-value-having-the-attack"
 
         def validate_appsec_span_tags(span, appsec_data):
             if SECRET in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             return True
 
-        r = self.weblog_get(
-            "/waf/", cookies={"Bearer": f"{SECRET} select pg_sleep"}, params={"pwd": f'{SECRET} o:3:"d":3:{{}}'},
-        )
+        r = self.weblog_get("/waf/", cookies={"Bearer": f"{SECRET}aaaa"}, params={"pwd": f'{SECRET} o:3:"d":3:{{}}'})
         interfaces.library.assert_waf_attack(r, address="server.request.cookies")
         interfaces.library.assert_waf_attack(r, address="server.request.query")
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
@@ -43,8 +42,8 @@ class Test_AppSecObfuscator(BaseTestCase):
         # Validate that the AppSec events do not contain the following secret value.
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
-        SECRET_VALUE_WITH_SENSITIVE_KEY = "this is a very sensitive cookie value having the .htaccess attack"
-        SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not a sensitive cookie value having an select pg_sleep attack"
+        SECRET_VALUE_WITH_SENSITIVE_KEY = "this-is-a-very-sensitive-cookie-value-having-the-aaaa-attack"
+        SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not-a-sensitive-cookie-value-having-an-bbbb-attack"
 
         def validate_appsec_span_tags(span, appsec_data):
             if SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
