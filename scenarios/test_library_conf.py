@@ -12,7 +12,7 @@ from utils.tools import logger
 @released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @coverage.basic
 class Test_HeaderTagsShortFormat(BaseTestCase):
-    """DD_TRACE_HEADER_TAGS env var support"""
+    """Validates that the short, header name only, format for specifying headers correctly tags spans"""
 
     def test_trace_header_tags(self):
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
@@ -32,6 +32,8 @@ class Test_HeaderTagsShortFormat(BaseTestCase):
 @released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @coverage.basic
 class Test_HeaderTagsLongFormat(BaseTestCase):
+    """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
+
     def test_trace_header_tags(self):
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
 
