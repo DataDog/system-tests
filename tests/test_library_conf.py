@@ -20,4 +20,3 @@ class Test_HeaderTags(BaseTestCase):
         _, tag_name = tag_conf.split(":")
 
         interfaces.library.add_span_validation(validator=lambda span: tag_name in span.get("meta", {}))
-

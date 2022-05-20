@@ -90,4 +90,3 @@ class Test_StandardTags(BaseTestCase):
             "http.client_ip": "43.43.43.43",
         }
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
-

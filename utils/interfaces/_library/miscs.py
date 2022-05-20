@@ -121,6 +121,7 @@ class _SpanValidation(BaseValidation):
                 except Exception as e:
                     self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
 
+
 class _SpanTagValidation(BaseValidation):
     """ will run an arbitrary check on spans. If a request is provided, only span
     """
@@ -161,6 +162,7 @@ class _SpanTagValidation(BaseValidation):
                     self.is_success_on_expiry = True
                 except Exception as e:
                     self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
+
 
 class _TraceExistence(BaseValidation):
     def __init__(self, request, span_type=None):
