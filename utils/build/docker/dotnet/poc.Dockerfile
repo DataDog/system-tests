@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 
-RUN apt-get update
-RUN apt-get install dos2unix
+RUN apt-get update && apt-get install dos2unix
 
 WORKDIR /app
 
