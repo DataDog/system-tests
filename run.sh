@@ -111,12 +111,12 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
     WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1"
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
-    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTags::test_trace_header_tags_short_format"
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsShortFormat"
     export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_short
     WEBLOG_ENV="DD_TRACE_HEADER_TAGS=user-agent:http.request.headers.user-agent,header-tag1,header-tag2"
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
-    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTags::test_trace_header_tags_long_format"
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsLongFormat"
     export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
     WEBLOG_ENV="DD_TRACE_HEADER_TAGS=user-agent:http.request.headers.user-agent,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
 

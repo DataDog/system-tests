@@ -9,11 +9,12 @@ from utils.tools import logger
 
 
 @irrelevant(library="cpp")
-class Test_HeaderTags(BaseTestCase):
+@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
+class Test_HeaderTagsShortFormat(BaseTestCase):
     """DD_TRACE_HEADER_TAGS env var support"""
 
-    @released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-    def test_trace_header_tags_short_format(self):
+    def test_trace_header_tags(self):
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
@@ -26,8 +27,12 @@ class Test_HeaderTags(BaseTestCase):
         r = self.weblog_get(f"/waf", headers=headers)
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-    def test_trace_header_tags_long_format(self):
+
+@irrelevant(library="cpp")
+@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
+class Test_HeaderTagsLongFormat(BaseTestCase):
+    def test_trace_header_tags(self):
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")

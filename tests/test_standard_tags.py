@@ -5,10 +5,11 @@
 from utils import context, BaseTestCase, interfaces, irrelevant, released
 
 
-class Test_StandardTags(BaseTestCase):
-    """Tests to verify that libraries annotate spans with correct tags and metrics"""
+@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.good
+class Test_StandardTagsMethod(BaseTestCase):
+    """Tests to verify that libraries annotate spans with correct http.method tags"""
 
-    @released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_method(self):
 
         verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
@@ -25,7 +26,12 @@ class Test_StandardTags(BaseTestCase):
             }
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
+class Test_StandardTagsUrl(BaseTestCase):
+    """Tests to verify that libraries annotate spans with correct http.url tags"""
+
     def test_url_basic(self):
         r = self.weblog_get(f"/waf")
 
@@ -34,7 +40,6 @@ class Test_StandardTags(BaseTestCase):
         }
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_url_with_query_string(self):
         r = self.weblog_get(f"/waf?key1=val1&key2=val2&key3=val3")
 
@@ -43,7 +48,12 @@ class Test_StandardTags(BaseTestCase):
         }
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
+class Test_StandardTagsUserAgent(BaseTestCase):
+    """Tests to verify that libraries annotate spans with correct http.useragent tags"""
+
     def test_useragent(self):
         r = self.weblog_get(f"/waf", headers={"user-agent": "Mistake Not ..."})
 
@@ -52,16 +62,12 @@ class Test_StandardTags(BaseTestCase):
         }
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-    def test_headers_headers(self):
-        r = self.weblog_get(f"/waf")
 
-        tags = {
-            "http.request.headers.*": "",
-        }
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
+@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.good
+class Test_StandardTagsStatusCode(BaseTestCase):
+    """Tests to verify that libraries annotate spans with correct http.status_code tags"""
 
-    @released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_status_code(self):
         codes = ["200", "403", "404", "500"]
         for code in codes:
@@ -72,7 +78,12 @@ class Test_StandardTags(BaseTestCase):
             }
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
+class Test_StandardTagsRoute(BaseTestCase):
+    """Tests to verify that libraries annotate spans with correct http.route tags"""
+
     def test_route(self):
         r = self.weblog_get(f"/sample_rate_route/1")
 
@@ -81,7 +92,12 @@ class Test_StandardTags(BaseTestCase):
         }
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
+class Test_StandardTagsClientIp(BaseTestCase):
+    """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
+
     def test_client_ip(self):
         headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1"}
         r = self.weblog_get("/waf/", headers=headers)
