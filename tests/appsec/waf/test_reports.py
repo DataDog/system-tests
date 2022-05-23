@@ -11,7 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+@released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0", php_appsec="0.3.0", python="?", ruby="?")
 @coverage.good
 class Test_Monitoring(BaseTestCase):
     """ Support In-App WAF monitoring tags and metrics  """
@@ -123,7 +123,7 @@ class Test_Monitoring(BaseTestCase):
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_span_validation(validator=validate_rules_monitoring_span_tags)
 
-    @irrelevant(condition=context.library not in ["golang", "dotnet"], reason="optional tags")
+    @irrelevant(condition=context.library not in ["golang", "dotnet", "nodejs"], reason="optional tags")
     def test_waf_monitoring_optional(self):
         """ WAF monitoring span tags and metrics may send extra optional tags """
 

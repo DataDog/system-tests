@@ -296,8 +296,7 @@ class Test_NoSqli(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
     @irrelevant(context.libddwaf_version < "1.1.0", reason="Key matching is not supported before this version")
-    @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
-    @missing_feature(context.library in ["golang", "nodejs", "php", "ruby"], reason="Need to use last WAF version")
+    @missing_feature(context.library in ["golang", "php", "ruby"], reason="Need to use last WAF version")
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     def test_nosqli_keys(self):
