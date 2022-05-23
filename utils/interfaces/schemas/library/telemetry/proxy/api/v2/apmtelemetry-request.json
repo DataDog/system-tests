@@ -285,18 +285,6 @@
         }
       ]
     },
-    "RequestType": {
-      "description": "Payload type variant",
-      "type": "string",
-      "enum": [
-        "app-started",
-        "app-dependencies-loaded",
-        "app-heartbeat",
-        "app-closing",
-        "generate-metrics"
-      ],
-      "example": "app-started"
-    },
     "Configuration": {
       "type": "array",
       "items": {
@@ -378,6 +366,12 @@
               "type": "object",
               "properties": {
                 "request_type": { "const": "app-heartbeat" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-closing" }
               }
             }
           ]
