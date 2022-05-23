@@ -318,6 +318,16 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+        run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+        run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
