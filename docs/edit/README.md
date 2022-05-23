@@ -27,7 +27,7 @@ class Test_Feature(BaseTestCase):
         interfaces.library.add_span_validation(r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-And it's also a good idea to [provide meta info about your feature, and sometimes skip a test](./features.md).
+And it's also a good idea to declare [a version](./declare-versions.md) and a [coverage](./coverage.md) for your feature, and sometimes [skip a test](./features.md)
 
 ```python
 from utils import BaseTestCase, interfaces, context, released, bug
