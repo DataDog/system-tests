@@ -94,6 +94,10 @@ The end point must accept a query string parameter `q`. This parameter should be
 
 The output of the query should be written to the body of the response.
 
+## `GET /status`
+
+The end point must accept a query string parameter `code`, which should be an integer. This parameter should be come the status code of the response message.
+
 ## \[All HTTP verbs\] /waf
 
 This is a generic endpoint. It must accept all methods, all content types, all queries and all sub paths, including empty ones.
