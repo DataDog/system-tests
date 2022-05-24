@@ -303,7 +303,6 @@ class Test_NoSqli(BaseTestCase):
         r = self.weblog_get("/waf/", params={"[$ne]": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.crs_942_290)
 
-        """AppSec catches NoSQLI attacks"""
         r = self.weblog_get("/waf/", params={"$nin": "value"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
