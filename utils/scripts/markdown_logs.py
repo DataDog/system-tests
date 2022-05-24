@@ -16,7 +16,8 @@ def main():
             result[x] = collections.defaultdict(int)
             data = json.load(open(f"{x}/report.json", "r"))
             for test in data["tests"]:
-                result[x][test["outcome"]] += 1
+                outcome = "skipped" if test["skip_reason"] is not None else test["outcome"]
+                result[x][outcome] += 1
 
     table_row("Scenario", *[f"{outcome} {icon}" for outcome, icon in all_outcomes.items()])
     table_row(*(["-"] * (len(all_outcomes) + 1)))
