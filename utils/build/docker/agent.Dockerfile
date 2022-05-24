@@ -12,7 +12,7 @@ RUN echo 'deb https://apt.datadoghq.com/ stable 7' > /etc/apt/sources.list.d/dat
 RUN apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 A2923DFF56EDA6E76E55E492D3A80E30382E94DE
 RUN apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 D75CEA17048B9ACBF186794B32637D44F14F620E
 
-RUN apt-get update && apt-get -y install curl datadog-agent
+RUN apt-get update && apt-get -y install curl datadog-agent=1:7.35.2-1
 
 # Datadog agent conf
 
