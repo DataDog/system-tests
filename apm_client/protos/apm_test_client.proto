@@ -2,9 +2,9 @@ syntax = "proto3";
 
 // Interface of APM clients to be used for shared testing.
 service APMClient {
-    rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
-    rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
-    rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
+  rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
+  rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
+  rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
 }
 
 message StartSpanArgs {

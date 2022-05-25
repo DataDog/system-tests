@@ -105,6 +105,7 @@ def _snapshot_context(token, ignores=None, tracer=None, async_mode=True, variant
     finally:
         conn.close()
 
+
 def _request_token(request):
     token = ""
     token += request.module.__name__

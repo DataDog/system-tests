@@ -1,10 +1,7 @@
-FROM debian:buster-slim
-
-# Parametrize Python version
-
-# http://bugs.python.org/issue19846
-# > At the moment, setting "LANG=C" on a Linux system *fundamentally breaks Python 3*, and that's not OK.
-ENV LANG C.UTF-8
-
+FROM python:3.9
 WORKDIR /client
-COPY requirements.txt /client
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+# ADD apm_test_client ./apm_test_client
+# CMD ["python", "-m", "apm_test_client"]
+CMD ["bash", "run.sh"]
