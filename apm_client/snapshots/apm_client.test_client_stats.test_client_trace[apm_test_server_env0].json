@@ -7,17 +7,17 @@
     "span_id": 1,
     "parent_id": 0,
     "meta": {
-      "runtime-id": "a327dda30cca47ed84dfc800b0351186"
+      "runtime-id": "1024dab682554351bee0785ce52e3056"
     },
     "metrics": {
       "_dd.agent_psr": 1.0,
       "_dd.top_level": 1,
       "_dd.tracer_kr": 1.0,
       "_sampling_priority_v1": 1,
-      "system.pid": 15
+      "system.pid": 1
     },
-    "duration": 5487750,
-    "start": 1653516113472986591
+    "duration": 13242750,
+    "start": 1653596829270194631
   },
      {
        "name": "postgres.query",
@@ -29,6 +29,6 @@
        "metrics": {
          "_dd.top_level": 1
        },
-       "duration": 1299750,
-       "start": 1653516113474849299
+       "duration": 5371791,
+       "start": 1653596829274210548
      }]]

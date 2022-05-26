@@ -1,8 +1,17 @@
 import contextlib
+import dataclasses
 import os
+import shutil
+import subprocess
+import sys
+import time
+from typing import Dict, List, Tuple
+import urllib.parse
+
+import grpc
 
 import attr
-import ddtrace
+import requests
 from ddtrace.internal.compat import parse, to_unicode
 from ddtrace.internal.compat import httplib
 from ddtrace.internal.utils.formats import parse_tags_str
@@ -21,7 +30,6 @@ def pytest_configure(config):
 @attr.s
 class SnapshotTest(object):
     token = attr.ib(type=str)
-    tracer = attr.ib(type=ddtrace.Tracer, default=ddtrace.tracer)
 
     def clear(self):
         """Clear any traces sent that were sent for this snapshot."""
@@ -32,80 +40,6 @@ class SnapshotTest(object):
         assert resp.status == 200
 
 
-@contextlib.contextmanager
-def _snapshot_context(token, ignores=None, tracer=None, async_mode=True, variants=None):
-    # Use variant that applies to update test token. One must apply. If none
-    # apply, the test should have been marked as skipped.
-    if variants:
-        applicable_variant_ids = [k for (k, v) in variants.items() if v]
-        assert len(applicable_variant_ids) == 1
-        variant_id = applicable_variant_ids[0]
-        token = "{}_{}".format(token, variant_id) if variant_id else token
-
-    ignores = ignores or []
-    if not tracer:
-        tracer = ddtrace.tracer
-
-    parsed = parse.urlparse(tracer._writer.agent_url)
-    conn = httplib.HTTPConnection(parsed.hostname, parsed.port)
-    try:
-        # clear queue in case traces have been generated before test case is
-        # itself run
-        try:
-            tracer._writer.flush_queue()
-        except Exception as e:
-            pytest.fail("Could not flush the queue before test case: %s" % str(e), pytrace=True)
-
-        if async_mode:
-            # Patch the tracer writer to include the test token header for all requests.
-            tracer._writer._headers["X-Datadog-Test-Session-Token"] = token
-
-            # Also add a header to the environment for subprocesses test cases that might use snapshotting.
-            existing_headers = parse_tags_str(os.environ.get("_DD_TRACE_WRITER_ADDITIONAL_HEADERS", ""))
-            existing_headers.update({"X-Datadog-Test-Session-Token": token})
-            os.environ["_DD_TRACE_WRITER_ADDITIONAL_HEADERS"] = ",".join(
-                ["%s:%s" % (k, v) for k, v in existing_headers.items()]
-            )
-
-        try:
-            conn.request("GET", "/test/session/start?test_session_token=%s" % token)
-        except Exception as e:
-            pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
-        else:
-            r = conn.getresponse()
-            if r.status != 200:
-                # The test agent returns nice error messages we can forward to the user.
-                pytest.fail(to_unicode(r.read()), pytrace=False)
-
-        try:
-            yield SnapshotTest(
-                tracer=tracer,
-                token=token,
-            )
-        finally:
-            # Force a flush so all traces are submitted.
-            tracer._writer.flush_queue()
-            if async_mode:
-                del tracer._writer._headers["X-Datadog-Test-Session-Token"]
-                del os.environ["_DD_TRACE_WRITER_ADDITIONAL_HEADERS"]
-
-        # Query for the results of the test.
-        conn = httplib.HTTPConnection(parsed.hostname, parsed.port)
-        conn.request("GET", "/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
-        r = conn.getresponse()
-        if r.status != 200:
-            pytest.fail(to_unicode(r.read()), pytrace=False)
-    except Exception as e:
-        # Even though it's unlikely any traces have been sent, make the
-        # final request to the test agent so that the test case is finished.
-        conn = httplib.HTTPConnection(parsed.hostname, parsed.port)
-        conn.request("GET", "/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
-        conn.getresponse()
-        pytest.fail("Unexpected test failure during snapshot test: %s" % str(e), pytrace=True)
-    finally:
-        conn.close()
-
-
 def _request_token(request):
     token = ""
     token += request.module.__name__
@@ -114,41 +48,238 @@ def _request_token(request):
     return token
 
 
-@pytest.fixture(autouse=True)
-def snapshot(request):
-    marks = [m for m in request.node.iter_markers(name="snapshot")]
-    assert len(marks) < 2, "Multiple snapshot marks detected"
-    if marks:
-        snap = marks[0]
-        token = snap.kwargs.get("token")
-        if token:
-            del snap.kwargs["token"]
-        else:
-            token = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
-
-        with _snapshot_context(token, *snap.args, **snap.kwargs) as snapshot:
-            yield snapshot
-    else:
-        yield
+@dataclasses.dataclass
+class APMClientTestServer:
+    container_name: str
+    container_tag: str
+    container_img: str
+    container_cmd: List[str]
+    port: str = "50051"
+    env: Dict[str, str] = dataclasses.field(default_factory=dict)
+    volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
 
 @pytest.fixture
-def snapshot_context(request):
-    """
-    Fixture to provide a context manager for executing code within a ``tests.utils.snapshot_context``
-    with a default ``token`` based on the test function/``pytest`` request.
+def apm_test_server_env():
+    yield {}
 
-    def test_case(snapshot_context):
-        with snapshot_context():
-            # my code
-    """
-    token = _request_token(request)
+
+@pytest.fixture
+def apm_test_server(apm_test_server_env):
+    python_dir = os.path.join(os.getcwd(), "python")
+    yield APMClientTestServer(
+        container_name="python-test-client",
+        container_tag="py39-test-client",
+        container_img="""
+FROM python:3.9
+WORKDIR /client
+RUN pip install grpcio==1.46.3 grpcio-tools==1.46.3
+RUN pip install ddtrace
+""",
+        container_cmd="python -m apm_test_client".split(" "),
+        volumes=[
+            (os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),
+        ],
+        env=apm_test_server_env,
+    )
+
+
+@pytest.fixture
+def test_server_log_file(apm_test_server, tmp_path):
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    yield tmp_path / ("%s_%s.out" % (apm_test_server.container_name, timestr))
+
+
+class TestAgentAPI:
+    def __init__(self, base_url: str):
+        self._base_url = base_url
+        self._session = requests.Session()
+
+    def _url(self, path: str) -> str:
+        return urllib.parse.urljoin(self._base_url, path)
+
+    def traces(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/traces"), **kwargs)
+        return resp.json()
 
     @contextlib.contextmanager
-    def _snapshot(**kwargs):
-        if "token" not in kwargs:
-            kwargs["token"] = token
-        with _snapshot_context(**kwargs) as snapshot:
-            yield snapshot
+    def snapshot_context(self, token, ignores=None):
+        ignores = ignores or []
+        try:
+            resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
+            if resp.status_code != 200:
+                # The test agent returns nice error messages we can forward to the user.
+                pytest.fail(to_unicode(resp.text()), pytrace=False)
+        except Exception as e:
+            pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
+        else:
+            yield SnapshotTest(token=token)
+            # Query for the results of the test.
+            resp = self._session.get(
+                self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
+            )
+            if resp.status_code != 200:
+                pytest.fail(to_unicode(resp.text()), pytrace=False)
 
-    return _snapshot
+
+@contextlib.contextmanager
+def docker_run(
+    image: str,
+    name: str,
+    cmd: List[str],
+    env: Dict[str, str],
+    volumes: List[Tuple[str, str]],
+    ports: List[Tuple[str, str]],
+    log_file_path: str,
+):
+    _cmd: List[str] = [
+        shutil.which("docker"),
+        "run",
+        "--rm",
+        "--name=%s" % name,
+    ]
+    with open(log_file_path, "w") as f:
+        for k, v in env.items():
+            _cmd.extend(["-e", "%s=%s" % (k, v)])
+        for k, v in volumes:
+            _cmd.extend(["-v", "%s:%s" % (k, v)])
+        for k, v in ports:
+            _cmd.extend(["-p", "%s:%s" % (k, v)])
+        _cmd += [image]
+        _cmd.extend(cmd)
+        f.write(" ".join(_cmd) + "\n\n")
+        f.flush()
+        docker = shutil.which("docker")
+        subprocess.Popen(_cmd, stdout=f, stderr=f)
+        yield
+        subprocess.run(
+            [docker, "kill", name],
+            stdout=f,
+            stderr=f,
+            check=True,
+        )
+
+
+@pytest.fixture
+def test_agent(request, tmp_path):
+    # Build the container
+    log_file_path = tmp_path / "ddapm_test_agent.out"
+    print("ddapm_test_agent output: %s" % log_file_path)
+
+    env = {}
+    if os.getenv("DEV_MODE") is not None:
+        env["SNAPSHOT_CI"] = "0"
+
+    with docker_run(
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+        name="ddapm-test-agent",
+        cmd=[],
+        env=env,
+        volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
+        ports=[("8126", "8126")],
+        log_file_path=log_file_path,
+    ):
+        client = TestAgentAPI(base_url="http://localhost:8126")
+        # Wait for the agent to start
+        for i in range(50):
+            try:
+                client.traces()
+            except requests.exceptions.ConnectionError as e:
+                time.sleep(0.2)
+            else:
+                break
+        else:
+            pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
+
+        # If the snapshot mark is on the test case then do a snapshot test
+        marks = [m for m in request.node.iter_markers(name="snapshot")]
+        assert len(marks) < 2, "Multiple snapshot marks detected"
+        if marks:
+            snap = marks[0]
+            token = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+            with client.snapshot_context(token, *snap.args, **snap.kwargs):
+                yield client
+        else:
+            yield client
+
+
+@pytest.fixture
+def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_file):
+    print(test_server_log_file)
+    f = open(test_server_log_file, "w")
+
+    # Build the container
+    docker = shutil.which("docker")
+    cmd = [
+        docker,
+        "build",
+        "-t",
+        apm_test_server.container_tag,
+        "-",
+    ]
+    subprocess.run(
+        cmd,
+        stdout=f,
+        stderr=f,
+        check=True,
+        text=True,
+        input=apm_test_server.container_img,
+    )
+
+    env = {}
+    if sys.platform == "darwin":
+        env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:8126"
+    else:
+        env["DD_TRACE_AGENT_URL"] = "http://localhost:8126"
+    env.update(apm_test_server.env)
+    cmd = [
+        docker,
+        "run",
+        "--rm",
+        "--name=%s" % apm_test_server.container_name,
+        "-p",
+        "%s:%s" % (apm_test_server.port, apm_test_server.port),
+    ]
+    for k, v in env.items():
+        cmd.extend(["-e", "%s=%s" % (k, v)])
+    for k, v in apm_test_server.volumes:
+        cmd.extend(["-v", "%s:%s" % (k, v)])
+    cmd += [apm_test_server.container_tag]
+    cmd.extend(apm_test_server.container_cmd)
+    f.write(" ".join(cmd) + "\n\n")
+    f.flush()
+    subprocess.Popen(
+        cmd,
+        stdout=f,
+        stderr=f,
+        env=env,
+    )
+
+    yield apm_test_server
+
+    # Kill the container
+    subprocess.run(
+        [
+            docker,
+            "kill",
+            apm_test_server.container_name,
+        ],
+        stdout=f,
+        stderr=f,
+        check=True,
+    )
+    f.close()
+
+
+@pytest.fixture
+def test_server_timeout():
+    yield 10
+
+
+@pytest.fixture
+def test_client(test_server, test_server_timeout):
+    channel = grpc.insecure_channel("localhost:%s" % test_server.port)
+    grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
+    client = apm_test_client_pb2_grpc.APMClientStub(channel)
+    yield client
+    client.FlushSpans(pb.FlushSpansArgs())

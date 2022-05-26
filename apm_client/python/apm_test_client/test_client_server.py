@@ -30,7 +30,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
     def FlushSpans(self, request, context):
         ddtrace.tracer.flush()
-        ddtrace.tracer._span_processors[-2].periodic()
+        stats_proc = [p for p in ddtrace.tracer._span_processors if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)]
+        if len(stats_proc):
+            stats_proc[0].periodic()
         return apm_test_client_pb2.FlushSpansReturn()
 
 
