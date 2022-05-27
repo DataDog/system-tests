@@ -14,7 +14,6 @@ import attr
 import requests
 from ddtrace.internal.compat import parse, to_unicode
 from ddtrace.internal.compat import httplib
-from ddtrace.internal.utils.formats import parse_tags_str
 import pytest
 
 from apm_client.protos import apm_test_client_pb2 as pb
@@ -102,6 +101,10 @@ class TestAgentAPI:
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         return resp.json()
 
+    def tracestats(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/stats"), **kwargs)
+        return resp.json()
+
     @contextlib.contextmanager
     def snapshot_context(self, token, ignores=None):
         ignores = ignores or []
@@ -109,7 +112,7 @@ class TestAgentAPI:
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
-                pytest.fail(to_unicode(resp.text()), pytrace=False)
+                pytest.fail(to_unicode(resp.text), pytrace=False)
         except Exception as e:
             pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
         else:
@@ -119,7 +122,7 @@ class TestAgentAPI:
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
             if resp.status_code != 200:
-                pytest.fail(to_unicode(resp.text()), pytrace=False)
+                pytest.fail(to_unicode(resp.text), pytrace=False)
 
 
 @contextlib.contextmanager
@@ -206,69 +209,42 @@ def test_agent(request, tmp_path):
 @pytest.fixture
 def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_file):
     print(test_server_log_file)
-    f = open(test_server_log_file, "w")
-
-    # Build the container
-    docker = shutil.which("docker")
-    cmd = [
-        docker,
-        "build",
-        "-t",
-        apm_test_server.container_tag,
-        "-",
-    ]
-    subprocess.run(
-        cmd,
-        stdout=f,
-        stderr=f,
-        check=True,
-        text=True,
-        input=apm_test_server.container_img,
-    )
-
-    env = {}
-    if sys.platform == "darwin":
-        env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:8126"
-    else:
-        env["DD_TRACE_AGENT_URL"] = "http://localhost:8126"
-    env.update(apm_test_server.env)
-    cmd = [
-        docker,
-        "run",
-        "--rm",
-        "--name=%s" % apm_test_server.container_name,
-        "-p",
-        "%s:%s" % (apm_test_server.port, apm_test_server.port),
-    ]
-    for k, v in env.items():
-        cmd.extend(["-e", "%s=%s" % (k, v)])
-    for k, v in apm_test_server.volumes:
-        cmd.extend(["-v", "%s:%s" % (k, v)])
-    cmd += [apm_test_server.container_tag]
-    cmd.extend(apm_test_server.container_cmd)
-    f.write(" ".join(cmd) + "\n\n")
-    f.flush()
-    subprocess.Popen(
-        cmd,
-        stdout=f,
-        stderr=f,
-        env=env,
-    )
-
-    yield apm_test_server
-
-    # Kill the container
-    subprocess.run(
-        [
+    with open(test_server_log_file, "w") as f:
+        # Build the container
+        docker = shutil.which("docker")
+        cmd = [
             docker,
-            "kill",
-            apm_test_server.container_name,
-        ],
-        stdout=f,
-        stderr=f,
-        check=True,
-    )
-    f.close()
+            "build",
+            "-t",
+            apm_test_server.container_tag,
+            "-",
+        ]
+        subprocess.run(
+            cmd,
+            stdout=f,
+            stderr=f,
+            check=True,
+            text=True,
+            input=apm_test_server.container_img,
+        )
+
+        env = {}
+        if sys.platform == "darwin":
+            env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:8126"
+        else:
+            env["DD_TRACE_AGENT_URL"] = "http://localhost:8126"
+        env.update(apm_test_server.env)
+
+    with docker_run(
+        image=apm_test_server.container_tag,
+        name=apm_test_server.container_name,
+        cmd=apm_test_server.container_cmd,
+        env=env,
+        ports=[(apm_test_server.port, apm_test_server.port)],
+        volumes=apm_test_server.volumes,
+        log_file_path=test_server_log_file,
+    ):
+        yield apm_test_server
 
 
 @pytest.fixture

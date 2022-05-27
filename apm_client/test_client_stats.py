@@ -34,3 +34,6 @@ def test_client_trace(test_agent, test_client, apm_test_server_env):
     )
     test_client.FinishSpan(pb.FinishSpanArgs(id=resp2.id))
     test_client.FinishSpan(pb.FinishSpanArgs(id=resp.id))
+    test_client.FlushSpans(pb.FlushSpansArgs())
+    print(test_agent.traces())
+    print(test_agent.tracestats())
