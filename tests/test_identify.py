@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, coverage
+from utils import BaseTestCase, bug, context, interfaces, released, coverage
 import pytest
 import base64
 
@@ -37,6 +37,10 @@ def validate_identify_tags(tags):
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK"""
 
+    @bug(library="golang", reason="no user-agent without attack")
+    @bug(library="nodejs", reason="no user-agent without attack")
+    @bug(library="php", reason="no user-agent without attack")
+    @bug(library="ruby", reason="no user-agent without attack")
     def test_identify_tags(self):
         # Send a request to the identify endpoint
         r = self.weblog_get("/identify")
@@ -52,7 +56,7 @@ class Test_Basic(BaseTestCase):
         )
 
 
-@released(dotnet="2.10.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="2.11.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
