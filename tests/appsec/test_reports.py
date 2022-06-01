@@ -184,11 +184,34 @@ class Test_RequestHeaders(BaseTestCase):
         interfaces.library.add_appsec_reported_header(r, "true-client-ip")
 
 
-@coverage.not_implemented
-class Test_TagsFromRule:
+@coverage.basic
+class Test_TagsFromRule(BaseTestCase):
     """ Tags (Category & event type) from the rule """
 
+    def test_basic(self):
+        """ attack timestamp is given by start property of span """
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-@coverage.not_implemented
-class Test_AttackTimestamp:
+        def validator(span, appsec_data):
+            for trigger in appsec_data["triggers"]:
+                assert "rule" in trigger
+                assert "tags" in trigger["rule"]
+                assert "type" in trigger["rule"]["tags"]
+                assert "category" in trigger["rule"]["tags"]
+
+        interfaces.library.add_appsec_validation(r, validator=validator, is_success_on_expiry=True)
+
+
+@coverage.basic
+class Test_AttackTimestamp(BaseTestCase):
     """ Attack timestamp """
+
+    def test_basic(self):
+        """ attack timestamp is given by start property of span """
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+        def validator(span, appsec_data):
+            assert "start" in span, "span should contain start property"
+            assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
+
+        interfaces.library.add_appsec_validation(r, validator=validator, is_success_on_expiry=True)

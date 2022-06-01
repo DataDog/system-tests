@@ -2,9 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import pytest
+
 
 def not_testable(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice fr {klass}"
+    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
 
     def test(self):
         pass
@@ -16,8 +18,9 @@ def not_testable(klass):
 
 
 def not_implemented(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice fr {klass}"
+    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
 
+    @pytest.mark.skip(reason="missing feature: test is not implemented")
     def test(self):
         pass
 
@@ -28,20 +31,20 @@ def not_implemented(klass):
 
 
 def basic(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice fr {klass}"
+    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
 
     setattr(klass, "__coverage__", "basic")
     return klass
 
 
 def good(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice fr {klass}"
+    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
 
     setattr(klass, "__coverage__", "good")
     return klass
 
 
 def complete(klass):
-    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice fr {klass}"
+    assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
     setattr(klass, "__coverage__", "complete")
     return klass

@@ -120,10 +120,11 @@ class _AppSecValidation(_BaseAppSecValidation):
         * raise an exception => validation will fail
     """
 
-    def __init__(self, request, validator, legacy_validator):
+    def __init__(self, request, validator, legacy_validator, is_success_on_expiry=False):
         super().__init__(request=request)
         self.legacy_validator = legacy_validator
         self.validator = validator
+        self.is_success_on_expiry = is_success_on_expiry
 
     def validate_legacy(self, event):
         if self.legacy_validator:
@@ -191,7 +192,7 @@ class _WafAttack(_BaseAppSecValidation):
 
             # depending on the lang/framework, the last element may be an array, or not
             # So, a tailing 0 is added to the key path
-            if key_path and key_path[-1] == 0:
+            if key_path and key_path[-1] in (0, "0"):
                 key_path = key_path[:-1]
 
             result.append((address, key_path))

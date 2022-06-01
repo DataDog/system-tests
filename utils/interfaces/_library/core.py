@@ -16,6 +16,7 @@ from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
     _ReceiveRequestRootTrace,
     _SpanValidation,
+    _SpanTagValidation,
     _TracesValidation,
     _TraceExistence,
 )
@@ -101,9 +102,17 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_span_validation(self, request=None, validator=None):
         self.append_validation(_SpanValidation(request=request, validator=validator))
 
-    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None):
+    def add_span_tag_validation(self, request=None, tags={}):
+        self.append_validation(_SpanTagValidation(request=request, tags=tags))
+
+    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None, is_success_on_expiry=False):
         self.append_validation(
-            _AppSecValidation(request=request, validator=validator, legacy_validator=legacy_validator)
+            _AppSecValidation(
+                request=request,
+                validator=validator,
+                legacy_validator=legacy_validator,
+                is_success_on_expiry=is_success_on_expiry,
+            )
         )
 
     def add_appsec_reported_header(self, request, header_name):

@@ -33,6 +33,10 @@ func main() {
 	})
 
 	mux.HandleFunc("/waf/", func(w http.ResponseWriter, r *http.Request) {
+		body, err := parseBody(r)
+		if err == nil {
+			appsec.MonitorParsedHTTPBody(r.Context(), body)
+		}
 		write(w, r, []byte("Hello, WAF!"))
 	})
 
