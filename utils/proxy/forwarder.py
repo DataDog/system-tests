@@ -86,8 +86,6 @@ class Forwarder(object):
 
         modify_response(flow)
 
-        ProxyTrolls.execute(flow)
-
         request_content = str(flow.request.content)
         response_content = str(flow.response.content)
 
