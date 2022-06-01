@@ -1,14 +1,11 @@
 import pytest
 
-from apm_client.protos import apm_test_client_pb2 as pb
-
 
 parametrize = pytest.mark.parametrize
 snapshot = pytest.mark.snapshot
 
 
 @snapshot
-# @parametrize("lang", ["python", "nodejs"])
 @parametrize(
     "apm_test_server_env",
     [
@@ -18,22 +15,9 @@ snapshot = pytest.mark.snapshot
     ],
 )
 def test_client_trace(test_agent, test_client, apm_test_server_env):
-    """ """
-    resp = test_client.StartSpan(
-        pb.StartSpanArgs(
-            name="web.request",
-            service="webserver",
-        )
-    )
-    resp2 = test_client.StartSpan(
-        pb.StartSpanArgs(
-            name="postgres.query",
-            service="postgres",
-            parent_id=resp.id,
-        )
-    )
-    test_client.FinishSpan(pb.FinishSpanArgs(id=resp2.id))
-    test_client.FinishSpan(pb.FinishSpanArgs(id=resp.id))
-    test_client.FlushSpans(pb.FlushSpansArgs())
-    print(test_agent.traces())
-    print(test_agent.tracestats())
+    with test_client.start_span(name="web.request", service="webserver") as span:
+        with test_client.start_span(name="postgres.query", service="postgres", parent_id=span.id):
+            pass
+    test_client.flush()
+
+    stats = test_agent.requests()

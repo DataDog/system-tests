@@ -10,7 +10,6 @@ import urllib.parse
 
 import grpc
 
-import attr
 import requests
 from ddtrace.internal.compat import parse, to_unicode
 from ddtrace.internal.compat import httplib
@@ -24,19 +23,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
-
-
-@attr.s
-class SnapshotTest(object):
-    token = attr.ib(type=str)
-
-    def clear(self):
-        """Clear any traces sent that were sent for this snapshot."""
-        parsed = parse.urlparse(self.tracer.agent_trace_url)
-        conn = httplib.HTTPConnection(parsed.hostname, parsed.port)
-        conn.request("GET", "/test/session/clear?test_session_token=%s" % self.token)
-        resp = conn.getresponse()
-        assert resp.status == 200
 
 
 def _request_token(request):
@@ -105,6 +91,14 @@ class TestAgentAPI:
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
         return resp.json()
 
+    def requests(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/requests"), **kwargs)
+        return resp.json()
+
+    def clear(self, **kwargs):
+        resp = self._session.get(self._url("/test/session/clear"), **kwargs)
+        return resp.json()
+
     @contextlib.contextmanager
     def snapshot_context(self, token, ignores=None):
         ignores = ignores or []
@@ -116,7 +110,7 @@ class TestAgentAPI:
         except Exception as e:
             pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
         else:
-            yield SnapshotTest(token=token)
+            yield self
             # Query for the results of the test.
             resp = self._session.get(
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
@@ -184,15 +178,15 @@ def test_agent(request, tmp_path):
     ):
         client = TestAgentAPI(base_url="http://localhost:8126")
         # Wait for the agent to start
-        for i in range(50):
+        for i in range(200):
             try:
                 client.traces()
             except requests.exceptions.ConnectionError as e:
-                time.sleep(0.2)
+                time.sleep(0.1)
             else:
                 break
         else:
-            pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
+            pytest.fail("Could not connect to test agent, check the log file %r." % log_file_path, pytrace=False)
 
         # If the snapshot mark is on the test case then do a snapshot test
         marks = [m for m in request.node.iter_markers(name="snapshot")]
@@ -247,6 +241,27 @@ def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_
         yield apm_test_server
 
 
+class TestTracer:
+    def __init__(self, client):
+        self._client = client
+
+    @contextlib.contextmanager
+    def start_span(self, name: str, service: str = "", resource: str = "", parent_id: int = 0):
+        resp = self._client.StartSpan(
+            pb.StartSpanArgs(
+                name=name,
+                service=service,
+                # resource=resource,
+                parent_id=parent_id,
+            )
+        )
+        yield resp
+        self._client.FinishSpan(pb.FinishSpanArgs(id=resp.id))
+
+    def flush(self):
+        self._client.FlushSpans(pb.FlushSpansArgs())
+
+
 @pytest.fixture
 def test_server_timeout():
     yield 10
@@ -257,5 +272,5 @@ def test_client(test_server, test_server_timeout):
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
-    yield client
+    yield TestTracer(client)
     client.FlushSpans(pb.FlushSpansArgs())
