@@ -11,10 +11,13 @@ if context.library == "cpp":
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@released(dotnet="?", nodejs="?")
+@released(dotnet="2.6.0", nodejs="2.0.0")
 @coverage.basic
 class Test_Main(BaseTestCase):
     """ Basic tests for rate limiter """
+
+    # TODO: a scenario with DD_TRACE_SAMPLE_RATE set to something
+    # as sampling mechnism is very different across agent, it won't be an easy task
 
     trace_count = 0
     request_count = 0
@@ -22,15 +25,19 @@ class Test_Main(BaseTestCase):
     def test_main(self):
         """ send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s """
 
+        MANUAL_KEEP = 2
+
         def count(span, appsec_data):
-            self.trace_count += 1
+            # the logic is to set MANUAL_KEEP not on all traces
+            # then the sampling mechism drop, or not the traces
+            if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
+                self.trace_count += 1
 
         def validator():
             message = f"sent {self.request_count} in 10 s. Expecting to see 10 events but saw {self.trace_count} events"
 
             # very permissive test. We expect 10 traces, allow from 1 to 30.
-            # on ruby it happens that only 2 traces are sent. 
-            assert 1 <= self.trace_count < 30, message
+            assert 1 <= self.trace_count <= 30, message
 
             return True
 

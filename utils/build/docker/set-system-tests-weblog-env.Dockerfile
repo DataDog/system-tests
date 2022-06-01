@@ -5,7 +5,6 @@ RUN apt-get update
 # Datadog setup
 ENV DD_SERVICE=weblog
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
-ENV DD_TRACE_SAMPLE_RATE=0.5
 ENV DD_TAGS='key1:val1, key2 : val2 '
 ENV DD_PROFILING_ENABLED=true
 ENV DD_ENV=system-tests
@@ -14,7 +13,7 @@ ENV DD_TRACE_DEBUG=true
 ENV DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
 
 # 10 seconds
-ENV DD_APPSEC_WAF_TIMEOUT=10000000  
+ENV DD_APPSEC_WAF_TIMEOUT=10000000
 ENV DD_APPSEC_TRACE_RATE_LIMIT=10000
 
 ARG SYSTEM_TESTS_LIBRARY

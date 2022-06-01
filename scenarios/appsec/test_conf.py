@@ -58,7 +58,7 @@ class Test_ConfigurationVariables(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library in ["dotnet", "python"])
+    @missing_feature(context.library in ["python"])
     def test_obfuscation_parameter_value(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 

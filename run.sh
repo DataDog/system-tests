@@ -47,12 +47,13 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
        # Test explicit config
         echo "Testing explicit UDS configuration path."
         export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
-    fi 
+    fi
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
-    
+    WEBLOG_ENV="DD_TRACE_SAMPLE_RATE=0.5"
+
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
@@ -104,6 +105,21 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_custom_obfuscation
     WEBLOG_ENV="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_rate_limiter.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
+    WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1"
+
+elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsShortFormat"
+    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_short
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=user-agent:http.request.headers.user-agent,header-tag1,header-tag2"
+
+elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsLongFormat"
+    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=user-agent:http.request.headers.user-agent,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
@@ -121,7 +137,7 @@ do
 done
 
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
-# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set 
+# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
 # them in the docker-compose.yml is not possible
 echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 

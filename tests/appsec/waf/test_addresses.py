@@ -11,8 +11,8 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-# WAF/current ruleset don't support looking at keys at all
-@released(golang="?", dotnet="2.7.0", java="?", nodejs="2.6.0", php="?", python="?", ruby="?")
+@released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
+@released(php_appsec="0.3.2", python="?", ruby="1.0.0")
 @coverage.basic
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
@@ -207,6 +207,7 @@ class Test_BodyRaw(BaseTestCase):
     else "0.95.1"
 )
 @coverage.basic
+@bug(context.library >= "nodejs@2.8.0", reason="Capability to read body content is brokken")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -222,7 +223,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
     java="0.99.0"
     if context.weblog_variant == "vertx3"
@@ -231,6 +232,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
     else "0.95.1"
 )
 @coverage.basic
+@bug(context.library >= "nodejs@2.8.0", reason="Capability to read body content is brokken")
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -255,11 +257,12 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="?", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
 @released(
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
 @coverage.basic
+@bug(context.library >= "nodejs@2.8.0", reason="Capability to read body content is brokken")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
@@ -273,17 +276,17 @@ class Test_BodyXml(BaseTestCase):
         return super().weblog_post(path, params, data, headers)
 
     def test_xml_attr_value(self):
-        r = self.weblog_post("/waf", data='<a attack="var_dump ()" />', address="server.request.body")
+        r = self.weblog_post("/waf", data='<string attack="var_dump ()" />', address="server.request.body")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
 
-        r = self.weblog_post("/waf", data=f'<a attack="{self.ENCODED_ATTACK}" />')
+        r = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
     def test_xml_content(self):
-        r = self.weblog_post("/waf", data="<a>var_dump ()</a>")
+        r = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value="var_dump ()")
 
-        r = self.weblog_post("/waf", data=f"<a>{self.ENCODED_ATTACK}</a>")
+        r = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
         interfaces.library.assert_waf_attack(r, address="server.request.body", value=self.ATTACK)
 
 
@@ -328,7 +331,6 @@ class Test_ResponseStatus(BaseTestCase):
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @bug(library="dotnet", reason="attack is not reported")
     @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
