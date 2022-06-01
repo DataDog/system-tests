@@ -62,7 +62,7 @@ class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
 
     def test_identify_tags_outgoing(self):
-        tagTable = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
+        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
 
         # Send a request to the identify-propagate endpoint
         r = self.weblog_get("/identify-propagate")

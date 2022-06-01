@@ -58,11 +58,10 @@ The value of each tag should be the tag name, for example `usr.id` should be set
 This endpoint must set the following tags on the local root span:
 
 ```
-usr.id
 _dd.p.usr_id
 ```
 
-The value of the tag `usr.id` should be `usr.id`. The value of `_dd.p.usr.id` should be `dXNyLmlk`, which is the base64 encoding of `usr.id`.
+The value of `_dd.p.usr.id` should be `dXNyLmlk`, which is the base64 encoding of `usr.id`.
 
 ## GET /params/%s
 
