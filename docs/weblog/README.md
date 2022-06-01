@@ -53,6 +53,17 @@ usr.scope
 
 The value of each tag should be the tag name, for example `usr.id` should be set to `usr.id`.
 
+# GET /identify-propagate
+
+This endpoint must set the following tags on the local root span:
+
+```
+usr.id
+_dd.p.usr_id
+```
+
+The value of the tag `usr.id` should be `usr.id`. The value of `_dd.p.usr.id` should be `dXNyLmlk`, which is the base64 encoding of `usr.id`.
+
 ## GET /params/%s
 
 This end point must accept a parameter that is a string and is part of the URL path.
