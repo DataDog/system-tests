@@ -5,12 +5,14 @@ service APMClient {
   rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
   rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
+  rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
 }
 
 message StartSpanArgs {
   string name = 1;
   optional string service = 2;
   optional uint64 parent_id = 3;
+  optional string resource = 4;
   // TODO
 }
 message StartSpanReturn {
@@ -26,3 +28,6 @@ message FinishSpanReturn {}
 
 message FlushSpansArgs {}
 message FlushSpansReturn {}
+
+message FlushTraceStatsArgs {}
+message FlushTraceStatsReturn {}

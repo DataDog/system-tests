@@ -19,7 +19,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         span = ddtrace.tracer.start_span(request.name, service=request.service, child_of=parent, activate=True)
         self._spans[span.span_id] = span
         return apm_test_client_pb2.StartSpanReturn(
-            id=span.span_id,
+            span_id=span.span_id,
         )
 
     def FinishSpan(self, request, context):
@@ -30,10 +30,13 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
     def FlushSpans(self, request, context):
         ddtrace.tracer.flush()
+        return apm_test_client_pb2.FlushSpansReturn()
+
+    def FlushTraceStats(self, request, context):
         stats_proc = [p for p in ddtrace.tracer._span_processors if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)]
         if len(stats_proc):
             stats_proc[0].periodic()
-        return apm_test_client_pb2.FlushSpansReturn()
+        return apm_test_client_pb2.FlushTraceStatsReturn()
 
 
 def serve(port: str):

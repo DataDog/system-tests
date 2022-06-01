@@ -11,8 +11,7 @@ import urllib.parse
 import grpc
 
 import requests
-from ddtrace.internal.compat import parse, to_unicode
-from ddtrace.internal.compat import httplib
+from ddtrace.internal.compat import to_unicode
 import pytest
 
 from apm_client.protos import apm_test_client_pb2 as pb
@@ -251,15 +250,16 @@ class TestTracer:
             pb.StartSpanArgs(
                 name=name,
                 service=service,
-                # resource=resource,
+                resource=resource,
                 parent_id=parent_id,
             )
         )
         yield resp
-        self._client.FinishSpan(pb.FinishSpanArgs(id=resp.id))
+        self._client.FinishSpan(pb.FinishSpanArgs(id=resp.span_id))
 
     def flush(self):
         self._client.FlushSpans(pb.FlushSpansArgs())
+        self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
 
 @pytest.fixture
@@ -272,5 +272,6 @@ def test_client(test_server, test_server_timeout):
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
-    yield TestTracer(client)
-    client.FlushSpans(pb.FlushSpansArgs())
+    tracer = TestTracer(client)
+    yield tracer
+    tracer.flush()

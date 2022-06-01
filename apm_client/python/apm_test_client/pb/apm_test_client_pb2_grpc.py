@@ -6,7 +6,8 @@ from apm_test_client.pb import apm_test_client_pb2 as apm__test__client_dot_pb_d
 
 
 class APMClientStub(object):
-    """Interface of APM Clients to be used for shared testing."""
+    """Interface of APM clients to be used for shared testing.
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -15,153 +16,153 @@ class APMClientStub(object):
             channel: A grpc.Channel.
         """
         self.StartSpan = channel.unary_unary(
-            "/APMClient/StartSpan",
-            request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
-            response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.FromString,
-        )
+                '/APMClient/StartSpan',
+                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
+                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.FromString,
+                )
         self.FinishSpan = channel.unary_unary(
-            "/APMClient/FinishSpan",
-            request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
-            response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
-        )
+                '/APMClient/FinishSpan',
+                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
+                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
+                )
         self.FlushSpans = channel.unary_unary(
-            "/APMClient/FlushSpans",
-            request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
-            response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.FromString,
-        )
+                '/APMClient/FlushSpans',
+                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
+                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.FromString,
+                )
+        self.FlushTraceStats = channel.unary_unary(
+                '/APMClient/FlushTraceStats',
+                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
+                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
+                )
 
 
 class APMClientServicer(object):
-    """Interface of APM Clients to be used for shared testing."""
+    """Interface of APM clients to be used for shared testing.
+    """
 
     def StartSpan(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def FinishSpan(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def FlushSpans(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FlushTraceStats(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
 
 def add_APMClientServicer_to_server(servicer, server):
     rpc_method_handlers = {
-        "StartSpan": grpc.unary_unary_rpc_method_handler(
-            servicer.StartSpan,
-            request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.FromString,
-            response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.SerializeToString,
-        ),
-        "FinishSpan": grpc.unary_unary_rpc_method_handler(
-            servicer.FinishSpan,
-            request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.FromString,
-            response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.SerializeToString,
-        ),
-        "FlushSpans": grpc.unary_unary_rpc_method_handler(
-            servicer.FlushSpans,
-            request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.FromString,
-            response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.SerializeToString,
-        ),
+            'StartSpan': grpc.unary_unary_rpc_method_handler(
+                    servicer.StartSpan,
+                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.FromString,
+                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.SerializeToString,
+            ),
+            'FinishSpan': grpc.unary_unary_rpc_method_handler(
+                    servicer.FinishSpan,
+                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.FromString,
+                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.SerializeToString,
+            ),
+            'FlushSpans': grpc.unary_unary_rpc_method_handler(
+                    servicer.FlushSpans,
+                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.FromString,
+                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.SerializeToString,
+            ),
+            'FlushTraceStats': grpc.unary_unary_rpc_method_handler(
+                    servicer.FlushTraceStats,
+                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsArgs.FromString,
+                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsReturn.SerializeToString,
+            ),
     }
-    generic_handler = grpc.method_handlers_generic_handler("APMClient", rpc_method_handlers)
+    generic_handler = grpc.method_handlers_generic_handler(
+            'APMClient', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
-# This class is part of an EXPERIMENTAL API.
+ # This class is part of an EXPERIMENTAL API.
 class APMClient(object):
-    """Interface of APM Clients to be used for shared testing."""
+    """Interface of APM clients to be used for shared testing.
+    """
 
     @staticmethod
-    def StartSpan(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
+    def StartSpan(request,
             target,
-            "/APMClient/StartSpan",
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/StartSpan',
             apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
             apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-        )
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def FinishSpan(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
+    def FinishSpan(request,
             target,
-            "/APMClient/FinishSpan",
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/FinishSpan',
             apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
             apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-        )
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def FlushSpans(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
+    def FlushSpans(request,
             target,
-            "/APMClient/FlushSpans",
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/FlushSpans',
             apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
             apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-        )
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def FlushTraceStats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/FlushTraceStats',
+            apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
+            apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

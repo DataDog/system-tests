@@ -16,7 +16,7 @@ snapshot = pytest.mark.snapshot
 )
 def test_client_trace(test_agent, test_client, apm_test_server_env):
     with test_client.start_span(name="web.request", service="webserver") as span:
-        with test_client.start_span(name="postgres.query", service="postgres", parent_id=span.id):
+        with test_client.start_span(name="postgres.query", service="postgres", parent_id=span.span_id):
             pass
     test_client.flush()
 
