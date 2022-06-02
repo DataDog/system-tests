@@ -24,6 +24,20 @@ namespace weblog
 
                 await context.Response.WriteAsync("Hello world!\\n");
             });
+
+            routeBuilder.MapGet("/identify-propagate", async context =>
+            {
+                var userDetails = new UserDetails()
+                {
+                    Id = "usr.id",
+                    // TODO Needs new SDK version merging before enabling this next line
+                    // PropagateId = true
+                };
+                var scope = Tracer.Instance.ActiveScope;
+                scope?.Span.SetUser(userDetails);
+
+                await context.Response.WriteAsync("Hello world!\\n");
+            });
         }
     }
 }
