@@ -53,7 +53,7 @@ class Test_RuleSet_1_2_5(BaseTestCase):
         assert context.appsec_rules_version >= "1.2.5"
 
 
-@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="?")
+@released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
 @released(php_appsec="0.3.0", python="?", ruby="1.0.0")
 @coverage.good
 class Test_RuleSet_1_3_1(BaseTestCase):
@@ -69,6 +69,7 @@ class Test_RuleSet_1_3_1(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
     @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
+    @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
     def test_nosqli_keys_with_brackets(self):
         """Test a rule defined on this rules version: nosql on keys with brackets"""
         r = self.weblog_get("/waf/", params={"[$ne]": "value"})

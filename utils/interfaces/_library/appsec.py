@@ -192,7 +192,7 @@ class _WafAttack(_BaseAppSecValidation):
 
             # depending on the lang/framework, the last element may be an array, or not
             # So, a tailing 0 is added to the key path
-            if key_path and key_path[-1] == 0:
+            if key_path and key_path[-1] in (0, "0"):
                 key_path = key_path[:-1]
 
             result.append((address, key_path))
