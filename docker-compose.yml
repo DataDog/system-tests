@@ -11,6 +11,7 @@ services:
       - INTERFACE_NAME=agent
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081
+      - INITIAL_PROXY_STATE=${SYSTEMTESTS_AGENT_PROXY_STATE:-}
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
@@ -24,6 +25,7 @@ services:
       - INTERFACE_NAME=library
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081
+      - INITIAL_PROXY_STATE=${SYSTEMTESTS_LIBRARY_PROXY_STATE:-}
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
