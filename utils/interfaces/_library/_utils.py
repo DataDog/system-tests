@@ -29,17 +29,21 @@ def _get_rid_from_span(span):
 
     meta = span.get("meta", {})
 
+    user_agent = None
+
     if span.get("type") == "rpc":
         user_agent = meta.get("grpc.metadata.user-agent")
-    else:
+        # java does not fill this tag; it uses the normal http tags
+
+    if not user_agent:
         # code version
         user_agent = meta.get("http.request.headers.user-agent")
 
-        if not user_agent:  # try something for .NET
-            user_agent = meta.get("http_request_headers_user-agent")
+    if not user_agent:  # try something for .NET
+        user_agent = meta.get("http_request_headers_user-agent")
 
-        if not user_agent:  # last hope
-            user_agent = meta.get("http.useragent")
+    if not user_agent:  # last hope
+        user_agent = meta.get("http.useragent")
 
     return get_rid_from_user_agent(user_agent)
 
