@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 
 RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata publicsuffix
 
 RUN printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
@@ -10,7 +10,8 @@ RUN printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 
-RUN add-apt-repository ppa:ondrej/php -y && apt-get update
+RUN add-apt-repository ppa:ondrej/php -y
+RUN apt-get update
 
 ARG PHP_VERSION=8.0
 RUN apt-get install -y php8.0-fpm

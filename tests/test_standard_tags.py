@@ -17,7 +17,7 @@ class Test_StandardTagsMethod(BaseTestCase):
 
     def test_method(self):
 
-        verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
+        verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
 
         for verb in verbs:
             data = None
@@ -31,8 +31,16 @@ class Test_StandardTagsMethod(BaseTestCase):
             }
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
+    @irrelevant(library="php", reason="Method does not reach php-land")
+    def test_method_trace(self):
+            r = self._weblog_request("TRACE", "/waf", data=data)
+            tags = {
+                "http.method": "TRACE",
+            }
+            interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.74.0", python="?", ruby="?")
+
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -54,7 +62,7 @@ class Test_StandardTagsUrl(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -84,7 +92,7 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.route tags"""
@@ -98,7 +106,7 @@ class Test_StandardTagsRoute(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
