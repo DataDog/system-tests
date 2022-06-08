@@ -10,12 +10,14 @@ from utils.tools import logger
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
-@released(golang="?", dotnet="?", nodejs="?", php="0.68.2", python="0.53")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
 class Test_HeaderTags(BaseTestCase):
     """DD_TRACE_HEADER_TAGS env var support"""
 
     def test_trace_header_tags_basic(self):
+        """ Test that http.request.headers.user-agent is in all web spans """
+
         def validator(span):
             if span.get("type") == "web":
                 assert "http.request.headers.user-agent" in span.get("meta", {})
