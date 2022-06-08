@@ -4,7 +4,7 @@ RUN apt-get update
 
 # Datadog setup
 ENV DD_SERVICE=weblog
-ENV DD_TRACE_HEADER_TAGS='user-agent'
+ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TAGS='key1:val1, key2 : val2 '
 ENV DD_PROFILING_ENABLED=true
 ENV DD_ENV=system-tests
