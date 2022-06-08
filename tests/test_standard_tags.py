@@ -33,7 +33,7 @@ class Test_StandardTagsMethod(BaseTestCase):
 
     @irrelevant(library="php", reason="Trace method does not reach php-land")
     def test_method_trace(self):
-        r = self._weblog_request("TRACE", "/waf", data=data)
+        r = self._weblog_request("TRACE", "/waf", data=None)
         tags = {
             "http.method": "TRACE",
         }
