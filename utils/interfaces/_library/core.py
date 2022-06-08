@@ -100,7 +100,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_SpanValidation(request=request, validator=validator))
 
     def add_span_tag_validation(self, request=None, tags={}, value_as_regular_expression=False):
-        self.append_validation(_SpanTagValidation(request=request, tags=tags, value_as_regular_expression=value_as_regular_expression))
+        self.append_validation(
+            _SpanTagValidation(request=request, tags=tags, value_as_regular_expression=value_as_regular_expression)
+        )
 
     def add_appsec_validation(self, request=None, validator=None, legacy_validator=None, is_success_on_expiry=False):
         self.append_validation(

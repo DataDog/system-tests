@@ -156,7 +156,6 @@ class _SpanTagValidation(BaseValidation):
                         expectValue = self.tags[tagKey]
                         actualValue = span["meta"][tagKey]
 
-
                         match = False
                         if self.value_as_regular_expression:
                             expectRE = re.compile(expectValue)
