@@ -32,7 +32,7 @@ class Test_StandardTagsMethod(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.url tags"""

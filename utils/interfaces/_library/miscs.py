@@ -97,9 +97,10 @@ class _SpanValidation(BaseValidation):
 
     path_filters = "/v0.4/traces"
 
-    def __init__(self, request, validator):
+    def __init__(self, request, validator, is_success_on_expiry):
         super().__init__(request=request)
         self.validator = validator
+        self.is_success_on_expiry = is_success_on_expiry
 
     def check(self, data):
         if not isinstance(data["request"]["content"], list):
