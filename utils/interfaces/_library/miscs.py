@@ -4,6 +4,8 @@
 
 """ Misc validations """
 
+import re
+
 from collections import Counter
 
 from utils.tools import m
@@ -128,9 +130,10 @@ class _SpanTagValidation(BaseValidation):
 
     path_filters = "/v0.4/traces"
 
-    def __init__(self, request, tags):
+    def __init__(self, request, tags, value_as_regular_expression):
         super().__init__(request=request)
         self.tags = tags
+        self.value_as_regular_expression = value_as_regular_expression
 
     def check(self, data):
         if not isinstance(data["request"]["content"], list):
@@ -153,7 +156,17 @@ class _SpanTagValidation(BaseValidation):
                         expectValue = self.tags[tagKey]
                         actualValue = span["meta"][tagKey]
 
-                        if expectValue != actualValue:
+
+                        match = False
+                        if self.value_as_regular_expression:
+                            expectRE = re.compile(expectValue)
+                            if expectRE.match(actualValue):
+                                match = True
+                        else:
+                            if expectValue == actualValue:
+                                match = True
+
+                        if not match:
                             raise Exception(
                                 f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"'
                             )

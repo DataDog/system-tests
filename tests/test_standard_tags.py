@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php="0.74.0", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php="0.75.0", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsMethod(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -62,7 +62,7 @@ class Test_StandardTagsUrl(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.75.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -73,10 +73,10 @@ class Test_StandardTagsUserAgent(BaseTestCase):
         tags = {
             "http.useragent": "Mistake Not ...",
         }
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
+        interfaces.library.add_span_tag_validation(request=r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php="0.74.0", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php="0.75.0", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsStatusCode(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
