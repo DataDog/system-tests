@@ -31,13 +31,13 @@ class Test_StandardTagsMethod(BaseTestCase):
             }
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-    @irrelevant(library="php", reason="Method does not reach php-land")
+    @irrelevant(library="php", reason="Trace method does not reach php-land")
     def test_method_trace(self):
-            r = self._weblog_request("TRACE", "/waf", data=data)
-            tags = {
-                "http.method": "TRACE",
-            }
-            interfaces.library.add_span_tag_validation(request=r, tags=tags)
+        r = self._weblog_request("TRACE", "/waf", data=data)
+        tags = {
+            "http.method": "TRACE",
+        }
+        interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
 @released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
