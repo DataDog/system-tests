@@ -207,7 +207,7 @@ class Test_BodyRaw(BaseTestCase):
     else "0.95.1"
 )
 @coverage.basic
-@bug(context.library >= "nodejs@2.8.0", reason="Capability to read body content is brokken")
+@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -232,7 +232,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
     else "0.95.1"
 )
 @coverage.basic
-@bug(context.library >= "nodejs@2.8.0", reason="Capability to read body content is brokken")
+@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -262,7 +262,7 @@ class Test_BodyJson(BaseTestCase):
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
 @coverage.basic
-@bug(context.library >= "nodejs@2.8.0", reason="Capability to read body content is brokken")
+@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
