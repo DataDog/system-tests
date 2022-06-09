@@ -96,8 +96,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_traces_validation(self, validator, is_success_on_expiry=False):
         self.append_validation(_TracesValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
-    def add_span_validation(self, request=None, validator=None):
-        self.append_validation(_SpanValidation(request=request, validator=validator))
+    def add_span_validation(self, request=None, validator=None, is_success_on_expiry=False):
+        self.append_validation(
+            _SpanValidation(request=request, validator=validator, is_success_on_expiry=is_success_on_expiry)
+        )
 
     def add_span_tag_validation(self, request=None, tags={}, value_as_regular_expression=False):
         self.append_validation(
