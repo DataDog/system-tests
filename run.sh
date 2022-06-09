@@ -113,12 +113,14 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
     export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsShortFormat"
     export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_short
-    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=user-agent:http.request.headers.user-agent,header-tag1,header-tag2"
+    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1,header-tag2"
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
     export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsLongFormat"
     export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
-    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=user-agent:http.request.headers.user-agent,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
+    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
 
 else # Let user choose the target
     export RUNNER_ARGS=$@

@@ -9,6 +9,7 @@ COPY utils/build/docker/golang/app /app
 WORKDIR /app
 
 RUN /binaries/install_ddtrace.sh
+ENV DD_TRACE_HEADER_TAGS='user-agent'
 
 RUN go build -v -tags appsec -o weblog ./chi.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
 
