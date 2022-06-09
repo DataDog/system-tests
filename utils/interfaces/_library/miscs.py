@@ -157,19 +157,16 @@ class _SpanTagValidation(BaseValidation):
                         expectValue = self.tags[tagKey]
                         actualValue = span["meta"][tagKey]
 
-                        match = False
                         if self.value_as_regular_expression:
-                            expectRE = re.compile(expectValue)
-                            if expectRE.match(actualValue):
-                                match = True
+                            if not re.compile(expectValue).fullmatch(actualValue):
+                                raise Exception(
+                                    f'{tagKey} tag value is "{actualValue}", and should match regex "{expectValue}"'
+                                )
                         else:
-                            if expectValue == actualValue:
-                                match = True
-
-                        if not match:
-                            raise Exception(
-                                f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"'
-                            )
+                            if expectValue != actualValue:
+                                raise Exception(
+                                    f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"'
+                                )
 
                     self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                     self.is_success_on_expiry = True
