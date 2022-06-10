@@ -11,7 +11,7 @@ snapshot = pytest.mark.snapshot
     [
         {
             "DD_TRACE_COMPUTE_STATS": "1",
-        }
+        },
     ],
 )
 def test_client_trace(test_agent, test_client, apm_test_server_env):
@@ -20,4 +20,8 @@ def test_client_trace(test_agent, test_client, apm_test_server_env):
             pass
     test_client.flush()
 
-    stats = test_agent.requests()
+    requests = test_agent.requests()
+    traces = test_agent.traces()
+    stats = test_agent.tracestats()
+    print(traces)
+    print(stats)

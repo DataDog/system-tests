@@ -48,10 +48,9 @@ def apm_test_server_env():
     yield {}
 
 
-@pytest.fixture
-def apm_test_server(apm_test_server_env):
-    python_dir = os.path.join(os.getcwd(), "python")
-    yield APMClientTestServer(
+def python_library_server(env: Dict[str, str]):
+    python_dir = os.path.join(os.path.dirname(__file__), "python")
+    return APMClientTestServer(
         container_name="python-test-client",
         container_tag="py39-test-client",
         container_img="""
@@ -64,8 +63,13 @@ RUN pip install ddtrace
         volumes=[
             (os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),
         ],
-        env=apm_test_server_env,
+        env=env,
     )
+
+
+@pytest.fixture
+def apm_test_server(apm_test_server_env):
+    yield python_library_server(apm_test_server_env)
 
 
 @pytest.fixture
@@ -201,7 +205,7 @@ def test_agent(request, tmp_path):
 
 @pytest.fixture
 def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_file):
-    print(test_server_log_file)
+    print("library output: %s" % test_server_log_file)
     with open(test_server_log_file, "w") as f:
         # Build the container
         docker = shutil.which("docker")

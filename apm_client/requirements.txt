@@ -1,2 +1,5 @@
 grpcio-tools==1.46.3
 grpcio==1.46.3
+pytest
+requests
+ddtrace

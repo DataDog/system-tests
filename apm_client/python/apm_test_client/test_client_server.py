@@ -33,7 +33,11 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         return apm_test_client_pb2.FlushSpansReturn()
 
     def FlushTraceStats(self, request, context):
-        stats_proc = [p for p in ddtrace.tracer._span_processors if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)]
+        stats_proc = [
+            p
+            for p in ddtrace.tracer._span_processors
+            if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
+        ]
         if len(stats_proc):
             stats_proc[0].periodic()
         return apm_test_client_pb2.FlushTraceStatsReturn()
