@@ -38,6 +38,7 @@ class APMClientTestServer:
     container_tag: str
     container_img: str
     container_cmd: List[str]
+    container_build_dir: str
     port: str = "50051"
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
@@ -60,6 +61,7 @@ RUN pip install grpcio==1.46.3 grpcio-tools==1.46.3
 RUN pip install ddtrace
 """,
         container_cmd="python -m apm_test_client".split(" "),
+        container_build_dir=python_dir,
         volumes=[
             (os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),
         ],
@@ -67,9 +69,35 @@ RUN pip install ddtrace
     )
 
 
+def go_library_server(env: Dict[str, str]):
+    go_dir = os.path.join(os.path.dirname(__file__), "go")
+    return APMClientTestServer(
+        container_name="go-test-client",
+        container_tag="go118-test-client",
+        container_img="""
+FROM golang:1.18
+WORKDIR /client
+COPY go.mod /client
+COPY go.sum /client
+RUN go mod download
+COPY . /client
+RUN go get gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer
+RUN go install
+""",
+        # container_cmd=["bash", "-c", "go install && main"],
+        container_cmd=["main"],
+        container_build_dir=go_dir,
+        volumes=[
+            (os.path.join(go_dir), "/client"),
+        ],
+        env=env,
+    )
+
+
 @pytest.fixture
 def apm_test_server(apm_test_server_env):
-    yield python_library_server(apm_test_server_env)
+    # yield python_library_server(apm_test_server_env)
+    yield go_library_server(apm_test_server_env)
 
 
 @pytest.fixture
@@ -170,6 +198,10 @@ def test_agent(request, tmp_path):
     if os.getenv("DEV_MODE") is not None:
         env["SNAPSHOT_CI"] = "0"
 
+    # Not all clients (go for example) submit the tracer version
+    # go client doesn't submit content length header
+    env["DISABLED_CHECKS"] = "meta_tracer_version_header,meta_tracer_version_header"
+
     with docker_run(
         image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
         name="ddapm-test-agent",
@@ -206,7 +238,15 @@ def test_agent(request, tmp_path):
 @pytest.fixture
 def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_file):
     print("library output: %s" % test_server_log_file)
+
     with open(test_server_log_file, "w") as f:
+        # Write dockerfile to the build directory
+        # Note that this needs to be done as the context cannot be
+        # specified if Dockerfiles are read from stdin.
+        dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
+        print("writing dockerfile %r" % dockf_path, file=f)
+        with open(dockf_path, "w") as dockf:
+            dockf.write(apm_test_server.container_img)
         # Build the container
         docker = shutil.which("docker")
         cmd = [
@@ -214,10 +254,13 @@ def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_
             "build",
             "-t",
             apm_test_server.container_tag,
-            "-",
+            ".",
         ]
+        print("running %r in %r\n\n" % (" ".join(cmd), apm_test_server.container_build_dir), file=f)
+        f.flush()
         subprocess.run(
             cmd,
+            cwd=apm_test_server.container_build_dir,
             stdout=f,
             stderr=f,
             check=True,
@@ -226,8 +269,12 @@ def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_
         )
 
         env = {}
+        env["DD_TRACE_DEBUG"] = "true"
         if sys.platform == "darwin":
             env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:8126"
+            # Not all clients support DD_TRACE_AGENT_URL
+            env["DD_AGENT_HOST"] = "host.docker.internal"
+            env["DD_TRACE_AGENT_PORT"] = "8126"
         else:
             env["DD_TRACE_AGENT_URL"] = "http://localhost:8126"
         env.update(apm_test_server.env)
@@ -268,7 +315,7 @@ class TestTracer:
 
 @pytest.fixture
 def test_server_timeout():
-    yield 10
+    yield 20
 
 
 @pytest.fixture
