@@ -40,6 +40,14 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	}, nil
 }
 
+func (s *apmClientServer) SpanSetMeta(ctx context.Context, args *SpanSetMetaArgs) (*SpanSetMetaReturn, error) {
+	return &SpanSetMetaReturn{}, nil
+}
+
+func (s *apmClientServer) SpanSetMetric(ctx context.Context, args *SpanSetMetricArgs) (*SpanSetMetricReturn, error) {
+	return &SpanSetMetricReturn{}, nil
+}
+
 func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) (*FinishSpanReturn, error) {
 	span := s.spans[args.Id]
 	span.Finish()

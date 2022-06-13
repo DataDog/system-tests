@@ -24,7 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 type APMClientClient interface {
 	StartSpan(ctx context.Context, in *StartSpanArgs, opts ...grpc.CallOption) (*StartSpanReturn, error)
 	FinishSpan(ctx context.Context, in *FinishSpanArgs, opts ...grpc.CallOption) (*FinishSpanReturn, error)
-	// TODO: SetTag operation
+	SpanSetMeta(ctx context.Context, in *SpanSetMetaArgs, opts ...grpc.CallOption) (*SpanSetMetaReturn, error)
+	SpanSetMetric(ctx context.Context, in *SpanSetMetricArgs, opts ...grpc.CallOption) (*SpanSetMetricReturn, error)
 	FlushSpans(ctx context.Context, in *FlushSpansArgs, opts ...grpc.CallOption) (*FlushSpansReturn, error)
 	FlushTraceStats(ctx context.Context, in *FlushTraceStatsArgs, opts ...grpc.CallOption) (*FlushTraceStatsReturn, error)
 }
@@ -55,6 +56,24 @@ func (c *aPMClientClient) FinishSpan(ctx context.Context, in *FinishSpanArgs, op
 	return out, nil
 }
 
+func (c *aPMClientClient) SpanSetMeta(ctx context.Context, in *SpanSetMetaArgs, opts ...grpc.CallOption) (*SpanSetMetaReturn, error) {
+	out := new(SpanSetMetaReturn)
+	err := c.cc.Invoke(ctx, "/APMClient/SpanSetMeta", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aPMClientClient) SpanSetMetric(ctx context.Context, in *SpanSetMetricArgs, opts ...grpc.CallOption) (*SpanSetMetricReturn, error) {
+	out := new(SpanSetMetricReturn)
+	err := c.cc.Invoke(ctx, "/APMClient/SpanSetMetric", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aPMClientClient) FlushSpans(ctx context.Context, in *FlushSpansArgs, opts ...grpc.CallOption) (*FlushSpansReturn, error) {
 	out := new(FlushSpansReturn)
 	err := c.cc.Invoke(ctx, "/APMClient/FlushSpans", in, out, opts...)
@@ -79,7 +98,8 @@ func (c *aPMClientClient) FlushTraceStats(ctx context.Context, in *FlushTraceSta
 type APMClientServer interface {
 	StartSpan(context.Context, *StartSpanArgs) (*StartSpanReturn, error)
 	FinishSpan(context.Context, *FinishSpanArgs) (*FinishSpanReturn, error)
-	// TODO: SetTag operation
+	SpanSetMeta(context.Context, *SpanSetMetaArgs) (*SpanSetMetaReturn, error)
+	SpanSetMetric(context.Context, *SpanSetMetricArgs) (*SpanSetMetricReturn, error)
 	FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error)
 	FlushTraceStats(context.Context, *FlushTraceStatsArgs) (*FlushTraceStatsReturn, error)
 	mustEmbedUnimplementedAPMClientServer()
@@ -94,6 +114,12 @@ func (UnimplementedAPMClientServer) StartSpan(context.Context, *StartSpanArgs) (
 }
 func (UnimplementedAPMClientServer) FinishSpan(context.Context, *FinishSpanArgs) (*FinishSpanReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinishSpan not implemented")
+}
+func (UnimplementedAPMClientServer) SpanSetMeta(context.Context, *SpanSetMetaArgs) (*SpanSetMetaReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SpanSetMeta not implemented")
+}
+func (UnimplementedAPMClientServer) SpanSetMetric(context.Context, *SpanSetMetricArgs) (*SpanSetMetricReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SpanSetMetric not implemented")
 }
 func (UnimplementedAPMClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FlushSpans not implemented")
@@ -150,6 +176,42 @@ func _APMClient_FinishSpan_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _APMClient_SpanSetMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpanSetMetaArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMClientServer).SpanSetMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMClient/SpanSetMeta",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMClientServer).SpanSetMeta(ctx, req.(*SpanSetMetaArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _APMClient_SpanSetMetric_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpanSetMetricArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMClientServer).SpanSetMetric(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMClient/SpanSetMetric",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMClientServer).SpanSetMetric(ctx, req.(*SpanSetMetricArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _APMClient_FlushSpans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FlushSpansArgs)
 	if err := dec(in); err != nil {
@@ -200,6 +262,14 @@ var APMClient_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FinishSpan",
 			Handler:    _APMClient_FinishSpan_Handler,
+		},
+		{
+			MethodName: "SpanSetMeta",
+			Handler:    _APMClient_SpanSetMeta_Handler,
+		},
+		{
+			MethodName: "SpanSetMetric",
+			Handler:    _APMClient_SpanSetMetric_Handler,
 		},
 		{
 			MethodName: "FlushSpans",

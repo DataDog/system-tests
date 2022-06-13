@@ -231,6 +231,208 @@ func (*FinishSpanReturn) Descriptor() ([]byte, []int) {
 	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{3}
 }
 
+type SpanSetMetaArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Key    string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Value  string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *SpanSetMetaArgs) Reset() {
+	*x = SpanSetMetaArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SpanSetMetaArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpanSetMetaArgs) ProtoMessage() {}
+
+func (x *SpanSetMetaArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpanSetMetaArgs.ProtoReflect.Descriptor instead.
+func (*SpanSetMetaArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SpanSetMetaArgs) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+func (x *SpanSetMetaArgs) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SpanSetMetaArgs) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type SpanSetMetaReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SpanSetMetaReturn) Reset() {
+	*x = SpanSetMetaReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SpanSetMetaReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpanSetMetaReturn) ProtoMessage() {}
+
+func (x *SpanSetMetaReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpanSetMetaReturn.ProtoReflect.Descriptor instead.
+func (*SpanSetMetaReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{5}
+}
+
+type SpanSetMetricArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId uint64  `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Key    string  `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Value  float32 `protobuf:"fixed32,3,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *SpanSetMetricArgs) Reset() {
+	*x = SpanSetMetricArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SpanSetMetricArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpanSetMetricArgs) ProtoMessage() {}
+
+func (x *SpanSetMetricArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpanSetMetricArgs.ProtoReflect.Descriptor instead.
+func (*SpanSetMetricArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SpanSetMetricArgs) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+func (x *SpanSetMetricArgs) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SpanSetMetricArgs) GetValue() float32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+type SpanSetMetricReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SpanSetMetricReturn) Reset() {
+	*x = SpanSetMetricReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SpanSetMetricReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpanSetMetricReturn) ProtoMessage() {}
+
+func (x *SpanSetMetricReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpanSetMetricReturn.ProtoReflect.Descriptor instead.
+func (*SpanSetMetricReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{7}
+}
+
 type FlushSpansArgs struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -240,7 +442,7 @@ type FlushSpansArgs struct {
 func (x *FlushSpansArgs) Reset() {
 	*x = FlushSpansArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[4]
+		mi := &file_protos_apm_test_client_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -253,7 +455,7 @@ func (x *FlushSpansArgs) String() string {
 func (*FlushSpansArgs) ProtoMessage() {}
 
 func (x *FlushSpansArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[4]
+	mi := &file_protos_apm_test_client_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -266,7 +468,7 @@ func (x *FlushSpansArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushSpansArgs.ProtoReflect.Descriptor instead.
 func (*FlushSpansArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{4}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{8}
 }
 
 type FlushSpansReturn struct {
@@ -278,7 +480,7 @@ type FlushSpansReturn struct {
 func (x *FlushSpansReturn) Reset() {
 	*x = FlushSpansReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[5]
+		mi := &file_protos_apm_test_client_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -291,7 +493,7 @@ func (x *FlushSpansReturn) String() string {
 func (*FlushSpansReturn) ProtoMessage() {}
 
 func (x *FlushSpansReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[5]
+	mi := &file_protos_apm_test_client_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -304,7 +506,7 @@ func (x *FlushSpansReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushSpansReturn.ProtoReflect.Descriptor instead.
 func (*FlushSpansReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{5}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{9}
 }
 
 type FlushTraceStatsArgs struct {
@@ -316,7 +518,7 @@ type FlushTraceStatsArgs struct {
 func (x *FlushTraceStatsArgs) Reset() {
 	*x = FlushTraceStatsArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[6]
+		mi := &file_protos_apm_test_client_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -329,7 +531,7 @@ func (x *FlushTraceStatsArgs) String() string {
 func (*FlushTraceStatsArgs) ProtoMessage() {}
 
 func (x *FlushTraceStatsArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[6]
+	mi := &file_protos_apm_test_client_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -342,7 +544,7 @@ func (x *FlushTraceStatsArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushTraceStatsArgs.ProtoReflect.Descriptor instead.
 func (*FlushTraceStatsArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{6}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{10}
 }
 
 type FlushTraceStatsReturn struct {
@@ -354,7 +556,7 @@ type FlushTraceStatsReturn struct {
 func (x *FlushTraceStatsReturn) Reset() {
 	*x = FlushTraceStatsReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[7]
+		mi := &file_protos_apm_test_client_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -367,7 +569,7 @@ func (x *FlushTraceStatsReturn) String() string {
 func (*FlushTraceStatsReturn) ProtoMessage() {}
 
 func (x *FlushTraceStatsReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[7]
+	mi := &file_protos_apm_test_client_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -380,7 +582,7 @@ func (x *FlushTraceStatsReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushTraceStatsReturn.ProtoReflect.Descriptor instead.
 func (*FlushTraceStatsReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{7}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{11}
 }
 
 var File_protos_apm_test_client_proto protoreflect.FileDescriptor
@@ -406,28 +608,48 @@ var file_protos_apm_test_client_proto_rawDesc = []byte{
 	0x63, 0x65, 0x49, 0x64, 0x22, 0x20, 0x0a, 0x0e, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70,
 	0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22, 0x12, 0x0a, 0x10, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68,
-	0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x10, 0x0a, 0x0e, 0x46, 0x6c,
-	0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72, 0x67, 0x73, 0x22, 0x12, 0x0a, 0x10,
-	0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e,
-	0x22, 0x15, 0x0a, 0x13, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74,
-	0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x22, 0x17, 0x0a, 0x15, 0x46, 0x6c, 0x75, 0x73, 0x68,
-	0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e,
-	0x32, 0xe7, 0x01, 0x0a, 0x09, 0x41, 0x50, 0x4d, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x2f,
-	0x0a, 0x09, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x12, 0x0e, 0x2e, 0x53, 0x74,
-	0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x10, 0x2e, 0x53, 0x74,
-	0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12,
-	0x32, 0x0a, 0x0a, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x12, 0x0f, 0x2e,
-	0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x11,
-	0x2e, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72,
-	0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e,
-	0x73, 0x12, 0x0f, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72,
-	0x67, 0x73, 0x1a, 0x11, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x52,
-	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0f, 0x46, 0x6c, 0x75, 0x73, 0x68,
-	0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x12, 0x14, 0x2e, 0x46, 0x6c, 0x75,
-	0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73,
-	0x1a, 0x16, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61,
-	0x74, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x52, 0x0a, 0x0f, 0x53, 0x70,
+	0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a,
+	0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06,
+	0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x13,
+	0x0a, 0x11, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x74,
+	0x75, 0x72, 0x6e, 0x22, 0x54, 0x0a, 0x11, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65,
+	0x74, 0x72, 0x69, 0x63, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49,
+	0x64, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x02, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x15, 0x0a, 0x13, 0x53, 0x70, 0x61,
+	0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e,
+	0x22, 0x10, 0x0a, 0x0e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72,
+	0x67, 0x73, 0x22, 0x12, 0x0a, 0x10, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73,
+	0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x15, 0x0a, 0x13, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54,
+	0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x22, 0x17, 0x0a,
+	0x15, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73,
+	0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x32, 0xdb, 0x02, 0x0a, 0x09, 0x41, 0x50, 0x4d, 0x43, 0x6c,
+	0x69, 0x65, 0x6e, 0x74, 0x12, 0x2f, 0x0a, 0x09, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61,
+	0x6e, 0x12, 0x0e, 0x2e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67,
+	0x73, 0x1a, 0x10, 0x2e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74,
+	0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53,
+	0x70, 0x61, 0x6e, 0x12, 0x0f, 0x2e, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e,
+	0x41, 0x72, 0x67, 0x73, 0x1a, 0x11, 0x2e, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61,
+	0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x0b, 0x53, 0x70, 0x61,
+	0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x10, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53,
+	0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x12, 0x2e, 0x53, 0x70, 0x61,
+	0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00,
+	0x12, 0x3b, 0x0a, 0x0d, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x12, 0x12, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d,
+	0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a,
+	0x0a, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x12, 0x0f, 0x2e, 0x46, 0x6c,
+	0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x11, 0x2e, 0x46,
+	0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22,
+	0x00, 0x12, 0x41, 0x0a, 0x0f, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53,
+	0x74, 0x61, 0x74, 0x73, 0x12, 0x14, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63,
+	0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16, 0x2e, 0x46, 0x6c, 0x75,
+	0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x74, 0x75,
+	0x72, 0x6e, 0x22, 0x00, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -442,31 +664,39 @@ func file_protos_apm_test_client_proto_rawDescGZIP() []byte {
 	return file_protos_apm_test_client_proto_rawDescData
 }
 
-var file_protos_apm_test_client_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_protos_apm_test_client_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_protos_apm_test_client_proto_goTypes = []interface{}{
 	(*StartSpanArgs)(nil),         // 0: StartSpanArgs
 	(*StartSpanReturn)(nil),       // 1: StartSpanReturn
 	(*FinishSpanArgs)(nil),        // 2: FinishSpanArgs
 	(*FinishSpanReturn)(nil),      // 3: FinishSpanReturn
-	(*FlushSpansArgs)(nil),        // 4: FlushSpansArgs
-	(*FlushSpansReturn)(nil),      // 5: FlushSpansReturn
-	(*FlushTraceStatsArgs)(nil),   // 6: FlushTraceStatsArgs
-	(*FlushTraceStatsReturn)(nil), // 7: FlushTraceStatsReturn
+	(*SpanSetMetaArgs)(nil),       // 4: SpanSetMetaArgs
+	(*SpanSetMetaReturn)(nil),     // 5: SpanSetMetaReturn
+	(*SpanSetMetricArgs)(nil),     // 6: SpanSetMetricArgs
+	(*SpanSetMetricReturn)(nil),   // 7: SpanSetMetricReturn
+	(*FlushSpansArgs)(nil),        // 8: FlushSpansArgs
+	(*FlushSpansReturn)(nil),      // 9: FlushSpansReturn
+	(*FlushTraceStatsArgs)(nil),   // 10: FlushTraceStatsArgs
+	(*FlushTraceStatsReturn)(nil), // 11: FlushTraceStatsReturn
 }
 var file_protos_apm_test_client_proto_depIdxs = []int32{
-	0, // 0: APMClient.StartSpan:input_type -> StartSpanArgs
-	2, // 1: APMClient.FinishSpan:input_type -> FinishSpanArgs
-	4, // 2: APMClient.FlushSpans:input_type -> FlushSpansArgs
-	6, // 3: APMClient.FlushTraceStats:input_type -> FlushTraceStatsArgs
-	1, // 4: APMClient.StartSpan:output_type -> StartSpanReturn
-	3, // 5: APMClient.FinishSpan:output_type -> FinishSpanReturn
-	5, // 6: APMClient.FlushSpans:output_type -> FlushSpansReturn
-	7, // 7: APMClient.FlushTraceStats:output_type -> FlushTraceStatsReturn
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: APMClient.StartSpan:input_type -> StartSpanArgs
+	2,  // 1: APMClient.FinishSpan:input_type -> FinishSpanArgs
+	4,  // 2: APMClient.SpanSetMeta:input_type -> SpanSetMetaArgs
+	6,  // 3: APMClient.SpanSetMetric:input_type -> SpanSetMetricArgs
+	8,  // 4: APMClient.FlushSpans:input_type -> FlushSpansArgs
+	10, // 5: APMClient.FlushTraceStats:input_type -> FlushTraceStatsArgs
+	1,  // 6: APMClient.StartSpan:output_type -> StartSpanReturn
+	3,  // 7: APMClient.FinishSpan:output_type -> FinishSpanReturn
+	5,  // 8: APMClient.SpanSetMeta:output_type -> SpanSetMetaReturn
+	7,  // 9: APMClient.SpanSetMetric:output_type -> SpanSetMetricReturn
+	9,  // 10: APMClient.FlushSpans:output_type -> FlushSpansReturn
+	11, // 11: APMClient.FlushTraceStats:output_type -> FlushTraceStatsReturn
+	6,  // [6:12] is the sub-list for method output_type
+	0,  // [0:6] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_protos_apm_test_client_proto_init() }
@@ -524,7 +754,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FlushSpansArgs); i {
+			switch v := v.(*SpanSetMetaArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -536,7 +766,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FlushSpansReturn); i {
+			switch v := v.(*SpanSetMetaReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -548,7 +778,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FlushTraceStatsArgs); i {
+			switch v := v.(*SpanSetMetricArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -560,6 +790,54 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SpanSetMetricReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FlushSpansArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FlushSpansReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FlushTraceStatsArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FlushTraceStatsReturn); i {
 			case 0:
 				return &v.state
@@ -579,7 +857,7 @@ func file_protos_apm_test_client_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_protos_apm_test_client_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

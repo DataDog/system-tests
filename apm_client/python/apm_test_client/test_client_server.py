@@ -22,6 +22,16 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             span_id=span.span_id,
         )
 
+    def SpanSetMeta(self, request, context):
+        span = self._spans[request.span_id]
+        span.set_tag(request.key, request.value)
+        return apm_test_client_pb2.SpanSetMetaReturn()
+
+    def SpanSetMetric(self, request, context):
+        span = self._spans[request.span_id]
+        span.set_metric(request.key, request.value)
+        return apm_test_client_pb2.SpanSetMetricReturn()
+
     def FinishSpan(self, request, context):
         span = self._spans[request.id]
         del self._spans[request.id]

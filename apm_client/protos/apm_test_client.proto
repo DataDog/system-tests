@@ -4,7 +4,8 @@ syntax = "proto3";
 service APMClient {
   rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
   rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
-  // TODO: SetTag operation
+  rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
+  rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
 }
@@ -20,13 +21,28 @@ message StartSpanReturn {
   uint64 trace_id = 2;
 }
 
-
 message FinishSpanArgs {
   uint64 id = 1;
   // TODO: be able to do custom durations
   // uint64 duration = 2;
 }
 message FinishSpanReturn {}
+
+
+message SpanSetMetaArgs {
+  uint64 span_id = 1;
+  string key = 2;
+  string value = 3;
+}
+message SpanSetMetaReturn {}
+
+
+message SpanSetMetricArgs {
+  uint64 span_id = 1;
+  string key = 2;
+  float value = 3;
+}
+message SpanSetMetricReturn {}
 
 message FlushSpansArgs {}
 message FlushSpansReturn {}
