@@ -53,6 +53,16 @@ usr.scope
 
 The value of each tag should be the tag name, for example `usr.id` should be set to `usr.id`.
 
+# GET /identify-propagate
+
+This endpoint must set the following tags on the local root span:
+
+```
+_dd.p.usr_id
+```
+
+The value of `_dd.p.usr.id` should be `dXNyLmlk`, which is the base64 encoding of `usr.id`.
+
 ## GET /params/%s
 
 This end point must accept a parameter that is a string and is part of the URL path.
@@ -93,6 +103,10 @@ Where `repeats` and `garbage` are the parameters read from the query string.
 The end point must accept a query string parameter `q`. This parameter should be used as part of a query that is executed against a real database (to ensure a database span is created).
 
 The output of the query should be written to the body of the response.
+
+## `GET /status`
+
+The end point must accept a query string parameter `code`, which should be an integer. This parameter should be come the status code of the response message.
 
 ## \[All HTTP verbs\] /waf
 

@@ -295,9 +295,10 @@ class Test_NoSqli(BaseTestCase):
         r = self.weblog_get("/waf/", headers={"x-attack": "$nin"})
         interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
 
-    @missing_feature(context.library in ["golang", "nodejs", "php", "ruby"], reason="Need to use last WAF version")
+    @missing_feature(context.library in ["golang", "php", "ruby"], reason="Need to use last WAF version")
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
+    @irrelevant(library="nodejs", reason="brackets are interpreted as arrays and thus truncated")
     def test_nosqli_keys(self):
         """AppSec catches NoSQLI attacks in keys"""
         r = self.weblog_get("/waf/", params={"[$ne]": "value"})

@@ -15,12 +15,14 @@ RUN echo '<?php phpinfo();' > /var/www/html/index.php
 RUN echo '<?php echo "OK";' > /var/www/html/sample_rate_route.php
 RUN echo '<?php echo "Hello, WAF!";' > /var/www/html/waf.php
 RUN echo '<?php http_response_code(404);' > /var/www/html/404.php
+RUN echo '<?php http_response_code(intval($_GET["code"]));' > /var/www/html/status.php
 ADD utils/build/docker/php/common/*.php /var/www/html/
 RUN a2enmod rewrite
 
 ENV DD_TRACE_ENABLED=1
 ENV DD_TRACE_GENERATE_ROOT_SPAN=1
 ENV DD_TRACE_AGENT_FLUSH_AFTER_N_REQUESTS=0
+ENV DD_TRACE_HEADER_TAGS=user-agent
 
 RUN curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
