@@ -52,7 +52,7 @@ app.get('/identify', (req: Request, res: Response) => {
 });
 
 app.get('/status', (req: Request, res: Response) => {
-  res.status(parseInt(req.query.code)).send('OK');
+  res.status(parseInt('' + req.query.code)).send('OK');
 });
 
 app.listen(7777, '0.0.0.0', () => {
