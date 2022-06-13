@@ -21,12 +21,18 @@ type apmClientServer struct {
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
 	var span tracer.Span
+	var opts []tracer.StartSpanOption
+	if args.Resource != nil {
+		opts = append(opts, tracer.ResourceName(*args.Resource))
+	}
+	if args.Service != nil {
+		opts = append(opts, tracer.ServiceName(*args.Service))
+	}
 	if args.ParentId != nil && *args.ParentId > 0 {
 		parent := s.spans[*args.ParentId]
-		span = tracer.StartSpan(args.Name, tracer.ChildOf(parent.Context()))
-	} else {
-		span = tracer.StartSpan(args.Name)
+		opts = append(opts, tracer.ChildOf(parent.Context()))
 	}
+	span = tracer.StartSpan(args.Name, opts...)
 	s.spans[span.Context().SpanID()] = span
 	return &StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
@@ -42,10 +48,12 @@ func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) 
 }
 
 func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
+	tracer.Stop()
 	return &FlushSpansReturn{}, nil
 }
 
 func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs) (*FlushTraceStatsReturn, error) {
+	tracer.Stop()
 	return &FlushTraceStatsReturn{}, nil
 }
 

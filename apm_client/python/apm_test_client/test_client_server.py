@@ -36,6 +36,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         stats_proc = [
             p
             for p in ddtrace.tracer._span_processors
+            if hasattr(ddtrace.internal.processor, "stats")
             if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
         ]
         if len(stats_proc):

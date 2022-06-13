@@ -49,7 +49,7 @@ def apm_test_server_env():
     yield {}
 
 
-def python_library_server(env: Dict[str, str]):
+def python_library_server_factory(env: Dict[str, str]):
     python_dir = os.path.join(os.path.dirname(__file__), "python")
     return APMClientTestServer(
         container_name="python-test-client",
@@ -69,7 +69,7 @@ RUN pip install ddtrace
     )
 
 
-def go_library_server(env: Dict[str, str]):
+def go_library_server_factory(env: Dict[str, str]):
     go_dir = os.path.join(os.path.dirname(__file__), "go")
     return APMClientTestServer(
         container_name="go-test-client",
@@ -93,11 +93,14 @@ RUN go install
         env=env,
     )
 
+@pytest.fixture
+def apm_test_server_factory():
+    yield python_library_server_factory
+
 
 @pytest.fixture
-def apm_test_server(apm_test_server_env):
-    # yield python_library_server(apm_test_server_env)
-    yield go_library_server(apm_test_server_env)
+def apm_test_server(apm_test_server_factory, apm_test_server_env):
+    yield python_library_server_factory(apm_test_server_env)
 
 
 @pytest.fixture
@@ -228,8 +231,10 @@ def test_agent(request, tmp_path):
         assert len(marks) < 2, "Multiple snapshot marks detected"
         if marks:
             snap = marks[0]
-            token = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
-            with client.snapshot_context(token, *snap.args, **snap.kwargs):
+            assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
+            if "token" not in snap.kwargs:
+                snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+            with client.snapshot_context(**snap.kwargs):
                 yield client
         else:
             yield client

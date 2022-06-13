@@ -1,11 +1,21 @@
 import pytest
 
+from .conftest import go_library_server_factory
+from .conftest import python_library_server_factory
+
 
 parametrize = pytest.mark.parametrize
 snapshot = pytest.mark.snapshot
 
 
-@snapshot
+@snapshot(ignores=["error"])
+@parametrize(
+    "apm_test_server_factory",
+    [
+        python_library_server_factory,
+        go_library_server_factory,
+    ],
+)
 @parametrize(
     "apm_test_server_env",
     [
@@ -14,9 +24,11 @@ snapshot = pytest.mark.snapshot
         },
     ],
 )
-def test_client_trace(test_agent, test_client, apm_test_server_env):
-    with test_client.start_span(name="web.request", service="webserver") as span:
-        with test_client.start_span(name="postgres.query", service="postgres", parent_id=span.span_id):
+def test_client_trace(apm_test_server_factory, test_agent, test_client, apm_test_server_env):
+    with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
+        with test_client.start_span(
+            name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
+        ):
             pass
     test_client.flush()
 
@@ -25,3 +37,28 @@ def test_client_trace(test_agent, test_client, apm_test_server_env):
     stats = test_agent.tracestats()
     print(traces)
     print(stats)
+
+
+@snapshot(
+    ignores=["error"],
+    # Specify a custom token so all parametrizations use the same snapshots
+    token="apm_client.test_client_stats.test_client_snapshot",
+)
+@parametrize(
+    "apm_test_server_factory",
+    [
+        python_library_server_factory,
+        go_library_server_factory,
+    ],
+)
+def test_client_snapshot(test_agent, test_client):
+    """Ensure clients mostly submit the same data for a trace.
+
+    Data which is inconsistent enough between clients is ignored
+    with the snapshot `ignores` argument.
+    """
+    with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
+        with test_client.start_span(
+            name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
+        ):
+            pass
