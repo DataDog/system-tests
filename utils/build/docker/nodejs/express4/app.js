@@ -49,6 +49,10 @@ app.get('/identify', (req, res) => {
   res.send('OK');
 });
 
+app.get('/status', (req, res) => {
+  res.status(parseInt(req.query.code)).send('OK');
+})
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');
