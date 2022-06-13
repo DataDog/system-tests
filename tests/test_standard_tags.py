@@ -104,7 +104,7 @@ class Test_StandardTagsRoute(BaseTestCase):
         }
 
         # specify the route syntax if needed
-        if context.library == 'nodejs':
+        if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
