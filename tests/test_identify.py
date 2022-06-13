@@ -38,7 +38,10 @@ class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK"""
 
     @bug(library="golang", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
-    @bug(context.library < "nodejs@2.9.0", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
+    @bug(
+        context.library < "nodejs@2.9.0",
+        reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
+    )
     @bug(library="ruby", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
     def test_identify_tags(self):
         # Send a request to the identify endpoint
