@@ -38,6 +38,7 @@ def test_client_trace(apm_test_server_factory, test_agent, test_client, apm_test
     stats = test_agent.tracestats()
     print(traces)
     print(stats)
+    assert 0
 
 
 @snapshot(

@@ -297,7 +297,7 @@ def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_
         yield apm_test_server
 
 
-class TestSpan:
+class _TestSpan:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub, span_id: int):
         self._client = client
         self.span_id = span_id
@@ -328,14 +328,14 @@ class TestSpan:
         )
 
 
-class TestTracer:
+class _TestTracer:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
 
     @contextlib.contextmanager
     def start_span(
         self, name: str, service: str = "", resource: str = "", parent_id: int = 0
-    ) -> Generator[TestSpan, None, None]:
+    ) -> Generator[_TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
                 name=name,
@@ -344,7 +344,7 @@ class TestTracer:
                 parent_id=parent_id,
             )
         )
-        span = TestSpan(self._client, resp.span_id)
+        span = _TestSpan(self._client, resp.span_id)
         yield span
         span.finish()
 
@@ -363,6 +363,6 @@ def test_client(test_server, test_server_timeout):
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
-    tracer = TestTracer(client)
+    tracer = _TestTracer(client)
     yield tracer
     tracer.flush()
