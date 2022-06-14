@@ -25,6 +25,16 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
                 )
+        self.SpanSetMeta = channel.unary_unary(
+                '/APMClient/SpanSetMeta',
+                request_serializer=protos_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
+                )
+        self.SpanSetMetric = channel.unary_unary(
+                '/APMClient/SpanSetMetric',
+                request_serializer=protos_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
+                )
         self.FlushSpans = channel.unary_unary(
                 '/APMClient/FlushSpans',
                 request_serializer=protos_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
@@ -48,6 +58,18 @@ class APMClientServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def FinishSpan(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SpanSetMeta(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SpanSetMetric(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -77,6 +99,16 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.FinishSpan,
                     request_deserializer=protos_dot_apm__test__client__pb2.FinishSpanArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.FinishSpanReturn.SerializeToString,
+            ),
+            'SpanSetMeta': grpc.unary_unary_rpc_method_handler(
+                    servicer.SpanSetMeta,
+                    request_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetaArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.SpanSetMetaReturn.SerializeToString,
+            ),
+            'SpanSetMetric': grpc.unary_unary_rpc_method_handler(
+                    servicer.SpanSetMetric,
+                    request_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetricArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.SpanSetMetricReturn.SerializeToString,
             ),
             'FlushSpans': grpc.unary_unary_rpc_method_handler(
                     servicer.FlushSpans,
@@ -130,6 +162,40 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/FinishSpan',
             protos_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SpanSetMeta(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetMeta',
+            protos_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SpanSetMetric(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetMetric',
+            protos_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

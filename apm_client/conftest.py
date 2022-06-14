@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, Generator, List, Tuple
 import urllib.parse
 
 import grpc
@@ -92,6 +92,7 @@ RUN go install
         ],
         env=env,
     )
+
 
 @pytest.fixture
 def apm_test_server_factory():
@@ -296,12 +297,45 @@ def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_
         yield apm_test_server
 
 
+class TestSpan:
+    def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub, span_id: int):
+        self._client = client
+        self.span_id = span_id
+
+    def set_meta(self, key: str, val: str):
+        self._client.SpanSetMeta(
+            pb.SpanSetMetaArgs(
+                span_id=self.span_id,
+                key=key,
+                value=val,
+            )
+        )
+
+    def set_metric(self, key: str, val: float):
+        self._client.SpanSetMetric(
+            pb.SpanSetMetricArgs(
+                span_id=self.span_id,
+                key=key,
+                value=val,
+            )
+        )
+
+    def finish(self):
+        self._client.FinishSpan(
+            pb.FinishSpanArgs(
+                id=self.span_id,
+            )
+        )
+
+
 class TestTracer:
-    def __init__(self, client):
+    def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
 
     @contextlib.contextmanager
-    def start_span(self, name: str, service: str = "", resource: str = "", parent_id: int = 0):
+    def start_span(
+        self, name: str, service: str = "", resource: str = "", parent_id: int = 0
+    ) -> Generator[TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
                 name=name,
@@ -310,8 +344,9 @@ class TestTracer:
                 parent_id=parent_id,
             )
         )
-        yield resp
-        self._client.FinishSpan(pb.FinishSpanArgs(id=resp.span_id))
+        span = TestSpan(self._client, resp.span_id)
+        yield span
+        span.finish()
 
     def flush(self):
         self._client.FlushSpans(pb.FlushSpansArgs())
