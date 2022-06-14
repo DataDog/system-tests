@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import context, coverage, BaseTestCase, interfaces, irrelevant, released
+from utils import context, coverage, BaseTestCase, interfaces, irrelevant, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -41,6 +41,7 @@ class Test_StandardTagsMethod(BaseTestCase):
 
 
 @released(dotnet="?", golang="?", java="0.103.0", nodejs="?", php="?", python="?", ruby="?")
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -60,6 +61,22 @@ class Test_StandardTagsUrl(BaseTestCase):
             "http.url": "http://weblog:7777/waf?key1=val1&key2=val2&key3=val3",
         }
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
+
+    def test_url_with_sensitive_query_string(self):
+        tests = {
+            "/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3": "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3",
+            "/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3": "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3",
+            "/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934": "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>",
+            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": 'http://weblog:7777/waf?json={ "<redacted>}',
+        }
+
+        for url in tests:
+            r = self.weblog_get(url)
+
+            tags = {
+                "http.url": tests[url],
+            }
+            interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
 @released(dotnet="?", golang="?", java="0.103.0", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
