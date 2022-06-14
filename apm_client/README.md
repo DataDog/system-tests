@@ -3,6 +3,7 @@
 ## M1 mac install:
 
 ```sh
+./setup.py
 /usr/bin/python3 -m virtualenv .venv
 source .venv/bin/activate
 arch -x86_64 pip install --upgrade pip
