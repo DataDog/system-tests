@@ -1,3 +1,7 @@
+package com.datadoghq.system_tests.springboot;
+
+import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
+import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -13,6 +17,7 @@ import org.bson.Document;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -26,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -294,6 +300,17 @@ public class App {
                 .append("id", 3)
                 .append("title", "Wingsuit")
                 .append("subject", "Flying like a bird made of cloth who just left a perfectly working airplane"));
+    }
+
+
+    @Bean
+    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
+        return new SynchronousWebLogGrpc(localInterface.getPort());
+    }
+
+    @Bean
+    WebLogInterface localInterface() throws IOException {
+        return new WebLogInterface();
     }
 
     public static void main(String[] args) {

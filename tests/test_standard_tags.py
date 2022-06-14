@@ -10,14 +10,14 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="?", java="?", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsMethod(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.method tags"""
 
     def test_method(self):
 
-        verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
+        verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
 
         for verb in verbs:
             data = None
@@ -31,8 +31,16 @@ class Test_StandardTagsMethod(BaseTestCase):
             }
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
+    @irrelevant(library="php", reason="Trace method does not reach php-land")
+    def test_method_trace(self):
+        r = self._weblog_request("TRACE", "/waf", data=None)
+        tags = {
+            "http.method": "TRACE",
+        }
+        interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
@@ -71,7 +79,7 @@ class Test_StandardTagsUrl(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -79,13 +87,12 @@ class Test_StandardTagsUserAgent(BaseTestCase):
     def test_useragent(self):
         r = self.weblog_get(f"/waf", headers={"user-agent": "Mistake Not ..."})
 
-        tags = {
-            "http.useragent": "Mistake Not ...",
-        }
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
+        # system tests uses user-agent to ad a request id => allow anything at the end
+        tags = {"http.useragent": r"Mistake Not \.\.\. .*"}
+        interfaces.library.add_span_tag_validation(request=r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="?", java="?", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsStatusCode(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -101,7 +108,7 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.route tags"""
@@ -112,10 +119,15 @@ class Test_StandardTagsRoute(BaseTestCase):
         tags = {
             "http.route": "/sample_rate_route/{i}",
         }
+
+        # specify the route syntax if needed
+        if context.library == "nodejs":
+            tags["http.route"] = "/sample_rate_route/:i"
+
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

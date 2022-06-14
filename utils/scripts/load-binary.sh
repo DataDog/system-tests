@@ -174,8 +174,8 @@ elif [ "$TARGET" = "cpp" ]; then
     x=1
 
 elif [ "$TARGET" = "agent" ]; then
-    # ???
-    x=1
+    echo "datadog/agent-dev:master-py3" > agent-image
+    echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master

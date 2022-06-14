@@ -37,10 +37,12 @@ def validate_identify_tags(tags):
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK"""
 
-    @bug(library="golang", reason="no user-agent without attack")
-    @bug(library="nodejs", reason="no user-agent without attack")
-    @bug(library="php", reason="no user-agent without attack")
-    @bug(library="ruby", reason="no user-agent without attack")
+    @bug(library="golang", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
+    @bug(
+        context.library < "nodejs@2.9.0",
+        reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
+    )
+    @bug(library="ruby", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
     def test_identify_tags(self):
         # Send a request to the identify endpoint
         r = self.weblog_get("/identify")
@@ -56,7 +58,7 @@ class Test_Basic(BaseTestCase):
         )
 
 
-@released(dotnet="2.11.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
