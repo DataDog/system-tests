@@ -71,6 +71,12 @@ public class Main {
                         ctx.response().setStatusCode(200).end(jsonObject.toString());
                     }
                 });
+        router.get("/status")
+                .handler(ctx -> {
+                    String codeString = ctx.request().getParam("code");
+                    int code = Integer.parseInt(codeString);
+                    ctx.response().setStatusCode(code).end();
+                });
 
         server.requestHandler(router::accept).listen(7777);
     }
