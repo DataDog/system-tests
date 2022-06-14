@@ -29,6 +29,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         logger.info(f"Get data for {self.rids}")
         for data in library._data_list:
+            if data["path"] != "/v0.4/traces":
+                continue
+
             for trace in data["request"]["content"]:
                 for span in trace:
                     if span.get("parent_id") in (0, None):
