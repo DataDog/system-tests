@@ -149,6 +149,7 @@ def pytest_runtestloop(session):
     success = _wait_interface(interfaces.library_stdout, session) and success
     success = _wait_interface(interfaces.library_dotnet_managed, session) and success
     success = _wait_interface(interfaces.agent, session) and success
+    success = _wait_interface(interfaces.backend, session) and success
 
     if not success:
         raise session.Failed(session.shouldfail)
