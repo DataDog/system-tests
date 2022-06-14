@@ -27,8 +27,6 @@ class _BackendInterfaceValidator(InterfaceValidator):
         from utils.interfaces import library
         from utils.interfaces._library._utils import _get_rid_from_span
 
-        headers = {"DD-API-KEY": os.environ["DD_API_KEY"], "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"]}
-
         logger.info(f"Get data for {self.rids}")
         for data in library._data_list:
             for trace in data["request"]["content"]:
@@ -40,7 +38,13 @@ class _BackendInterfaceValidator(InterfaceValidator):
                             logger.info(f"Found rid/trace_id: {rid} -> {trace_id}, collect data from backend")
                             path = f"/api/v1/trace/{trace_id}"
                             host = "https://dd.datad0g.com"
+
+                            headers = {
+                                "DD-API-KEY": os.environ["DD_API_KEY"],
+                                "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+                            }
                             r = requests.get(f"{host}{path}", headers=headers)
+
                             self.append_data(
                                 {
                                     "host": host,
