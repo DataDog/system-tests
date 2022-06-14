@@ -25,7 +25,7 @@ snapshot = pytest.mark.snapshot
         },
     ],
 )
-def test_client_trace(apm_test_server_factory, test_agent, test_client, apm_test_server_env):
+def test_client_trace(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
         with test_client.start_span(
             name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id

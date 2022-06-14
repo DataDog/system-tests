@@ -84,7 +84,6 @@ COPY . /client
 RUN go get gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer
 RUN go install
 """,
-        # container_cmd=["bash", "-c", "go install && main"],
         container_cmd=["main"],
         container_build_dir=go_dir,
         volumes=[
@@ -183,13 +182,15 @@ def docker_run(
         f.flush()
         docker = shutil.which("docker")
         subprocess.Popen(_cmd, stdout=f, stderr=f)
-        yield
-        subprocess.run(
-            [docker, "kill", name],
-            stdout=f,
-            stderr=f,
-            check=True,
-        )
+        try:
+            yield
+        finally:
+            subprocess.run(
+                [docker, "kill", name],
+                stdout=f,
+                stderr=f,
+                check=True,
+            )
 
 
 @pytest.fixture
