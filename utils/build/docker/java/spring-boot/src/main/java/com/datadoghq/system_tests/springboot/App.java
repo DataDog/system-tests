@@ -19,7 +19,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -89,6 +91,11 @@ public class App {
     @PostMapping(value = "/waf", consumes = MediaType.APPLICATION_XML_VALUE)
     String postWafXml(@RequestBody XmlObject object) {
         return object.toString();
+    }
+
+    @RequestMapping("/status")
+    ResponseEntity<String> status(@RequestParam Integer code) {
+        return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
     @JacksonXmlRootElement
