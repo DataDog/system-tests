@@ -93,6 +93,28 @@ RUN go install
         env=env,
     )
 
+def dotnet_library_server_factory(env: Dict[str, str]):
+    dotnet_dir = os.path.join(os.path.dirname(__file__), "dotnet")
+    return APMClientTestServer(
+        container_name="dotnet-test-client",
+        container_tag="dotnet6_0-test-client",
+        container_img="""
+FROM mcr.microsoft.com/dotnet/sdk:6.0
+WORKDIR /client
+COPY ["ApmTestClient.csproj", "."]
+RUN dotnet restore "./ApmTestClient.csproj"
+COPY . .
+WORKDIR "/client/."
+""",
+        # container_cmd=["bash", "-c", "go install && main"],
+        container_cmd=["dotnet run"],
+        container_build_dir=dotnet_dir,
+        volumes=[
+            (os.path.join(dotnet_dir), "/client"),
+        ],
+        env=env,
+    )
+
 @pytest.fixture
 def apm_test_server_factory():
     yield python_library_server_factory
