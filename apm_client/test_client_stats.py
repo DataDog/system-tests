@@ -3,6 +3,7 @@ import pytest
 from .conftest import _TestTracer
 from .conftest import go_library_server_factory
 from .conftest import python_library_server_factory
+from .conftest import dotnet_library_server_factory
 
 
 parametrize = pytest.mark.parametrize
@@ -67,8 +68,9 @@ def test_client_tracestats(apm_test_server_env, apm_test_server_factory, test_ag
 @parametrize(
     "apm_test_server_factory",
     [
-        python_library_server_factory,
-        go_library_server_factory,
+        # python_library_server_factory,
+        # go_library_server_factory,
+        dotnet_library_server_factory,
     ],
 )
 def test_client_snapshot(apm_test_server_factory, test_agent, test_client: _TestTracer):
