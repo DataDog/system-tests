@@ -73,7 +73,14 @@ class _AssertWafAttack(BaseValidation):
 
     def check(self, data):
         if data["rid"] == self.rid:
-            for span in data["response"]["content"]["trace"]["spans"].values():
+
+            status_code = data["response"]["status_code"]
+            if status_code != 200:
+                self.set_failure(f"Backend did not provide trace: {data['path']}. Status is {status_code}")
+                return
+
+            trace = data["response"]["content"].get("trace", {})
+            for span in trace.get("spans", {}).values():
                 if not span["parent_id"] in (None, 0, "0"):  # only root span
                     continue
 
