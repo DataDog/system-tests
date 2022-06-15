@@ -40,7 +40,7 @@ class Test_StandardTagsMethod(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="0.103.0", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
@@ -79,7 +79,7 @@ class Test_StandardTagsUrl(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="0.103.0", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -108,7 +108,7 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="0.103.0", nodejs="2.0.0", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.route tags"""
@@ -127,7 +127,7 @@ class Test_StandardTagsRoute(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="0.103.0", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
