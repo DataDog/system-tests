@@ -100,7 +100,7 @@ def apm_test_server_factory():
 
 @pytest.fixture
 def apm_test_server(apm_test_server_factory, apm_test_server_env):
-    yield python_library_server_factory(apm_test_server_env)
+    yield apm_test_server_factory(apm_test_server_env)
 
 
 @pytest.fixture
@@ -205,7 +205,7 @@ def test_agent(request, tmp_path):
 
     # Not all clients (go for example) submit the tracer version
     # go client doesn't submit content length header
-    env["DISABLED_CHECKS"] = "meta_tracer_version_header,meta_tracer_version_header"
+    env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
 
     with docker_run(
         image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",

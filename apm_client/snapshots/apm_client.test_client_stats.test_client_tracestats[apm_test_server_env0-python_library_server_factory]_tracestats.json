@@ -11,7 +11,7 @@
         "Synthetics": false,
         "Hits": 1,
         "TopLevelHits": 1,
-        "Duration": 2426875,
+        "Duration": 8661709,
         "Errors": 0,
         "OkSummary": 1046,
         "ErrorSummary": 15
@@ -24,7 +24,7 @@
         "Synthetics": false,
         "Hits": 1,
         "TopLevelHits": 1,
-        "Duration": 12986833,
+        "Duration": 24646458,
         "Errors": 0,
         "OkSummary": 1046,
         "ErrorSummary": 15

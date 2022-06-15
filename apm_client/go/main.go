@@ -74,13 +74,14 @@ func newServer() *apmClientServer {
 }
 
 func main() {
-	tracer.Start(tracer.WithFeatureFlags("stats"))
 	// FIXME: the go client doesn't support this environment variable
 	//        so enable stats manually.
+	//        stats cannot be enabled explicitly, only implicitly by enabling
+	//        discovery and then having the tracer find the stats endpoint.
 	if v := os.Getenv("DD_TRACE_COMPUTE_STATS"); v == "1" {
-		tracer.features.Store(agentFeatures{
-			Stats: true,
-		})
+		tracer.Start(tracer.WithFeatureFlags("discovery"))
+	} else {
+		tracer.Start()
 	}
 	defer tracer.Stop()
 	flag.Parse()
