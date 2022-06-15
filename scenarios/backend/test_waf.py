@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="", php="0.75.0", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.75.0", python="?", ruby="?")
 @coverage.basic
 class Test_Basic(BaseTestCase):
     """ Basic tests on waf backend """
