@@ -32,7 +32,7 @@ func main() {
 		w.Write([]byte("Hello, WAF!\n"))
 	})
 
-	mux.HandleFunc("/sample_rate_route/:i", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/sample_rate_route/{i}", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 

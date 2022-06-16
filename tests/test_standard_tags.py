@@ -108,11 +108,15 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="1.39.0", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.route tags"""
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant == "net-http",
+        reason="net-http does not handle route parameters",
+    )
     def test_route(self):
         r = self.weblog_get(f"/sample_rate_route/1")
 
@@ -122,6 +126,8 @@ class Test_StandardTagsRoute(BaseTestCase):
 
         # specify the route syntax if needed
         if context.library == "nodejs":
+            tags["http.route"] = "/sample_rate_route/:i"
+        if context.library == "golang" and context.weblog_variant not in ["gorilla", "chi"]:
             tags["http.route"] = "/sample_rate_route/:i"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
