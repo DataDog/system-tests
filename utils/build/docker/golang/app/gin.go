@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -34,6 +35,15 @@ func main() {
 		ctx.Writer.Write([]byte("OK"))
 	})
 	r.Any("/params/:myParam", func(ctx *gin.Context) {
+		ctx.Writer.Write([]byte("OK"))
+	})
+
+	r.Any("/status", func(ctx *gin.Context) {
+		if c := ctx.Request.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				ctx.Writer.WriteHeader(code)
+			}
+		}
 		ctx.Writer.Write([]byte("OK"))
 	})
 
