@@ -1,4 +1,5 @@
 using ApmTestClient.Services;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // If we're using http, then _must_ listen on Http2 only, as the TLS
+    // negotiation is where we would typically negotiate between Http1.1/Http2
+    // Without this, you'll get a PROTOCOL_ERROR
+    options.ConfigureEndpointDefaults(
+        opts => opts.Protocols = HttpProtocols.Http2);
+});
 
 var app = builder.Build();
 
