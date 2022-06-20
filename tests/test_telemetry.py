@@ -13,6 +13,11 @@ class Test_Telemetry(BaseTestCase):
         """Test that telemetry requests are successful"""
         interfaces.library.assert_telemetry_requests_are_successful()
         interfaces.agent.assert_telemetry_requests_are_successful()
+    
+    def test_telemetry_proxy_enrichment():
+        """Test telemetry proxy adds necessary information"""
+        interfaces.agent.assert_telemetry_request_pass_headers()
+
 
     def test_seq_id(self):
         """Test that messages are sent sequentially"""

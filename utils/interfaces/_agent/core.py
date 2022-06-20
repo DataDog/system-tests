@@ -10,7 +10,7 @@ import threading
 
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
-from utils.interfaces._library.telemetry import _TelemetryRequestSuccessValidation, TELEMETRY_INTAKE_ENDPOINT
+from utils.interfaces._library.telemetry import _TelemetryProxyEnrichmentValidation, _TelemetryRequestSuccessValidation, TELEMETRY_INTAKE_ENDPOINT
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._agent.appsec import AppSecValidation
 
@@ -41,6 +41,9 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def assert_telemetry_requests_are_successful(self):
         self.append_validation(_TelemetryRequestSuccessValidation(TELEMETRY_INTAKE_ENDPOINT))
+        
+    def assert_telemetry_request_pass_headers(self):
+        self.append_validation(_TelemetryProxyEnrichmentValidation())
 
     def add_profiling_validation(self, validator):
         self.append_validation(_ProfilingValidation(validator))

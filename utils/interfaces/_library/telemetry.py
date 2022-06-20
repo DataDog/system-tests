@@ -18,6 +18,26 @@ class _TelemetryRequestSuccessValidation(BaseValidation):
         if not 200 <= repsonse_code < 300:
             self.set_failure(f"Got response code {repsonse_code} telemetry message {data['log_filename']}")
 
+class _TelemetryProxyEnrichmentValidation(BaseValidation):
+    is_success_on_expiry = True # TODO: why this needs to be set?
+
+    def __init__(self):
+        self.path_filters = TELEMETRY_INTAKE_ENDPOINT
+        super().__init__()
+
+    def check(self, data):
+        request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+
+        if "dd-agent-hostname" not in request_headers:
+            raise Exception(f"Agent hostname not added to proxied request headers {data['log_filename']}")
+
+        if "dd-agent-env" not in request_headers:
+            raise Exception(f"Agent environment not added to proxied request headers {data['log_filename']}")
+        
+        # additionally verify if container id was correctly passed through from the client
+        if "datadog-container-id" not in request_headers:
+            raise Exception(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
+
 
 class _SeqIdLatencyValidation(BaseValidation):
     """Verify that the messages seq_id s are sent somewhat in-order."""
