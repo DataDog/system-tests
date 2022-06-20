@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Datadog.Trace;
 
+
 namespace weblog
 {
     public class IdentifyEndpoint : ISystemTestEndpoint
@@ -10,6 +11,8 @@ namespace weblog
         {
             routeBuilder.MapGet("/identify", async context =>
             {
+
+#if DDTRACE_HAS_USERDETAILS
                 var userDetails = new UserDetails()
                 {
                     Id = "usr.id",
@@ -21,12 +24,15 @@ namespace weblog
                 };
                 var scope = Tracer.Instance.ActiveScope;
                 scope?.Span.SetUser(userDetails);
-
+#endif
+ 
                 await context.Response.WriteAsync("Hello world!\\n");
             });
 
             routeBuilder.MapGet("/identify-propagate", async context =>
             {
+
+#if DDTRACE_HAS_USERDETAILS
                 var userDetails = new UserDetails()
                 {
                     Id = "usr.id",
@@ -35,6 +41,7 @@ namespace weblog
                 };
                 var scope = Tracer.Instance.ActiveScope;
                 scope?.Span.SetUser(userDetails);
+#endif
 
                 await context.Response.WriteAsync("Hello world!\\n");
             });
