@@ -6,7 +6,7 @@
 		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' AND '$(DDTRACE_VERSION)' >= '2.7.0'">
+	<PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' OR '$(DDTRACE_VERSION)' >= '2.7.0'">
 		<DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
