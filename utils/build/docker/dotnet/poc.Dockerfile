@@ -6,8 +6,6 @@ WORKDIR /app
 
 COPY utils/build/docker/dotnet/app.csproj app.csproj
 
-RUN dotnet restore
-
 COPY utils/build/docker/dotnet/*.cs ./
 COPY utils/build/docker/dotnet/Dependencies/*.cs ./Dependencies/
 COPY utils/build/docker/dotnet/Endpoints/*.cs ./Endpoints/
@@ -18,7 +16,8 @@ COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/quer
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
-RUN dotnet publish -c Release -o out
+RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") dotnet restore
+RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
 WORKDIR /app
