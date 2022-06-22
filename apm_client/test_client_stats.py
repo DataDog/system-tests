@@ -10,7 +10,7 @@ parametrize = pytest.mark.parametrize
 snapshot = pytest.mark.snapshot
 
 
-@snapshot(ignores=["error"])
+@snapshot(ignores=["error", "type", "meta.language", "metrics.process_id", "metrics._dd.agent_psr", "metrics._dd.tracer_kr", "metrics._sampling_priority_v1"])
 @parametrize(
     "apm_test_server_factory",
     [
@@ -61,7 +61,7 @@ def test_client_tracestats(apm_test_server_env, apm_test_server_factory, test_ag
 
 
 @snapshot(
-    ignores=["error"],
+    ignores=["error", "type", "meta.language", "metrics.process_id", "metrics._dd.agent_psr", "metrics._dd.tracer_kr", "metrics._sampling_priority_v1"],
     # Specify a custom token so all parametrizations use the same snapshots
     token="apm_client.test_client_stats.test_client_snapshot",
 )

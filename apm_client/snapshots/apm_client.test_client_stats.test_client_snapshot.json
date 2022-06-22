@@ -2,12 +2,13 @@
   {
     "name": "web.request",
     "service": "webserver",
-    "resource": "web.request",
+    "resource": "/users",
     "trace_id": 0,
     "span_id": 1,
     "parent_id": 0,
     "meta": {
-      "runtime-id": "c9bb2fd118b849ff957b8304d8d8542a"
+      "runtime-id": "c9bb2fd118b849ff957b8304d8d8542a",
+      "key": "val"
     },
     "metrics": {
       "_dd.agent_psr": 1.0,
@@ -22,7 +23,7 @@
      {
        "name": "postgres.query",
        "service": "postgres",
-       "resource": "postgres.query",
+       "resource": "SELECT 1",
        "trace_id": 0,
        "span_id": 2,
        "parent_id": 1,

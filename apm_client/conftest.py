@@ -301,7 +301,7 @@ def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_
 
         env = {}
         env["DD_TRACE_DEBUG"] = "true"
-        if sys.platform == "darwin":
+        if sys.platform == "darwin" or sys.platform == "win32":
             env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:8126"
             # Not all clients support DD_TRACE_AGENT_URL
             env["DD_AGENT_HOST"] = "host.docker.internal"

@@ -1,3 +1,4 @@
+using System.Net;
 using ApmTestClient.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
@@ -13,8 +14,13 @@ builder.WebHost.ConfigureKestrel(options =>
     // If we're using http, then _must_ listen on Http2 only, as the TLS
     // negotiation is where we would typically negotiate between Http1.1/Http2
     // Without this, you'll get a PROTOCOL_ERROR
-    options.ConfigureEndpointDefaults(
-        opts => opts.Protocols = HttpProtocols.Http2);
+    // NOTE: For now, we'll set this in code via the options.Listen call since this
+    // seems to work with the Python tests (perhaps because this covers IPv4 and IPv6)
+
+    options.Listen(IPAddress.Any, 50051, listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http2;
+    });
 });
 
 var app = builder.Build();

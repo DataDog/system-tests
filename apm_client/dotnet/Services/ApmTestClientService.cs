@@ -22,12 +22,12 @@ namespace ApmTestClient.Services
                 FinishOnClose = false,
             };
 
-            if (request.HasParentId)
+            if (request.HasParentId && request.ParentId > 0)
             {
                 var parentSpan = Spans[request.ParentId];
                 creationSettings.Parent = new SpanContext(parentSpan.TraceId, parentSpan.SpanId);
             }
-            // Do I want to keep this? Probably
+
             var scope = Tracer.Instance.StartActive(operationName: request.Name, creationSettings);
 
             if (request.HasService)
