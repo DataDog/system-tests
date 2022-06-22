@@ -88,9 +88,7 @@ class Test_RemoteConfigurationClientRequestData(BaseTestCase):
                 "products" in client and len(client["products"]) > 0
             ), f"'client.products' MUST be set and be non-empty"
             assert "id" in client and client["id"] != "", f"'client.id' MUST be set and be non-empty"
-            assert (
-                "is_agent" not in client 
-            ), f"'client.is_agent' MUST either NOT be set or set to false"
+            assert "is_agent" not in client, f"'client.is_agent' MUST either NOT be set or set to false"
             assert "client_agent" not in client, f"'client.client_agent' must NOT be set"
 
             assert "client_tracer" in client, f"'client.client_tracer' MUST be present for tracer clients"
