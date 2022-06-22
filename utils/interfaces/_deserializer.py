@@ -97,9 +97,10 @@ def _convert_bytes_values(item):
 
 def deserialize(data, interface):
     for key in ("request", "response"):
-        try:
-            content = ast.literal_eval(data[key]["content"])
-            decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
-            data[key]["content"] = decoded
-        except Exception as e:
-            logger.critical("\n".join(get_exception_traceback(e)))
+        if key in data:
+            try:
+                content = ast.literal_eval(data[key]["content"])
+                decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
+                data[key]["content"] = decoded
+            except Exception as e:
+                logger.critical("\n".join(get_exception_traceback(e)))

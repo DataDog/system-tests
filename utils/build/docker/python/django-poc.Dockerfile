@@ -20,6 +20,8 @@ COPY utils/build/docker/python/django.app.urls.py /app/urls.py
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
+ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+
 # docker startup
 RUN echo '#!/bin/bash \n\
 ddtrace-run python manage.py runserver 0.0.0.0:7777\n' > /app.sh

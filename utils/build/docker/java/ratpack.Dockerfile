@@ -23,6 +23,8 @@ COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS
 COPY --from=build /app/target/ratpack-1.0-SNAPSHOT.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
+ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+
 RUN echo "#!/bin/bash\njava -Xmx362m -javaagent:/app/dd-java-agent.jar -jar /app/ratpack-1.0-SNAPSHOT.jar" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]

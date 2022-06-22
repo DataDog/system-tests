@@ -54,6 +54,43 @@ RUBY_VERSION_PATTERN = r"""
     (?:[+ ](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
 """
 
+AGENT_VERSION_PATTERN = r"""
+    v?
+    (?:
+        (?:(?P<epoch>[0-9]+)!)?                           # epoch
+        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
+        (?P<pre>                                          # pre-release
+            [-_\.]?
+            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview))
+            [-_\.]?
+            (?P<pre_n>[0-9]+)?
+        )?
+        (?P<post>                                         # post release
+            (?:-(?P<post_n1>[0-9]+))
+            |
+            (?:
+                [-_\.]?
+                (?P<post_l>post|rev|r)
+                [-_\.]?
+                (?P<post_n2>[0-9]+)?
+            )
+        )?
+        (?P<dev>                                          # dev release
+            [-_\.]?
+            (?P<dev_l>dev)
+            [-_\.]?
+            (?P<dev_n>[0-9]+)?
+        )?
+        (?P<devel>                                          # dev release
+            -
+            (?P<devel_l>devel)
+            [ ]
+            (?P<devel_n>.*)?
+        )?
+    )
+    (?:\+(?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
+"""
+
 
 class Version(version_module.Version):
     @classmethod
@@ -84,6 +121,7 @@ class Version(version_module.Version):
 
         elif component == "agent":
             version = re.sub(r"Agent (.*) - Commit.*", r"\1", version)
+            pattern = AGENT_VERSION_PATTERN
 
         elif component == "java":
             version = version.split("~")[0]

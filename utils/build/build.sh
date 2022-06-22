@@ -82,14 +82,23 @@ do
         docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
 
     elif [[ $IMAGE_NAME == agent ]]; then
+        if [ -f ./binaries/agent-image ]; then
+            AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)            
+        else
+            AGENT_BASE_IMAGE="datadog/agent"
+        fi
+
+        echo "using $AGENT_BASE_IMAGE image for datadog agent"
+
         docker build \
             --progress=plain \
             -f utils/build/docker/agent.Dockerfile \
             -t system_tests/agent \
+            --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
             $EXTRA_DOCKER_ARGS \
             .
 
-        SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent datadog-agent version)
+        SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
 
         docker build \
             --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \

@@ -9,7 +9,7 @@ from utils.tools import logger
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 class Test_HeaderTagsShortFormat(BaseTestCase):
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
@@ -29,7 +29,7 @@ class Test_HeaderTagsShortFormat(BaseTestCase):
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_HeaderTagsLongFormat(BaseTestCase):
     """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""

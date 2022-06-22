@@ -5,11 +5,14 @@
 from ._agent.core import AgentInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
 from ._logs.core import _LibraryStdout, _LibraryDotnetManaged
+from ._backend.core import _BackendInterfaceValidator
+
 
 # singletons
 agent = AgentInterfaceValidator()
 library = LibraryInterfaceValidator()
 library_stdout = _LibraryStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
+backend = _BackendInterfaceValidator()
 
-all = (agent, library, library_stdout, library_dotnet_managed)
+all = (agent, library, library_stdout, library_dotnet_managed, backend)
