@@ -4,12 +4,7 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import jakarta.json.JsonValue;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.PathSegment;
@@ -72,6 +67,11 @@ public class MyResource {
         return object.toString();
     }
 
+    @GET
+    @Path("/status")
+    public Response status(@QueryParam("code") Integer code) {
+        return Response.status(code).build();
+    }
 
     @XmlRootElement(name = "string")
     public static class XmlObject {
