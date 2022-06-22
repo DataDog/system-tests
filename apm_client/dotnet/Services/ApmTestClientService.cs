@@ -28,24 +28,25 @@ namespace ApmTestClient.Services
                 creationSettings.Parent = new SpanContext(parentSpan.TraceId, parentSpan.SpanId);
             }
 
-            var scope = Tracer.Instance.StartActive(operationName: request.Name, creationSettings);
+            using var scope = Tracer.Instance.StartActive(operationName: request.Name, creationSettings);
+            var span = scope.Span;
 
             if (request.HasService)
             {
-                scope.Span.ServiceName = request.Service;
+                span.ServiceName = request.Service;
             }
 
             if (request.HasResource)
             {
-                scope.Span.ResourceName = request.Resource;
+                span.ResourceName = request.Resource;
             }
 
-            Spans[scope.Span.SpanId] = scope.Span;
+            Spans[span.SpanId] = span;
 
             return Task.FromResult(new StartSpanReturn
             {
-                SpanId = scope.Span.SpanId,
-                TraceId = scope.Span.TraceId,
+                SpanId = span.SpanId,
+                TraceId = span.TraceId,
             });
         }
 
