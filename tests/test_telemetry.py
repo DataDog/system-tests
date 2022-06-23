@@ -13,11 +13,13 @@ class Test_Telemetry(BaseTestCase):
         """Test that telemetry requests are successful"""
         interfaces.library.assert_telemetry_requests_are_successful()
         interfaces.agent.assert_telemetry_requests_are_successful()
-    
+
     def test_telemetry_proxy_enrichment():
         """Test telemetry proxy adds necessary information"""
-        interfaces.agent.assert_telemetry_request_pass_headers()
-
+        interfaces.agent.assert_headers_presence(
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-agent-hostname", "dd-agent-env", "datadog-container-id"],
+        )
 
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
