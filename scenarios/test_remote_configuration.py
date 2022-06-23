@@ -3,8 +3,14 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, interfaces, released, rfc, coverage, proxies, context
+from utils.tools import logger
 import json
 
+# Tracers have to send us their state with every update request. Since we are mocking the agent's responses in these tests, we know exactly what
+# they should be sending us as their state, allowing us to test their RFC compliance.
+EXPECTED_REQUESTS = []
+with open("scenarios/rc_expected_requests.json") as f:
+    EXPECTED_REQUESTS = json.load(f)
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
@@ -80,34 +86,17 @@ class Test_RemoteConfigurationUpdateSequence(BaseTestCase):
 
     request_number = 0
 
-    # Tracers have to send us their state with every update request. Since we are mocking the agent's responses in these tests, we know exactly what
-    # they should be sending us as their state, allowing us to test their RFC compliance.
-    EXPECTED_REQUESTS = [
-        b'{"client":{"state":{"targets_version":0}}}',
-        b'{"client":{"state":{"targets_version":1}}}',
-        b'{"client":{"state":{"targets_version":2,"config_states":[{"id":"asmdd1","version":1,"product":"ASM_DD"}]}},"cached_target_files":[{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564="}]}]}',
-        b'{"client":{"state":{"targets_version":3,"config_states":[{"id":"asmdd1","version":1,"product":"ASM_DD"},{"id":"features1","version":1,"product":"FEATURES"}]}},"cached_target_files":[{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564="}]},{"path":"datadog/2/FEATURES/features1/config","length":25,"hashes":[{"algorithm":"sha256","hash":"6ZykRo3MgylZ6FwvGYS1bNx4tSEX1sVpjCTTWaoGnDo="}]}]}',
-        b'{"client":{"state":{"targets_version":4,"config_states":[{"id":"asmdd1","version":2,"product":"ASM_DD"},{"id":"features1","version":1,"product":"FEATURES"}]}},"cached_target_files":[{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]},{"path":"datadog/2/FEATURES/features1/config","length":25,"hashes":[{"algorithm":"sha256","hash":"6ZykRo3MgylZ6FwvGYS1bNx4tSEX1sVpjCTTWaoGnDo="}]}]}',
-        b'{"client":{"state":{"targets_version":5,"config_states":[{"id":"features1","version":1,"product":"FEATURES"},{"id":"features2","version":1,"product":"FEATURES"}]}},"cached_target_files":[{"path":"datadog/2/FEATURES/features1/config","length":25,"hashes":[{"algorithm":"sha256","hash":"6ZykRo3MgylZ6FwvGYS1bNx4tSEX1sVpjCTTWaoGnDo="}]},{"path":"datadog/2/FEATURES/features2/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]}]}',
-        b'{"client":{"state":{"targets_version":6,"config_states":[{"id":"features1","version":2,"product":"FEATURES"},{"id":"asmdd1","version":3,"product":"ASM_DD"}]}},"cached_target_files":[{"path":"datadog/2/FEATURES/features1/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]},{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]}]}',
-        b'{"client":{"state":{"targets_version":7,"config_states":[{"id":"features3","version":1,"product":"FEATURES"},{"id":"asmdd1","version":3,"product":"ASM_DD"},{"id":"features1","version":2,"product":"FEATURES"}]}},"cached_target_files":[{"path":"datadog/2/FEATURES/features3/config","length":46,"hashes":[{"algorithm":"sha256","hash":"E6dpL2JfUiVkjMa2I4yfu9IgvLsVk3p0kBHN9lIF4hM="}]},{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]},{"path":"datadog/2/FEATURES/features1/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]}]}',
-        b'{"client":{"state":{"targets_version":7,"config_states":[{"id":"features3","version":1,"product":"FEATURES"},{"id":"asmdd1","version":3,"product":"ASM_DD"},{"id":"features1","version":2,"product":"FEATURES"}]}},"cached_target_files":[{"path":"datadog/2/FEATURES/features3/config","length":46,"hashes":[{"algorithm":"sha256","hash":"E6dpL2JfUiVkjMa2I4yfu9IgvLsVk3p0kBHN9lIF4hM="}]},{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]},{"path":"datadog/2/FEATURES/features1/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]}]}',
-        b'{"client":{"state":{"targets_version":8,"config_states":[{"id":"asmdd1","version":3,"product":"ASM_DD"},{"id":"features1","version":2,"product":"FEATURES"},{"id":"features3","version":1,"product":"FEATURES"}]}},"cached_target_files":[{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]},{"path":"datadog/2/FEATURES/features1/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]},{"path":"datadog/2/FEATURES/features3/config","length":46,"hashes":[{"algorithm":"sha256","hash":"E6dpL2JfUiVkjMa2I4yfu9IgvLsVk3p0kBHN9lIF4hM="}]}]}',
-        b'{"client":{"state":{"targets_version":9,"config_states":[{"id":"features1","version":2,"product":"FEATURES"},{"id":"features3","version":1,"product":"FEATURES"},{"id":"asmdd4","version":1,"product":"ASM_DD"},{"id":"asmdd1","version":3,"product":"ASM_DD"}]}},"cached_target_files":[{"path":"datadog/2/FEATURES/features1/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]},{"path":"datadog/2/FEATURES/features3/config","length":46,"hashes":[{"algorithm":"sha256","hash":"E6dpL2JfUiVkjMa2I4yfu9IgvLsVk3p0kBHN9lIF4hM="}]},{"path":"datadog/2/ASM_DD/asmdd4/config","length":5,"hashes":[{"algorithm":"sha256","hash":"SG6kYiTRu0+2gPNPfJrZao8k7Ii+c+qOWmxlJg6cuKc="}]},{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]}]}',
-        b'{"client":{"state":{"targets_version":10,"config_states":[{"id":"asmdd4","version":1,"product":"ASM_DD"},{"id":"asmdd1","version":3,"product":"ASM_DD"},{"id":"features1","version":2,"product":"FEATURES"},{"id":"features3","version":1,"product":"FEATURES"}]}},"cached_target_files":[{"path":"datadog/2/ASM_DD/asmdd4/config","length":5,"hashes":[{"algorithm":"sha256","hash":"SG6kYiTRu0+2gPNPfJrZao8k7Ii+c+qOWmxlJg6cuKc="}]},{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]},{"path":"datadog/2/FEATURES/features1/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]},{"path":"datadog/2/FEATURES/features3/config","length":46,"hashes":[{"algorithm":"sha256","hash":"E6dpL2JfUiVkjMa2I4yfu9IgvLsVk3p0kBHN9lIF4hM="}]}]}',
-        b'{"client":{"state":{"targets_version":11,"config_states":[{"id":"asmdd1","version":3,"product":"ASM_DD"},{"id":"features1","version":2,"product":"FEATURES"},{"id":"features3","version":1,"product":"FEATURES"},{"id":"asmdd4","version":1,"product":"ASM_DD"}]}},"cached_target_files":[{"path":"datadog/2/ASM_DD/asmdd1/config","length":3,"hashes":[{"algorithm":"sha256","hash":"/N4rLtula/QIYB+3If6bXDONEO5CnqBPrlURto+/j7k="}]},{"path":"datadog/2/FEATURES/features1/config","length":24,"hashes":[{"algorithm":"sha256","hash":"AVllirhb5yB3YaQREXKwFVg5S/x0of4dMU8gI/fGVts="}]},{"path":"datadog/2/FEATURES/features3/config","length":46,"hashes":[{"algorithm":"sha256","hash":"E6dpL2JfUiVkjMa2I4yfu9IgvLsVk3p0kBHN9lIF4hM="}]},{"path":"datadog/2/ASM_DD/asmdd4/config","length":5,"hashes":[{"algorithm":"sha256","hash":"SG6kYiTRu0+2gPNPfJrZao8k7Ii+c+qOWmxlJg6cuKc="}]}]}',
-    ]
-
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
             """ Helper to validate config request content """
 
-            if self.request_number >= len(self.EXPECTED_REQUESTS):
+            logger.info(f"validating request number {self.request_number}")
+            if self.request_number >= len(EXPECTED_REQUESTS):
                 return True
 
-            expected = json.loads(self.EXPECTED_REQUESTS[self.request_number])
+            expected = EXPECTED_REQUESTS[self.request_number]
             content = data["request"]["content"]
             client_state = content["client"]["state"]
 
