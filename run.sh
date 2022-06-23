@@ -17,7 +17,7 @@ if [ -z "${DD_API_KEY:-}" ]; then
 fi
 
 containers=(weblog agent runner agent_proxy library_proxy)
-interfaces=(agent library)
+interfaces=(agent library backend)
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
 export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
@@ -121,6 +121,12 @@ elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
     DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
     WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
+
+elif [ $SYSTEMTESTS_SCENARIO = "BACKEND_WAF" ]; then
+    # disable appsec
+    export RUNNER_ARGS=scenarios/backend/test_waf.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_backend_waf
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false"
 
 else # Let user choose the target
     export RUNNER_ARGS=$@

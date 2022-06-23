@@ -4,13 +4,13 @@
 
 import pytest
 
-from utils import context, coverage, BaseTestCase, interfaces, irrelevant, released
+from utils import context, coverage, BaseTestCase, interfaces, irrelevant, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="2.0.0", golang="?", java="?", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="1.39.0", java="0.103.0", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsMethod(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -41,6 +41,7 @@ class Test_StandardTagsMethod(BaseTestCase):
 
 
 @released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -61,8 +62,24 @@ class Test_StandardTagsUrl(BaseTestCase):
         }
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
+    def test_url_with_sensitive_query_string(self):
+        tests = {
+            "/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3": "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3",
+            "/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3": "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3",
+            "/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934": "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>",
+            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": 'http://weblog:7777/waf?json={ "<redacted>}',
+        }
 
-@released(dotnet="?", golang="?", java="?", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
+        for url in tests:
+            r = self.weblog_get(url)
+
+            tags = {
+                "http.url": tests[url],
+            }
+            interfaces.library.add_span_tag_validation(request=r, tags=tags)
+
+
+@released(dotnet="?", golang="1.39.0", java="?", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -75,7 +92,7 @@ class Test_StandardTagsUserAgent(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="?", java="?", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="1.39.0", java="0.103.0", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsStatusCode(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -91,11 +108,15 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="1.39.0", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.route tags"""
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant == "net-http",
+        reason="net-http does not handle route parameters",
+    )
     def test_route(self):
         r = self.weblog_get(f"/sample_rate_route/1")
 
@@ -106,11 +127,13 @@ class Test_StandardTagsRoute(BaseTestCase):
         # specify the route syntax if needed
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
+        if context.library == "golang" and context.weblog_variant not in ["gorilla", "chi"]:
+            tags["http.route"] = "/sample_rate_route/:i"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="1.39.0", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
