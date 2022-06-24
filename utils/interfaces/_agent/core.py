@@ -10,9 +10,13 @@ import threading
 
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
-from utils.interfaces._library.telemetry import _TelemetryRequestSuccessValidation, TELEMETRY_INTAKE_ENDPOINT
+from utils.interfaces._library.telemetry import (
+    _TelemetryRequestSuccessValidation,
+    TELEMETRY_INTAKE_ENDPOINT,
+)
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._agent.appsec import AppSecValidation
+from utils.interfaces._misc_validators import HeadersPresenceValidation
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -50,6 +54,11 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def add_appsec_validation(self, request, validator):
         self.append_validation(AppSecValidation(request, validator))
+
+    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(
+            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
+        )
 
 
 class _UseDomain(BaseValidation):

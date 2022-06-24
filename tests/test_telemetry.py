@@ -14,11 +14,23 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.assert_telemetry_requests_are_successful()
         interfaces.agent.assert_telemetry_requests_are_successful()
 
+    @missing_feature(library="dotnet")
+    @missing_feature(library="python")
+    def test_telemetry_proxy_enrichment(self):
+        """Test telemetry proxy adds necessary information"""
+        interfaces.agent.assert_headers_presence(
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-agent-hostname", "dd-agent-env", "datadog-container-id"],
+        )
+
+    @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
         interfaces.library.assert_seq_ids_are_roughly_sequential()
         interfaces.library.assert_no_skipped_seq_ids()
 
+    @missing_feature(library="python")
+    @missing_feature(library="nodejs")
     def test_app_started(self):
         """Request type app-started is sent on startup"""
         interfaces.library.assert_send_app_started()
