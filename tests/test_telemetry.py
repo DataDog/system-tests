@@ -23,11 +23,13 @@ class Test_Telemetry(BaseTestCase):
             request_headers=["dd-agent-hostname", "dd-agent-env", "datadog-container-id"],
         )
 
+    @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
         interfaces.library.assert_seq_ids_are_roughly_sequential()
         interfaces.library.assert_no_skipped_seq_ids()
 
+    @missing_feature(library="python")
     @missing_feature(library="nodejs")
     def test_app_started(self):
         """Request type app-started is sent on startup"""
