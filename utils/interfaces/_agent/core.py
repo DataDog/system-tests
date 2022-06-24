@@ -10,12 +10,9 @@ import threading
 
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
-from utils.interfaces._library.telemetry import (
-    _TelemetryRequestSuccessValidation,
-    TELEMETRY_INTAKE_ENDPOINT,
-)
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._agent.appsec import AppSecValidation
+from utils.interfaces._agent.telemetry import _TelemetryValidation
 from utils.interfaces._misc_validators import HeadersPresenceValidation
 
 
@@ -43,9 +40,6 @@ class AgentInterfaceValidator(InterfaceValidator):
     def assert_metric_existence(self, metric_name):
         self.append_validation(_MetricExistence(metric_name))
 
-    def assert_telemetry_requests_are_successful(self):
-        self.append_validation(_TelemetryRequestSuccessValidation(TELEMETRY_INTAKE_ENDPOINT))
-
     def add_profiling_validation(self, validator):
         self.append_validation(_ProfilingValidation(validator))
 
@@ -59,6 +53,9 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.append_validation(
             HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
         )
+
+    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
+        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
 
 class _UseDomain(BaseValidation):

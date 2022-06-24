@@ -27,7 +27,6 @@ from utils.interfaces._library.sampling import (
 )
 from utils.interfaces._library.telemetry import (
     _TelemetryValidation,
-    _TelemetryRequestSuccessValidation,
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
     _TelemetryProxyValidation,
@@ -129,9 +128,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
-
-    def assert_telemetry_requests_are_successful(self):
-        self.append_validation(_TelemetryRequestSuccessValidation(TELEMETRY_AGENT_ENDPOINT))
 
     def assert_seq_ids_are_roughly_sequential(self):
         self.append_validation(_SeqIdLatencyValidation())

@@ -13,8 +13,13 @@ class Test_Telemetry(BaseTestCase):
 
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
-        interfaces.library.assert_telemetry_requests_are_successful()
-        interfaces.agent.assert_telemetry_requests_are_successful()
+
+        def validator(data):
+            repsonse_code = data["response"]["status_code"]
+            assert 200 <= repsonse_code < 300, f"Got response code {repsonse_code}"
+
+        interfaces.library.add_telemetry_validation(validator, is_success_on_expiry=True)
+        interfaces.agent.add_telemetry_validation(validator, is_success_on_expiry=True)
 
     @missing_feature(library="dotnet")
     @missing_feature(library="python")

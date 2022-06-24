@@ -32,19 +32,6 @@ class _TelemetryValidation(BaseValidation):
             self.set_failure(f"{m(self.message)} not validated on {data['log_filename']}: {msg}")
 
 
-class _TelemetryRequestSuccessValidation(BaseValidation):
-    is_success_on_expiry = True
-
-    def __init__(self, path_filter):
-        self.path_filters = path_filter
-        super().__init__()
-
-    def check(self, data):
-        repsonse_code = data["response"]["status_code"]
-        if not 200 <= repsonse_code < 300:
-            self.set_failure(f"Got response code {repsonse_code} telemetry message {data['log_filename']}")
-
-
 class _SeqIdLatencyValidation(BaseValidation):
     """Verify that the messages seq_id s are sent somewhat in-order."""
 
