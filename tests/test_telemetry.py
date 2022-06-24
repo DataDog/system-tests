@@ -14,7 +14,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.assert_telemetry_requests_are_successful()
         interfaces.agent.assert_telemetry_requests_are_successful()
 
-    def test_telemetry_proxy_enrichment():
+    def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
         interfaces.agent.assert_headers_presence(
             path_filter="/api/v2/apmtelemetry",
