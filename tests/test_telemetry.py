@@ -21,6 +21,10 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator, is_success_on_expiry=True)
         interfaces.agent.add_telemetry_validation(validator, is_success_on_expiry=True)
 
+    @bug(
+        context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
+        reason="Version reporting of trace agent is broken in 7.36.x release",
+    )
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
         interfaces.agent.assert_headers_presence(
