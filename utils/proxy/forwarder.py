@@ -28,7 +28,7 @@ class Forwarder(object):
 
         # This is the proxy state. Basically, true or false values that tells the proxy to enable, or not
         # specific behavior. You can get/modify it using a direct GET/POST /_system_tests_state request to the proxy
-        self.state = json.loads(os.environ.get("INITIAL_PROXY_STATE", "") or '{}')
+        self.state = json.loads(os.environ.get("INITIAL_PROXY_STATE", "") or "{}")
 
         # for config backend mock
         self.config_request_count = 0

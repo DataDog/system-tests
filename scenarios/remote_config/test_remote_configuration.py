@@ -8,9 +8,9 @@ import json
 
 # Tracers have to send us their state with every update request. Since we are mocking the agent's responses in these tests, we know exactly what
 # they should be sending us as their state, allowing us to test their RFC compliance.
-EXPECTED_REQUESTS = []
-with open("scenarios/rc_expected_requests.json") as f:
+with open("scenarios/remote_config/rc_expected_requests.json") as f:
     EXPECTED_REQUESTS = json.load(f)
+
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
