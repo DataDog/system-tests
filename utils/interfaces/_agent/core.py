@@ -16,7 +16,7 @@ from utils.interfaces._library.telemetry import (
 )
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._agent.appsec import AppSecValidation
-from utils.interfaces._misc_validators import HeadersPresenceValidation
+from utils.interfaces._misc_validators import HeadersPresenceValidation, HeadersMatchValidation
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -58,6 +58,10 @@ class AgentInterfaceValidator(InterfaceValidator):
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         self.append_validation(
             HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
+        )
+    def assert_headers_match(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(
+            HeadersMatchValidation(path_filter, request_headers, response_headers, check_condition)
         )
 
 
