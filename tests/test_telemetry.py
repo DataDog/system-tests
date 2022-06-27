@@ -9,10 +9,17 @@ from utils import context, BaseTestCase, interfaces, missing_feature, bug
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
+    app_started_count = 0
+
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
-        interfaces.library.assert_telemetry_requests_are_successful()
-        interfaces.agent.assert_telemetry_requests_are_successful()
+
+        def validator(data):
+            repsonse_code = data["response"]["status_code"]
+            assert 200 <= repsonse_code < 300, f"Got response code {repsonse_code}"
+
+        interfaces.library.add_telemetry_validation(validator, is_success_on_expiry=True)
+        interfaces.agent.add_telemetry_validation(validator, is_success_on_expiry=True)
 
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
@@ -20,7 +27,7 @@ class Test_Telemetry(BaseTestCase):
             path_filter="/api/v2/apmtelemetry",
             request_headers=["dd-agent-hostname", "dd-agent-env"],
         )
-        interfaces.agent.assert_headers_presence(
+        interfaces.agent.assert_headers_match(
             path_filter="/api/v2/apmtelemetry",
             request_headers={"via": r'trace-agent 7\..+'},
         )
@@ -43,12 +50,40 @@ class Test_Telemetry(BaseTestCase):
     @missing_feature(library="python")
     @missing_feature(library="nodejs")
     def test_app_started(self):
-        """Request type app-started is sent on startup"""
-        interfaces.library.assert_send_app_started()
+        """Request type app-started is sent on startup at least once"""
+
+        def validator(data):
+            return data["request"]["content"].get("request_type") == "app-started"
+
+        interfaces.library.add_telemetry_validation(validator=validator)
+
+    @missing_feature(library="python")
+    @missing_feature(library="nodejs")
+    def test_app_started_sent_only_once(self):
+        """Request type app-started is not sent twice"""
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-started":
+                self.app_started_count += 1
+                assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
+
+        interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=True)
 
     def test_telemetry_messages_valid(self):
         """Telemetry messages additional validation"""
-        interfaces.library.assert_telemetry_messages_valid()
+
+        def validate_integration_changes(data):
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-integrations-change":
+                assert content["payload"]["integrations"], f"Integration changes must mot be empty"
+
+        def validate_dependencies_changes(data):
+            content = data["request"]["content"]
+            if content["request_type"] == "app-dependencies-loaded":
+                assert content["payload"]["dependencies"], f"dependencies changes must mot be empty"
+
+        interfaces.library.add_telemetry_validation(validator=validate_integration_changes, is_success_on_expiry=True)
+        interfaces.library.add_telemetry_validation(validator=validate_dependencies_changes, is_success_on_expiry=True)
 
     @bug(
         library="dotnet",

@@ -1,22 +1,35 @@
+import traceback
 from time import time
 
 from utils.interfaces._core import BaseValidation
+from utils.tools import logger, m
 
 TELEMETRY_AGENT_ENDPOINT = "/telemetry/proxy/api/v2/apmtelemetry"
 TELEMETRY_INTAKE_ENDPOINT = "/api/v2/apmtelemetry"
 
 
-class _TelemetryRequestSuccessValidation(BaseValidation):
-    is_success_on_expiry = True
+class _TelemetryValidation(BaseValidation):
+    """ will run an arbitrary check on telemetry data
 
-    def __init__(self, path_filter):
-        self.path_filters = path_filter
-        super().__init__()
+        Validator function can :
+        * returns true => validation will be validated at the end (but trace will continue to be checked)
+        * returns False or None => nothing is done
+        * raise an exception => validation will fail
+    """
+
+    def __init__(self, validator, is_success_on_expiry=False):
+        super().__init__(path_filters=TELEMETRY_AGENT_ENDPOINT)
+        self.validator = validator
+        self.is_success_on_expiry = is_success_on_expiry
 
     def check(self, data):
-        repsonse_code = data["response"]["status_code"]
-        if not 200 <= repsonse_code < 300:
-            self.set_failure(f"Got response code {repsonse_code} telemetry message {data['log_filename']}")
+        try:
+            if self.validator(data):
+                self.set_status(is_success=True)
+        except Exception as e:
+            logger.exception(f"{m(self.message)} not validated on {data['log_filename']}")
+            msg = traceback.format_exception_only(type(e), e)[0]
+            self.set_failure(f"{m(self.message)} not validated on {data['log_filename']}: {msg}")
 
 
 class _SeqIdLatencyValidation(BaseValidation):
@@ -122,54 +135,3 @@ class _TelemetryProxyValidation(BaseValidation):
                 f"The following telemetry messages were not forwarded by the proxy endpoint\n"
                 f"{' '.join((lm for _, lm in self.lib_to_agent.library_messages.values()))}"
             )
-
-
-class _AppStartedLibraryValidation(BaseValidation):
-    path_filters = TELEMETRY_AGENT_ENDPOINT
-
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
-        self.app_started_received = False
-
-    def check(self, data):
-        if data["request"]["content"]["request_type"] != "app-started":
-            return
-        if self.app_started_received:
-            self.set_failure("Received telemetry message with app-started request-type multiple times")
-        self.app_started_received = True
-
-    def final_check(self):
-        if not self.app_started_received:
-            self.set_failure("Didn't send telemetry app-started message")
-        else:
-            self.set_status(True)
-
-
-class _IntegrationChangedValidation(BaseValidation):
-    path_filters = TELEMETRY_AGENT_ENDPOINT
-    is_success_on_expiry = True
-
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
-
-    def check(self, data):
-        content = data["request"]["content"]
-        if content["request_type"] != "app-integrations-change":
-            return
-        if not content["payload"]["integrations"]:
-            self.set_failure(f"Empty integration changes sent in {data['log_filename']}")
-
-
-class _DependenciesLoadedValidation(BaseValidation):
-    path_filters = TELEMETRY_AGENT_ENDPOINT
-    is_success_on_expiry = True
-
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
-
-    def check(self, data):
-        content = data["request"]["content"]
-        if content["request_type"] != "app-dependencies-loaded":
-            return
-        if not content["payload"]["dependencies"]:
-            self.set_failure(f"Empty dependencies changes sent in {data['log_filename']}")
