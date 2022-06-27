@@ -21,13 +21,25 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator, is_success_on_expiry=True)
         interfaces.agent.add_telemetry_validation(validator, is_success_on_expiry=True)
 
-    @missing_feature(library="dotnet")
-    @missing_feature(library="python")
+    @bug(
+        context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
+        reason="Version reporting of trace agent is broken in 7.36.x release",
+    )
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry",
-            request_headers=["dd-agent-hostname", "dd-agent-env", "datadog-container-id"],
+            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
+        )
+        interfaces.agent.assert_headers_match(
+            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
+        )
+
+    @missing_feature(library="dotnet")
+    @missing_feature(library="python")
+    def test_telemetry_message_has_datadog_container_id(self):
+        """Test telemetry messages contain datadog-container-id"""
+        interfaces.agent.assert_headers_presence(
+            path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
         )
 
     @missing_feature(library="python")
