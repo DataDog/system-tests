@@ -120,7 +120,9 @@ class Version(version_module.Version):
                 version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
         elif component == "agent":
-            version = re.sub(r"Agent (.*) - Commit.*", r"\1", version)
+            version = re.sub(r"(.*) - Commit.*", r"\1", version)
+            version = re.sub(r"(.*) - Meta.*", r"\1", version)
+            version = re.sub(r"Agent (.*)", r"\1", version)
             pattern = AGENT_VERSION_PATTERN
 
         elif component == "java":
