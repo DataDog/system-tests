@@ -10,11 +10,14 @@ service APMClient {
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
 }
 
+// TODO: origin
+
 message StartSpanArgs {
   string name = 1;
   optional string service = 2;
   optional uint64 parent_id = 3;
   optional string resource = 4;
+  // type, error
 }
 message StartSpanReturn {
   uint64 span_id = 1;

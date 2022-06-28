@@ -16,7 +16,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             parent = self._spans[request.parent_id]
         else:
             parent = None
-        span = ddtrace.tracer.start_span(request.name, service=request.service, child_of=parent, activate=True)
+        span = ddtrace.tracer.start_span(
+            request.name, service=request.service, resource=request.resource, child_of=parent, activate=True
+        )
         self._spans[span.span_id] = span
         return apm_test_client_pb2.StartSpanReturn(
             span_id=span.span_id,

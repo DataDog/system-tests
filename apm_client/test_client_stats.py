@@ -10,12 +10,11 @@ parametrize = pytest.mark.parametrize
 snapshot = pytest.mark.snapshot
 
 
-@snapshot(ignores=["error", "type", "meta.language", "metrics.process_id", "metrics._dd.agent_psr", "metrics._dd.tracer_kr", "metrics._sampling_priority_v1"])
 @parametrize(
     "apm_test_server_factory",
     [
         python_library_server_factory,
-        go_library_server_factory,
+        # go_library_server_factory,
     ],
 )
 @parametrize(
@@ -26,8 +25,11 @@ snapshot = pytest.mark.snapshot
         },
     ],
 )
-def test_client_tracestats(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
-    print(apm_test_server_factory)
+def test_client_tracestats_top_level(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+    """
+    When two top level (service entry) spans are created
+        Each has stats computed for it
+    """
     with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
         with test_client.start_span(
             name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
@@ -35,14 +37,9 @@ def test_client_tracestats(apm_test_server_env, apm_test_server_factory, test_ag
             pass
     test_client.flush()
 
-    requests = test_agent.requests()
-    traces = test_agent.traces()
-    stats = test_agent.tracestats()
-    print(stats)
-
-    assert len(stats) == 1, "Only one stats payload is expected"
-
-    request = stats[0]
+    requests = test_agent.v06_stats_requests()
+    assert len(requests) == 1, "Only one stats request is expected"
+    request = requests[0]["body"]
     for key in ("Hostname", "Env", "Version", "Stats"):
         assert key in request, "%r should be in stats request" % key
 
@@ -58,17 +55,37 @@ def test_client_tracestats(apm_test_server_env, apm_test_server_factory, test_ag
     postgres_stats = [s for s in stats if s["Name"] == "postgres.query"][0]
     assert postgres_stats["Resource"] == "SELECT 1"
     assert postgres_stats["Service"] == "postgres"
+    assert postgres_stats["Type"] is None  # FIXME: add span type
+    assert postgres_stats["Hits"] == 1
+    assert postgres_stats["TopLevelHits"] == 1
+    assert postgres_stats["Duration"] > 0
+
+    web_stats = [s for s in stats if s["Name"] == "web.request"][0]
+    assert web_stats["Resource"] == "/users"
+    assert web_stats["Service"] == "webserver"
+    assert web_stats["Type"] is None  # FIXME: add span type
+    assert web_stats["Hits"] == 1
+    assert web_stats["TopLevelHits"] == 1
+    assert web_stats["Duration"] > 0
 
 
 @snapshot(
-    ignores=["error", "type", "meta.language", "metrics.process_id", "metrics._dd.agent_psr", "metrics._dd.tracer_kr", "metrics._sampling_priority_v1"],
+    ignores=[
+        "error",
+        "type",
+        "meta.language",
+        "metrics.process_id",
+        "metrics._dd.agent_psr",
+        "metrics._dd.tracer_kr",
+        "metrics._sampling_priority_v1",
+    ],
     # Specify a custom token so all parametrizations use the same snapshots
     token="apm_client.test_client_stats.test_client_snapshot",
 )
 @parametrize(
     "apm_test_server_factory",
     [
-        # python_library_server_factory,
+        python_library_server_factory,
         # go_library_server_factory,
         dotnet_library_server_factory,
     ],

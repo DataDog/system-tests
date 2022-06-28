@@ -1,3 +1,4 @@
+import base64
 import contextlib
 import dataclasses
 import os
@@ -5,7 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Dict, Generator, List, Tuple
+from typing import Dict, Generator, List, Tuple, TypedDict
 import urllib.parse
 
 import grpc
@@ -16,6 +17,22 @@ import pytest
 
 from apm_client.protos import apm_test_client_pb2 as pb
 from apm_client.protos import apm_test_client_pb2_grpc
+from .trace import V06StatsPayload
+from .trace import decode_v06_stats
+
+
+class AgentRequest(TypedDict):
+    method: str
+    url: str
+    headers: Dict[str, str]
+    body: str
+
+
+class AgentRequestV06Stats(AgentRequest):
+    method: str
+    url: str
+    headers: Dict[str, str]
+    body: V06StatsPayload
 
 
 def pytest_configure(config):
@@ -149,9 +166,23 @@ class TestAgentAPI:
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
         return resp.json()
 
-    def requests(self, **kwargs):
+    def requests(self, **kwargs) -> List[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
         return resp.json()
+
+    def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
+        raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
+        requests = []
+        for raw in raw_requests:
+            requests.append(
+                AgentRequestV06Stats(
+                    method=raw["method"],
+                    url=raw["url"],
+                    headers=raw["headers"],
+                    body=decode_v06_stats(base64.b64decode(raw["body"])),
+                )
+            )
+        return requests
 
     def clear(self, **kwargs):
         resp = self._session.get(self._url("/test/session/clear"), **kwargs)
