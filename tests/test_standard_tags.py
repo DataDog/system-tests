@@ -40,7 +40,7 @@ class Test_StandardTagsMethod(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
@@ -67,7 +67,7 @@ class Test_StandardTagsUrl(BaseTestCase):
             "/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3": "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3",
             "/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3": "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3",
             "/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934": "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>",
-            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": 'http://weblog:7777/waf?json={ "<redacted>}',
+            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": "http://weblog:7777/waf?json=%7B%20%22<redacted>%7D",
         }
 
         for url in tests:
@@ -133,7 +133,7 @@ class Test_StandardTagsRoute(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="1.39.0", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="1.39.0", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
