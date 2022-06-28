@@ -75,6 +75,18 @@ def test_version_serialization():
     assert v == "3.0.0pre0"
 
 
+def test_agent_version():
+
+    v = Version("Agent 7.37.0 - Commit: 1124d66 - Serialization version: v5.0.22 - Go version: go1.17.11", "agent")
+    assert v == "7.37.0"
+
+    v = Version(
+        "Agent 7.38.0-rc.1 - Meta: git.1.3b34941 - Commit: 3b34941 - Serialization version: v5.0.23 - Go version: go1.17.11",
+        "agent",
+    )
+    assert v == "7.38.0-rc.1"
+
+
 def test_library_version():
 
     v = LibraryVersion("p")
