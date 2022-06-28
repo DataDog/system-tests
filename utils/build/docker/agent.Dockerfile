@@ -1,4 +1,4 @@
-ARG AGENT_IMAGE=datadog/agent:7
+ARG AGENT_IMAGE=datadog/agent
 FROM $AGENT_IMAGE
 
 RUN apt-get update
