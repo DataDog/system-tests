@@ -25,6 +25,13 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidation,
     _DistributedTracesDeterministicSamplingDecisisonValidation,
 )
+from utils.interfaces._library.telemetry import (
+    _TelemetryValidation,
+    _SeqIdLatencyValidation,
+    _NoSkippedSeqId,
+    _TelemetryProxyValidation,
+    TELEMETRY_AGENT_ENDPOINT,
+)
 from utils.interfaces._misc_validators import HeadersPresenceValidation
 
 
@@ -116,8 +123,22 @@ class LibraryInterfaceValidator(InterfaceValidator):
             )
         )
 
+    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
+        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
+
+    def assert_seq_ids_are_roughly_sequential(self):
+        self.append_validation(_SeqIdLatencyValidation())
+
+    def assert_no_skipped_seq_ids(self):
+        self.append_validation(_NoSkippedSeqId())
+
+    def assert_all_telemetry_messages_proxied(self, agent_interface):
+        validation = _TelemetryProxyValidation.LibToAgent()
+        self.append_validation(validation)
+        agent_interface.append_validation(_TelemetryProxyValidation(validation))
 
     def add_profiling_validation(self, validator):
         self.append_validation(_ProfilingValidation(validator))

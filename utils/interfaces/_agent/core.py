@@ -12,6 +12,8 @@ from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._agent.appsec import AppSecValidation
+from utils.interfaces._agent.telemetry import _TelemetryValidation
+from utils.interfaces._misc_validators import HeadersPresenceValidation, HeadersMatchValidation
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -46,6 +48,17 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def add_appsec_validation(self, request, validator):
         self.append_validation(AppSecValidation(request, validator))
+
+    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(
+            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
+        )
+
+    def assert_headers_match(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(HeadersMatchValidation(path_filter, request_headers, response_headers, check_condition))
+
+    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
+        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
 
 class _UseDomain(BaseValidation):
