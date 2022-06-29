@@ -23,5 +23,3 @@ RUN ./install_mitm_certificate.sh /usr/local/share/ca-certificates/mitm.crt
 RUN update-ca-certificates
 
 RUN /opt/datadog-agent/bin/agent/agent version
-
-CMD ["/opt/datadog-agent/embedded/bin/trace-agent", "-config", "/etc/datadog-agent/datadog.yaml"]

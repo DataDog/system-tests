@@ -8,6 +8,7 @@ services:
     container_name: agent_proxy
     image: mitmproxy/mitmproxy
     environment:
+      - DD_API_KEY
       - INTERFACE_NAME=agent
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081
@@ -21,6 +22,7 @@ services:
     container_name: library_proxy
     image: mitmproxy/mitmproxy
     environment:
+      - DD_API_KEY
       - INTERFACE_NAME=library
       - FORWARD_TO_HOST=runner
       - FORWARD_TO_PORT=8081

@@ -12,6 +12,8 @@ from mitmproxy import http
 from mitmproxy.flow import Error as FlowError
 
 
+SIMPLE_TYPES = (bool, int, float, type(None))
+
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
@@ -35,25 +37,28 @@ def modify_response(flow):
             flow.response.content = CONFIG_CONTENT
 
 
-def _scrub_headers(headers):
-    result = []
-
-    for key, value in headers.items():
-        if key.lower() == "dd-api-key":
-            value = "***"
-
-        result.append((key, value))
-
-    return result
-
-
 class Forwarder(object):
     def __init__(self):
         self.forward_ip = os.environ.get("FORWARD_TO_HOST", "runner")
         self.forward_port = os.environ.get("FORWARD_TO_PORT", "8081")
         self.interface_name = os.environ.get("INTERFACE_NAME", "")
 
+        self.dd_api_key = os.environ["DD_API_KEY"]
+
         logger.info(f"Forward flows to {self.forward_ip}:{self.forward_port}")
+
+    def _scrub(self, content):
+        if isinstance(content, str):
+            return content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
+        elif isinstance(content, (list, set, tuple)):
+            return [self._scrub(item) for item in content]
+        elif isinstance(content, dict):
+            return {key: self._scrub(value) for key, value in content.items()}
+        elif isinstance(content, SIMPLE_TYPES):
+            return content
+        else:
+            logger.error(f"Can't scrub type {type(content)}")
+            return content
 
     @staticmethod
     def is_direct_command(flow):
@@ -102,7 +107,7 @@ class Forwarder(object):
             "request": {
                 "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
                 "content": request_content,
-                "headers": _scrub_headers(flow.request.headers),
+                "headers": [(k, v) for k, v in flow.request.headers.items()],
                 "length": len(flow.request.content) if flow.request.content else 0,
             },
             "response": {
@@ -122,7 +127,7 @@ class Forwarder(object):
             conn.request(
                 "POST",
                 f"/proxy/{self.interface_name}",
-                body=json.dumps(payload),
+                body=json.dumps(self._scrub(payload)),
                 headers={"Content-type": "application/json"},
             )
         except socket.gaierror:
