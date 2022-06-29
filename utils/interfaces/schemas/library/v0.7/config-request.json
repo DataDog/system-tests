@@ -1,10 +1,49 @@
 {
   "$id": "/library/v0.7/config-request.json",
 
+  "required": ["client"],
   "properties": {
-      "client": {
+    "client": {
+      "required": ["id", "state", "is_tracer", "products", "client_tracer"],
+      "properties": {
+        "id": { "$ref": "#/definitions/non-empty-string" },
+        "is_tracer": {
+          "const": true
+        },
+        "state": {
+          "required": ["root_version", "targets_version"],
+          "properties": {
+            "root_version": { 
+              "$comment": "Must be set to 1 until root updates are supported",
+              "const": 1
+            },
+            "targets_version": { "type": "integer" }
+          }
+        },
+        "client_tracer": {
+          "required": ["runtime_id", "service", "env", "app_version", "tracer_version"],
+          "properties": {
+            "runtime_id": { "$ref": "#/definitions/non-empty-string" },
+            "service": { "$ref": "#/definitions/non-empty-string" },
+            "env": { "$ref": "#/definitions/non-empty-string" },
+            "app_version": { "$ref": "#/definitions/non-empty-string" },
+            "tracer_version": { "$ref": "#/definitions/non-empty-string" }
+          }
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
       }
+    }
   },
-
-  "required": []
+  "definitions": {
+    "non-empty-string": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
 }

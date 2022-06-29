@@ -5,7 +5,7 @@
 import traceback
 
 from utils.interfaces._core import BaseValidation
-from utils.tools import m
+from utils.tools import m, logger
 
 
 class _RemoteConfigurationValidation(BaseValidation):
@@ -30,5 +30,6 @@ class _RemoteConfigurationValidation(BaseValidation):
                 self.log_debug(f"{self} is validated by {data['log_filename']}")
                 self.is_success_on_expiry = True
         except Exception as e:
+            logger.exception(f"{m(self.message)} not validated by {data['log_filename']}")
             msg = traceback.format_exception_only(type(e), e)[0]
             self.set_failure(f"{m(self.message)} not validated by {data['log_filename']}: {msg}")
