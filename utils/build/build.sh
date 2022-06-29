@@ -86,7 +86,6 @@ do
             AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)            
         else
             AGENT_BASE_IMAGE="datadog/agent"
-            AGENT_BASE_IMAGE="datadog/agent:7.36.1"  # use 7.36.1 as the last one is brokken
         fi
 
         echo "using $AGENT_BASE_IMAGE image for datadog agent"
