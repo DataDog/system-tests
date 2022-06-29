@@ -41,7 +41,7 @@ def deserialize_http_message(path, message, data, interface, key):
 
     logger.debug(f"Deserialize {content_type} for {path} {key}")
 
-    if content_type in ("application/json", "text/json"):
+    if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
         return json.loads(data)
     elif path == "/v0.7/config":  # Kyle, please add content-type header :)
         return json.loads(data)

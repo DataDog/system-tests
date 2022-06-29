@@ -34,6 +34,12 @@ ENV SYSTEM_TESTS_LIBDDWAF_VERSION=$SYSTEM_TESTS_LIBDDWAF_VERSION
 ARG SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 ENV SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
+# Enable telemetry manually for now
+ENV DD_INSTRUMENTATION_TELEMETRY_ENABLED=1
+
+# Python specific setting to flush telemetry messages faster
+ENV DD_INSTRUMENTATION_TELEMETRY_INTERVAL_SECONDS=10
+
 # files for exotic scenarios
 RUN echo "corrupted::data" > /appsec_corrupted_rules.yml
 COPY scenarios/appsec/custom_rules.json /appsec_custom_rules.json
