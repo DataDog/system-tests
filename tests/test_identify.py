@@ -58,7 +58,7 @@ class Test_Basic(BaseTestCase):
         )
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
 @coverage.basic
 class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
