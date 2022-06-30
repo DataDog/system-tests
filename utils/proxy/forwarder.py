@@ -12,6 +12,8 @@ from mitmproxy import http
 from mitmproxy.flow import Error as FlowError
 
 
+SIMPLE_TYPES = (bool, int, float, type(None))
+
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
@@ -26,6 +28,8 @@ class Forwarder(object):
         self.forward_port = os.environ.get("FORWARD_TO_PORT", "8081")
         self.interface_name = os.environ.get("INTERFACE_NAME", "")
 
+        self.dd_api_key = os.environ["DD_API_KEY"]
+
         # This is the proxy state. Basically, true or false values that tells the proxy to enable, or not
         # specific behavior. You can get/modify it using a direct GET/POST /_system_tests_state request to the proxy
         self.state = json.loads(os.environ.get("INITIAL_PROXY_STATE", "") or "{}")
@@ -35,6 +39,19 @@ class Forwarder(object):
 
         logger.info(f"Initial state: {self.state}")
         logger.info(f"Forward flows to {self.forward_ip}:{self.forward_port}")
+
+    def _scrub(self, content):
+        if isinstance(content, str):
+            return content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
+        elif isinstance(content, (list, set, tuple)):
+            return [self._scrub(item) for item in content]
+        elif isinstance(content, dict):
+            return {key: self._scrub(value) for key, value in content.items()}
+        elif isinstance(content, SIMPLE_TYPES):
+            return content
+        else:
+            logger.error(f"Can't scrub type {type(content)}")
+            return content
 
     @staticmethod
     def is_direct_command(flow):
@@ -94,7 +111,7 @@ class Forwarder(object):
             "request": {
                 "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
                 "content": request_content,
-                "headers": self._scrub_headers(flow.request.headers),
+                "headers": [(k, v) for k, v in flow.request.headers.items()],
                 "length": len(flow.request.content) if flow.request.content else 0,
             },
             "response": {
@@ -114,7 +131,7 @@ class Forwarder(object):
             conn.request(
                 "POST",
                 f"/proxy/{self.interface_name}",
-                body=json.dumps(payload),
+                body=json.dumps(self._scrub(payload)),
                 headers={"Content-type": "application/json"},
             )
         except socket.gaierror:
@@ -129,18 +146,6 @@ class Forwarder(object):
             logger.error(f"Can't forward: {e}")
         finally:
             conn.close()
-
-    @staticmethod
-    def _scrub_headers(headers):
-        result = []
-
-        for key, value in headers.items():
-            if key.lower() == "dd-api-key":
-                value = "***"
-
-            result.append((key, value))
-
-        return result
 
     def _modify_response(self, flow):
         if self.state.get("mock_remote_config_backend"):
