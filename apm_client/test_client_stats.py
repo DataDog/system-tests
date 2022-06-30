@@ -86,6 +86,79 @@ def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agen
     assert web_stats["TopLevelHits"] == 1
     assert web_stats["Duration"] > 0
 
+@parametrize(
+    "apm_test_server_factory",
+    [
+        python_library_server_factory,
+        # go_library_server_factory,
+    ],
+)
+@parametrize(
+    "apm_test_server_env",
+    [
+        {
+            "DD_TRACE_COMPUTE_STATS": "1",
+        },
+    ],
+)
+def test_client_tracestats_distinctkey_per_dimension(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+    """
+    When spans are created with a unique set of dimensions
+        Each span has stats computed for it and is in its own bucket
+        The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
+    """
+    NAME="name"
+    RESOURCE="resource"
+    SERVICE="service"
+    TYPE="type"
+    HTTP_STATUS_CODE="200"
+    ORIGIN=""
+
+    # Baseline
+    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE) as span:
+        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+
+    # Unique Name
+    with test_client.start_span(name="unique-name", resource=RESOURCE, service=SERVICE) as span:
+        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+
+    # Unique Resource
+    with test_client.start_span(name=NAME, resource="unique-resource", service=SERVICE) as span:
+        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+
+    # Unique Service
+    with test_client.start_span(name=NAME, resource=RESOURCE, service="unique-service") as span:
+        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+
+    # Unique Type
+    # Unique HTTP Status Code
+    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE) as span:
+        span.set_meta(key="http.status_code", val="400")
+
+    # Unique Synthetics
+
+    test_client.flush()
+
+    requests = test_agent.v06_stats_requests()
+    assert len(requests) == 1, "Only one stats request is expected"
+    request = requests[0]["body"]
+    for key in ("Hostname", "Env", "Version", "Stats"):
+        assert key in request, "%r should be in stats request" % key
+
+    buckets = request["Stats"]
+    assert len(buckets) == 1, "There should be one bucket containing the stats"
+
+    bucket = buckets[0]
+    assert "Start" in bucket
+    assert "Duration" in bucket
+    assert "Stats" in bucket
+    stats = bucket["Stats"]
+    assert len(stats) == 5, "There should be two stats entries in the bucket"
+
+    for s in stats:
+        assert s["Hits"] == 1
+        assert s["TopLevelHits"] == 1
+        assert s["Duration"] > 0
 
 @all_libs()
 @enable_tracestats()
