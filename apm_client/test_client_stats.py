@@ -89,8 +89,9 @@ def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agen
 @parametrize(
     "apm_test_server_factory",
     [
-        python_library_server_factory,
+        # python_library_server_factory,
         # go_library_server_factory,
+        dotnet_library_server_factory,
     ],
 )
 @parametrize(
@@ -98,6 +99,7 @@ def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agen
     [
         {
             "DD_TRACE_COMPUTE_STATS": "1",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
         },
     ],
 )
@@ -110,32 +112,37 @@ def test_client_tracestats_distinctkey_per_dimension(apm_test_server_env, apm_te
     NAME="name"
     RESOURCE="resource"
     SERVICE="service"
-    TYPE="type"
+    TYPE="http"
     HTTP_STATUS_CODE="200"
-    ORIGIN=""
+    ORIGIN="rum"
 
     # Baseline
-    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE) as span:
+    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Name
-    with test_client.start_span(name="unique-name", resource=RESOURCE, service=SERVICE) as span:
+    with test_client.start_span(name="unique-name", resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Resource
-    with test_client.start_span(name=NAME, resource="unique-resource", service=SERVICE) as span:
+    with test_client.start_span(name=NAME, resource="unique-resource", service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Service
-    with test_client.start_span(name=NAME, resource=RESOURCE, service="unique-service") as span:
+    with test_client.start_span(name=NAME, resource=RESOURCE, service="unique-service", typestr=TYPE, origin=ORIGIN) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Type
-    # Unique HTTP Status Code
-    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE) as span:
-        span.set_meta(key="http.status_code", val="400")
+    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr="unique-type", origin=ORIGIN) as span:
+        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Synthetics
+    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin="synthetics") as span:
+        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+
+    # Unique HTTP Status Code
+    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
+        span.set_meta(key="http.status_code", val="400")
 
     test_client.flush()
 
@@ -153,7 +160,7 @@ def test_client_tracestats_distinctkey_per_dimension(apm_test_server_env, apm_te
     assert "Duration" in bucket
     assert "Stats" in bucket
     stats = bucket["Stats"]
-    assert len(stats) == 5, "There should be two stats entries in the bucket"
+    assert len(stats) == 7, "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
 
     for s in stats:
         assert s["Hits"] == 1

@@ -15,6 +15,9 @@ message StartSpanArgs {
   optional string service = 2;
   optional uint64 parent_id = 3;
   optional string resource = 4;
+  optional string type = 5;
+  optional string origin = 6;
+  // error
 }
 message StartSpanReturn {
   uint64 span_id = 1;

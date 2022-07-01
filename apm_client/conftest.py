@@ -390,7 +390,7 @@ class _TestTracer:
 
     @contextlib.contextmanager
     def start_span(
-        self, name: str, service: str = "", resource: str = "", parent_id: int = 0
+        self, name: str, service: str = "", resource: str = "", parent_id: int = 0, typestr: str = "", origin: str = ""
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
@@ -398,6 +398,8 @@ class _TestTracer:
                 service=service,
                 resource=resource,
                 parent_id=parent_id,
+                type=typestr,
+                origin=origin,
             )
         )
         span = _TestSpan(self._client, resp.span_id)

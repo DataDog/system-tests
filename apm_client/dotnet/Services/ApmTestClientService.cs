@@ -8,6 +8,7 @@ namespace ApmTestClient.Services
     {
         // Core types
         private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
+        private static readonly Type SpanContextType = Type.GetType("Datadog.Trace.SpanContext, Datadog.Trace", throwOnError: true)!;
         private static readonly Type TracerType = Type.GetType("Datadog.Trace.Tracer, Datadog.Trace", throwOnError: true)!;
         private static readonly Type TracerManagerType = Type.GetType("Datadog.Trace.TracerManager, Datadog.Trace", throwOnError: true)!;
 
@@ -19,6 +20,8 @@ namespace ApmTestClient.Services
         private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
         private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly PropertyInfo SpanContext = SpanType.GetProperty("Context", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly PropertyInfo Origin = SpanContextType.GetProperty("Origin", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
         // StatsAggregator flush methods
         private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
@@ -56,6 +59,17 @@ namespace ApmTestClient.Services
             if (request.HasResource)
             {
                 span.ResourceName = request.Resource;
+            }
+
+            if (request.HasType)
+            {
+                span.Type = request.Type;
+            }
+
+            if (request.HasOrigin && !string.IsNullOrWhiteSpace(request.Origin))
+            {
+                var spanContext = SpanContext.GetValue(span)!;
+                Origin.SetValue(spanContext, request.Origin);
             }
 
             Spans[span.SpanId] = span;
