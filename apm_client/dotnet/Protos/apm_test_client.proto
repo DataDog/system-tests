@@ -6,6 +6,7 @@ service APMClient {
   rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
+  rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
 }
@@ -17,7 +18,6 @@ message StartSpanArgs {
   optional string resource = 4;
   optional string type = 5;
   optional string origin = 6;
-  // error
 }
 message StartSpanReturn {
   uint64 span_id = 1;
@@ -46,6 +46,15 @@ message SpanSetMetricArgs {
   float value = 3;
 }
 message SpanSetMetricReturn {}
+
+
+message SpanSetErrorArgs {
+  uint64 span_id = 1;
+  optional string type = 2;
+  optional string message = 3;
+  optional string stack = 4;
+}
+message SpanSetErrorReturn {}
 
 message FlushSpansArgs {}
 message FlushSpansReturn {}

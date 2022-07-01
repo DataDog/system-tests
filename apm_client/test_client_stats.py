@@ -38,72 +38,9 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
         )
     return parametrize("apm_test_server_env", [env])
 
-
 @all_libs()
 @enable_tracestats()
-def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
-    """
-    When top level (service entry) spans are created
-        Each top level span has trace stats computed for it.
-    """
-    # Create a top level span.
-    with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
-        # Create another top level (service entry) span as a child of the web.request span.
-        with test_client.start_span(
-            name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
-        ):
-            pass
-    test_client.flush()
-
-    requests = test_agent.v06_stats_requests()
-    assert len(requests) == 1, "Only one stats request is expected"
-    request = requests[0]["body"]
-    for key in ("Hostname", "Env", "Version", "Stats"):
-        assert key in request, "%r should be in stats request" % key
-
-    buckets = request["Stats"]
-    assert len(buckets) == 1, "There should be one bucket containing the stats"
-    bucket = buckets[0]
-    assert "Start" in bucket
-    assert "Duration" in bucket
-    assert "Stats" in bucket
-    stats = bucket["Stats"]
-    assert len(stats) == 2, "There should be two stats entries in the bucket"
-
-    postgres_stats = [s for s in stats if s["Name"] == "postgres.query"][0]
-    assert postgres_stats["Resource"] == "SELECT 1"
-    assert postgres_stats["Service"] == "postgres"
-    assert postgres_stats["Type"] is None  # FIXME: add span type
-    assert postgres_stats["Hits"] == 1
-    assert postgres_stats["TopLevelHits"] == 1
-    assert postgres_stats["Duration"] > 0
-
-    web_stats = [s for s in stats if s["Name"] == "web.request"][0]
-    assert web_stats["Resource"] == "/users"
-    assert web_stats["Service"] == "webserver"
-    assert web_stats["Type"] is None  # FIXME: add span type
-    assert web_stats["Hits"] == 1
-    assert web_stats["TopLevelHits"] == 1
-    assert web_stats["Duration"] > 0
-
-@parametrize(
-    "apm_test_server_factory",
-    [
-        # python_library_server_factory,
-        # go_library_server_factory,
-        dotnet_library_server_factory,
-    ],
-)
-@parametrize(
-    "apm_test_server_env",
-    [
-        {
-            "DD_TRACE_COMPUTE_STATS": "1",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
-        },
-    ],
-)
-def test_client_tracestats_distinctkey_per_dimension(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
@@ -166,6 +103,100 @@ def test_client_tracestats_distinctkey_per_dimension(apm_test_server_env, apm_te
         assert s["Hits"] == 1
         assert s["TopLevelHits"] == 1
         assert s["Duration"] > 0
+
+@all_libs()
+@enable_tracestats()
+def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+    """
+    When top level (service entry) spans are created
+        Each top level span has trace stats computed for it.
+    """
+    # Create a top level span.
+    with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
+        # Create another top level (service entry) span as a child of the web.request span.
+        with test_client.start_span(
+            name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
+        ):
+            pass
+    test_client.flush()
+
+    requests = test_agent.v06_stats_requests()
+    assert len(requests) == 1, "Only one stats request is expected"
+    request = requests[0]["body"]
+    for key in ("Hostname", "Env", "Version", "Stats"):
+        assert key in request, "%r should be in stats request" % key
+
+    buckets = request["Stats"]
+    assert len(buckets) == 1, "There should be one bucket containing the stats"
+    bucket = buckets[0]
+    assert "Start" in bucket
+    assert "Duration" in bucket
+    assert "Stats" in bucket
+    stats = bucket["Stats"]
+    assert len(stats) == 2, "There should be two stats entries in the bucket"
+
+    postgres_stats = [s for s in stats if s["Name"] == "postgres.query"][0]
+    assert postgres_stats["Resource"] == "SELECT 1"
+    assert postgres_stats["Service"] == "postgres"
+    assert postgres_stats["Type"] is None  # FIXME: add span type
+    assert postgres_stats["Hits"] == 1
+    assert postgres_stats["TopLevelHits"] == 1
+    assert postgres_stats["Duration"] > 0
+
+    web_stats = [s for s in stats if s["Name"] == "web.request"][0]
+    assert web_stats["Resource"] == "/users"
+    assert web_stats["Service"] == "webserver"
+    assert web_stats["Type"] is None  # FIXME: add span type
+    assert web_stats["Hits"] == 1
+    assert web_stats["TopLevelHits"] == 1
+    assert web_stats["Duration"] > 0
+
+@all_libs()
+@enable_tracestats()
+def test_successes_errors_recorded_separately_TS006(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+    """
+    When spans are marked as errors
+        The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
+    """
+    # Send 2 successes
+    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web") as span:
+        pass
+
+    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web") as span:
+        pass
+
+    # Send 1 failure
+    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web") as span:
+        span.set_error(message="Unable to load resources")
+
+    test_client.flush()
+
+    requests = test_agent.v06_stats_requests()
+    assert len(requests) == 1, "Only one stats request is expected"
+    request = requests[0]["body"]
+    for key in ("Hostname", "Env", "Version", "Stats"):
+        assert key in request, "%r should be in stats request" % key
+
+    buckets = request["Stats"]
+    assert len(buckets) == 1, "There should be one bucket containing the stats"
+
+    bucket = buckets[0]
+    assert "Start" in bucket
+    assert "Duration" in bucket
+    assert "Stats" in bucket
+    stats = bucket["Stats"]
+    assert len(stats) == 1, "There should be one stats entry in the bucket"
+
+    stat = stats[0]
+    assert stat["Resource"] == "/health-check"
+    assert stat["Service"] == "webserver"
+    assert stat["Type"] == "web"
+    assert stat["Hits"] == 3
+    assert stat["Errors"] == 1
+    assert stat["TopLevelHits"] == 3
+    assert stat["Duration"] > 0
+    assert stat["OkSummary"] is not None
+    assert stat["ErrorSummary"] is not None
 
 @all_libs()
 @enable_tracestats()

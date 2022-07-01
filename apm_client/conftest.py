@@ -376,6 +376,16 @@ class _TestSpan:
             )
         )
 
+    def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
+        self._client.SpanSetError(
+            pb.SpanSetErrorArgs(
+                span_id=self.span_id,
+                type=typestr,
+                message=message,
+                stack=stack,
+            )
+        )
+
     def finish(self):
         self._client.FinishSpan(
             pb.FinishSpanArgs(

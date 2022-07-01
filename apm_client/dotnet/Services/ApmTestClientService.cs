@@ -95,6 +95,29 @@ namespace ApmTestClient.Services
             return Task.FromResult(new SpanSetMetricReturn());
         }
 
+        public override Task<SpanSetErrorReturn> SpanSetError(SpanSetErrorArgs request, ServerCallContext context)
+        {
+            var span = Spans[request.SpanId];
+            span.Error = true;
+            
+            if (request.HasType)
+            {
+                span.SetTag(Tags.ErrorType, request.Type);
+            }
+
+            if (request.HasMessage)
+            {
+                span.SetTag(Tags.ErrorMsg, request.Message);
+            }
+
+            if (request.HasStack)
+            {
+                span.SetTag(Tags.ErrorStack, request.Stack);
+            }
+
+            return Task.FromResult(new SpanSetErrorReturn());
+        }
+
         public override Task<FinishSpanReturn> FinishSpan(FinishSpanArgs request, ServerCallContext context)
         {
             var span = Spans[request.Id];

@@ -35,6 +35,11 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
                 )
+        self.SpanSetError = channel.unary_unary(
+                '/APMClient/SpanSetError',
+                request_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
+                )
         self.FlushSpans = channel.unary_unary(
                 '/APMClient/FlushSpans',
                 request_serializer=protos_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
@@ -75,6 +80,12 @@ class APMClientServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SpanSetError(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def FlushSpans(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -109,6 +120,11 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.SpanSetMetric,
                     request_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetricArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.SpanSetMetricReturn.SerializeToString,
+            ),
+            'SpanSetError': grpc.unary_unary_rpc_method_handler(
+                    servicer.SpanSetError,
+                    request_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.SerializeToString,
             ),
             'FlushSpans': grpc.unary_unary_rpc_method_handler(
                     servicer.FlushSpans,
@@ -196,6 +212,23 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetMetric',
             protos_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SpanSetError(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetError',
+            protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

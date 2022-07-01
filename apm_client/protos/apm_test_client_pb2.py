@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cprotos/apm_test_client.proto\"\xc5\x01\n\rStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x07service\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x15\n\x08resource\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x11\n\x04type\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x13\n\x06origin\x18\x06 \x01(\tH\x04\x88\x01\x01\x42\n\n\x08_serviceB\x0c\n\n_parent_idB\x0b\n\t_resourceB\x07\n\x05_typeB\t\n\x07_origin\"4\n\x0fStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"\x1c\n\x0e\x46inishSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\"\x12\n\x10\x46inishSpanReturn\">\n\x0fSpanSetMetaArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\t\"\x13\n\x11SpanSetMetaReturn\"@\n\x11SpanSetMetricArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\"\x15\n\x13SpanSetMetricReturn\"\x10\n\x0e\x46lushSpansArgs\"\x12\n\x10\x46lushSpansReturn\"\x15\n\x13\x46lushTraceStatsArgs\"\x17\n\x15\x46lushTraceStatsReturn2\xdb\x02\n\tAPMClient\x12/\n\tStartSpan\x12\x0e.StartSpanArgs\x1a\x10.StartSpanReturn\"\x00\x12\x32\n\nFinishSpan\x12\x0f.FinishSpanArgs\x1a\x11.FinishSpanReturn\"\x00\x12\x35\n\x0bSpanSetMeta\x12\x10.SpanSetMetaArgs\x1a\x12.SpanSetMetaReturn\"\x00\x12;\n\rSpanSetMetric\x12\x12.SpanSetMetricArgs\x1a\x14.SpanSetMetricReturn\"\x00\x12\x32\n\nFlushSpans\x12\x0f.FlushSpansArgs\x1a\x11.FlushSpansReturn\"\x00\x12\x41\n\x0f\x46lushTraceStats\x12\x14.FlushTraceStatsArgs\x1a\x16.FlushTraceStatsReturn\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cprotos/apm_test_client.proto\"\xc5\x01\n\rStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x07service\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x15\n\x08resource\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x11\n\x04type\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x13\n\x06origin\x18\x06 \x01(\tH\x04\x88\x01\x01\x42\n\n\x08_serviceB\x0c\n\n_parent_idB\x0b\n\t_resourceB\x07\n\x05_typeB\t\n\x07_origin\"4\n\x0fStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"\x1c\n\x0e\x46inishSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\"\x12\n\x10\x46inishSpanReturn\">\n\x0fSpanSetMetaArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\t\"\x13\n\x11SpanSetMetaReturn\"@\n\x11SpanSetMetricArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\"\x15\n\x13SpanSetMetricReturn\"\x7f\n\x10SpanSetErrorArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x11\n\x04type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07message\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05stack\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x07\n\x05_typeB\n\n\x08_messageB\x08\n\x06_stack\"\x14\n\x12SpanSetErrorReturn\"\x10\n\x0e\x46lushSpansArgs\"\x12\n\x10\x46lushSpansReturn\"\x15\n\x13\x46lushTraceStatsArgs\"\x17\n\x15\x46lushTraceStatsReturn2\x95\x03\n\tAPMClient\x12/\n\tStartSpan\x12\x0e.StartSpanArgs\x1a\x10.StartSpanReturn\"\x00\x12\x32\n\nFinishSpan\x12\x0f.FinishSpanArgs\x1a\x11.FinishSpanReturn\"\x00\x12\x35\n\x0bSpanSetMeta\x12\x10.SpanSetMetaArgs\x1a\x12.SpanSetMetaReturn\"\x00\x12;\n\rSpanSetMetric\x12\x12.SpanSetMetricArgs\x1a\x14.SpanSetMetricReturn\"\x00\x12\x38\n\x0cSpanSetError\x12\x11.SpanSetErrorArgs\x1a\x13.SpanSetErrorReturn\"\x00\x12\x32\n\nFlushSpans\x12\x0f.FlushSpansArgs\x1a\x11.FlushSpansReturn\"\x00\x12\x41\n\x0f\x46lushTraceStats\x12\x14.FlushTraceStatsArgs\x1a\x16.FlushTraceStatsReturn\"\x00\x62\x06proto3')
 
 
 
@@ -26,6 +26,8 @@ _SPANSETMETAARGS = DESCRIPTOR.message_types_by_name['SpanSetMetaArgs']
 _SPANSETMETARETURN = DESCRIPTOR.message_types_by_name['SpanSetMetaReturn']
 _SPANSETMETRICARGS = DESCRIPTOR.message_types_by_name['SpanSetMetricArgs']
 _SPANSETMETRICRETURN = DESCRIPTOR.message_types_by_name['SpanSetMetricReturn']
+_SPANSETERRORARGS = DESCRIPTOR.message_types_by_name['SpanSetErrorArgs']
+_SPANSETERRORRETURN = DESCRIPTOR.message_types_by_name['SpanSetErrorReturn']
 _FLUSHSPANSARGS = DESCRIPTOR.message_types_by_name['FlushSpansArgs']
 _FLUSHSPANSRETURN = DESCRIPTOR.message_types_by_name['FlushSpansReturn']
 _FLUSHTRACESTATSARGS = DESCRIPTOR.message_types_by_name['FlushTraceStatsArgs']
@@ -86,6 +88,20 @@ SpanSetMetricReturn = _reflection.GeneratedProtocolMessageType('SpanSetMetricRet
   })
 _sym_db.RegisterMessage(SpanSetMetricReturn)
 
+SpanSetErrorArgs = _reflection.GeneratedProtocolMessageType('SpanSetErrorArgs', (_message.Message,), {
+  'DESCRIPTOR' : _SPANSETERRORARGS,
+  '__module__' : 'protos.apm_test_client_pb2'
+  # @@protoc_insertion_point(class_scope:SpanSetErrorArgs)
+  })
+_sym_db.RegisterMessage(SpanSetErrorArgs)
+
+SpanSetErrorReturn = _reflection.GeneratedProtocolMessageType('SpanSetErrorReturn', (_message.Message,), {
+  'DESCRIPTOR' : _SPANSETERRORRETURN,
+  '__module__' : 'protos.apm_test_client_pb2'
+  # @@protoc_insertion_point(class_scope:SpanSetErrorReturn)
+  })
+_sym_db.RegisterMessage(SpanSetErrorReturn)
+
 FlushSpansArgs = _reflection.GeneratedProtocolMessageType('FlushSpansArgs', (_message.Message,), {
   'DESCRIPTOR' : _FLUSHSPANSARGS,
   '__module__' : 'protos.apm_test_client_pb2'
@@ -134,14 +150,18 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _SPANSETMETRICARGS._serialized_end=485
   _SPANSETMETRICRETURN._serialized_start=487
   _SPANSETMETRICRETURN._serialized_end=508
-  _FLUSHSPANSARGS._serialized_start=510
-  _FLUSHSPANSARGS._serialized_end=526
-  _FLUSHSPANSRETURN._serialized_start=528
-  _FLUSHSPANSRETURN._serialized_end=546
-  _FLUSHTRACESTATSARGS._serialized_start=548
-  _FLUSHTRACESTATSARGS._serialized_end=569
-  _FLUSHTRACESTATSRETURN._serialized_start=571
-  _FLUSHTRACESTATSRETURN._serialized_end=594
-  _APMCLIENT._serialized_start=597
-  _APMCLIENT._serialized_end=944
+  _SPANSETERRORARGS._serialized_start=510
+  _SPANSETERRORARGS._serialized_end=637
+  _SPANSETERRORRETURN._serialized_start=639
+  _SPANSETERRORRETURN._serialized_end=659
+  _FLUSHSPANSARGS._serialized_start=661
+  _FLUSHSPANSARGS._serialized_end=677
+  _FLUSHSPANSRETURN._serialized_start=679
+  _FLUSHSPANSRETURN._serialized_end=697
+  _FLUSHTRACESTATSARGS._serialized_start=699
+  _FLUSHTRACESTATSARGS._serialized_end=720
+  _FLUSHTRACESTATSRETURN._serialized_start=722
+  _FLUSHTRACESTATSRETURN._serialized_end=745
+  _APMCLIENT._serialized_start=748
+  _APMCLIENT._serialized_end=1153
 # @@protoc_insertion_point(module_scope)
