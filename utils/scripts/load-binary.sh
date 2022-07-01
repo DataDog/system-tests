@@ -33,7 +33,7 @@ get_circleci_artifact() {
     echo "CircleCI: https://app.circleci.com/pipelines/$SLUG?branch=master"
     PIPELINES=$(curl --silent https://circleci.com/api/v2/project/$SLUG/pipeline?branch=master -H "Circle-Token: $CIRCLECI_TOKEN")
 
-    for i in {1..30}; do
+    for i in {0..30}; do
         PIPELINE_ID=$(echo $PIPELINES| jq -r ".items[$i].id")
         PIPELINE_NUMBER=$(echo $PIPELINES | jq -r ".items[$i].number")
 
