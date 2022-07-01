@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.103.0", nodejs="2.0.0", php="0.75.0", python="1.2.1", ruby="?")
+@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.0.0", php="0.75.0", python="1.2.1", ruby="?")
 @coverage.good
 class Test_StandardTagsMethod(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -92,7 +92,7 @@ class Test_StandardTagsUserAgent(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.103.0", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
 @coverage.good
 class Test_StandardTagsStatusCode(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -108,7 +108,8 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="1.39.0", java="?", nodejs="2.0.0", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="1.39.0", nodejs="2.0.0", php="?", python="?", ruby="?")
+@released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.route tags"""
