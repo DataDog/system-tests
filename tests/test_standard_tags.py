@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.103.0", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
+@released(dotnet="2.0.0", golang="1.39.0", java="0.103.0", nodejs="2.0.0", php="0.75.0", python="1.2.1", ruby="?")
 @coverage.good
 class Test_StandardTagsMethod(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.method tags"""

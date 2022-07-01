@@ -29,7 +29,7 @@ class Test_HeaderTagsShortFormat(BaseTestCase):
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="2.1.0", golang="?", java="?", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 class Test_HeaderTagsLongFormat(BaseTestCase):
     """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
