@@ -6,8 +6,25 @@ namespace ApmTestClient.Services
 {
     public class ApmTestClientService : APMClient.APMClientBase
     {
+        // Core types
         private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
-        private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric")!;
+        private static readonly Type TracerType = Type.GetType("Datadog.Trace.Tracer, Datadog.Trace", throwOnError: true)!;
+        private static readonly Type TracerManagerType = Type.GetType("Datadog.Trace.TracerManager, Datadog.Trace", throwOnError: true)!;
+
+        // Agent-related types
+        private static readonly Type AgentWriterType = Type.GetType("Datadog.Trace.Agent.AgentWriter, Datadog.Trace", throwOnError: true)!;
+        private static readonly Type StatsAggregatorType = Type.GetType("Datadog.Trace.Agent.StatsAggregator, Datadog.Trace", throwOnError: true)!;
+
+        // Accessors for internal properties/fields accessors
+        private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
+        private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        // StatsAggregator flush methods
+        private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
+        private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.Public)!;
         private static readonly Dictionary<ulong, ISpan> Spans = new();
         private readonly ILogger<ApmTestClientService> _logger;
         public ApmTestClientService(ILogger<ApmTestClientService> logger)
@@ -78,10 +95,35 @@ namespace ApmTestClient.Services
             return new FlushSpansReturn();
         }
 
-        public override Task<FlushTraceStatsReturn> FlushTraceStats(FlushTraceStatsArgs request, ServerCallContext context)
+        public override async Task<FlushTraceStatsReturn> FlushTraceStats(FlushTraceStatsArgs request, ServerCallContext context)
         {
-            // No-op for now
-            return Task.FromResult(new FlushTraceStatsReturn());
+            if (GetTracerManager is null)
+            {
+                throw new NullReferenceException("GetTracerManager is null");
+            }
+
+            if (Tracer.Instance is null)
+            {
+                throw new NullReferenceException("Tracer.Instance is null");
+            }
+
+            var tracerManager = GetTracerManager.GetValue(Tracer.Instance);
+            var agentWriter = GetAgentWriter.Invoke(tracerManager, null);
+            var statsAggregator = GetStatsAggregator.GetValue(agentWriter);
+
+            // Invoke StatsAggregator.DisposeAsync()
+            // This will cause the stats loop to exit and rely on StatsAggregator.Flush() calls to push stats to the agent
+            var disposeAsyncTask = StatsAggregatorDisposeAsync.Invoke(statsAggregator, null) as Task;
+            await disposeAsyncTask!;
+
+            // Invoke StatsAggregator.Flush()
+            // If StatsAggregator.DisposeAsync() was previously called during the lifetime of the application,
+            // then no stats will be flushed when StatsAggregator.DisposeAsync() returns.
+            // To be safe, perform an extra flush to ensure that we have flushed the stats
+            var flushTask = StatsAggregatorFlush.Invoke(statsAggregator, null) as Task;
+            await flushTask!;
+
+            return new FlushTraceStatsReturn();
         }
     }
 }
