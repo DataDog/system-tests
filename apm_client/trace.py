@@ -9,11 +9,18 @@ from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchProto
 import msgpack
 
 
+"""
+Key used in the metrics map to toggle measuring a span.
+"""
+SPAN_MEASURED_KEY = "_dd.measured"
+
+
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
     Name: str
     Resource: str
-    Type: Optional[str]
+    Type: str
+    Service: str
     HTTPStatusCode: int
     Synthetics: bool
     Hits: int

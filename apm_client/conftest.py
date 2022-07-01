@@ -86,7 +86,7 @@ RUN pip install ddtrace
     )
 
 
-def go_library_server_factory(env: Dict[str, str]):
+def golang_library_server_factory(env: Dict[str, str]):
     go_dir = os.path.join(os.path.dirname(__file__), "go")
     return APMClientTestServer(
         container_name="go-test-client",
