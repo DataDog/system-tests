@@ -17,11 +17,6 @@ ARG PHP_VERSION=8.0
 RUN apt-get install -y php8.0-fpm
 
 RUN find /var/www/html -mindepth 1 -delete
-RUN echo '<?php phpinfo();' > /var/www/html/index.php
-RUN echo '<?php echo "OK";' > /var/www/html/sample_rate_route.php
-RUN echo '<?php echo "Hello, WAF!";' > /var/www/html/waf.php
-RUN echo '<?php http_response_code(404);' > /var/www/html/404.php
-RUN echo '<?php http_response_code(intval($_GET["code"]));' > /var/www/html/status.php
 ADD utils/build/docker/php/common/*.php /var/www/html/
 RUN a2enmod rewrite
 
