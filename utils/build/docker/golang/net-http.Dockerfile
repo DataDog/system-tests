@@ -9,10 +9,13 @@ COPY utils/build/docker/golang/app /app
 WORKDIR /app
 
 RUN /binaries/install_ddtrace.sh
+ENV DD_TRACE_HEADER_TAGS='user-agent'
 
-RUN go build -v -tags appsec -o weblog ./net-http.go ./common.go
+RUN go build -v -tags appsec -o weblog ./net-http.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
 
-CMD ./weblog
+RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN chmod +x app.sh
+CMD ["./app.sh"]
 
 # Datadog setup
 ENV DD_LOGGING_RATE=0

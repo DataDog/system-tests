@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature
+from utils import context, BaseTestCase, interfaces, released, bug, coverage, missing_feature
 from .utils import rules
 import pytest
 
@@ -11,9 +11,10 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.36.0" if context.weblog_variant in ["echo", "chi"] else "1.34.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@released(golang={"gin": "1.37.0", "echo": "1.36.0", "chi": "1.36.0", "*": "1.34.0"})
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
+@bug(library="python@1.1.0", reason="a PR was not included in the release")
+@coverage.basic
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
@@ -31,9 +32,10 @@ class Test_404(BaseTestCase):
         )
 
 
-# Not yet specified
-@released(golang="1.36.0", dotnet="2.3.0", java="0.95.0", nodejs="2.0.0", php_appsec="0.2.0", python="?", ruby="?")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(dotnet="2.3.0", java="0.95.0", nodejs="2.0.0")
+@released(php_appsec="0.2.0", python="1.2.1", ruby="1.0.0.beta1")
+@coverage.basic
 class Test_MultipleHighlight(BaseTestCase):
     """ Appsec reports multiple attacks on same request """
 
@@ -45,40 +47,35 @@ class Test_MultipleHighlight(BaseTestCase):
         )
 
 
-@released(golang="1.35.0")
-@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
-@missing_feature(context.library <= "golang@1.36.0" and context.weblog_variant == "gin")
+@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
+@released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@coverage.good
 class Test_MultipleAttacks(BaseTestCase):
     """If several attacks are sent threw one requests, all of them are reported"""
 
     def test_basic(self):
         """Basic test with more than one attack"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
-        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100, pattern="/../")
-        interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_120, pattern="appscan_fingerprint")
+        interfaces.library.assert_waf_attack(r, pattern="/../")
+        interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint")
 
     def test_same_source(self):
         """Test with more than one attack in headers"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "/../", "random-key": "acunetix-user-agreement"})
-        interfaces.library.assert_waf_attack(r, rules.security_scanner.crs_913_110, pattern="acunetix-user-agreement")
-        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100, pattern="/../")
+        interfaces.library.assert_waf_attack(r, pattern="acunetix-user-agreement")
+        interfaces.library.assert_waf_attack(r, pattern="/../")
 
     def test_same_location(self):
         """Test with more than one attack in a unique property"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1 and /../"})
-        interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_100, pattern="/../")
-        interfaces.library.assert_waf_attack(r, rules.security_scanner.ua0_600_12x, pattern="Arachni/v")
+        interfaces.library.assert_waf_attack(r, pattern="/../")
+        interfaces.library.assert_waf_attack(r, pattern="Arachni/v")
 
 
-@bug(library="php")
+@missing_feature(library="php")
+@coverage.basic
 class Test_NoWafTimeout(BaseTestCase):
     """ With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
 
     def test_main(self):
-        interfaces.library_stdout.assert_absence("Ran out of time while running flow")  # PHP version
-
-
-# TODO :
-# * /waf?arg=value&arg=attack
-# * /waf?arg=attack&arg=value
-# * some on POST url encoded
+        interfaces.library_stdout.assert_absence("Ran out of time while running flow")

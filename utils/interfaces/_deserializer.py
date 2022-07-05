@@ -10,7 +10,7 @@ from requests_toolbelt.multipart.decoder import MultipartDecoder
 from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from google.protobuf.json_format import MessageToDict
 
-from utils.tools import logger
+from utils.tools import logger, get_exception_traceback
 
 
 def get_header_value(name, headers):
@@ -41,11 +41,13 @@ def deserialize_http_message(path, message, data, interface, key):
 
     logger.debug(f"Deserialize {content_type} for {path} {key}")
 
-    if content_type in ("application/json", "text/json"):
+    if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
+        return json.loads(data)
+    elif path == "/v0.7/config":  # Kyle, please add content-type header :)
         return json.loads(data)
     elif interface == "library" and key == "response" and path == "/info":
         return json.loads(data)
-    elif content_type == "application/msgpack":
+    elif content_type == "application/msgpack" or content_type == "application/msgpack, application/msgpack":
         result = msgpack.unpackb(data)
 
         if interface == "library" and path == "/v0.4/traces":
@@ -95,10 +97,10 @@ def _convert_bytes_values(item):
 
 def deserialize(data, interface):
     for key in ("request", "response"):
-        try:
-            content = ast.literal_eval(data[key]["content"])
-            decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
-            data[key]["content"] = decoded
-        except Exception as e:
-            msg = traceback.format_exception_only(type(e), e)[0]
-            logger.critical(msg)
+        if key in data:
+            try:
+                content = ast.literal_eval(data[key]["content"])
+                decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
+                data[key]["content"] = decoded
+            except Exception as e:
+                logger.critical("\n".join(get_exception_traceback(e)))

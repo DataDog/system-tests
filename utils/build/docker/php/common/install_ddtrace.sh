@@ -55,6 +55,10 @@ php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddapps
 
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
+appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)
+rule_file="/opt/datadog/dd-library/appsec-${appsec_version}/etc/dd-appsec/recommended.json"
+jq -r '.metadata.rules_version // "1.2.5"' "${rule_file}" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
 mkdir -p /etc/dd-appsec
 find /opt -name recommended.json -exec ln -s '{}' /etc/dd-appsec/ \;

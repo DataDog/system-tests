@@ -2,72 +2,157 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from packaging.version import Version as BaseVersion, InvalidVersion
+from packaging import version as version_module
 import re
 
+# some monkey patching
+def _parse_letter_version(letter, number):
 
-def _build_version(version):
-    if isinstance(version, str):
-        return Version(version)
-    elif isinstance(version, Version):
-        return version
-    else:
-        raise TypeError(version)
+    if letter:
+        if number is None:
+            number = 0
+
+        return letter, int(number)
+    if not letter and number:
+        letter = "post"
+
+        return letter, int(number)
+
+    return None
 
 
-class Version:
-    """ Version object that supports comparizon with string"""
+version_module._parse_letter_version = _parse_letter_version
 
-    def __init__(self, version, component=None):
-        # some cleanup to handle the variaty of versions numbers
+RUBY_VERSION_PATTERN = r"""
+    v?
+    (?:
+        (?:(?P<epoch>[0-9]+)!)?                           # epoch
+        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
+        (?P<pre>                                          # pre-release
+            [-_\.]?
+            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview|appsec))
+            [-_\.]?
+            (?P<pre_n>[0-9]+)?
+        )?
+        (?P<post>                                         # post release
+            (?:-(?P<post_n1>[0-9]+))
+            |
+            (?:
+                [-_\.]?
+                (?P<post_l>post|rev|r)
+                [-_\.]?
+                (?P<post_n2>[0-9]+)?
+            )
+        )?
+        (?P<dev>                                          # dev release
+            [-_\.]?
+            (?P<dev_l>dev)
+            [-_\.]?
+            (?P<dev_n>[0-9]+)?
+        )?
+    )
+    (?:[+ ](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
+"""
+
+AGENT_VERSION_PATTERN = r"""
+    v?
+    (?:
+        (?:(?P<epoch>[0-9]+)!)?                           # epoch
+        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
+        (?P<pre>                                          # pre-release
+            [-_\.]?
+            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview))
+            [-_\.]?
+            (?P<pre_n>[0-9]+)?
+        )?
+        (?P<post>                                         # post release
+            (?:-(?P<post_n1>[0-9]+))
+            |
+            (?:
+                [-_\.]?
+                (?P<post_l>post|rev|r)
+                [-_\.]?
+                (?P<post_n2>[0-9]+)?
+            )
+        )?
+        (?P<dev>                                          # dev release
+            [-_\.]?
+            (?P<dev_l>dev)
+            [-_\.]?
+            (?P<dev_n>[0-9]+)?
+        )?
+        (?P<devel>                                          # dev release
+            -
+            (?P<devel_l>devel)
+            [ ]
+            (?P<devel_n>.*)?
+        )?
+    )
+    (?:\+(?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
+"""
+
+
+class Version(version_module.Version):
+    @classmethod
+    def build(cls, version, component):
+        if isinstance(version, str):
+            return cls(version, component)
+        elif isinstance(version, cls):
+            return version
+        else:
+            raise TypeError(version)
+
+    def __init__(self, version, component):
+
+        self._component = component
+
+        version = version.strip()
+
+        pattern = version_module.VERSION_PATTERN
 
         if component == "ruby":
-            version = version.strip()
+            pattern = RUBY_VERSION_PATTERN
             if version.startswith("* ddtrace"):
-                version = re.sub(r"\* *ddtrace *\((\d+\.\d+\.\d+).*", r"\1", version)
+                version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
 
         elif component == "libddwaf":
-            version = version.strip()
             if version.startswith("* libddwaf"):
                 version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
         elif component == "agent":
-            version = version.strip()
-            version = re.sub(r"Agent (.*) - Commit.*", r"\1", version)
+            version = re.sub(r"(.*) - Commit.*", r"\1", version)
+            version = re.sub(r"(.*) - Meta.*", r"\1", version)
+            version = re.sub(r"Agent (.*)", r"\1", version)
+            pattern = AGENT_VERSION_PATTERN
 
         elif component == "java":
-            version = version.strip()
             version = version.split("~")[0]
             version = version.replace("-SNAPSHOT", "")
 
-        try:
-            self._version = BaseVersion(version)
-        except InvalidVersion:
-            if "-" in version:
-                self._version = BaseVersion(version.split("-")[0])
-            else:
-                raise
+        elif component == "dotnet":
+            version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
+
+        elif component == "php":
+            version = version.replace("-nightly", "")
+
+        self._regex = re.compile(r"^\s*" + pattern + r"\s*$", re.VERBOSE | re.IGNORECASE)
+
+        super().__init__(version)
 
     def __eq__(self, other):
-        return self._version == _build_version(other)._version
+        return super().__eq__(self.build(other, self._component))
 
     def __lt__(self, other):
-        return self._version < _build_version(other)._version
+        return super().__lt__(self.build(other, self._component))
 
     def __le__(self, other):
-        return self._version <= _build_version(other)._version
+        return super().__le__(self.build(other, self._component))
 
     def __gt__(self, other):
-        return self._version > _build_version(other)._version
+        return super().__gt__(self.build(other, self._component))
 
     def __ge__(self, other):
-        return self._version >= _build_version(other)._version
-
-    def __str__(self):
-        return str(self._version)
-
-    def __repr__(self):
-        return repr(self._version)
+        return super().__ge__(self.build(other, self._component))
 
 
 class LibraryVersion:

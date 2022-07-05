@@ -13,12 +13,9 @@ services:
       start_period: 3s
       retries: 25
     environment:
-      - DD_ENV=system-tests
       - DD_AGENT_HOST=agent
       - DD_TRACE_AGENT_PORT=8126
       - DD_APPSEC_ENABLED=${DD_APPSEC_ENABLED:-}
-      - DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
-      - DD_APPSEC_TRACE_RATE_LIMIT=10000
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
@@ -33,6 +30,11 @@ services:
       - DD_API_KEY
       - DD_ENV=system-tests
       - DD_SITE=${DD_SITE:-datad0g.com}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/info"]
+      interval: 10s
+      start_period: 5s
+      retries: 6
 
   runner:
     image: system_tests/runner

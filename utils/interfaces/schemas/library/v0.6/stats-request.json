@@ -1,0 +1,40 @@
+{
+  "$id": "/library/v0.6/stats-request.json",
+  "required": ["Version", "Env", "Hostname", "Stats"],
+  "properties": {
+    "Version": { "type": "string", "minLength": 1 },
+    "Env": { "type": "string", "minLength": 1 },
+    "Hostname": { "type": "string", "minLength": 1 },
+    "Stats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["Start", "Duration", "Stats"],
+        "properties": {
+          "Start": { "type": "integer", "minimum": 0 },
+          "Duration": { "type": "integer", "minimum": 0 },
+          "Stats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Name": { "type": "string" },
+                "Resource": { "type": "string" },
+                "Synthetics": { "type": "boolean" },
+                "HTTPStatusCode": { "type": "integer" },
+                "Hits": { "type": "integer" },
+                "TopLevelHits": { "type": "integer" },
+                "Duration": { "type": "integer" },
+                "Errors": { "type": "integer" },
+                "OkSummary": { "type": "string" },
+                "ErrorSummary": { "type": "string" },
+                "Service": { "type": "string" },
+                "Type": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -5,7 +5,7 @@ But, obviously, testing validated versions of components is not really interesti
 
 ## Agent
 
-TODO
+* Add a file `agent-image` in `binaries/`. The content must be a valid docker image name containing the datadog agent, like `datadog/agent` or `datadog/agent-dev:master-py3`.
 
 ## C++ library
 
@@ -18,7 +18,7 @@ TODO
 ## Golang library
 
 1. Add a file `golang-load-from-go-get`, the content will be installed by `go get`. Content example:
-    * `gopkg.in/DataDog/dd-trace-go.v1@a8c99b56c5bf2545da7e38f4ad97b1da5cfe73b7`
+    * `gopkg.in/DataDog/dd-trace-go.v1@master`
 2. Clone the dd-trace-go repo inside `binaries`
 
 ## Java library

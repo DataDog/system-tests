@@ -8,10 +8,12 @@ This files will validate data flow between agent and backend
 
 import threading
 
-from utils import context
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
+from utils.interfaces._agent.appsec import AppSecValidation
+from utils.interfaces._agent.telemetry import _TelemetryValidation
+from utils.interfaces._misc_validators import HeadersPresenceValidation, HeadersMatchValidation
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -20,11 +22,7 @@ class AgentInterfaceValidator(InterfaceValidator):
     def __init__(self):
         super().__init__("agent")
         self.ready = threading.Event()
-
-        if context.library.library in ("php", "nodejs"):
-            self.expected_timeout = 5
-        else:
-            self.expected_timeout = 40
+        self.expected_timeout = 5
 
     def append_data(self, data):
         data = super().append_data(data)
@@ -47,6 +45,20 @@ class AgentInterfaceValidator(InterfaceValidator):
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
+
+    def add_appsec_validation(self, request, validator):
+        self.append_validation(AppSecValidation(request, validator))
+
+    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(
+            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
+        )
+
+    def assert_headers_match(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(HeadersMatchValidation(path_filter, request_headers, response_headers, check_condition))
+
+    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
+        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
 
 class _UseDomain(BaseValidation):

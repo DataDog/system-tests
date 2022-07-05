@@ -15,12 +15,12 @@ RUN sed -i "s/admin\///g" django_app/urls.py
 RUN sed -i "s/admin.site.urls/include(\"app.urls\")/g" django_app/urls.py
 RUN sed -i "s/ALLOWED_HOSTS\s=\s\[\]/ALLOWED_HOSTS = \[\"0.0.0.0\",\"weblog\"\]/g" django_app/settings.py
 
-
 COPY utils/build/docker/python/django.app.urls.py /app/urls.py
 
-
-COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
 # docker startup
 RUN echo '#!/bin/bash \n\

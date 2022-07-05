@@ -17,38 +17,121 @@ if [ -z "${DD_API_KEY:-}" ]; then
 fi
 
 containers=(weblog agent runner agent_proxy library_proxy)
-interfaces=(agent library)
+interfaces=(agent library backend)
 
-# Stop previous container not stopped
-docker-compose down
+export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
+export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
 
-SCENARIO=${1:-DEFAULT}
+if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
+    export DD_AGENT_HOST=library_proxy
+    export HIDDEN_APM_PORT_OVERRIDE=8126
+fi
 
-if [ $SCENARIO = "DEFAULT" ]; then  # Most common use case
+if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
 
-elif [ $SCENARIO = "SAMPLING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
+    echo "Running all tests in UDS mode."
+    export RUNNER_ARGS=tests/
+    export SYSTEMTESTS_LOG_FOLDER=logs_uds
+    unset DD_TRACE_AGENT_PORT
+    unset DD_AGENT_HOST
+    export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
+
+    if [ $SYSTEMTESTS_VARIATION = "DEFAULT" ]; then
+        # Test implicit config
+        echo "Testing default UDS configuration path."
+        unset DD_APM_RECEIVER_SOCKET
+    else
+       # Test explicit config
+        echo "Testing explicit UDS configuration path."
+        export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
+    fi
+
+elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
-    
-elif [ $SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c04
+    WEBLOG_ENV="DD_TRACE_SAMPLE_RATE=0.5"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
-    export DD_APPSEC_RULES=/donotexists
+    WEBLOG_ENV="DD_APPSEC_RULES=/donotexists"
 
-elif [ $SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
-    export RUNNER_ARGS=scenarios/appsec/test_logs.py::Test_ErrorStandardization::test_c05
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
+    export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_CorruptedRules
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
-    export DD_APPSEC_RULES=/appsec_corrupted_rules.yml
+    WEBLOG_ENV="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
-elif [ $SCENARIO = "APPSEC_UNSUPPORTED" ]; then
-    export RUNNER_ARGS=scenarios/appsec_unsupported.py
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_ConfRuleSet scenarios/appsec/test_customconf.py::Test_NoLimitOnWafRules scenarios/appsec/waf/test_addresses.py scenarios/appsec/test_traces.py scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_appsec_rules"
+    export SYSTEMTESTS_LOG_FOLDER=logs_custom_appsec_rules
+    WEBLOG_ENV="DD_APPSEC_RULES=/appsec_custom_rules.json"
 
-elif [ $SCENARIO = "PROFILING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
+    export RUNNER_ARGS="scenarios/appsec/waf/test_reports.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_rules_monitoring_with_errors
+    WEBLOG_ENV="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
+
+elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
     export SYSTEMTESTS_LOG_FOLDER=logs_profiling
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
+    # armv7 tests
+    export RUNNER_ARGS=scenarios/appsec/test_unsupported.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
+
+elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
+    # cgroup test
+    export RUNNER_ARGS=scenarios/test_data_integrity.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_cgroup
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_DISABLED" ]; then
+    # disable appsec
+    export RUNNER_ARGS=scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_disabled
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_disabled
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_LOW_WAF_TIMEOUT" ]; then
+    # disable appsec
+    export RUNNER_ARGS=scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_waf_timeout
+    export SYSTEMTESTS_LOG_FOLDER=logs_low_waf_timeout
+    WEBLOG_ENV="DD_APPSEC_WAF_TIMEOUT=1"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_custom_obfuscation
+    WEBLOG_ENV="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_rate_limiter.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
+    WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1"
+
+elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsShortFormat"
+    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_short
+    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1,header-tag2"
+
+elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsLongFormat"
+    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
+    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
+
+elif [ $SYSTEMTESTS_SCENARIO = "BACKEND_WAF" ]; then
+    # disable appsec
+    export RUNNER_ARGS=scenarios/backend/test_waf.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_backend_waf
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false"
+
+elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND" ]; then
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": true}'
 
 else # Let user choose the target
     export RUNNER_ARGS=$@
@@ -66,29 +149,46 @@ do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/$container
 done
 
-echo ============ Run tests ===================
-echo 🔥 Starting test context.
+# Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
+# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
+# them in the docker-compose.yml is not possible
+echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
+
+echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
+echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-docker-compose up -d
-docker-compose exec -T weblog sh -c "cat /proc/self/cgroup" > $SYSTEMTESTS_LOG_FOLDER/weblog.cgroup
+echo "Starting containers in background."
+docker-compose up -d --force-recreate
 
+export container_log_folder="unset"
 # Save docker logs
 for container in ${containers[@]}
 do
-    docker-compose logs --no-color -f $container > $SYSTEMTESTS_LOG_FOLDER/docker/$container/stdout.log &
+    container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${container}"
+    docker-compose logs --no-color --no-log-prefix -f $container > $container_log_folder/stdout.log &
+
+    # checking container, if should not be stopped here
+    if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $container)` ]; then
+        echo "ERROR: $container container is unexpectably stopped. Here is the output:"
+        docker-compose logs $container
+        exit 1
+    fi
 done
+
+echo "Outputting runner logs."
 
 # Show output. Trick: The process will end when runner ends
 docker-compose logs -f runner
 
-# Get runner status
+# Getting runner exit code.
 EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
 
 # Stop all containers
 docker-compose down --remove-orphans
 
 # Exit with runner's status
+echo "Exiting with ${EXIT_CODE}"
 exit $EXIT_CODE

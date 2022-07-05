@@ -3,4 +3,8 @@ FROM ghcr.io/datadog/system-tests-apps-ruby/rails40:latest
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-CMD bundle exec thin start -p 7777
+ENV DD_TRACE_HEADER_TAGS=user-agent
+
+RUN echo "#!/bin/bash\nbundle exec thin start -p 7777" > app.sh
+RUN chmod +x app.sh
+CMD [ "./app.sh" ]

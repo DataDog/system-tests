@@ -1,5 +1,7 @@
 FROM arm32v7/node:14
 
+RUN apt-get update && apt-get install -y jq
+
 RUN uname -r
 
 # print versions
@@ -14,8 +16,7 @@ RUN npm install
 EXPOSE 7777
 
 # docker startup
-RUN echo '#!/bin/sh' > app.sh
-RUN echo 'node app.js' >> app.sh
+RUN echo '#!/bin/sh\nnode app.js\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 

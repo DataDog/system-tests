@@ -1,5 +1,5 @@
 from ddtrace import tracer
-from flask import Flask
+from flask import Flask, request
 
 
 app = Flask(__name__)
@@ -20,5 +20,17 @@ def sample_rate(i):
 @app.route("/waf", methods=["GET", "POST"])
 @app.route("/waf/", methods=["GET", "POST"])
 @app.route("/waf/<path:url>", methods=["GET", "POST"])
-def waf():
+@app.route("/params/<path>", methods=["GET", "POST"])
+def waf(request, *args, **kwargs):
     return "Hello, World!\\n"
+
+
+@app.route("/read_file", methods=["GET"])
+def read_file():
+    if "file" not in request.args:
+        return "Please provide a file parameter", 400
+
+    filename = request.args.get("file")
+
+    with open(filename, "r") as f:
+        return f.read()

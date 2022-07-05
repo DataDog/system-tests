@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, irrelevant, missing_feature, bug
+from utils import BaseTestCase, context, interfaces, released, irrelevant, missing_feature, bug, coverage
 import pytest
 
 
@@ -13,8 +13,8 @@ if context.library == "cpp":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
-@missing_feature(library="golang", reason="standard logs not implemented")
+@released(golang="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@coverage.good
 class Test_Standardization(BaseTestCase):
     """AppSec logs should be standardized"""
 

@@ -1,5 +1,7 @@
 FROM node:14
 
+RUN apt-get update && apt-get install -y jq
+
 RUN uname -r
 
 # print versions
@@ -14,13 +16,13 @@ RUN npm install
 EXPOSE 7777
 
 # docker startup
-RUN echo '#!/bin/sh' > app.sh
-RUN echo 'node app.js' >> app.sh
+RUN echo '#!/bin/bash\nnode app.js' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker build -f utils/build/docker/nodejs.datadog.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

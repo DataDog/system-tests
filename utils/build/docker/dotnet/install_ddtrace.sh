@@ -16,8 +16,23 @@ else
     curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz --output datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
 fi
 
-ls datadog-dotnet-apm-*.tar.gz | sed 's/[^0-9]*//' | sed 's/.tar.gz//' > /app/SYSTEM_TESTS_LIBRARY_VERSION
-touch /app/SYSTEM_TESTS_LIBDDWAF_VERSION
+ls datadog-dotnet-apm-*.tar.gz > /app/SYSTEM_TESTS_LIBRARY_VERSION
 
 mkdir -p /opt/datadog
-tar xzf datadog-dotnet-apm-$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION).tar.gz -C /opt/datadog
+tar xzf $(ls datadog-dotnet-apm-*.tar.gz) -C /opt/datadog
+
+if [ -e /opt/datadog/tracer/Datadog.Tracer.Native.so ]
+then
+    cp /opt/datadog/tracer/Datadog.Tracer.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
+else
+    cp /opt/datadog/Datadog.Trace.ClrProfiler.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
+fi
+
+cp /opt/datadog/libddwaf.so /binaries
+dotnet fsi --langversion:preview /binaries/query-versions.fsx
+rm /binaries/libDatadog.Trace.ClrProfiler.Native.so
+rm /binaries/libddwaf.so
+
+echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
+echo "libddwaf version: $(cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)"
+echo "appsec event rules version: $(cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"

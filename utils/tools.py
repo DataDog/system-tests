@@ -63,11 +63,9 @@ def e(message):
 
 def get_exception_traceback(exception):
 
-    for line in traceback.format_tb(exception.__traceback__):
+    for line in traceback.format_exception(type(Exception), exception, exception.__traceback__):
         for subline in line.split("\n"):
-            if subline.strip():
-                yield subline.replace('File "/app/', 'File "')
-    yield str(exception)
+            yield subline.replace('File "/app/', 'File "')
 
 
 logger = get_logger()

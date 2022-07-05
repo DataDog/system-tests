@@ -6,6 +6,7 @@
 This file contains base class used to validate interfaces
 """
 
+import traceback
 import logging
 import threading
 import inspect
@@ -52,6 +53,9 @@ class InterfaceValidator(object):
         # save it to display it on output. Very helpful when it comes to modify internals
         self.system_test_error = None
 
+        # list of request ids that used by this interface
+        self.rids = set()
+
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
 
@@ -62,6 +66,9 @@ class InterfaceValidator(object):
         if len([item for item in self._validations if not item.closed]) == 0:
             self._closed.set()
 
+    def collect_data(self):
+        pass
+
     # Main thread domain
     def wait(self, timeout):
         if self.system_test_error is not None:
@@ -70,40 +77,46 @@ class InterfaceValidator(object):
         logger.info(f"Wait for {self.name}'s interface validation for {timeout} seconds")
         self._closed.wait(timeout)
 
-        try:
-            with self._lock:
+        # for interface where data must be collected (as now, only backend)
+        self.collect_data()
 
-                for validation in self._validations:
-                    try:
-                        if not validation.closed:
-                            validation.final_check()
-                    except Exception as exc:
-                        traceback = "\n".join([format_error(l) for l in get_exception_traceback(exc)])
-                        validation.set_failure(f"Unexpected error for {m(validation.message)}:\n{traceback}")
+        with self._lock:
 
+            for validation in self._validations:
+
+                for data in self._data_list:
                     if not validation.closed:
-                        validation.set_expired()
+                        try:
+                            validation._check(data)
+                        except Exception as exc:
+                            raise Exception(
+                                f"While validating {data['log_filename']}, unexpected error occurs for {m(validation.message)}"
+                            ) from exc
 
-                    if validation.is_success:
-                        if validation.is_xfail:
-                            self.xpassed.append(validation)
-                        else:
-                            self.passed.append(validation)
+                        if validation.closed:
+                            break
+
+                try:
+                    if not validation.closed:
+                        validation.final_check()
+                except Exception as exc:
+                    raise Exception(f"Unexpected error occurs for {m(validation.message)}") from exc
+
+                if not validation.closed:
+                    validation.set_expired()
+
+                if validation.is_success:
+                    if validation.is_xfail:
+                        self.xpassed.append(validation)
                     else:
-                        if validation.is_xfail:
-                            self.xfailed.append(validation)
-                        else:
-                            self.failed.append(validation)
+                        self.passed.append(validation)
+                else:
+                    if validation.is_xfail:
+                        self.xfailed.append(validation)
+                    else:
+                        self.failed.append(validation)
 
-                if len(self.failed) != 0:
-                    self.is_success = False
-                    return
-
-        except Exception as e:
-            self.system_test_error = e
-            raise
-
-        self.is_success = True
+            self.is_success = len(self.failed) == 0
 
     @property
     def closed(self):
@@ -124,18 +137,12 @@ class InterfaceValidator(object):
             with self._lock:
                 self._validations.append(validation)
                 self._closed.clear()
-
-                for data in self._data_list:
-                    if not validation.closed:
-                        validation._check(data)
-                        if validation.closed:
-                            break
-
-                self._check_closed_status()
-
         except Exception as e:
             self.system_test_error = e
             raise
+
+        if validation.rid:
+            self.rids.add(validation.rid)
 
     # data collector thread domain
     def append_data(self, data):
@@ -156,31 +163,24 @@ class InterfaceValidator(object):
             with open(log_filename, "w") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
-            with self._lock:
+            self._data_list.append(data)
 
-                self._data_list.append(data)
-
-                for i, validation in enumerate(self._validations):
-                    if not validation.closed:
-                        logger.debug(f"Send [{data['host']}{data['path']}] data to #{i}: {validation}")
-                        validation._check(data)
-
-                self._check_closed_status()
         except Exception as e:
             self.system_test_error = e
             raise
 
         return data
 
-    def append_not_implemented_validation(self):
-        self.append_validation(_NotImplementedValidation())
-
-    def check(self, message):
-        pass
-
     @property
-    def validations_count(self):
-        return len(self._validations)
+    def validations(self):
+        # to avoid any mistake, provide a copy
+        return list(self._validations)
+
+    def add_assertion(self, condition):
+        self.append_validation(_StaticValidation(condition))
+
+    def add_final_validation(self, validator):
+        self.append_validation(_FinalValidation(validator))
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -213,7 +213,8 @@ class BaseValidation(object):
             self.path_filters = [re.compile(path) for path in self.path_filters]
 
         if request is not None:
-            self.rid = request.request.headers["User-Agent"][-36:]
+            user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
+            self.rid = user_agent[-36:]
         else:
             self.rid = None
 
@@ -227,8 +228,6 @@ class BaseValidation(object):
                 self.frame = frame_info
                 self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
                 self.calling_class = frame_info.frame.f_locals["self"].__class__
-                if hasattr(self.calling_class, "__real_test_class__"):
-                    self.calling_class = self.calling_class.__real_test_class__
 
                 break
 
@@ -246,6 +245,9 @@ class BaseValidation(object):
         if self.message is None:
             raise Exception(f"Please set a message for {self.frame.function}")
 
+        # remove new lines for logging
+        self.message = self.message.replace("\n", " ")
+
         if xfails.is_xfail_method(self.calling_method):
             logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
             xfails.add_validation_from_method(self.calling_method, self)
@@ -253,7 +255,7 @@ class BaseValidation(object):
 
         if xfails.is_xfail_class(self.calling_class):
             logger.debug(f"{self} is called from {self.calling_class}, which is xfail")
-            xfails.add_validation_from_class(self.calling_class, self)
+            xfails.add_validation_from_class(self.calling_class, self.calling_method, self)
             self.is_xfail = True
 
         self.message = self.message.strip()
@@ -324,6 +326,10 @@ class BaseValidation(object):
         if self.path_filters is not None and all((path.fullmatch(data["path"]) is None for path in self.path_filters)):
             return
 
+        # Java sends empty requests during endpoint discovery
+        if "request" in data and data["request"]["length"] == 0:
+            return
+
         self.check(data)
 
     def check(self, data):
@@ -342,7 +348,30 @@ class BaseValidation(object):
         return not condition
 
 
-class _NotImplementedValidation(BaseValidation):
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
-        self.set_status(False)
+class _StaticValidation(BaseValidation):
+    def __init__(self, condition):
+        super().__init__()
+        self.set_status(condition)
+
+    def check(self, data):
+        pass
+
+
+class _FinalValidation(BaseValidation):
+    def __init__(self, validator):
+        super().__init__()
+        self.validator = validator
+
+    def check(self, data):
+        pass
+
+    def final_check(self):
+        try:
+            if self.validator():
+                self.log_debug(f"{self} is validated")
+                self.set_status(True)
+            else:
+                self.set_status(False)
+        except Exception as e:
+            msg = traceback.format_exception_only(type(e), e)[0]
+            self.set_failure(f"{m(self.message)} not validated: {msg}")

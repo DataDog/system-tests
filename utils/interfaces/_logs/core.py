@@ -9,6 +9,7 @@ import os
 from typing import DefaultDict
 
 from utils import context
+from utils.tools import logger
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 
 
@@ -41,23 +42,32 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
     def _read(self):
         for filename in self._get_files():
-            with open(filename, "r") as f:
-                buffer = []
-                for line in f:
-                    if line.endswith("\n"):
-                        line = line[:-1]  # remove tailing \n
-                    line = self._clean_line(line)
+            logger.info(f"For {self}, reading {filename}")
+            log_count = 0
+            try:
+                with open(filename, "r") as f:
+                    buffer = []
+                    for line in f:
+                        if line.endswith("\n"):
+                            line = line[:-1]  # remove tailing \n
+                        line = self._clean_line(line)
 
-                    if self._is_skipped_line(line):
-                        continue
+                        if self._is_skipped_line(line):
+                            continue
 
-                    if self._is_new_log_line(line) and len(buffer):
-                        yield "\n".join(buffer) + "\n"
-                        buffer = []
+                        if self._is_new_log_line(line) and len(buffer):
+                            log_count += 1
+                            yield "\n".join(buffer) + "\n"
+                            buffer = []
 
-                    buffer.append(line)
+                        buffer.append(line)
 
-                yield "\n".join(buffer) + "\n"
+                    log_count += 1
+                    yield "\n".join(buffer) + "\n"
+
+                logger.info(f"Reading {filename} is finished, {log_count} has been treated")
+            except FileNotFoundError:
+                logger.error(f"File not found: {filename}")
 
     def wait(self):
         for log_line in self._read():
@@ -102,8 +112,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def assert_presence(self, pattern, **extra_conditions):
         self.append_validation(_LogPresence(pattern, **extra_conditions))
 
-    def assert_absence(self, pattern):
-        self.append_validation(_LogAbsence(pattern))
+    def assert_absence(self, pattern, allowed_patterns=[]):
+        self.append_validation(_LogAbsence(pattern, allowed_patterns))
 
     def append_log_validation(self, validator):  # TODO rename
         self.append_validation(_LogValidation(validator))
@@ -129,7 +139,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
 
             source = p("source", r"[a-z\.]+")
             timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d:\d\d\d [+\-]0000")
-            thread = p("thread", r"[\w\-]+")
+            thread = p("thread", r"[^\]]+")
             level = p("level", r"\w+")
             klass = p("klass", r"[\w\.$]+")
             message = p("message", r".*")
@@ -193,7 +203,12 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
     def _get_files(self):
         result = []
 
-        for f in os.listdir("logs/docker/weblog/logs/"):
+        try:
+            files = os.listdir("logs/docker/weblog/logs/")
+        except FileNotFoundError:
+            files = []
+
+        for f in files:
             filename = os.path.join("logs/docker/weblog/logs/", f)
 
             if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+.log", filename):
@@ -218,11 +233,12 @@ class _LogPresence(BaseValidation):
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
-                    self.log_info(f"For {self}, pattern was found, but condition on [{key}] was not found")
+                    self.log_info(f"For {self}, {repr(self.pattern.pattern)} was found, but [{key}] field is missing")
+                    self.log_info(f"-> Log line is {data['message']}")
                     return
                 elif not extra_pattern.search(data[key]):
                     self.log_info(
-                        f"For {self}, pattern was found, but condition on [{key}] failed: "
+                        f"For {self}, {repr(self.pattern.pattern)} was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"
                     )
                     return
@@ -232,13 +248,19 @@ class _LogPresence(BaseValidation):
 
 
 class _LogAbsence(BaseValidation):
-    def __init__(self, pattern):
+    def __init__(self, pattern, allowed_patterns=[]):
         super().__init__()
         self.pattern = re.compile(pattern)
+        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns]
         self.failed_logs = []
 
     def check(self, data):
         if self.pattern.search(data["raw"]):
+
+            for pattern in self.allowed_patterns:
+                if pattern.search(data["raw"]):
+                    return
+
             self.failed_logs.append(data["raw"])
 
     def final_check(self):
@@ -279,3 +301,15 @@ class _LogValidation(BaseValidation):
                 self.is_success_on_expiry = True
         except Exception as e:
             self.set_failure(f"{self.message} not validated: {e}\nLog is: {data['raw']}")
+
+
+class Test:
+    def test_main(self):
+        """ Test example """
+        i = _LibraryStdout()
+        i.assert_presence(r".*", level="DEBUG")
+        i.__test__()
+
+
+if __name__ == "__main__":
+    Test().test_main()

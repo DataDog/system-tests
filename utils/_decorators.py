@@ -6,62 +6,39 @@ from utils._context.core import context
 from utils._xfail import xfails
 
 
-def _get_wrapped_class(klass, skip_reason):
+def _get_skipped_item(item, skip_reason):
 
-    logger.info(f"{klass.__name__} class, {skip_reason} => skipped")
+    if not inspect.isfunction(item) and not inspect.isclass(item):
+        raise Exception(f"Unexpected skipped object: {item}")
 
-    @pytest.mark.skip(reason=skip_reason)
-    class Test(klass):
-        pass
+    logger.info(f"{item.__name__} => {skip_reason} => skipped")
 
-    Test.__doc__ = klass.__doc__
+    if not hasattr(item, "pytestmark"):
+        setattr(item, "pytestmark", [])
 
-    return Test
+    item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
 
-
-def _get_wrapped_function(function, skip_reason):
-    logger.info(f"{function.__name__} function, {skip_reason} => skipped")
-
-    @pytest.mark.skip(reason=skip_reason)
-    def wrapper(*args, **kwargs):
-        return function(*args, **kwargs)
-
-    wrapper.__doc__ = function.__doc__
-
-    return wrapper
+    return item
 
 
-def _get_expected_failure_function(function, skip_reason):
-    logger.info(f"{function.__name__} function, {skip_reason} => xfail")
+def _get_expected_failure_item(item, skip_reason):
 
-    xfails.add_xfailed_method(function)
+    if not inspect.isfunction(item) and not inspect.isclass(item):
+        raise Exception(f"Unexpected skipped object: {item}")
 
-    @pytest.mark.expected_failure(reason=skip_reason)
-    def wrapper(*args, **kwargs):
-        return function(*args, **kwargs)
+    logger.info(f"{item.__name__} => {skip_reason} => xfail")
 
-    wrapper.__doc__ = function.__doc__
+    xfails.add_xfailed_method(item)
 
-    return wrapper
+    if not hasattr(item, "pytestmark"):
+        setattr(item, "pytestmark", [])
 
+    item.pytestmark.append(pytest.mark.expected_failure(reason=skip_reason))
 
-def _get_expected_failure_class(klass, skip_reason):
+    if inspect.isclass(item):
+        xfails.add_xfailed_class(item)
 
-    logger.info(f"{klass.__name__} class, {skip_reason} => xfail")
-
-    @pytest.mark.expected_failure(reason=skip_reason)
-    class Test(klass):
-        pass
-
-    Test.__doc__ = klass.__doc__
-    if hasattr(klass, "__real_test_class__"):
-        Test.__real_test_class__ = klass.__real_test_class__
-    else:
-        Test.__real_test_class__ = klass
-
-    xfails.add_xfailed_class(Test.__real_test_class__)
-
-    return Test
+    return item
 
 
 def _should_skip(condition=None, library=None, weblog_variant=None):
@@ -88,13 +65,7 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
             return function_or_class
 
         full_reason = "missing feature" if reason is None else f"missing feature: {reason}"
-
-        if inspect.isfunction(function_or_class):
-            return _get_expected_failure_function(function_or_class, full_reason)
-        elif inspect.isclass(function_or_class):
-            return _get_expected_failure_class(function_or_class, full_reason)
-        else:
-            raise Exception(f"Unexpected skipped object: {function_or_class}")
+        return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
 
@@ -110,13 +81,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
             return function_or_class
 
         full_reason = "not relevant" if reason is None else f"not relevant: {reason}"
-
-        if inspect.isfunction(function_or_class):
-            return _get_wrapped_function(function_or_class, full_reason)
-        elif inspect.isclass(function_or_class):
-            return _get_wrapped_class(function_or_class, full_reason)
-        else:
-            raise Exception(f"Unexpected skipped object: {function_or_class}")
+        return _get_skipped_item(function_or_class, full_reason)
 
     return decorator
 
@@ -135,13 +100,7 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
             return function_or_class
 
         full_reason = "known bug" if reason is None else f"known bug: {reason}"
-
-        if inspect.isfunction(function_or_class):
-            return _get_expected_failure_function(function_or_class, full_reason)
-        elif inspect.isclass(function_or_class):
-            return _get_expected_failure_class(function_or_class, full_reason)
-        else:
-            raise Exception(f"Unexpected skipped object: {function_or_class}")
+        return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
 
@@ -157,13 +116,7 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
             return function_or_class
 
         full_reason = "known bug (flaky)" if reason is None else f"known bug (flaky): {reason}"
-
-        if inspect.isfunction(function_or_class):
-            return _get_wrapped_function(function_or_class, full_reason)
-        elif inspect.isclass(function_or_class):
-            return _get_wrapped_class(function_or_class, full_reason)
-        else:
-            raise Exception(f"Unexpected skipped object: {function_or_class}")
+        return _get_skipped_item(function_or_class, full_reason)
 
     return decorator
 
@@ -183,6 +136,8 @@ def released(
 
             if component_name in test_class.__released__:
                 raise ValueError(f"A {component_name}' version for {test_class.__name__} has been declared twice")
+
+            released_version = _compute_released_version(released_version)
 
             test_class.__released__[component_name] = released_version
 
@@ -217,7 +172,7 @@ def released(
         if len(skip_reasons) != 0:
             for reason in skip_reasons:
                 logger.info(f"{test_class.__name__} class, {reason} => skipped")
-            return _get_expected_failure_class(test_class, skip_reasons[0])  # use the first skip reason found
+            return _get_expected_failure_item(test_class, skip_reasons[0])  # use the first skip reason found
         else:
             return test_class
 
@@ -230,3 +185,19 @@ def rfc(link):
         return item
 
     return wrapper
+
+
+def _compute_released_version(released_version):
+    if isinstance(released_version, str):
+        return released_version
+
+    if isinstance(released_version, dict):
+        if context.weblog_variant in released_version:
+            return released_version[context.weblog_variant]
+
+        if "*" in released_version:
+            return released_version["*"]
+
+        return None
+
+    raise TypeError(f"Unsuported release info: {released_version}")

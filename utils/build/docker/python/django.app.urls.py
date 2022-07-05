@@ -1,6 +1,10 @@
 # pages/urls.py
 from django.urls import path
 from django.http import HttpResponse
+from ddtrace import tracer
+
+
+tracer.trace("init.service").finish()
 
 
 def hello_world(request):
@@ -11,8 +15,9 @@ def sample_rate(request, i):
     return HttpResponse("OK")
 
 
-def waf(request, url=""):
+def waf(request, *args, **kwargs):
     return HttpResponse("Hello, World!")
+
 
 urlpatterns = [
     path("", hello_world),
@@ -20,5 +25,5 @@ urlpatterns = [
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
+    path("params/<appscan_fingerprint>", waf),
 ]
-

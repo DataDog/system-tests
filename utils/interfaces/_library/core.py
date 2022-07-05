@@ -9,12 +9,15 @@ from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._library.remote_configuration import _RemoteConfigurationValidation
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
 from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
     _ReceiveRequestRootTrace,
     _SpanValidation,
+    _SpanTagValidation,
+    _TracesValidation,
     _TraceExistence,
 )
 from utils.interfaces._library.sampling import (
@@ -23,13 +26,14 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidation,
     _DistributedTracesDeterministicSamplingDecisisonValidation,
 )
-from utils.interfaces._library.trace_headers import (
-    _TraceHeadersContainerTags,
-    _TraceHeadersCount,
-    _TraceHeadersPresent,
-    _TraceHeadersPresentPhp,
-    _TraceHeadersContainerTagsCpp,
+from utils.interfaces._library.telemetry import (
+    _TelemetryValidation,
+    _SeqIdLatencyValidation,
+    _NoSkippedSeqId,
+    _TelemetryProxyValidation,
+    TELEMETRY_AGENT_ENDPOINT,
 )
+from utils.interfaces._misc_validators import HeadersPresenceValidation
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
@@ -41,9 +45,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
         if context.library == "java":
-            self.expected_timeout = 80
-        elif context.library.library in ("php", "nodejs"):
+            self.expected_timeout = 30
+        elif context.library.library in ("golang",):
+            self.expected_timeout = 10
+        elif context.library.library in ("nodejs",):
             self.expected_timeout = 5
+        elif context.library.library in ("php",):
+            self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
         else:
             self.expected_timeout = 40
 
@@ -51,20 +59,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready.set()
         return super().append_data(data)
 
-    def assert_trace_headers_container_tags(self):
-        self.append_validation(_TraceHeadersContainerTags())
-
-    def assert_trace_headers_container_tags_cpp(self):
-        self.append_validation(_TraceHeadersContainerTagsCpp())
-
-    def assert_trace_headers_present(self):
-        self.append_validation(_TraceHeadersPresent())
-
-    def assert_trace_headers_present_php(self):
-        self.append_validation(_TraceHeadersPresentPhp())
-
-    def assert_trace_headers_count_match(self):
-        self.append_validation(_TraceHeadersCount())
+    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+        self.append_validation(
+            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
+        )
 
     def assert_receive_request_root_trace(self):
         self.append_validation(_ReceiveRequestRootTrace())
@@ -105,16 +103,45 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_metric_absence(self, metric_name):
         self.append_validation(_MetricAbsence(metric_name))
 
-    def add_span_validation(self, request=None, validator=None):
-        self.append_validation(_SpanValidation(request=request, validator=validator))
+    def add_traces_validation(self, validator, is_success_on_expiry=False):
+        self.append_validation(_TracesValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
-    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None):
+    def add_span_validation(self, request=None, validator=None, is_success_on_expiry=False):
         self.append_validation(
-            _AppSecValidation(request=request, validator=validator, legacy_validator=legacy_validator)
+            _SpanValidation(request=request, validator=validator, is_success_on_expiry=is_success_on_expiry)
         )
+
+    def add_span_tag_validation(self, request=None, tags={}, value_as_regular_expression=False):
+        self.append_validation(
+            _SpanTagValidation(request=request, tags=tags, value_as_regular_expression=value_as_regular_expression)
+        )
+
+    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None, is_success_on_expiry=False):
+        self.append_validation(
+            _AppSecValidation(
+                request=request,
+                validator=validator,
+                legacy_validator=legacy_validator,
+                is_success_on_expiry=is_success_on_expiry,
+            )
+        )
+
+    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
+        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
+
+    def assert_seq_ids_are_roughly_sequential(self):
+        self.append_validation(_SeqIdLatencyValidation())
+
+    def assert_no_skipped_seq_ids(self):
+        self.append_validation(_NoSkippedSeqId())
+
+    def assert_all_telemetry_messages_proxied(self, agent_interface):
+        validation = _TelemetryProxyValidation.LibToAgent()
+        self.append_validation(validation)
+        agent_interface.append_validation(_TelemetryProxyValidation(validation))
 
     def add_profiling_validation(self, validator):
         self.append_validation(_ProfilingValidation(validator))
@@ -122,8 +149,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
 
-    def assert_trace_exists(self, request):
-        self.append_validation(_TraceExistence(request=request))
+    def assert_trace_exists(self, request, span_type=None):
+        self.append_validation(_TraceExistence(request=request, span_type=span_type))
+
+    def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
+        self.append_validation(_RemoteConfigurationValidation(validator, is_success_on_expiry=is_success_on_expiry))
 
 
 class _TraceIdUniquenessExceptions:
