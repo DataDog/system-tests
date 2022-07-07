@@ -2,9 +2,9 @@
 
 set -eu
 
-echo "Loading install script"
-curl -Lf -o /tmp/dd-library-php-setup.php \
-  https://raw.githubusercontent.com/DataDog/dd-appsec-php/installer/dd-library-php-setup.php
+# echo "Loading install script"
+# curl -Lf -o /tmp/dd-library-php-setup.php \
+#   https://raw.githubusercontent.com/DataDog/dd-appsec-php/installer/dd-library-php-setup.php
 
 cd /binaries
 
