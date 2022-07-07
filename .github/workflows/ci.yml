@@ -108,10 +108,10 @@ jobs:
             version: prod
 
           - library: php
-            weblog-variant: apache-mod
+            weblog-variant: apache-mod-8.0
             version: prod
           - library: php
-            weblog-variant: apache-mod
+            weblog-variant: apache-mod-8.0
             version: dev
           - library: php
             weblog-variant: php-fpm
