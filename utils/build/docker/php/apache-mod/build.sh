@@ -2,6 +2,8 @@
 
 set -e
 
+PHP_MAJOR_VERSION=$(php -r "echo PHP_MAJOR_VERSION;")
+PHP_MINOR_VERSION=$(php -r "echo PHP_MINOR_VERSION;")
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
 VARIANT=$(php-config --prefix| grep release-zts && echo release-zts || echo "")
 
@@ -28,8 +30,11 @@ curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/downlo
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
 
-/bin/bash -c 'if [[ "${PHP_VERSION:0:1}" -ge 8 ]]; then sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.{conf,load}; else \
-  sed -i "s/%PHP_MAJOR_VERSION/${PHP_VERSION:0:1}/g" /etc/apache2/mods-available/php.{conf,load}; fi'
+if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]]; then
+	sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.{conf,load};
+else
+  sed -i "s/%PHP_MAJOR_VERSION/${PHP_MAJOR_VERSION}/g" /etc/apache2/mods-available/php.{conf,load};
+fi
 
 if php-config --prefix | grep -q release-zts; \
 	then sed -i "s/%MPM/event/" /etc/apache2/mods-available/php.load; \
