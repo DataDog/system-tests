@@ -44,7 +44,7 @@ Build images used for system tests.
 * For `java`: `spring-boot` (default)
 * For `nodejs`: `express4` (default), `express4-typescript`
 * For `php`: `apache-mod` (default), `php-fpm`
-* For `python`: `flask-poc` (default), `uwsgi-poc`
+* For `python`: `flask-poc` (default), `uwsgi-poc`, `django-poc`
 * For `ruby`: `rails70` (default), `rack`, `sinatra21`, and lot of other sinatra/rails versions
 
 
