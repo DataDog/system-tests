@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 PHP_VERSION=$1
 
 apt-get update
@@ -15,13 +17,14 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm
+apt-get install -y php$PHP_VERSION-fpm \
+	 php$PHP_VERSION-json
 
 find /var/www/html -mindepth 1 -delete
 
 
 cp -rf /tmp/php/common/*.php /var/www/html/
-cp /tmp/php/php-fpm/php$PHP_VERSION-fpm.conf /etc/apache2/conf-available/
+cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 
 a2enmod rewrite
