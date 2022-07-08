@@ -1,6 +1,9 @@
 from concurrent import futures
 
 import ddtrace
+from ddtrace.constants import ERROR_MSG
+from ddtrace.constants import ERROR_STACK
+from ddtrace.constants import ERROR_TYPE
 import grpc
 
 from .pb import apm_test_client_pb2, apm_test_client_pb2_grpc
@@ -33,6 +36,13 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         span = self._spans[request.span_id]
         span.set_metric(request.key, request.value)
         return apm_test_client_pb2.SpanSetMetricReturn()
+
+    def SpanSetError(self, request, context):
+        span = self._spans[request.span_id]
+        span.set_tag(ERROR_MSG, request.message)
+        span.set_tag(ERROR_TYPE, request.type)
+        span.set_tag(ERROR_STACK, request.stack)
+        return apm_test_client_pb2.SpanSetErrorReturn()
 
     def FinishSpan(self, request, context):
         span = self._spans[request.id]

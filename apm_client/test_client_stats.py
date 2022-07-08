@@ -38,6 +38,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
         )
     return parametrize("apm_test_server_env", [env])
 
+
 @all_libs()
 @enable_tracestats()
 def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
@@ -46,35 +47,45 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
         Each span has stats computed for it and is in its own bucket
         The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
     """
-    NAME="name"
-    RESOURCE="resource"
-    SERVICE="service"
-    TYPE="http"
-    HTTP_STATUS_CODE="200"
-    ORIGIN="rum"
+    NAME = "name"
+    RESOURCE = "resource"
+    SERVICE = "service"
+    TYPE = "http"
+    HTTP_STATUS_CODE = "200"
+    ORIGIN = "rum"
 
     # Baseline
     with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Name
-    with test_client.start_span(name="unique-name", resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
+    with test_client.start_span(
+        name="unique-name", resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN
+    ) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Resource
-    with test_client.start_span(name=NAME, resource="unique-resource", service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
+    with test_client.start_span(
+        name=NAME, resource="unique-resource", service=SERVICE, typestr=TYPE, origin=ORIGIN
+    ) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Service
-    with test_client.start_span(name=NAME, resource=RESOURCE, service="unique-service", typestr=TYPE, origin=ORIGIN) as span:
+    with test_client.start_span(
+        name=NAME, resource=RESOURCE, service="unique-service", typestr=TYPE, origin=ORIGIN
+    ) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Type
-    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr="unique-type", origin=ORIGIN) as span:
+    with test_client.start_span(
+        name=NAME, resource=RESOURCE, service=SERVICE, typestr="unique-type", origin=ORIGIN
+    ) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique Synthetics
-    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin="synthetics") as span:
+    with test_client.start_span(
+        name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin="synthetics"
+    ) as span:
         span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
 
     # Unique HTTP Status Code
@@ -97,12 +108,15 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
     assert "Duration" in bucket
     assert "Stats" in bucket
     stats = bucket["Stats"]
-    assert len(stats) == 7, "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
+    assert (
+        len(stats) == 7
+    ), "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
 
     for s in stats:
         assert s["Hits"] == 1
         assert s["TopLevelHits"] == 1
         assert s["Duration"] > 0
+
 
 @all_libs()
 @enable_tracestats()
@@ -138,7 +152,7 @@ def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agen
     postgres_stats = [s for s in stats if s["Name"] == "postgres.query"][0]
     assert postgres_stats["Resource"] == "SELECT 1"
     assert postgres_stats["Service"] == "postgres"
-    assert postgres_stats["Type"] is None  # FIXME: add span type
+    assert postgres_stats["Type"] in ["", None]  # FIXME: add span type
     assert postgres_stats["Hits"] == 1
     assert postgres_stats["TopLevelHits"] == 1
     assert postgres_stats["Duration"] > 0
@@ -146,27 +160,32 @@ def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agen
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
     assert web_stats["Resource"] == "/users"
     assert web_stats["Service"] == "webserver"
-    assert web_stats["Type"] is None  # FIXME: add span type
+    assert web_stats["Type"] in ["", None]
     assert web_stats["Hits"] == 1
     assert web_stats["TopLevelHits"] == 1
     assert web_stats["Duration"] > 0
 
+
 @all_libs()
 @enable_tracestats()
-def test_successes_errors_recorded_separately_TS006(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_successes_errors_recorded_separately_TS006(
+    apm_test_server_env, apm_test_server_factory, test_agent, test_client
+):
     """
     When spans are marked as errors
         The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
     """
     # Send 2 successes
-    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web") as span:
+    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web"):
         pass
 
-    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web") as span:
+    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web"):
         pass
 
     # Send 1 failure
-    with test_client.start_span(name="web.request", resource="/health-check", service="webserver", typestr="web") as span:
+    with test_client.start_span(
+        name="web.request", resource="/health-check", service="webserver", typestr="web"
+    ) as span:
         span.set_error(message="Unable to load resources")
 
     test_client.flush()
@@ -198,9 +217,10 @@ def test_successes_errors_recorded_separately_TS006(apm_test_server_env, apm_tes
     assert stat["OkSummary"] is not None
     assert stat["ErrorSummary"] is not None
 
+
 @all_libs()
 @enable_tracestats()
-def test_measured_spans(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When spans are marked as measured
         Each has stats computed for it
@@ -232,20 +252,20 @@ def test_measured_spans(apm_test_server_env, apm_test_server_factory, test_agent
 
 @all_libs()
 @enable_tracestats(sample_rate=0.0)
-def test_sample_rate_0(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_sample_rate_0_TS007(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
         trace stats should be produced
     """
-    with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
+    with test_client.start_span(name="web.request", resource="/users", service="webserver"):
         pass
     test_client.flush()
 
     traces = test_agent.traces()
     assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
-    requests = test_agent.v06_stats_requests()
 
+    requests = test_agent.v06_stats_requests()
     stats = requests[0]["body"]["Stats"][0]["Stats"]
     assert len(stats) == 1, "Only one stats aggregation is expected"
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
