@@ -270,12 +270,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library != 'python' && matrix.library != 'php' }}
+        if: ${{ matrix.version == 'dev' && matrix.library != 'php' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
-
-      - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library == 'python' }}
-        run: echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > binaries/python-load-from-pip
 
       - name: Load library PHP appsec binary
         if: ${{ matrix.version == 'dev' && matrix.library == 'php' }}

@@ -48,7 +48,7 @@ def deserialize_http_message(path, message, data, interface, key):
     elif interface == "library" and key == "response" and path == "/info":
         return json.loads(data)
     elif content_type == "application/msgpack" or content_type == "application/msgpack, application/msgpack":
-        result = msgpack.unpackb(data)
+        result = msgpack.unpackb(data, unicode_errors="replace")
 
         if interface == "library" and path == "/v0.4/traces":
             for span in (span for trace in result for span in trace):
