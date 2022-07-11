@@ -276,7 +276,7 @@ def test_agent(request, tmp_path):
         for i in range(200):
             try:
                 client.traces()
-            except requests.exceptions.ConnectionError as e:
+            except requests.exceptions.ConnectionError:
                 time.sleep(0.1)
             else:
                 break

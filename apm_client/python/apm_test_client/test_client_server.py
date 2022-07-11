@@ -1,6 +1,7 @@
 from concurrent import futures
 
 import ddtrace
+from ddtrace.context import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
@@ -15,12 +16,21 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         super().__init__()
 
     def StartSpan(self, request, context):
+        assert bool(request.parent_id) != (request.origin is not None), "Cannot specify both a parent id and an origin"
         if request.parent_id:
             parent = self._spans[request.parent_id]
         else:
             parent = None
+
+        if request.origin is not None:
+            parent = Context(dd_origin=request.origin)
         span = ddtrace.tracer.start_span(
-            request.name, service=request.service, resource=request.resource, child_of=parent, activate=True
+            request.name,
+            service=request.service,
+            span_type=request.type,
+            resource=request.resource,
+            child_of=parent,
+            activate=True,
         )
         self._spans[span.span_id] = span
         return apm_test_client_pb2.StartSpanReturn(
@@ -42,6 +52,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         span.set_tag(ERROR_MSG, request.message)
         span.set_tag(ERROR_TYPE, request.type)
         span.set_tag(ERROR_STACK, request.stack)
+        span.error = 1
         return apm_test_client_pb2.SpanSetErrorReturn()
 
     def FinishSpan(self, request, context):

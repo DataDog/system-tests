@@ -47,49 +47,49 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
         Each span has stats computed for it and is in its own bucket
         The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
     """
-    NAME = "name"
-    RESOURCE = "resource"
-    SERVICE = "service"
-    TYPE = "http"
-    HTTP_STATUS_CODE = "200"
-    ORIGIN = "rum"
+    name = "name"
+    resource = "resource"
+    service = "service"
+    type = "http"
+    http_status_code = "200"
+    origin = "rum"
 
     # Baseline
-    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
-        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+    with test_client.start_span(name=name, resource=resource, service=service, typestr=type, origin=origin) as span:
+        span.set_meta(key="http.status_code", val=http_status_code)
 
     # Unique Name
     with test_client.start_span(
-        name="unique-name", resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN
+        name="unique-name", resource=resource, service=service, typestr=type, origin=origin
     ) as span:
-        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+        span.set_meta(key="http.status_code", val=http_status_code)
 
     # Unique Resource
     with test_client.start_span(
-        name=NAME, resource="unique-resource", service=SERVICE, typestr=TYPE, origin=ORIGIN
+        name=name, resource="unique-resource", service=service, typestr=type, origin=origin
     ) as span:
-        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+        span.set_meta(key="http.status_code", val=http_status_code)
 
     # Unique Service
     with test_client.start_span(
-        name=NAME, resource=RESOURCE, service="unique-service", typestr=TYPE, origin=ORIGIN
+        name=name, resource=resource, service="unique-service", typestr=type, origin=origin
     ) as span:
-        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+        span.set_meta(key="http.status_code", val=http_status_code)
 
     # Unique Type
     with test_client.start_span(
-        name=NAME, resource=RESOURCE, service=SERVICE, typestr="unique-type", origin=ORIGIN
+        name=name, resource=resource, service=service, typestr="unique-type", origin=origin
     ) as span:
-        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+        span.set_meta(key="http.status_code", val=http_status_code)
 
     # Unique Synthetics
     with test_client.start_span(
-        name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin="synthetics"
+        name=name, resource=resource, service=service, typestr=type, origin="synthetics"
     ) as span:
-        span.set_meta(key="http.status_code", val=HTTP_STATUS_CODE)
+        span.set_meta(key="http.status_code", val=http_status_code)
 
     # Unique HTTP Status Code
-    with test_client.start_span(name=NAME, resource=RESOURCE, service=SERVICE, typestr=TYPE, origin=ORIGIN) as span:
+    with test_client.start_span(name=name, resource=resource, service=service, typestr=type, origin=origin) as span:
         span.set_meta(key="http.status_code", val="400")
 
     test_client.flush()
@@ -97,16 +97,10 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Only one stats request is expected"
     request = requests[0]["body"]
-    for key in ("Hostname", "Env", "Version", "Stats"):
-        assert key in request, "%r should be in stats request" % key
-
     buckets = request["Stats"]
     assert len(buckets) == 1, "There should be one bucket containing the stats"
 
     bucket = buckets[0]
-    assert "Start" in bucket
-    assert "Duration" in bucket
-    assert "Stats" in bucket
     stats = bucket["Stats"]
     assert (
         len(stats) == 7
