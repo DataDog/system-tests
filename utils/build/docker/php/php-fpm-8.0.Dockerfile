@@ -16,7 +16,6 @@ RUN rm -rf /tmp/php/
 
 EXPOSE 7777/tcp
 
-ADD utils/build/docker/php/php-fpm/entrypoint.sh /
 WORKDIR /binaries
 ENTRYPOINT []
 RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh

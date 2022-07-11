@@ -32,7 +32,9 @@ fi
 echo "Install args are ${INSTALLER_ARGS[@]}"
 
 export DD_APPSEC_ENABLED=0
-echo /tmp/dd-library-php-setup.php "${INSTALLER_ARGS[@]}" --php-bin all
+php /tmp/dd-library-php-setup.php \
+  "${INSTALLER_ARGS[@]}"\
+  --php-bin all
 
 php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
   ./SYSTEM_TESTS_LIBRARY_VERSION
