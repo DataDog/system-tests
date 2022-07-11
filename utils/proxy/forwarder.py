@@ -157,11 +157,11 @@ class Forwarder(object):
             conn.close()
 
     def _modify_response(self, flow):
-        if self.state.get("mock_remote_config_backend_features"):
+        if self.state.get("mock_remote_config_backend") == "FEATURES":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_FEATURES)
-        elif self.state.get("mock_remote_config_backend_live_debugging"):
+        elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING)
-        elif self.state.get("mock_remote_config_backend_asm_dd"):
+        elif self.state.get("mock_remote_config_backend") == "ASM_DD":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD)
 
     def _modify_response_rc(self, flow, mocked_responses):

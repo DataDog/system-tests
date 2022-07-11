@@ -131,17 +131,17 @@ elif [ $SYSTEMTESTS_SCENARIO = "BACKEND_WAF" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_FEATURES" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend_features": true}'
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "FEATURES"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend_live_debugging": true}'
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend_asm_dd": true}'
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD"}'
 
 else # Let user choose the target
     export RUNNER_ARGS=$@
