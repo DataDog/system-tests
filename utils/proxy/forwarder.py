@@ -30,6 +30,7 @@ with open("system-tests/utils/proxy/rc_mocked_responses_features.json") as f:
 with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd.json") as f:
     RC_MOCKED_RESPONSES_ASM_DD = json.load(f)
 
+
 class Forwarder(object):
     def __init__(self):
         self.forward_ip = os.environ.get("FORWARD_TO_HOST", "runner")
