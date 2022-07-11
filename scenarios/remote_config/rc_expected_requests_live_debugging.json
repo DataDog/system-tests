@@ -3,6 +3,7 @@
 		"client": {
 			"state": {
 				"root_version": 1,
+				"targets_version": 0,
 				"backend_client_state": "eyJmb28iOiAiYmFyIn0="
 			}
 		}
@@ -62,11 +63,11 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
-				"length": 1493,
+				"length": 1503,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "3D6ly9bo7kMa58H1LD6gjdkeNuHhwLFzKWunafKEtkk="
+						"hash": "lYb0IH7Y7ykCgILLK7LXD6ocTdLokLJg0MaLJ19lp8A="
 					}
 				]
 			}
@@ -131,12 +132,12 @@
 				"targets_version": 6,
 				"config_states": [
 					{
-						"id": "LIVE_DEBUGGING-base",
+						"id": "LIVE_DEBUGGING-third",
 						"version": 1,
 						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "LIVE_DEBUGGING-third",
+						"id": "LIVE_DEBUGGING-base",
 						"version": 1,
 						"product": "LIVE_DEBUGGING"
 					}
@@ -146,15 +147,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-third/config"
-			},
-			{
 				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
 				"length": 1493,
 				"hashes": [
 					{
 						"algorithm": "sha256",
 						"hash": "3D6ly9bo7kMa58H1LD6gjdkeNuHhwLFzKWunafKEtkk="
+					}
+				]
+			},
+			{
+				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-third/config",
+				"length": 1500,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "hQ3axxLWFTbTlv6aUPDWM56DDXgyYuAXL+mQlXgZpjw="
 					}
 				]
 			}
@@ -187,17 +195,14 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
-				"length": 1493,
+				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-third/config",
+				"length": 1500,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "3D6ly9bo7kMa58H1LD6gjdkeNuHhwLFzKWunafKEtkk="
+						"hash": "hQ3axxLWFTbTlv6aUPDWM56DDXgyYuAXL+mQlXgZpjw="
 					}
 				]
-			},
-			{
-				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-third/config"
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-second/config",
@@ -206,6 +211,16 @@
 					{
 						"algorithm": "sha256",
 						"hash": "uq0J6grWRF91xRxZ/hPAjgFXHBcWTTU23lQPGlH8rPw="
+					}
+				]
+			},
+			{
+				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
+				"length": 1503,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "lYb0IH7Y7ykCgILLK7LXD6ocTdLokLJg0MaLJ19lp8A="
 					}
 				]
 			}
@@ -319,12 +334,55 @@
 		},
 		"cached_target_files": [
 			{
+				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-second/config",
+				"length": 1501,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "uq0J6grWRF91xRxZ/hPAjgFXHBcWTTU23lQPGlH8rPw="
+					}
+				]
+			},
+			{
 				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
 				"length": 1493,
 				"hashes": [
 					{
 						"algorithm": "sha256",
 						"hash": "3D6ly9bo7kMa58H1LD6gjdkeNuHhwLFzKWunafKEtkk="
+					}
+				]
+			}
+		]
+	},
+	{
+		"client": {
+			"state": {
+				"root_version": 1,
+				"targets_version": 11,
+				"config_states": [
+					{
+						"id": "LIVE_DEBUGGING-base",
+						"version": 2,
+						"product": "LIVE_DEBUGGING"
+					},
+					{
+						"id": "LIVE_DEBUGGING-second",
+						"version": 1,
+						"product": "LIVE_DEBUGGING"
+					}
+				],
+				"backend_client_state": "eyJmb28iOiAiYmFyIn0="
+			}
+		},
+		"cached_target_files": [
+			{
+				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
+				"length": 1503,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "lYb0IH7Y7ykCgILLK7LXD6ocTdLokLJg0MaLJ19lp8A="
 					}
 				]
 			},
@@ -348,16 +406,11 @@
 				"config_states": [
 					{
 						"id": "LIVE_DEBUGGING-base",
-						"version": 1,
+						"version": 2,
 						"product": "LIVE_DEBUGGING"
 					},
 					{
 						"id": "LIVE_DEBUGGING-second",
-						"version": 1,
-						"product": "LIVE_DEBUGGING"
-					},
-					{
-						"id": "LIVE_DEBUGGING-third",
 						"version": 1,
 						"product": "LIVE_DEBUGGING"
 					}
@@ -368,11 +421,11 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
-				"length": 1493,
+				"length": 1503,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "3D6ly9bo7kMa58H1LD6gjdkeNuHhwLFzKWunafKEtkk="
+						"hash": "lYb0IH7Y7ykCgILLK7LXD6ocTdLokLJg0MaLJ19lp8A="
 					}
 				]
 			},
@@ -383,60 +436,6 @@
 					{
 						"algorithm": "sha256",
 						"hash": "uq0J6grWRF91xRxZ/hPAjgFXHBcWTTU23lQPGlH8rPw="
-					}
-				]
-			},
-			{
-				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-third/config"
-			}
-		]
-	},
-	{
-		"client": {
-			"state": {
-				"root_version": 1,
-				"targets_version": 11,
-				"config_states": [
-					{
-						"id": "LIVE_DEBUGGING-base",
-						"version": 1,
-						"product": "LIVE_DEBUGGING"
-					},
-					{
-						"id": "LIVE_DEBUGGING-second",
-						"version": 1,
-						"product": "LIVE_DEBUGGING"
-					},
-					{
-						"id": "LIVE_DEBUGGING-third",
-						"version": 1,
-						"product": "LIVE_DEBUGGING"
-					}
-				],
-				"backend_client_state": "eyJmb28iOiAiYmFyIn0="
-			}
-		},
-		"cached_target_files": [
-			{
-				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-second/config",
-				"length": 1501,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "uq0J6grWRF91xRxZ/hPAjgFXHBcWTTU23lQPGlH8rPw="
-					}
-				]
-			},
-			{
-				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-third/config"
-			},
-			{
-				"path": "datadog/2/LIVE_DEBUGGING/LIVE_DEBUGGING-base/config",
-				"length": 1493,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "3D6ly9bo7kMa58H1LD6gjdkeNuHhwLFzKWunafKEtkk="
 					}
 				]
 			}

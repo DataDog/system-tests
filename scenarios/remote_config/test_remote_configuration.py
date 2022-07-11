@@ -137,7 +137,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
             if self.request_number >= len(FEATURES_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(FEATURES_EXPECTED_REQUESTS[self.request_number])
+            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number])
 
             self.request_number += 1
 
@@ -161,7 +161,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
             if self.request_number >= len(LIVE_DEBUGGING_EXPCTED_REQUESTS):
                 return True
 
-            rc_check_request(LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number])
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number])
 
             self.request_number += 1
 
@@ -185,7 +185,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(ASM_DD_EXPECTED_REQUESTS[self.request_number])
+            rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number])
 
             self.request_number += 1
 
