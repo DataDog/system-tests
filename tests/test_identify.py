@@ -59,7 +59,7 @@ class Test_Basic(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
+@released(dotnet="2.11.0", golang="?", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
 @coverage.basic
 class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
