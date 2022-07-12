@@ -52,6 +52,18 @@ app.get('/identify', (req, res) => {
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code)).send('OK');
 });
+app.get('/iast/insecure_hashing', (req, res) => {
+  const span = tracer.scope().active();
+  span.setTag('appsec.event"', true);
+  var crypto = require('crypto');
+  var name = 'insecure';
+  var hashMd5 = crypto.createHash('md5').update(name).digest('hex');
+  var hashMd4 = crypto.createHash('md4').update(name).digest('hex');
+  var hashSha1 = crypto.createHash('sha1').update(name).digest('hex');
+  var outputHashes = "MD5:".concat(hashMd5).concat("----").concat("MD4:").concat(hashMd4).concat("----").concat("sha1:").concat(hashSha1);
+  console.log(outputHashes); 
+  res.send(outputHashes);
+});
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
