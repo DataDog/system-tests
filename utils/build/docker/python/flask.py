@@ -39,5 +39,5 @@ def read_file():
 @app.route("/headers")
 def headers():
     resp = Response("OK")
-    resp.headers['Content-Language'] = 'en-US'
+    resp.headers["Content-Language"] = "en-US"
     return resp
