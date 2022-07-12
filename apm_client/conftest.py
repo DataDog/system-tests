@@ -124,7 +124,6 @@ RUN dotnet restore "./ApmTestClient.csproj"
 COPY . .
 WORKDIR "/client/."
 """,
-        # container_cmd=["bash", "-c", "go install && main"],
         container_cmd=["dotnet", "run"],
         container_build_dir=dotnet_dir,
         volumes=[
@@ -240,8 +239,11 @@ def docker_run(
         try:
             yield
         finally:
+            _cmd = [docker, "kill", name]
+            f.write(" ".join(_cmd) + "\n\n")
+            f.flush()
             subprocess.run(
-                [docker, "kill", name],
+                _cmd,
                 stdout=f,
                 stderr=f,
                 check=True,
@@ -330,8 +332,9 @@ def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_
             input=apm_test_server.container_img,
         )
 
-        env = {}
-        env["DD_TRACE_DEBUG"] = "true"
+        env = {
+            "DD_TRACE_DEBUG": "true",
+        }
         if sys.platform == "darwin" or sys.platform == "win32":
             env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:8126"
             # Not all clients support DD_TRACE_AGENT_URL

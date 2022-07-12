@@ -8,7 +8,6 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"log"
 	"net"
-	"os"
 )
 
 var (
@@ -74,15 +73,7 @@ func newServer() *apmClientServer {
 }
 
 func main() {
-	// FIXME: the go client doesn't support this environment variable
-	//        so enable stats manually.
-	//        stats cannot be enabled explicitly, only implicitly by enabling
-	//        discovery and then having the tracer find the stats endpoint.
-	if v := os.Getenv("DD_TRACE_COMPUTE_STATS"); v == "1" {
-		tracer.Start(tracer.WithFeatureFlags("discovery"))
-	} else {
-		tracer.Start()
-	}
+	tracer.Start()
 	defer tracer.Stop()
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", *port))

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/usr/bin/python3 -m virtualenv .venv
+/usr/bin/python3 -m venv .venv
 source .venv/bin/activate
-arch -x86_64 pip install --upgrade pip
-arch -x86_64 pip install -r requirements.txt
+pip install --upgrade pip wheel
+pip install -r requirements.txt

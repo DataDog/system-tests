@@ -1,18 +1,30 @@
 import os
+import pprint
 from typing import Any
 from typing import Optional
+from typing import List
 
 import pytest
+import numpy
 
 from .conftest import _TestTracer
 from .conftest import dotnet_library_server_factory
 from .conftest import golang_library_server_factory
 from .conftest import python_library_server_factory
 from .trace import SPAN_MEASURED_KEY
+from .trace import V06StatsAggr
 
 
 parametrize = pytest.mark.parametrize
 snapshot = pytest.mark.snapshot
+
+
+def _human_stats(stats: V06StatsAggr) -> str:
+    """Return human-readable stats for debugging stat aggregations."""
+    copy = stats.copy()
+    del copy["ErrorSummary"]
+    del copy["OkSummary"]
+    return str(copy)
 
 
 def all_libs() -> Any:
@@ -22,13 +34,17 @@ def all_libs() -> Any:
         "golang": golang_library_server_factory,
     }
     enabled = []
-    for lang in os.getenv("CLIENTS_ENABLED", "python,dotnet").split(","):
+    for lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
         enabled.append(libs[lang])
     return parametrize("apm_test_server_factory", enabled)
 
 
 def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
-    env = {"DD_TRACE_COMPUTE_STATS": "1", "DD_TRACE_STATS_COMPUTATION_ENABLED": "1"}
+    env = {
+        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference
+        "DD_TRACE_COMPUTE_STATS": "1",  # python
+        "DD_TRACE_FEATURES": "discovery",  # golang
+    }
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
         env.update(
@@ -232,6 +248,7 @@ def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test
 
     requests = test_agent.v06_stats_requests()
     stats = requests[0]["body"]["Stats"][0]["Stats"]
+    pprint.pprint([_human_stats(s) for s in stats])
     assert len(stats) == 3
 
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
@@ -265,6 +282,47 @@ def test_sample_rate_0_TS007(apm_test_server_env, apm_test_server_factory, test_
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
     assert web_stats["TopLevelHits"] == 1
     assert web_stats["Hits"] == 1
+
+
+@all_libs()
+@enable_tracestats()
+def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+    """
+    When trace stats are computed for traces
+        The stats should be accurate to within 1% of the real values
+
+    Note that this test uses the duration of actual spans created and so this test could be flaky.
+    This flakyness however would indicate a bug in the trace stats computation.
+    """
+    # Create 10 traces to get more data
+    for i in range(10):
+        with test_client.start_span(name="web.request", resource="/users", service="webserver"):
+            pass
+    test_client.flush()
+
+    traces = test_agent.traces()
+    assert len(traces) == 10
+
+    durations: List[int] = []
+    for trace in traces:
+        span = trace[0]["duration"]
+        durations.append(span)
+
+    requests = test_agent.v06_stats_requests()
+    stats = requests[0]["body"]["Stats"][0]["Stats"]
+    assert len(stats) == 1, "Only one stats aggregation is expected"
+    web_stats = [s for s in stats if s["Name"] == "web.request"][0]
+    assert web_stats["TopLevelHits"] == 10
+    assert web_stats["Hits"] == 10
+
+    # Validate the sketches
+    np_duration = numpy.array(durations)
+    assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
+    for quantile in (0.5, 0.75, 0.95, 0.99, 1):
+        assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
+            numpy.quantile(np_duration, quantile),
+            rel=0.01,
+        ), "Quantile mismatch for quantile %r" % quantile
 
 
 @snapshot(

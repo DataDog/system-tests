@@ -1,6 +1,9 @@
 from concurrent import futures
+from typing import Dict
+from typing import Union
 
 import ddtrace
+from ddtrace import Span
 from ddtrace.context import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
@@ -12,18 +15,21 @@ from .pb import apm_test_client_pb2, apm_test_client_pb2_grpc
 
 class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
     def __init__(self):
-        self._spans: dict[int, ddtrace.Span] = {}
+        self._spans: Dict[int, Span] = {}
         super().__init__()
 
     def StartSpan(self, request, context):
-        assert bool(request.parent_id) != (request.origin is not None), "Cannot specify both a parent id and an origin"
+        parent: Union[None, Span, Context]
         if request.parent_id:
             parent = self._spans[request.parent_id]
         else:
             parent = None
 
-        if request.origin is not None:
-            parent = Context(dd_origin=request.origin)
+        if request.origin not in ["", None]:
+            trace_id = parent.trace_id if parent else None
+            parent_id = parent.span_id if parent else None
+            parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
+
         span = ddtrace.tracer.start_span(
             request.name,
             service=request.service,
