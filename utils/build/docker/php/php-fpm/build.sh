@@ -46,4 +46,4 @@ sed -i s/PHP_MAJOR_VERSION/$PHP_MAJOR_VERSION/ /etc/apache2/conf-available/php$P
 export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
 cp /tmp/php/common/install_ddtrace.sh /
-/install_ddtrace.sh
+/install_ddtrace.sh 0

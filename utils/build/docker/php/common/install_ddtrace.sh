@@ -2,6 +2,8 @@
 
 set -eu
 
+IS_APACHE=$1
+
 echo "Loading install script"
 curl -Lf -o /tmp/dd-library-php-setup.php \
   https://raw.githubusercontent.com/DataDog/dd-appsec-php/installer/dd-library-php-setup.php
@@ -32,9 +34,15 @@ fi
 echo "Install args are ${INSTALLER_ARGS[@]}"
 
 export DD_APPSEC_ENABLED=0
-php /tmp/dd-library-php-setup.php \
-  "${INSTALLER_ARGS[@]}"\
-  --php-bin all
+if [[ $IS_APACHE -eq 0 ]]; then
+  php /tmp/dd-library-php-setup.php \
+    "${INSTALLER_ARGS[@]}"\
+    --php-bin all
+else
+  PHP_INI_SCAN_DIR="/etc/php" php /tmp/dd-library-php-setup.php \
+    "${INSTALLER_ARGS[@]}"\
+    --php-bin all
+fi
 
 php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
   ./SYSTEM_TESTS_LIBRARY_VERSION
