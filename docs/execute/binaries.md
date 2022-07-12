@@ -38,7 +38,7 @@ TODO
 ## Python library
 
 1. Add a file `binaries/python-load-from-pip`, the content will be installed by pip. Content example:
-  * `ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@master`
+  * `ddtrace @ git+https://github.com/DataDog/dd-trace-py.git`
 2. Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
 3. Clone the dd-trace-py repo inside `binaries`
 
