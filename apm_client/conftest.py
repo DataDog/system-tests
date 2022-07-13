@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Dict, Generator, List, Tuple, TypedDict
+from typing import Callable, Dict, Generator, List, Tuple, TypedDict
 import urllib.parse
 
 import grpc
@@ -51,6 +51,7 @@ def _request_token(request):
 
 @dataclasses.dataclass
 class APMClientTestServer:
+    lang: str
     container_name: str
     container_tag: str
     container_img: str
@@ -66,9 +67,13 @@ def apm_test_server_env():
     yield {}
 
 
-def python_library_server_factory(env: Dict[str, str]):
+ClientLibraryServerFactory = Callable[[Dict[str, str]], APMClientTestServer]
+
+
+def python_library_server_factory(env: Dict[str, str]) -> APMClientTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "python")
     return APMClientTestServer(
+        lang="python",
         container_name="python-test-client",
         container_tag="py39-test-client",
         container_img="""
@@ -89,6 +94,7 @@ RUN pip install ddtrace
 def golang_library_server_factory(env: Dict[str, str]):
     go_dir = os.path.join(os.path.dirname(__file__), "go")
     return APMClientTestServer(
+        lang="golang",
         container_name="go-test-client",
         container_tag="go118-test-client",
         container_img="""
@@ -114,6 +120,7 @@ def dotnet_library_server_factory(env: Dict[str, str]):
     dotnet_dir = os.path.join(os.path.dirname(__file__), "dotnet")
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
     return APMClientTestServer(
+        lang="dotnet",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
         container_img="""
@@ -187,6 +194,10 @@ class TestAgentAPI:
         resp = self._session.get(self._url("/test/session/clear"), **kwargs)
         return resp.json()
 
+    def info(self, **kwargs):
+        resp = self._session.get(self._url("/info"), **kwargs)
+        return resp.json()
+
     @contextlib.contextmanager
     def snapshot_context(self, token, ignores=None):
         ignores = ignores or []
@@ -220,6 +231,7 @@ def docker_run(
     _cmd: List[str] = [
         shutil.which("docker"),
         "run",
+        "-d",
         "--rm",
         "--name=%s" % name,
     ]
@@ -232,13 +244,33 @@ def docker_run(
             _cmd.extend(["-p", "%s:%s" % (k, v)])
         _cmd += [image]
         _cmd.extend(cmd)
-        f.write(" ".join(_cmd) + "\n\n")
+        f.write("$ " + " ".join(_cmd) + "\n\n")
         f.flush()
         docker = shutil.which("docker")
-        subprocess.Popen(_cmd, stdout=f, stderr=f)
+
+        # Run the docker container
+        r = subprocess.run(_cmd, stdout=f, stderr=f)
+        if r.returncode != 0:
+            f.close()
+            with open(log_file_path, "r") as f:
+                out = f.read()
+            pytest.fail(
+                "Could not start docker container %r with image %r: \n%s" % (name, image, out),
+                pytrace=False,
+            )
+
+        # Start collecting the logs of the container
+        _cmd = [
+            "docker",
+            "logs",
+            "-f",
+            name,
+        ]
+        docker_logs = subprocess.Popen(_cmd, stdout=f, stderr=f)
         try:
             yield
         finally:
+            docker_logs.kill()
             _cmd = [docker, "kill", name]
             f.write(" ".join(_cmd) + "\n\n")
             f.flush()
@@ -253,7 +285,8 @@ def docker_run(
 @pytest.fixture
 def docker() -> None:
     """Fixture to ensure docker is ready to use on the system."""
-    r = subprocess.run(["docker", "info"])
+    # Redirect output to /dev/null since we just care if we get a successful response code.
+    r = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if r.returncode != 0:
         pytest.fail(
             "Docker is not running and is required to run the shared APM client tests. Start docker and try running the tests again."
@@ -261,7 +294,12 @@ def docker() -> None:
 
 
 @pytest.fixture
-def test_agent(docker, request, tmp_path):
+def test_agent_port() -> str:
+    return "8126"
+
+
+@pytest.fixture
+def test_agent(docker, request, tmp_path, test_agent_port):
     # Build the container
     log_file_path = tmp_path / "ddapm_test_agent.out"
     print("ddapm_test_agent output: %s" % log_file_path)
@@ -280,17 +318,22 @@ def test_agent(docker, request, tmp_path):
         cmd=[],
         env=env,
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
-        ports=[("8126", "8126")],
+        ports=[(test_agent_port, test_agent_port)],
         log_file_path=str(log_file_path),
     ):
-        client = TestAgentAPI(base_url="http://localhost:8126")
+        client = TestAgentAPI(base_url="http://localhost:%s" % test_agent_port)
         # Wait for the agent to start
         for i in range(200):
             try:
-                client.traces()
+                resp = client.info()
             except requests.exceptions.ConnectionError:
                 time.sleep(0.1)
             else:
+                if resp["version"] != "test":
+                    pytest.fail(
+                        "Agent version %r is running instead of the test agent. Stop the agent on port %r and try again."
+                        % (resp["version"], test_agent_port)
+                    )
                 break
         else:
             pytest.fail("Could not connect to test agent, check the log file %r." % log_file_path, pytrace=False)
@@ -310,8 +353,8 @@ def test_agent(docker, request, tmp_path):
 
 
 @pytest.fixture
-def test_server(docker, tmp_path, apm_test_server: APMClientTestServer, test_server_log_file):
-    print("library output: %s" % test_server_log_file)
+def test_server(docker, tmp_path, test_agent_port: str, apm_test_server: APMClientTestServer, test_server_log_file):
+    print("%s client library output: %s" % (apm_test_server.lang, test_server_log_file))
 
     with open(test_server_log_file, "w") as f:
         # Write dockerfile to the build directory
@@ -346,12 +389,12 @@ def test_server(docker, tmp_path, apm_test_server: APMClientTestServer, test_ser
             "DD_TRACE_DEBUG": "true",
         }
         if sys.platform == "darwin" or sys.platform == "win32":
-            env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:8126"
+            env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:%s" % test_agent_port
             # Not all clients support DD_TRACE_AGENT_URL
             env["DD_AGENT_HOST"] = "host.docker.internal"
-            env["DD_TRACE_AGENT_PORT"] = "8126"
+            env["DD_TRACE_AGENT_PORT"] = test_agent_port
         else:
-            env["DD_TRACE_AGENT_URL"] = "http://localhost:8126"
+            env["DD_TRACE_AGENT_URL"] = "http://localhost:%s" % test_agent_port
         env.update(apm_test_server.env)
 
     with docker_run(

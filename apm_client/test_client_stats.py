@@ -3,6 +3,7 @@ import pprint
 from typing import Any
 from typing import Optional
 from typing import List
+from typing import Tuple
 
 import pytest
 import numpy
@@ -11,6 +12,7 @@ from .conftest import _TestTracer
 from .conftest import dotnet_library_server_factory
 from .conftest import golang_library_server_factory
 from .conftest import python_library_server_factory
+from .conftest import ClientLibraryServerFactory
 from .trace import SPAN_MEASURED_KEY
 from .trace import V06StatsAggr
 
@@ -33,10 +35,11 @@ def all_libs() -> Any:
         "dotnet": dotnet_library_server_factory,
         "golang": golang_library_server_factory,
     }
-    enabled = []
+    enabled: List[Tuple[str, ClientLibraryServerFactory]] = []
     for lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
-        enabled.append(libs[lang])
-    return parametrize("apm_test_server_factory", enabled)
+        enabled.append((lang, libs[lang]))
+    print("client libraries enabled: %s" % ",".join([l for l, _ in enabled]))
+    return parametrize("apm_test_server_factory", [factory for _, factory in enabled])
 
 
 def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
