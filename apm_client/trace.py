@@ -1,5 +1,7 @@
 """
 Tracing constants, data structures and helper methods.
+
+These are used to specify, test and work with trace data and protocols.
 """
 from typing import List
 from typing import Optional

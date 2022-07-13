@@ -1,9 +1,33 @@
-"""
+# APM Client library shared tests
+
+## Setup
+
+### Requirements
+
+- docker
+- protobuf
+- python interpreter 3.7 or later
+
+
+```sh
+./setup.sh
+```
+
+
+## Development
+
+In your shell
+
+```sh
+source .venv/bin/activate
+
+pytest
+```
+
 
 ## M1 mac install:
 
 ```sh
-./setup.py
 /usr/bin/python3 -m virtualenv .venv
 source .venv/bin/activate
 arch -x86_64 pip install --upgrade pip
