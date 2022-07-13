@@ -55,8 +55,8 @@ app.get('/status', (req, res) => {
 app.get('/iast/insecure_hashing', (req, res) => {
   const span = tracer.scope().active();
   span.setTag('appsec.event"', true);
-  var crypto = require('crypto');
-  var name = 'insecure';
+  const crypto = require('crypto');
+  const name = 'insecure';
   var hashMd5 = crypto.createHash('md5').update(name).digest('hex');
   var hashMd4 = crypto.createHash('md4').update(name).digest('hex');
   var hashSha1 = crypto.createHash('sha1').update(name).digest('hex');
