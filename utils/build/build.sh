@@ -49,7 +49,7 @@ elif [ "$TEST_LIBRARY" = "java" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-spring-boot}
 
 elif [ "$TEST_LIBRARY" = "php" ]; then
-    WEBLOG_VARIANT=${WEBLOG_VARIANT:-apache-mod}
+    WEBLOG_VARIANT=${WEBLOG_VARIANT:-apache-mod-8.0}
 
 elif [ "$TEST_LIBRARY" = "dotnet" ]; then
     WEBLOG_VARIANT=${WEBLOG_VARIANT:-poc}

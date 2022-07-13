@@ -71,7 +71,7 @@ class Test_LFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_120)
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
-    @irrelevant(library="php", weblog_variant="apache-mod")
+    @irrelevant(library="php", weblog_variant="apache-mod-8.0")
     @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_percent_2f(self):
         """ Appsec catches encoded LFI attacks"""
