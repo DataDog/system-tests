@@ -167,24 +167,24 @@ jobs:
           - library: php
             weblog-variant: php-fpm-7.3
             version: dev
-          - library: php
-            weblog-variant: php-fpm-7.2
-            version: prod
-          - library: php
-            weblog-variant: php-fpm-7.2
-            version: dev
-          - library: php
-            weblog-variant: php-fpm-7.1
-            version: prod
-          - library: php
-            weblog-variant: php-fpm-7.1
-            version: dev
-          - library: php
-            weblog-variant: php-fpm-7.0
-            version: prod
-          - library: php
-            weblog-variant: php-fpm-7.0
-            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.2
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.2
+#            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.1
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.1
+#            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.0
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.0
+#            version: dev
           - library: python
             weblog-variant: flask-poc
             version: dev
