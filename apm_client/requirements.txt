@@ -6,3 +6,4 @@ ddtrace
 ddsketch
 msgpack
 numpy
+black

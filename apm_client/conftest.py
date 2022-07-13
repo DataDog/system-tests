@@ -251,7 +251,17 @@ def docker_run(
 
 
 @pytest.fixture
-def test_agent(request, tmp_path):
+def docker() -> None:
+    """Fixture to ensure docker is ready to use on the system."""
+    r = subprocess.run(["docker", "info"])
+    if r.returncode != 0:
+        pytest.fail(
+            "Docker is not running and is required to run the shared APM client tests. Start docker and try running the tests again."
+        )
+
+
+@pytest.fixture
+def test_agent(docker, request, tmp_path):
     # Build the container
     log_file_path = tmp_path / "ddapm_test_agent.out"
     print("ddapm_test_agent output: %s" % log_file_path)
@@ -271,7 +281,7 @@ def test_agent(request, tmp_path):
         env=env,
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
         ports=[("8126", "8126")],
-        log_file_path=log_file_path,
+        log_file_path=str(log_file_path),
     ):
         client = TestAgentAPI(base_url="http://localhost:8126")
         # Wait for the agent to start
@@ -300,7 +310,7 @@ def test_agent(request, tmp_path):
 
 
 @pytest.fixture
-def test_server(tmp_path, apm_test_server: APMClientTestServer, test_server_log_file):
+def test_server(docker, tmp_path, apm_test_server: APMClientTestServer, test_server_log_file):
     print("library output: %s" % test_server_log_file)
 
     with open(test_server_log_file, "w") as f:

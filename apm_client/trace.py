@@ -19,11 +19,10 @@ Key used in the metrics map to toggle measuring a span.
 SPAN_MEASURED_KEY = "_dd.measured"
 
 
-
-
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
     """Stats aggregation data structure used in the v0.6/stats protocol."""
+
     Name: str
     Resource: str
     Type: str

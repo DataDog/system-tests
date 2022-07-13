@@ -322,7 +322,9 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
         assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
             numpy.quantile(np_duration, quantile),
             rel=0.01,
-        ), "Quantile mismatch for quantile %r" % quantile
+        ), (
+            "Quantile mismatch for quantile %r" % quantile
+        )
 
 
 @snapshot(
