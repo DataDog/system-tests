@@ -61,7 +61,6 @@ app.get('/iast/insecure_hashing', (req, res) => {
   var hashMd4 = crypto.createHash('md4').update(name).digest('hex');
   var hashSha1 = crypto.createHash('sha1').update(name).digest('hex');
   var outputHashes = "MD5:".concat(hashMd5).concat("----").concat("MD4:").concat(hashMd4).concat("----").concat("sha1:").concat(hashSha1);
-  console.log(outputHashes); 
   res.send(outputHashes);
 });
 
