@@ -21,4 +21,3 @@ ENTRYPOINT []
 RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
-	
