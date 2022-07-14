@@ -48,5 +48,5 @@ if ! { echo $VARIANT | grep -q zts; }; then a2dismod mpm_event; a2enmod mpm_pref
 a2enmod php
 
 sed -i s/80/7777/ /etc/apache2/ports.conf
-
+sed -i "s/\[Service\]/\[Service\]\nLimitCORE=infinity/" /etc/systemd/system/multi-user.target.wants/apache2.service
 /install_ddtrace.sh 1
