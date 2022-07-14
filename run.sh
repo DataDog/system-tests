@@ -149,6 +149,12 @@ do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/$container
 done
 
+# Enable coredumps
+prev_core_pattern=$(</proc/sys/kernel/core_pattern)
+mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs/coredumps
+chmod a+w $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs/coredumps
+echo "/var/log/system-tests/coredumps/core-%e-%s-%u-%g-%p-%t" > /proc/sys/kernel/core_pattern
+
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
 # But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
 # them in the docker-compose.yml is not possible
@@ -188,6 +194,8 @@ EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.Exi
 
 # Stop all containers
 docker-compose down --remove-orphans
+
+echo "$prev_core_pattern" > /proc/sys/kernel/core_pattern
 
 # Exit with runner's status
 echo "Exiting with ${EXIT_CODE}"

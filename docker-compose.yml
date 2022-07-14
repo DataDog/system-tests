@@ -48,6 +48,8 @@ services:
     ports:
       - "7777:7777"
       - "7778:7778"
+    ulimits:
+      core: -1
     depends_on:
       runner:
         condition: service_healthy
