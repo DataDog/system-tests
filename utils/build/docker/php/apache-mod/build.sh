@@ -24,6 +24,8 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 
+echo "CoreDumpDirectory /var/log/system-tests/coredumps/" >> /etc/apache2/apache2.conf
+
 a2enmod rewrite
 
 curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
