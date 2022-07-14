@@ -47,4 +47,4 @@ a2enmod php
 
 sed -i s/80/7777/ /etc/apache2/ports.conf
 
-/install_ddtrace.sh
+/install_ddtrace.sh 1
