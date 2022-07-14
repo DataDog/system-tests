@@ -134,21 +134,21 @@ jobs:
 #          - library: php
 #            weblog-variant: apache-mod-7.2
 #            version: prod
-#          - library: php
-#            weblog-variant: apache-mod-7.2
-#            version: dev
+          - library: php
+            weblog-variant: apache-mod-7.2
+            version: dev
 #          - library: php
 #            weblog-variant: apache-mod-7.1
 #            version: prod
-#          - library: php
-#            weblog-variant: apache-mod-7.1
-#            version: dev
+           - library: php
+             weblog-variant: apache-mod-7.1
+             version: dev
 #          - library: php
 #            weblog-variant: apache-mod-7.0
 #            version: prod
-#          - library: php
-#            weblog-variant: apache-mod-7.0
-#            version: dev
+           - library: php
+             weblog-variant: apache-mod-7.0
+             version: dev
           - library: php
             weblog-variant: php-fpm-8.1
             version: prod
