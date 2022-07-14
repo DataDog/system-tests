@@ -153,7 +153,7 @@ done
 #prev_core_pattern=$(</proc/sys/kernel/core_pattern)
 mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs/coredumps
 chmod a+w $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs/coredumps
-#sudo bash -c 'echo "/var/log/system-tests/coredumps/core-%e-%s-%u-%g-%p-%t" > /proc/sys/kernel/core_pattern' || true
+sudo bash -c 'echo "/var/log/system-tests/coredumps/core-%e-%s-%u-%g-%p-%t" > /proc/sys/kernel/core_pattern' || true
 
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
 # But some var need to be overwritten by some scenarios. We use this trick because optionnaly set

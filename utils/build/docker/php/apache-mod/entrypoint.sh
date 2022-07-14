@@ -15,6 +15,9 @@ touch "${LOGS_APACHE[@]}"
 chown root:adm "${LOGS_APACHE[@]}"
 
 export -p | sed 's@declare -x@export@' | tee /dev/stderr >> /etc/apache2/envvars
+chown -R www-data:www-data /var/log/system-tests/coredumps
+chmod 777 /var/log/system-tests/coredumps
+
 
 service apache2 start
 
