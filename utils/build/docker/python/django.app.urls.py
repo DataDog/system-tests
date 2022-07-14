@@ -19,6 +19,12 @@ def waf(request, *args, **kwargs):
     return HttpResponse("Hello, World!")
 
 
+def headers(request):
+    response = HttpResponse("OK")
+    response["Content-Language"] = "en-US"
+    return response
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -26,4 +32,5 @@ urlpatterns = [
     path("waf/", waf),
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
+    path("headers", headers),
 ]
