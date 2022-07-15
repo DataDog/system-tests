@@ -152,7 +152,7 @@ elif [ "$TARGET" = "dotnet" ]; then
     curl -L --silent $URL --output $ARCHIVE
 
 elif [ "$TARGET" = "python" ]; then
-    echo "git+https://github.com/DataDog/dd-trace-py.git@1.1" > python-load-from-pip
+    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
     echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
