@@ -24,7 +24,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
 @coverage.good
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
