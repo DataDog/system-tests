@@ -2,20 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature
+from utils import BaseTestCase, interfaces, context, missing_feature, coverage
 
 
-@missing_feature(context.library == "python", reason="Need to be implement in iast library")
-@missing_feature(context.library == "ruby", reason="Need to be implement in iast library")
-@missing_feature(context.library == "golang", reason="Need to be implement in iast library")
-@missing_feature(context.library == "php", reason="Need to be implement in iast library")
-@missing_feature(context.library == "dotnet", reason="Need to be implement in iast library")
-@missing_feature(context.library == "cpp", reason="Need to be implement in iast library")
-@missing_feature(weblog_variant="express4-typescript", reason="Need to build endpoint on weblog")
-@missing_feature(weblog_variant="jersey-grizzly2", reason="Need to build endpoint on weblog")
-@missing_feature(weblog_variant="resteasy-netty3", reason="Need to build endpoint on weblog")
-@missing_feature(weblog_variant="ratpack", reason="Need to build endpoint on weblog")
-@missing_feature(weblog_variant="vertx3", reason="Need to build endpoint on weblog")
+# Weblog are ok for nodejs/express4 and java/spring-boot
+@missing_feature(reason="Need to be implement in iast library")
+@coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
 class Test_Iast(BaseTestCase):
     """ Verify the IAST features """
 
