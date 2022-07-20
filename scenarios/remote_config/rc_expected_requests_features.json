@@ -39,7 +39,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			}
@@ -67,7 +67,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "o46/n6JWBx+YI6X1EqhOinhsjaKwcZRS3utdwofsmQ8="
+						"hash": "a38ebf9fa256071f9823a5f512a84e8a786c8da2b0719452deeb5dc287ec990f"
 					}
 				]
 			}
@@ -104,22 +104,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/FEATURES/FEATURES-second/config",
-				"length": 47,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/FEATURES/FEATURES-base/config",
 				"length": 47,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/FEATURES/FEATURES-second/config",
+				"length": 47,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			}
@@ -132,12 +132,12 @@
 				"targets_version": 6,
 				"config_states": [
 					{
-						"id": "FEATURES-base",
+						"id": "FEATURES-third",
 						"version": 1,
 						"product": "FEATURES"
 					},
 					{
-						"id": "FEATURES-third",
+						"id": "FEATURES-base",
 						"version": 1,
 						"product": "FEATURES"
 					}
@@ -152,7 +152,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			},
@@ -162,7 +162,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			}
@@ -195,12 +195,22 @@
 		},
 		"cached_target_files": [
 			{
+				"path": "datadog/2/FEATURES/FEATURES-base/config",
+				"length": 48,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "a38ebf9fa256071f9823a5f512a84e8a786c8da2b0719452deeb5dc287ec990f"
+					}
+				]
+			},
+			{
 				"path": "datadog/2/FEATURES/FEATURES-third/config",
 				"length": 47,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			},
@@ -210,17 +220,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
-					}
-				]
-			},
-			{
-				"path": "datadog/2/FEATURES/FEATURES-base/config",
-				"length": 48,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "o46/n6JWBx+YI6X1EqhOinhsjaKwcZRS3utdwofsmQ8="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			}
@@ -233,12 +233,12 @@
 				"targets_version": 8,
 				"config_states": [
 					{
-						"id": "FEATURES-second",
+						"id": "FEATURES-base",
 						"version": 1,
 						"product": "FEATURES"
 					},
 					{
-						"id": "FEATURES-base",
+						"id": "FEATURES-second",
 						"version": 1,
 						"product": "FEATURES"
 					}
@@ -253,7 +253,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			},
@@ -263,7 +263,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			}
@@ -276,12 +276,12 @@
 				"targets_version": 9,
 				"config_states": [
 					{
-						"id": "FEATURES-base",
+						"id": "FEATURES-second",
 						"version": 1,
 						"product": "FEATURES"
 					},
 					{
-						"id": "FEATURES-second",
+						"id": "FEATURES-base",
 						"version": 1,
 						"product": "FEATURES"
 					}
@@ -291,22 +291,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/FEATURES/FEATURES-base/config",
-				"length": 47,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/FEATURES/FEATURES-second/config",
 				"length": 47,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/FEATURES/FEATURES-base/config",
+				"length": 47,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			}
@@ -319,12 +319,12 @@
 				"targets_version": 10,
 				"config_states": [
 					{
-						"id": "FEATURES-base",
+						"id": "FEATURES-second",
 						"version": 1,
 						"product": "FEATURES"
 					},
 					{
-						"id": "FEATURES-second",
+						"id": "FEATURES-base",
 						"version": 1,
 						"product": "FEATURES"
 					}
@@ -334,22 +334,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/FEATURES/FEATURES-base/config",
-				"length": 47,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/FEATURES/FEATURES-second/config",
 				"length": 47,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/FEATURES/FEATURES-base/config",
+				"length": 47,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
 					}
 				]
 			}
@@ -362,13 +362,13 @@
 				"targets_version": 11,
 				"config_states": [
 					{
-						"id": "FEATURES-base",
-						"version": 2,
+						"id": "FEATURES-second",
+						"version": 1,
 						"product": "FEATURES"
 					},
 					{
-						"id": "FEATURES-second",
-						"version": 1,
+						"id": "FEATURES-base",
+						"version": 2,
 						"product": "FEATURES"
 					}
 				],
@@ -377,22 +377,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/FEATURES/FEATURES-base/config",
-				"length": 48,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "o46/n6JWBx+YI6X1EqhOinhsjaKwcZRS3utdwofsmQ8="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/FEATURES/FEATURES-second/config",
 				"length": 47,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/FEATURES/FEATURES-base/config",
+				"length": 48,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "a38ebf9fa256071f9823a5f512a84e8a786c8da2b0719452deeb5dc287ec990f"
 					}
 				]
 			}
@@ -405,13 +405,13 @@
 				"targets_version": 11,
 				"config_states": [
 					{
-						"id": "FEATURES-base",
-						"version": 2,
+						"id": "FEATURES-second",
+						"version": 1,
 						"product": "FEATURES"
 					},
 					{
-						"id": "FEATURES-second",
-						"version": 1,
+						"id": "FEATURES-base",
+						"version": 2,
 						"product": "FEATURES"
 					}
 				],
@@ -420,22 +420,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/FEATURES/FEATURES-base/config",
-				"length": 48,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "o46/n6JWBx+YI6X1EqhOinhsjaKwcZRS3utdwofsmQ8="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/FEATURES/FEATURES-second/config",
 				"length": 47,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kiHf2fYIQVExPj5JIBIa6ENhTDKORjDqNxumbi8VoKY="
+						"hash": "9221dfd9f6084151313e3e4920121ae843614c328e4630ea371ba66e2f15a0a6"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/FEATURES/FEATURES-base/config",
+				"length": 48,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "a38ebf9fa256071f9823a5f512a84e8a786c8da2b0719452deeb5dc287ec990f"
 					}
 				]
 			}
