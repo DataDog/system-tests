@@ -330,7 +330,7 @@ class Test_ResponseStatus(BaseTestCase):
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
+    @missing_feature(context.weblog_variant == "uwsgi-poc")
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
