@@ -12,23 +12,23 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 public class CryptoExamples {
 
 	private static CryptoExamples singleton;
-	
+
 	private CryptoExamples() {
-		
+
 	}
-	
+
 	public static CryptoExamples getSingleton() {
-		if(singleton == null) {
-			//Needed for MD4 implementation
+		if (singleton == null) {
+			// Needed for MD4 implementation
 			Security.addProvider(new BouncyCastleProvider());
 			singleton = new CryptoExamples();
 		}
 		return singleton;
 	}
-	
+
 	public String createInsecureHash(InsecureHashingAlgorithm alg, String password) {
 		String createdHash = null;
-		
+
 		try {
 			MessageDigest md = MessageDigest.getInstance(alg.getAlgorithmName());
 			md.update(password.getBytes());
@@ -40,9 +40,12 @@ public class CryptoExamples {
 		return createdHash;
 	}
 
+	public String traceDebugInsecureHash(InsecureHashingAlgorithm alg, String password) {
+		return alg.getAlgorithmName() + ":" + CryptoExamples.getSingleton().createInsecureHash(alg, password);
+	}
 
 	public static enum InsecureHashingAlgorithm {
-		SHA("SHA-1"), MD5("MD5"), MD4("MD4"), MD2("MD2");
+		sha1("SHA-1"), md5("MD5"), md4("MD4"), md2("MD2");
 
 		String algorithm;
 
@@ -54,8 +57,17 @@ public class CryptoExamples {
 			return Stream.of(InsecureHashingAlgorithm.values());
 		}
 
+		public static InsecureHashingAlgorithm getEnum(String value) {
+			try {
+				return InsecureHashingAlgorithm.valueOf(value);
+			} catch (IllegalArgumentException|NullPointerException e) {
+				return null;
+			}
+		}
+
 		public String getAlgorithmName() {
 			return this.algorithm;
 		}
+
 	}
 }

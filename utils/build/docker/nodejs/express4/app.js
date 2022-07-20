@@ -52,15 +52,28 @@ app.get('/identify', (req, res) => {
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code)).send('OK');
 });
+
 app.get('/iast/insecure_hashing', (req, res) => {
   const span = tracer.scope().active();
   span.setTag('appsec.event"', true);
+
   const crypto = require('crypto');
   const name = 'insecure';
-  var hashMd5 = crypto.createHash('md5').update(name).digest('hex');
-  var hashMd4 = crypto.createHash('md4').update(name).digest('hex');
-  var hashSha1 = crypto.createHash('sha1').update(name).digest('hex');
-  var outputHashes = `MD5:${hashMd5}----MD4:${hashMd4}----sha1:${hashSha1}`;
+  var supportedAlgorithms = [ 'md5', 'md4', 'sha1' ];
+  let algorithmName = req.query.algorithmName;
+
+  if (supportedAlgorithms.includes(algorithmName)){
+    supportedAlgorithms = supportedAlgorithms.filter(function(value, index, arr){ 
+      return value == algorithmName;
+    });
+  }
+
+  var outputHashes = "";
+  supportedAlgorithms.forEach(algorithm => {
+    var hash = crypto.createHash(algorithm).update(name).digest('hex')
+    outputHashes += `--- ${algorithm}:${hash} ---`
+  });
+  
   res.send(outputHashes);
 });
 

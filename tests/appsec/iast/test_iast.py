@@ -19,8 +19,27 @@ from utils import BaseTestCase, interfaces, context, missing_feature
 class Test_Iast(BaseTestCase):
     """ Verify the IAST features """
 
-    def test_main(self):
-        """ Test insecure hashing """
+    def test_insecure_hashing_all(self):
+        """ Test insecure hashing all algorithms"""
         r = self.weblog_get("/iast/insecure_hashing")
         interfaces.library.assert_trace_exists(r)
-        interfaces.library.add_assertion(r.status_code == 200)
+
+    def test_insecure_hashing_sha1(self):
+        """ Test insecure hashing sha1 algorithm"""
+        r = self.weblog_get("/iast/insecure_hashing?algorithmName=sha1")
+        interfaces.library.assert_trace_exists(r)
+
+    def test_insecure_hashing_md5(self):
+        """ Test insecure hashing md5 algorithm"""
+        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md5")
+        interfaces.library.assert_trace_exists(r)
+
+    def test_insecure_hashing_md4(self):
+        """ Test insecure hashing md4 algorithm"""
+        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md4")
+        interfaces.library.assert_trace_exists(r)
+
+    def test_insecure_hashing_md2(self):
+        """ Test insecure hashing md2 algorithm"""
+        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md2")
+        interfaces.library.assert_trace_exists(r)
