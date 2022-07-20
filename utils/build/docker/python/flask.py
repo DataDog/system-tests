@@ -41,3 +41,9 @@ def headers():
     resp = Response("OK")
     resp.headers["Content-Language"] = "en-US"
     return resp
+
+
+@app.route("/status")
+def status_code():
+    code = request.args.get("code", default=200, type=int)
+    return Response("OK, probably", status=code)
