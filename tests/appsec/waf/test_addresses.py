@@ -314,7 +314,7 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc2.dev", ruby="?")
+@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.4.0.dev", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(
     java="?"
