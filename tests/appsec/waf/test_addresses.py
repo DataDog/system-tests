@@ -314,8 +314,9 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.4.0.dev", ruby="?")
+@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0.dev", "uwsgi-poc": "?"})
 @released(
     java="?"
     if context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"]
@@ -330,7 +331,6 @@ class Test_ResponseStatus(BaseTestCase):
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @missing_feature(context.weblog_variant == "uwsgi-poc")
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
