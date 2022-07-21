@@ -121,8 +121,8 @@ class Test_Telemetry(BaseTestCase):
                 if agent_message != lib_message:
                     raise Exception(
                         f"Telemetry proxy message different in messages {lib_log_file} and {agent_log_file}:\n"
-                        "library sent {lib_message}\n"
-                        "agent sent {agent_message}"
+                        f"library sent {lib_message}\n"
+                        f"agent sent {agent_message}"
                     )
 
             if len(self.library_requests) != 0:
