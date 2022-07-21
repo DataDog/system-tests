@@ -141,7 +141,8 @@ class Test_Headers(BaseTestCase):
     if context.weblog_variant in ["echo", "chi"]
     else "1.34.0"
 )
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="1.3.0rc2.dev")
+@released(nodejs="2.0.0", php_appsec="0.1.0")
+@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.3.0rc2.dev", "uwsgi-poc": "?"})
 @coverage.good
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
