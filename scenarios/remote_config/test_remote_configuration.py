@@ -82,7 +82,7 @@ class Test_RemoteConfigurationFields(BaseTestCase):
         interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
 
 
-def rc_check_request(data, expected):
+def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
 
@@ -106,18 +106,20 @@ def rc_check_request(data, expected):
         for state in expected_config_states:
             assert state in config_states, f"{state} is not in {config_states}"
 
-    # verify that the tracer is properly storing and reporting on its local cached files
-    # The RFC allows for the tracer clients to cache, or not at all. If they decide to cache, they must
-    # properly retain all active configs and discard evicted configs, allowing us to test. By including
-    # the cached_target_files field they are opting in to caching in the eyes of our test.
-    expected_cached_target_files = expected.get("cached_target_files")
-    cached_target_files = content.get("cached_target_files")
-    if expected_cached_target_files is None and cached_target_files is not None:
-        raise Exception("client is not expected to have cached config but is reporting cached config")
-    elif cached_target_files is not None:
-        assert len(cached_target_files) == len(expected_cached_target_files)
-        for file in expected_cached_target_files:
-            assert file in cached_target_files, f"{file} is not in {cached_target_files}"
+    if not caching:
+        # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
+        assert "cached_target_files" not in expected, "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+    else:
+        expected_cached_target_files = expected.get("cached_target_files")
+        cached_target_files = content.get("cached_target_files")
+        if expected_cached_target_files is None and cached_target_files is not None:
+            raise Exception("client is not expected to have cached config but is reporting cached config")
+        if expected_cached_target_files is not None and cached_target_files is None:
+            raise Exception("client is expected to have cached config but is not reporting any")
+        elif cached_target_files is not None:
+            assert len(cached_target_files) == len(expected_cached_target_files)
+            for file in expected_cached_target_files:
+                assert file in cached_target_files, f"{file} is not in {cached_target_files}"
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -137,7 +139,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
             if self.request_number >= len(FEATURES_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number])
+            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
 
             self.request_number += 1
 
@@ -158,10 +160,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
         def validate(data):
             """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(LIVE_DEBUGGING_EXPCTED_REQUESTS):
+            if self.request_number >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number])
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number], caching=True)
 
             self.request_number += 1
 
@@ -185,7 +187,79 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number])
+            rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=True)
+
+            self.request_number += 1
+
+        interfaces.library.add_remote_configuration_validation(validator=validate)
+
+
+@rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
+@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@coverage.basic
+class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
+    """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
+
+    request_number = 0
+
+    def test_tracer_update_sequence(self):
+        """ test update sequence, based on a scenario mocked in the proxy """
+
+        def validate(data):
+            """ Helper to validate config request content """
+            logger.info(f"validating request number {self.request_number}")
+            if self.request_number >= len(FEATURES_EXPECTED_REQUESTS):
+                return True
+
+            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
+
+            self.request_number += 1
+
+        interfaces.library.add_remote_configuration_validation(validator=validate)
+
+
+@rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
+@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@coverage.basic
+class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
+    """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
+
+    request_number = 0
+
+    def test_tracer_update_sequence(self):
+        """ test update sequence, based on a scenario mocked in the proxy """
+
+        def validate(data):
+            """ Helper to validate config request content """
+            logger.info(f"validating request number {self.request_number}")
+            if self.request_number >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+                return True
+
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number], caching=False)
+
+            self.request_number += 1
+
+        interfaces.library.add_remote_configuration_validation(validator=validate)
+
+
+@rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
+@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@coverage.basic
+class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
+    """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
+
+    request_number = 0
+
+    def test_tracer_update_sequence(self):
+        """ test update sequence, based on a scenario mocked in the proxy """
+
+        def validate(data):
+            """ Helper to validate config request content """
+            logger.info(f"validating request number {self.request_number}")
+            if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
+                return True
+
+            rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=False)
 
             self.request_number += 1
 
