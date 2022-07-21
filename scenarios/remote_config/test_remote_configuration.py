@@ -108,7 +108,9 @@ def rc_check_request(data, expected, caching):
 
     if not caching:
         # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
-        assert "cached_target_files" not in expected, "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+        assert (
+            "cached_target_files" not in expected
+        ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
     else:
         expected_cached_target_files = expected.get("cached_target_files")
         cached_target_files = content.get("cached_target_files")
