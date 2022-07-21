@@ -99,7 +99,11 @@ class _TelemetryProxyValidation(BaseValidation):
 
         def check(self, data):
             seq_id = data["request"]["content"]["seq_id"]
-            self.library_messages[seq_id] = (data["request"]["content"], data["log_filename"])
+            runtime_id = data["request"]["content"]["runtime_id"]
+
+            key = (seq_id, runtime_id)
+
+            self.library_messages[key] = data
 
         def final_check(self):
             return super().final_check()
@@ -114,16 +118,24 @@ class _TelemetryProxyValidation(BaseValidation):
 
     def check(self, data):
         seq_id = data["request"]["content"]["seq_id"]
-        self.agent_messages[seq_id] = (data["request"]["content"], data["log_filename"])
+        runtime_id = data["request"]["content"]["runtime_id"]
+
+        key = (seq_id, runtime_id)
+
+        self.agent_messages[key] = data
 
     def final_check(self):
-        for seq_id, (message, agent_log_file) in self.agent_messages.items():
-            from_lib = self.lib_to_agent.library_messages.pop(seq_id, None)
-            if from_lib is None:
-                self.set_failure(f"Agent proxy forwarded message a that was not sent by the library:\n{message}")
+        for key, agent_data in self.agent_messages.items():
+            agent_message, agent_log_file = agent_data["request"]["content"], agent_data["log_filename"]
+
+            if key not in self.lib_to_agent.library_messages:
+                self.set_failure(f"Agent proxy forwarded a message that was not sent by the library:\n{agent_message}")
                 return
-            (lib_message, lib_log_file) = from_lib
-            if message != lib_message:
+
+            lib_data = self.lib_to_agent.library_messages.pop(key)
+            lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
+
+            if agent_message != lib_message:
                 self.set_failure(
                     f"Telemetry proxy message different\nlibrary -> agent got {lib_message}\nagent -> dd got {message}"
                     f"in messages {lib_log_file} and {agent_log_file}"
