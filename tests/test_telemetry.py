@@ -9,6 +9,10 @@ from utils import context, BaseTestCase, interfaces, missing_feature, bug
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
+    # containers for telemetry request to check consistency between library payloads and agent payloads
+    library_requests = {}
+    agent_requests = {}
+
     app_started_count = 0
 
     def test_status_ok(self):
@@ -94,5 +98,46 @@ class Test_Telemetry(BaseTestCase):
         """,
     )
     def test_proxy_forwarding(self):
-        """Test that the telemetry proxy forwards messages correctly"""
-        interfaces.library.assert_all_telemetry_messages_proxied(interfaces.agent)
+        """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
+
+        def save_data(data, container):
+            # payloads are identifed by their seq_id/runtime_id
+            key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
+            container[key] = data
+
+        def check_data_consistency():
+
+            for key, agent_data in self.agent_requests.items():
+                agent_message, agent_log_file = agent_data["request"]["content"], agent_data["log_filename"]
+
+                if key not in self.library_requests:
+                    raise Exception(
+                        f"Agent proxy forwarded a message that was not sent by the library: {agent_log_file}"
+                    )
+
+                lib_data = self.library_requests.pop(key)
+                lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
+
+                if agent_message != lib_message:
+                    raise Exception(
+                        f"Telemetry proxy message different in messages {lib_log_file} and {agent_log_file}:\n"
+                        "library sent {lib_message}\n"
+                        "agent sent {agent_message}"
+                    )
+
+            if len(self.library_requests) != 0:
+                raise Exception(
+                    f"The following telemetry messages were not forwarded by the agent: \n"
+                    f"{' '.join((data for _, data in self.library_requests.values()))}"
+                )
+
+            return True  # all good!
+
+        # save all data from lib to agent
+        interfaces.library.add_telemetry_validation(lambda data: save_data(data, self.library_requests), True)
+
+        # save all data from agent to backend
+        interfaces.agent.add_telemetry_validation(lambda data: save_data(data, self.agent_requests), True)
+
+        # At the end, check that all data are consistent
+        interfaces.agent.add_final_validation(check_data_consistency)
