@@ -40,7 +40,7 @@ class Test_StandardTagsMethod(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="3.0.0", php="0.76.0", python="?", ruby="?")
+@released(dotnet="?", golang="1.40.0", java="?", nodejs="3.0.0", php="0.76.0", python="?", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
@@ -92,7 +92,9 @@ class Test_StandardTagsUserAgent(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags, value_as_regular_expression=True)
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.0.0", php="0.75.0", python="?", ruby="?")
+@released(
+    dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.0.0", php="0.75.0", python="1.3.0rc2-dev", ruby="?"
+)
 @coverage.good
 class Test_StandardTagsStatusCode(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""

@@ -108,18 +108,89 @@ jobs:
             version: prod
 
           - library: php
-            weblog-variant: apache-mod
+            weblog-variant: apache-mod-8.1
             version: prod
           - library: php
-            weblog-variant: apache-mod
+            weblog-variant: apache-mod-8.1
             version: dev
           - library: php
-            weblog-variant: php-fpm
+            weblog-variant: apache-mod-8.0
             version: prod
           - library: php
-            weblog-variant: php-fpm
+            weblog-variant: apache-mod-8.0
             version: dev
-
+          - library: php
+            weblog-variant: apache-mod-7.4
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-7.4
+            version: dev
+          - library: php
+            weblog-variant: apache-mod-7.3
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-7.3
+            version: dev
+#          - library: php
+#            weblog-variant: apache-mod-7.2
+#            version: prod
+#          - library: php
+#            weblog-variant: apache-mod-7.2
+#            version: dev
+#          - library: php
+#            weblog-variant: apache-mod-7.1
+#            version: prod
+#          - library: php
+#            weblog-variant: apache-mod-7.1
+#            version: dev
+#          - library: php
+#            weblog-variant: apache-mod-7.0
+#            version: prod
+#          - library: php
+#            weblog-variant: apache-mod-7.0
+#            version: dev
+          - library: php
+            weblog-variant: php-fpm-8.1
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-8.1
+            version: dev
+          - library: php
+            weblog-variant: php-fpm-8.0
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-8.0
+            version: dev
+          - library: php
+            weblog-variant: php-fpm-7.4
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-7.4
+            version: dev
+          - library: php
+            weblog-variant: php-fpm-7.3
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-7.3
+            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.2
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.2
+#            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.1
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.1
+#            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.0
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.0
+#            version: dev
           - library: python
             weblog-variant: flask-poc
             version: dev
@@ -240,12 +311,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library != 'python' && matrix.library != 'php' }}
+        if: ${{ matrix.version == 'dev' && matrix.library != 'php' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
-
-      - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library == 'python' }}
-        run: echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > binaries/python-load-from-pip
 
       - name: Load library PHP appsec binary
         if: ${{ matrix.version == 'dev' && matrix.library == 'php' }}

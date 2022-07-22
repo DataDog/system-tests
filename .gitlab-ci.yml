@@ -20,7 +20,7 @@ cross-components:
   parallel:
     matrix:
       - TEST_LIBRARY: php
-        WEBLOG_VARIANT: apache-mod
+        WEBLOG_VARIANT: apache-mod-8.0
   script:
     - ./utils/scripts/load-binary.sh $TEST_LIBRARY
     - ./build.sh
@@ -42,7 +42,7 @@ cross-component-agent:
   parallel:
     matrix:
       - TEST_LIBRARY: php
-        WEBLOG_VARIANT: apache-mod
+        WEBLOG_VARIANT: apache-mod-8.0
   script:
     - ./utils/scripts/load-binary.sh agent
     - ./utils/scripts/load-binary.sh $TEST_LIBRARY

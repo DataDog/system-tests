@@ -30,7 +30,6 @@ from utils.interfaces._library.telemetry import (
     _TelemetryValidation,
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
-    _TelemetryProxyValidation,
     TELEMETRY_AGENT_ENDPOINT,
 )
 from utils.interfaces._misc_validators import HeadersPresenceValidation
@@ -137,11 +136,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def assert_no_skipped_seq_ids(self):
         self.append_validation(_NoSkippedSeqId())
-
-    def assert_all_telemetry_messages_proxied(self, agent_interface):
-        validation = _TelemetryProxyValidation.LibToAgent()
-        self.append_validation(validation)
-        agent_interface.append_validation(_TelemetryProxyValidation(validation))
 
     def add_profiling_validation(self, validator):
         self.append_validation(_ProfilingValidation(validator))

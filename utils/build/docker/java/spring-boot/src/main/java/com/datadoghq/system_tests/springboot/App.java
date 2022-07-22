@@ -18,6 +18,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -55,6 +56,7 @@ import static com.mongodb.client.model.Filters.eq;
 
 @RestController
 @EnableAutoConfiguration
+@ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
 
     CassandraConnector cassandra;
