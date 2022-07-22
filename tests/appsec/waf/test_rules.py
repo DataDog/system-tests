@@ -71,7 +71,7 @@ class Test_LFI(BaseTestCase):
         interfaces.library.assert_waf_attack(r, rules.lfi.crs_930_120)
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
-    @irrelevant(library="php", weblog_variant="apache-mod")
+    @irrelevant(library="php", weblog_variant="apache-mod-8.0")
     @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_percent_2f(self):
         """ Appsec catches encoded LFI attacks"""
@@ -187,7 +187,7 @@ class Test_JsInjection(BaseTestCase):
 @released(
     golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0" if context.weblog_variant == "echo" else "1.35.0"
 )
-@released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.3.0")
 @coverage.good
 class Test_XSS(BaseTestCase):
     """ Appsec WAF tests on XSS rules """
@@ -238,7 +238,7 @@ class Test_XSS(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(nodejs="2.0.0", php_appsec="0.1.0", python="1.3.0")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_SQLI(BaseTestCase):
@@ -280,7 +280,7 @@ class Test_SQLI(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_NoSqli(BaseTestCase):
