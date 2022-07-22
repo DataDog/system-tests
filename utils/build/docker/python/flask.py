@@ -1,5 +1,5 @@
 from ddtrace import tracer
-from flask import Flask, request
+from flask import Flask, request, Response
 
 
 app = Flask(__name__)
@@ -34,3 +34,16 @@ def read_file():
 
     with open(filename, "r") as f:
         return f.read()
+
+
+@app.route("/headers")
+def headers():
+    resp = Response("OK")
+    resp.headers["Content-Language"] = "en-US"
+    return resp
+
+
+@app.route("/status")
+def status_code():
+    code = request.args.get("code", default=200, type=int)
+    return Response("OK, probably", status=code)

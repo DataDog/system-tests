@@ -30,6 +30,15 @@ with open("system-tests/utils/proxy/rc_mocked_responses_features.json") as f:
 with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd.json") as f:
     RC_MOCKED_RESPONSES_ASM_DD = json.load(f)
 
+with open("system-tests/utils/proxy/rc_mocked_responses_live_debugging_nocache.json") as f:
+    RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE = json.load(f)
+
+with open("system-tests/utils/proxy/rc_mocked_responses_features_nocache.json") as f:
+    RC_MOCKED_RESPONSES_FEATURES_NO_CACHE = json.load(f)
+
+with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd_nocache.json") as f:
+    RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE = json.load(f)
+
 
 class Forwarder(object):
     def __init__(self):
@@ -163,6 +172,12 @@ class Forwarder(object):
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING)
         elif self.state.get("mock_remote_config_backend") == "ASM_DD":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD)
+        if self.state.get("mock_remote_config_backend") == "FEATURES_NO_CACHE":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_FEATURES_NO_CACHE)
+        elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING_NO_CACHE":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE)
+        elif self.state.get("mock_remote_config_backend") == "ASM_DD_NO_CACHE":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE)
 
     def _modify_response_rc(self, flow, mocked_responses):
         logger.info("modifying rc response")

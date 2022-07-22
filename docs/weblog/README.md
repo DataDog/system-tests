@@ -126,3 +126,12 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
     content
 </string>
 ```
+## `GET /iast/insecure_hashing`
+
+The end point accepts a non mandatory query string parameter `algorithmName`, which should be a string with one of these possible algorithm names:
+- sha1
+- md5
+- md4
+- md2
+
+If the `algorithmName` parameter is not present or does not match the above values, the endpoint will execute the hashing algorithm for each of the algorithm names listed previously.

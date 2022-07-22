@@ -39,7 +39,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "Rgh1TeQMgt9l1rjV0WstcichyHvG+zf7JM7FiuLTALc="
+						"hash": "4608754de40c82df65d6b8d5d16b2d722721c87bc6fb37fb24cec58ae2d300b7"
 					}
 				]
 			}
@@ -67,7 +67,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "gJwK2asmsr413jlNWOtqI/9FM6dwCcu7HBxKUDr2k90="
+						"hash": "809c0ad9ab26b2be35de394d58eb6a23ff4533a77009cbbb1c1c4a503af693dd"
 					}
 				]
 			}
@@ -109,7 +109,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "Rgh1TeQMgt9l1rjV0WstcichyHvG+zf7JM7FiuLTALc="
+						"hash": "4608754de40c82df65d6b8d5d16b2d722721c87bc6fb37fb24cec58ae2d300b7"
 					}
 				]
 			},
@@ -119,7 +119,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kyBdHGqsL/HNBVnoEEMDCyyvdcP0YiZ0PJMsG1EDE18="
+						"hash": "93205d1c6aac2ff1cd0559e81043030b2caf75c3f46226743c932c1b5103135f"
 					}
 				]
 			}
@@ -152,7 +152,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "Rgh1TeQMgt9l1rjV0WstcichyHvG+zf7JM7FiuLTALc="
+						"hash": "4608754de40c82df65d6b8d5d16b2d722721c87bc6fb37fb24cec58ae2d300b7"
 					}
 				]
 			},
@@ -162,7 +162,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "QDVgAHybtbgvoi5Bp3YpLR9go7lrDnqs6zOMZ809v70="
+						"hash": "403560007c9bb5b82fa22e41a776292d1f60a3b96b0e7aaceb338c67cd3dbfbd"
 					}
 				]
 			}
@@ -175,13 +175,13 @@
 				"targets_version": 7,
 				"config_states": [
 					{
-						"id": "ASM_DD-third",
-						"version": 1,
+						"id": "ASM_DD-base",
+						"version": 2,
 						"product": "ASM_DD"
 					},
 					{
-						"id": "ASM_DD-base",
-						"version": 2,
+						"id": "ASM_DD-third",
+						"version": 1,
 						"product": "ASM_DD"
 					},
 					{
@@ -195,22 +195,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/ASM_DD/ASM_DD-third/config",
-				"length": 235229,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "QDVgAHybtbgvoi5Bp3YpLR9go7lrDnqs6zOMZ809v70="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/ASM_DD/ASM_DD-base/config",
 				"length": 235229,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "gJwK2asmsr413jlNWOtqI/9FM6dwCcu7HBxKUDr2k90="
+						"hash": "809c0ad9ab26b2be35de394d58eb6a23ff4533a77009cbbb1c1c4a503af693dd"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/ASM_DD/ASM_DD-third/config",
+				"length": 235229,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "403560007c9bb5b82fa22e41a776292d1f60a3b96b0e7aaceb338c67cd3dbfbd"
 					}
 				]
 			},
@@ -220,7 +220,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kyBdHGqsL/HNBVnoEEMDCyyvdcP0YiZ0PJMsG1EDE18="
+						"hash": "93205d1c6aac2ff1cd0559e81043030b2caf75c3f46226743c932c1b5103135f"
 					}
 				]
 			}
@@ -233,12 +233,12 @@
 				"targets_version": 8,
 				"config_states": [
 					{
-						"id": "ASM_DD-base",
+						"id": "ASM_DD-second",
 						"version": 1,
 						"product": "ASM_DD"
 					},
 					{
-						"id": "ASM_DD-second",
+						"id": "ASM_DD-base",
 						"version": 1,
 						"product": "ASM_DD"
 					}
@@ -248,22 +248,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/ASM_DD/ASM_DD-base/config",
-				"length": 235229,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "Rgh1TeQMgt9l1rjV0WstcichyHvG+zf7JM7FiuLTALc="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/ASM_DD/ASM_DD-second/config",
 				"length": 235229,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kyBdHGqsL/HNBVnoEEMDCyyvdcP0YiZ0PJMsG1EDE18="
+						"hash": "93205d1c6aac2ff1cd0559e81043030b2caf75c3f46226743c932c1b5103135f"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/ASM_DD/ASM_DD-base/config",
+				"length": 235229,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "4608754de40c82df65d6b8d5d16b2d722721c87bc6fb37fb24cec58ae2d300b7"
 					}
 				]
 			}
@@ -296,7 +296,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "Rgh1TeQMgt9l1rjV0WstcichyHvG+zf7JM7FiuLTALc="
+						"hash": "4608754de40c82df65d6b8d5d16b2d722721c87bc6fb37fb24cec58ae2d300b7"
 					}
 				]
 			},
@@ -306,7 +306,7 @@
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "kyBdHGqsL/HNBVnoEEMDCyyvdcP0YiZ0PJMsG1EDE18="
+						"hash": "93205d1c6aac2ff1cd0559e81043030b2caf75c3f46226743c932c1b5103135f"
 					}
 				]
 			}
@@ -319,12 +319,12 @@
 				"targets_version": 10,
 				"config_states": [
 					{
-						"id": "ASM_DD-second",
+						"id": "ASM_DD-base",
 						"version": 1,
 						"product": "ASM_DD"
 					},
 					{
-						"id": "ASM_DD-base",
+						"id": "ASM_DD-second",
 						"version": 1,
 						"product": "ASM_DD"
 					}
@@ -334,22 +334,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/ASM_DD/ASM_DD-second/config",
-				"length": 235229,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "kyBdHGqsL/HNBVnoEEMDCyyvdcP0YiZ0PJMsG1EDE18="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/ASM_DD/ASM_DD-base/config",
 				"length": 235229,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "Rgh1TeQMgt9l1rjV0WstcichyHvG+zf7JM7FiuLTALc="
+						"hash": "4608754de40c82df65d6b8d5d16b2d722721c87bc6fb37fb24cec58ae2d300b7"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/ASM_DD/ASM_DD-second/config",
+				"length": 235229,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "93205d1c6aac2ff1cd0559e81043030b2caf75c3f46226743c932c1b5103135f"
 					}
 				]
 			}
@@ -362,13 +362,13 @@
 				"targets_version": 11,
 				"config_states": [
 					{
-						"id": "ASM_DD-second",
-						"version": 1,
+						"id": "ASM_DD-base",
+						"version": 2,
 						"product": "ASM_DD"
 					},
 					{
-						"id": "ASM_DD-base",
-						"version": 2,
+						"id": "ASM_DD-second",
+						"version": 1,
 						"product": "ASM_DD"
 					}
 				],
@@ -377,22 +377,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/ASM_DD/ASM_DD-second/config",
-				"length": 235229,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "kyBdHGqsL/HNBVnoEEMDCyyvdcP0YiZ0PJMsG1EDE18="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/ASM_DD/ASM_DD-base/config",
 				"length": 235229,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "gJwK2asmsr413jlNWOtqI/9FM6dwCcu7HBxKUDr2k90="
+						"hash": "809c0ad9ab26b2be35de394d58eb6a23ff4533a77009cbbb1c1c4a503af693dd"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/ASM_DD/ASM_DD-second/config",
+				"length": 235229,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "93205d1c6aac2ff1cd0559e81043030b2caf75c3f46226743c932c1b5103135f"
 					}
 				]
 			}
@@ -405,13 +405,13 @@
 				"targets_version": 11,
 				"config_states": [
 					{
-						"id": "ASM_DD-second",
-						"version": 1,
+						"id": "ASM_DD-base",
+						"version": 2,
 						"product": "ASM_DD"
 					},
 					{
-						"id": "ASM_DD-base",
-						"version": 2,
+						"id": "ASM_DD-second",
+						"version": 1,
 						"product": "ASM_DD"
 					}
 				],
@@ -420,22 +420,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/ASM_DD/ASM_DD-second/config",
-				"length": 235229,
-				"hashes": [
-					{
-						"algorithm": "sha256",
-						"hash": "kyBdHGqsL/HNBVnoEEMDCyyvdcP0YiZ0PJMsG1EDE18="
-					}
-				]
-			},
-			{
 				"path": "datadog/2/ASM_DD/ASM_DD-base/config",
 				"length": 235229,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "gJwK2asmsr413jlNWOtqI/9FM6dwCcu7HBxKUDr2k90="
+						"hash": "809c0ad9ab26b2be35de394d58eb6a23ff4533a77009cbbb1c1c4a503af693dd"
+					}
+				]
+			},
+			{
+				"path": "datadog/2/ASM_DD/ASM_DD-second/config",
+				"length": 235229,
+				"hashes": [
+					{
+						"algorithm": "sha256",
+						"hash": "93205d1c6aac2ff1cd0559e81043030b2caf75c3f46226743c932c1b5103135f"
 					}
 				]
 			}
