@@ -130,32 +130,32 @@ elif [ $SYSTEMTESTS_SCENARIO = "BACKEND_WAF" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_FEATURES" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_features
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "FEATURES"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging"
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD"
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_dd
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_FEATURES_NOCACHE" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache"
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_features_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "FEATURES_NO_CACHE"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache"
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache"
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_dd_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
 
 else # Let user choose the target
