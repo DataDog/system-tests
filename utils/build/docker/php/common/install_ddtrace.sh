@@ -61,6 +61,12 @@ php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrac
 php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
   ./SYSTEM_TESTS_PHP_APPSEC_VERSION
 
+# this line is failing
+php -d extension=ddtrace.so -d extension=ddappsec.so -d extension=datadog-profiling.so -r 'echo phpversion("datadog-profiling");'
+
+php -d extension=ddtrace.so -d extension=ddappsec.so -d extension=datadog-profiling.so -r 'echo phpversion("datadog-profiling");' > \
+  ./SYSTEM_TESTS_PHP_PROFILING_VERSION
+
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)

@@ -84,9 +84,12 @@ function install($options)
     $selectedBinaries = require_binaries_or_exit($options);
     $interactive = empty($options[OPT_PHP_BIN]);
 
+    echo "\n=======================================\nTRACER\n";
     install_tracer($options, $selectedBinaries);
-    install_appsec($options, $selectedBinaries);
+    echo "\n=======================================\nPROFILING\n";
     install_profiling($options, $selectedBinaries);
+    echo "\n=======================================\nAPPSEC\n";
+    install_appsec($options, $selectedBinaries);
 
     echo "--------------------------------------------------\n";
     echo "SUCCESS\n\n";
@@ -286,16 +289,42 @@ function install_profiling($options, $selectedBinaries)
         "tar -xf " . escapeshellarg($tmpDirTarGz) . " -C " . escapeshellarg($tmpDir)
     );
 
+    echo "TEMP DIR is $tmpDir";
     // TO BE CONTINUED
     execute_or_exit(
         "Cannot ls directory '$tmpDir'",
-        "ls -la " . escapeshellarg($tmpDir) . "/datadog-profiling/x86_64-alpine-linux-musl"
+        "ls -la " . escapeshellarg($tmpDir) . "/datadog-profiling/"
     );
 
-    execute_or_exit(
-        "Cannot ls directory '$tmpDir'",
-        "ls -la " . escapeshellarg($tmpDir) . "/datadog-profiling/x86_64-unknown-linux-gnu"
-    );
+    // Actual installation
+    foreach ($selectedBinaries as $command => $fullPath) {
+        $binaryForLog = ($command === $fullPath) ? $fullPath : "$command ($fullPath)";
+        echo "Installing profiling to binary: $binaryForLog\n";
+
+        $phpProperties = ini_values($fullPath);
+
+        // Copying the extension
+        $extensionVersion = $phpProperties[PHP_API];
+
+        $extensionSuffix = '';
+        if (is_alpine()) {
+            $extensionSuffix = 'x86_64-alpine-linux-musl';
+        } else {
+            $extensionSuffix = 'x86_64-unknown-linux-gnu';
+        }
+
+        $extensionFileName = 'datadog-profiling.so';
+        $extensionSource = $tmpDir . '/datadog-profiling/' . $extensionSuffix . '/lib/php/' . $extensionVersion . '/' . $extensionFileName;
+        $extensionDestination = $phpProperties[EXTENSION_DIR] . '/' . $extensionFileName;
+
+        /* Move - rename() - instead of copy() since copying does a fopen() and copies to the stream itself, causing a
+         * segfault in the PHP process that is running and had loaded the old shared object file.
+         */
+        $tmpExtName = $extensionDestination . '.tmp';
+        copy($extensionSource, $tmpExtName);
+        rename($tmpExtName, $extensionDestination);
+        echo "Copied '$extensionSource' to '$extensionDestination'\n";
+    }
 }
 
 function install_appsec($options, $selectedBinaries)
@@ -479,6 +508,7 @@ function uninstall($options)
         $phpProperties = ini_values($fullPath);
 
         $ddtracePath = $phpProperties[EXTENSION_DIR] . '/ddtrace.so';
+        $ddprofilingPath = $phpProperties[EXTENSION_DIR] . '/datadog-profiling.so';
         $ddappsecPath = $phpProperties[EXTENSION_DIR] . '/ddappsec.so';
 
         // Writing the ini file
