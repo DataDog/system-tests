@@ -19,7 +19,7 @@ if context.library == "cpp":
     else "1.34.0"
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
-@released(python="1.1.0rc2.dev" if context.weblog_variant == "django-poc" else "?")
+@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.3.0rc2.dev", "uwsgi-poc": "?"})
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
