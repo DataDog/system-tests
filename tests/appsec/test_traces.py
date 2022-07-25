@@ -59,7 +59,7 @@ class Test_RetainTraces(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(dotnet="1.29.0", java="0.92.0", nodejs="2.0.0")
+@released(dotnet="1.29.0", java="0.104.0", nodejs="2.0.0")
 @released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
 @coverage.good
 class Test_AppSecEventSpanTags(BaseTestCase):

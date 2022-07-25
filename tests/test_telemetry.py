@@ -1,6 +1,7 @@
-from utils import context, BaseTestCase, interfaces, missing_feature, bug
+from utils import context, BaseTestCase, interfaces, missing_feature, bug, released
 
 
+@released(dotnet="2.12.0")
 @missing_feature(library="cpp")
 @missing_feature(library="java")
 @missing_feature(library="ruby")
