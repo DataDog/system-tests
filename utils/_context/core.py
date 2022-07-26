@@ -114,6 +114,7 @@ class _Context:
 
     def serialize(self):
         result = {
+            "agent": str(self.agent_version),
             "library": self.library.serialize(),
             "weblog_variant": self.weblog_variant,
             "dd_site": self.dd_site,
