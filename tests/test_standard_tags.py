@@ -134,7 +134,7 @@ class Test_StandardTagsRoute(BaseTestCase):
             tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
-            
+
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
