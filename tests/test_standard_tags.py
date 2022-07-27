@@ -40,7 +40,7 @@ class Test_StandardTagsMethod(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="1.40.0", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
+@released(dotnet="2.13.0", golang="1.40.0", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
@@ -79,7 +79,7 @@ class Test_StandardTagsUrl(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="1.39.0", java="?", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
+@released(dotnet="2.13.0", golang="1.39.0", java="?", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -110,7 +110,7 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="1.39.0", nodejs="2.11.0", php="?", python="?", ruby="?")
+@released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
@@ -132,11 +132,13 @@ class Test_StandardTagsRoute(BaseTestCase):
             tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "golang" and context.weblog_variant not in ["gorilla", "chi"]:
             tags["http.route"] = "/sample_rate_route/:i"
+        if context.library == "dotnet":
+            tags["http.route"] = "/sample_rate_route/{i:int}"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="1.39.0", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
+@released(dotnet="2.13.0", golang="1.39.0", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
