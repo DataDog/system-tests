@@ -131,21 +131,21 @@ jobs:
           - library: php
             weblog-variant: apache-mod-7.3
             version: dev
-          - library: php
-            weblog-variant: apache-mod-7.2
-            version: prod
+          # - library: php
+          #   weblog-variant: apache-mod-7.2
+          #   version: prod
           - library: php
             weblog-variant: apache-mod-7.2
             version: dev
-          - library: php
-            weblog-variant: apache-mod-7.1
-            version: prod
+          # - library: php
+          #   weblog-variant: apache-mod-7.1
+          #   version: prod
           - library: php
             weblog-variant: apache-mod-7.1
             version: dev
-          - library: php
-            weblog-variant: apache-mod-7.0
-            version: prod
+          # - library: php
+          #   weblog-variant: apache-mod-7.0
+          #   version: prod
           - library: php
             weblog-variant: apache-mod-7.0
             version: dev
@@ -173,21 +173,21 @@ jobs:
           - library: php
             weblog-variant: apache-mod-7.3-zts
             version: dev
-          - library: php
-            weblog-variant: apache-mod-7.2-zts
-            version: prod
+          # - library: php
+          #   weblog-variant: apache-mod-7.2-zts
+          #   version: prod
           - library: php
             weblog-variant: apache-mod-7.2-zts
             version: dev
-          - library: php
-            weblog-variant: apache-mod-7.1-zts
-            version: prod
+          # - library: php
+          #   weblog-variant: apache-mod-7.1-zts
+          #   version: prod
           - library: php
             weblog-variant: apache-mod-7.1-zts
             version: dev
-          - library: php
-            weblog-variant: apache-mod-7.0-zts
-            version: prod
+          # - library: php
+          #   weblog-variant: apache-mod-7.0-zts
+          #   version: prod
           - library: php
             weblog-variant: apache-mod-7.0-zts
             version: dev
@@ -215,21 +215,21 @@ jobs:
           - library: php
             weblog-variant: php-fpm-7.3
             version: dev
-          - library: php
-            weblog-variant: php-fpm-7.2
-            version: prod
+          # - library: php
+          #   weblog-variant: php-fpm-7.2
+          #   version: prod
           - library: php
             weblog-variant: php-fpm-7.2
             version: dev
-          - library: php
-            weblog-variant: php-fpm-7.1
-            version: prod
+          # - library: php
+          #   weblog-variant: php-fpm-7.1
+          #   version: prod
           - library: php
             weblog-variant: php-fpm-7.1
             version: dev
-          - library: php
-            weblog-variant: php-fpm-7.0
-            version: prod
+          # - library: php
+          #   weblog-variant: php-fpm-7.0
+          #   version: prod
           - library: php
             weblog-variant: php-fpm-7.0
             version: dev
