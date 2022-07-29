@@ -51,7 +51,7 @@ Build images used for system tests.
 ## Real life examples
 
 By default, all images will uses production version of components (library and agent). You can use a specific
-version of a component by adding it inside `binaries/` ([documentation](../CI/binaries.md)). The main idea behind this behavior is to test a specific
+version of a component by adding it inside `binaries/` ([documentation](binaries.md)). The main idea behind this behavior is to test a specific
 version **against** production version of other components.
 
 ## Environement variables
