@@ -320,6 +320,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Load library PHP profiling binary
+        if: ${{ matrix.version == 'dev' && matrix.library == 'php' }}
+        run: |
+          echo Not possible as CircleCI require auth
+          # ./utils/scripts/load-binary.sh php_profiling
+
       - name: Load agent binary
         if: ${{ matrix.version == 'dev' }}
         run: ./utils/scripts/load-binary.sh agent

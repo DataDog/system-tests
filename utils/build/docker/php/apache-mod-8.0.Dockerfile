@@ -10,7 +10,10 @@ ENV DD_TRACE_HEADER_TAGS=user-agent
 
 EXPOSE 7777/tcp
 
+ARG PROFILING_VERSION=latest
 ADD binaries* /binaries/
+ADD utils/build/docker/php/common/dd-library-php-setup.php /tmp/dd-library-php-setup.php
+
 ADD utils/build/docker/php /tmp/php
 
 RUN chmod +x /tmp/php/apache-mod/build.sh
