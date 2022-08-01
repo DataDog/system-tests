@@ -319,7 +319,7 @@ class Test_ResponseStatus(BaseTestCase):
 
 @released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0.dev", "uwsgi-poc": "?"})
+@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0.dev", "uwsgi-poc": "?", "pylons": "1.1.0rc2.dev"})
 @released(
     java="?"
     if context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"]
