@@ -72,17 +72,20 @@ ClientLibraryServerFactory = Callable[[Dict[str, str]], APMClientTestServer]
 
 def python_library_server_factory(env: Dict[str, str]) -> APMClientTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "python")
+    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMClientTestServer(
         lang="python",
         container_name="python-test-client",
         container_tag="py39-test-client",
         container_img="""
-FROM python:3.9
+FROM datadog/dd-trace-py:buster
 WORKDIR /client
-RUN pip install grpcio==1.46.3 grpcio-tools==1.46.3
-RUN pip install ddtrace
-""",
-        container_cmd="python -m apm_test_client".split(" "),
+RUN pyenv global 3.9.11
+RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3
+RUN python3.9 -m pip install %s
+"""
+        % (python_package,),
+        container_cmd="python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_dir,
         volumes=[
             (os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),
