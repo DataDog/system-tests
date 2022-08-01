@@ -143,7 +143,7 @@ class Test_Headers(BaseTestCase):
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(
-    python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0rc1.dev", "uwsgi-poc": "?"}
+    python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0rc1.dev", "uwsgi-poc": "?", "pylons": "1.1.0rc2.dev"}
 )
 @coverage.good
 class Test_Cookies(BaseTestCase):
