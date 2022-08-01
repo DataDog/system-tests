@@ -14,7 +14,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
 # docker startup
 RUN echo '#!/bin/bash \n\
-paster serve development.ini' > /app.sh
+cd /app && paster serve development.ini' > /app.sh
 RUN chmod +x /app.sh
 CMD ./app.sh
 
