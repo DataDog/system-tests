@@ -23,7 +23,8 @@ def make_map(config):
     map.connect('/waf', controller='waf')
     map.connect('/waf/', controller='waf')
     map.connect('/waf/:url', controller='waf')
-    map.connect('/{controller}/{action}')
-    map.connect('/{controller}/{action}/{id}')
+    map.connect('/params/{action1}', controller='params')
+    map.connect('/params/{action1}/', controller='params')
+    map.connect('/params/{action1}/{action2}', controller='params')
 
     return map
