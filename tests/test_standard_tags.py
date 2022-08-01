@@ -93,7 +93,7 @@ class Test_StandardTagsUserAgent(BaseTestCase):
 
 
 @released(
-    dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.3.0rc2-dev", ruby="?"
+    dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.4.0rc1-dev", ruby="?"
 )
 @coverage.good
 class Test_StandardTagsStatusCode(BaseTestCase):
