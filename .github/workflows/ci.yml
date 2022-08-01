@@ -209,6 +209,12 @@ jobs:
           - library: python
             weblog-variant: django-poc
             version: prod
+          - library: python
+            weblog-variant: pylons
+            version: dev
+          - library: python
+            weblog-variant: pylons
+            version: prod
 
           - library: ruby
             weblog-variant: rack
