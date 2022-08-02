@@ -128,18 +128,22 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_response_headers)
 
     @bug(context.library < "java@0.93.0")
-    @irrelevant(library="php", reason="Trace outside a context of a web request is not possible on PHP")
     def test_root_span_coherence(self):
-        """ Appsec tags are not on span where type is not web """
+        """Appsec tags are not on span where type is not web"""
 
         def validator(span):
-            if span.get("type") in ["web", "http", "rpc"]:
-                return
-
-            if "metrics" in span and "_dd.appsec.enabled" in span["metrics"]:
+            if (
+                span.get("type") not in ["web", "http", "rpc"]
+                and "metrics" in span
+                and "_dd.appsec.enabled" in span["metrics"]
+            ):
                 raise Exception("_dd.appsec.enabled should be present only when span type is web")
 
-            if "meta" in span and "_dd.runtime_family" in span["meta"]:
+            if (
+                span.get("type") not in ["web", "http", "rpc"]
+                and "meta" in span
+                and "_dd.runtime_family" in span["meta"]
+            ):
                 raise Exception("_dd.runtime_family should be present only when span type is web")
 
             return True
