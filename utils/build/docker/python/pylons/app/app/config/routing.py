@@ -26,5 +26,7 @@ def make_map(config):
     map.connect('/params/{action1}', controller='params')
     map.connect('/params/{action1}/', controller='params')
     map.connect('/params/{action1}/{action2}', controller='params')
+    map.connect("/status", controller="status")
+    map.connect("/status/", controller="status")
 
     return map
