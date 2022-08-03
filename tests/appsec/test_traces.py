@@ -3,9 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-
-from utils import BaseTestCase, context, coverage, interfaces, released, bug, missing_feature, irrelevant, rfc
-
+from tests.constants import NEXT_PYTHON_RELEASE
+from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -251,7 +250,7 @@ class Test_AppSecObfuscator(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(dotnet="2.5.1", php_appsec="0.2.2", python="1.4.0rc1-dev", ruby="1.0.0.beta1")
+@released(dotnet="2.5.1", php_appsec="0.2.2", python=NEXT_PYTHON_RELEASE, ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
 @released(nodejs="2.0.0", java="0.102.0")
 @coverage.good

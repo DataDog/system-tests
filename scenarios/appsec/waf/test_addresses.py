@@ -3,9 +3,9 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky
 import pytest
-
+from tests.constants import NEXT_PYTHON_RELEASE
+from utils import BaseTestCase, bug, context, flaky, interfaces, irrelevant, missing_feature, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -20,7 +20,7 @@ if context.library == "cpp":
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(
-    python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0rc1.dev", "uwsgi-poc": "?", "pylons": "1.1.0rc2.dev"}
+    python={"django-poc": "1.1.0rc2.dev", "flask-poc": NEXT_PYTHON_RELEASE, "uwsgi-poc": "?", "pylons": "1.1.0rc2.dev"}
 )
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""

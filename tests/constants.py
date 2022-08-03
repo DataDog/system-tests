@@ -1,0 +1,1 @@
+NEXT_PYTHON_RELEASE = "1.4.0rc1.dev"
