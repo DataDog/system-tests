@@ -15,7 +15,7 @@ else
     go get -v -d -u gopkg.in/DataDog/dd-trace-go.v1
 fi
 
-go mod tidy
+go mod tidy -compat=1.17
 
 # Read the library version out of the version.go file
 mod_dir=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)
