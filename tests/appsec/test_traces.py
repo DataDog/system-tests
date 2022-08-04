@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from tests.constants import NEXT_PYTHON_RELEASE
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
 from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc
 
 if context.library == "cpp":
@@ -250,7 +250,7 @@ class Test_AppSecObfuscator(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(dotnet="2.5.1", php_appsec="0.2.2", python=NEXT_PYTHON_RELEASE, ruby="1.0.0.beta1")
+@released(dotnet="2.5.1", php_appsec="0.2.2", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
 @released(nodejs="2.0.0", java="0.102.0")
 @coverage.good

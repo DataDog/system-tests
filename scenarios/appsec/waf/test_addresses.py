@@ -4,7 +4,7 @@
 
 
 import pytest
-from tests.constants import NEXT_PYTHON_RELEASE
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
 from utils import BaseTestCase, bug, context, flaky, interfaces, irrelevant, missing_feature, released
 
 if context.library == "cpp":
@@ -20,7 +20,12 @@ if context.library == "cpp":
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(
-    python={"django-poc": "1.1.0rc2.dev", "flask-poc": NEXT_PYTHON_RELEASE, "uwsgi-poc": "?", "pylons": "1.1.0rc2.dev"}
+    python={
+        "django-poc": "1.1.0rc2.dev",
+        "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uwsgi-poc": "?",
+        "pylons": "1.1.0rc2.dev",
+    }
 )
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
