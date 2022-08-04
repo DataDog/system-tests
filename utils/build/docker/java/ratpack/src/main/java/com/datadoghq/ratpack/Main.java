@@ -63,6 +63,11 @@ public class Main {
                         })
                         .get("params/:params?:.*",
                                 ctx -> ctx.getResponse().send("text/plain", ctx.getPathTokens().toString()))
+                        .path("status", ctx -> {
+                            String codeParam = ctx.getRequest().getQueryParams().get("code");
+                            int code = Integer.parseInt(codeParam);
+                            ctx.getResponse().status(code).send();
+                        })
                 )
         );
         System.out.println("Ratpack server started on port 7777");

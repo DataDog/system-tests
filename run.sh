@@ -17,7 +17,7 @@ if [ -z "${DD_API_KEY:-}" ]; then
 fi
 
 containers=(weblog agent runner agent_proxy library_proxy)
-interfaces=(agent library)
+interfaces=(agent library backend)
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
 export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
@@ -47,13 +47,13 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
        # Test explicit config
         echo "Testing explicit UDS configuration path."
         export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
-    fi 
+    fi
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     WEBLOG_ENV="DD_TRACE_SAMPLE_RATE=0.5"
-    
+
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
@@ -110,6 +110,54 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
     WEBLOG_ENV="DD_APPSEC_TRACE_RATE_LIMIT=1"
 
+elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsShortFormat"
+    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_short
+    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1,header-tag2"
+
+elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
+    export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsLongFormat"
+    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
+    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
+    WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
+
+elif [ $SYSTEMTESTS_SCENARIO = "BACKEND_WAF" ]; then
+    # disable appsec
+    export RUNNER_ARGS=scenarios/backend/test_waf.py
+    export SYSTEMTESTS_LOG_FOLDER=logs_backend_waf
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false"
+
+elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_FEATURES" ]; then
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_features
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "FEATURES"}'
+
+elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; then
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging"
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
+
+elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD"
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_dd
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD"}'
+
+elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_FEATURES_NOCACHE" ]; then
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache"
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_features_nocache
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "FEATURES_NO_CACHE"}'
+
+elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE" ]; then
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache"
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging_nocache
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
+
+elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; then
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache"
+    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_dd_nocache
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
@@ -127,7 +175,7 @@ do
 done
 
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
-# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set 
+# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
 # them in the docker-compose.yml is not possible
 echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 

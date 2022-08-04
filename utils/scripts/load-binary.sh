@@ -33,7 +33,7 @@ get_circleci_artifact() {
     echo "CircleCI: https://app.circleci.com/pipelines/$SLUG?branch=master"
     PIPELINES=$(curl --silent https://circleci.com/api/v2/project/$SLUG/pipeline?branch=master -H "Circle-Token: $CIRCLECI_TOKEN")
 
-    for i in {1..30}; do
+    for i in {0..30}; do
         PIPELINE_ID=$(echo $PIPELINES| jq -r ".items[$i].id")
         PIPELINE_NUMBER=$(echo $PIPELINES | jq -r ".items[$i].number")
 
@@ -151,7 +151,7 @@ elif [ "$TARGET" = "dotnet" ]; then
     curl -L --silent $URL --output $ARCHIVE
 
 elif [ "$TARGET" = "python" ]; then
-    echo "git+https://github.com/DataDog/dd-trace-py.git@1.1" > python-load-from-pip
+    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
     echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
@@ -164,19 +164,18 @@ elif [ "$TARGET" = "php" ]; then
 elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
 
-    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/commits' | jq -r .[0].sha)
-    COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/v1' | jq -r .commit.sha)
+    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
+    echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
+    echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     x=1
 
 elif [ "$TARGET" = "agent" ]; then
-    # ???
-    x=1
+    echo "datadog/agent-dev:master-py3" > agent-image
+    echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master

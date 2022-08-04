@@ -3,6 +3,7 @@
 The docker compose file includes several dependancies between each services. Here is the startup diagram of all services:
 
 ```mermaid
+graph TD
     agent_proxy --> agent
     library_proxy --> agent
     runner --> agent 

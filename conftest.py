@@ -149,6 +149,7 @@ def pytest_runtestloop(session):
     success = _wait_interface(interfaces.library_stdout, session) and success
     success = _wait_interface(interfaces.library_dotnet_managed, session) and success
     success = _wait_interface(interfaces.agent, session) and success
+    success = _wait_interface(interfaces.backend, session) and success
 
     if not success:
         raise session.Failed(session.shouldfail)
@@ -323,15 +324,12 @@ def _print_async_failure_report(terminalreporter, failed, passed):
     for validations in xfails.methods.values():
 
         failed_validations = [v for v in validations if not v.is_success]
-        logger.info(validations)
-        logger.info([v.is_success for v in validations])
-        logger.info(failed_validations)
 
         if len(failed_validations) == 0 and len(validations) != 0:
             filename, klass, function = validations[0].get_test_source_info()
 
-            logger.info(f"{filename}::{klass}::{function}")
-            xpassed_methods.append(f"{filename}::{klass}::{function}")
+            if _coverages.get(f"{filename}::{klass}") != "not-implemented":
+                xpassed_methods.append(f"{filename}::{klass}::{function}")
 
     if len(failed) != 0 or len(xpassed_methods) != 0:
         terminalreporter.write_sep("=", "short async test summary info")

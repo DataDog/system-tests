@@ -59,7 +59,7 @@ class Test_RetainTraces(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(dotnet="1.29.0", java="0.92.0", nodejs="2.0.0")
+@released(dotnet="1.29.0", java="0.104.0", nodejs="2.0.0")
 @released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
 @coverage.good
 class Test_AppSecEventSpanTags(BaseTestCase):
@@ -148,7 +148,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@released(golang="1.38.0", dotnet="2.7.0", java="?", nodejs="?", php_appsec="0.3.0", python="?", ruby="?")
+@released(golang="1.38.0", dotnet="2.7.0", java="?", nodejs="2.6.0", php_appsec="0.3.0", python="?", ruby="?")
 @coverage.good
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
@@ -247,8 +247,9 @@ class Test_AppSecObfuscator(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(dotnet="2.5.1", php_appsec="0.2.2", python="?", ruby="1.0.0.beta1")
+@released(dotnet="2.5.1", php_appsec="0.2.2", python="1.4.0rc1-dev", ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
+@released(nodejs="2.0.0", java="0.102.0")
 @coverage.good
 class Test_CollectRespondHeaders(BaseTestCase):
     """ AppSec should collect some headers for http.response and store them in span tags. """

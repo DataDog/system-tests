@@ -43,15 +43,15 @@ Build images used for system tests.
 * For `golang`: `net-http` (default), `gorilla`
 * For `java`: `spring-boot` (default)
 * For `nodejs`: `express4` (default), `express4-typescript`
-* For `php`: `apache-mod` (default), `php-fpm`
-* For `python`: `flask-poc` (default), `uwsgi-poc`
+* For `php`: `apache-mod-8.1`, `apache-mod-8.0` (default), `apache-mod-7.4`, `apache-mod-7.3`, `apache-mod-7.2`, `apache-mod-7.1`, `apache-mod-7.0`, `php-fpm-8.1`, `php-fpm-8.0`, `php-fpm-7.4`, `php-fpm-7.3`, `php-fpm-7.2`, `php-fpm-7.1`, `php-fpm-7.0`
+* For `python`: `flask-poc` (default), `uwsgi-poc`, `django-poc`
 * For `ruby`: `rails70` (default), `rack`, `sinatra21`, and lot of other sinatra/rails versions
 
 
 ## Real life examples
 
 By default, all images will uses production version of components (library and agent). You can use a specific
-version of a component by adding it inside `binaries/` ([documentation](../CI/binaries.md)). The main idea behind this behavior is to test a specific
+version of a component by adding it inside `binaries/` ([documentation](binaries.md)). The main idea behind this behavior is to test a specific
 version **against** production version of other components.
 
 ## Environement variables
