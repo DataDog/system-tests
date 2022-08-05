@@ -14,12 +14,53 @@ from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
 import msgpack
 
+"""Key used in the metrics map to indicate tracer sampling priority"""
+SAMPLING_PRIORITY_KEY = "_sampling_priority_v1"
+
+"""Value used in the metrics map to indicate tracer sampling priority as user keep"""
+USER_KEEP = 2
+
+
+"""
+Key used in metrics to set manual drop decision.
+"""
+MANUAL_DROP_KEY = "manual.drop"
+
+"""
+Key used in metrics to set manual keep decision.
+"""
+MANUAL_KEEP_KEY = "manual.keep"
+
+"""
+Key used in metrics to set automatic tracer keep decision.
+"""
+AUTO_KEEP_KEY = "auto.keep"
+
+"""
+Key used in metrics to set automatic tracer drop decision.
+"""
+AUTO_KEEP_KEY = "manual.keep"
 
 """
 Key used in the metrics map to toggle measuring a span.
 """
 SPAN_MEASURED_KEY = "_dd.measured"
 
+"""
+Key used in the metrics to map to single span sampling.
+"""
+SINGLE_SPAN_SAMPLING_MECHANISM = "_dd.span_sampling.mechanism"
+
+"""
+Value used in the metrics to map to single span sampling decision.
+"""
+SINGLE_SPAN_SAMPLING_MECHANISM_VALUE = 8
+
+"""Key used in the metrics to map to single span sampling sample rate."""
+SINGLE_SPAN_SAMPLING_RATE = "_dd.span_sampling.rule_rate"
+
+"""Key used in the metrics to map to single span sampling max per second."""
+SINGLE_SPAN_SAMPLING_MAX_PER_SEC = "_dd.span_sampling.max_per_second"
 
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
