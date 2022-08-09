@@ -170,9 +170,6 @@ def test_sampling_rate_not_absolute_value_sss009(test_agent, test_client: _TestT
     # assert_sampling_decision_tags(span)
 
 
-@pytest.mark.skip(
-    reason="stats computation not implemented in all tracers and this will fail for Python tracer due to current architecture"
-)
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [
