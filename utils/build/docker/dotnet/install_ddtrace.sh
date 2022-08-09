@@ -23,14 +23,20 @@ tar xzf $(ls datadog-dotnet-apm-*.tar.gz) -C /opt/datadog
 
 if [ -e /opt/datadog/tracer/Datadog.Tracer.Native.so ]
 then
+    # native tracer is in tracer subfolder
     cp /opt/datadog/tracer/Datadog.Tracer.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
+elif [ -e /opt/datadog/linux-x64/Datadog.Tracer.Native.so ]
+then
+    # native tracer is in arch folder - Waf expects Datadog.Tracer.Native for PInvoke
+    cp /opt/datadog/linux-x64/Datadog.Tracer.Native.so /binaries/Datadog.Tracer.Native.so
 else
     cp /opt/datadog/Datadog.Trace.ClrProfiler.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
 fi
 
 cp /opt/datadog/libddwaf.so /binaries
 dotnet fsi --langversion:preview /binaries/query-versions.fsx
-rm /binaries/libDatadog.Trace.ClrProfiler.Native.so
+rm -f /binaries/libDatadog.Trace.ClrProfiler.Native.so
+rm -f /binaries/Datadog.Tracer.Native.so
 rm /binaries/libddwaf.so
 
 echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
