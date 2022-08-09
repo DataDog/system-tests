@@ -36,7 +36,7 @@ def identify(request):
         name="usr.name",
         session_id="usr.session_id",
         role="usr.role",
-        scope="usr.scope"
+        scope="usr.scope",
     )
     return HttpResponse("OK")
 
