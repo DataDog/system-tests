@@ -32,7 +32,7 @@ def validate_identify_tags(tags):
     return inner_validate
 
 
-@released(dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0", php="0.72.0", python="?", ruby="1.0.0")
+@released(dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0", php="0.72.0", python="1.5.0.dev", ruby="1.0.0")
 @coverage.basic
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK"""
