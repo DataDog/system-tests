@@ -139,7 +139,7 @@ def test_single_rule_rate_limiter_span_sampling_sss08(test_agent, test_client: _
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
     # wait a couple of seconds for rate limiter tokens
-    time.sleep(2)
+    time.sleep(1)
     # Now span should be kept by rule
     generate_span(test_client)
     span = get_span(test_agent)
@@ -167,7 +167,6 @@ def test_sampling_rate_not_absolute_value_sss009(test_agent, test_client: _TestT
     assert len(sampled) in range(40, 60)
     assert len(unsampled) in range(40, 60)
 
-    # assert_sampling_decision_tags(span)
 
 
 @pytest.mark.parametrize(
