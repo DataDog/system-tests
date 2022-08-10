@@ -41,7 +41,7 @@ class Test_Cookies(BaseTestCase):
         "encoded to represent disallowed octets",
     )
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
-    @missing_feature(library="python", reason="Need to be investiged, maybe irrelevant")
+    @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
