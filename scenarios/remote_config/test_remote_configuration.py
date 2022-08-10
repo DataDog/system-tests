@@ -57,7 +57,7 @@ class Test_RemoteConfigurationFields(BaseTestCase):
             content = data["request"]["content"]
             state = content.get("client", {}).get("state", {})
 
-            if "has_error" in state:
+            if "has_error" in state and state["has_error"] == True:
                 assert (
                     "error" in state and state["error"] != ""
                 ), f"'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
