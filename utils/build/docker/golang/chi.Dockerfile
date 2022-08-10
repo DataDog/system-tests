@@ -1,4 +1,5 @@
-FROM golang:1
+ARG VERSION=1.18
+FROM golang:${VERSION}
 
 # print versions
 RUN go version && curl --version
