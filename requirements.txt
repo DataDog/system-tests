@@ -3,15 +3,13 @@ click==7.1.2
 requests==2.23.0
 requests-toolbelt==0.9.1
 Werkzeug==2.0.1
-pytest==5.4.3
+pytest
 pytest-json-report==1.2.1
 black==19.10b0
 flake8==3.9.2
 python-dateutil==2.8.1
 packaging==20.4
 msgpack==1.0.2
-protobuf==3.16
-grpcio-tools==1.43.0
 
 aiohttp==3.7.4
 yarl==1.4.2
@@ -20,3 +18,11 @@ jsonschema==3.2.0
 rfc3339-validator==0.1.2
 
 matplotlib
+
+
+grpcio-tools==1.47.0
+grpcio==1.47.0
+pytest
+ddtrace
+ddsketch
+numpy

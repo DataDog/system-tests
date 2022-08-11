@@ -20,7 +20,6 @@ type apmClientServer struct {
 }
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
-	var span tracer.Span
 	var opts []tracer.StartSpanOption
 	if args.Resource != nil {
 		opts = append(opts, tracer.ResourceName(*args.Resource))
@@ -28,11 +27,8 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	if args.Service != nil {
 		opts = append(opts, tracer.ServiceName(*args.Service))
 	}
-	if args.ParentId != nil && *args.ParentId > 0 {
-		parent := s.spans[*args.ParentId]
-		opts = append(opts, tracer.ChildOf(parent.Context()))
-	}
-	span = tracer.StartSpan(args.Name, opts...)
+	span, _ := tracer.StartSpanFromContext(ctx, args.Name, opts...)
+
 	s.spans[span.Context().SpanID()] = span
 	return &StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
@@ -41,10 +37,14 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 }
 
 func (s *apmClientServer) SpanSetMeta(ctx context.Context, args *SpanSetMetaArgs) (*SpanSetMetaReturn, error) {
+	span := s.spans[args.SpanId]
+	span.SetTag(args.Key, args.Value)
 	return &SpanSetMetaReturn{}, nil
 }
 
 func (s *apmClientServer) SpanSetMetric(ctx context.Context, args *SpanSetMetricArgs) (*SpanSetMetricReturn, error) {
+	span := s.spans[args.SpanId]
+	span.SetTag(args.Key, args.Value)
 	return &SpanSetMetricReturn{}, nil
 }
 

@@ -17,8 +17,8 @@ import pytest
 
 from apm_client.protos import apm_test_client_pb2 as pb
 from apm_client.protos import apm_test_client_pb2_grpc
-from .trace import V06StatsPayload
-from .trace import decode_v06_stats
+from spec.trace import V06StatsPayload
+from spec.trace import decode_v06_stats
 
 
 class AgentRequest(TypedDict):
@@ -63,15 +63,15 @@ class APMClientTestServer:
 
 
 @pytest.fixture
-def apm_test_server_env():
-    yield {}
+def apm_test_server_env() -> Dict[str, str]:
+    return {}
 
 
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMClientTestServer]
 
 
 def python_library_server_factory(env: Dict[str, str]) -> APMClientTestServer:
-    python_dir = os.path.join(os.path.dirname(__file__), "python")
+    python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMClientTestServer(
         lang="python",
@@ -95,7 +95,7 @@ RUN python3.9 -m pip install %s
 
 
 def golang_library_server_factory(env: Dict[str, str]):
-    go_dir = os.path.join(os.path.dirname(__file__), "go")
+    go_dir = os.path.join(os.path.dirname(__file__), "apps", "golang")
     return APMClientTestServer(
         lang="golang",
         container_name="go-test-client",
@@ -120,7 +120,7 @@ RUN go install
 
 
 def dotnet_library_server_factory(env: Dict[str, str]):
-    dotnet_dir = os.path.join(os.path.dirname(__file__), "dotnet")
+    dotnet_dir = os.path.join(os.path.dirname(__file__), "apps", "dotnet")
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
     return APMClientTestServer(
         lang="dotnet",
@@ -159,7 +159,7 @@ def test_server_log_file(apm_test_server, tmp_path):
     yield tmp_path / ("%s_%s.out" % (apm_test_server.container_name, timestr))
 
 
-class TestAgentAPI:
+class _TestAgentAPI:
     def __init__(self, base_url: str):
         self._base_url = base_url
         self._session = requests.Session()
@@ -324,7 +324,7 @@ def test_agent(docker, request, tmp_path, test_agent_port):
         ports=[(test_agent_port, test_agent_port)],
         log_file_path=str(log_file_path),
     ):
-        client = TestAgentAPI(base_url="http://localhost:%s" % test_agent_port)
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_port)
         # Wait for the agent to start
         for i in range(200):
             try:

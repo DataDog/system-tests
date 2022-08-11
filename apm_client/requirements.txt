@@ -1,9 +1,0 @@
-grpcio-tools==1.47.0
-grpcio==1.47.0
-pytest
-requests
-ddtrace
-ddsketch
-msgpack
-numpy
-black

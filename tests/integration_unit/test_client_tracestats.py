@@ -1,6 +1,7 @@
 import os
 import pprint
 from typing import Any
+from typing import Dict
 from typing import Optional
 from typing import List
 from typing import Tuple
@@ -8,13 +9,14 @@ from typing import Tuple
 import pytest
 import numpy
 
+from .conftest import _TestAgentAPI
 from .conftest import _TestTracer
 from .conftest import dotnet_library_server_factory
 from .conftest import golang_library_server_factory
 from .conftest import python_library_server_factory
 from .conftest import ClientLibraryServerFactory
-from .trace import SPAN_MEASURED_KEY
-from .trace import V06StatsAggr
+from spec.trace import SPAN_MEASURED_KEY
+from spec.trace import V06StatsAggr
 
 
 parametrize = pytest.mark.parametrize
@@ -44,7 +46,7 @@ def all_libs() -> Any:
 
 def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     env = {
-        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference
+        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # dotnet, reference
         "DD_TRACE_COMPUTE_STATS": "1",  # python
         "DD_TRACE_FEATURES": "discovery",  # golang
     }
@@ -297,6 +299,7 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
     Note that this test uses the duration of actual spans created and so this test could be flaky.
     This flakyness however would indicate a bug in the trace stats computation.
     """
+
     # Create 10 traces to get more data
     for i in range(10):
         with test_client.start_span(name="web.request", resource="/users", service="webserver"):
@@ -356,3 +359,21 @@ def test_client_snapshot(apm_test_server_factory, test_agent, test_client: _Test
             name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
         ):
             pass
+
+
+@all_libs()
+@pytest.mark.parametrize("apm_test_server_env", [
+    {
+        "DD_SERVICE": "svc1",
+    },
+    {
+        "DD_SERVICE": "svc2",
+    }
+])
+def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: _TestAgentAPI, test_client: _TestTracer):
+    with test_client.start_span(name="web.request", resource="/users", service="webserver") as span:
+        span.set_meta("mytag", "value")
+    test_client.flush()
+
+    traces = test_agent.traces()
+    assert traces[0][0]["meta"]["mytag"] == "value"
