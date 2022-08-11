@@ -1,5 +1,5 @@
 ARG PHP_VERSION=7.4
-ARG VARIANT=release
+ARG VARIANT=release-zts
 
 FROM datadog/dd-appsec-php-ci:php-$PHP_VERSION-$VARIANT
 
