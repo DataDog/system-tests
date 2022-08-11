@@ -53,6 +53,9 @@ class InterfaceValidator(object):
         # save it to display it on output. Very helpful when it comes to modify internals
         self.system_test_error = None
 
+        # list of request ids that used by this interface
+        self.rids = set()
+
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
 
@@ -63,6 +66,9 @@ class InterfaceValidator(object):
         if len([item for item in self._validations if not item.closed]) == 0:
             self._closed.set()
 
+    def collect_data(self):
+        pass
+
     # Main thread domain
     def wait(self, timeout):
         if self.system_test_error is not None:
@@ -70,6 +76,10 @@ class InterfaceValidator(object):
 
         logger.info(f"Wait for {self.name}'s interface validation for {timeout} seconds")
         self._closed.wait(timeout)
+
+        # for interface where data must be collected (as now, only backend)
+        self.collect_data()
+
         with self._lock:
 
             for validation in self._validations:
@@ -130,6 +140,9 @@ class InterfaceValidator(object):
         except Exception as e:
             self.system_test_error = e
             raise
+
+        if validation.rid:
+            self.rids.add(validation.rid)
 
     # data collector thread domain
     def append_data(self, data):

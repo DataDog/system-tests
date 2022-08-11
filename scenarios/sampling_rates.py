@@ -110,6 +110,7 @@ class Test_SamplingRates(BaseTestCase):
         if context.sampling_rate is None:
             raise Exception("Sampling rate should be set on tracer with an env var for this scenario to be meaningful")
 
+    @bug(library="python", reason="When stats are activated, all traces are emitted")
     def test_sampling_rates(self):
         """Basic test"""
         paths = []

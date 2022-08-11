@@ -49,6 +49,34 @@ app.get('/identify', (req, res) => {
   res.send('OK');
 });
 
+app.get('/status', (req, res) => {
+  res.status(parseInt(req.query.code)).send('OK');
+});
+
+app.get('/iast/insecure_hashing', (req, res) => {
+  const span = tracer.scope().active();
+  span.setTag('appsec.event"', true);
+
+  const crypto = require('crypto');
+  const name = 'insecure';
+  var supportedAlgorithms = [ 'md5', 'md4', 'sha1' ];
+  let algorithmName = req.query.algorithmName;
+
+  if (supportedAlgorithms.includes(algorithmName)){
+    supportedAlgorithms = supportedAlgorithms.filter(function(value, index, arr){ 
+      return value == algorithmName;
+    });
+  }
+
+  var outputHashes = "";
+  supportedAlgorithms.forEach(algorithm => {
+    var hash = crypto.createHash(algorithm).update(name).digest('hex')
+    outputHashes += `--- ${algorithm}:${hash} ---`
+  });
+  
+  res.send(outputHashes);
+});
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');

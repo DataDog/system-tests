@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
@@ -35,6 +36,16 @@ func main() {
 
 	r.Any("/params/:i", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
+	})
+
+	r.Any("/status", func(c echo.Context) error {
+		rCode := 200
+		if codeStr := c.Request().URL.Query().Get("code"); codeStr != "" {
+			if code, err := strconv.Atoi(codeStr); err == nil {
+				rCode = code
+			}
+		}
+		return c.String(rCode, "OK")
 	})
 
 	r.Any("/headers/", headers)

@@ -108,18 +108,89 @@ jobs:
             version: prod
 
           - library: php
-            weblog-variant: apache-mod
+            weblog-variant: apache-mod-8.1
             version: prod
           - library: php
-            weblog-variant: apache-mod
+            weblog-variant: apache-mod-8.1
             version: dev
           - library: php
-            weblog-variant: php-fpm
+            weblog-variant: apache-mod-8.0
             version: prod
           - library: php
-            weblog-variant: php-fpm
+            weblog-variant: apache-mod-8.0
             version: dev
-
+          - library: php
+            weblog-variant: apache-mod-7.4
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-7.4
+            version: dev
+          - library: php
+            weblog-variant: apache-mod-7.3
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-7.3
+            version: dev
+#          - library: php
+#            weblog-variant: apache-mod-7.2
+#            version: prod
+#          - library: php
+#            weblog-variant: apache-mod-7.2
+#            version: dev
+#          - library: php
+#            weblog-variant: apache-mod-7.1
+#            version: prod
+#          - library: php
+#            weblog-variant: apache-mod-7.1
+#            version: dev
+#          - library: php
+#            weblog-variant: apache-mod-7.0
+#            version: prod
+#          - library: php
+#            weblog-variant: apache-mod-7.0
+#            version: dev
+          - library: php
+            weblog-variant: php-fpm-8.1
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-8.1
+            version: dev
+          - library: php
+            weblog-variant: php-fpm-8.0
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-8.0
+            version: dev
+          - library: php
+            weblog-variant: php-fpm-7.4
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-7.4
+            version: dev
+          - library: php
+            weblog-variant: php-fpm-7.3
+            version: prod
+          - library: php
+            weblog-variant: php-fpm-7.3
+            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.2
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.2
+#            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.1
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.1
+#            version: dev
+#          - library: php
+#            weblog-variant: php-fpm-7.0
+#            version: prod
+#          - library: php
+#            weblog-variant: php-fpm-7.0
+#            version: dev
           - library: python
             weblog-variant: flask-poc
             version: dev
@@ -240,18 +311,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library != 'python' && matrix.library != 'php' }}
+        if: ${{ matrix.version == 'dev' && matrix.library != 'php' }}
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
-
-      - name: Load library binary
-        if: ${{ matrix.version == 'dev' && matrix.library == 'python' }}
-        run: echo "ddtrace @ git+https://github.com/DataDog/dd-trace-py.git" > binaries/python-load-from-pip
 
       - name: Load library PHP appsec binary
         if: ${{ matrix.version == 'dev' && matrix.library == 'php' }}
         run: ./utils/scripts/load-binary.sh php_appsec
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load agent binary
+        if: ${{ matrix.version == 'dev' }}
+        run: ./utils/scripts/load-binary.sh agent
 
       - name: Log in to the Container registry
         if: ${{ matrix.library == 'ruby' }}
@@ -266,17 +337,22 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run custom AppSec rules file
+      # - name: Run REMOTE_CONFIG_MOCKED_BACKEND scenario
+      #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND
+      #   env:
+      #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run APPSEC_CUSTOM_RULES scenario
         run: ./run.sh APPSEC_CUSTOM_RULES
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run AppSec rules monitoring with errors
+      - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
         run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run profiling test
+      - name: Run PROFILING test
         if: ${{ matrix.library == 'nodejs' }}
         run: ./run.sh PROFILING
         env:
@@ -318,6 +394,16 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+        run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+        run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
@@ -328,6 +414,10 @@ jobs:
         with:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}_${{ matrix.version }}
           path: artifact.tar.gz
+
+      - name: Print fancy log report
+        if: ${{ always() }}
+        run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
 
   peformances:
     runs-on: ubuntu-latest

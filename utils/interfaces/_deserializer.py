@@ -41,12 +41,14 @@ def deserialize_http_message(path, message, data, interface, key):
 
     logger.debug(f"Deserialize {content_type} for {path} {key}")
 
-    if content_type in ("application/json", "text/json"):
+    if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
+        return json.loads(data)
+    elif path == "/v0.7/config":  # Kyle, please add content-type header :)
         return json.loads(data)
     elif interface == "library" and key == "response" and path == "/info":
         return json.loads(data)
     elif content_type == "application/msgpack" or content_type == "application/msgpack, application/msgpack":
-        result = msgpack.unpackb(data)
+        result = msgpack.unpackb(data, unicode_errors="replace")
 
         if interface == "library" and path == "/v0.4/traces":
             for span in (span for trace in result for span in trace):
@@ -95,9 +97,10 @@ def _convert_bytes_values(item):
 
 def deserialize(data, interface):
     for key in ("request", "response"):
-        try:
-            content = ast.literal_eval(data[key]["content"])
-            decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
-            data[key]["content"] = decoded
-        except Exception as e:
-            logger.critical("\n".join(get_exception_traceback(e)))
+        if key in data:
+            try:
+                content = ast.literal_eval(data[key]["content"])
+                decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
+                data[key]["content"] = decoded
+            except Exception as e:
+                logger.critical("\n".join(get_exception_traceback(e)))

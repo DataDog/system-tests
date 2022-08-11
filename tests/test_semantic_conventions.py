@@ -98,8 +98,8 @@ class Test_Meta(BaseTestCase):
             elif isinstance(value, bytes):
                 value = value.decode("ascii")
 
-            if value not in ("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"):
-                raise Exception("Unexpcted value for tag http.method")
+            if value not in ("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"):
+                raise Exception(f"Unexpcted value '{value}' for tag http.method")
 
             return True
 

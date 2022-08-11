@@ -2,7 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, coverage, interfaces, released, bug, coverage, missing_feature, flaky, rfc
+from utils import (
+    BaseTestCase,
+    context,
+    coverage,
+    interfaces,
+    released,
+    bug,
+    coverage,
+    missing_feature,
+    flaky,
+    rfc,
+    irrelevant,
+)
 import pytest
 
 
@@ -58,7 +70,7 @@ class Test_ActorIP(BaseTestCase):
 
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1",}, stream=True)
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"}, stream=True)
         actual_remote_ip = r.raw._connection.sock.getsockname()[0]
         r.close()
 
@@ -76,7 +88,7 @@ class Test_ActorIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
-    @missing_feature(library="golang", reason="Not clear if it must be done on backend side. Waiting for clarification")
+    @irrelevant(condition=context.library >= "golang@1.39.0", reason="The backend copies http.client_ip into actor.ip")
     @missing_feature(library="nodejs", reason="Not clear if it must be done on backend side. Waiting for clarification")
     @missing_feature(library="ruby", reason="Not clear if it must be done on backend side. Waiting for clarification")
     def test_actor_ip(self):
