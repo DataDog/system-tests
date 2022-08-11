@@ -36,6 +36,10 @@ jobs:
           python-version: '3.9'
       - run: pip install -r requirements.txt
       - run: SYSTEM_TEST_E2E=False CLIENTS_ENABLED=python pytest tests/integration_unit/
+      - if: ${{ failure() }}
+        run: |
+          tail -n +1 -- /tmp/pytest-of-runner/**/*.out
+          exit 1
 
   test-the-tests:
     runs-on: ubuntu-latest

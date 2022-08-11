@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Callable, Dict, Generator, List, Tuple, TypedDict
+from typing import Callable, Dict, Generator, List, TextIO, Tuple, TypedDict
 import urllib.parse
 
 import grpc
@@ -15,8 +15,8 @@ import requests
 from ddtrace.internal.compat import to_unicode
 import pytest
 
-from apm_client.protos import apm_test_client_pb2 as pb
-from apm_client.protos import apm_test_client_pb2_grpc
+from tests.integration_unit.protos import apm_test_client_pb2 as pb
+from tests.integration_unit.protos import apm_test_client_pb2_grpc
 from spec.trace import V06StatsPayload
 from spec.trace import decode_v06_stats
 
@@ -87,9 +87,7 @@ RUN python3.9 -m pip install %s
         % (python_package,),
         container_cmd="python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_dir,
-        volumes=[
-            (os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),
-        ],
+        volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
         env=env,
     )
 
@@ -112,9 +110,7 @@ RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=go_dir,
-        volumes=[
-            (os.path.join(go_dir), "/client"),
-        ],
+        volumes=[(os.path.join(go_dir), "/client"),],
         env=env,
     )
 
@@ -136,9 +132,7 @@ WORKDIR "/client/."
 """,
         container_cmd=["dotnet", "run"],
         container_build_dir=dotnet_dir,
-        volumes=[
-            (os.path.join(dotnet_dir), "/client"),
-        ],
+        volumes=[(os.path.join(dotnet_dir), "/client"),],
         env=env,
     )
 
@@ -154,9 +148,10 @@ def apm_test_server(apm_test_server_factory, apm_test_server_env):
 
 
 @pytest.fixture
-def test_server_log_file(apm_test_server, tmp_path):
-    timestr = time.strftime("%Y%m%d-%H%M%S")
-    yield tmp_path / ("%s_%s.out" % (apm_test_server.container_name, timestr))
+def test_server_log_file(apm_test_server, tmp_path) -> TextIO:
+    return sys.stderr
+    # timestr = time.strftime("%Y%m%d-%H%M%S")
+    # yield tmp_path / ("%s_%s.out" % (apm_test_server.container_name, timestr))
 
 
 class _TestAgentAPI:
@@ -229,7 +224,7 @@ def docker_run(
     env: Dict[str, str],
     volumes: List[Tuple[str, str]],
     ports: List[Tuple[str, str]],
-    log_file_path: str,
+    log_file: TextIO,
 ):
     _cmd: List[str] = [
         shutil.which("docker"),
@@ -238,51 +233,44 @@ def docker_run(
         "--rm",
         "--name=%s" % name,
     ]
-    with open(log_file_path, "w") as f:
-        for k, v in env.items():
-            _cmd.extend(["-e", "%s=%s" % (k, v)])
-        for k, v in volumes:
-            _cmd.extend(["-v", "%s:%s" % (k, v)])
-        for k, v in ports:
-            _cmd.extend(["-p", "%s:%s" % (k, v)])
-        _cmd += [image]
-        _cmd.extend(cmd)
-        f.write("$ " + " ".join(_cmd) + "\n\n")
-        f.flush()
-        docker = shutil.which("docker")
+    for k, v in env.items():
+        _cmd.extend(["-e", "%s=%s" % (k, v)])
+    for k, v in volumes:
+        _cmd.extend(["-v", "%s:%s" % (k, v)])
+    for k, v in ports:
+        _cmd.extend(["-p", "%s:%s" % (k, v)])
+    _cmd += [image]
+    _cmd.extend(cmd)
+    log_file.write("$ " + " ".join(_cmd) + "\n\n")
+    log_file.flush()
+    docker = shutil.which("docker")
 
-        # Run the docker container
-        r = subprocess.run(_cmd, stdout=f, stderr=f)
-        if r.returncode != 0:
-            f.close()
-            with open(log_file_path, "r") as f:
-                out = f.read()
-            pytest.fail(
-                "Could not start docker container %r with image %r: \n%s" % (name, image, out),
-                pytrace=False,
-            )
+    # Run the docker container
+    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
+    if r.returncode != 0:
+        pytest.fail(
+            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file),
+            pytrace=False,
+        )
 
-        # Start collecting the logs of the container
-        _cmd = [
-            "docker",
-            "logs",
-            "-f",
-            name,
-        ]
-        docker_logs = subprocess.Popen(_cmd, stdout=f, stderr=f)
-        try:
-            yield
-        finally:
-            docker_logs.kill()
-            _cmd = [docker, "kill", name]
-            f.write(" ".join(_cmd) + "\n\n")
-            f.flush()
-            subprocess.run(
-                _cmd,
-                stdout=f,
-                stderr=f,
-                check=True,
-            )
+    # Start collecting the logs of the container
+    _cmd = [
+        "docker",
+        "logs",
+        "-f",
+        name,
+    ]
+    docker_logs = subprocess.Popen(_cmd, stdout=log_file, stderr=log_file)
+    try:
+        yield
+    finally:
+        docker_logs.kill()
+        _cmd = [docker, "kill", name]
+        log_file.write(" ".join(_cmd) + "\n\n")
+        log_file.flush()
+        subprocess.run(
+            _cmd, stdout=log_file, stderr=log_file, check=True,
+        )
 
 
 @pytest.fixture
@@ -302,10 +290,13 @@ def test_agent_port() -> str:
 
 
 @pytest.fixture
-def test_agent(docker, request, tmp_path, test_agent_port):
-    # Build the container
-    log_file_path = tmp_path / "ddapm_test_agent.out"
-    print("ddapm_test_agent output: %s" % log_file_path)
+def test_agent_log_file() -> TextIO:
+    return sys.stderr
+
+
+@pytest.fixture
+def test_agent(docker, request, tmp_path, test_agent_port, test_agent_log_file: TextIO):
+    print("ddapm_test_agent output: %s" % test_agent_log_file)
 
     env = {}
     if os.getenv("DEV_MODE") is not None:
@@ -322,7 +313,7 @@ def test_agent(docker, request, tmp_path, test_agent_port):
         env=env,
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
         ports=[(test_agent_port, test_agent_port)],
-        log_file_path=str(log_file_path),
+        log_file=test_agent_log_file,
     ):
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_port)
         # Wait for the agent to start
@@ -356,49 +347,50 @@ def test_agent(docker, request, tmp_path, test_agent_port):
 
 
 @pytest.fixture
-def test_server(docker, tmp_path, test_agent_port: str, apm_test_server: APMClientTestServer, test_server_log_file):
+def test_server(
+    docker, tmp_path, test_agent_port: str, apm_test_server: APMClientTestServer, test_server_log_file: TextIO
+):
     print("%s client library output: %s" % (apm_test_server.lang, test_server_log_file))
 
-    with open(test_server_log_file, "w") as f:
-        # Write dockerfile to the build directory
-        # Note that this needs to be done as the context cannot be
-        # specified if Dockerfiles are read from stdin.
-        dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
-        print("writing dockerfile %r" % dockf_path, file=f)
-        with open(dockf_path, "w") as dockf:
-            dockf.write(apm_test_server.container_img)
-        # Build the container
-        docker = shutil.which("docker")
-        cmd = [
-            docker,
-            "build",
-            "-t",
-            apm_test_server.container_tag,
-            ".",
-        ]
-        print("running %r in %r\n\n" % (" ".join(cmd), apm_test_server.container_build_dir), file=f)
-        f.flush()
-        subprocess.run(
-            cmd,
-            cwd=apm_test_server.container_build_dir,
-            stdout=f,
-            stderr=f,
-            check=True,
-            text=True,
-            input=apm_test_server.container_img,
-        )
+    # Write dockerfile to the build directory
+    # Note that this needs to be done as the context cannot be
+    # specified if Dockerfiles are read from stdin.
+    dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
+    test_server_log_file.write("writing dockerfile %r\n" % dockf_path)
+    with open(dockf_path, "w") as dockf:
+        dockf.write(apm_test_server.container_img)
+    # Build the container
+    docker = shutil.which("docker")
+    cmd = [
+        docker,
+        "build",
+        "-t",
+        apm_test_server.container_tag,
+        ".",
+    ]
+    test_server_log_file.write("running %r in %r\n\n" % (" ".join(cmd), apm_test_server.container_build_dir))
+    test_server_log_file.flush()
+    subprocess.run(
+        cmd,
+        cwd=apm_test_server.container_build_dir,
+        stdout=test_server_log_file,
+        stderr=test_server_log_file,
+        check=True,
+        text=True,
+        input=apm_test_server.container_img,
+    )
 
-        env = {
-            "DD_TRACE_DEBUG": "true",
-        }
-        if sys.platform == "darwin" or sys.platform == "win32":
-            env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:%s" % test_agent_port
-            # Not all clients support DD_TRACE_AGENT_URL
-            env["DD_AGENT_HOST"] = "host.docker.internal"
-            env["DD_TRACE_AGENT_PORT"] = test_agent_port
-        else:
-            env["DD_TRACE_AGENT_URL"] = "http://localhost:%s" % test_agent_port
-        env.update(apm_test_server.env)
+    env = {
+        "DD_TRACE_DEBUG": "true",
+    }
+    if sys.platform == "darwin" or sys.platform == "win32":
+        env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:%s" % test_agent_port
+        # Not all clients support DD_TRACE_AGENT_URL
+        env["DD_AGENT_HOST"] = "host.docker.internal"
+        env["DD_TRACE_AGENT_PORT"] = test_agent_port
+    else:
+        env["DD_TRACE_AGENT_URL"] = "http://localhost:%s" % test_agent_port
+    env.update(apm_test_server.env)
 
     with docker_run(
         image=apm_test_server.container_tag,
@@ -407,7 +399,7 @@ def test_server(docker, tmp_path, test_agent_port: str, apm_test_server: APMClie
         env=env,
         ports=[(apm_test_server.port, apm_test_server.port)],
         volumes=apm_test_server.volumes,
-        log_file_path=test_server_log_file,
+        log_file=test_server_log_file,
     ):
         yield apm_test_server
 
@@ -418,39 +410,18 @@ class _TestSpan:
         self.span_id = span_id
 
     def set_meta(self, key: str, val: str):
-        self._client.SpanSetMeta(
-            pb.SpanSetMetaArgs(
-                span_id=self.span_id,
-                key=key,
-                value=val,
-            )
-        )
+        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=self.span_id, key=key, value=val,))
 
     def set_metric(self, key: str, val: float):
-        self._client.SpanSetMetric(
-            pb.SpanSetMetricArgs(
-                span_id=self.span_id,
-                key=key,
-                value=val,
-            )
-        )
+        self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=self.span_id, key=key, value=val,))
 
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(
-            pb.SpanSetErrorArgs(
-                span_id=self.span_id,
-                type=typestr,
-                message=message,
-                stack=stack,
-            )
+            pb.SpanSetErrorArgs(span_id=self.span_id, type=typestr, message=message, stack=stack,)
         )
 
     def finish(self):
-        self._client.FinishSpan(
-            pb.FinishSpanArgs(
-                id=self.span_id,
-            )
-        )
+        self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
 
 
 class _TestTracer:
@@ -463,12 +434,7 @@ class _TestTracer:
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
-                name=name,
-                service=service,
-                resource=resource,
-                parent_id=parent_id,
-                type=typestr,
-                origin=origin,
+                name=name, service=service, resource=resource, parent_id=parent_id, type=typestr, origin=origin,
             )
         )
         span = _TestSpan(self._client, resp.span_id)
