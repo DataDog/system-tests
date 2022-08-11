@@ -10,7 +10,7 @@ from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
 import grpc
 
-from .pb import apm_test_client_pb2, apm_test_client_pb2_grpc
+from .protos import apm_test_client_pb2, apm_test_client_pb2_grpc
 
 
 class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):

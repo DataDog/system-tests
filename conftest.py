@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-'''
 import os
 import collections
 import inspect
@@ -29,7 +28,7 @@ class CustomTerminalReporter(_pytest.terminal.TerminalReporter):
         self._sessionstarttime = time.time()
 
         self.write_sep("=", "test session starts", bold=True)
-        self.write_line(f"E2E: {RUN_E2E}")
+        self.write_line(f"E2E tests enabled: {RUN_E2E}")
 
         if RUN_E2E:
             self.write_line(f"Library: {context.library}")
@@ -79,38 +78,38 @@ def pytest_sessionstart(session):
 
 
 # called when each test item is collected
-# def pytest_itemcollected(item):
-#
-#     _docs[item.nodeid] = item.obj.__doc__
-#     _docs[item.parent.nodeid] = item.parent.obj.__doc__
-#
-#     _release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
-#
-#     if hasattr(item.parent.obj, "__coverage__"):
-#         _coverages[item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
-#
-#     if hasattr(item.parent.obj, "__rfc__"):
-#         _rfcs[item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
-#     if hasattr(item.obj, "__rfc__"):
-#         _rfcs[item.nodeid] = getattr(item.obj, "__rfc__")
-#
-#     if hasattr(item.parent.parent, "obj"):
-#         _docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
-#     else:
-#         _docs[item.parent.parent.nodeid] = "Unexpected structure"
-#
-#     markers = item.own_markers
-#
-#     parent = item.parent
-#     while parent is not None:
-#         markers += parent.own_markers
-#         parent = parent.parent
-#
-#     for marker in reversed(markers):
-#         skip_reason = _get_skip_reason_from_marker(marker)
-#         if skip_reason:
-#             _skip_reasons[item.nodeid] = skip_reason
-#             break
+def pytest_itemcollected(item):
+
+    _docs[item.nodeid] = item.obj.__doc__
+    _docs[item.parent.nodeid] = item.parent.obj.__doc__
+
+    _release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
+
+    if hasattr(item.parent.obj, "__coverage__"):
+        _coverages[item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
+
+    if hasattr(item.parent.obj, "__rfc__"):
+        _rfcs[item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
+    if hasattr(item.obj, "__rfc__"):
+        _rfcs[item.nodeid] = getattr(item.obj, "__rfc__")
+
+    if hasattr(item.parent.parent, "obj"):
+        _docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
+    else:
+        _docs[item.parent.parent.nodeid] = "Unexpected structure"
+
+    markers = item.own_markers
+
+    parent = item.parent
+    while parent is not None:
+        markers += parent.own_markers
+        parent = parent.parent
+
+    for marker in reversed(markers):
+        skip_reason = _get_skip_reason_from_marker(marker)
+        if skip_reason:
+            _skip_reasons[item.nodeid] = skip_reason
+            break
 
 
 def _get_skip_reason_from_marker(marker):
@@ -126,52 +125,52 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
-# def pytest_runtestloop(session):
-#     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-#
-#     if RUN_E2E:
-#         terminal.write_line(f"Executing weblog warmup...")
-#         context.execute_warmups()
-#
-#     """From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337"""
-#     if session.testsfailed and not session.config.option.continue_on_collection_errors:
-#         raise session.Interrupted(
-#             "%d error%s during collection" % (session.testsfailed, "s" if session.testsfailed != 1 else "")
-#         )
-#
-#     if session.config.option.collectonly:
-#         return True
-#
-#     for i, item in enumerate(session.items):
-#         nextitem = session.items[i + 1] if i + 1 < len(session.items) else None
-#         item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
-#         if session.shouldfail:
-#             raise session.Failed(session.shouldfail)
-#         if session.shouldstop:
-#             raise session.Interrupted(session.shouldstop)
-#
-#     terminal.write_line("")
-#
-#     success = True
-#
-#     success = _wait_interface(interfaces.library, session) and success
-#     success = _wait_interface(interfaces.library_stdout, session) and success
-#     success = _wait_interface(interfaces.library_dotnet_managed, session) and success
-#     success = _wait_interface(interfaces.agent, session) and success
-#     success = _wait_interface(interfaces.backend, session) and success
-#
-#     if not success:
-#         raise session.Failed(session.shouldfail)
-#
-#     return True
+def pytest_runtestloop(session):
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+
+    if RUN_E2E:
+        terminal.write_line(f"Executing weblog warmup...")
+        context.execute_warmups()
+
+    """From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337"""
+    if session.testsfailed and not session.config.option.continue_on_collection_errors:
+        raise session.Interrupted(
+            "%d error%s during collection" % (session.testsfailed, "s" if session.testsfailed != 1 else "")
+        )
+
+    if session.config.option.collectonly:
+        return True
+
+    for i, item in enumerate(session.items):
+        nextitem = session.items[i + 1] if i + 1 < len(session.items) else None
+        item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+        if session.shouldfail:
+            raise session.Failed(session.shouldfail)
+        if session.shouldstop:
+            raise session.Interrupted(session.shouldstop)
+
+    terminal.write_line("")
+
+    success = True
+
+    success = _wait_interface(interfaces.library, session) and success
+    success = _wait_interface(interfaces.library_stdout, session) and success
+    success = _wait_interface(interfaces.library_dotnet_managed, session) and success
+    success = _wait_interface(interfaces.agent, session) and success
+    success = _wait_interface(interfaces.backend, session) and success
+
+    if not success:
+        raise session.Failed(session.shouldfail)
+
+    return True
 
 
-# def pytest_report_teststatus(report, config):
-#     if report.when != "call":
-#         return
-#
-#     if report.keywords.get("expected_failure") == 1:
-#         return "xfail", "x", "XFAIL"
+def pytest_report_teststatus(report, config):
+    if report.when != "call":
+        return
+
+    if report.keywords.get("expected_failure") == 1:
+        return "xfail", "x", "XFAIL"
 
 
 def _wait_interface(interface, session):
@@ -207,30 +206,30 @@ def _wait_interface(interface, session):
     return True
 
 
-# def pytest_terminal_summary(terminalreporter, exitstatus, config):
-#
-#     validations = []
-#     passed = []
-#     failed = []
-#     xpassed = []
-#     xfailed = []
-#
-#     for interface in interfaces.all:
-#
-#         if interface.system_test_error is not None:
-#             terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
-#             for line in get_exception_traceback(interface.system_test_error):
-#                 terminalreporter.line(line, red=True)
-#             return
-#
-#         validations += interface.validations
-#         passed += interface.passed
-#         failed += interface.failed
-#         xpassed += interface.xpassed
-#         xfailed += interface.xfailed
-#
-#     _print_async_test_list(terminalreporter, validations, passed, failed, xpassed, xfailed)
-#     _print_async_failure_report(terminalreporter, failed, passed)
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+
+    validations = []
+    passed = []
+    failed = []
+    xpassed = []
+    xfailed = []
+
+    for interface in interfaces.all:
+
+        if interface.system_test_error is not None:
+            terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
+            for line in get_exception_traceback(interface.system_test_error):
+                terminalreporter.line(line, red=True)
+            return
+
+        validations += interface.validations
+        passed += interface.passed
+        failed += interface.failed
+        xpassed += interface.xpassed
+        xfailed += interface.xfailed
+
+    _print_async_test_list(terminalreporter, validations, passed, failed, xpassed, xfailed)
+    _print_async_failure_report(terminalreporter, failed, passed)
 
 
 def _print_async_test_list(terminal, validations, passed, failed, xpassed, xfailed):
@@ -354,49 +353,49 @@ def _print_async_failure_report(terminalreporter, failed, passed):
         terminalreporter.line("")
 
 
-def pytest_json_modifyreport(json_report):
-
-    try:
-        logger.debug("Modifying JSON report")
-
-        # report test with a failing asyn validation as failed
-        failed_nodeids = set()
-
-        for interface in interfaces.all:
-            for validation in interface._validations:
-                if validation.closed and not validation.is_success:
-                    filename, klass, function = validation.get_test_source_info()
-                    nodeid = f"{filename}::{klass}::{function}"
-                    failed_nodeids.add(nodeid)
-
-        # populate and adjust some data
-        for test in json_report["tests"]:
-            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
-            if test["nodeid"] in failed_nodeids:
-                test["outcome"] = "failed"
-            elif test["outcome"] in ("xfail", "xfailed"):
-                # it means that the synchronous test is marked as expected failure
-                # but all asynchronous test are ok
-                test["outcome"] = "xpassed"
-
-        # add usefull data for reporting
-        json_report["docs"] = _docs
-        json_report["context"] = context.serialize()
-        json_report["release_versions"] = _release_versions
-        json_report["rfcs"] = _rfcs
-        json_report["coverages"] = _coverages
-
-        # clean useless and volumetric data
-        del json_report["collectors"]
-
-        for test in json_report["tests"]:
-            for k in ("setup", "call", "teardown", "keywords", "lineno"):
-                if k in test:
-                    del test[k]
-
-        logger.debug("Modifying JSON report finished")
-    except Exception as e:
-        logger.error(f"Fail to modify json report", exc_info=True)
+# def pytest_json_modifyreport(json_report):
+#
+#     try:
+#         logger.debug("Modifying JSON report")
+#
+#         # report test with a failing asyn validation as failed
+#         failed_nodeids = set()
+#
+#         for interface in interfaces.all:
+#             for validation in interface._validations:
+#                 if validation.closed and not validation.is_success:
+#                     filename, klass, function = validation.get_test_source_info()
+#                     nodeid = f"{filename}::{klass}::{function}"
+#                     failed_nodeids.add(nodeid)
+#
+#         # populate and adjust some data
+#         for test in json_report["tests"]:
+#             test["skip_reason"] = _skip_reasons.get(test["nodeid"])
+#             if test["nodeid"] in failed_nodeids:
+#                 test["outcome"] = "failed"
+#             elif test["outcome"] in ("xfail", "xfailed"):
+#                 # it means that the synchronous test is marked as expected failure
+#                 # but all asynchronous test are ok
+#                 test["outcome"] = "xpassed"
+#
+#         # add usefull data for reporting
+#         json_report["docs"] = _docs
+#         json_report["context"] = context.serialize()
+#         json_report["release_versions"] = _release_versions
+#         json_report["rfcs"] = _rfcs
+#         json_report["coverages"] = _coverages
+#
+#         # clean useless and volumetric data
+#         del json_report["collectors"]
+#
+#         for test in json_report["tests"]:
+#             for k in ("setup", "call", "teardown", "keywords", "lineno"):
+#                 if k in test:
+#                     del test[k]
+#
+#         logger.debug("Modifying JSON report finished")
+#     except Exception as e:
+#         logger.error(f"Fail to modify json report", exc_info=True)
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -407,4 +406,3 @@ def pytest_sessionfinish(session, exitstatus):
         # Is it really a test ?
         if data_collector.is_alive():
             logger.error("Can't terminate data collector")
-'''

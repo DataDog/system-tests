@@ -1,5 +1,4 @@
-# APM Client library shared tests
-
+# APM Client library shared integration/unit tests
 
 ## Setup
 
@@ -9,18 +8,13 @@
 - protobuf
 - python interpreter 3.7 or later
 
-
-```sh
-./setup.sh
-```
-
-
 ## Development
 
-In your shell
+In the root of the repo:
 
-```sh
+```bash
+python -m venv .venv
 source .venv/bin/activate
-
-pytest
+pip install -r requirements.txt
+SYSTEM_TEST_E2E=False CLIENTS_ENABLED=dotnet tests/integration_unit
 ```

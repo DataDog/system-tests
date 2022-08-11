@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from apm_test_client.pb import apm_test_client_pb2 as apm__test__client_dot_pb_dot_apm__test__client__pb2
+from apm_test_client.protos import apm_test_client_pb2 as protos_dot_apm__test__client__pb2
 
 
 class APMClientStub(object):
@@ -17,38 +17,38 @@ class APMClientStub(object):
         """
         self.StartSpan = channel.unary_unary(
                 '/APMClient/StartSpan',
-                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
-                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.FromString,
+                request_serializer=protos_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.StartSpanReturn.FromString,
                 )
         self.FinishSpan = channel.unary_unary(
                 '/APMClient/FinishSpan',
-                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
-                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
+                request_serializer=protos_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
                 )
         self.SpanSetMeta = channel.unary_unary(
                 '/APMClient/SpanSetMeta',
-                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
-                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
+                request_serializer=protos_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
                 )
         self.SpanSetMetric = channel.unary_unary(
                 '/APMClient/SpanSetMetric',
-                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
-                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
+                request_serializer=protos_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
                 )
         self.SpanSetError = channel.unary_unary(
                 '/APMClient/SpanSetError',
-                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
-                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
+                request_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
                 )
         self.FlushSpans = channel.unary_unary(
                 '/APMClient/FlushSpans',
-                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
-                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.FromString,
+                request_serializer=protos_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.FlushSpansReturn.FromString,
                 )
         self.FlushTraceStats = channel.unary_unary(
                 '/APMClient/FlushTraceStats',
-                request_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
-                response_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
+                request_serializer=protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
                 )
 
 
@@ -103,38 +103,38 @@ def add_APMClientServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'StartSpan': grpc.unary_unary_rpc_method_handler(
                     servicer.StartSpan,
-                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.FromString,
-                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.SerializeToString,
+                    request_deserializer=protos_dot_apm__test__client__pb2.StartSpanArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.StartSpanReturn.SerializeToString,
             ),
             'FinishSpan': grpc.unary_unary_rpc_method_handler(
                     servicer.FinishSpan,
-                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.FromString,
-                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.SerializeToString,
+                    request_deserializer=protos_dot_apm__test__client__pb2.FinishSpanArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.FinishSpanReturn.SerializeToString,
             ),
             'SpanSetMeta': grpc.unary_unary_rpc_method_handler(
                     servicer.SpanSetMeta,
-                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetaArgs.FromString,
-                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetaReturn.SerializeToString,
+                    request_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetaArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.SpanSetMetaReturn.SerializeToString,
             ),
             'SpanSetMetric': grpc.unary_unary_rpc_method_handler(
                     servicer.SpanSetMetric,
-                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetricArgs.FromString,
-                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetricReturn.SerializeToString,
+                    request_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetricArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.SpanSetMetricReturn.SerializeToString,
             ),
             'SpanSetError': grpc.unary_unary_rpc_method_handler(
                     servicer.SpanSetError,
-                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetErrorArgs.FromString,
-                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetErrorReturn.SerializeToString,
+                    request_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.SerializeToString,
             ),
             'FlushSpans': grpc.unary_unary_rpc_method_handler(
                     servicer.FlushSpans,
-                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.FromString,
-                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.SerializeToString,
+                    request_deserializer=protos_dot_apm__test__client__pb2.FlushSpansArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.FlushSpansReturn.SerializeToString,
             ),
             'FlushTraceStats': grpc.unary_unary_rpc_method_handler(
                     servicer.FlushTraceStats,
-                    request_deserializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsArgs.FromString,
-                    response_serializer=apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsReturn.SerializeToString,
+                    request_deserializer=protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -159,8 +159,8 @@ class APMClient(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/APMClient/StartSpan',
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.StartSpanReturn.FromString,
+            protos_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.StartSpanReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -176,8 +176,8 @@ class APMClient(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/APMClient/FinishSpan',
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
+            protos_dot_apm__test__client__pb2.FinishSpanArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.FinishSpanReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -193,8 +193,8 @@ class APMClient(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetMeta',
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
+            protos_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -210,8 +210,8 @@ class APMClient(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetMetric',
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
+            protos_dot_apm__test__client__pb2.SpanSetMetricArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.SpanSetMetricReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -227,8 +227,8 @@ class APMClient(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetError',
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
+            protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -244,8 +244,8 @@ class APMClient(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/APMClient/FlushSpans',
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushSpansReturn.FromString,
+            protos_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.FlushSpansReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -261,7 +261,7 @@ class APMClient(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/APMClient/FlushTraceStats',
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
-            apm__test__client_dot_pb_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
+            protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
