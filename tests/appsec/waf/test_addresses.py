@@ -257,7 +257,7 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.5.0rc1.dev", ruby="?")
 @released(
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
