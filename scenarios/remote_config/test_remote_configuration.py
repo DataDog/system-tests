@@ -109,19 +109,25 @@ def rc_check_request(data, expected, caching):
     if not caching:
         # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
         assert (
-            "cached_target_files" not in expected
+            "cached_target_files" not in expected or len(expected["cached_target_files"]) == 0
         ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
     else:
         expected_cached_target_files = expected.get("cached_target_files")
         cached_target_files = content.get("cached_target_files")
-        if expected_cached_target_files is None and cached_target_files is not None:
-            raise Exception("client is not expected to have cached config but is reporting cached config")
-        if expected_cached_target_files is not None and cached_target_files is None:
-            raise Exception("client is expected to have cached config but is not reporting any")
-        elif cached_target_files is not None:
-            assert len(cached_target_files) == len(expected_cached_target_files)
+
+        if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
+                raise Exception("client is not expected to have cached config but is reporting cached config")
+        elif expected_cached_target_files is not None and cached_target_files is None:
+            raise Exception(
+                "client is expected to have cached config but did not include the cached_target_files field"
+            )
+        elif expected_cached_target_files is not None:
+            # Make sure the client reported all of the expected files
             for file in expected_cached_target_files:
                 assert file in cached_target_files, f"{file} is not in {cached_target_files}"
+            # Make sure the client isn't reporting any extra cached files
+            for file in cached_target_files:
+                assert file in expected_cached_target_files, f"unepxected file {file} in cached_target_files"
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
