@@ -182,7 +182,7 @@ class Forwarder(object):
     def _modify_response_rc(self, flow, mocked_responses):
         logger.info("modifying rc response")
 
-        if flow.request.path == "/info" and str(flow.response.status_code) == "200" :
+        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             logger.info(f"Overwriting /info response to include /v0.7/config")
             c = json.loads(flow.response.content)
             c["endpoints"].append("/v0.7/config")
