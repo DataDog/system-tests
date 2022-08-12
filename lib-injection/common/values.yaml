@@ -1,0 +1,9 @@
+app: my-app
+init_image: 'ghcr.io/datadog/dd-trace-java/dd-lib-java-init:34db2f76715dbbe9168806bac7c89c7ad4d51996'
+test_app_image: 'ghcr.io/datadog/dd-trace-java/dd-lib-java-init-test-app:34db2f76715dbbe9168806bac7c89c7ad4d51996'
+library: python
+app_env_no_admission_controller:
+  - name: JAVA_TOOL_OPTIONS
+    value: '-javaagent:/datadog-lib/dd-java-agent.jar'
+use_admission_controller:
+use_uds:

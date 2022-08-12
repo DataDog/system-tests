@@ -11,6 +11,25 @@ if test -f ".env"; then
     source .env
 fi
 
+
+LIBRARY_INJECTION_ENABLED=${LIBRARY_INJECTION_ENABLED:-}
+
+# Run the library injection tests if enabled
+if [[ ${LIBRARY_INJECTION_ENABLED} ]]; then
+  echo "Running library injection test cases"
+  echo "Deploying test agent"
+  ./lib-injection/run.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents
+
+  echo "Deploying pre-modified pod"
+  ./lib-injection/run.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents deploy-app
+
+  ./lib-injection/run.sh test-for-traces
+
+  kubectl logs pod/my-app
+  kubectl logs daemonset/datadog
+  exit 0
+fi
+
 if [ -z "${DD_API_KEY:-}" ]; then
     echo "DD_API_KEY is missing in env, please add it."
     exit 1
