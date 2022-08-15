@@ -37,7 +37,7 @@ class Test_RemoteConfigurationFields(BaseTestCase):
 
             expected_language = {
                 "cpp": "cpp",
-                "dotnet": "dot_net",
+                "dotnet": "dotnet",
                 "golang": "go",
                 "nodejs": "node",
                 "java": "java",
