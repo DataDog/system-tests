@@ -116,7 +116,7 @@ def rc_check_request(data, expected, caching):
         cached_target_files = content.get("cached_target_files")
 
         if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
-                raise Exception("client is not expected to have cached config but is reporting cached config")
+            raise Exception("client is not expected to have cached config but is reporting cached config")
         elif expected_cached_target_files is not None and cached_target_files is None:
             raise Exception(
                 "client is expected to have cached config but did not include the cached_target_files field"
