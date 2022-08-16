@@ -84,7 +84,7 @@ AGENT_VERSION_PATTERN = r"""
         (?P<devel>                                          # dev release
             -
             (?P<devel_l>devel)
-            [ ]
+            [ ]?
             (?P<devel_n>.*)?
         )?
     )

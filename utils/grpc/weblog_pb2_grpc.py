@@ -6,8 +6,7 @@ from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
 class WeblogStub(object):
-    """Interface exported by the server.
-    """
+    """Interface exported by the server."""
 
     def __init__(self, channel):
         """Constructor.
@@ -16,157 +15,198 @@ class WeblogStub(object):
             channel: A grpc.Channel.
         """
         self.Unary = channel.unary_unary(
-                '/weblog.Weblog/Unary',
-                request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-                response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                )
+            "/weblog.Weblog/Unary",
+            request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+            response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+        )
         self.ServerStream = channel.unary_stream(
-                '/weblog.Weblog/ServerStream',
-                request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-                response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                )
+            "/weblog.Weblog/ServerStream",
+            request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+            response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+        )
         self.ClientStream = channel.stream_unary(
-                '/weblog.Weblog/ClientStream',
-                request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-                response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                )
+            "/weblog.Weblog/ClientStream",
+            request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+            response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+        )
         self.Bidi = channel.stream_stream(
-                '/weblog.Weblog/Bidi',
-                request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-                response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                )
+            "/weblog.Weblog/Bidi",
+            request_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+            response_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+        )
 
 
 class WeblogServicer(object):
-    """Interface exported by the server.
-    """
+    """Interface exported by the server."""
 
     def Unary(self, request, context):
-        """Unary RPC
-        """
+        """Unary RPC"""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def ServerStream(self, request, context):
-        """A server-streaming RPC
-        """
+        """A server-streaming RPC"""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def ClientStream(self, request_iterator, context):
-        """A client-streaming RPC
-        """
+        """A client-streaming RPC"""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def Bidi(self, request_iterator, context):
-        """A bidirectional streaming RPC
-        """
+        """A bidirectional streaming RPC"""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_WeblogServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Unary': grpc.unary_unary_rpc_method_handler(
-                    servicer.Unary,
-                    request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                    response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-            ),
-            'ServerStream': grpc.unary_stream_rpc_method_handler(
-                    servicer.ServerStream,
-                    request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                    response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-            ),
-            'ClientStream': grpc.stream_unary_rpc_method_handler(
-                    servicer.ClientStream,
-                    request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                    response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-            ),
-            'Bidi': grpc.stream_stream_rpc_method_handler(
-                    servicer.Bidi,
-                    request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
-                    response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
-            ),
+        "Unary": grpc.unary_unary_rpc_method_handler(
+            servicer.Unary,
+            request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+            response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+        ),
+        "ServerStream": grpc.unary_stream_rpc_method_handler(
+            servicer.ServerStream,
+            request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+            response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+        ),
+        "ClientStream": grpc.stream_unary_rpc_method_handler(
+            servicer.ClientStream,
+            request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+            response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+        ),
+        "Bidi": grpc.stream_stream_rpc_method_handler(
+            servicer.Bidi,
+            request_deserializer=google_dot_protobuf_dot_struct__pb2.Value.FromString,
+            response_serializer=google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
+        ),
     }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'weblog.Weblog', rpc_method_handlers)
+    generic_handler = grpc.method_handlers_generic_handler("weblog.Weblog", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class Weblog(object):
-    """Interface exported by the server.
-    """
+    """Interface exported by the server."""
 
     @staticmethod
-    def Unary(request,
+    def Unary(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/weblog.Weblog/Unary',
+            "/weblog.Weblog/Unary",
             google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
             google_dot_protobuf_dot_struct__pb2.Value.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def ServerStream(request,
+    def ServerStream(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_stream(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/weblog.Weblog/ServerStream',
+            "/weblog.Weblog/ServerStream",
             google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
             google_dot_protobuf_dot_struct__pb2.Value.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def ClientStream(request_iterator,
+    def ClientStream(
+        request_iterator,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.stream_unary(
+            request_iterator,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/weblog.Weblog/ClientStream',
+            "/weblog.Weblog/ClientStream",
             google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
             google_dot_protobuf_dot_struct__pb2.Value.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
 
     @staticmethod
-    def Bidi(request_iterator,
+    def Bidi(
+        request_iterator,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.stream_stream(
+            request_iterator,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_stream(request_iterator, target, '/weblog.Weblog/Bidi',
+            "/weblog.Weblog/Bidi",
             google_dot_protobuf_dot_struct__pb2.Value.SerializeToString,
             google_dot_protobuf_dot_struct__pb2.Value.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
