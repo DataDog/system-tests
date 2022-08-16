@@ -17,7 +17,7 @@ services:
       - ./utils/proxy/:/system-tests/utils/proxy/
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
     ports:
-      - "8082:8082"
+      - "127.0.0.1:8082:8082"
 
   library_proxy:
     container_name: library_proxy
@@ -46,8 +46,8 @@ services:
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
-      - "7777:7777"
-      - "7778:7778"
+      - "127.0.0.1:7777:7777"
+      - "127.0.0.1:7778:7778"
     depends_on:
       runner:
         condition: service_healthy
@@ -63,14 +63,14 @@ services:
     image: cassandra:latest
     restart: always
     ports:
-      - "9042:9042"
+      - "127.0.0.1:9042:9042"
 
   mongodb:
     container_name: mongodb
     image: mongo:latest
     restart: always
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
   
   agent:
     container_name: agent

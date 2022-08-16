@@ -3,9 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-
-from utils import BaseTestCase, context, coverage, interfaces, released, bug, missing_feature, irrelevant, rfc
-
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
+from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -59,7 +58,7 @@ class Test_RetainTraces(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(dotnet="1.29.0", java="0.92.0", nodejs="2.0.0")
+@released(dotnet="1.29.0", java="0.104.0", nodejs="2.0.0")
 @released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
 @coverage.good
 class Test_AppSecEventSpanTags(BaseTestCase):
@@ -128,18 +127,22 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         interfaces.library.add_span_validation(r, validate_response_headers)
 
     @bug(context.library < "java@0.93.0")
-    @irrelevant(library="php", reason="Trace outside a context of a web request is not possible on PHP")
     def test_root_span_coherence(self):
-        """ Appsec tags are not on span where type is not web """
+        """Appsec tags are not on span where type is not web"""
 
         def validator(span):
-            if span.get("type") in ["web", "http", "rpc"]:
-                return
-
-            if "metrics" in span and "_dd.appsec.enabled" in span["metrics"]:
+            if (
+                span.get("type") not in ["web", "http", "rpc"]
+                and "metrics" in span
+                and "_dd.appsec.enabled" in span["metrics"]
+            ):
                 raise Exception("_dd.appsec.enabled should be present only when span type is web")
 
-            if "meta" in span and "_dd.runtime_family" in span["meta"]:
+            if (
+                span.get("type") not in ["web", "http", "rpc"]
+                and "meta" in span
+                and "_dd.runtime_family" in span["meta"]
+            ):
                 raise Exception("_dd.runtime_family should be present only when span type is web")
 
             return True
@@ -247,7 +250,7 @@ class Test_AppSecObfuscator(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@released(dotnet="2.5.1", php_appsec="0.2.2", python="1.3.0rc2-dev", ruby="1.0.0.beta1")
+@released(dotnet="2.5.1", php_appsec="0.2.2", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
 @released(nodejs="2.0.0", java="0.102.0")
 @coverage.good

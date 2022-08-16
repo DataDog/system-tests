@@ -139,3 +139,5 @@ def test_library_version():
     assert v == "java@0.94.0"
     assert v >= "java@0.94.0"
     assert v < "java@0.94.1"
+
+    assert LibraryVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
