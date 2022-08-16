@@ -3,8 +3,9 @@
 # Copyright 2022 Datadog, Inc.
 
 import pytest
+from utils import BaseTestCase, context, coverage, interfaces, irrelevant, released, rfc
 
-from utils import context, coverage, BaseTestCase, interfaces, irrelevant, released, rfc
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -93,7 +94,13 @@ class Test_StandardTagsUserAgent(BaseTestCase):
 
 
 @released(
-    dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.4.0rc1-dev", ruby="?"
+    dotnet="2.0.0",
+    golang="1.39.0",
+    java="0.102.0",
+    nodejs="2.11.0",
+    php="0.75.0",
+    python=PYTHON_RELEASE_PUBLIC_BETA,
+    ruby="?",
 )
 @coverage.good
 class Test_StandardTagsStatusCode(BaseTestCase):

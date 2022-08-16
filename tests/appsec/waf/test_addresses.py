@@ -3,9 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky, coverage, rfc
 import pytest
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
 
+from utils import BaseTestCase, bug, context, coverage, flaky, interfaces, irrelevant, missing_feature, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -142,7 +143,14 @@ class Test_Headers(BaseTestCase):
     else "1.34.0"
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
-@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0rc1.dev", "uwsgi-poc": "?"})
+@released(
+    python={
+        "django-poc": "1.1.0rc2.dev",
+        "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uwsgi-poc": "?",
+        "pylons": "1.1.0rc2.dev",
+    }
+)
 @coverage.good
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
@@ -196,7 +204,7 @@ class Test_BodyRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="1.4.0rc1.dev", ruby="?")
 @released(
     java="0.99.0"
     if context.weblog_variant == "vertx3"
@@ -223,7 +231,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.4.0rc1.dev", ruby="?")
 @released(
     java="0.99.0"
     if context.weblog_variant == "vertx3"
@@ -317,7 +325,14 @@ class Test_ResponseStatus(BaseTestCase):
 
 @released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
-@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0.dev", "uwsgi-poc": "?"})
+@released(
+    python={
+        "django-poc": "1.1.0rc2.dev",
+        "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uwsgi-poc": "?",
+        "pylons": "1.1.0rc2.dev",
+    }
+)
 @released(
     java="?"
     if context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"]
