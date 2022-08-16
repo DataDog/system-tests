@@ -3,9 +3,9 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature, flaky
 import pytest
-
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
+from utils import BaseTestCase, bug, context, flaky, interfaces, irrelevant, missing_feature, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -19,7 +19,14 @@ if context.library == "cpp":
     else "1.34.0"
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
-@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0rc1.dev", "uwsgi-poc": "?"})
+@released(
+    python={
+        "django-poc": "1.1.0rc2.dev",
+        "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uwsgi-poc": "?",
+        "pylons": "1.1.0rc2.dev",
+    }
+)
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 
@@ -34,7 +41,7 @@ class Test_Cookies(BaseTestCase):
         "encoded to represent disallowed octets",
     )
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
-    @missing_feature(library="python", reason="Need to be investiged, maybe irrelevant")
+    @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
     def test_cookies_with_semicolon(self):
         """ Cookie with pattern containing a semicolon """
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
