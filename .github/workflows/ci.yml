@@ -19,7 +19,7 @@ jobs:
       with:
         python-version: '3.9'
     - run: pip install -r requirements.txt
-    - run: black --check --diff .
+    - run: black --check --diff --exclude pylons .
     - if: ${{ failure() }}
       run: |
         echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/lint.md"
@@ -250,6 +250,12 @@ jobs:
             version: dev
           - library: python
             weblog-variant: django-poc
+            version: prod
+          - library: python
+            weblog-variant: pylons
+            version: dev
+          - library: python
+            weblog-variant: pylons
             version: prod
 
           - library: ruby
