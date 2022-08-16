@@ -9,11 +9,11 @@ from app.lib.base import BaseController, render
 
 log = logging.getLogger(__name__)
 
-class WafController(BaseController):
 
+class WafController(BaseController):
     def index(self):
-        span = tracer.start_span('my_operation_name')
-        span.set_tag('my_interesting_tag', 'my_interesting_value')
+        span = tracer.start_span("my_operation_name")
+        span.set_tag("my_interesting_tag", "my_interesting_value")
         span.finish()
 
-        return 'Hello World'
+        return "Hello World"
