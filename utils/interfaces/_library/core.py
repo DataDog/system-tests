@@ -51,6 +51,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
             self.expected_timeout = 5
         elif context.library.library in ("php",):
             self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
+        elif context.library.library in ("python",):
+            self.expected_timeout = 25
         else:
             self.expected_timeout = 40
 
