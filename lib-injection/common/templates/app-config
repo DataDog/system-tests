@@ -61,7 +61,8 @@ spec:
         {{ end }}
         {{- range .Values.app_env_no_admission_controller }}
         - name: {{ .name }}
-          value: {{ .value }}
+          # https://github.com/kubernetes/kubernetes/issues/82296
+          value: "{{ .value }}"
           valueFrom: {{ .valueFrom }}
         {{- end }}
       {{ end }}

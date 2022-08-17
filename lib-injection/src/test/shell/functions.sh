@@ -30,9 +30,6 @@ fi
 
 export USE_ADMISSION_CONTROLLER=0
 export USE_UDS=0
-echo "Running locally: ${RUNNING_LOCALLY}"
-echo "Sample app image: ${APP_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}"
-echo "Init image: ${INIT_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}"
 
 ## MODIFIERS
 function uds() {

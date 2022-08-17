@@ -57,11 +57,12 @@ jobs:
     strategy:
       matrix:
         lib-injection-enabled: ['1']
+        # node does not support UDS
         lib-injection-connection: ['network']
         lib-injection-use-admission-controller: ['', 'use-admission-controller']
       fail-fast: false
     env:
-      TEST_LIBRARY: node
+      TEST_LIBRARY: nodejs
       LIBRARY_INJECTION_ENABLED: ${{ matrix.lib-injection-enabled }}
       LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
       LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
