@@ -10,16 +10,13 @@ if [ -z "${BASE_DIR}" ] ; then
     echoerr "MUST define BASE_DIR before sourcing this file"
     exit 1
 fi
+if [ -z "${TEST_LIBRARY}" ] ; then
+    echoerr "MUST define TEST_LIBRARY before sourcing this file"
+    exit 1
+fi
 export SRC_DIR=${BASE_DIR}/src
-export BUILD_DIR=${BASE_DIR}/build
-export LIBRARY=java
-export LIBRARY_DIR=${BASE_DIR}/${LIBRARY}
+export LIBRARY_DIR=${BASE_DIR}/${TEST_LIBRARY}
 
-mkdir -p ${BUILD_DIR}
-
-
-# TODO: use latest when run in system-tests repo
-#       use commit hash when run in library repo
 if [ -z ${CI} ] ; then
     export RUNNING_LOCALLY=1
     if [ -z ${DOCKER_USERNAME} ] ; then
@@ -130,8 +127,8 @@ function reset-app() {
 function deploy-app() {
     app_name=my-app
     helm template lib-injection/common \
-      -f lib-injection/$LIBRARY/values-override.yaml \
-      --set library=${LIBRARY} \
+      -f "lib-injection/$TEST_LIBRARY/values-override.yaml" \
+      --set library="${TEST_LIBRARY}" \
       --set app=${app_name} \
       --set use_uds=${USE_UDS} \
       --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \

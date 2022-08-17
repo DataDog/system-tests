@@ -27,7 +27,7 @@ jobs:
     - run: mkdir -p logs/docker/weblog/logs/
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
 
-  injection-tests:
+  injection-tests-java:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -52,6 +52,30 @@ jobs:
       - name: Run
         run: ./run.sh
 
+  injection-tests-node:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib-injection-enabled: ['1']
+        lib-injection-connection: ['network']
+        lib-injection-use-admission-controller: ['', 'use-admission-controller']
+      fail-fast: false
+    env:
+      TEST_LIBRARY: node
+      LIBRARY_INJECTION_ENABLED: ${{ matrix.lib-injection-enabled }}
+      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
+      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
+      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-js/dd-lib-js-init:e1043d06c7b25f5494a80d3c95e43029ac5cefff
+      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-js/sample-app:45cb74896b0b528d23b1458c9cacfa9b296658ba
+    steps:
+      - name: Checkout system tests
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: ./build.sh
+
+      - name: Run
+        run: ./run.sh
 
   test-the-tests:
     runs-on: ubuntu-latest
