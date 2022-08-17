@@ -17,32 +17,16 @@ export LIBRARY_DIR=${BASE_DIR}/${LIBRARY}
 
 mkdir -p ${BUILD_DIR}
 
+
+# TODO: use latest when run in system-tests repo
+#       use commit hash when run in library repo
 if [ -z ${CI} ] ; then
     export RUNNING_LOCALLY=1
     if [ -z ${DOCKER_USERNAME} ] ; then
         echoerr "MUST set DOCKER_USERNAME to your dockerhub username"
     fi
-    export INIT_DOCKER_IMAGE_REPO=docker.io/${DOCKER_USERNAME}/dd-lib-java-init
-    export APP_DOCKER_IMAGE_REPO=docker.io/${DOCKER_USERNAME}/dd-lib-java-init-test-app
-    # export DOCKER_IMAGE_TAG=latest
-    export DOCKER_IMAGE_TAG=34db2f76715dbbe9168806bac7c89c7ad4d51996
 else
     export RUNNING_LOCALLY=0
-    export INIT_DOCKER_IMAGE_REPO=ghcr.io/datadog/dd-trace-java/dd-lib-java-init
-    export APP_DOCKER_IMAGE_REPO=ghcr.io/datadog/dd-trace-java/dd-lib-java-init-test-app
-    export DOCKER_IMAGE_TAG=34db2f76715dbbe9168806bac7c89c7ad4d51996
-    # if [[ -n ${GITHUB_SHA} ]] ; then
-    #     # export DOCKER_IMAGE_TAG=${GITHUB_SHA}
-    #     export DOCKER_IMAGE_TAG=latest
-    # fi
-    # if [[ -n ${CI_COMMIT_SHA} ]] ; then
-    #     # export DOCKER_IMAGE_TAG=${CI_COMMIT_SHA}
-    #     export DOCKER_IMAGE_TAG=${CI_COMMIT_SHA}
-    # fi
-    # if [[ -n ${DOCKER_IMAGE_TAG} ]] ; then
-    #     echoerr "Unknown CI provider used, can't determine git commit hash"
-    #     exit 1
-    # fi
     export DD_API_KEY=apikey
     export DD_APP_KEY=appkey
 fi
@@ -106,9 +90,9 @@ function ensure-buildx() {
 }
 
 function deploy-operator() {
-    operator_file=${BASE_DIR}/java/operator-helm-values.yaml
+    operator_file=${BASE_DIR}/common/operator-helm-values.yaml
     if [ ${USE_UDS} -eq 1 ] ; then
-      operator_file=${BASE_DIR}/java/operator-helm-values-uds.yaml
+      operator_file=${BASE_DIR}/common/operator-helm-values-uds.yaml
     fi
 
     helm repo add datadog https://helm.datadoghq.com
@@ -118,7 +102,6 @@ function deploy-operator() {
     sleep 5 && kubectl get pods
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
-    # kubectl wait "${pod_name}" --for condition=ready --timeout=5m
     kubectl wait "${pod_name}" --for condition=ready --timeout=1m
     sleep 5 && kubectl get pods
 }
@@ -145,14 +128,17 @@ function reset-app() {
 }
 
 function deploy-app() {
-    echo "Deploying library $LIBRARY"
+    app_name=my-app
     helm template lib-injection/common \
       -f lib-injection/$LIBRARY/values-override.yaml \
+      --set library=${LIBRARY} \
+      --set app=${app_name} \
       --set use_uds=${USE_UDS} \
-      --set use_admission_controller=${USE_ADMISSION_CONTROLLER} | kubectl apply -f -
-    # kubectl apply -f "${app_config}"
-    # kubectl wait pod/my-app --for condition=ready --timeout=5m
-    kubectl wait pod/my-app --for condition=ready --timeout=1m
+      --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \
+      --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
+      --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" \
+       | kubectl apply -f -
+    kubectl wait pod/${app_name} --for condition=ready --timeout=1m
     sleep 5 && kubectl get pods
 }
 
