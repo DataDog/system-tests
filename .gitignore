@@ -31,6 +31,10 @@ dist/
 /utils/build/docker/dotnet/.vs/app/*
 /utils/build/docker/dotnet/app.csproj.user
 
+# Node modules
+/apm_client/nodejs/node_modules/
+/apm_client/nodejs/package-lock.json
+
 # VSCode
 .ionide/
 
