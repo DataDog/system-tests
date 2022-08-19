@@ -1,8 +1,7 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
-const SpanContext = require('opentracing').SpanContext;
-const Client = require('dd-trace/packages/dd-trace/src/dogstatsd');
+const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context');
 
 class Servicer {
     constructor() {
@@ -19,9 +18,10 @@ class Servicer {
             const traceId = parent?.traceId;
             const parentId = parent?.parentId;
 
-            parent = new SpanContext();
-            parent.traceId = traceId;
-            parent.spanId = parentId;
+            parent = new SpanContext({
+                traceId,
+                parentId
+            });
             parent.origin = request.origin;
         }
 
