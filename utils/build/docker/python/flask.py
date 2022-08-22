@@ -1,4 +1,5 @@
 from ddtrace import tracer
+from ddtrace.contrib.trace_utils import set_user
 from flask import Flask, request, Response
 
 
@@ -51,7 +52,8 @@ def status_code():
 
 @app.route("/identify")
 def identify():
-    tracer.set_user(
+    set_user(
+        tracer,
         user_id="usr.id",
         email="usr.email",
         name="usr.name",

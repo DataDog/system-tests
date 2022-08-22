@@ -2,7 +2,7 @@
 from django.urls import path
 from django.http import HttpResponse
 from ddtrace import tracer
-
+from ddtrace.contrib.trace_utils import set_user
 
 tracer.trace("init.service").finish()
 
@@ -30,7 +30,8 @@ def status_code(request, *args, **kwargs):
 
 
 def identify(request):
-    tracer.set_user(
+    set_user(
+        tracer,
         user_id="usr.id",
         email="usr.email",
         name="usr.name",

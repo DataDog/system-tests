@@ -30,5 +30,6 @@ def make_map(config):
     map.connect("/status/", controller="status")
     map.connect("/headers", controller="headers")
     map.connect("/headers/", controller="headers")
+    map.connect("/identify", controller="identify")
 
     return map
