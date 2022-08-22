@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "/agent/api/v2/apmtelemetry-request.json",
-  "description": "Instrumentation telemetry schema"
+  "description": "Instrumentation telemetry schema",
+  "$ref": "/library/telemetry/proxy/api/v2/apmtelemetry-request.json"
 }

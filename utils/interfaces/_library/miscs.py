@@ -4,6 +4,8 @@
 
 """ Misc validations """
 
+import re
+
 from collections import Counter
 
 from utils.tools import m
@@ -97,9 +99,10 @@ class _SpanValidation(BaseValidation):
 
     path_filters = "/v0.4/traces"
 
-    def __init__(self, request, validator):
+    def __init__(self, request, validator, is_success_on_expiry):
         super().__init__(request=request)
         self.validator = validator
+        self.is_success_on_expiry = is_success_on_expiry
 
     def check(self, data):
         if not isinstance(data["request"]["content"], list):
@@ -120,6 +123,57 @@ class _SpanValidation(BaseValidation):
                         self.is_success_on_expiry = True
                 except Exception as e:
                     self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
+
+
+class _SpanTagValidation(BaseValidation):
+    """ will run an arbitrary check on spans. If a request is provided, only span
+    """
+
+    path_filters = "/v0.4/traces"
+
+    def __init__(self, request, tags, value_as_regular_expression):
+        super().__init__(request=request)
+        self.tags = tags
+        self.value_as_regular_expression = value_as_regular_expression
+
+    def check(self, data):
+        if not isinstance(data["request"]["content"], list):
+            self.log_error(f"In {data['log_filename']}, traces should be an array")
+            return  # do not fail, it's schema's job
+
+        for trace in data["request"]["content"]:
+            for span in trace:
+                if self.rid:
+                    if self.rid != _get_rid_from_span(span):
+                        continue
+
+                    self.log_debug(f"Found a trace for {m(self.message)}")
+
+                try:
+                    for tagKey in self.tags:
+                        if tagKey not in span["meta"]:
+                            raise Exception(f"{tagKey} tag not found in span's meta")
+
+                        expectValue = self.tags[tagKey]
+                        actualValue = span["meta"][tagKey]
+
+                        if self.value_as_regular_expression:
+                            if not re.compile(expectValue).fullmatch(actualValue):
+                                raise Exception(
+                                    f'{tagKey} tag value is "{actualValue}", and should match regex "{expectValue}"'
+                                )
+                        else:
+                            if expectValue != actualValue:
+                                raise Exception(
+                                    f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"'
+                                )
+
+                    self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
+                    self.is_success_on_expiry = True
+                except Exception as e:
+                    self.set_failure(
+                        f"{m(self.message)} not validated in {data['log_filename']}:\n{e}\nSpan is: {span}"
+                    )
 
 
 class _TraceExistence(BaseValidation):

@@ -53,6 +53,16 @@ usr.scope
 
 The value of each tag should be the tag name, for example `usr.id` should be set to `usr.id`.
 
+# GET /identify-propagate
+
+This endpoint must set the following tags on the local root span:
+
+```
+_dd.p.usr_id
+```
+
+The value of `_dd.p.usr.id` should be `dXNyLmlk`, which is the base64 encoding of `usr.id`.
+
 ## GET /params/%s
 
 This end point must accept a parameter that is a string and is part of the URL path.
@@ -94,6 +104,10 @@ The end point must accept a query string parameter `q`. This parameter should be
 
 The output of the query should be written to the body of the response.
 
+## `GET /status`
+
+The end point must accept a query string parameter `code`, which should be an integer. This parameter should be come the status code of the response message.
+
 ## \[All HTTP verbs\] /waf
 
 This is a generic endpoint. It must accept all methods, all content types, all queries and all sub paths, including empty ones.
@@ -112,3 +126,12 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
     content
 </string>
 ```
+## `GET /iast/insecure_hashing`
+
+The end point accepts a non mandatory query string parameter `algorithmName`, which should be a string with one of these possible algorithm names:
+- sha1
+- md5
+- md4
+- md2
+
+If the `algorithmName` parameter is not present or does not match the above values, the endpoint will execute the hashing algorithm for each of the algorithm names listed previously.

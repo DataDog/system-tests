@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
-@released(php_appsec="0.3.2", python="?", ruby="1.0.0")
+@released(php_appsec="0.3.2", python="1.2.1", ruby="1.0.0")
 @coverage.basic
 class Test_UrlQueryKey(BaseTestCase):
     """Appsec supports keys on server.request.query"""
@@ -24,7 +24,7 @@ class Test_UrlQueryKey(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
-@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="0.54.2")
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
 @coverage.good
 class Test_UrlQuery(BaseTestCase):
     """Appsec supports values on server.request.query"""
@@ -142,7 +142,7 @@ class Test_Headers(BaseTestCase):
     else "1.34.0"
 )
 @released(nodejs="2.0.0", php_appsec="0.1.0")
-@released(python="1.1.0rc2.dev" if context.weblog_variant == "django-poc" else "?")
+@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0rc1.dev", "uwsgi-poc": "?"})
 @coverage.good
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
@@ -207,6 +207,7 @@ class Test_BodyRaw(BaseTestCase):
     else "0.95.1"
 )
 @coverage.basic
+@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyUrlEncoded(BaseTestCase):
     """Appsec supports <url encoded body>"""
 
@@ -231,6 +232,7 @@ class Test_BodyUrlEncoded(BaseTestCase):
     else "0.95.1"
 )
 @coverage.basic
+@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyJson(BaseTestCase):
     """Appsec supports <JSON encoded body>"""
 
@@ -260,6 +262,7 @@ class Test_BodyJson(BaseTestCase):
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
 @coverage.basic
+@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyXml(BaseTestCase):
     """Appsec supports <XML encoded body>"""
 
@@ -312,8 +315,9 @@ class Test_ResponseStatus(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", python="1.1.0rc2.dev", ruby="?")
+@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="?")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(python={"django-poc": "1.1.0rc2.dev", "flask-poc": "1.4.0.dev", "uwsgi-poc": "?"})
 @released(
     java="?"
     if context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"]
@@ -328,14 +332,14 @@ class Test_ResponseStatus(BaseTestCase):
 class Test_PathParams(BaseTestCase):
     """Appsec supports values on server.request.path_params"""
 
-    @missing_feature(context.weblog_variant in ["flask-poc", "uwsgi-poc"])
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
         r = self.weblog_get("/params/appscan_fingerprint")
         interfaces.library.assert_waf_attack(r, pattern="appscan_fingerprint", address="server.request.path_params")
 
 
-@released(golang="1.36.0", dotnet="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(golang="1.36.0", dotnet="?", java="0.96.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+@irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
 @coverage.basic
 class Test_gRPC(BaseTestCase):
     """Appsec supports address grpc.server.request.message"""
