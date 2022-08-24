@@ -62,6 +62,12 @@ func main() {
 	}
 	r.Any("/identify/", identify)
 	r.Any("/identify", identify)
+	r.Any("/identify-propagate", func(ctx *gin.Context) {
+		if span, ok := tracer.SpanFromContext(ctx.Request.Context()); ok {
+			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
+		}
+		ctx.Writer.Write([]byte("Hello, identify-propagate!"))
+	})
 
 	initDatadog()
 	go listenAndServeGRPC()
