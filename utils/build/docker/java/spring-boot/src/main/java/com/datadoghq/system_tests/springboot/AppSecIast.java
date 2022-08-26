@@ -24,9 +24,9 @@ public class AppSecIast {
 		}
 		
 		String result = "";
-		CryptoExamples.InsecureHashingAlgorithm hashingAlgorithm = CryptoExamples.InsecureHashingAlgorithm.getEnum(algorithmName); 
+		CryptoExamples.HashingAlgorithm hashingAlgorithm = CryptoExamples.HashingAlgorithm.getEnum(algorithmName); 
 		if(hashingAlgorithm == null ){
-			result = CryptoExamples.InsecureHashingAlgorithm.stream()
+			result = CryptoExamples.HashingAlgorithm.stream()
 					 .map(x -> CryptoExamples.getSingleton().traceDebugInsecureHash(x, superSecretAccessKey))
 					 .collect(Collectors.joining("<br/>"));
 		}else{

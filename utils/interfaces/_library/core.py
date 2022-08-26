@@ -9,6 +9,8 @@ from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._library.appsec_iast import _AppSecIastValidation
+
 from utils.interfaces._library.remote_configuration import _RemoteConfigurationValidation
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
@@ -128,7 +130,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 is_success_on_expiry=is_success_on_expiry,
             )
         )
-
+        
+    def add_appsec_iast_validation(self, request=None, validator=None, is_success_on_expiry=True):
+        self.append_validation(
+            _AppSecIastValidation(
+                request=request,
+                validator=validator,
+                is_success_on_expiry=is_success_on_expiry,
+            )
+        )
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
         self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 

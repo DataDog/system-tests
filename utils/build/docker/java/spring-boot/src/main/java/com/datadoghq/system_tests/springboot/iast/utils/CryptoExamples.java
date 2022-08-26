@@ -26,7 +26,7 @@ public class CryptoExamples {
 		return singleton;
 	}
 
-	public String createInsecureHash(InsecureHashingAlgorithm alg, String password) {
+	public String createInsecureHash(HashingAlgorithm alg, String password) {
 		String createdHash = null;
 
 		try {
@@ -40,26 +40,26 @@ public class CryptoExamples {
 		return createdHash;
 	}
 
-	public String traceDebugInsecureHash(InsecureHashingAlgorithm alg, String password) {
+	public String traceDebugInsecureHash(HashingAlgorithm alg, String password) {
 		return alg.getAlgorithmName() + ":" + CryptoExamples.getSingleton().createInsecureHash(alg, password);
 	}
 
-	public static enum InsecureHashingAlgorithm {
-		sha1("SHA-1"), md5("MD5"), md4("MD4"), md2("MD2");
+	public static enum HashingAlgorithm {
+		sha1("SHA-1"), md5("MD5"), md4("MD4"), md2("MD2"),sha256("SHA-256");
 
 		String algorithm;
 
-		InsecureHashingAlgorithm(String algorithm) {
+		HashingAlgorithm(String algorithm) {
 			this.algorithm = algorithm;
 		}
 
-		public static Stream<InsecureHashingAlgorithm> stream() {
-			return Stream.of(InsecureHashingAlgorithm.values());
+		public static Stream<HashingAlgorithm> stream() {
+			return Stream.of(HashingAlgorithm.values());
 		}
 
-		public static InsecureHashingAlgorithm getEnum(String value) {
+		public static HashingAlgorithm getEnum(String value) {
 			try {
-				return InsecureHashingAlgorithm.valueOf(value);
+				return HashingAlgorithm.valueOf(value);
 			} catch (IllegalArgumentException|NullPointerException e) {
 				return null;
 			}
