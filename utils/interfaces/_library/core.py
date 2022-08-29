@@ -127,17 +127,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 request=request,
                 validator=validator,
                 legacy_validator=legacy_validator,
-                is_success_on_expiry=is_success_on_expiry
+                is_success_on_expiry=is_success_on_expiry,
             )
         )
 
     def add_appsec_iast_validation(self, request=None, validator=None, is_success_on_expiry=True):
         self.append_validation(
-            _AppSecIastValidation(
-                request=request,
-                validator=validator,
-                is_success_on_expiry=is_success_on_expiry,
-            )
+            _AppSecIastValidation(request=request, validator=validator, is_success_on_expiry=is_success_on_expiry)
         )
 
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
