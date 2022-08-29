@@ -3,12 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, interfaces, context, missing_feature, coverage
-from utils.interfaces._library.appsec_iast import VulnerabilityAsserts
+from utils.vulnerability_validator import VulnerabilityValidator, Vulnerability
 
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
-@missing_feature(reason="Need to be implement in iast library")
-@coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
+# @missing_feature(reason="Need to be implement in iast library")
+# @coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
 class Test_Iast(BaseTestCase):
     """Verify the IAST features"""
 
@@ -19,22 +19,29 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.add_appsec_iast_validation(
             r,
-            VulnerabilityAsserts()
-            .filter_by_type("WEAK_HASH")
-            .filter_by_location("com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples", 33)
-            .expect_exact_count(4)
-            .expect_only_these_vulnerabilities()
+            VulnerabilityValidator()
+            .expect_only_these_vulnerabilities(4)
+            .with_data(
+                Vulnerability(
+                    type="WEAK_HASH",
+                    location_path="com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples",
+                    location_line=33,
+                )
+            )
             .validate,
         )
 
     def test_secure_hashing_sha256(self):
-        """Test secure hashing sha256 algorithm (no vulnerability has to been reported)"""
+        """Test secure hashing sha256 algorithm (no vulnerability has been reported)"""
         r = self.weblog_get("/iast/insecure_hashing?algorithmName=sha256")
         interfaces.library.assert_trace_exists(r)
 
         interfaces.library.add_appsec_iast_validation(
-            r,
-            VulnerabilityAsserts().expect_exact_count(0).expect_only_these_vulnerabilities().validate,
+            r, VulnerabilityValidator().expect_only_these_vulnerabilities(0).validate
+        )
+        
+        interfaces.library.add_appsec_iast_validation(
+            r, VulnerabilityValidator().expect_exact_count(0).validate
         )
 
     def test_insecure_hashing_sha1(self):
@@ -44,12 +51,16 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.add_appsec_iast_validation(
             r,
-            VulnerabilityAsserts()
-            .filter_by_type("WEAK_HASH")
-            .filter_by_location("com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples", 33)
-            .filter_by_evidence("SHA-1")
-            .expect_exact_count(1)
-            .expect_only_these_vulnerabilities()
+            VulnerabilityValidator()
+            .expect_only_these_vulnerabilities(1)
+            .with_data(
+                Vulnerability(
+                    type="WEAK_HASH",
+                    location_path="com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples",
+                    location_line=33,
+                    evidence_value="SHA-1",
+                )
+            )
             .validate,
         )
 
@@ -60,11 +71,9 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.add_appsec_iast_validation(
             r,
-            VulnerabilityAsserts()
-            .filter_by_type("WEAK_HASH")
-            .filter_by_evidence("MD5")
-            .expect_exact_count(1)
-            .expect_only_these_vulnerabilities()
+            VulnerabilityValidator()
+            .expect_only_these_vulnerabilities(1)
+            .with_data(Vulnerability(type="WEAK_HASH", evidence_value="MD5"))
             .validate,
         )
 
@@ -75,11 +84,9 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.add_appsec_iast_validation(
             r,
-            VulnerabilityAsserts()
-            .filter_by_type("WEAK_HASH")
-            .filter_by_evidence("MD4")
-            .expect_exact_count(1)
-            .expect_only_these_vulnerabilities()
+            VulnerabilityValidator()
+            .expect_only_these_vulnerabilities(1)
+            .with_data(Vulnerability(type="WEAK_HASH", evidence_value="MD4"))
             .validate,
         )
 
@@ -90,10 +97,8 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.add_appsec_iast_validation(
             r,
-            VulnerabilityAsserts()
-            .filter_by_type("WEAK_HASH")
-            .filter_by_evidence("MD2")
-            .expect_exact_count(1)
-            .expect_only_these_vulnerabilities()
+            VulnerabilityValidator()
+            .expect_only_these_vulnerabilities(1)
+            .with_data(Vulnerability(type="WEAK_HASH", evidence_value="MD2"))
             .validate,
         )
