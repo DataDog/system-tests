@@ -127,7 +127,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 request=request,
                 validator=validator,
                 legacy_validator=legacy_validator,
-                is_success_on_expiry=is_success_on_expiry,
+                is_success_on_expiry=is_success_on_expiry
             )
         )
 
