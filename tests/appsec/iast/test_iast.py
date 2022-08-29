@@ -7,8 +7,8 @@ from utils.vulnerability_validator import VulnerabilityValidator, Vulnerability
 
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
-# @missing_feature(reason="Need to be implement in iast library")
-# @coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
+@missing_feature(reason="Need to be implement in iast library")
+@coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
 class Test_Iast(BaseTestCase):
     """Verify the IAST features"""
 
