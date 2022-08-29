@@ -39,10 +39,8 @@ class Test_Iast(BaseTestCase):
         interfaces.library.add_appsec_iast_validation(
             r, VulnerabilityValidator().expect_only_these_vulnerabilities(0).validate
         )
-        
-        interfaces.library.add_appsec_iast_validation(
-            r, VulnerabilityValidator().expect_exact_count(0).validate
-        )
+
+        interfaces.library.add_appsec_iast_validation(r, VulnerabilityValidator().expect_exact_count(0).validate)
 
     def test_insecure_hashing_sha1(self):
         """Test insecure hashing sha1 algorithm"""

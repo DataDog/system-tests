@@ -130,7 +130,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 is_success_on_expiry=is_success_on_expiry,
             )
         )
-        
+
     def add_appsec_iast_validation(self, request=None, validator=None, is_success_on_expiry=True):
         self.append_validation(
             _AppSecIastValidation(
@@ -139,6 +139,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 is_success_on_expiry=is_success_on_expiry,
             )
         )
+
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
         self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
