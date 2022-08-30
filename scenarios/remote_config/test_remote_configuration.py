@@ -2,9 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, released, rfc, coverage, proxies, context
-from utils.tools import logger
 import json
+from collections import defaultdict
+
+from utils import BaseTestCase, context, coverage, interfaces, proxies, released, rfc
+from utils.tools import logger
 
 with open("scenarios/remote_config/rc_expected_requests_live_debugging.json") as f:
     LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
@@ -37,7 +39,7 @@ class Test_RemoteConfigurationFields(BaseTestCase):
 
             expected_language = {
                 "cpp": "cpp",
-                "dotnet": "dot_net",
+                "dotnet": "dotnet",
                 "golang": "go",
                 "nodejs": "node",
                 "java": "java",
@@ -108,20 +110,26 @@ def rc_check_request(data, expected, caching):
 
     if not caching:
         # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
-        assert (
-            "cached_target_files" not in expected
+        assert not content.get(
+            "cached_target_files", []
         ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
     else:
         expected_cached_target_files = expected.get("cached_target_files")
         cached_target_files = content.get("cached_target_files")
-        if expected_cached_target_files is None and cached_target_files is not None:
+
+        if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
             raise Exception("client is not expected to have cached config but is reporting cached config")
-        if expected_cached_target_files is not None and cached_target_files is None:
-            raise Exception("client is expected to have cached config but is not reporting any")
-        elif cached_target_files is not None:
-            assert len(cached_target_files) == len(expected_cached_target_files)
+        elif expected_cached_target_files is not None and cached_target_files is None:
+            raise Exception(
+                "client is expected to have cached config but did not include the cached_target_files field"
+            )
+        elif expected_cached_target_files is not None:
+            # Make sure the client reported all of the expected files
             for file in expected_cached_target_files:
                 assert file in cached_target_files, f"{file} is not in {cached_target_files}"
+            # Make sure the client isn't reporting any extra cached files
+            for file in cached_target_files:
+                assert file in expected_cached_target_files, f"unepxected file {file} in cached_target_files"
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -154,20 +162,23 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    request_number = 0
+    # Index the request number by runtime ID so that we can support applications
+    # that spawns multiple worker processes, each running its own RCM client.
+    request_number = defaultdict(int)
 
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
             """ Helper to validate config request content """
-            logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+            logger.info(f"validating request number {self.request_number[runtime_id]}")
+            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number], caching=True)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=True)
 
-            self.request_number += 1
+            self.request_number[runtime_id] += 1
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
@@ -226,20 +237,21 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    request_number = 0
+    request_number = defaultdict(int)
 
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
             """ Helper to validate config request content """
-            logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+            logger.info(f"validating request number {self.request_number[runtime_id]}")
+            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number], caching=False)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=False)
 
-            self.request_number += 1
+            self.request_number[runtime_id] += 1
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
