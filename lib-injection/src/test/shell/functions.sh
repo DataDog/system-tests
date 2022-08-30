@@ -96,7 +96,7 @@ function deploy-operator() {
     sleep 5 && kubectl get pods
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
-    kubectl wait "${pod_name}" --for condition=ready --timeout=1m
+    kubectl wait "${pod_name}" --for condition=ready --timeout=5m
     sleep 5 && kubectl get pods
 }
 
@@ -132,7 +132,7 @@ function deploy-app() {
       --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
       --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" \
        | kubectl apply -f -
-    kubectl wait pod/${app_name} --for condition=ready --timeout=1m
+    kubectl wait pod/${app_name} --for condition=ready --timeout=5m
     sleep 5 && kubectl get pods
 }
 
