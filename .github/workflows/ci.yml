@@ -91,8 +91,8 @@ jobs:
       LIBRARY_INJECTION_ENABLED: ${{ matrix.lib-injection-enabled }}
       LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
       LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
-      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-py-init:latest
-      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init-test-app:latest
+      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init:a11df889dd16e0e5a4f53740b9a1f21f66bbc31f@sha256:421e03b5e5cc0df3f6fa3dea07fd71f962eaa5028fd24b05735746c2ca81c0fa
+      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init-test-app:a11df889dd16e0e5a4f53740b9a1f21f66bbc31f
     steps:
       - name: Checkout system tests
         uses: actions/checkout@v3
