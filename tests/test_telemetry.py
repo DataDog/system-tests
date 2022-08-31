@@ -54,7 +54,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.assert_no_skipped_seq_ids()
 
     @missing_feature(library="python")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@3.1.0")
     def test_app_started(self):
         """Request type app-started is sent on startup at least once"""
 
@@ -64,7 +64,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator=validator)
 
     @missing_feature(library="python")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@3.1.0")
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
