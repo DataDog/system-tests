@@ -62,7 +62,7 @@ class Test_StatusCode(BaseTestCase):
     if context.weblog_variant in ["echo", "chi"]
     else "1.34.0"
 )
-@released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python="?")
+@released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python="1.5.0rc1.dev")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @coverage.good
 class Test_ActorIP(BaseTestCase):
@@ -70,7 +70,8 @@ class Test_ActorIP(BaseTestCase):
 
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"}, stream=True)
+        headers={"User-Agent": "Arachni/v1"}
+        r = self.weblog_get("/waf/", headers=headers, stream=True)
         actual_remote_ip = r.raw._connection.sock.getsockname()[0]
         r.close()
 
