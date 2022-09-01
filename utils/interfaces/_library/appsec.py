@@ -219,9 +219,9 @@ class _WafAttack(_BaseAppSecValidation):
                     addresses.append(parameter["address"])
                     key_path = parameter["key_path"]
                     full_addresses.append((parameter["address"], key_path))
-                    if isinstance(key_path, list) and len(key_path) != 0 and key_path[-1] == 0:
-                        # on some framework, headers values can be arrays. In this case,
-                        # key_path contains a tailing 0. Remove it and add it as possible use case.
+                    if isinstance(key_path, list) and len(key_path) != 0 and key_path[-1] in (0, "0"):
+                        # on some frameworks, headers values can be arrays. In this case,
+                        # key_path may contains a tailing 0. Remove it and add it as a possible use case.
                         key_path = key_path[:-1]
                         full_addresses.append((parameter["address"], key_path))
 
