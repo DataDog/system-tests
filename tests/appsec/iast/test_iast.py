@@ -5,7 +5,12 @@
 from utils import BaseTestCase, interfaces, context, missing_feature, coverage
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
-@missing_feature(reason="Need to be implement in iast library")
+@missing_feature(library="golang")
+@missing_feature(library="cpp")
+@missing_feature(library="python")
+@missing_feature(library="php")
+@missing_feature(library="dotnet")
+@missing_feature(library="ruby")
 @coverage.basic
 class Test_Iast(BaseTestCase):
     """Verify IAST features"""
@@ -16,7 +21,8 @@ class Test_Iast(BaseTestCase):
         EXPECTED_LOCATION = "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
     else:
         EXPECTED_LOCATION = ""  # (TBD)
-
+        
+    @missing_feature(library="java", reason="Need to be implement deduplicate vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request, we will report only one vulnerability"""
         r = self.weblog_get("/iast/insecure_hashing/deduplicate")
@@ -46,7 +52,8 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=md5")
 
         interfaces.library.expect_iast_vulnerabilities(r, type="WEAK_HASH", evidence="md5")
-
+        
+    @missing_feature(library="java", reason="Need to be implement sha1 hash detection")
     def test_insecure_sha1_hash(self):
         """Test sha1 weak hash algorithm reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=sha1")
