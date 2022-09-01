@@ -131,9 +131,18 @@ class LibraryInterfaceValidator(InterfaceValidator):
             )
         )
 
-    def add_appsec_iast_validation(self, request=None, validator=None, is_success_on_expiry=True):
+    def expect_iast_vulnerabilities(
+        self, request, type=None, location_path=None, location_line=None, evidence=None, vulnarability_count=None
+    ):
         self.append_validation(
-            _AppSecIastValidation(request=request, validator=validator, is_success_on_expiry=is_success_on_expiry)
+            _AppSecIastValidation(
+                request=request,
+                type=type,
+                location_path=location_path,
+                location_line=location_line,
+                evidence=evidence,
+                vulnarability_count=vulnarability_count,
+            )
         )
 
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):

@@ -40,10 +40,6 @@ class _BaseAppSecIastValidation(BaseValidation):
     def final_check(self):
         spans = self._get_related_spans()
 
-        # Yes, i want to make some validations were there is not iast event. For example, if i use a secure hashing algoritm, i will want to check that there is no event.
-        # if len(spans) == 0 and not self.is_success_on_expiry:
-        #    self.set_failure(f"{self.message} not validated: Can't find any related IAST event")
-
         def vulnerabilityDecoder(vulDict):
             return namedtuple("X", vulDict.keys())(*vulDict.values())
 
@@ -70,20 +66,61 @@ class _BaseAppSecIastValidation(BaseValidation):
 
 class _AppSecIastValidation(_BaseAppSecIastValidation):
     """
-
+    Validator filters vulnerabilities found in the iast message and check the expected counter
     Validator function can :
     * returns true => validation will be validated at the end (but trace will continue to be checked)
     * returns False or None => nothing is done
     * raise an exception => validation will fail
     """
 
-    def __init__(self, request, validator, is_success_on_expiry=False):
+    def __init__(
+        self, request, type=None, location_path=None, location_line=None, evidence=None, vulnarability_count=None
+    ):
+
         super().__init__(request=request)
-        self.validator = validator
-        self.is_success_on_expiry = is_success_on_expiry
+        self.type = type
+        self.location_path = location_path
+        self.location_line = location_line
+        self.evidence = evidence
+        self.vulnarability_count = vulnarability_count
 
     def validate(self, vulnerabilities):
-        if self.validator:
-            return self.validator(vulnerabilities)
+        filters = self.__get_vulnerability_filters()
+        filteredVulnerabilities = list(filter(lambda x: all(f(x) for f in filters), vulnerabilities))
+        countFiltered = len(filteredVulnerabilities)
+
+        if not self.__check_count_conditions(countFiltered):
+            raise Exception(
+                f"""Expected assertion failed:
+    Expected:  {str(self)} 
+    All vulnerabilities: {self.__str_vulnerabilties(vulnerabilities)} 
+    Filtered vulnerabilitites: {self.__str_vulnerabilties(filteredVulnerabilities)}  """
+            )
+        return True
+
+    def __get_vulnerability_filters(self):
+        filters = []
+
+        if self.type:
+            filters.append(lambda vul: vul.type == self.type)
+
+        if self.evidence:
+            filters.append(lambda vul: vul.evidence.value == self.evidence)
+
+        if self.location_path:
+            filters.append(lambda vul: vul.location.path == self.location_path)
+            if self.location_line:
+                filters.append(lambda vul: vul.location.line == self.location_line)
+        return filters
+
+    def __check_count_conditions(self, countFiltered):
+        if self.vulnarability_count is None:
+            return countFiltered > 0
         else:
-            raise NotImplementedError
+            return self.vulnarability_count == countFiltered
+
+    def __str_vulnerabilties(self, vulnerabilities):
+        return f" \n count:" + str(len(vulnerabilities)) + ", " + json.dumps(vulnerabilities)
+
+    def __str__(self):
+        return f" \n Expect count: {self.vulnarability_count},[ type: {self.type}, evidence:{self.evidence}, location: {self.location_path}({self.location_line}) )]"

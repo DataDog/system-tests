@@ -2,101 +2,64 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, coverage
-from utils.vulnerability_validator import VulnerabilityValidator, Vulnerability
-
+from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
-@missing_feature(reason="Need to be implement in iast library")
-@coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
+# @missing_feature(reason="Need to be implement in iast library")
+# @coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
+@missing_feature(library="golang")
+@missing_feature(library="cpp")
+@missing_feature(library="python")
+@missing_feature(library="php")
+@missing_feature(library="dotnet")
+@missing_feature(library="ruby")
 class Test_Iast(BaseTestCase):
-    """Verify the IAST features"""
+    """Verify IAST features"""
 
-    def test_insecure_hashing_all(self):
-        """Test insecure hashing all algorithms"""
-        r = self.weblog_get("/iast/insecure_hashing")
-        interfaces.library.assert_trace_exists(r)
+    @missing_feature(library="java", reason="Need to be implement deduplicate vulnerability hashes")
+    def test_insecure_hash_remove_duplicates(self):
+        """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request, we will report only one vulnerability"""
+        r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
-        interfaces.library.add_appsec_iast_validation(
-            r,
-            VulnerabilityValidator()
-            .expect_only_these_vulnerabilities(4)
-            .with_data(
-                Vulnerability(
-                    type="WEAK_HASH",
-                    location_path="com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples",
-                    location_line=33,
-                )
-            )
-            .validate,
+        interfaces.library.expect_iast_vulnerabilities(
+            r, vulnarability_count=1, type="WEAK_HASH", location_path=self.__get_insecure_hash_source_path()
         )
 
-    def test_secure_hashing_sha256(self):
-        """Test secure hashing sha256 algorithm (no vulnerability has been reported)"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=sha256")
-        interfaces.library.assert_trace_exists(r)
+    def test_insecure_hash_multiple(self):
+        """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
+        r = self.weblog_get("/iast/insecure_hashing/multiple_hash")
 
-        interfaces.library.add_appsec_iast_validation(
-            r, VulnerabilityValidator().expect_only_these_vulnerabilities(0).validate
+        interfaces.library.expect_iast_vulnerabilities(
+            r, vulnarability_count=2, type="WEAK_HASH", location_path=self.__get_insecure_hash_source_path()
         )
 
-        interfaces.library.add_appsec_iast_validation(r, VulnerabilityValidator().expect_exact_count(0).validate)
+    def test_secure_hash(self):
+        """Strong hash algorithm is not reported as insecure"""
+        r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=sha256")
 
-    def test_insecure_hashing_sha1(self):
-        """Test insecure hashing sha1 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=sha1")
-        interfaces.library.assert_trace_exists(r)
-
-        interfaces.library.add_appsec_iast_validation(
-            r,
-            VulnerabilityValidator()
-            .expect_only_these_vulnerabilities(1)
-            .with_data(
-                Vulnerability(
-                    type="WEAK_HASH",
-                    location_path="com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples",
-                    location_line=33,
-                    evidence_value="SHA-1",
-                )
-            )
-            .validate,
+        interfaces.library.expect_iast_vulnerabilities(
+            r, vulnarability_count=0, type="WEAK_HASH", location_path=self.__get_insecure_hash_source_path()
         )
 
-    def test_insecure_hashing_md5(self):
-        """Test insecure hashing md5 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md5")
-        interfaces.library.assert_trace_exists(r)
+    def test_insecure_md5_hash(self):
+        """Test md5 weak hash algorithm reported as insecure"""
+        r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=md5")
 
-        interfaces.library.add_appsec_iast_validation(
-            r,
-            VulnerabilityValidator()
-            .expect_only_these_vulnerabilities(1)
-            .with_data(Vulnerability(type="WEAK_HASH", evidence_value="MD5"))
-            .validate,
+        interfaces.library.expect_iast_vulnerabilities(r, type="WEAK_HASH", evidence="md5")
+
+    @missing_feature(library="java", reason="Need to be implement sha1 hash detection")
+    def test_insecure_sha1_hash(self):
+        """Test sha1 weak hash algorithm reported as insecure"""
+        r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=sha1")
+
+        interfaces.library.expect_iast_vulnerabilities(
+            r, type="WEAK_HASH", evidence="sha1", location_path=self.__get_insecure_hash_source_path()
         )
 
-    def test_insecure_hashing_md4(self):
-        """Test insecure hashing md4 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md4")
-        interfaces.library.assert_trace_exists(r)
-
-        interfaces.library.add_appsec_iast_validation(
-            r,
-            VulnerabilityValidator()
-            .expect_only_these_vulnerabilities(1)
-            .with_data(Vulnerability(type="WEAK_HASH", evidence_value="MD4"))
-            .validate,
-        )
-
-    def test_insecure_hashing_md2(self):
-        """Test insecure hashing md2 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md2")
-        interfaces.library.assert_trace_exists(r)
-
-        interfaces.library.add_appsec_iast_validation(
-            r,
-            VulnerabilityValidator()
-            .expect_only_these_vulnerabilities(1)
-            .with_data(Vulnerability(type="WEAK_HASH", evidence_value="MD2"))
-            .validate,
-        )
+    def __get_insecure_hash_source_path(self):
+        exepcted_location = ""
+        if context.library == "nodejs":
+            exepcted_location = "/usr/app/app.js"
+        elif context.library == "java":
+            exepcted_location = "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+        return exepcted_location

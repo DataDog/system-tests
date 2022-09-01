@@ -126,12 +126,19 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
     content
 </string>
 ```
-## `GET /iast/insecure_hashing`
+## `GET /iast/insecure_hashing/deduplicate`
 
-The end point accepts a non mandatory query string parameter `algorithmName`, which should be a string with one of these possible algorithm names:
+Parameterless end point. This endpoint contains a vulnerable souce code line (weak hashing) in a loop. 
+
+## `GET /iast/insecure_hashing/multiple_hash`
+
+Parameterless end point. This endpoint contains 2 different insecure hashing operations (for example md5 and sha1). These operations are located in differents points of the executed source code. 
+
+## `GET /iast/insecure_hashing/test_algorithm`
+
+The end point accepts a non mandatory query string parameter `name`, which should be a string with one of these possible algorithm names:
 - sha1
 - md5
 - md4
-- md2
 
-If the `algorithmName` parameter is not present or does not match the above values, the endpoint will execute the hashing algorithm for each of the algorithm names listed previously.
+The endpoint executes a unique operation of String hashing with given algorithm name 
