@@ -11,6 +11,7 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage
 @missing_feature(library="php")
 @missing_feature(library="dotnet")
 @missing_feature(library="ruby")
+@missing_feature(library="nodejs" reason="Nodejs is pending to merge this feature")
 @coverage.basic
 class Test_Iast(BaseTestCase):
     """Verify IAST features"""
