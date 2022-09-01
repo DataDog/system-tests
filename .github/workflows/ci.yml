@@ -31,13 +31,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lib-injection-enabled: ['1']
         lib-injection-connection: ['uds', 'network']
         lib-injection-use-admission-controller: ['', 'use-admission-controller']
       fail-fast: false
     env:
       TEST_LIBRARY: java
-      LIBRARY_INJECTION_ENABLED: ${{ matrix.lib-injection-enabled }}
       LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
       LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
       LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-java/dd-lib-java-init:34db2f76715dbbe9168806bac7c89c7ad4d51996
@@ -47,23 +45,21 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build
-        run: ./build.sh
+        run: ./lib-injection/build.sh
 
       - name: Run
-        run: ./run.sh
+        run: ./lib-injection/run.sh
 
   injection-tests-node:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lib-injection-enabled: ['1']
         # node does not support UDS
         lib-injection-connection: ['network']
         lib-injection-use-admission-controller: ['', 'use-admission-controller']
       fail-fast: false
     env:
       TEST_LIBRARY: nodejs
-      LIBRARY_INJECTION_ENABLED: ${{ matrix.lib-injection-enabled }}
       LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
       LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
       LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-js/dd-lib-js-init:e1043d06c7b25f5494a80d3c95e43029ac5cefff
@@ -73,22 +69,20 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build
-        run: ./build.sh
+        run: ./lib-injection/build.sh
 
       - name: Run
-        run: ./run.sh
+        run: ./lib-injection/run.sh
 
   injection-tests-python:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lib-injection-enabled: ['1']
         lib-injection-connection: ['uds', 'network']
         lib-injection-use-admission-controller: ['', 'use-admission-controller']
       fail-fast: false
     env:
       TEST_LIBRARY: python
-      LIBRARY_INJECTION_ENABLED: ${{ matrix.lib-injection-enabled }}
       LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
       LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
       LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init:5f62ab0bbec26cef23f16f3165460e61c2c1eba5
@@ -98,10 +92,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build
-        run: ./build.sh
+        run: ./lib-injection/build.sh
 
       - name: Run
-        run: ./run.sh
+        run: ./lib-injection/run.sh
 
   test-the-tests:
     runs-on: ubuntu-latest
