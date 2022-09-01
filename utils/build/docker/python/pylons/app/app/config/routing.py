@@ -31,5 +31,6 @@ def make_map(config):
     map.connect("/headers", controller="headers")
     map.connect("/headers/", controller="headers")
     map.connect("/identify", controller="identify")
+    map.connect("/identify-propagate", controller="identify", action="propagate")
 
     return map

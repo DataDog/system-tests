@@ -17,3 +17,16 @@ class IdentifyController(BaseController):
             scope="usr.scope",
         )
         return "Hello World"
+
+    def propagate(self):
+        set_user(
+            tracer,
+            user_id="usr.id",
+            email="usr.email",
+            name="usr.name",
+            session_id="usr.session_id",
+            role="usr.role",
+            scope="usr.scope",
+            propagate=True,
+        )
+        return "Hello World"

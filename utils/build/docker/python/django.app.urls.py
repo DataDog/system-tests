@@ -42,6 +42,19 @@ def identify(request):
     return HttpResponse("OK")
 
 
+def identify_propagate(request):
+    set_user(
+        tracer,
+        user_id="usr.id",
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+        propagate=True,
+    )
+    return HttpResponse("OK")
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -52,4 +65,5 @@ urlpatterns = [
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
+    path("identify-propagate", identify_propagate),
 ]

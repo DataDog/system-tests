@@ -74,6 +74,6 @@ def identify_propagate():
         session_id="usr.session_id",
         role="usr.role",
         scope="usr.scope",
-        propagate=True
+        propagate=True,
     )
     return Response("OK")
