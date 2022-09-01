@@ -55,6 +55,7 @@ def identify_propagate(request):
     )
     return HttpResponse("OK")
 
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
