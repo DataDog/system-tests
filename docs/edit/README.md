@@ -42,7 +42,7 @@ class Test_Feature(BaseTestCase):
         r = self.weblog_get("/url")
         interfaces.library.add_span_validation(r, lamda span: span["meta"]["http.method"] == "GET")
 ```
-You can also have a look at the validations of the IAST features ([IAST features validation](../edit/iast_validations.md)).
+You can also have a look at the validations of IAST features ([IAST features validation](../edit/iast_validations.md)).
 
 You now have the basics. It proably won't be as easy, and you may needs to dive into internals, so please do not hesitate to ask for help on slack at [#apm-integrations-reliability-and-performance-team](https://dd.slack.com/archives/C01CGB22DC2)
 
