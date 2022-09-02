@@ -16,5 +16,6 @@ In the root of the repo:
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-SYSTEM_TEST_E2E=False CLIENTS_ENABLED=dotnet tests/integration_unit
+cd integration_unit
+CLIENTS_ENABLED=dotnet ./run.sh
 ```

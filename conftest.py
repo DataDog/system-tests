@@ -11,15 +11,12 @@ from utils import context, data_collector, interfaces
 from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
 from utils._xfail import xfails
 
-from ddtrace.internal.utils.formats import asbool
 from pytest_jsonreport.plugin import JSONReport
 import _pytest
 
+
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
-
-
-RUN_E2E = asbool(os.getenv("SYSTEM_TEST_E2E", True))
 
 
 class CustomTerminalReporter(_pytest.terminal.TerminalReporter):
@@ -28,24 +25,21 @@ class CustomTerminalReporter(_pytest.terminal.TerminalReporter):
         self._sessionstarttime = time.time()
 
         self.write_sep("=", "test session starts", bold=True)
-        self.write_line(f"E2E tests enabled: {RUN_E2E}")
+        self.write_line(f"Library: {context.library}")
+        self.write_line(f"Agent: {context.agent_version}")
 
-        if RUN_E2E:
-            self.write_line(f"Library: {context.library}")
-            self.write_line(f"Agent: {context.agent_version}")
+        if context.library == "php":
+            self.write_line(f"AppSec: {context.php_appsec}")
 
-            if context.library == "php":
-                self.write_line(f"AppSec: {context.php_appsec}")
+        if context.libddwaf_version:
+            self.write_line(f"libddwaf: {context.libddwaf_version}")
 
-            if context.libddwaf_version:
-                self.write_line(f"libddwaf: {context.libddwaf_version}")
+        if context.appsec_rules_file:
+            self.write_line(f"AppSec rules file: {context.appsec_rules_file}")
 
-            if context.appsec_rules_file:
-                self.write_line(f"AppSec rules file: {context.appsec_rules_file}")
-
-            self.write_line(f"AppSec rules version: {context.appsec_rules_version}")
-            self.write_line(f"Weblog variant: {context.weblog_variant}")
-            self.write_line(f"Backend: {context.dd_site}")
+        self.write_line(f"AppSec rules version: {context.appsec_rules_version}")
+        self.write_line(f"Weblog variant: {context.weblog_variant}")
+        self.write_line(f"Backend: {context.dd_site}")
 
 
 _pytest.terminal.TerminalReporter = CustomTerminalReporter
@@ -58,23 +52,21 @@ _rfcs = {}
 
 # Called at the very begening
 def pytest_sessionstart(session):
-    if RUN_E2E:
-        logger.debug(f"Library: {context.library}")
-        logger.debug(f"Agent: {context.agent_version}")
-        if context.library == "php":
-            logger.debug(f"AppSec: {context.php_appsec}")
 
-        logger.debug(f"libddwaf: {context.libddwaf_version}")
-        logger.debug(f"AppSec rules version: {context.appsec_rules_version}")
-        logger.debug(f"Weblog variant: {context.weblog_variant}")
-        logger.debug(f"Backend: {context.dd_site}")
+    logger.debug(f"Library: {context.library}")
+    logger.debug(f"Agent: {context.agent_version}")
+    if context.library == "php":
+        logger.debug(f"AppSec: {context.php_appsec}")
 
-        # connect interface validators to data collector
-        data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
-        data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
-        data_collector.start()
-    else:
-        logger.debug(f"Libraries: ...")
+    logger.debug(f"libddwaf: {context.libddwaf_version}")
+    logger.debug(f"AppSec rules version: {context.appsec_rules_version}")
+    logger.debug(f"Weblog variant: {context.weblog_variant}")
+    logger.debug(f"Backend: {context.dd_site}")
+
+    # connect interface validators to data collector
+    data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
+    data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
+    data_collector.start()
 
 
 # called when each test item is collected
@@ -126,11 +118,11 @@ def _get_skip_reason_from_marker(marker):
 
 
 def pytest_runtestloop(session):
+
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
-    if RUN_E2E:
-        terminal.write_line(f"Executing weblog warmup...")
-        context.execute_warmups()
+    terminal.write_line(f"Executing weblog warmup...")
+    context.execute_warmups()
 
     """From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337"""
     if session.testsfailed and not session.config.option.continue_on_collection_errors:
@@ -353,56 +345,56 @@ def _print_async_failure_report(terminalreporter, failed, passed):
         terminalreporter.line("")
 
 
-# def pytest_json_modifyreport(json_report):
-#
-#     try:
-#         logger.debug("Modifying JSON report")
-#
-#         # report test with a failing asyn validation as failed
-#         failed_nodeids = set()
-#
-#         for interface in interfaces.all:
-#             for validation in interface._validations:
-#                 if validation.closed and not validation.is_success:
-#                     filename, klass, function = validation.get_test_source_info()
-#                     nodeid = f"{filename}::{klass}::{function}"
-#                     failed_nodeids.add(nodeid)
-#
-#         # populate and adjust some data
-#         for test in json_report["tests"]:
-#             test["skip_reason"] = _skip_reasons.get(test["nodeid"])
-#             if test["nodeid"] in failed_nodeids:
-#                 test["outcome"] = "failed"
-#             elif test["outcome"] in ("xfail", "xfailed"):
-#                 # it means that the synchronous test is marked as expected failure
-#                 # but all asynchronous test are ok
-#                 test["outcome"] = "xpassed"
-#
-#         # add usefull data for reporting
-#         json_report["docs"] = _docs
-#         json_report["context"] = context.serialize()
-#         json_report["release_versions"] = _release_versions
-#         json_report["rfcs"] = _rfcs
-#         json_report["coverages"] = _coverages
-#
-#         # clean useless and volumetric data
-#         del json_report["collectors"]
-#
-#         for test in json_report["tests"]:
-#             for k in ("setup", "call", "teardown", "keywords", "lineno"):
-#                 if k in test:
-#                     del test[k]
-#
-#         logger.debug("Modifying JSON report finished")
-#     except Exception as e:
-#         logger.error(f"Fail to modify json report", exc_info=True)
+def pytest_json_modifyreport(json_report):
+
+    try:
+        logger.debug("Modifying JSON report")
+
+        # report test with a failing asyn validation as failed
+        failed_nodeids = set()
+
+        for interface in interfaces.all:
+            for validation in interface._validations:
+                if validation.closed and not validation.is_success:
+                    filename, klass, function = validation.get_test_source_info()
+                    nodeid = f"{filename}::{klass}::{function}"
+                    failed_nodeids.add(nodeid)
+
+        # populate and adjust some data
+        for test in json_report["tests"]:
+            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
+            if test["nodeid"] in failed_nodeids:
+                test["outcome"] = "failed"
+            elif test["outcome"] in ("xfail", "xfailed"):
+                # it means that the synchronous test is marked as expected failure
+                # but all asynchronous test are ok
+                test["outcome"] = "xpassed"
+
+        # add usefull data for reporting
+        json_report["docs"] = _docs
+        json_report["context"] = context.serialize()
+        json_report["release_versions"] = _release_versions
+        json_report["rfcs"] = _rfcs
+        json_report["coverages"] = _coverages
+
+        # clean useless and volumetric data
+        del json_report["collectors"]
+
+        for test in json_report["tests"]:
+            for k in ("setup", "call", "teardown", "keywords", "lineno"):
+                if k in test:
+                    del test[k]
+
+        logger.debug("Modifying JSON report finished")
+    except Exception as e:
+        logger.error(f"Fail to modify json report", exc_info=True)
 
 
 def pytest_sessionfinish(session, exitstatus):
-    if RUN_E2E:
-        data_collector.shutdown()
-        data_collector.join(timeout=10)
 
-        # Is it really a test ?
-        if data_collector.is_alive():
-            logger.error("Can't terminate data collector")
+    data_collector.shutdown()
+    data_collector.join(timeout=10)
+
+    # Is it really a test ?
+    if data_collector.is_alive():
+        logger.error("Can't terminate data collector")

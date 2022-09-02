@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from tests.integration_unit.protos import apm_test_client_pb2 as protos_dot_apm__test__client__pb2
+from integration_unit.protos import apm_test_client_pb2 as protos_dot_apm__test__client__pb2
 
 
 class APMClientStub(object):

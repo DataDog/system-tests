@@ -1,7 +1,7 @@
 import logging
 import os
 
-from .test_client_server import serve
+from .server import serve
 
 
 logging.basicConfig(level=logging.DEBUG)

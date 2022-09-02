@@ -12,11 +12,10 @@ import urllib.parse
 import grpc
 
 import requests
-from ddtrace.internal.compat import to_unicode
 import pytest
 
-from tests.integration_unit.protos import apm_test_client_pb2 as pb
-from tests.integration_unit.protos import apm_test_client_pb2_grpc
+from integration_unit.protos import apm_test_client_pb2 as pb
+from integration_unit.protos import apm_test_client_pb2_grpc
 from spec.trace import V06StatsPayload
 from spec.trace import decode_v06_stats
 
@@ -213,7 +212,7 @@ class _TestAgentAPI:
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
             if resp.status_code != 200:
-                pytest.fail(to_unicode(resp.text), pytrace=False)
+                pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
 
 @contextlib.contextmanager
