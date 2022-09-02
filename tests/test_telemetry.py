@@ -7,6 +7,7 @@ from utils import context, BaseTestCase, interfaces, missing_feature, bug, relea
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
+@bug(library="nodejs", reason="Telemetry seems to be totally not working in UDS mode")
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
@@ -54,7 +55,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.assert_no_skipped_seq_ids()
 
     @missing_feature(library="python")
-    @missing_feature(context.library < "nodejs@3.1.0")
+    @missing_feature(library="nodejs")
     def test_app_started(self):
         """Request type app-started is sent on startup at least once"""
 
@@ -64,7 +65,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator=validator)
 
     @missing_feature(library="python")
-    @missing_feature(context.library < "nodejs@3.1.0")
+    @missing_feature(library="nodejs")
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
