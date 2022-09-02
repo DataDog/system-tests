@@ -7,6 +7,7 @@ from utils import context, BaseTestCase, interfaces, missing_feature, bug, relea
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
+@bug(library="nodejs", reason="Telemetry seems to be totally not working in UDS mode")
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
