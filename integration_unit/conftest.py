@@ -447,7 +447,7 @@ class _TestTracer:
 
 @pytest.fixture
 def test_server_timeout():
-    yield 20
+    yield 60
 
 
 @pytest.fixture
