@@ -2,17 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, coverage
+from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
-@missing_feature(library="golang")
-@missing_feature(library="cpp")
-@missing_feature(library="python")
-@missing_feature(library="php")
-@missing_feature(library="dotnet")
-@missing_feature(library="ruby")
-@missing_feature(library="nodejs", reason="Nodejs is pending to merge this feature")
 @coverage.basic
+@released(dotnet="?", golang="?", java="0.108.0", nodejs="4.0.0pre0", php_appsec="?", python="?", ruby="?", cpp="?")
 class Test_Iast(BaseTestCase):
     """Verify IAST features"""
 
@@ -23,13 +17,15 @@ class Test_Iast(BaseTestCase):
     else:
         EXPECTED_LOCATION = ""  # (TBD)
 
-    @missing_feature(library="java", reason="Need to be implement deduplicate vulnerability hashes")
+    @missing_feature(
+        library="java", reason="Need to be implement deduplicate vulnerability hashes and sha1 algorithm detection"
+    )
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request, we will report only one vulnerability"""
         r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnarability_count=1, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+            r, vulnerability_count=1, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
     def test_insecure_hash_multiple(self):
@@ -37,16 +33,19 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/multiple_hash")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnarability_count=2, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+            r, vulnerability_count=2, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
     def test_secure_hash(self):
         """Strong hash algorithm is not reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=sha256")
-
-        interfaces.library.expect_iast_vulnerabilities(
-            r, vulnarability_count=0, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
-        )
+        if context.library == "nodejs":
+            # NodeJs express4 app use hashing string for http headers. Allways report at least this vulnerability
+            interfaces.library.expect_iast_vulnerabilities(
+                r, vulnerability_count=0, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+            )
+        else:
+            interfaces.library.expect_no_vulnerabilities(r)
 
     def test_insecure_md5_hash(self):
         """Test md5 weak hash algorithm reported as insecure"""
