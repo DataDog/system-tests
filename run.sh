@@ -11,25 +11,6 @@ if test -f ".env"; then
     source .env
 fi
 
-
-LIBRARY_INJECTION_ENABLED=${LIBRARY_INJECTION_ENABLED:-}
-
-# Run the library injection tests if enabled
-if [[ ${LIBRARY_INJECTION_ENABLED} ]]; then
-  echo "Running library injection test cases"
-  echo "Deploying test agent"
-  ./lib-injection/run.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents
-
-  echo "Deploying pre-modified pod"
-  ./lib-injection/run.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents deploy-app
-
-  ./lib-injection/run.sh test-for-traces
-
-  kubectl logs pod/my-app
-  kubectl logs daemonset/datadog
-  exit 0
-fi
-
 if [ -z "${DD_API_KEY:-}" ]; then
     echo "DD_API_KEY is missing in env, please add it."
     exit 1
@@ -156,7 +137,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; 
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
-    WEBLOG_ENV="DD_DEBUGGER_ENABLED=1"
+    WEBLOG_ENV="DD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD"
@@ -172,7 +153,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCA
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
-    WEBLOG_ENV="DD_DEBUGGER_ENABLED=1"
+    WEBLOG_ENV="DD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache"
