@@ -1,6 +1,15 @@
 'use strict'
 
-const tracer = require('dd-trace').init({ debug: true });
+//const tracer = require('dd-trace').init({ debug: true });
+
+const tracer = require('dd-trace').init({ debug: true,  experimental: {
+  iast: {
+    enabled: true,
+    requestSampling: 100,
+    maxConcurrentRequests: 4,
+    maxContextOperations: 30
+  }
+} });
 
 const app = require('express')();
 
