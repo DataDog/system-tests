@@ -6,7 +6,16 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(dotnet="?", golang="?", java="0.108.0", nodejs="4.0.0pre0", php_appsec="?", python="?", ruby="?", cpp="?")
+@released(
+    dotnet="?",
+    golang="?",
+    java={"spring-boot": "0.108.0", "*": "?"},
+    nodejs={"express4": "4.0.0pre0", "*": "?"},
+    php_appsec="?",
+    python="?",
+    ruby="?",
+    cpp="?",
+)
 class Test_Iast(BaseTestCase):
     """Verify IAST features"""
 

@@ -31,12 +31,12 @@ class _BaseAppSecIastValidation(BaseValidation):
                     self.appsec_iast_events.append({"span": span, "i": i, "log_filename": data["log_filename"]})
 
     def final_check(self):
-        def vulnerability_decoder(vulDict):
+        def vulnerability_dict(vulDict):
             return namedtuple("X", vulDict.keys())(*vulDict.values())
 
         for span in self.appsec_iast_events:
-            if "span" in span:
-                appsec_iast_data = json.loads(span["span"]["meta"]["_dd.iast.json"], object_hook=vulnerability_decoder)
+            if not self.closed:
+                appsec_iast_data = json.loads(span["span"]["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
                 vulnerabilities = appsec_iast_data.vulnerabilities
                 try:
                     if self.validate(vulnerabilities):

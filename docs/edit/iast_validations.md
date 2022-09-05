@@ -106,3 +106,14 @@ A common case is that we use the same test to test on applications in different 
 
         interfaces.library.expect_iast_vulnerabilities(r,vulnarability_count=2, type="WEAK_HASH", location_path=exepcted_location)
 ```
+
+### Expect no vulnerabilities
+
+If you want to check that endpoint is secure (without reporting vulnerabilities), you should validate it as follows:
+
+```
+    def test_secure_endpoint(self):
+        """Checks that the endpoint does not report any vulnerabilities"""
+        r = self.weblog_get("/iast/secure_endpoint")
+        interfaces.library.expect_no_vulnerabilities(r)
+```
