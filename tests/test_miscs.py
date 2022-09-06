@@ -5,7 +5,7 @@
 from utils import BaseTestCase, interfaces, missing_feature, released, irrelevant
 
 
-@released(golang="?", java="0.97.0", nodejs="?", php="0.74.0", python="0.59.1", ruby="?")
+@released(golang="?", java="0.97.0", nodejs="3.1.0", php="0.74.0", python="0.59.1", ruby="?")
 @irrelevant(library="cpp")
 class Test_Basic(BaseTestCase):
     """ Make sure the spans endpoint is successful """

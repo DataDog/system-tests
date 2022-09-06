@@ -37,7 +37,10 @@ def validate_identify_tags(tags):
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK"""
 
-    @bug(library="golang", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
+    @bug(
+        context.library <= "golang@1.41.0",
+        reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
+    )
     @bug(
         context.library < "nodejs@2.9.0",
         reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
@@ -59,7 +62,7 @@ class Test_Basic(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
+@released(dotnet="?", golang="1.41.0", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
 @coverage.basic
 class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
