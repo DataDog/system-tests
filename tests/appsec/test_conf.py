@@ -66,7 +66,7 @@ class Test_RuleSet_1_3_1(BaseTestCase):
     def test_nosqli_keys(self):
         """Test a rule defined on this rules version: nosql on keys"""
         r = self.weblog_get("/waf/", params={"$nin": "value"})
-        interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection)
 
     @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
     @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
