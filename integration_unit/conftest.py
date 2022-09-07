@@ -329,7 +329,7 @@ def test_agent(docker, request, tmp_path, test_agent_port, test_agent_log_file: 
                     )
                 break
         else:
-            pytest.fail("Could not connect to test agent, check the log file %r." % log_file_path, pytrace=False)
+            pytest.fail("Could not connect to test agent, check the log file %r." % test_agent_log_file, pytrace=False)
 
         # If the snapshot mark is on the test case then do a snapshot test
         marks = [m for m in request.node.iter_markers(name="snapshot")]
