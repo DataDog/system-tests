@@ -3,9 +3,10 @@
 # Copyright 2022 Datadog, Inc.
 
 import pytest
-from utils import BaseTestCase, context, coverage, interfaces, irrelevant, released, rfc
 
-from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
+from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
+from utils import (BaseTestCase, context, coverage, interfaces, irrelevant,
+                   released, rfc)
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -80,7 +81,7 @@ class Test_StandardTagsUrl(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0", php="0.75.0", python="1.5.0rc1.dev", ruby="?")
+@released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0", php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
