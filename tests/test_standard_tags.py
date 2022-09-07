@@ -80,7 +80,7 @@ class Test_StandardTagsUrl(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0", php="0.75.0", python="?", ruby="?")
+@released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0", php="0.75.0", python="1.5.0rc1.dev", ruby="?")
 @coverage.basic
 class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
