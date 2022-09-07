@@ -305,7 +305,7 @@ class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="1.5.0rc1.dev", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.not_implemented
 class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""

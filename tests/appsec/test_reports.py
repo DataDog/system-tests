@@ -17,6 +17,7 @@ from utils import (
 )
 import pytest
 
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -62,7 +63,7 @@ class Test_StatusCode(BaseTestCase):
     if context.weblog_variant in ["echo", "chi"]
     else "1.34.0"
 )
-@released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python="1.5.0rc1.dev")
+@released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @coverage.good
 class Test_ActorIP(BaseTestCase):
