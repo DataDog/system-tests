@@ -12,27 +12,30 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 @RestController
+@RequestMapping("/iast/insecure_hashing")
 public class AppSecIast {
-	@RequestMapping("/iast/insecure_hashing")
-	String insecureHashing(@RequestParam(required=false) String algorithmName) {
-		
-		String superSecretAccessKey = "insecure";
-		
+	String superSecretAccessKey = "insecure";
+	
+	@RequestMapping("/deduplicate")
+	String removeDuplicates() {
+		String result =   CryptoExamples.getSingleton().traceInsecureHash("md5", superSecretAccessKey) ;
+		result +=  CryptoExamples.getSingleton().traceInsecureHash("sha1", superSecretAccessKey);
+		return result;
+	}
+
+	@RequestMapping("/multiple_hash")
+	String multipleInsecureHash() {
+		return CryptoExamples.getSingleton().traceMultipleInsecureHash(superSecretAccessKey);
+	}
+
+	@RequestMapping("/test_algorithm")
+	String insecureHashing(@RequestParam(required=true) String name) {	
+	
 		final Span span = GlobalTracer.get().activeSpan();
 		if (span != null) {
 			span.setTag("appsec.event", true);
 		}
-		
-		String result = "";
-		CryptoExamples.InsecureHashingAlgorithm hashingAlgorithm = CryptoExamples.InsecureHashingAlgorithm.getEnum(algorithmName); 
-		if(hashingAlgorithm == null ){
-			result = CryptoExamples.InsecureHashingAlgorithm.stream()
-					 .map(x -> CryptoExamples.getSingleton().traceDebugInsecureHash(x, superSecretAccessKey))
-					 .collect(Collectors.joining("<br/>"));
-		}else{
-			result = CryptoExamples.getSingleton().traceDebugInsecureHash(hashingAlgorithm, superSecretAccessKey);
-		}
 
-		return result;
+		return CryptoExamples.getSingleton().traceInsecureHash(name, superSecretAccessKey);
 	}
 }

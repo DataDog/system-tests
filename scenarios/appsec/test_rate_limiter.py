@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, coverage, interfaces, released, rfc
+from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug
 import pytest
 import datetime
 
@@ -12,9 +12,10 @@ if context.library == "cpp":
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
 @released(dotnet="2.6.0", nodejs="2.0.0")
+@bug(weblog_variant="express4", reason="APPSEC-5427")
 @coverage.basic
 class Test_Main(BaseTestCase):
-    """ Basic tests for rate limiter """
+    """Basic tests for rate limiter"""
 
     # TODO: a scenario with DD_TRACE_SAMPLE_RATE set to something
     # as sampling mechnism is very different across agent, it won't be an easy task
@@ -23,7 +24,7 @@ class Test_Main(BaseTestCase):
     request_count = 0
 
     def test_main(self):
-        """ send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s """
+        """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
         MANUAL_KEEP = 2
 
