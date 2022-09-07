@@ -13,7 +13,7 @@ if context.library == "cpp":
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @released(golang="1.38.0", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
-@released(php_appsec="0.3.0", python="?", ruby="?")
+@released(php_appsec="0.3.0", python="1.5.0", ruby="?")
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
