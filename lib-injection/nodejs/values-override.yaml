@@ -1,0 +1,3 @@
+app_env_no_admission_controller:
+  - name: NODE_OPTIONS
+    value: --require=/datadog-lib/node_modules/dd-trace/init
