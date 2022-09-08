@@ -24,7 +24,8 @@ with open("scenarios/remote_config/rc_expected_requests_asm_dd.json") as f:
 class Test_RemoteConfigurationFields(BaseTestCase):
     """ Misc tests on fields and values on remote configuration reauests """
 
-    def test_shemas(self):
+    def test_schemas(self):
+        """ Test all library schemas """
         interfaces.library.assert_schemas()
 
     def test_tracer_language(self):

@@ -84,8 +84,8 @@ class _TracesValidation(BaseValidation):
             if self.validator(data):
                 self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                 self.is_success_on_expiry = True
-        except Exception as e:
-            self.set_failure(f"{m(self.message)} not validated: {e}\npayload is: {data['log_filename']}")
+        except Exception as exc:
+            self.set_failure(exception=exc, data=data)
 
 
 class _SpanValidation(BaseValidation):
@@ -121,8 +121,8 @@ class _SpanValidation(BaseValidation):
                     if self.validator(span):
                         self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                         self.is_success_on_expiry = True
-                except Exception as e:
-                    self.set_failure(f"{m(self.message)} not validated: {e}\nSpan is: {span}")
+                except Exception as exc:
+                    self.set_failure(exception=exc, data=data, extra_info=span)
 
 
 class _SpanTagValidation(BaseValidation):
@@ -170,10 +170,8 @@ class _SpanTagValidation(BaseValidation):
 
                     self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                     self.is_success_on_expiry = True
-                except Exception as e:
-                    self.set_failure(
-                        f"{m(self.message)} not validated in {data['log_filename']}:\n{e}\nSpan is: {span}"
-                    )
+                except Exception as exc:
+                    self.set_failure(exception=exc, data=data, extra_info=span)
 
 
 class _TraceExistence(BaseValidation):
