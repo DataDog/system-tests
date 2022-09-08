@@ -481,7 +481,7 @@ jobs:
         run: python scenarios/perfs/process.py
 
   integration_unit:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: lint_and_test
     strategy:
       matrix:
