@@ -27,7 +27,7 @@ namespace ApmTestClient.Services
         private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
         private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.Public)!;
+        private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly Dictionary<ulong, ISpan> Spans = new();
         private readonly ILogger<ApmTestClientService> _logger;
         public ApmTestClientService(ILogger<ApmTestClientService> logger)
@@ -91,7 +91,7 @@ namespace ApmTestClient.Services
         public override Task<SpanSetMetricReturn> SpanSetMetric(SpanSetMetricArgs request, ServerCallContext context)
         {
             var span = Spans[request.SpanId];
-            SetMetric.Invoke(span, new object[] { request.Key, request.Value });
+            SetMetric.Invoke(span, new object[] { request.Key, (double) request.Value});
             return Task.FromResult(new SpanSetMetricReturn());
         }
 
