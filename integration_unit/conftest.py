@@ -232,6 +232,8 @@ def docker_run(
         "--rm",
         "--name=%s" % name,
     ]
+    if sys.platform == "linux" or sys.platform == "linux2":
+        _cmd.extend(["--network=host"])
     for k, v in env.items():
         _cmd.extend(["-e", "%s=%s" % (k, v)])
     for k, v in volumes:
