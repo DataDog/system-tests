@@ -285,7 +285,7 @@ def docker() -> None:
 
 @pytest.fixture
 def test_agent_port() -> str:
-    return "8126"
+    return "9126"
 
 
 @pytest.fixture
