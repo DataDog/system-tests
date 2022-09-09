@@ -347,7 +347,20 @@ def test_agent_log_file() -> TextIO:
 
 
 @pytest.fixture
-def test_agent(docker, docker_network: str, request, tmp_path, test_agent_port, test_agent_log_file: TextIO):
+def test_agent_container_name() -> str:
+    return "ddapm-test-agent"
+
+
+@pytest.fixture
+def test_agent(
+    docker,
+    docker_network: str,
+    request,
+    tmp_path,
+    test_agent_container_name: str,
+    test_agent_port,
+    test_agent_log_file: TextIO,
+):
     print("ddapm_test_agent output: %s" % test_agent_log_file)
 
     env = {}
@@ -359,8 +372,8 @@ def test_agent(docker, docker_network: str, request, tmp_path, test_agent_port, 
     env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
 
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
-        name="ddapm-test-agent",
+        image="ghcr.io/datadog/dd-apm-test-agent/%s:latest" % test_agent_container_name,
+        name=test_agent_container_name,
         cmd=[],
         env=env,
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
@@ -405,6 +418,7 @@ def test_server(
     docker_network: str,
     tmp_path,
     test_agent_port: str,
+    test_agent_container_name: str,
     apm_test_server: APMClientTestServer,
     test_server_log_file: TextIO,
 ):
@@ -447,8 +461,7 @@ def test_server(
         env["DD_AGENT_HOST"] = "host.docker.internal"
         env["DD_TRACE_AGENT_PORT"] = test_agent_port
     else:
-        # env["DD_TRACE_AGENT_URL"] = "http://localhost:%s" % test_agent_port
-        env["DD_TRACE_AGENT_URL"] = "http://ddapm-test-agent:%s" % test_agent_port
+        env["DD_TRACE_AGENT_URL"] = "http://%s:%s" % (test_agent_container_name, test_agent_port)
     env.update(apm_test_server.env)
 
     with docker_run(
