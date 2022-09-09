@@ -36,11 +36,11 @@ class AgentRequestV06Stats(AgentRequest):
 
 @pytest.fixture(autouse=True)
 def skip_by_library(request, apm_test_server):
-    if request.node.get_closest_marker('skip_libraries'):
-        skip_libraries = request.node.get_closest_marker('skip_libraries').args[0]
-        reason = request.node.get_closest_marker('skip_libraries').args[1]
+    if request.node.get_closest_marker("skip_libraries"):
+        skip_libraries = request.node.get_closest_marker("skip_libraries").args[0]
+        reason = request.node.get_closest_marker("skip_libraries").args[1]
         if apm_test_server.lang in skip_libraries:
-            pytest.skip('skipped test on {} library: {}'.format(apm_test_server.lang, reason))
+            pytest.skip("skipped test on {} library: {}".format(apm_test_server.lang, reason))
 
 
 def pytest_configure(config):
