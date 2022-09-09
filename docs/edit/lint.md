@@ -8,6 +8,7 @@ As the framework use `docker`, you may not have the setup to run it, and it can 
 * run `python -m venv venv` (use `python3` if the step above works with it).
 * run `source venv/bin/activate`
   * Windows user, it'll be `venv\Scripts\activate.bat`
+  * Fish users, i'll be `. venv/bin/activate.fish`
 * run `pip install -r requirements.txt`
 
 Ok, your setup is ok, now, just run : 
