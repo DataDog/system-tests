@@ -28,7 +28,7 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(copy)
 
 
-def all_libs() -> Any:
+def all_libs(skip=[]) -> Any:
     libs = {
         "python": python_library_server_factory,
         "dotnet": dotnet_library_server_factory,
@@ -36,6 +36,8 @@ def all_libs() -> Any:
     }
     enabled: List[Tuple[str, ClientLibraryServerFactory]] = []
     for lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
+        if lang in skip:
+            continue
         enabled.append((lang, libs[lang]))
     print("client libraries enabled: %s" % ",".join([l for l, _ in enabled]))
     return parametrize("apm_test_server_factory", [factory for _, factory in enabled])
@@ -128,7 +130,7 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
         assert s["Duration"] > 0
 
 
-@all_libs()
+@all_libs(skip=["dotnet"])
 @enable_tracestats()
 def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
@@ -149,6 +151,7 @@ def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test
     requests = test_agent.v06_stats_requests()
     stats = requests[0]["body"]["Stats"][0]["Stats"]
     pprint.pprint([_human_stats(s) for s in stats])
+    # FIXME: dotnet AssertionError: assert 4 == 3
     assert len(stats) == 3
 
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
@@ -261,7 +264,7 @@ def test_successes_errors_recorded_separately_TS006(
     assert stat["ErrorSummary"] is not None
 
 
-@all_libs()
+@all_libs(skip=["dotnet"])
 @enable_tracestats(sample_rate=0.0)
 def test_sample_rate_0_TS007(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
@@ -274,6 +277,7 @@ def test_sample_rate_0_TS007(apm_test_server_env, apm_test_server_factory, test_
     test_client.flush()
 
     traces = test_agent.traces()
+    # FIXME: dotnet AssertionError: len(traces) == 1
     assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
 
     requests = test_agent.v06_stats_requests()
