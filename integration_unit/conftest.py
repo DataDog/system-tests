@@ -34,10 +34,20 @@ class AgentRequestV06Stats(AgentRequest):
     body: V06StatsPayload
 
 
+@pytest.fixture(autouse=True)
+def skip_by_library(request, apm_test_server):
+    if request.node.get_closest_marker('skip_libraries'):
+        skip_libraries = request.node.get_closest_marker('skip_libraries').args[0]
+        reason = request.node.get_closest_marker('skip_libraries').args[1]
+        if apm_test_server.lang in skip_libraries:
+            pytest.skip('skipped test on {} library: {}'.format(apm_test_server.lang, reason))
+
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
+    config.addinivalue_line("markers", "skip_libraries(apm_test_server): skip test for library")
 
 
 def _request_token(request):
