@@ -224,6 +224,7 @@ def docker_run(
     volumes: List[Tuple[str, str]],
     ports: List[Tuple[str, str]],
     log_file: TextIO,
+    network_name: str,
 ):
     _cmd: List[str] = [
         shutil.which("docker"),
@@ -231,9 +232,8 @@ def docker_run(
         "-d",
         "--rm",
         "--name=%s" % name,
+        "--network=%s" % network_name,
     ]
-    if sys.platform == "linux" or sys.platform == "linux2":
-        _cmd.extend(["--network=host"])
     for k, v in env.items():
         _cmd.extend(["-e", "%s=%s" % (k, v)])
     for k, v in volumes:
@@ -286,6 +286,47 @@ def docker() -> None:
 
 
 @pytest.fixture
+def docker_network_log_file() -> TextIO:
+    return sys.stderr
+
+
+@pytest.fixture
+def docker_network_name() -> str:
+    return "test_network"
+
+
+@pytest.fixture
+def docker_network(docker_network_log_file: TextIO, docker_network_name: str) -> str:
+    cmd = [
+        shutil.which("docker"),
+        "network",
+        "create",
+        "--driver",
+        "bridge",
+        docker_network_name,
+    ]
+    r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+    if r.returncode != 0:
+        pytest.fail(
+            "Could not create docker network %r, see the log file %r" % (docker_network_name, docker_network_log_file),
+            pytrace=False,
+        )
+    yield docker_network_name
+    cmd = [
+        shutil.which("docker"),
+        "network",
+        "rm",
+        docker_network_name,
+    ]
+    r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+    if r.returncode != 0:
+        pytest.fail(
+            "Failed to remove docker network %r, see the log file %r" % (docker_network_name, docker_network_log_file),
+            pytrace=False,
+        )
+
+
+@pytest.fixture
 def test_agent_port() -> str:
     return "8126"
 
@@ -296,7 +337,7 @@ def test_agent_log_file() -> TextIO:
 
 
 @pytest.fixture
-def test_agent(docker, request, tmp_path, test_agent_port, test_agent_log_file: TextIO):
+def test_agent(docker, docker_network: str, request, tmp_path, test_agent_port, test_agent_log_file: TextIO):
     print("ddapm_test_agent output: %s" % test_agent_log_file)
 
     env = {}
@@ -315,6 +356,7 @@ def test_agent(docker, request, tmp_path, test_agent_port, test_agent_log_file: 
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
         ports=[(test_agent_port, test_agent_port)],
         log_file=test_agent_log_file,
+        network_name=docker_network,
     ):
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_port)
         # Wait for the agent to start
@@ -349,7 +391,12 @@ def test_agent(docker, request, tmp_path, test_agent_port, test_agent_log_file: 
 
 @pytest.fixture
 def test_server(
-    docker, tmp_path, test_agent_port: str, apm_test_server: APMClientTestServer, test_server_log_file: TextIO
+    docker,
+    docker_network: str,
+    tmp_path,
+    test_agent_port: str,
+    apm_test_server: APMClientTestServer,
+    test_server_log_file: TextIO,
 ):
     print("%s client library output: %s" % (apm_test_server.lang, test_server_log_file))
 
@@ -401,6 +448,7 @@ def test_server(
         ports=[(apm_test_server.port, apm_test_server.port)],
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
+        network_name=docker_network,
     ):
         yield apm_test_server
 
