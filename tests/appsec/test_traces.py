@@ -226,7 +226,7 @@ class Test_AppSecObfuscator(BaseTestCase):
                                     ,"scores":[]
                                 },
                                 "additionalInfo":{
-                                    "codeSnippetValue":"<!-- Google Tag Manager (noscript) -->\r\n<iframe src=\"https://www.googletagmanager.com/ns.html?id=GTM-PCVXQNM\"\r\nheight=\"0\" width=\"0\" style=\"display:none"
+                                    "codeSnippetValue":"<script>alert(xss)</script>"
                                 }
                             }
                         }
