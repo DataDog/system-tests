@@ -447,7 +447,8 @@ def test_server(
         env["DD_AGENT_HOST"] = "host.docker.internal"
         env["DD_TRACE_AGENT_PORT"] = test_agent_port
     else:
-        env["DD_TRACE_AGENT_URL"] = "http://localhost:%s" % test_agent_port
+        # env["DD_TRACE_AGENT_URL"] = "http://localhost:%s" % test_agent_port
+        env["DD_TRACE_AGENT_URL"] = "ddapm-test-agent"
     env.update(apm_test_server.env)
 
     with docker_run(
