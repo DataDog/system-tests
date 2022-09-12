@@ -307,7 +307,15 @@ def docker_network_name() -> str:
 
 @pytest.fixture
 def docker_network(docker_network_log_file: TextIO, docker_network_name: str) -> str:
+    # Initial check to see if docker network already exists
     cmd = [
+        shutil.which("docker"),
+        "network",
+        "inspect",
+        docker_network_name,
+        ">/dev/null",
+        "2>&1",
+        "||",
         shutil.which("docker"),
         "network",
         "create",
