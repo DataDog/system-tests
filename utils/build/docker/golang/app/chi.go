@@ -65,6 +65,12 @@ func main() {
 	}
 	mux.HandleFunc("/identify/", identify)
 	mux.HandleFunc("/identify", identify)
+	mux.HandleFunc("/identify-propagate", func(w http.ResponseWriter, r *http.Request) {
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
+		}
+		w.Write([]byte("Hello, identify-propagate!"))
+	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

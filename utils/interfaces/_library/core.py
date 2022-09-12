@@ -44,13 +44,17 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
         if context.library == "java":
-            self.expected_timeout = 30
+            self.expected_timeout = 80
         elif context.library.library in ("golang",):
             self.expected_timeout = 10
         elif context.library.library in ("nodejs",):
             self.expected_timeout = 5
         elif context.library.library in ("php",):
             self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
+        elif context.library.library in ("dotnet",):
+            self.expected_timeout = 80
+        elif context.library.library in ("python",):
+            self.expected_timeout = 25
         else:
             self.expected_timeout = 40
 
