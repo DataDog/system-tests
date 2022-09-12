@@ -45,6 +45,9 @@ class Test_Iast(BaseTestCase):
             r, vulnerability_count=2, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
+    @missing_feature(
+        library="nodejs", reason="Need to be implement global vulnerability deduplication"
+    )
     def test_secure_hash(self):
         """Strong hash algorithm is not reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_secure_algorithm")
