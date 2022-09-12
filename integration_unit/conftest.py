@@ -302,33 +302,35 @@ def docker_network_log_file() -> TextIO:
 
 @pytest.fixture
 def docker_network_name() -> str:
-    return "test_network"
+    return "apm_shared_tests_network"
 
 
 @pytest.fixture
 def docker_network(docker_network_log_file: TextIO, docker_network_name: str) -> str:
     # Initial check to see if docker network already exists
-    cmd = [
-        shutil.which("docker"),
-        "network",
-        "inspect",
-        docker_network_name,
-        ">/dev/null",
-        "2>&1",
-        "||",
-        shutil.which("docker"),
-        "network",
-        "create",
-        "--driver",
-        "bridge",
-        docker_network_name,
-    ]
+    cmd = [shutil.which("docker"), "network", "inspect", docker_network_name,]
     r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
-    if r.returncode != 0:
+    if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
-            "Could not create docker network %r, see the log file %r" % (docker_network_name, docker_network_log_file),
+            "Could not check for docker network %r, see the log file %r" % (docker_network_name, docker_network_log_file),
             pytrace=False,
         )
+    elif r.returncode == 1:
+        cmd = [
+            shutil.which("docker"),
+            "network",
+            "create",
+            "--driver",
+            "bridge",
+            docker_network_name,
+        ]
+        r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+        if r.returncode != 0:
+            pytest.fail(
+                "Could not create docker network %r, see the log file %r" % (docker_network_name,
+                                                                             docker_network_log_file),
+                pytrace=False,
+            )
     yield docker_network_name
     cmd = [
         shutil.which("docker"),
