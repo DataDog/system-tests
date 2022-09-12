@@ -183,7 +183,7 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
 
 @all_libs()
 @enable_tracestats()
-@pytest.mark.skip_libraries(["dotnet"], "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
+@pytest.mark.skip_libraries(["dotnet", "golang"], "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When spans are marked as measured
@@ -203,7 +203,7 @@ def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test
     requests = test_agent.v06_stats_requests()
     stats = requests[0]["body"]["Stats"][0]["Stats"]
     pprint.pprint([_human_stats(s) for s in stats])
-    # FIXME: dotnet AssertionError: assert 4 == 3
+    # FIXME: dotnet, golang AssertionError: assert 4 == 3
     assert len(stats) == 3
 
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]

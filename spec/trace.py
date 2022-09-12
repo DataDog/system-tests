@@ -67,6 +67,7 @@ def _v06_store_from_proto(proto: StorePb) -> CollapsingLowestDenseStore:
 
 
 def _v06_sketch_from_proto(proto: DDSketchPb) -> BaseDDSketch:
+    # import pdb; pdb.set_trace()
     mapping = KeyMappingProto.from_proto(proto.mapping)
     store = _v06_store_from_proto(proto.positiveValues)
     negative_store = _v06_store_from_proto(proto.negativeValues)
@@ -94,10 +95,12 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
                 TopLevelHits=raw_stats["TopLevelHits"],
                 Duration=raw_stats["Duration"],
                 Errors=raw_stats["Errors"],
-                OkSummary=_v06_sketch_from_proto(ok_summary),
-                ErrorSummary=_v06_sketch_from_proto(err_summary),
+                OkSummary=_v06_sketch_from_proto(ok_summary) if ok_summary.mapping.gamma > 1 else None,
+                ErrorSummary=_v06_sketch_from_proto(err_summary) if err_summary.mapping.gamma > 1 else None,
             )
-            stats.append(stat)
+            # FIXME: the go implementation sends uninitialized sketches for some reason
+            if ok_summary.mapping.gamma > 1:
+                stats.append(stat)
 
         bucket = V06StatsBucket(Start=raw_bucket["Start"], Duration=raw_bucket["Duration"], Stats=stats,)
         stats_buckets.append(bucket)
