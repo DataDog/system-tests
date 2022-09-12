@@ -91,7 +91,6 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_serve
         "Name",
         "Resource",
         "Service",
-        "Type",
         "HTTPStatusCode",
         "Synthetics",
         "Hits",
