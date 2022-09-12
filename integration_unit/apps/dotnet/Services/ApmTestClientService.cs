@@ -121,7 +121,6 @@ namespace ApmTestClient.Services
         public override Task<FinishSpanReturn> FinishSpan(FinishSpanArgs request, ServerCallContext context)
         {
             var span = Spans[request.Id];
-            Spans.Remove(request.Id);
             span.Finish();
             return Task.FromResult(new FinishSpanReturn());
         }
@@ -129,6 +128,7 @@ namespace ApmTestClient.Services
         public override async Task<FlushSpansReturn> FlushSpans(FlushSpansArgs request, ServerCallContext context)
         {
             await Tracer.Instance.ForceFlushAsync();
+            Spans.Clear();
             return new FlushSpansReturn();
         }
 

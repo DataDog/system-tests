@@ -63,12 +63,12 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
     def FinishSpan(self, request, context):
         span = self._spans[request.id]
-        del self._spans[request.id]
         span.finish()
         return apm_test_client_pb2.FinishSpanReturn()
 
     def FlushSpans(self, request, context):
         ddtrace.tracer.flush()
+        self._spans.clear()
         return apm_test_client_pb2.FlushSpansReturn()
 
     def FlushTraceStats(self, request, context):

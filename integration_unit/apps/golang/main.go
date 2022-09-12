@@ -4,10 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"google.golang.org/grpc"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"log"
 	"net"
+
+	"google.golang.org/grpc"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 var (
@@ -51,12 +52,12 @@ func (s *apmClientServer) SpanSetMetric(ctx context.Context, args *SpanSetMetric
 func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) (*FinishSpanReturn, error) {
 	span := s.spans[args.Id]
 	span.Finish()
-	delete(s.spans, args.Id)
 	return &FinishSpanReturn{}, nil
 }
 
 func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
 	tracer.Stop()
+	s.spans = make(map[uint64]tracer.Span)
 	return &FlushSpansReturn{}, nil
 }
 

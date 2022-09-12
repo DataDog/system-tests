@@ -330,3 +330,52 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
         assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
             numpy.quantile(np_duration, quantile), rel=0.01,
         ), ("Quantile mismatch for quantile %r" % quantile)
+
+
+@all_libs()
+@enable_tracestats()
+def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+    """
+    When trace stats are computed for traces
+        Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after 
+        contribution to aggregates.
+    """
+    name = "name"
+    resource = "resource"
+    service = "service"
+    type = "http"
+    http_status_code = "200"
+    origin = "synthetics"
+
+    with test_client.start_span(name=name, service=service, resource=resource, origin=origin) as span:
+        span.set_meta(key="http.status_code", val=http_status_code)
+
+    with test_client.start_span(name=name, service=service, resource=resource, origin=origin) as span2:
+        span2.set_meta(key="http.status_code", val=http_status_code)
+
+    # Span metrics should be calculated on span finish. Updating aggregation keys (service/resource/status_code/origin/etc.)
+    # after span.finish() is called should not update stat buckets.
+    span.set_meta(key="_dd.origin", val="not_synthetics")
+    span.set_meta(key="http.status_code", val="202")
+    span2.set_meta(key="_dd.origin", val="not_synthetics")
+    span2.set_meta(key="http.status_code", val="202")
+
+    test_client.flush()
+
+    requests = test_agent.v06_stats_requests()
+
+    assert len(requests) == 1, "Only one stats request is expected"
+    request = requests[0]["body"]
+    buckets = request["Stats"]
+    assert len(buckets) == 1, "There should be one bucket containing the stats"
+
+    bucket = buckets[0]
+    stats = bucket["Stats"]
+    assert len(stats) == 1, "There should be one stats entry in the bucket which contains stats for 2 top level spans"
+
+    assert stats[0]["Name"] == name
+    assert stats[0]["TopLevelHits"] == 2
+    assert stats[0]["Duration"] > 0
+    # Ensure synthetics and http status code were not updated after span was finished
+    assert stats[0]["HTTPStatusCode"] == int(http_status_code)
+    assert stats[0]["Synthetics"] is True

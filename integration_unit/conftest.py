@@ -40,7 +40,7 @@ def skip_by_library(request, apm_test_server):
         skip_libraries = request.node.get_closest_marker("skip_libraries").args[0]
         reason = request.node.get_closest_marker("skip_libraries").args[1]
         if apm_test_server.lang in skip_libraries:
-            pytest.skip("skipped test on {} library: {}".format(apm_test_server.lang, reason))
+            pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, reason))
 
 
 def pytest_configure(config):
@@ -302,25 +302,41 @@ def docker_network_log_file() -> TextIO:
 
 @pytest.fixture
 def docker_network_name() -> str:
-    return "test_network"
+    return "apm_shared_tests_network"
 
 
 @pytest.fixture
 def docker_network(docker_network_log_file: TextIO, docker_network_name: str) -> str:
+    # Initial check to see if docker network already exists
     cmd = [
         shutil.which("docker"),
         "network",
-        "create",
-        "--driver",
-        "bridge",
+        "inspect",
         docker_network_name,
     ]
     r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
-    if r.returncode != 0:
+    if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
-            "Could not create docker network %r, see the log file %r" % (docker_network_name, docker_network_log_file),
+            "Could not check for docker network %r, see the log file %r"
+            % (docker_network_name, docker_network_log_file),
             pytrace=False,
         )
+    elif r.returncode == 1:
+        cmd = [
+            shutil.which("docker"),
+            "network",
+            "create",
+            "--driver",
+            "bridge",
+            docker_network_name,
+        ]
+        r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
+        if r.returncode != 0:
+            pytest.fail(
+                "Could not create docker network %r, see the log file %r"
+                % (docker_network_name, docker_network_log_file),
+                pytrace=False,
+            )
     yield docker_network_name
     cmd = [
         shutil.which("docker"),
@@ -520,8 +536,8 @@ class _TestTracer:
 
 
 @pytest.fixture
-def test_server_timeout():
-    yield 300
+def test_server_timeout() -> int:
+    return 60
 
 
 @pytest.fixture
