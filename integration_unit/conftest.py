@@ -528,8 +528,8 @@ class _TestTracer:
 
 
 @pytest.fixture
-def test_server_timeout():
-    yield 300
+def test_server_timeout() -> int:
+    return 60
 
 
 @pytest.fixture
