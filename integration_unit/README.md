@@ -57,7 +57,7 @@ def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: TestAgentAPI
 - This test case runs against all the libraries (`all_libs()`) and is parameterized with two different environments specifying two different values of `DD_SERVICE`.
 - The test case creates a new root span and sets a tag on it using the shared GRPC interface. 
 - Data is flushed to the test agent using `test_client.flush()`
-- Data is retrieved using the `test_agent` fixture and asserted on
+- Data is retrieved using the `test_agent` fixture and asserted on.
 
 
 ## Local Development
@@ -67,7 +67,7 @@ def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: TestAgentAPI
 - protobuf
 - Python >= 3.7
 
-## Running the Tests
+### Running the Tests
 
 In the root of the system-tests repo, run the following:
 
@@ -78,5 +78,5 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cd integration_unit
-CLIENTS_ENABLED=dotnet ./run.sh
+CLIENTS_ENABLED=<client_language> ./run.sh
 ```
