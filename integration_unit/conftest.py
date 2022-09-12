@@ -40,7 +40,7 @@ def skip_by_library(request, apm_test_server):
         skip_libraries = request.node.get_closest_marker("skip_libraries").args[0]
         reason = request.node.get_closest_marker("skip_libraries").args[1]
         if apm_test_server.lang in skip_libraries:
-            pytest.skip("skipped test on {} library: {}".format(apm_test_server.lang, reason))
+            pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, reason))
 
 
 def pytest_configure(config):
