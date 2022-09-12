@@ -387,13 +387,7 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_s
 
 @disable_tracestats()
 @all_libs()
-@pytest.mark.skip_libraries(
-    ["dotnet"],
-    "FIXME: Throws System.Reflection.TargetException: Object does not match target type on client/Services/ApmTestClientService.cs:line 153",
-)
-def test_metrics_computed_after_span_finsh_TS0010(
-    apm_test_server_env, apm_test_server_factory, test_agent, test_client
-):
+def test_metrics_computed_after_span_finsh_TS010(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When DD_TRACE_STATS_COMPUTATION_ENABLED=False
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after

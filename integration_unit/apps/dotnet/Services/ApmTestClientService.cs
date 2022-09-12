@@ -148,17 +148,19 @@ namespace ApmTestClient.Services
             var agentWriter = GetAgentWriter.Invoke(tracerManager, null);
             var statsAggregator = GetStatsAggregator.GetValue(agentWriter);
 
-            // Invoke StatsAggregator.DisposeAsync()
-            // This will cause the stats loop to exit and rely on StatsAggregator.Flush() calls to push stats to the agent
-            var disposeAsyncTask = StatsAggregatorDisposeAsync.Invoke(statsAggregator, null) as Task;
-            await disposeAsyncTask!;
+            if (statsAggregator.GetType() == StatsAggregatorType)
+            {
+                var disposeAsyncTask = StatsAggregatorDisposeAsync.Invoke(statsAggregator, null) as Task;
+                await disposeAsyncTask!;
 
-            // Invoke StatsAggregator.Flush()
-            // If StatsAggregator.DisposeAsync() was previously called during the lifetime of the application,
-            // then no stats will be flushed when StatsAggregator.DisposeAsync() returns.
-            // To be safe, perform an extra flush to ensure that we have flushed the stats
-            var flushTask = StatsAggregatorFlush.Invoke(statsAggregator, null) as Task;
-            await flushTask!;
+
+                // Invoke StatsAggregator.Flush()
+                // If StatsAggregator.DisposeAsync() was previously called during the lifetime of the application,
+                // then no stats will be flushed when StatsAggregator.DisposeAsync() returns.
+                // To be safe, perform an extra flush to ensure that we have flushed the stats
+                var flushTask = StatsAggregatorFlush.Invoke(statsAggregator, null) as Task;
+                await flushTask!;
+            }
 
             return new FlushTraceStatsReturn();
         }
