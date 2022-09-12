@@ -350,10 +350,10 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_s
     with test_client.start_span(name=name, service=service, resource=resource, origin=origin) as span:
         span.set_meta(key="http.status_code", val=http_status_code)
 
-    with test_client.start_span(name=name, service=service, resource=resource,  origin=origin) as span2:
+    with test_client.start_span(name=name, service=service, resource=resource, origin=origin) as span2:
         span2.set_meta(key="http.status_code", val=http_status_code)
 
-    # Span metrics should be calculated on span finish. Updating aggregation keys (service/resource/status_code/origin/etc.) 
+    # Span metrics should be calculated on span finish. Updating aggregation keys (service/resource/status_code/origin/etc.)
     # after span.finish() is called should not update stat buckets.
     span.set_meta(key="_dd.origin", val="not_synthetics")
     span.set_meta(key="http.status_code", val="202")
@@ -371,9 +371,7 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_s
 
     bucket = buckets[0]
     stats = bucket["Stats"]
-    assert (
-        len(stats) == 1
-    ), "There should be one stats entry in the bucket which contains stats for 2 top level spans"
+    assert len(stats) == 1, "There should be one stats entry in the bucket which contains stats for 2 top level spans"
 
     assert stats[0]["Name"] == name
     assert stats[0]["TopLevelHits"] == 2
