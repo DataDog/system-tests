@@ -28,14 +28,25 @@ public class AppSecIast {
 		return CryptoExamples.getSingleton().traceMultipleInsecureHash(superSecretAccessKey);
 	}
 
-	@RequestMapping("/test_algorithm")
-	String insecureHashing(@RequestParam(required=true) String name) {	
+	@RequestMapping("/test_secure_algorithm")
+	String secureHashing() {
 	
 		final Span span = GlobalTracer.get().activeSpan();
 		if (span != null) {
 			span.setTag("appsec.event", true);
 		}
 
-		return CryptoExamples.getSingleton().traceInsecureHash(name, superSecretAccessKey);
+		return CryptoExamples.getSingleton().traceInsecureHash("sha256", superSecretAccessKey);
+	}
+
+	@RequestMapping("/test_md5_algorithm")
+	String insecureMd5Hashing() {
+
+		final Span span = GlobalTracer.get().activeSpan();
+		if (span != null) {
+			span.setTag("appsec.event", true);
+		}
+
+		return CryptoExamples.getSingleton().traceInsecureHash("md5", superSecretAccessKey);
 	}
 }
