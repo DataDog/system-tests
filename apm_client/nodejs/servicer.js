@@ -8,7 +8,7 @@ class Servicer {
         this.spans = {};
     }
 
-    StartSpan (request, callback) {
+    StartSpan(request, callback) {
 
         let parent;
 
@@ -26,7 +26,7 @@ class Servicer {
         }
 
         const span = tracer.startSpan(request.name, {
-            service: request.service, 
+            service: request.service,
             type: request.type,
             resource: request.resource,
             childOf: parent,
@@ -40,14 +40,14 @@ class Servicer {
         });
     }
 
-    SetTag (request, callback) {
+    SetTag(request, callback) {
         const span = this.spans[request.span_id];
         span.setTag(request.key, request.value);
         return callback(null, {})
 
     }
 
-    SpanSetError (request, callback) {
+    SpanSetError(request, callback) {
         const span = this.spans[request.span_id];
         span.addTags({
             'error.msg': request.message,
@@ -58,7 +58,7 @@ class Servicer {
         return callback(null, {})
     }
 
-    FinishSpan (request, callback) {
+    FinishSpan(request, callback) {
         const { id } = request;
         const span = this.spans[id];
         delete this.spans[id];
@@ -67,14 +67,14 @@ class Servicer {
 
     }
 
-    FlushSpans (_, callback) {
+    FlushSpans(_, callback) {
         const { _tracer: { _exporter: { _writer } } } = tracer;
         _writer.flush();
         return callback(null, {})
 
     }
 
-    FlushTraceStats (_, callback) {
+    FlushTraceStats(_, callback) {
         // TODO: implement once available in NodeJS Tracer
         return callback(null, {})
     }
