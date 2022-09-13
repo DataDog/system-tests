@@ -470,14 +470,10 @@ def test_server(
 
     env = {
         "DD_TRACE_DEBUG": "true",
+        "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
+        "DD_AGENT_HOST": test_agent_container_name,
+        "DD_TRACE_AGENT_PORT": test_agent_port,
     }
-    if sys.platform == "darwin" or sys.platform == "win32":
-        env["DD_TRACE_AGENT_URL"] = "http://host.docker.internal:%s" % test_agent_port
-        # Not all clients support DD_TRACE_AGENT_URL
-        env["DD_AGENT_HOST"] = "host.docker.internal"
-        env["DD_TRACE_AGENT_PORT"] = test_agent_port
-    else:
-        env["DD_TRACE_AGENT_URL"] = "http://%s:%s" % (test_agent_container_name, test_agent_port)
     env.update(apm_test_server.env)
 
     with docker_run(
