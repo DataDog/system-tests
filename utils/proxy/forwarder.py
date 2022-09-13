@@ -181,15 +181,15 @@ class Forwarder(object):
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE)
 
     def _modify_response_rc(self, flow, mocked_responses):
-        runtime_id = json.loads(flow.request.content)["client"]["client_tracer"]["runtime_id"]
-        logger.info(f"modifying rc response for runtime ID {runtime_id}")
-
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             logger.info(f"Overwriting /info response to include /v0.7/config")
             c = json.loads(flow.response.content)
             c["endpoints"].append("/v0.7/config")
             flow.response.content = json.dumps(c).encode()
         elif flow.request.path == "/v0.7/config" and str(flow.response.status_code) == "404":
+            runtime_id = json.loads(flow.request.content)["client"]["client_tracer"]["runtime_id"]
+            logger.info(f"modifying rc response for runtime ID {runtime_id}")
+
             logger.info(f"Overwriting /v0.7/config response #{self.config_request_count[runtime_id] + 1}")
 
             if self.config_request_count[runtime_id] + 1 > len(mocked_responses):
