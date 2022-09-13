@@ -66,21 +66,22 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_serve
     When spans are finished
         Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
         The required metrics are:
-            {error_count, hit_count, ok/error latency distributions, sum of all durations (per unique aggregation key)}
+            {error_count, hit_count, ok/error latency distributions, duration}
     """
     with test_client.start_span(name="web.request", resource="/users", service="webserver"):
         pass
     test_client.flush()
 
     raw_requests = test_agent.requests()
-    decoded_requests = test_agent.v06_stats_requests()
-    # 3 requests possible as tracer might send empty trace request at startup for the debug logs
-    assert len(raw_requests) in [2, 3], "2 or 3 encoded requests are expected (Stats + Traces)"
-    assert len(decoded_requests[0]["body"]["Stats"][0]["Stats"]) == 1, "Only one decoded stats request is expected"
+    decoded_stats_requests = test_agent.v06_stats_requests()
 
-    raw_stats = raw_requests[1]["body"]
+    # find stats request (trace and stats requests are sent in different order between clients)
+    for request in raw_requests:
+        if "v0.6/stats" in request["url"]:
+            raw_stats = request["body"]
+    assert raw_stats is not None, "Couldn't find raw stats request sent to test agent"
     deserialized_stats = msgpack.unpackb(base64.b64decode(raw_stats))["Stats"][0]["Stats"][0]
-    decoded_stats = decoded_requests[0]["body"]["Stats"][0]["Stats"][0]
+    agent_decoded_stats = decoded_stats_requests[0]["body"]["Stats"][0]["Stats"][0]
     assert deserialized_stats["Name"] == "web.request"
     assert deserialized_stats["Resource"] == "/users"
     assert deserialized_stats["Service"] == "webserver"
@@ -88,19 +89,21 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_serve
         "Name",
         "Resource",
         "Service",
-        "HTTPStatusCode",
         "Synthetics",
         "Hits",
         "TopLevelHits",
         "Duration",
         "Errors",
     ):
-        assert deserialized_stats[key] == decoded_stats[key]
-    # OkSummary & ErrorSummary require further proto decoding - check that it is recorded onto each stats bucket.
-    assert decoded_stats.get("OkSummary", None) is not None
-    assert decoded_stats.get("ErrorSummary", None) is not None
+        assert deserialized_stats[key] == agent_decoded_stats[key]
+    # OkSummary & ErrorSummary latency distributions require further proto decoding.
+    # We can just verify that they are recorded and present in the stats bucket.
+    assert deserialized_stats.get("OkSummary") is not None
+    assert deserialized_stats.get("ErrorSummary") is not None
+    assert agent_decoded_stats.get("OkSummary", None) is not None
+    assert agent_decoded_stats.get("ErrorSummary", None) is not None
 
-    decoded_request_body = decoded_requests[0]["body"]
+    decoded_request_body = decoded_stats_requests[0]["body"]
     for key in ("Hostname", "Env", "Version", "Stats"):
         assert key in decoded_request_body, "%r should be in stats request" % key
 
