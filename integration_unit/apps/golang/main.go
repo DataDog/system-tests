@@ -28,8 +28,14 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	if args.Service != nil {
 		opts = append(opts, tracer.ServiceName(*args.Service))
 	}
+	if args.Type != nil {
+		opts = append(opts, tracer.SpanType(*args.Type))
+	}
 	span, _ := tracer.StartSpanFromContext(ctx, args.Name, opts...)
 
+	if args.Origin != nil  {
+        span.SetTag("_dd.origin", *args.Origin)
+	}
 	s.spans[span.Context().SpanID()] = span
 	return &StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
@@ -64,6 +70,15 @@ func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSp
 func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs) (*FlushTraceStatsReturn, error) {
 	tracer.Stop()
 	return &FlushTraceStatsReturn{}, nil
+}
+
+func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorArgs) (*SpanSetErrorReturn, error) {
+	span := s.spans[args.SpanId]
+    span.SetTag("error", true)
+    span.SetTag("error.msg", args.Message)
+    span.SetTag("error.type", args.Type)
+    span.SetTag("error.stack", args.Stack)
+    return &SpanSetErrorReturn{}, nil
 }
 
 func newServer() *apmClientServer {

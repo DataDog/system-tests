@@ -59,10 +59,6 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     return parametrize("apm_test_server_env", [env])
 
 
-def disable_tracestats(sample_rate: Optional[float] = None) -> Any:
-    return parametrize("apm_test_server_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
-
-
 @all_libs()
 @enable_tracestats()
 def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
@@ -78,7 +74,8 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_serve
 
     raw_requests = test_agent.requests()
     decoded_requests = test_agent.v06_stats_requests()
-    assert len(raw_requests) == 2, "2 encoded requests are expected (Stats + Traces)"
+    # 3 requests possible as tracer might send empty trace request at startup for the debug logs
+    assert len(raw_requests) in [2, 3], "2 or 3 encoded requests are expected (Stats + Traces)"
     assert len(decoded_requests[0]["body"]["Stats"][0]["Stats"]) == 1, "Only one decoded stats request is expected"
 
     raw_stats = raw_requests[1]["body"]
@@ -432,7 +429,7 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_s
     assert stats[0]["Synthetics"] is True
 
 
-@disable_tracestats()
+@parametrize("apm_test_server_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
 @all_libs()
 def test_metrics_computed_after_span_finsh_TS010(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
