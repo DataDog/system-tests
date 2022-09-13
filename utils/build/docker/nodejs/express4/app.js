@@ -87,12 +87,19 @@ app.get('/iast/insecure_hashing/multiple_hash', (req, res) => {
   res.send(outputHashes);
 });
 
-app.get('/iast/insecure_hashing/test_algorithm', (req, res) => {
+app.get('/iast/insecure_hashing/test_secure_algorithm', (req, res) => {
   const span = tracer.scope().active();
   span.setTag('appsec.event"', true);
-  let algorithmName = req.query.name;
 
-  res.send(crypto.createHash(algorithmName).update('insecure').digest('hex'));
+  res.send(crypto.createHash('sha256').update('insecure').digest('hex'));
+});
+
+
+app.get('/iast/insecure_hashing/test_md5_algorithm', (req, res) => {
+  const span = tracer.scope().active();
+  span.setTag('appsec.event"', true);
+
+  res.send(crypto.createHash('md5').update('insecure').digest('hex'));
 });
 
 

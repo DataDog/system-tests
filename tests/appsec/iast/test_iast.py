@@ -45,28 +45,14 @@ class Test_Iast(BaseTestCase):
             r, vulnerability_count=2, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
+    @missing_feature(library="nodejs", reason="Need to be implement global vulnerability deduplication")
     def test_secure_hash(self):
         """Strong hash algorithm is not reported as insecure"""
-        r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=sha256")
-        if context.library == "nodejs":
-            # NodeJs express4 app use hashing string for http headers. Allways report at least this vulnerability
-            interfaces.library.expect_iast_vulnerabilities(
-                r, vulnerability_count=0, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
-            )
-        else:
-            interfaces.library.expect_no_vulnerabilities(r)
+        r = self.weblog_get("/iast/insecure_hashing/test_secure_algorithm")
+        interfaces.library.expect_no_vulnerabilities(r)
 
     def test_insecure_md5_hash(self):
         """Test md5 weak hash algorithm reported as insecure"""
-        r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=md5")
+        r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
 
         interfaces.library.expect_iast_vulnerabilities(r, type="WEAK_HASH", evidence="md5")
-
-    @missing_feature(library="java", reason="Need to be implement sha1 hash detection")
-    def test_insecure_sha1_hash(self):
-        """Test sha1 weak hash algorithm reported as insecure"""
-        r = self.weblog_get("/iast/insecure_hashing/test_algorithm?name=sha1")
-
-        interfaces.library.expect_iast_vulnerabilities(
-            r, type="WEAK_HASH", evidence="sha1", location_path=self.EXPECTED_LOCATION
-        )
