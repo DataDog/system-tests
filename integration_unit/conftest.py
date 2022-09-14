@@ -59,7 +59,7 @@ def _request_token(request):
 
 
 @dataclasses.dataclass
-class APMClientTestServer:
+class APMLibraryTestServer:
     lang: str
     container_name: str
     container_tag: str
@@ -76,16 +76,16 @@ def apm_test_server_env() -> Dict[str, str]:
     return {}
 
 
-ClientLibraryServerFactory = Callable[[Dict[str, str]], APMClientTestServer]
+ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 
-def python_library_server_factory(env: Dict[str, str]) -> APMClientTestServer:
+def python_library_server_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
-    return APMClientTestServer(
+    return APMLibraryTestServer(
         lang="python",
-        container_name="python-test-client",
-        container_tag="py39-test-client",
+        container_name="python-test-library",
+        container_tag="py39-test-library",
         container_img="""
 FROM datadog/dd-trace-py:buster
 WORKDIR /client
@@ -103,10 +103,10 @@ RUN python3.9 -m pip install %s
 
 def golang_library_server_factory(env: Dict[str, str]):
     go_dir = os.path.join(os.path.dirname(__file__), "apps", "golang")
-    return APMClientTestServer(
+    return APMLibraryTestServer(
         lang="golang",
-        container_name="go-test-client",
-        container_tag="go118-test-client",
+        container_name="go-test-library",
+        container_tag="go118-test-library",
         container_img="""
 FROM golang:1.18
 WORKDIR /client
@@ -127,7 +127,7 @@ RUN go install
 def dotnet_library_server_factory(env: Dict[str, str]):
     dotnet_dir = os.path.join(os.path.dirname(__file__), "apps", "dotnet")
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
-    return APMClientTestServer(
+    return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
@@ -158,9 +158,9 @@ def apm_test_server(apm_test_server_factory, apm_test_server_env):
 
 @pytest.fixture
 def test_server_log_file(apm_test_server, tmp_path) -> TextIO:
-    return sys.stderr
     # timestr = time.strftime("%Y%m%d-%H%M%S")
     # yield tmp_path / ("%s_%s.out" % (apm_test_server.container_name, timestr))
+    return sys.stderr
 
 
 class _TestAgentAPI:
@@ -291,7 +291,7 @@ def docker() -> None:
     r = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if r.returncode != 0:
         pytest.fail(
-            "Docker is not running and is required to run the shared APM client tests. Start docker and try running the tests again."
+            "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
         )
 
 
@@ -377,8 +377,6 @@ def test_agent(
     test_agent_port,
     test_agent_log_file: TextIO,
 ):
-    print("ddapm_test_agent output: %s" % test_agent_log_file)
-
     env = {}
     if os.getenv("DEV_MODE") is not None:
         env["SNAPSHOT_CI"] = "0"
@@ -388,7 +386,7 @@ def test_agent(
     env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
 
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/%s:latest" % test_agent_container_name,
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
         name=test_agent_container_name,
         cmd=[],
         env=env,
@@ -435,11 +433,9 @@ def test_server(
     tmp_path,
     test_agent_port: str,
     test_agent_container_name: str,
-    apm_test_server: APMClientTestServer,
+    apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
 ):
-    print("%s client library output: %s" % (apm_test_server.lang, test_server_log_file))
-
     # Write dockerfile to the build directory
     # Note that this needs to be done as the context cannot be
     # specified if Dockerfiles are read from stdin.

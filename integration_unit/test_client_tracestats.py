@@ -183,7 +183,7 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
 
 @all_libs()
 @enable_tracestats()
-@pytest.mark.skip_libraries(["dotnet", "golang"], "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
+# @pytest.mark.skip_libraries(["dotnet", "golang"], "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When spans are marked as measured
@@ -343,7 +343,7 @@ def test_sample_rate_0_TS007(apm_test_server_env, apm_test_server_factory, test_
 
 @all_libs()
 @enable_tracestats()
-@pytest.mark.skip(reason="bronke")
+@pytest.mark.skip(reason="relative error test is broken")
 def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When trace stats are computed for traces
@@ -398,10 +398,10 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_s
     http_status_code = "200"
     origin = "synthetics"
 
-    with test_client.start_span(name=name, service=service, resource=resource, origin=origin) as span:
+    with test_client.start_span(name=name, service=service, resource=resource, typestr=type, origin=origin) as span:
         span.set_meta(key="http.status_code", val=http_status_code)
 
-    with test_client.start_span(name=name, service=service, resource=resource, origin=origin) as span2:
+    with test_client.start_span(name=name, service=service, resource=resource, typestr=type, origin=origin) as span2:
         span2.set_meta(key="http.status_code", val=http_status_code)
 
     # Span metrics should be calculated on span finish. Updating aggregation keys (service/resource/status_code/origin/etc.)
