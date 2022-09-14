@@ -2,7 +2,11 @@
 from django.urls import path
 from django.http import HttpResponse
 from ddtrace import tracer
-from ddtrace.contrib.trace_utils import set_user
+
+try:
+    from ddtrace.contrib.trace_utils import set_user
+except ImportError:
+    set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
 

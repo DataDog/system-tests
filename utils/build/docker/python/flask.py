@@ -1,6 +1,10 @@
 from ddtrace import tracer
-from ddtrace.contrib.trace_utils import set_user
 from flask import Flask, request, Response
+
+try:
+    from ddtrace.contrib.trace_utils import set_user
+except ImportError:
+    set_user = lambda *args, **kwargs: None
 
 
 app = Flask(__name__)

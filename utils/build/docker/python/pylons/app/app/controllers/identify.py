@@ -2,7 +2,11 @@ from app.lib.base import BaseController
 from pylons import response
 from pylons import tmpl_context as c
 from ddtrace import tracer
-from ddtrace.contrib.trace_utils import set_user
+
+try:
+    from ddtrace.contrib.trace_utils import set_user
+except ImportError:
+    set_user = lambda *args, **kwargs: None
 
 
 class IdentifyController(BaseController):
