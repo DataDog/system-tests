@@ -355,6 +355,7 @@ class Test_PathParams(BaseTestCase):
 
 @released(golang="1.36.0", dotnet="?", java="0.96.0", nodejs="?", php_appsec="?", python="?", ruby="?")
 @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+@bug(weblog_variant="spring-boot", reason="APPSEC-5426")
 @coverage.basic
 class Test_gRPC(BaseTestCase):
     """Appsec supports address grpc.server.request.message"""

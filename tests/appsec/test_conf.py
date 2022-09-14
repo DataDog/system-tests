@@ -42,7 +42,7 @@ class Test_RuleSet_1_2_4(BaseTestCase):
     """ AppSec uses rule set 1.2.4 or higher """
 
     def test_main(self):
-        assert context.appsec_rules_version >= "1.2.4"
+        interfaces.library.add_assertion(context.appsec_rules_version >= "1.2.4")
 
 
 @coverage.basic
@@ -50,7 +50,7 @@ class Test_RuleSet_1_2_5(BaseTestCase):
     """ AppSec uses rule set 1.2.5 or higher """
 
     def test_main(self):
-        assert context.appsec_rules_version >= "1.2.5"
+        interfaces.library.add_assertion(context.appsec_rules_version >= "1.2.5")
 
 
 @released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
