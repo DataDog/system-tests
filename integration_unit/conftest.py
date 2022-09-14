@@ -319,9 +319,7 @@ def docker_network(docker_network_log_file: TextIO, docker_network_name: str) ->
     r = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
-            "Could not check for docker network %r, error: %r"
-            % (docker_network_name, r.stderr),
-            pytrace=False,
+            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
         )
     elif r.returncode == 1:
         cmd = [
