@@ -17,7 +17,7 @@ from utils import (
 )
 import pytest
 
-from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
+from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
