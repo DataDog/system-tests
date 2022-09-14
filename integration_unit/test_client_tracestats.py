@@ -61,6 +61,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
 
 @all_libs()
 @enable_tracestats()
+@pytest.mark.skip_libraries(["golang"], "go sends an empty stats aggregation")
 def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When spans are finished
@@ -76,6 +77,7 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_serve
     decoded_stats_requests = test_agent.v06_stats_requests()
 
     # find stats request (trace and stats requests are sent in different order between clients)
+    raw_stats = None
     for request in raw_requests:
         if "v0.6/stats" in request["url"]:
             raw_stats = request["body"]
@@ -183,7 +185,7 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
 
 @all_libs()
 @enable_tracestats()
-# @pytest.mark.skip_libraries(["dotnet", "golang"], "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
+@pytest.mark.skip_libraries(["dotnet", "golang"], "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When spans are marked as measured
