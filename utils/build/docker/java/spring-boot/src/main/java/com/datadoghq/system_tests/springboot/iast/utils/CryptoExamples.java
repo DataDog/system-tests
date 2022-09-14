@@ -26,11 +26,11 @@ public class CryptoExamples {
 		return singleton;
 	}
 
-	public String createInsecureHash(InsecureHashingAlgorithm alg, String password) {
+	public String createInsecureHash(String alg, String password) {
 		String createdHash = null;
 
 		try {
-			MessageDigest md = MessageDigest.getInstance(alg.getAlgorithmName());
+			MessageDigest md = MessageDigest.getInstance(alg);
 			md.update(password.getBytes());
 			byte[] digest = md.digest();
 			createdHash = DatatypeConverter.printHexBinary(digest).toUpperCase();
@@ -40,34 +40,26 @@ public class CryptoExamples {
 		return createdHash;
 	}
 
-	public String traceDebugInsecureHash(InsecureHashingAlgorithm alg, String password) {
-		return alg.getAlgorithmName() + ":" + CryptoExamples.getSingleton().createInsecureHash(alg, password);
+	public String traceInsecureHash(String  alg, String password) {
+		return "[" + alg + ":" + CryptoExamples.getSingleton().createInsecureHash(alg, password) + "]";
 	}
 
-	public static enum InsecureHashingAlgorithm {
-		sha1("SHA-1"), md5("MD5"), md4("MD4"), md2("MD2");
+	public String traceMultipleInsecureHash( String password) {
+		String createdHash = "";
+		try {
+			MessageDigest md = MessageDigest.getInstance("md5");
+			md.update(password.getBytes());
+			byte[] digest = md.digest();
+			createdHash = "[md5:" + DatatypeConverter.printHexBinary(digest).toUpperCase() + "]"; 
 
-		String algorithm;
-
-		InsecureHashingAlgorithm(String algorithm) {
-			this.algorithm = algorithm;
+			//TODO change MD4 to SHA1 when supported
+			md = MessageDigest.getInstance("md4");
+			md.update(password.getBytes());
+			digest = md.digest();
+			createdHash += "[md4:" + DatatypeConverter.printHexBinary(digest).toUpperCase() + "]";
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
 		}
-
-		public static Stream<InsecureHashingAlgorithm> stream() {
-			return Stream.of(InsecureHashingAlgorithm.values());
-		}
-
-		public static InsecureHashingAlgorithm getEnum(String value) {
-			try {
-				return InsecureHashingAlgorithm.valueOf(value);
-			} catch (IllegalArgumentException|NullPointerException e) {
-				return null;
-			}
-		}
-
-		public String getAlgorithmName() {
-			return this.algorithm;
-		}
-
+		return createdHash;
 	}
 }

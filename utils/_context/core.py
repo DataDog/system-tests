@@ -145,7 +145,7 @@ class _HealthCheck:
 
         for i in range(self.retries + 1):
             try:
-                r = requests.get(self.url, timeout=0.5)
+                r = requests.get(self.url, timeout=3)
                 logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
                 if r.status_code == 200:
                     return True

@@ -2,36 +2,57 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, coverage
-
+from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
-@missing_feature(reason="Need to be implement in iast library")
-@coverage.not_implemented  # TODO : the test logic must be written once we hve the RFC
+@coverage.basic
+@released(
+    dotnet="?",
+    golang="?",
+    java={"spring-boot": "0.108.0", "*": "?"},
+    nodejs={"express4": "4.0.0pre0", "*": "?"},
+    php_appsec="?",
+    python="?",
+    ruby="?",
+    cpp="?",
+)
 class Test_Iast(BaseTestCase):
-    """ Verify the IAST features """
+    """Verify IAST features"""
 
-    def test_insecure_hashing_all(self):
-        """ Test insecure hashing all algorithms"""
-        r = self.weblog_get("/iast/insecure_hashing")
-        interfaces.library.assert_trace_exists(r)
+    if context.library == "nodejs":
+        EXPECTED_LOCATION = "/usr/app/app.js"
+    elif context.library == "java":
+        EXPECTED_LOCATION = "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+    else:
+        EXPECTED_LOCATION = ""  # (TBD)
 
-    def test_insecure_hashing_sha1(self):
-        """ Test insecure hashing sha1 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=sha1")
-        interfaces.library.assert_trace_exists(r)
+    @missing_feature(
+        library="java", reason="Need to be implement deduplicate vulnerability hashes and sha1 algorithm detection"
+    )
+    def test_insecure_hash_remove_duplicates(self):
+        """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request, we will report only one vulnerability"""
+        r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
-    def test_insecure_hashing_md5(self):
-        """ Test insecure hashing md5 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md5")
-        interfaces.library.assert_trace_exists(r)
+        interfaces.library.expect_iast_vulnerabilities(
+            r, vulnerability_count=1, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+        )
 
-    def test_insecure_hashing_md4(self):
-        """ Test insecure hashing md4 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md4")
-        interfaces.library.assert_trace_exists(r)
+    def test_insecure_hash_multiple(self):
+        """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
+        r = self.weblog_get("/iast/insecure_hashing/multiple_hash")
 
-    def test_insecure_hashing_md2(self):
-        """ Test insecure hashing md2 algorithm"""
-        r = self.weblog_get("/iast/insecure_hashing?algorithmName=md2")
-        interfaces.library.assert_trace_exists(r)
+        interfaces.library.expect_iast_vulnerabilities(
+            r, vulnerability_count=2, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+        )
+
+    @missing_feature(library="nodejs", reason="Need to be implement global vulnerability deduplication")
+    def test_secure_hash(self):
+        """Strong hash algorithm is not reported as insecure"""
+        r = self.weblog_get("/iast/insecure_hashing/test_secure_algorithm")
+        interfaces.library.expect_no_vulnerabilities(r)
+
+    def test_insecure_md5_hash(self):
+        """Test md5 weak hash algorithm reported as insecure"""
+        r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
+
+        interfaces.library.expect_iast_vulnerabilities(r, type="WEAK_HASH", evidence="md5")

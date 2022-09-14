@@ -1,0 +1,19 @@
+targetSystem: "linux"
+agents:
+  enabled: false
+datadog:
+  clusterName: lib-injection-testing
+  tags: []
+  # datadog.kubelet.tlsVerify should be `false` on kind and minikube
+  # to establish communication with the kubelet
+  kubelet:
+    tlsVerify: "false"
+clusterAgent:
+  enabled: true
+  image:
+    name: ""
+    tag: master
+    repository: datadog/cluster-agent-dev
+    pullPolicy: Always
+  admissionController:
+    configMode: socket

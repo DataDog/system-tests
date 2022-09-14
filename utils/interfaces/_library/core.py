@@ -9,6 +9,8 @@ from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._library.appsec_iast import _AppSecIastValidation, _NoIastEvent
+
 from utils.interfaces._library.remote_configuration import _RemoteConfigurationValidation
 from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
@@ -51,8 +53,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
             self.expected_timeout = 5
         elif context.library.library in ("php",):
             self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
-        elif context.library.library in ("dotnet",):
-            self.expected_timeout = 80
         elif context.library.library in ("python",):
             self.expected_timeout = 25
         else:
@@ -128,6 +128,23 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 is_success_on_expiry=is_success_on_expiry,
             )
         )
+
+    def expect_iast_vulnerabilities(
+        self, request, type=None, location_path=None, location_line=None, evidence=None, vulnerability_count=None
+    ):
+        self.append_validation(
+            _AppSecIastValidation(
+                request=request,
+                type=type,
+                location_path=location_path,
+                location_line=location_line,
+                evidence=evidence,
+                vulnerability_count=vulnerability_count,
+            )
+        )
+
+    def expect_no_vulnerabilities(self, request):
+        self.append_validation(_NoIastEvent(request=request))
 
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
         self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
