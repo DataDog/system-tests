@@ -142,3 +142,16 @@ The end point accepts a non mandatory query string parameter `name`, which shoul
 - md4
 
 The endpoint executes a unique operation of String hashing with given algorithm name 
+
+## GET /make_distant_call
+
+This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should returns a JSON response : 
+
+```json
+{
+    "url": <url in paramter>,
+    "status_code": <status code of the response>,
+    "request_headers": <request headers as a dict>,
+    "response_headers": <response headers as a dict>,
+}
+```
