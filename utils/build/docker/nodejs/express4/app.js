@@ -1,8 +1,16 @@
 'use strict'
 
-const tracer = require('dd-trace').init({ debug: true });
+const tracer = require('dd-trace').init({ debug: true,  experimental: {
+  iast: {
+    enabled: true,
+    requestSampling: 100,
+    maxConcurrentRequests: 4,
+    maxContextOperations: 30
+  }
+} });
 
 const app = require('express')();
+const crypto = require('crypto');
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
@@ -53,29 +61,47 @@ app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code)).send('OK');
 });
 
-app.get('/iast/insecure_hashing', (req, res) => {
+app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
   const span = tracer.scope().active();
   span.setTag('appsec.event"', true);
 
-  const crypto = require('crypto');
-  const name = 'insecure';
-  var supportedAlgorithms = [ 'md5', 'md4', 'sha1' ];
-  let algorithmName = req.query.algorithmName;
-
-  if (supportedAlgorithms.includes(algorithmName)){
-    supportedAlgorithms = supportedAlgorithms.filter(function(value, index, arr){ 
-      return value == algorithmName;
-    });
-  }
-
+  var supportedAlgorithms = [ 'md5', 'sha1' ];
+ 
   var outputHashes = "";
   supportedAlgorithms.forEach(algorithm => {
-    var hash = crypto.createHash(algorithm).update(name).digest('hex')
+    var hash = crypto.createHash(algorithm).update('insecure').digest('hex')
     outputHashes += `--- ${algorithm}:${hash} ---`
   });
   
   res.send(outputHashes);
 });
+
+app.get('/iast/insecure_hashing/multiple_hash', (req, res) => {
+  const span = tracer.scope().active();
+  span.setTag('appsec.event"', true);
+
+  const name = 'insecure';
+  var outputHashes = crypto.createHash('md5').update(name).digest('hex');
+  outputHashes += `--- ` + crypto.createHash('sha1').update(name).digest('hex')
+  
+  res.send(outputHashes);
+});
+
+app.get('/iast/insecure_hashing/test_secure_algorithm', (req, res) => {
+  const span = tracer.scope().active();
+  span.setTag('appsec.event"', true);
+
+  res.send(crypto.createHash('sha256').update('insecure').digest('hex'));
+});
+
+
+app.get('/iast/insecure_hashing/test_md5_algorithm', (req, res) => {
+  const span = tracer.scope().active();
+  span.setTag('appsec.event"', true);
+
+  res.send(crypto.createHash('md5').update('insecure').digest('hex'));
+});
+
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
