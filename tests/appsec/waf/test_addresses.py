@@ -6,8 +6,7 @@
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import (BaseTestCase, bug, context, coverage, flaky, interfaces,
-                   irrelevant, missing_feature, released, rfc)
+from utils import BaseTestCase, bug, context, coverage, flaky, interfaces, irrelevant, missing_feature, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -376,16 +375,16 @@ class Test_gRPC(BaseTestCase):
 @coverage.not_implemented
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_FullGrpc:
-    """ Full gRPC support"""
+    """Full gRPC support"""
 
 
 @coverage.not_implemented
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_GraphQL:
-    """ GraphQL support"""
+    """GraphQL support"""
 
 
 @coverage.not_implemented
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_Lambda:
-    """ Lambda support"""
+    """Lambda support"""
