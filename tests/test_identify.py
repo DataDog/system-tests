@@ -7,8 +7,7 @@ import base64
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import (BaseTestCase, bug, context, coverage, interfaces, released,
-                   rfc)
+from utils import BaseTestCase, bug, context, coverage, interfaces, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -36,7 +35,9 @@ def validate_identify_tags(tags):
     return inner_validate
 
 
-@released(dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0", php="0.72.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
+@released(
+    dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0", php="0.72.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0"
+)
 @coverage.basic
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK"""

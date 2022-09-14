@@ -176,13 +176,11 @@ class Fuzzer(object):
         while not self.finished:
             try:
                 session = aiohttp.ClientSession(
-                    loop=self.loop,
-                    connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
+                    loop=self.loop, connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
                 )
 
                 async with session.request(
-                    url="http://localhost/containers/systemtests_weblog_1/stats",
-                    method="GET",
+                    url="http://localhost/containers/systemtests_weblog_1/stats", method="GET",
                 ) as resp:
                     async for line in resp.content:
                         if self.finished:
@@ -288,12 +286,7 @@ class Fuzzer(object):
 
                 with_sqreen = resp.status == 403 or "x-protected-by" in resp.headers
                 await self.update_metrics(
-                    request_id,
-                    str(resp.status),
-                    request,
-                    request_timestamp,
-                    with_sqreen,
-                    response=resp,
+                    request_id, str(resp.status), request, request_timestamp, with_sqreen, response=resp,
                 )
 
                 try:
@@ -337,13 +330,7 @@ class Fuzzer(object):
         return result
 
     async def update_metrics(
-        self,
-        request_id,
-        status,
-        request,
-        request_timestamp,
-        with_sqreen=None,
-        response=None,
+        self, request_id, status, request, request_timestamp, with_sqreen=None, response=None,
     ):
 
         ellapsed = (datetime.now() - request_timestamp).total_seconds()
