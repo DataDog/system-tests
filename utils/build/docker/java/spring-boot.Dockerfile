@@ -1,4 +1,4 @@
-FROM maven:3.6-jdk-8 as build
+FROM --platform=linux/amd64 maven:3.6-jdk-8 as build
 
 RUN apt-get update && \
 	apt-get install -y libarchive-tools
