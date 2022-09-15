@@ -327,6 +327,8 @@ class BaseValidation(object):
                     if isinstance(extra_info, (dict, list)):
                         extra_info = json.dumps(extra_info, indent=4)
 
+                    extra_info = str(extra_info)
+
                     message += "\n" + "\n".join([f"\t{l}" for l in extra_info.split("\n")])
             except Exception as exc:
                 # silently skip this. It should not happen, but as we have an error to report to users
