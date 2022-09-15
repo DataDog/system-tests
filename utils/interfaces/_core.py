@@ -202,10 +202,13 @@ class BaseValidation(object):
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
 
-    def __init__(self, message=None, request=None, path_filters=None):
+    def __init__(self, request=None, path_filters=None):
         try:
+            # keep this two mumber on top, it's used in repr
+            self.message = ""
+            self.rid = None
+
             self.expected_timeout = None
-            self.message = message
             self._closed = threading.Event()
             self._is_success = None
 
@@ -221,8 +224,6 @@ class BaseValidation(object):
             if request is not None:
                 user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
                 self.rid = user_agent[-36:]
-            else:
-                self.rid = None
 
             self.frame = None
             self.calling_method = None
@@ -240,19 +241,19 @@ class BaseValidation(object):
             if self.calling_method is None:
                 raise Exception(f"Unexpected error, can't found the method for {self}")
 
-            if self.message is None:
-                # if the message is missing, try to get the function docstring
-                self.message = self.calling_method.__doc__
+            # try to get the function docstring
+            self.message = self.calling_method.__doc__
 
-                # if the message is missing, try to get the parent class docstring
-                if self.message is None:
-                    self.message = self.calling_class.__doc__
+            # if the message is missing, try to get the parent class docstring
+            if self.message is None:
+                self.message = self.calling_class.__doc__
 
             if self.message is None:
                 raise Exception(f"Please set a message for {self.frame.function}")
 
-            # remove new lines for logging
-            self.message = self.message.replace("\n", " ")
+            # remove new lines, duplicated spaces and tailing/heading spaces for logging
+            self.message = self.message.replace("\n", " ").strip()
+            self.message = re.sub(r" {2,}", " ", self.message)
 
             if xfails.is_xfail_method(self.calling_method):
                 logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
@@ -313,7 +314,27 @@ class BaseValidation(object):
         self._is_success = is_success
         self._closed.set()
 
-    def set_failure(self, message):
+    def set_failure(self, message="", exception="", data=None, extra_info=None):
+        if not message:
+
+            message = f"{m(self.message)} is not validated: {format_error(str(exception))}"
+
+            try:
+                if data and isinstance(data, dict) and "log_filename" in data:
+                    message += f"\n\t Failing payload is in {data['log_filename']}"
+
+                if extra_info:
+                    if isinstance(extra_info, (dict, list)):
+                        extra_info = json.dumps(extra_info, indent=4)
+
+                    extra_info = str(extra_info)
+
+                    message += "\n" + "\n".join([f"\t{l}" for l in extra_info.split("\n")])
+            except Exception as exc:
+                # silently skip this. It should not happen, but as we have an error to report to users
+                # we should never add an internal error that will give them an hard time ...
+                pass
+
         if not self.is_xfail:
             self.log_error(message)
         else:

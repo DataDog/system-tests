@@ -4,8 +4,8 @@
 
 
 import pytest
-from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
 
+from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
 from utils import BaseTestCase, bug, context, coverage, flaky, interfaces, irrelevant, missing_feature, released, rfc
 
 if context.library == "cpp":
@@ -265,7 +265,7 @@ class Test_BodyJson(BaseTestCase):
         interfaces.library.assert_waf_attack(r, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="?", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @released(
     java="?" if context.weblog_variant == "vertx3" else "0.99.0" if context.weblog_variant == "ratpack" else "0.95.1"
 )
@@ -304,7 +304,7 @@ class Test_Method(BaseTestCase):
     """Appsec supports server.request.method"""
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.not_implemented
 class Test_ClientIP(BaseTestCase):
     """Appsec supports server.request.client_ip"""
