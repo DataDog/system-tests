@@ -6,6 +6,7 @@ import threading
 
 from utils import context
 from utils.interfaces._core import InterfaceValidator
+from utils.interfaces._common.sca import _HeartbeatValidation
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
@@ -169,6 +170,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
         self.append_validation(_RemoteConfigurationValidation(validator, is_success_on_expiry=is_success_on_expiry))
+
+    def add_heartbeat_validation(self, number = 0):
+        self.append_validation(_HeartbeatValidation(number, _HeartbeatValidation.TELEMETRY_AGENT_ENDPOINT))
 
 
 class _TraceIdUniquenessExceptions:
