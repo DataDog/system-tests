@@ -71,12 +71,12 @@ def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: TestAgentAPI
 
 In the root of the system-tests repo, run the following:
 
-(Note that `integration_unit/run.sh` explicitly ignores the root `conftest.py`, otherwise the root `conftest.py` will interfere with the shared integration/unit tests.)
+(Note that `parametric/run.sh` explicitly ignores the root `conftest.py`, otherwise the root `conftest.py` will interfere with the parametric tests.)
 
 ```bash
+cd parametric
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cd integration_unit
 CLIENTS_ENABLED=<client_language> ./run.sh
 ```

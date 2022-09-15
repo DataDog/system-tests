@@ -84,6 +84,9 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_serve
     assert raw_stats is not None, "Couldn't find raw stats request sent to test agent"
     deserialized_stats = msgpack.unpackb(base64.b64decode(raw_stats))["Stats"][0]["Stats"][0]
     agent_decoded_stats = decoded_stats_requests[0]["body"]["Stats"][0]["Stats"][0]
+    assert len(decoded_stats_requests) == 1
+    assert len(decoded_stats_requests[0]["body"]["Stats"]) == 1
+    pprint.pprint([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
     assert deserialized_stats["Name"] == "web.request"
     assert deserialized_stats["Resource"] == "/users"
     assert deserialized_stats["Service"] == "webserver"
@@ -372,6 +375,7 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
     requests = test_agent.v06_stats_requests()
     stats = requests[0]["body"]["Stats"][0]["Stats"]
     assert len(stats) == 1, "Only one stats aggregation is expected"
+
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
     assert web_stats["TopLevelHits"] == 10
     assert web_stats["Hits"] == 10

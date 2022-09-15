@@ -14,8 +14,8 @@ import grpc
 import requests
 import pytest
 
-from integration_unit.protos import apm_test_client_pb2 as pb
-from integration_unit.protos import apm_test_client_pb2_grpc
+from parametric.protos import apm_test_client_pb2 as pb
+from parametric.protos import apm_test_client_pb2_grpc
 from spec.trace import V06StatsPayload
 from spec.trace import decode_v06_stats
 

@@ -1,0 +1,12 @@
+ddsketch
+grpcio-tools==1.47.0
+grpcio==1.47.0
+Flask==2.0.0
+jsonschema==3.2.0
+msgpack
+numpy
+requests
+requests-toolbelt==0.9.1
+pytest
+pytest-json-report==1.2.1
+Werkzeug==2.0.1

@@ -7,4 +7,4 @@
 
 python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. protos/apm_test_client.proto
 # FIXME: the codegen doesn't generate the correct import path
-sed -i '' -e 's/from protos/from integration_unit.protos/g' protos/*.py
+sed -i '' -e 's/from protos/from parametric.protos/g' protos/*.py
