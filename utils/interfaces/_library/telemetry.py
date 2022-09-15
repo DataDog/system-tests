@@ -39,8 +39,8 @@ class _SeqIdLatencyValidation(BaseValidation):
     path_filters = TELEMETRY_AGENT_ENDPOINT
     is_success_on_expiry = True
 
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
+    def __init__(self):
+        super().__init__()
         self.max_seq_id = 0
         self.received_max_time = None
 
@@ -66,8 +66,8 @@ class _NoSkippedSeqId(BaseValidation):
     path_filters = TELEMETRY_AGENT_ENDPOINT
     is_success_on_expiry = True
 
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
+    def __init__(self):
+        super().__init__()
         self.seq_ids = []
 
     def check(self, data):

@@ -72,7 +72,7 @@ class SchemaValidator(BaseValidation):
     is_success_on_expiry = True
 
     def __init__(self, interface, allowed_errors):
-        super().__init__(message=f"Validate {interface} schemas")
+        super().__init__()
         self.interface = interface
         self.allowed_errors = []
 
