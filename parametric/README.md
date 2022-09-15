@@ -1,7 +1,34 @@
-# APM Client library Shared Integration/Unit Tests
-The system-tests repository supports running end-to-end tests involving a single instance of a web application and querying endpoints of the application. The goal of these tests is to verify the high-level features of the library. 
+# APM library parametric tests
 
-More specifically, the shared tests in this submodule are designed to ensure correctness and uniformity across the different tracer libraries by sharing unit/integration level tests between tracer clients.
+The test fixtures in this submodule allow features of the APM libraries to be easily parameterized while still targeting
+each of the libraries.
+
+Example:
+
+```python
+@all_libs()
+@pytest.mark.parametrize("apm_test_server_env", [
+    {
+        "DD_SERVICE": "svc1",
+    },
+    {
+        "DD_SERVICE": "svc2",
+    }
+])
+def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: TestAgentAPI, test_client: _TestTracer):
+    with test_client.start_span(name="web.request", resource="/users") as span:
+        span.set_meta("mytag", "value")
+    test_client.flush()
+
+    traces = test_agent.traces()
+    assert traces[0][0]["meta"]["mytag"] == "value"
+    assert traces[0][0]["service"] == apm_test_server_env["DD_SERVICE"]
+```
+
+- This test case runs against all the APM libraries (`all_libs()`) and is parameterized with two different environments specifying two different values of the environment variable `DD_SERVICE`.
+- The test case creates a new root span and sets a tag on it using the shared GRPC interface.
+- Data is flushed to the test agent using `test_client.flush()`
+- Data is retrieved using the `test_agent` fixture and asserted on.
 
 ## Implementation
 
@@ -30,34 +57,6 @@ Test cases are written in Python and target the shared GRPC interface. The tests
 
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
-
-### Example test case:
-
-
-```python
-@all_libs()
-@pytest.mark.parametrize("apm_test_server_env", [
-    {
-        "DD_SERVICE": "svc1",
-    },
-    {
-        "DD_SERVICE": "svc2",
-    }
-])
-def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: TestAgentAPI, test_client: _TestTracer):
-    with test_client.start_span(name="web.request", resource="/users") as span:
-        span.set_meta("mytag", "value")
-    test_client.flush()
-
-    traces = test_agent.traces()
-    assert traces[0][0]["meta"]["mytag"] == "value"
-    assert traces[0][0]["service"] == apm_test_server_env["DD_SERVICE"]
-```
-
-- This test case runs against all the libraries (`all_libs()`) and is parameterized with two different environments specifying two different values of `DD_SERVICE`.
-- The test case creates a new root span and sets a tag on it using the shared GRPC interface. 
-- Data is flushed to the test agent using `test_client.flush()`
-- Data is retrieved using the `test_agent` fixture and asserted on.
 
 
 ## Local Development
