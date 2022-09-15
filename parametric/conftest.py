@@ -513,6 +513,12 @@ class _TestTracer:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
 
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.flush()
+
     @contextlib.contextmanager
     def start_span(
         self, name: str, service: str = "", resource: str = "", parent_id: int = 0, typestr: str = "", origin: str = ""
