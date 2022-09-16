@@ -1,17 +1,18 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
-from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, coverage
 import pytest
 import re
+
+from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage
 
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0", php_appsec="0.3.0", python="?", ruby="?")
+@released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.good
 class Test_Monitoring(BaseTestCase):
     """ Support In-App WAF monitoring tags and metrics  """
@@ -123,7 +124,7 @@ class Test_Monitoring(BaseTestCase):
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_span_validation(validator=validate_rules_monitoring_span_tags)
 
-    @irrelevant(condition=context.library not in ["golang", "dotnet", "nodejs"], reason="optional tags")
+    @irrelevant(condition=context.library not in ["python", "golang", "dotnet", "nodejs"], reason="optional tags")
     def test_waf_monitoring_optional(self):
         """ WAF monitoring span tags and metrics may send extra optional tags """
 
