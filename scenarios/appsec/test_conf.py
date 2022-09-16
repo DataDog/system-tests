@@ -37,7 +37,7 @@ class Test_ConfigurationVariables(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="dedicated-value-for-testing-purpose")
 
     @missing_feature(library="java", reason="request is reported")
-    @missing_feature(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1))
+    @missing_feature(library="python", reason="request is reported")
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
