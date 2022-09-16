@@ -2,14 +2,14 @@ import ddtrace
 from ddtrace import Span
 from ddtrace.context import Context
 import pytest
-from trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
-from trace import SINGLE_SPAN_SAMPLING_MECHANISM
-from trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-from trace import SINGLE_SPAN_SAMPLING_RATE
-from trace import SAMPLING_PRIORITY_KEY
-from trace import MANUAL_DROP_KEY
-from trace import MANUAL_KEEP_KEY
-from trace import USER_KEEP
+from spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
+from spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
+from spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+from spec.trace import SINGLE_SPAN_SAMPLING_RATE
+from spec.trace import SAMPLING_PRIORITY_KEY
+from spec.trace import MANUAL_DROP_KEY
+from spec.trace import MANUAL_KEEP_KEY
+from spec.trace import USER_KEEP
 import time
 from .conftest import _TestTracer
 import os
