@@ -211,6 +211,8 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_client: _TestT
     # TODO: we need a way to check that the chunk that contains the span was associated with USER_KEEP priority,
     # the below does not apply to all agent APIs
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
+
+
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 1.0}])}],
