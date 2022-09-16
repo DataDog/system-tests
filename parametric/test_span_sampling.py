@@ -1,6 +1,3 @@
-import ddtrace
-from ddtrace import Span
-from ddtrace.context import Context
 import pytest
 from spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
 from spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
