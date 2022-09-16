@@ -9,7 +9,6 @@ from spec.trace import MANUAL_KEEP_KEY
 from spec.trace import USER_KEEP
 import time
 from .conftest import _TestTracer
-import os
 import json
 
 
