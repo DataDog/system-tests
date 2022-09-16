@@ -1,10 +1,12 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
-from tkinter import Misc
-from utils import BaseTestCase, coverage, interfaces, released, rfc, missing_feature, context, irrelevant
 import pytest
+from tkinter import Misc
+
+from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils import BaseTestCase, coverage, interfaces, released, rfc, missing_feature, context, irrelevant
+
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -35,14 +37,14 @@ class Test_ConfigurationVariables(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="dedicated-value-for-testing-purpose")
 
     @missing_feature(library="java", reason="request is reported")
-    @missing_feature(library="python", reason="request is reported")
+    @missing_feature(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1))
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_no_appsec_event(r)
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(library="python", reason="secret is not redacted")
+    @missing_feature(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1))
     def test_obfuscation_parameter_key(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
@@ -58,7 +60,7 @@ class Test_ConfigurationVariables(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library in ["python"])
+    @missing_feature(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1))
     def test_obfuscation_parameter_value(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 

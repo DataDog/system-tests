@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
+from tests.constants import PYTHON_RELEASE_PUBLIC_BETA, PYTHON_RELEASE_GA_1_1
 from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc
 
 if context.library == "cpp":
@@ -100,7 +100,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @bug(library="python@1.1.0", reason="a PR was not included in the release")
+    @bug(context.library < PYTHON_RELEASE_GA_1_1, reason="a PR was not included in the release")
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     def test_header_collection(self):
         """
@@ -151,7 +151,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@released(golang="1.38.0", dotnet="2.7.0", java="?", nodejs="2.6.0", php_appsec="0.3.0", python="?", ruby="?")
+@released(golang="1.38.0", dotnet="2.7.0", java="?", nodejs="2.6.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.good
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
