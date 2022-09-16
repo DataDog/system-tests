@@ -16,7 +16,7 @@ class _HeartbeatValidation(BaseValidation):
         type = request["content"]["request_type"]
         super().log_info(f"Heartbeat Validation: {request}")
         if type == "app-heartbeat":
-            self.counter = self.counter+1
+            self.counter = self.counter + 1
             super().log_info(f"Heartbeat Validation: Heartbeat comes at {self.counter}")
 
     def final_check(self):

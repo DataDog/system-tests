@@ -61,7 +61,7 @@ class AgentInterfaceValidator(InterfaceValidator):
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
         self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
 
-    def add_heartbeat_validation(self, number = 0):
+    def add_heartbeat_validation(self, number=0):
         self.append_validation(_HeartbeatValidation(number, _HeartbeatValidation.TELEMETRY_INTAKE_ENDPOINT))
 
 

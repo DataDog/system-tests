@@ -171,7 +171,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
         self.append_validation(_RemoteConfigurationValidation(validator, is_success_on_expiry=is_success_on_expiry))
 
-    def add_heartbeat_validation(self, number = 0):
+    def add_heartbeat_validation(self, number=0):
         self.append_validation(_HeartbeatValidation(number, _HeartbeatValidation.TELEMETRY_AGENT_ENDPOINT))
 
 
