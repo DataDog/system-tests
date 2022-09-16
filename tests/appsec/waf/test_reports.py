@@ -12,15 +12,23 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@released(
+    golang="1.38.0",
+    dotnet="2.9.0",
+    java="0.100.0",
+    nodejs="2.8.0",
+    php_appsec="0.3.0",
+    python=PYTHON_RELEASE_GA_1_1,
+    ruby="?",
+)
 @coverage.good
 class Test_Monitoring(BaseTestCase):
-    """ Support In-App WAF monitoring tags and metrics  """
+    """Support In-App WAF monitoring tags and metrics"""
 
     expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
 
     def test_waf_monitoring(self):
-        """ WAF monitoring span tags and metrics are expected to be sent on each request """
+        """WAF monitoring span tags and metrics are expected to be sent on each request"""
 
         # Tags that are expected to be reported on every request
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
@@ -30,7 +38,7 @@ class Test_Monitoring(BaseTestCase):
         # Tags that are expected to be reported at least once at some point
 
         def validate_waf_monitoring_span_tags(span, appsec_data):
-            """ Validate the mandatory waf monitoring span tags are added to the request span having an attack """
+            """Validate the mandatory waf monitoring span tags are added to the request span having an attack"""
 
             meta = span["meta"]
             for m in expected_waf_monitoring_meta_tags:
@@ -126,7 +134,7 @@ class Test_Monitoring(BaseTestCase):
 
     @irrelevant(condition=context.library not in ["python", "golang", "dotnet", "nodejs"], reason="optional tags")
     def test_waf_monitoring_optional(self):
-        """ WAF monitoring span tags and metrics may send extra optional tags """
+        """WAF monitoring span tags and metrics may send extra optional tags"""
 
         expected_waf_duration_metric = "_dd.appsec.waf.duration"
         expected_bindings_duration_metric = "_dd.appsec.waf.duration_ext"

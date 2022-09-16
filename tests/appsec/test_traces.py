@@ -18,7 +18,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
 @coverage.good
 class Test_RetainTraces(BaseTestCase):
-    """ Retain trace (manual keep & appsec.event = true) """
+    """Retain trace (manual keep & appsec.event = true)"""
 
     @classmethod
     def setup_class(cls):
@@ -62,7 +62,7 @@ class Test_RetainTraces(BaseTestCase):
 @released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
 @coverage.good
 class Test_AppSecEventSpanTags(BaseTestCase):
-    """ AppSec correctly fill span tags. """
+    """AppSec correctly fill span tags."""
 
     @classmethod
     def setup_class(cls):
@@ -151,7 +151,15 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@released(golang="1.38.0", dotnet="2.7.0", java="?", nodejs="2.6.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@released(
+    golang="1.38.0",
+    dotnet="2.7.0",
+    java="?",
+    nodejs="2.6.0",
+    php_appsec="0.3.0",
+    python=PYTHON_RELEASE_GA_1_1,
+    ruby="?",
+)
 @coverage.good
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
@@ -255,7 +263,7 @@ class Test_AppSecObfuscator(BaseTestCase):
 @released(nodejs="2.0.0", java="0.102.0")
 @coverage.good
 class Test_CollectRespondHeaders(BaseTestCase):
-    """ AppSec should collect some headers for http.response and store them in span tags. """
+    """AppSec should collect some headers for http.response and store them in span tags."""
 
     def test_header_collection(self):
         def assertHeaderInSpanMeta(span, h):
@@ -273,4 +281,4 @@ class Test_CollectRespondHeaders(BaseTestCase):
 
 @coverage.not_implemented
 class Test_DistributedTraceInfo:
-    """ Distributed traces info (Services, URL, trace id) """
+    """Distributed traces info (Services, URL, trace id)"""
