@@ -83,6 +83,7 @@ services:
     environment:
       - DD_API_KEY
       - DD_ENV=system-tests
+      - DD_HOSTNAME=test
       - DD_SITE=${DD_SITE:-datad0g.com}
       # - DD_URL=https://app.datad0g.com
       - DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126}

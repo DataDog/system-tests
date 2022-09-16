@@ -1,6 +1,11 @@
 from ddtrace import tracer
 from flask import Flask, request, Response
 
+try:
+    from ddtrace.contrib.trace_utils import set_user
+except ImportError:
+    set_user = lambda *args, **kwargs: None
+
 
 app = Flask(__name__)
 
@@ -47,3 +52,32 @@ def headers():
 def status_code():
     code = request.args.get("code", default=200, type=int)
     return Response("OK, probably", status=code)
+
+
+@app.route("/identify")
+def identify():
+    set_user(
+        tracer,
+        user_id="usr.id",
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+    )
+    return Response("OK")
+
+
+@app.route("/identify-propagate")
+def identify_propagate():
+    set_user(
+        tracer,
+        user_id="usr.id",
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+        propagate=True,
+    )
+    return Response("OK")

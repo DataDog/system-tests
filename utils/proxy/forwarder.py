@@ -5,6 +5,7 @@
 import os
 import json
 import socket
+from collections import defaultdict
 from datetime import datetime
 from http.client import HTTPConnection
 import logging
@@ -53,7 +54,7 @@ class Forwarder(object):
         self.state = json.loads(os.environ.get("INITIAL_PROXY_STATE", "") or "{}")
 
         # for config backend mock
-        self.config_request_count = 0
+        self.config_request_count = defaultdict(int)
 
         logger.info(f"Initial state: {self.state}")
         logger.info(f"Forward flows to {self.forward_ip}:{self.forward_port}")
@@ -180,25 +181,26 @@ class Forwarder(object):
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE)
 
     def _modify_response_rc(self, flow, mocked_responses):
-        logger.info("modifying rc response")
-
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             logger.info(f"Overwriting /info response to include /v0.7/config")
             c = json.loads(flow.response.content)
             c["endpoints"].append("/v0.7/config")
             flow.response.content = json.dumps(c).encode()
         elif flow.request.path == "/v0.7/config" and str(flow.response.status_code) == "404":
-            logger.info(f"Overwriting /v0.7/config response #{self.config_request_count + 1}")
+            runtime_id = json.loads(flow.request.content)["client"]["client_tracer"]["runtime_id"]
+            logger.info(f"modifying rc response for runtime ID {runtime_id}")
 
-            if self.config_request_count + 1 > len(mocked_responses):
+            logger.info(f"Overwriting /v0.7/config response #{self.config_request_count[runtime_id] + 1}")
+
+            if self.config_request_count[runtime_id] + 1 > len(mocked_responses):
                 content = b"{}"  # default content when there isn't an RC update
             else:
-                content = json.dumps(mocked_responses[self.config_request_count]).encode()
+                content = json.dumps(mocked_responses[self.config_request_count[runtime_id]]).encode()
 
             flow.response.status_code = 200
             flow.response.content = content
 
-            self.config_request_count += 1
+            self.config_request_count[runtime_id] += 1
 
 
 addons = [Forwarder()]

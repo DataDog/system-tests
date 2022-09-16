@@ -2,9 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, released, rfc, coverage, proxies, context
-from utils.tools import logger
 import json
+from collections import defaultdict
+
+from utils import BaseTestCase, context, coverage, interfaces, proxies, released, rfc
+from utils.tools import logger
 
 with open("scenarios/remote_config/rc_expected_requests_live_debugging.json") as f:
     LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
@@ -17,12 +19,13 @@ with open("scenarios/remote_config/rc_expected_requests_asm_dd.json") as f:
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationFields(BaseTestCase):
     """ Misc tests on fields and values on remote configuration reauests """
 
-    def test_shemas(self):
+    def test_schemas(self):
+        """ Test all library schemas """
         interfaces.library.assert_schemas()
 
     def test_tracer_language(self):
@@ -108,8 +111,8 @@ def rc_check_request(data, expected, caching):
 
     if not caching:
         # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
-        assert (
-            "cached_target_files" not in expected or len(expected["cached_target_files"]) == 0
+        assert not content.get(
+            "cached_target_files", []
         ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
     else:
         expected_cached_target_files = expected.get("cached_target_files")
@@ -131,7 +134,7 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
@@ -155,31 +158,34 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    request_number = 0
+    # Index the request number by runtime ID so that we can support applications
+    # that spawns multiple worker processes, each running its own RCM client.
+    request_number = defaultdict(int)
 
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
             """ Helper to validate config request content """
-            logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+            logger.info(f"validating request number {self.request_number[runtime_id]}")
+            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number], caching=True)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=True)
 
-            self.request_number += 1
+            self.request_number[runtime_id] += 1
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
@@ -203,7 +209,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
@@ -227,31 +233,32 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    request_number = 0
+    request_number = defaultdict(int)
 
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
             """ Helper to validate config request content """
-            logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+            logger.info(f"validating request number {self.request_number[runtime_id]}")
+            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number], caching=False)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=False)
 
-            self.request_number += 1
+            self.request_number[runtime_id] += 1
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""

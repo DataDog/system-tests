@@ -137,7 +137,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; 
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
-    WEBLOG_ENV="DD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
+    WEBLOG_ENV="DD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true\nDD_INTERNAL_RCM_POLL_INTERVAL=1000"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD"

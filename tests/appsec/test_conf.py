@@ -42,7 +42,7 @@ class Test_RuleSet_1_2_4(BaseTestCase):
     """ AppSec uses rule set 1.2.4 or higher """
 
     def test_main(self):
-        assert context.appsec_rules_version >= "1.2.4"
+        interfaces.library.add_assertion(context.appsec_rules_version >= "1.2.4")
 
 
 @coverage.basic
@@ -50,7 +50,7 @@ class Test_RuleSet_1_2_5(BaseTestCase):
     """ AppSec uses rule set 1.2.5 or higher """
 
     def test_main(self):
-        assert context.appsec_rules_version >= "1.2.5"
+        interfaces.library.add_assertion(context.appsec_rules_version >= "1.2.5")
 
 
 @released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
@@ -66,7 +66,7 @@ class Test_RuleSet_1_3_1(BaseTestCase):
     def test_nosqli_keys(self):
         """Test a rule defined on this rules version: nosql on keys"""
         r = self.weblog_get("/waf/", params={"$nin": "value"})
-        interfaces.library.assert_waf_attack(r, rules.nosql_injection.sqr_000_007)
+        interfaces.library.assert_waf_attack(r, rules.nosql_injection)
 
     @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
     @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
