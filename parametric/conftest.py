@@ -16,8 +16,8 @@ import pytest
 
 from parametric.protos import apm_test_client_pb2 as pb
 from parametric.protos import apm_test_client_pb2_grpc
-from spec.trace import V06StatsPayload
-from spec.trace import decode_v06_stats
+from parametric.spec.trace import V06StatsPayload
+from parametric.spec.trace import decode_v06_stats
 
 
 class AgentRequest(TypedDict):

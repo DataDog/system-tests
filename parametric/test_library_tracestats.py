@@ -14,8 +14,8 @@ from .conftest import dotnet_library_server_factory
 from .conftest import golang_library_server_factory
 from .conftest import python_library_server_factory
 from .conftest import ClientLibraryServerFactory
-from spec.trace import SPAN_MEASURED_KEY
-from spec.trace import V06StatsAggr
+from parametric.spec.trace import SPAN_MEASURED_KEY
+from parametric.spec.trace import V06StatsAggr
 
 
 parametrize = pytest.mark.parametrize
