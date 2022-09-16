@@ -100,7 +100,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @bug(context.library < PYTHON_RELEASE_GA_1_1, reason="a PR was not included in the release")
+    @bug(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1), reason="a PR was not included in the release")
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     def test_header_collection(self):
         """
