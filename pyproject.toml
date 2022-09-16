@@ -1,3 +1,3 @@
 [tool.black]
 line-length = 120
-exclude = "(utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py)"
+exclude = "(utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps|parametric/protos/)"

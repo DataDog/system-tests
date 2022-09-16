@@ -33,3 +33,6 @@ dist/
 
 # VSCode
 .ionide/
+
+# Visual Studio
+.vs/
