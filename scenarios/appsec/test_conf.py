@@ -44,7 +44,7 @@ class Test_ConfigurationVariables(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1))
+    @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     def test_obfuscation_parameter_key(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
