@@ -54,7 +54,9 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
         env.update(
-            {"DD_TRACE_SAMPLE_RATE": str(sample_rate),}
+            {
+                "DD_TRACE_SAMPLE_RATE": str(sample_rate),
+            }
         )
     return parametrize("apm_test_server_env", [env])
 
@@ -387,8 +389,11 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
     assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
     for quantile in (0.5, 0.75, 0.95, 0.99, 1):
         assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-            numpy.quantile(np_duration, quantile), rel=0.01,
-        ), ("Quantile mismatch for quantile %r" % quantile)
+            numpy.quantile(np_duration, quantile),
+            rel=0.01,
+        ), (
+            "Quantile mismatch for quantile %r" % quantile
+        )
 
 
 @all_libs()
@@ -396,7 +401,7 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
 def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When trace stats are computed for traces
-        Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after 
+        Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
     """
     name = "name"
