@@ -1,12 +1,12 @@
 import pytest
-from spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
-from spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
-from spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-from spec.trace import SINGLE_SPAN_SAMPLING_RATE
-from spec.trace import SAMPLING_PRIORITY_KEY
-from spec.trace import MANUAL_DROP_KEY
-from spec.trace import MANUAL_KEEP_KEY
-from spec.trace import USER_KEEP
+from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
+from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
+from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+from parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
+from parametric.spec.trace import SAMPLING_PRIORITY_KEY
+from parametric.spec.trace import MANUAL_DROP_KEY
+from parametric.spec.trace import MANUAL_KEEP_KEY
+from parametric.spec.trace import USER_KEEP
 import time
 from .conftest import _TestTracer
 import json
