@@ -396,7 +396,7 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
 def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
     """
     When trace stats are computed for traces
-        Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after 
+        Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
     """
     name = "name"
