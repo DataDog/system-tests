@@ -1,5 +1,8 @@
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released
 
+import logging
+
+log = logging.getLogger("rodrigo.test")
 
 @released(dotnet="2.12.0")
 @missing_feature(library="cpp")
@@ -34,10 +37,12 @@ class Test_Telemetry(BaseTestCase):
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-agent-hostname", "dd-agent-env"],
         )
         interfaces.agent.assert_headers_match(
-            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
+            path_filter="/api/v2/apmtelemetry",
+            request_headers={"via": r"trace-agent 7\..+"},
         )
 
     @missing_feature(library="dotnet")
@@ -45,7 +50,8 @@ class Test_Telemetry(BaseTestCase):
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["datadog-container-id"],
         )
 
     @missing_feature(library="python")
@@ -143,3 +149,14 @@ class Test_Telemetry(BaseTestCase):
 
         # At the end, check that all data are consistent
         interfaces.agent.add_final_validation(check_data_consistency)
+
+    def test_app_heartbeat_sent_once_per_minute(self):
+        """Request type app-heartbeat is sent twice once per minute"""
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-heartbeat":
+                self.app_heartbeat_count += 1
+                log.info("########## "+self.app_heartbeat_count)
+                return self.app_heartbeat_count >= 5
+
+        interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=False, expected_timeout=170)

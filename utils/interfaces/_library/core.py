@@ -146,8 +146,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def expect_no_vulnerabilities(self, request):
         self.append_validation(_NoIastEvent(request=request))
 
-    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
-        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False, expected_timeout=None):
+        self.append_validation(
+            _TelemetryValidation(
+                validator=validator, is_success_on_expiry=is_success_on_expiry, expected_timeout=expected_timeout
+            )
+        )
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))

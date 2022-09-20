@@ -17,10 +17,11 @@ class _TelemetryValidation(BaseValidation):
         * raise an exception => validation will fail
     """
 
-    def __init__(self, validator, is_success_on_expiry=False):
+    def __init__(self, validator, is_success_on_expiry=False, expected_timeout=None):
         super().__init__(path_filters=TELEMETRY_AGENT_ENDPOINT)
         self.validator = validator
         self.is_success_on_expiry = is_success_on_expiry
+        self.expected_timeout = expected_timeout
 
     def check(self, data):
         try:
