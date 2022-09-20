@@ -1,7 +1,7 @@
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released
 
 
-@released(dotnet="2.12.0")
+@released(dotnet="2.12.0", java="0.108.1")
 @missing_feature(library="cpp")
 @missing_feature(library="java")
 @missing_feature(library="ruby")
@@ -40,6 +40,7 @@ class Test_Telemetry(BaseTestCase):
             path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
         )
 
+    @missing_feature(library="java")
     @missing_feature(library="dotnet")
     @missing_feature(library="python")
     def test_telemetry_message_has_datadog_container_id(self):
