@@ -17,7 +17,7 @@ if context.library == "cpp":
 @released(dotnet="2.8.0", golang="1.38.0", java="0.100.0", nodejs="2.7.0")
 @released(php_appsec="0.3.2", python="1.1.2", ruby="1.0.0")
 class Test_ConfigurationVariables(BaseTestCase):
-    """ Configuration environment variables """
+    """Configuration environment variables"""
 
     # DD_APPSEC_TRACE_RATE_LIMIT is not tested here, there is a dedicated class on appsec/rate_limiter.py
 
@@ -27,26 +27,25 @@ class Test_ConfigurationVariables(BaseTestCase):
         reason="Conf is done in weblog instead of library",
     )
     def test_disabled(self):
-        """ test DD_APPSEC_ENABLED = false """
+        """test DD_APPSEC_ENABLED = false"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_no_appsec_event(r)
 
     def test_appsec_rules(self):
-        """ test DD_APPSEC_RULES = custom rules file """
+        """test DD_APPSEC_RULES = custom rules file"""
         r = self.weblog_get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
         interfaces.library.assert_waf_attack(r, pattern="dedicated-value-for-testing-purpose")
 
     @missing_feature(library="java", reason="request is reported")
-    @missing_feature(library="python", reason="request is reported")
     def test_waf_timeout(self):
-        """ test DD_APPSEC_WAF_TIMEOUT = low value """
+        """test DD_APPSEC_WAF_TIMEOUT = low value"""
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_no_appsec_event(r)
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     def test_obfuscation_parameter_key(self):
-        """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
+        """test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
         SECRET = "This-value-is-secret"
 
@@ -62,7 +61,7 @@ class Test_ConfigurationVariables(BaseTestCase):
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1))
     def test_obfuscation_parameter_value(self):
-        """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
+        """test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
         SECRET = "hide_value"
 
