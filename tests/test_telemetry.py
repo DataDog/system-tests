@@ -49,6 +49,7 @@ class Test_Telemetry(BaseTestCase):
             path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
         )
 
+    @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
         interfaces.library.assert_seq_ids_are_roughly_sequential()
@@ -62,6 +63,7 @@ class Test_Telemetry(BaseTestCase):
 
         interfaces.library.add_telemetry_validation(validator=validator)
 
+    @missing_feature(library="python")
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
