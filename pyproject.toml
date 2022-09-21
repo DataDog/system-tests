@@ -18,5 +18,5 @@ markers =[
 
 [tool.pylint]
 max-line-length = 120
-disable = "missing-module-docstring,missing-class-docstring,missing-function-docstring,fixme,raise-missing-from,invalid-name,import-outside-toplevel,logging-fstring-interpolation,broad-except,too-few-public-methods,too-many-arguments,too-many-branches"
+disable = "missing-module-docstring,missing-class-docstring,missing-function-docstring,fixme,raise-missing-from,invalid-name,import-outside-toplevel,logging-fstring-interpolation,broad-except,too-few-public-methods,too-many-arguments,too-many-branches,bare-except"
 ignore = "utils/test_the_test"
