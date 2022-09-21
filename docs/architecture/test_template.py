@@ -17,7 +17,7 @@ from utils import BaseTestCase, interfaces, context, irrelevant
 
 # To run an individual test: ./run.sh tests/test_traces.py::Test_Misc::test_main
 class Test_Misc(BaseTestCase):
-    """ *ATTENTION*: This is where you summarize the test """
+    """*ATTENTION*: This is where you summarize the test"""
 
     def test_main(self):
         # This is where you make your requests and assertions

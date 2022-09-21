@@ -22,7 +22,7 @@ logger = get_logger()
 
 
 class InterfaceValidator(object):
-    """ Validate an interface
+    """Validate an interface
 
     Main thread use append_validation() method to AsyncValidation objects
     data_collector use append_data() method to add data from interfaces

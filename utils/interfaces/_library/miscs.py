@@ -66,10 +66,10 @@ class _ReceiveRequestRootTrace(BaseValidation):
 
 
 class _TracesValidation(BaseValidation):
-    """ will run an arbitrary check on traces. Validator function can :
-        * returns true => validation will be validated at the end (but trace will continue to be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    """will run an arbitrary check on traces. Validator function can :
+    * returns true => validation will be validated at the end (but trace will continue to be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     path_filters = r"/v0\.[1-9]+/traces"
@@ -89,12 +89,12 @@ class _TracesValidation(BaseValidation):
 
 
 class _SpanValidation(BaseValidation):
-    """ will run an arbitrary check on spans. If a request is provided, only span
-        related to this request will be checked.
-        Validator function can :
-        * returns true => validation will be validated at the end (but trace will continue to be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    """will run an arbitrary check on spans. If a request is provided, only span
+    related to this request will be checked.
+    Validator function can :
+    * returns true => validation will be validated at the end (but trace will continue to be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     path_filters = "/v0.4/traces"
@@ -126,8 +126,7 @@ class _SpanValidation(BaseValidation):
 
 
 class _SpanTagValidation(BaseValidation):
-    """ will run an arbitrary check on spans. If a request is provided, only span
-    """
+    """will run an arbitrary check on spans. If a request is provided, only span"""
 
     path_filters = "/v0.4/traces"
 

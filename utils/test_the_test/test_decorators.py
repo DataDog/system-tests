@@ -70,7 +70,7 @@ class Test_BugClass:
         Test_BugClass.executed = True
 
     def test_xpassed_method(self):
-        """ This test will be reported as xpassed """
+        """This test will be reported as xpassed"""
         interfaces.library_stdout.add_assertion(True)
 
 
