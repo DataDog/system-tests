@@ -5,10 +5,10 @@ context.execute_warmups = lambda *args, **kwargs: None
 
 
 class Test_Main:
-    """ test message collectors """
+    """test message collectors"""
 
     def test_message_in_method(self):
-        """ Test magic message collector """
+        """Test magic message collector"""
 
         assert BaseValidation().message == "Test magic message collector", repr(BaseValidation().message)
 
@@ -24,7 +24,7 @@ class Test_Main:
         assert BaseValidation().message == "multi line"
 
     def test_lot_of_space_message(self):
-        """   lot     of     spaces are stripped    """
+        """   lot     of     spaces are stripped    """  # fmt: skip
 
         assert BaseValidation().message == "lot of spaces are stripped"
 

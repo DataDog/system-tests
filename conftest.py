@@ -225,7 +225,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
 
 def _print_async_test_list(terminal, validations, passed, failed, xpassed, xfailed):
-    """ build list of test file, with a letter for each test method describing the state of the method regarding async validations """
+    """build list of test file, with a letter for each test method describing the state of the method regarding async validations"""
     # Create a tree filename > methods > fails
     files = collections.defaultdict(lambda: collections.defaultdict(list))
 

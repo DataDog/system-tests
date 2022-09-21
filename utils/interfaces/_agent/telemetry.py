@@ -6,12 +6,12 @@ TELEMETRY_INTAKE_ENDPOINT = "/api/v2/apmtelemetry"
 
 
 class _TelemetryValidation(BaseValidation):
-    """ will run an arbitrary check on telemetry data
+    """will run an arbitrary check on telemetry data
 
-        Validator function can :
-        * returns true => validation will be validated at the end (but trace will continue to be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    Validator function can :
+    * returns true => validation will be validated at the end (but trace will continue to be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     def __init__(self, validator, is_success_on_expiry=False):

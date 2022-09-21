@@ -143,11 +143,11 @@ class _LibraryStdout(_LogsInterfaceValidator):
             level = p("level", r"\w+")
             klass = p("klass", r"[\w\.$]+")
             message = p("message", r".*")
-            self._parsers.append(re.compile(fr"^\[{source} {timestamp}\] \[{thread}\] {level} {klass} - {message}"))
+            self._parsers.append(re.compile(rf"^\[{source} {timestamp}\] \[{thread}\] {level} {klass} - {message}"))
 
             timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d")
             klass = p("klass", r"[\w\.$\[\]/]+")
-            self._parsers.append(re.compile(fr"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
+            self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
 
         elif context.library == "dotnet":
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
@@ -160,7 +160,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
             level = p("level", r"\w+")
             thread = p("thread", r"\d+")
             message = p("message", r".+")
-            self._parsers.append(re.compile(fr"\[{timestamp}\]\[{level}\]\[{thread}\] {message}"))
+            self._parsers.append(re.compile(rf"\[{timestamp}\]\[{level}\]\[{thread}\] {message}"))
         else:
             self._new_log_line_pattern = re.compile(r".")
             self._parsers.append(re.compile(p("message", r".*")))
@@ -198,7 +198,7 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         thread = p("thread", r"[\w\-]+")
         level = p("level", r"\w+")
         message = p("message", r".*")
-        self._parsers.append(re.compile(fr"^{timestamp} \[{level}\] {message}"))
+        self._parsers.append(re.compile(rf"^{timestamp} \[{level}\] {message}"))
 
     def _get_files(self):
         result = []
@@ -283,12 +283,12 @@ class _LogAbsence(BaseValidation):
 
 
 class _LogValidation(BaseValidation):
-    """ will run an arbitrary check on log
+    """will run an arbitrary check on log
 
-        Validator function can :
-        * returns true => validation will be validated at the end (but trace will continue to be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    Validator function can :
+    * returns true => validation will be validated at the end (but trace will continue to be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     def __init__(self, validator):
@@ -305,7 +305,7 @@ class _LogValidation(BaseValidation):
 
 class Test:
     def test_main(self):
-        """ Test example """
+        """Test example"""
         i = _LibraryStdout()
         i.assert_presence(r".*", level="DEBUG")
         i.__test__()

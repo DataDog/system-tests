@@ -13,7 +13,7 @@ setup(
     author="",
     author_email="",
     url="",
-    install_requires=["Pylons>=1.0.1rc1",],
+    install_requires=["Pylons>=1.0.1rc1"],
     setup_requires=["PasteScript>=1.6.3"],
     packages=find_packages(exclude=["ez_setup"]),
     include_package_data=True,
