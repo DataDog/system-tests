@@ -18,6 +18,10 @@ from parametric.spec.trace import SPAN_MEASURED_KEY
 from parametric.spec.trace import V06StatsAggr
 
 
+# TODO: need to generate protos
+from parametric.protos.apm_test_client_pb2_grpc import DistributedHTTPHeaders
+
+
 parametrize = pytest.mark.parametrize
 snapshot = pytest.mark.snapshot
 
@@ -441,7 +445,7 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_s
     assert stats[0]["Synthetics"] is True
 
 
-@parametrize("apm_test_server_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
+@parametrize("apm_test_server_env", [{"": "0"}])
 @all_libs()
 def test_metrics_computed_after_span_finish_TS010(
     apm_test_server_env, apm_test_server_factory, test_agent, test_client
@@ -451,8 +455,12 @@ def test_metrics_computed_after_span_finish_TS010(
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
     """
+
     with test_client:
-        with test_client.start_span(name="name", service="service", resource="resource", origin="synthetics") as span:
+        http_headers = DistributedHTTPHeaders()
+        http_headers.x_datadog_trace_id_key = "12321311232"
+
+        with test_client.start_span(name="name", service="service", resource="resource", origin="synthetics", http_headers=http_headers) as span:
             span.set_meta(key="http.status_code", val="200")
 
     requests = test_agent.v06_stats_requests()

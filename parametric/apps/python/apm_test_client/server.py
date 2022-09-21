@@ -30,6 +30,11 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             parent_id = parent.span_id if parent else None
             parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
 
+        if request.w3chttpheaders is not None:
+            parent = HTTPPropagator.extract({
+                "X-Datadog-Trace-Id": request.http_headers.x_datadog_trace_id,
+            })
+
         span = ddtrace.tracer.start_span(
             request.name,
             service=request.service,
