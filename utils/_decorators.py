@@ -1,5 +1,5 @@
-import pytest
 import inspect
+import pytest
 
 from utils.tools import logger
 from utils._context.core import context

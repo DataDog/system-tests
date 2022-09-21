@@ -2,14 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import traceback
+import json
 import ast
 import msgpack
-import json
 from requests_toolbelt.multipart.decoder import MultipartDecoder
-from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from google.protobuf.json_format import MessageToDict
-
+from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from utils.tools import logger, get_exception_traceback
 
 

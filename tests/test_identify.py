@@ -2,8 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import base64
-
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
@@ -25,7 +23,7 @@ def assertTagInSpanMeta(span, tag, expected):
 def validate_identify_tags(tags):
     def inner_validate(span):
         for tag in tags:
-            if type(tags) is dict:
+            if isinstance(tags, dict):
                 assertTagInSpanMeta(span, tag, tags[tag])
             else:
                 fullTag = f"usr.{tag}"

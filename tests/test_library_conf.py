@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature
-from utils.tools import logger
+from utils import coverage, BaseTestCase, interfaces, released, irrelevant
 
 # PHP JAVA ok
 

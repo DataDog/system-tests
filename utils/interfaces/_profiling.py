@@ -54,7 +54,8 @@ class _ProfilingFieldAssertion(_BaseProfilingValidation):
                 if self.content_pattern:
                     if not self.content_pattern.fullmatch(item["content"]):
                         self.set_failure(
-                            f"{self} is not validated on {data['log_filename']}: field is present but value {repr(item['content'])} does not match {self.content_pattern.pattern}"
+                            exception=f"Value {repr(item['content'])} does not match {self.content_pattern.pattern}",
+                            data=data,
                         )
                         return
 

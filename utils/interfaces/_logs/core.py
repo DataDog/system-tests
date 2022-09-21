@@ -177,8 +177,8 @@ class _LibraryStdout(_LogsInterfaceValidator):
     def _get_standardized_level(self, level):
         if context.library == "php":
             return level.upper()
-        else:
-            return super(_LibraryStdout, self)._get_standardized_level(level)
+
+        return super(_LibraryStdout, self)._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):
@@ -270,7 +270,7 @@ class _LogAbsence(BaseValidation):
 
         aggregated_logs = DefaultDict(int)
         for l in self.failed_logs:
-            cleaned = re.sub("^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d \+\d\d:\d\d +", "", l)
+            cleaned = re.sub(r"^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d \+\d\d:\d\d +", "", l)
             aggregated_logs[cleaned] += 1
 
         for log, count in aggregated_logs.items():

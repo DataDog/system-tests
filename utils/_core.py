@@ -10,7 +10,7 @@ import requests
 import grpc
 import google.protobuf.struct_pb2 as pb
 
-from utils.tools import logger, m
+from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 
