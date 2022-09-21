@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import BaseTestCase, interfaces, context, bug, irrelevant, rfc, released
+from utils import BaseTestCase, interfaces, context, bug, rfc
 
 
 class Test_TraceUniqueness(BaseTestCase):
@@ -57,13 +57,9 @@ class Test_TraceHeaders(BaseTestCase):
                     try:
                         trace_count = int(value)
                     except ValueError:
-                        raise Exception(
-                            f"{self.count_header} request header in {data['log_filename']} wasn't an integer: {value}"
-                        )
+                        raise Exception(f"'x-datadog-trace-count' request header is not an integer: {value}")
 
                     if trace_count != len(data["request"]["content"]):
-                        raise Exception(
-                            f"x-datadog-trace-count request header in {data['log_filename']} didn't match the number of traces"
-                        )
+                        raise Exception("x-datadog-trace-count request header didn't match the number of traces")
 
         interfaces.library.add_traces_validation(validator=validator, is_success_on_expiry=True)

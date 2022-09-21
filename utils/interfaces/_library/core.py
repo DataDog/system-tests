@@ -32,7 +32,6 @@ from utils.interfaces._library.telemetry import (
     _TelemetryValidation,
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
-    TELEMETRY_AGENT_ENDPOINT,
 )
 from utils.interfaces._misc_validators import HeadersPresenceValidation
 

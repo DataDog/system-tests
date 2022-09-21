@@ -1,6 +1,6 @@
 import sys
-import pytest
 import logging
+
 from utils import interfaces, bug, context, irrelevant, missing_feature, flaky, rfc, released
 from utils.tools import logger
 from utils._context.library_version import LibraryVersion
