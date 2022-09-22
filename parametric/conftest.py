@@ -146,6 +146,25 @@ WORKDIR "/client/."
     )
 
 
+def java_library_server_factory(env: Dict[str, str]):
+    java_dir = os.path.join(os.path.dirname(__file__), "apps", "java")
+    return APMLibraryTestServer(
+        lang="java",
+        container_name="java-test-client",
+        container_tag="java8-test-client",
+        container_img="""
+FROM maven:3-jdk-8
+WORKDIR /client
+COPY src /client/src
+COPY pom.xml /client/
+RUN mvn package
+""",
+        container_cmd="java -jar target/dd-trace-java-client-1.0.0.jar".split(" "),
+        container_build_dir=java_dir,
+        volumes=[(os.path.join(java_dir), "/client"),],
+        env=env,
+    )
+
 @pytest.fixture
 def apm_test_server_factory():
     yield python_library_server_factory

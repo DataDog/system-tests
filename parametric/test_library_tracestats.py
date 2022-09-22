@@ -12,6 +12,7 @@ import numpy
 
 from .conftest import dotnet_library_server_factory
 from .conftest import golang_library_server_factory
+from .conftest import java_library_server_factory
 from .conftest import python_library_server_factory
 from .conftest import ClientLibraryServerFactory
 from parametric.spec.trace import SPAN_MEASURED_KEY
@@ -35,9 +36,10 @@ def all_libs(skip=[]) -> Any:
         "python": python_library_server_factory,
         "dotnet": dotnet_library_server_factory,
         "golang": golang_library_server_factory,
+        "java": java_library_server_factory,
     }
     enabled: List[Tuple[str, ClientLibraryServerFactory]] = []
-    for lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
+    for lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang,java").split(","):
         if lang in skip:
             continue
         enabled.append((lang, libs[lang]))
@@ -50,6 +52,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # dotnet, reference
         "DD_TRACE_COMPUTE_STATS": "1",  # python
         "DD_TRACE_FEATURES": "discovery",  # golang
+        "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
     }
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
