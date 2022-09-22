@@ -15,14 +15,14 @@ import json
 import re
 
 from utils._xfail import xfails
-from utils.tools import get_logger, m, e as format_error, get_exception_traceback
+from utils.tools import get_logger, m, e as format_error
 from ._deserializer import deserialize
 
 logger = get_logger()
 
 
-class InterfaceValidator(object):
-    """ Validate an interface
+class InterfaceValidator:
+    """Validate an interface
 
     Main thread use append_validation() method to AsyncValidation objects
     data_collector use append_data() method to add data from interfaces
@@ -90,7 +90,8 @@ class InterfaceValidator(object):
                             validation._check(data)
                         except Exception as exc:
                             raise Exception(
-                                f"While validating {data['log_filename']}, unexpected error occurs for {m(validation.message)}"
+                                f"While validating {data['log_filename']}, "
+                                f"unexpected error occurs for {m(validation.message)}"
                             ) from exc
 
                         if validation.closed:

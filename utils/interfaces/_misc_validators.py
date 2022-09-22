@@ -2,9 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils.interfaces._core import BaseValidation
-from utils import context
 import re
+from utils.interfaces._core import BaseValidation
 
 
 class HeadersPresenceValidation(BaseValidation):

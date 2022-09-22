@@ -1,6 +1,6 @@
 import sys
-import pytest
 import logging
+
 from utils import interfaces, bug, context, irrelevant, missing_feature, flaky, rfc, released
 from utils.tools import logger
 from utils._context.library_version import LibraryVersion
@@ -70,7 +70,7 @@ class Test_BugClass:
         Test_BugClass.executed = True
 
     def test_xpassed_method(self):
-        """ This test will be reported as xpassed """
+        """This test will be reported as xpassed"""
         interfaces.library_stdout.add_assertion(True)
 
 

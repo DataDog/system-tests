@@ -12,7 +12,7 @@ import json
 import re
 import functools
 
-from jsonschema import Draft7Validator, RefResolver, draft7_format_checker, exceptions as jsonschema_exceptions
+from jsonschema import Draft7Validator, RefResolver, exceptions as jsonschema_exceptions
 from jsonschema.validators import extend
 from utils.interfaces._core import BaseValidation
 
@@ -65,7 +65,7 @@ def _get_schema_validator(schema_id):
 
     schema = store[schema_id]
     resolver = RefResolver(base_uri=schema["$id"], referrer=schema, store=store)
-    return _ApiObjectValidator(schema, resolver=resolver, format_checker=draft7_format_checker)
+    return _ApiObjectValidator(schema, resolver=resolver, format_checker=Draft7Validator.FORMAT_CHECKER)
 
 
 class SchemaValidator(BaseValidation):

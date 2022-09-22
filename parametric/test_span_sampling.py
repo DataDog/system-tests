@@ -186,8 +186,8 @@ def test_sampling_rate_not_absolute_value_sss009(test_agent, test_client: _TestT
         else:
             unsampled.append(trace)
 
-    assert len(sampled) in range(40, 60)
-    assert len(unsampled) in range(40, 60)
+    assert len(sampled) in range(30, 70)
+    assert len(unsampled) in range(30, 70)
 
 
 @pytest.mark.skip(

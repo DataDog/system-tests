@@ -1,5 +1,4 @@
 import requests
-from utils.tools import logger
 
 
 class _ProxyState:

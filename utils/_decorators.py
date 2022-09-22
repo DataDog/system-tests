@@ -1,5 +1,5 @@
-import pytest
 import inspect
+import pytest
 
 from utils.tools import logger
 from utils._context.core import context
@@ -55,7 +55,7 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
 
 
 def missing_feature(condition=None, library=None, weblog_variant=None, reason=None):
-    """ decorator, allow to mark a test function/class as missing """
+    """decorator, allow to mark a test function/class as missing"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
@@ -71,7 +71,7 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
-    """ decorator, allow to mark a test function/class as not relevant """
+    """decorator, allow to mark a test function/class as not relevant"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
@@ -88,8 +88,8 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None):
     """
-        Decorator, allow to mark a test function/class as an known bug.
-        The test is executed, and if it passes, and warning is reported
+    Decorator, allow to mark a test function/class as an known bug.
+    The test is executed, and if it passes, and warning is reported
     """
 
     expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -106,7 +106,7 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
 
 
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
-    """ Decorator, allow to mark a test function/class as a known bug, and skip it """
+    """Decorator, allow to mark a test function/class as a known bug, and skip it"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 

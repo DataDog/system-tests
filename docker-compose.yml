@@ -114,7 +114,8 @@ services:
       - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
-      - ./pytest.ini:/app/pytest.ini
+      # - ./pytest.ini:/app/pytest.ini
+      - ./pyproject.toml:/app/pyproject.toml
       - ./conftest.py:/app/conftest.py
       - ./tests/:/app/tests/
       - ./utils/:/app/utils/
