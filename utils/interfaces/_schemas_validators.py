@@ -26,12 +26,12 @@ _ApiObjectValidator = extend(Draft7Validator, type_checker=_type_checker)
 
 
 def _get_schemas_filenames():
-    for dir in (
+    for schema_dir in (
         "utils/interfaces/schemas/library/",
         "utils/interfaces/schemas/agent/",
         "utils/interfaces/schemas/miscs/",
     ):
-        for root, _, files in os.walk(dir):
+        for root, _, files in os.walk(schema_dir):
             for f in files:
                 if f.endswith(".json"):
                     yield os.path.join(root, f)
@@ -44,7 +44,7 @@ def _get_schemas_store():
     store = {}
 
     for filename in _get_schemas_filenames():
-        schema = json.load(open(filename))
+        schema = json.load(open(filename, encoding="utf-8"))
 
         assert "$id" in schema, filename
         assert schema["$id"] == filename[len("utils/interfaces/schemas") :], filename
@@ -71,7 +71,7 @@ def _get_schema_validator(schema_id):
 class SchemaValidator(BaseValidation):
     is_success_on_expiry = True
 
-    def __init__(self, interface, allowed_errors):
+    def __init__(self, interface, allowed_errors=None):
         super().__init__()
         self.interface = interface
         self.allowed_errors = []
@@ -105,32 +105,37 @@ class SchemaValidator(BaseValidation):
         except jsonschema_exceptions.ValidationError as e:
             self.set_failure(e)
 
+class Test_Logs():
+    def test_main(self, interface):
+        """ Test current logs """
 
-def _main(interface):
+        path = f"logs/interfaces/{interface}"
 
-    path = f"logs/interfaces/{interface}"
+        for f in os.listdir(path):
+            data_path = os.path.join(path, f)
+            print(f"  * {data_path}")
+            if os.path.isfile(data_path):
+                with open(data_path, "r", encoding="utf-8") as f:
+                    systemtest_interface_log_data = json.load(f)
 
-    for f in os.listdir(path):
-        data_path = os.path.join(path, f)
-        print(f"  * {data_path}")
-        if os.path.isfile(data_path):
-            systemtest_interface_log_data = json.load(open(data_path, "r"))
+                # We re-use BaseValidation sub class SchemaValidator to avoid logic duplication
+                # but we need to stick to in BaseValidation internals...
 
-            # We re-use BaseValidation sub class SchemaValidator to avoid logic duplication
-            # but we need to stick to in BaseValidation internals...
+                validator = SchemaValidator(interface)
+                if validator.system_test_error:
+                    raise validator.system_test_error
 
-            validator = SchemaValidator(interface)
-            validator.check(systemtest_interface_log_data)
-            validator.set_expired()
+                validator.check(systemtest_interface_log_data)
+                validator.set_expired()
 
-            if not validator.is_success:
-                print("    ---> ERROR:")
-                print("")
-                for log in validator.logs:
-                    print(log)
+                if not validator.is_success:
+                    print("    ---> ERROR:")
+                    print("")
+                    for log in validator.logs:
+                        print(log)
 
 
 if __name__ == "__main__":
     print("# Validate logs output from system tests")
-    _main("library")
-    _main("agent")
+    Test_Logs().test_main("library")
+    Test_Logs().test_main("agent")
