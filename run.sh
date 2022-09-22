@@ -98,7 +98,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_LOW_WAF_TIMEOUT" ]; then
     # disable appsec
     export RUNNER_ARGS=scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_waf_timeout
     export SYSTEMTESTS_LOG_FOLDER=logs_low_waf_timeout
-    WEBLOG_ENV="DD_APPSEC_WAF_TIMEOUT=1"
+    WEBLOG_ENV="DD_APPSEC_WAF_TIMEOUT=0"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value"
