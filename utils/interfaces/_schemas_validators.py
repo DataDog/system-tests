@@ -105,7 +105,8 @@ class SchemaValidator(BaseValidation):
         except jsonschema_exceptions.ValidationError as e:
             self.set_failure(e)
 
-class Test_Logs():
+
+class Test_Logs:
     def test_main(self, interface):
         """ Test current logs """
 
