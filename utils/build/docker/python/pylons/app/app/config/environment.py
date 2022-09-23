@@ -34,6 +34,6 @@ def load_environment(global_conf, app_conf):
     config["debug"] = False
 
     # Create the Mako TemplateLookup, with the default auto-escaping
-    config["pylons.app_globals"].mako_lookup = TemplateLookup(directories=paths["templates"],)
+    config["pylons.app_globals"].mako_lookup = TemplateLookup(directories=paths["templates"])
 
     return config

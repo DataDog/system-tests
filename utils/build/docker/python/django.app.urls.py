@@ -3,6 +3,10 @@ from django.urls import path
 from django.http import HttpResponse
 from ddtrace import tracer
 
+try:
+    from ddtrace.contrib.trace_utils import set_user
+except ImportError:
+    set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
 
@@ -29,6 +33,33 @@ def status_code(request, *args, **kwargs):
     return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
 
 
+def identify(request):
+    set_user(
+        tracer,
+        user_id="usr.id",
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+    )
+    return HttpResponse("OK")
+
+
+def identify_propagate(request):
+    set_user(
+        tracer,
+        user_id="usr.id",
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+        propagate=True,
+    )
+    return HttpResponse("OK")
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -38,4 +69,6 @@ urlpatterns = [
     path("params/<appscan_fingerprint>", waf),
     path("headers", headers),
     path("status", status_code),
+    path("identify", identify),
+    path("identify-propagate", identify_propagate),
 ]

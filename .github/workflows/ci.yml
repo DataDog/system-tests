@@ -549,3 +549,26 @@ jobs:
         run: ./scenarios/perfs/run.sh golang
       - name: Display
         run: python scenarios/perfs/process.py
+
+  parametric:
+    runs-on: ubuntu-latest
+    needs: lint_and_test
+    strategy:
+      matrix:
+        client: ['python', 'dotnet', 'golang']
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          # FIXME: pytest==5.4.3 does not support Python 3.10
+          python-version: '3.9'
+      - name: Install
+        run: |
+          pip install wheel
+      - name: Run
+        run: |
+          cd parametric
+          pip install -r requirements.txt
+          CLIENTS_ENABLED=${{ matrix.client }} ./run.sh

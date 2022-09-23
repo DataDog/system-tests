@@ -10,7 +10,7 @@ import requests
 import grpc
 import google.protobuf.struct_pb2 as pb
 
-from utils.tools import logger, m
+from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 
@@ -79,8 +79,7 @@ class BaseTestCase(unittest.TestCase):
         return r
 
     def _get_weblog_url(self, path, query=None):
-        """ Return a query with the passed host
-        """
+        """Return a query with the passed host"""
         # Make all absolute paths to be relative
         if path.startswith("/"):
             path = path[1:]

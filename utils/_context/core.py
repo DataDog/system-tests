@@ -6,9 +6,9 @@
 
 import os
 import json
+import time
 import pytest
 import requests
-import time
 
 from utils.tools import logger, get_exception_traceback
 from utils._context.library_version import LibraryVersion, Version
@@ -21,7 +21,8 @@ class ImageInfo:
         self.env = {}
 
         try:
-            self._raw = json.load(open(f"logs/{image_name}_image.json"))
+            with open(f"logs/{image_name}_image.json", encoding="ascii") as fp:
+                self._raw = json.load(fp)
         except FileNotFoundError:
             return  # silently fail, needed for testing
 
@@ -30,7 +31,7 @@ class ImageInfo:
             self.env[key] = value
 
         try:
-            with open(f"logs/.{image_name}.env") as f:
+            with open(f"logs/.{image_name}.env", encoding="ascii") as f:
                 for line in f:
                     if line.strip():
                         key, value = line.split("=", 1)
@@ -39,7 +40,7 @@ class ImageInfo:
             pass
 
 
-class _Context:
+class _Context:  # pylint: disable=too-many-instance-attributes
     def __init__(self):
         self.agent_image = ImageInfo("agent")
         self.weblog_image = ImageInfo("weblog")
@@ -148,7 +149,7 @@ class _HealthCheck:
                 r = requests.get(self.url, timeout=3)
                 logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
                 if r.status_code == 200:
-                    return True
+                    return
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self.url}: {e}")
 
@@ -157,7 +158,10 @@ class _HealthCheck:
         pytest.exit(f"{self.url} never answered to healthcheck request", 1)
 
     def __str__(self):
-        return f"Healthcheck({repr(self.url)}, retries={self.retries}, interval={self.interval}, start_period={self.start_period})"
+        return (
+            f"Healthcheck({repr(self.url)}, retries={self.retries}, "
+            f"interval={self.interval}, start_period={self.start_period})"
+        )
 
 
 def _wait_for_weblog_cgroup_file():
@@ -183,13 +187,11 @@ def _wait_for_app_readiness():
 
     if not interfaces.library.ready.wait(40):
         pytest.exit("Library not ready", 1)
-    logger.debug(f"Library ready")
+    logger.debug("Library ready")
 
     if not interfaces.agent.ready.wait(40):
         pytest.exit("Datadog agent not ready", 1)
-    logger.debug(f"Agent ready")
-
-    return
+    logger.debug("Agent ready")
 
 
 context = _Context()

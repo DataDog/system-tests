@@ -8,7 +8,7 @@ context.execute_warmups = lambda *args, **kwargs: None
 
 class Test_Main:
     def test_stdout_reader(self):
-        """ Test stdout reader """
+        """Test stdout reader"""
 
         context.library = LibraryVersion("java", "0.66.0")
         os.makedirs("logs/docker/weblog", exist_ok=True)

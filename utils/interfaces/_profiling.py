@@ -11,7 +11,7 @@ from utils.tools import m
 
 
 class _BaseProfilingValidation(BaseValidation):
-    """ Base class for library profiling validation"""
+    """Base class for library profiling validation"""
 
     def __init__(self):
         super().__init__(path_filters=["/profiling/v1/input", "/api/v2/profile"])
@@ -19,12 +19,12 @@ class _BaseProfilingValidation(BaseValidation):
 
 
 class _ProfilingValidation(_BaseProfilingValidation):
-    """ will run an arbitrary check on profiling data.
+    """will run an arbitrary check on profiling data.
 
-        Validator function can :
-        * returns true => validation will be validated at the end (but other will also be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    Validator function can :
+    * returns true => validation will be validated at the end (but other will also be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     def __init__(self, validator):
@@ -54,7 +54,8 @@ class _ProfilingFieldAssertion(_BaseProfilingValidation):
                 if self.content_pattern:
                     if not self.content_pattern.fullmatch(item["content"]):
                         self.set_failure(
-                            f"{self} is not validated on {data['log_filename']}: field is present but value {repr(item['content'])} does not match {self.content_pattern.pattern}"
+                            exception=f"Value {repr(item['content'])} does not match {self.content_pattern.pattern}",
+                            data=data,
                         )
                         return
 

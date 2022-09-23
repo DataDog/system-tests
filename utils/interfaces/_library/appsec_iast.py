@@ -62,11 +62,16 @@ class _AppSecIastValidation(_BaseAppSecIastValidation):
     """
 
     def __init__(
-        self, request, type=None, location_path=None, location_line=None, evidence=None, vulnerability_count=None
+        self,
+        request,
+        vulnerability_type=None,
+        location_path=None,
+        location_line=None,
+        evidence=None,
+        vulnerability_count=None,
     ):
-
         super().__init__(request=request)
-        self.type = type
+        self.type = vulnerability_type
         self.location_path = location_path
         self.location_line = location_line
         self.evidence = evidence
@@ -92,10 +97,9 @@ class _AppSecIastValidation(_BaseAppSecIastValidation):
         if not self._check_count_conditions(count_filtered):
             raise Exception(
                 f"""Expected assertion failed:
-    Expect count: {self.vulnerability_count},[ type: {self.type}, evidence:{self.evidence}, location: {self.location_path}({self.location_line}) )] 
-    
+    Expect count: {self.vulnerability_count},
+    [ type: {self.type}, evidence:{self.evidence}, location: {self.location_path}({self.location_line}) )]
     All vulnerabilities: \n count:{len(vulnerabilities)},[ {(vulnerabilities)}]
-    
     Filtered vulnerabilities: \n count:{len(filtered_vulnerabilities)},[ {(filtered_vulnerabilities)}] """
             )
         return True
@@ -103,8 +107,8 @@ class _AppSecIastValidation(_BaseAppSecIastValidation):
     def _check_count_conditions(self, count_filtered):
         if self.vulnerability_count is None:
             return count_filtered > 0
-        else:
-            return self.vulnerability_count == count_filtered
+
+        return self.vulnerability_count == count_filtered
 
 
 class _NoIastEvent(_BaseAppSecIastValidation):

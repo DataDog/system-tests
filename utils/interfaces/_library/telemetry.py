@@ -9,12 +9,12 @@ TELEMETRY_INTAKE_ENDPOINT = "/api/v2/apmtelemetry"
 
 
 class _TelemetryValidation(BaseValidation):
-    """ will run an arbitrary check on telemetry data
+    """will run an arbitrary check on telemetry data
 
-        Validator function can :
-        * returns true => validation will be validated at the end (but trace will continue to be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    Validator function can :
+    * returns true => validation will be validated at the end (but trace will continue to be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     def __init__(self, validator, is_success_on_expiry=False):
@@ -39,8 +39,8 @@ class _SeqIdLatencyValidation(BaseValidation):
     path_filters = TELEMETRY_AGENT_ENDPOINT
     is_success_on_expiry = True
 
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
+    def __init__(self):
+        super().__init__()
         self.max_seq_id = 0
         self.received_max_time = None
 
@@ -66,8 +66,8 @@ class _NoSkippedSeqId(BaseValidation):
     path_filters = TELEMETRY_AGENT_ENDPOINT
     is_success_on_expiry = True
 
-    def __init__(self, message=None, request=None):
-        super().__init__(message=message, request=request)
+    def __init__(self):
+        super().__init__()
         self.seq_ids = []
 
     def check(self, data):

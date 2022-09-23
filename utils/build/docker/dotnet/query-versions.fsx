@@ -37,6 +37,7 @@ module QueryVersions =
             match createMethodParameters.Length with
             | 1 ->  createMethod.Invoke(null, [| null |])
             | 3 ->  createMethod.Invoke(null, [| String.Empty; String.Empty; null |])
+            | 4 ->  createMethod.Invoke(null, [| String.Empty; String.Empty; null; null |]) // from tracer 2.15 PR #3251
             | _ -> failwith "Unknown number of parameters"
         let version = versionProp.GetValue(waf)
         File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", (version.ToString()))

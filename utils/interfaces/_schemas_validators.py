@@ -12,7 +12,7 @@ import json
 import re
 import functools
 
-from jsonschema import Draft7Validator, RefResolver, draft7_format_checker, exceptions as jsonschema_exceptions
+from jsonschema import Draft7Validator, RefResolver, exceptions as jsonschema_exceptions
 from jsonschema.validators import extend
 from utils.interfaces._core import BaseValidation
 
@@ -26,12 +26,12 @@ _ApiObjectValidator = extend(Draft7Validator, type_checker=_type_checker)
 
 
 def _get_schemas_filenames():
-    for dir in (
+    for schema_dir in (
         "utils/interfaces/schemas/library/",
         "utils/interfaces/schemas/agent/",
         "utils/interfaces/schemas/miscs/",
     ):
-        for root, _, files in os.walk(dir):
+        for root, _, files in os.walk(schema_dir):
             for f in files:
                 if f.endswith(".json"):
                     yield os.path.join(root, f)
@@ -44,7 +44,7 @@ def _get_schemas_store():
     store = {}
 
     for filename in _get_schemas_filenames():
-        schema = json.load(open(filename))
+        schema = json.load(open(filename, encoding="utf-8"))
 
         assert "$id" in schema, filename
         assert schema["$id"] == filename[len("utils/interfaces/schemas") :], filename
@@ -65,14 +65,14 @@ def _get_schema_validator(schema_id):
 
     schema = store[schema_id]
     resolver = RefResolver(base_uri=schema["$id"], referrer=schema, store=store)
-    return _ApiObjectValidator(schema, resolver=resolver, format_checker=draft7_format_checker)
+    return _ApiObjectValidator(schema, resolver=resolver, format_checker=Draft7Validator.FORMAT_CHECKER)
 
 
 class SchemaValidator(BaseValidation):
     is_success_on_expiry = True
 
-    def __init__(self, interface, allowed_errors):
-        super().__init__(message=f"Validate {interface} schemas")
+    def __init__(self, interface, allowed_errors=None):
+        super().__init__()
         self.interface = interface
         self.allowed_errors = []
 
@@ -106,31 +106,37 @@ class SchemaValidator(BaseValidation):
             self.set_failure(e)
 
 
-def _main(interface):
+class Test_Logs:
+    def test_main(self, interface):
+        """ Test current logs """
 
-    path = f"logs/interfaces/{interface}"
+        path = f"logs/interfaces/{interface}"
 
-    for f in os.listdir(path):
-        data_path = os.path.join(path, f)
-        print(f"  * {data_path}")
-        if os.path.isfile(data_path):
-            systemtest_interface_log_data = json.load(open(data_path, "r"))
+        for f in os.listdir(path):
+            data_path = os.path.join(path, f)
+            print(f"  * {data_path}")
+            if os.path.isfile(data_path):
+                with open(data_path, "r", encoding="utf-8") as f:
+                    systemtest_interface_log_data = json.load(f)
 
-            # We re-use BaseValidation sub class SchemaValidator to avoid logic duplication
-            # but we need to stick to in BaseValidation internals...
+                # We re-use BaseValidation sub class SchemaValidator to avoid logic duplication
+                # but we need to stick to in BaseValidation internals...
 
-            validator = SchemaValidator(interface)
-            validator.check(systemtest_interface_log_data)
-            validator.set_expired()
+                validator = SchemaValidator(interface)
+                if validator.system_test_error:
+                    raise validator.system_test_error
 
-            if not validator.is_success:
-                print("    ---> ERROR:")
-                print("")
-                for log in validator.logs:
-                    print(log)
+                validator.check(systemtest_interface_log_data)
+                validator.set_expired()
+
+                if not validator.is_success:
+                    print("    ---> ERROR:")
+                    print("")
+                    for log in validator.logs:
+                        print(log)
 
 
 if __name__ == "__main__":
     print("# Validate logs output from system tests")
-    _main("library")
-    _main("agent")
+    Test_Logs().test_main("library")
+    Test_Logs().test_main("agent")

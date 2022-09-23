@@ -15,14 +15,14 @@ import json
 import re
 
 from utils._xfail import xfails
-from utils.tools import get_logger, m, e as format_error, get_exception_traceback
+from utils.tools import get_logger, m, e as format_error
 from ._deserializer import deserialize
 
 logger = get_logger()
 
 
-class InterfaceValidator(object):
-    """ Validate an interface
+class InterfaceValidator:
+    """Validate an interface
 
     Main thread use append_validation() method to AsyncValidation objects
     data_collector use append_data() method to add data from interfaces
@@ -90,7 +90,8 @@ class InterfaceValidator(object):
                             validation._check(data)
                         except Exception as exc:
                             raise Exception(
-                                f"While validating {data['log_filename']}, unexpected error occurs for {m(validation.message)}"
+                                f"While validating {data['log_filename']}, "
+                                f"unexpected error occurs for {m(validation.message)}"
                             ) from exc
 
                         if validation.closed:
@@ -130,7 +131,7 @@ class InterfaceValidator(object):
             self.system_test_error = validation.system_test_error
             return
 
-        validation._interface = self.name
+        validation.interface = self.name
 
         logger.debug(f"{repr(validation)} added in {self}[{len(self._validations)}]")
 
@@ -164,7 +165,7 @@ class InterfaceValidator(object):
             log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
             data["log_filename"] = log_filename
 
-            with open(log_filename, "w") as f:
+            with open(log_filename, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             self._data_list.append(data)
@@ -197,15 +198,18 @@ class ObjectDumpEncoder(json.JSONEncoder):
 class BaseValidation(object):
     """Base validation item"""
 
-    _interface = None  # which interface will be validated
+    interface = None  # which interface will be validated
     is_success_on_expiry = False  # if validation is still pending at end of procees, is it a success?
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
 
-    def __init__(self, message=None, request=None, path_filters=None):
+    def __init__(self, request=None, path_filters=None):
         try:
+            # keep this two mumber on top, it's used in repr
+            self.message = ""
+            self.rid = None
+
             self.expected_timeout = None
-            self.message = message
             self._closed = threading.Event()
             self._is_success = None
 
@@ -221,8 +225,6 @@ class BaseValidation(object):
             if request is not None:
                 user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
                 self.rid = user_agent[-36:]
-            else:
-                self.rid = None
 
             self.frame = None
             self.calling_method = None
@@ -230,29 +232,30 @@ class BaseValidation(object):
 
             # Get calling class and calling method
             for frame_info in inspect.getouterframes(inspect.currentframe()):
+
                 if frame_info.function.startswith("test_"):
                     self.frame = frame_info
+                    gc.collect()
                     self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
                     self.calling_class = frame_info.frame.f_locals["self"].__class__
-
                     break
 
             if self.calling_method is None:
                 raise Exception(f"Unexpected error, can't found the method for {self}")
 
-            if self.message is None:
-                # if the message is missing, try to get the function docstring
-                self.message = self.calling_method.__doc__
+            # try to get the function docstring
+            self.message = self.calling_method.__doc__
 
-                # if the message is missing, try to get the parent class docstring
-                if self.message is None:
-                    self.message = self.calling_class.__doc__
+            # if the message is missing, try to get the parent class docstring
+            if self.message is None:
+                self.message = self.calling_class.__doc__
 
             if self.message is None:
                 raise Exception(f"Please set a message for {self.frame.function}")
 
-            # remove new lines for logging
-            self.message = self.message.replace("\n", " ")
+            # remove new lines, duplicated spaces and tailing/heading spaces for logging
+            self.message = self.message.replace("\n", " ").strip()
+            self.message = re.sub(r" {2,}", " ", self.message)
 
             if xfails.is_xfail_method(self.calling_method):
                 logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
@@ -271,7 +274,7 @@ class BaseValidation(object):
             self.system_test_error = e
 
     def __str__(self):
-        return f"Interface: {self._interface} -> {self.__class__.__name__}: {m(self.message)}"
+        return f"Interface: {self.interface} -> {self.__class__.__name__}: {m(self.message)}"
 
     def __repr__(self):
         if self.rid:
@@ -313,7 +316,27 @@ class BaseValidation(object):
         self._is_success = is_success
         self._closed.set()
 
-    def set_failure(self, message):
+    def set_failure(self, message="", exception="", data=None, extra_info=None):
+        if not message:
+
+            message = f"{m(self.message)} is not validated: {format_error(str(exception))}"
+
+            try:
+                if data and isinstance(data, dict) and "log_filename" in data:
+                    message += f"\n\t Failing payload is in {data['log_filename']}"
+
+                if extra_info:
+                    if isinstance(extra_info, (dict, list)):
+                        extra_info = json.dumps(extra_info, indent=4)
+
+                    extra_info = str(extra_info)
+
+                    message += "\n" + "\n".join([f"\t{l}" for l in extra_info.split("\n")])
+            except:
+                # silently skip this. It should not happen, but as we have an error to report to users
+                # we should never add an internal error that will give them an hard time ...
+                pass
+
         if not self.is_xfail:
             self.log_error(message)
         else:
@@ -346,7 +369,6 @@ class BaseValidation(object):
 
     def final_check(self):
         """Will be called once, at the very end of the process"""
-        pass
 
     def expect(self, condition: bool, err_msg):
         """Sets result to failed and returns True if condition is False, returns False otherwise"""

@@ -9,12 +9,12 @@ from utils.tools import m, logger
 
 
 class _RemoteConfigurationValidation(BaseValidation):
-    """ will run an arbitrary check on profiling data.
+    """will run an arbitrary check on profiling data.
 
-        Validator function can :
-        * returns true => validation will be validated at the end (but other will also be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    Validator function can :
+    * returns true => validation will be validated at the end (but other will also be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     path_filters = r"/v\d+.\d+/config"

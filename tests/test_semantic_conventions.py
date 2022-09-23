@@ -4,7 +4,7 @@
 
 from urllib.parse import urlparse
 
-from utils import context, BaseTestCase, interfaces, bug, irrelevant
+from utils import context, BaseTestCase, interfaces, bug
 
 
 class Test_Meta(BaseTestCase):
