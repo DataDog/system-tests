@@ -15,4 +15,4 @@ library_stdout = _LibraryStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
 backend = _BackendInterfaceValidator()
 
-all = (agent, library, library_stdout, library_dotnet_managed, backend)
+all_interfaces = (agent, library, library_stdout, library_dotnet_managed, backend)

@@ -34,7 +34,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_count=1, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+            r, vulnerability_count=1, vulnerability_type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
     def test_insecure_hash_multiple(self):
@@ -42,7 +42,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/multiple_hash")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_count=2, type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+            r, vulnerability_count=2, vulnerability_type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
     @missing_feature(library="nodejs", reason="Need to be implement global vulnerability deduplication")
@@ -55,4 +55,4 @@ class Test_Iast(BaseTestCase):
         """Test md5 weak hash algorithm reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
 
-        interfaces.library.expect_iast_vulnerabilities(r, type="WEAK_HASH", evidence="md5")
+        interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
