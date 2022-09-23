@@ -72,6 +72,8 @@ def make_distant_call():
     }
 
     return result
+
+
 @app.route("/identify")
 def identify():
     set_user(
