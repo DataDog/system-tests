@@ -19,6 +19,7 @@ class _BaseAppSecIastValidation(BaseValidation):
     def __init__(self, request):
         super().__init__(request=request)
         self.appsec_iast_events = []  # list of all appsec iast events
+        self.request=request
 
     def check(self, data):
         if data["path"] == "/v0.4/traces":
@@ -33,7 +34,8 @@ class _BaseAppSecIastValidation(BaseValidation):
     def final_check(self):
         def vulnerability_dict(vulDict):
             return namedtuple("X", vulDict.keys())(*vulDict.values())
-
+        if self.request.status_code == 404:
+            self.set_failure(f"Called endpoint wasn't available. Status code: 404")
         for span in self.appsec_iast_events:
             if not self.closed:
                 appsec_iast_data = json.loads(span["span"]["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
