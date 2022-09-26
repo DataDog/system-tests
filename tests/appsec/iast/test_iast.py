@@ -9,7 +9,7 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
 @released(
     dotnet="?",
     golang="?",
-    java={"spring-boot": "0.108.0", "*": "?"},
+    java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.109.0", "*": "?"},
     nodejs={"express4": "4.0.0pre0", "*": "?"},
     php_appsec="?",
     python="?",
@@ -45,7 +45,7 @@ class Test_Iast(BaseTestCase):
             r, vulnerability_count=2, vulnerability_type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
-    @missing_feature(library="nodejs", reason="Need to be implement global vulnerability deduplication")
+    @missing_feature(context.library < "nodejs@3.3.1", reason="Need to be implement global vulnerability deduplication")
     def test_secure_hash(self):
         """Strong hash algorithm is not reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_secure_algorithm")
