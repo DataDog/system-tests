@@ -1,5 +1,5 @@
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released
-
+from utils.tools import logger
 
 @released(dotnet="2.12.0", java="0.108.1")
 @missing_feature(library="cpp")
@@ -105,11 +105,13 @@ class Test_Telemetry(BaseTestCase):
             container[key] = data
 
         def check_data_consistency():
-
+            logger.debug(f"check_data_consistency library_requests::: {self.library_requests}")
+            logger.debug(f"check_data_consistency agent_requests::: {self.agent_requests}")
             for key, agent_data in self.agent_requests.items():
                 agent_message, agent_log_file = agent_data["request"]["content"], agent_data["log_filename"]
-
+                logger.debug(f"MONTERO_TEST:: KEY ::: {key}")
                 if key not in self.library_requests:
+                    logger.debug(f"MONTERO :: KEY ::: {key}")
                     raise Exception(
                         f"Agent proxy forwarded a message that was not sent by the library: {agent_log_file}"
                     )
@@ -132,11 +134,14 @@ class Test_Telemetry(BaseTestCase):
 
             return True  # all good!
 
+    
         # save all data from lib to agent
         interfaces.library.add_telemetry_validation(lambda data: save_data(data, self.library_requests), True)
 
         # save all data from agent to backend
         interfaces.agent.add_telemetry_validation(lambda data: save_data(data, self.agent_requests), True)
 
+        logger.debug(f"MONTERO library_requests::: {self.library_requests}")
+        logger.debug(f"MONTERO agent_requests::: {self.agent_requests}")
         # At the end, check that all data are consistent
         interfaces.agent.add_final_validation(check_data_consistency)
