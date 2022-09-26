@@ -1,6 +1,7 @@
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released
 from utils.tools import logger
 
+
 @released(dotnet="2.12.0", java="0.108.1")
 @missing_feature(library="cpp")
 @missing_feature(library="ruby")
@@ -33,10 +34,12 @@ class Test_Telemetry(BaseTestCase):
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-agent-hostname", "dd-agent-env"],
         )
         interfaces.agent.assert_headers_match(
-            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
+            path_filter="/api/v2/apmtelemetry",
+            request_headers={"via": r"trace-agent 7\..+"},
         )
 
     @missing_feature(library="java")
@@ -45,7 +48,8 @@ class Test_Telemetry(BaseTestCase):
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["datadog-container-id"],
         )
 
     @missing_feature(library="python")
@@ -134,7 +138,6 @@ class Test_Telemetry(BaseTestCase):
 
             return True  # all good!
 
-    
         # save all data from lib to agent
         interfaces.library.add_telemetry_validation(lambda data: save_data(data, self.library_requests), True)
 
