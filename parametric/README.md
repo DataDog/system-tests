@@ -74,7 +74,7 @@ In the root of the system-tests repo, run the following:
 
 ```bash
 cd parametric
-python -m venv .venv
+python -m venv venv
 source .venv/bin/activate
 pip install -r requirements.txt
 CLIENTS_ENABLED=<client_language> ./run.sh

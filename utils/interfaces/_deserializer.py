@@ -41,11 +41,14 @@ def deserialize_http_message(path, message, data, interface, key):
 
     if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
         return json.loads(data)
-    elif path == "/v0.7/config":  # Kyle, please add content-type header :)
+
+    if path == "/v0.7/config":  # Kyle, please add content-type header :)
         return json.loads(data)
-    elif interface == "library" and key == "response" and path == "/info":
+
+    if interface == "library" and key == "response" and path == "/info":
         return json.loads(data)
-    elif content_type == "application/msgpack" or content_type == "application/msgpack, application/msgpack":
+
+    if content_type == "application/msgpack" or content_type == "application/msgpack, application/msgpack":
         result = msgpack.unpackb(data, unicode_errors="replace")
 
         if interface == "library" and path == "/v0.4/traces":
@@ -58,13 +61,13 @@ def deserialize_http_message(path, message, data, interface, key):
 
         return result
 
-    elif content_type == "application/x-protobuf" and path == "/api/v0.2/traces":
+    if content_type == "application/x-protobuf" and path == "/api/v0.2/traces":
         return MessageToDict(TracePayload.FromString(data))
 
-    elif content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
+    if content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
         return []
 
-    elif content_type and content_type.startswith("multipart/form-data;"):
+    if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
         for part in MultipartDecoder(data, content_type).parts:
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}

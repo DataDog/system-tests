@@ -132,7 +132,7 @@ class _SpanTagValidation(BaseValidation):
 
     def __init__(self, request, tags, value_as_regular_expression):
         super().__init__(request=request)
-        self.tags = tags
+        self.tags = {} if tags is None else tags
         self.value_as_regular_expression = value_as_regular_expression
 
     def check(self, data):

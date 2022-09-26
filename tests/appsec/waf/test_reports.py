@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import pytest
 import re
+import json
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage
@@ -108,20 +109,25 @@ class Test_Monitoring(BaseTestCase):
                     f"the number of loaded rules should be strictly positive when using the recommended rules"
                 )
 
-            if (
-                expected_rules_monitoring_nb_errors_tag in metrics
-                and metrics[expected_rules_monitoring_nb_errors_tag] != 0
-            ):
-                raise Exception(f"the number of rule errors should be 0")
-
-            possible_errors_tag_values = ["null", "{}"]
-            if (
-                expected_rules_errors_meta_tag in meta
-                and meta[expected_rules_errors_meta_tag] not in possible_errors_tag_values
-            ):
-                raise Exception(
-                    f"if there's no rule errors and if there are rule errors detail, then `{expected_rules_errors_meta_tag}` should be {{}} or null but was `{meta[expected_rules_errors_meta_tag]}`"
-                )
+            num_errors = metrics.get(expected_rules_monitoring_nb_errors_tag, 0)
+            if num_errors == 0:
+                possible_errors_tag_values = ["null", "{}"]
+                if (
+                    expected_rules_errors_meta_tag in meta
+                    and meta[expected_rules_errors_meta_tag] not in possible_errors_tag_values
+                ):
+                    raise Exception(
+                        f"if there's no rule errors and if there are rule errors detail, then `{expected_rules_errors_meta_tag}` should be {{}} or null but was `{meta[expected_rules_errors_meta_tag]}`"
+                    )
+            else:
+                if expected_rules_errors_meta_tag not in meta:
+                    raise Exception("if there are rule errors, there should be rule error details too")
+                try:
+                    json.loads(meta[expected_rules_errors_meta_tag])
+                except ValueError:
+                    raise Exception(
+                        f"rule error details should be valid JSON but was `{meta[expected_rules_errors_meta_tag]}`"
+                    )
 
             return True
 
