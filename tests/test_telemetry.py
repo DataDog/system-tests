@@ -103,11 +103,11 @@ class Test_Telemetry(BaseTestCase):
         def save_data(data, container):
             # payloads are identifed by their seq_id/runtime_id
             key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
+            logger.debug(f"MONTERO save_data {key}")
             container[key] = data
 
         def check_data_consistency():
-            logger.debug(f"check_data_consistency library_requests::: {self.library_requests}")
-            logger.debug(f"check_data_consistency agent_requests::: {self.agent_requests}")
+            logger.debug(f"MONTERO check_data_consistency")
             for key, agent_data in self.agent_requests.items():
                 agent_message, agent_log_file = agent_data["request"]["content"], agent_data["log_filename"]
                 logger.debug(f"MONTERO_TEST:: KEY ::: {key}")
