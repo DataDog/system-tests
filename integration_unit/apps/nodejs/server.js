@@ -4,7 +4,7 @@ const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const Servicer = require('./servicer')
 
-const PROTO_PATH = '../protos/apm_test_client.proto';
+const PROTO_PATH = 'apm_test_client.proto';
 const PORT = process.env.APM_TEST_CLIENT_SERVER_PORT || 50051;
 
 const options = {

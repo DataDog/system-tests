@@ -104,18 +104,18 @@ RUN python3.9 -m pip install %s
 def node_library_server_factory(env: Dict[str, str]) -> APMClientTestServer:
     nodejs_dir = os.path.join(os.path.dirname(__file__), "apps", "nodejs")
     return APMClientTestServer(
-        lang="node",
+        lang="nodejs",
         container_name="node-test-client",
-        container_tag="py39-test-client",
+        container_tag="node-test-client",
         container_img="""
 FROM node:16.17-buster
 WORKDIR /client
-# start node app
-RUN ./generate_protos.sh
+COPY . /client
+RUN ./setup.sh
 """,
-        container_cmd="./setup.sh",
+        container_cmd=["node", "server.js"],
         container_build_dir=nodejs_dir,
-        volumes=[(os.path.join(nodejs_dir, "apm_test_client"), "/client/apm_test_client"),],
+        volumes=[(os.path.join(nodejs_dir), "/client"),],
         env=env,
     )
 

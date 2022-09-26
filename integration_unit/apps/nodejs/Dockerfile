@@ -1,4 +1,5 @@
-FROM node:16.17-buster
 
-RUN ./generate_protos.sh
-CMD ./setup.sh
+FROM node:16.17-buster
+WORKDIR /client
+COPY . /client
+RUN ./setup.sh
