@@ -1,4 +1,4 @@
-from utils import context, BaseTestCase, interfaces, missing_feature, bug, released
+from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky
 
 
 @released(dotnet="2.12.0", java="0.108.1")
@@ -16,6 +16,7 @@ class Test_Telemetry(BaseTestCase):
 
     app_started_count = 0
 
+    @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 

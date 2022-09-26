@@ -71,8 +71,9 @@ class _NoSkippedSeqId(BaseValidation):
         self.seq_ids = []
 
     def check(self, data):
-        seq_id = data["request"]["content"]["seq_id"]
-        self.seq_ids.append((seq_id, data["log_filename"]))
+        if 200 <= data["response"]["status_code"] < 300:
+            seq_id = data["request"]["content"]["seq_id"]
+            self.seq_ids.append((seq_id, data["log_filename"]))
 
     def final_check(self):
         self.seq_ids.sort()
