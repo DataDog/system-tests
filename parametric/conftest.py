@@ -117,7 +117,10 @@ RUN npm install
         container_build_dir=nodejs_dir,
         volumes=[
             (os.path.join(nodejs_dir), "/client"),
-            (os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"), "/client/apm_test_client.proto")
+            (
+                os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+                "/client/apm_test_client.proto",
+            ),
         ],
         env=env,
     )
