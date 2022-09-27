@@ -555,7 +555,7 @@ jobs:
     needs: lint_and_test
     strategy:
       matrix:
-        client: ['python', 'dotnet', 'golang']
+        client: ['python', 'dotnet', 'golang', 'nodejs']
       fail-fast: false
     steps:
       - name: Checkout
