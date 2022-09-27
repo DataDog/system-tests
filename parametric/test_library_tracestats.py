@@ -1,19 +1,13 @@
-import os
 import pprint
 from typing import Any
 from typing import Optional
 from typing import List
-from typing import Tuple
 
 import msgpack
 import base64
 import pytest
 import numpy
 
-from .conftest import dotnet_library_server_factory
-from .conftest import golang_library_server_factory
-from .conftest import python_library_server_factory
-from .conftest import ClientLibraryServerFactory
 from parametric.spec.trace import SPAN_MEASURED_KEY
 from parametric.spec.trace import V06StatsAggr
 
@@ -30,21 +24,6 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(copy)
 
 
-def all_libs(skip=[]) -> Any:
-    libs = {
-        "python": python_library_server_factory,
-        "dotnet": dotnet_library_server_factory,
-        "golang": golang_library_server_factory,
-    }
-    enabled: List[Tuple[str, ClientLibraryServerFactory]] = []
-    for lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
-        if lang in skip:
-            continue
-        enabled.append((lang, libs[lang]))
-    print("client libraries enabled: %s" % ",".join([l for l, _ in enabled]))
-    return parametrize("apm_test_server_factory", [factory for _, factory in enabled])
-
-
 def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # dotnet, reference
@@ -59,10 +38,9 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     return parametrize("apm_test_server_env", [env])
 
 
-@all_libs()
 @enable_tracestats()
-@pytest.mark.skip_libraries(["golang"], "go sends an empty stats aggregation")
-def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+@pytest.mark.skip_library("golang", "go sends an empty stats aggregation")
+def test_metrics_msgpack_serialization_TS001(apm_test_server_env, test_agent, test_client):
     """
     When spans are finished
         Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
@@ -113,9 +91,8 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, apm_test_serve
         assert key in decoded_request_body, "%r should be in stats request" % key
 
 
-@all_libs()
 @enable_tracestats()
-def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_distinct_aggregationkeys_TS003(apm_test_server_env, test_agent, test_client):
     """
     When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
@@ -185,10 +162,10 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, apm_test_server_fac
         assert s["Duration"] > 0
 
 
-@all_libs()
+@pytest.mark.skip_library("dotnet", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
+@pytest.mark.skip_library("golang", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 @enable_tracestats()
-@pytest.mark.skip_libraries(["dotnet", "golang"], "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
-def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_measured_spans_TS004(apm_test_server_env, test_agent, test_client):
     """
     When spans are marked as measured
         Each has stats computed for it
@@ -224,9 +201,8 @@ def test_measured_spans_TS004(apm_test_server_env, apm_test_server_factory, test
     assert op2_stats["TopLevelHits"] == 0
 
 
-@all_libs()
 @enable_tracestats()
-def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_top_level_TS005(apm_test_server_env, test_agent, test_client):
     """
     When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
@@ -272,11 +248,8 @@ def test_top_level_TS005(apm_test_server_env, apm_test_server_factory, test_agen
     assert web_stats["Duration"] > 0
 
 
-@all_libs()
 @enable_tracestats()
-def test_successes_errors_recorded_separately_TS006(
-    apm_test_server_env, apm_test_server_factory, test_agent, test_client
-):
+def test_successes_errors_recorded_separately_TS006(apm_test_server_env, test_agent, test_client):
     """
     When spans are marked as errors
         The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
@@ -323,10 +296,9 @@ def test_successes_errors_recorded_separately_TS006(
     assert stat["ErrorSummary"] is not None
 
 
-@all_libs()
+@pytest.mark.skip_library("dotnet", "FIXME: No traces should be emitted with the sample rate set to 0")
 @enable_tracestats(sample_rate=0.0)
-@pytest.mark.skip_libraries(["dotnet"], "FIXME: No traces should be emitted with the sample rate set to 0")
-def test_sample_rate_0_TS007(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_sample_rate_0_TS007(apm_test_server_env, test_agent, test_client):
     """
     When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
@@ -348,10 +320,9 @@ def test_sample_rate_0_TS007(apm_test_server_env, apm_test_server_factory, test_
     assert web_stats["Hits"] == 1
 
 
-@all_libs()
-@enable_tracestats()
 @pytest.mark.skip(reason="relative error test is broken")
-def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+@enable_tracestats()
+def test_relative_error_TS008(apm_test_server_env, test_agent, test_client):
     """
     When trace stats are computed for traces
         The stats should be accurate to within 1% of the real values
@@ -391,9 +362,8 @@ def test_relative_error_TS008(apm_test_server_env, apm_test_server_factory, test
         ), ("Quantile mismatch for quantile %r" % quantile)
 
 
-@all_libs()
 @enable_tracestats()
-def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_server_factory, test_agent, test_client):
+def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, test_agent, test_client):
     """
     When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
@@ -442,10 +412,7 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, apm_test_s
 
 
 @parametrize("apm_test_server_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
-@all_libs()
-def test_metrics_computed_after_span_finish_TS010(
-    apm_test_server_env, apm_test_server_factory, test_agent, test_client
-):
+def test_metrics_computed_after_span_finish_TS010(apm_test_server_env, test_agent, test_client):
     """
     When DD_TRACE_STATS_COMPUTATION_ENABLED=False
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
