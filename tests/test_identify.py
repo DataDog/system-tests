@@ -77,11 +77,6 @@ class Test_Propagate(BaseTestCase):
         r = self.weblog_get("/identify-propagate")
         interfaces.library.add_span_validation(r, validate_identify_tags(tagTable))
 
-    @bug(
-        condition="DD_TRACE_PROPAGATION_STYLE_INJECT" in context.weblog_image.env,
-        library="python",
-        reason="seems not to be working with that header",
-    )
     def test_identify_tags_incoming(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
 
