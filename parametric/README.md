@@ -119,11 +119,3 @@ Test cases are written in Python and target the shared GRPC interface. The tests
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
 
-
-## Local Development
-
-### Requirements
-
-- docker
-- protobuf
-- Python >= 3.7
