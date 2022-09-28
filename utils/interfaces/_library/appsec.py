@@ -129,14 +129,14 @@ class _AppSecValidation(_BaseAppSecValidation):
     def validate_legacy(self, event):
         if self.legacy_validator:
             return self.legacy_validator(event)
-        else:
-            raise NotImplementedError
+
+        raise NotImplementedError
 
     def validate(self, span, appsec_data):
         if self.validator:
             return self.validator(span, appsec_data)
-        else:
-            raise NotImplementedError
+
+        raise NotImplementedError
 
 
 class _NoAppsecEvent(_BaseAppSecValidation):

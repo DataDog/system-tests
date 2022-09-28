@@ -44,7 +44,8 @@ def _get_schemas_store():
     store = {}
 
     for filename in _get_schemas_filenames():
-        schema = json.load(open(filename, encoding="utf-8"))
+        with open(filename, encoding="utf-8") as f:
+            schema = json.load(f)
 
         assert "$id" in schema, filename
         assert schema["$id"] == filename[len("utils/interfaces/schemas") :], filename
@@ -90,7 +91,7 @@ class SchemaValidator(BaseValidation):
 
                 for error in validator.iter_errors(data["request"]["content"]):
                     message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
-                    if not any([pattern.fullmatch(message) for pattern in self.allowed_errors]):
+                    if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
                         messages.append(message)
 
                 if len(messages) != 0:

@@ -91,7 +91,7 @@ class BaseTestCase(unittest.TestCase):
 
         return res
 
-    def weblog_grpc(self, string_value, metadata=[]):
+    def weblog_grpc(self, string_value):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
@@ -104,7 +104,7 @@ class BaseTestCase(unittest.TestCase):
 
         logger.debug(f"Sending grpc request {rid}")
 
-        request = pb.Value(string_value=string_value)
+        request = pb.Value(string_value=string_value)  # pylint: disable=no-member
 
         try:
             response = _grpc_client.Unary(request)

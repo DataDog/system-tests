@@ -36,7 +36,7 @@ class _BaseAppSecIastValidation(BaseValidation):
             return namedtuple("X", vulDict.keys())(*vulDict.values())
 
         if self.request.status_code == 404:
-            self.set_failure(f"Called endpoint wasn't available. Status code: 404")
+            self.set_failure("Called endpoint wasn't available. Status code: 404")
         for span in self.appsec_iast_events:
             if not self.closed:
                 appsec_iast_data = json.loads(span["span"]["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
