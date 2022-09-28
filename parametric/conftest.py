@@ -110,10 +110,10 @@ def golang_library_server_factory(env: Dict[str, str]):
         container_img="""
 FROM golang:1.18
 WORKDIR /client
-COPY go.mod /client
-COPY go.sum /client
+COPY parametric/apps/golang/go.mod /client
+COPY parametric/apps/golang/go.sum /client
 RUN go mod download
-COPY . /client
+COPY parametric/apps/golang /client
 RUN go get gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer
 RUN go install
 """,
@@ -134,9 +134,9 @@ def dotnet_library_server_factory(env: Dict[str, str]):
         container_img="""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["ApmTestClient.csproj", "."]
+COPY ["parametric/apps/dotnet/ApmTestClient.csproj", "."]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
+COPY parametric/apps/dotnet .
 WORKDIR "/client/."
 """,
         container_cmd=["dotnet", "run"],
@@ -155,15 +155,18 @@ def java_library_server_factory(env: Dict[str, str]):
         container_img="""
 FROM maven:3-jdk-8
 WORKDIR /client
-COPY src /client/src
-COPY pom.xml /client/
+COPY parametric/apps/java/src .
+COPY parametric/apps/java/pom.xml .
+COPY parametric/apps/java/run.sh .
+COPY binaries* /binaries/
 RUN mvn package
 """,
-        container_cmd="java -jar target/dd-trace-java-client-1.0.0.jar".split(" "),
+        container_cmd=["./run.sh"],
         container_build_dir=java_dir,
         volumes=[(os.path.join(java_dir), "/client"),],
         env=env,
     )
+
 
 @pytest.fixture
 def apm_test_server_factory():
@@ -468,18 +471,21 @@ def test_server(
         dockf.write(apm_test_server.container_img)
     # Build the container
     docker = shutil.which("docker")
+    root_path = ".."
     cmd = [
         docker,
         "build",
         "-t",
         apm_test_server.container_tag,
+        "-f",
+        dockf_path,
         ".",
     ]
-    test_server_log_file.write("running %r in %r\n\n" % (" ".join(cmd), apm_test_server.container_build_dir))
+    test_server_log_file.write("running %r in %r\n\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
     subprocess.run(
         cmd,
-        cwd=apm_test_server.container_build_dir,
+        cwd=root_path,
         stdout=test_server_log_file,
         stderr=test_server_log_file,
         check=True,
@@ -506,6 +512,9 @@ def test_server(
         network_name=docker_network,
     ):
         yield apm_test_server
+
+    # Clean up generated files
+    os.remove(dockf_path)
 
 
 class _TestSpan:
