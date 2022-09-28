@@ -113,7 +113,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
             _SpanValidation(request=request, validator=validator, is_success_on_expiry=is_success_on_expiry)
         )
 
-    def add_span_tag_validation(self, request=None, tags={}, value_as_regular_expression=False):
+    def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         self.append_validation(
             _SpanTagValidation(request=request, tags=tags, value_as_regular_expression=value_as_regular_expression)
         )
@@ -129,12 +129,18 @@ class LibraryInterfaceValidator(InterfaceValidator):
         )
 
     def expect_iast_vulnerabilities(
-        self, request, type=None, location_path=None, location_line=None, evidence=None, vulnerability_count=None
+        self,
+        request,
+        vulnerability_type=None,
+        location_path=None,
+        location_line=None,
+        evidence=None,
+        vulnerability_count=None,
     ):
         self.append_validation(
             _AppSecIastValidation(
                 request=request,
-                type=type,
+                vulnerability_type=vulnerability_type,
                 location_path=location_path,
                 location_line=location_line,
                 evidence=evidence,
@@ -175,9 +181,9 @@ class _TraceIdUniquenessExceptions:
         self._lock = threading.Lock()
         self.traces_ids = set()
 
-    def add_trace_id(self, id):
+    def add_trace_id(self, trace_id):
         with self._lock:
-            self.traces_ids.add(id)
+            self.traces_ids.add(trace_id)
 
     def should_be_unique(self, trace_id):
         with self._lock:

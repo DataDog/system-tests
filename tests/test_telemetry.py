@@ -55,6 +55,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.assert_seq_ids_are_roughly_sequential()
         interfaces.library.assert_no_skipped_seq_ids()
 
+    @bug(library="python", reason="To be explained")
     def test_app_started(self):
         """Request type app-started is sent on startup at least once"""
 
