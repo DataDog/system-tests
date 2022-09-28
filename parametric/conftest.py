@@ -178,17 +178,19 @@ WORKDIR "/client/."
 
 
 def java_library_factory(env: Dict[str, str]):
-    java_dir = os.path.join(os.path.dirname(__file__), "apps", "java")
+    java_appdir = os.path.join("apps", "java")
+    java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
+    java_reldir = os.path.join("parametric", java_appdir)
     return APMLibraryTestServer(
         lang="java",
         container_name="java-test-client",
         container_tag="java8-test-client",
-        container_img="""
+        container_img=f"""
 FROM maven:3-jdk-8
 WORKDIR /client
-COPY parametric/apps/java/src .
-COPY parametric/apps/java/pom.xml .
-COPY parametric/apps/java/run.sh .
+COPY {java_reldir}/src .
+COPY {java_reldir}/pom.xml .
+COPY {java_reldir}/run.sh .
 COPY binaries* /binaries/
 RUN mvn package
 """,
