@@ -39,8 +39,9 @@ class Test_ConfigurationVariables(BaseTestCase):
     @missing_feature(library="java", reason="request is reported")
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(1000)))
-        r = self.weblog_get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
+        # long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(1000)))
+        # r = self.weblog_get(f"/waf/{long_payload}", headers={"User-Agent": "Arachni/v1"})
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_no_appsec_event(r)
 
     @missing_feature(context.library <= "ruby@1.0.0")
