@@ -86,6 +86,9 @@ def test_agent_version():
     )
     assert v == "7.38.0-rc.1"
 
+    v = Version("Agent \x1b[36m7.40.0-rc.2\x1b[0m", "agent")
+    assert v == "7.40.0-rc.2"
+
 
 def test_library_version():
 
