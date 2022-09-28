@@ -66,8 +66,8 @@ class Test_StatusCode(BaseTestCase):
 @released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @coverage.good
-class Test_ActorIP(BaseTestCase):
-    """ AppSec reports good actor's IP"""
+class Test_HttpClientIP(BaseTestCase):
+    """ AppSec reports good http client IP"""
 
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """
@@ -93,23 +93,23 @@ class Test_ActorIP(BaseTestCase):
     @irrelevant(condition=context.library >= "golang@1.39.0", reason="The backend copies http.client_ip into actor.ip")
     @missing_feature(library="nodejs", reason="Not clear if it must be done on backend side. Waiting for clarification")
     @missing_feature(library="ruby", reason="Not clear if it must be done on backend side. Waiting for clarification")
-    def test_actor_ip(self):
-        """ AppSec reports the correct actor ip. """
+    def test_http_client_ip(self):
+        """ AppSec reports the correct http client ip. """
 
         headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1", "User-Agent": "Arachni/v1"}
         r = self.weblog_get("/waf/", headers=headers)
 
         def legacy_validator(event):
-            assert "actor" in event["context"], "actor is missing from context"
-            actor_ip = event["context"]["actor"]["ip"]["address"]
-            assert actor_ip == "43.43.43.43", f"actor should be 43.43.43.43, not {actor_ip}"
+            assert "http" in event["context"], "http is missing from context"
+            http_client_ip = event["context"]["http"]["client_ip"]["address"]
+            assert http_client_ip == "43.43.43.43", f"actor should be 43.43.43.43, not {http_client_ip}"
 
             return True
 
         def validator(span, appsec_data):
-            assert "actor.ip" in span["meta"], "actor.ip is missing from in meta tags"
-            actor_ip = span["meta"]["actor.ip"]
-            assert actor_ip == "43.43.43.43", f"actor.ip should be 43.43.43.43, not {actor_ip}"
+            assert "http.client_ip" in span["meta"], "http.client_ip is missing from in meta tags"
+            http_client_ip = span["meta"]["http.client_ip"]
+            assert http_client_ip == "43.43.43.43", f"http.client_ip should be 43.43.43.43, not {http_client_ip}"
 
             return True
 
