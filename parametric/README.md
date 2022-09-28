@@ -44,7 +44,7 @@ then just create a Python virtual environment and install the dependencies:
 
 ```sh
 python -m venv venv
-source .venv/bin/activate
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
