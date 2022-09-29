@@ -41,7 +41,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
         span = ddtrace.tracer.start_span(
             request.name,
-            service="best_service",
+            service=request.service,
             span_type=request.type,
             resource=request.resource,
             child_of=parent,
@@ -51,16 +51,6 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         return apm_test_client_pb2.StartSpanReturn(
             span_id=span.span_id,
         )
-
-    def InjectSpanContext(self, request, headers):
-        span = self._spans[request.span_id]
-        trace_id = span.trace_id if span else None
-        parent_id = span.span_id if span else None
-        origin = request.origin
-        context = Context(trace_id=trace_id, span_id=parent_id, dd_origin=origin)
-        HTTPPropagator.inject(context, headers)
-        # return headers
-        # Do I return something like headers here
 
     def SpanSetMeta(self, request, context):
         span = self._spans[request.span_id]
