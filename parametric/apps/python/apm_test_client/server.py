@@ -8,6 +8,7 @@ from ddtrace.context import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
+from ddtrace.propagation.http import HTTPPropagator
 import grpc
 
 from .protos import apm_test_client_pb2, apm_test_client_pb2_grpc
@@ -29,15 +30,15 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             trace_id = parent.trace_id if parent else None
             parent_id = parent.span_id if parent else None
             parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
-
-        if request.w3chttpheaders is not None:
-            parent = HTTPPropagator.extract({
-                "X-Datadog-Trace-Id": request.http_headers.x_datadog_trace_id,
-            })
-
+            
+        if request.http_headers is not None:
+            if request.http_headers.trace_parent_key == "traceparent":
+                parent = HTTPPropagator.extract({request.http_headers.trace_parent_key:request.http_headers.trace_parent_value})
+        else:
+            raise TypeError
         span = ddtrace.tracer.start_span(
             request.name,
-            service=request.service,
+            service="best_service",
             span_type=request.type,
             resource=request.resource,
             child_of=parent,
@@ -47,6 +48,16 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         return apm_test_client_pb2.StartSpanReturn(
             span_id=span.span_id,
         )
+
+    def InjectSpanContext(self, request, headers):
+        span = self._spans[request.span_id]
+        trace_id = span.trace_id if span else None
+        parent_id = span.span_id if span else None
+        origin = request.origin
+        context = Context(trace_id=trace_id, span_id=parent_id, dd_origin=origin)
+        HTTPPropagator.inject(context, headers)
+        # return headers
+        # Do I return something like headers here
 
     def SpanSetMeta(self, request, context):
         span = self._spans[request.span_id]

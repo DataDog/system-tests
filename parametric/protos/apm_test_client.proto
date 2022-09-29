@@ -9,8 +9,7 @@ service APMClient {
   rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
-
-  // rpc InjectSpanContextFromW3C() returns () {}
+//   rpc InjectSpanContext(InjectHeaderArgs) returns () {}
 }
 
 message StartSpanArgs {
@@ -22,6 +21,11 @@ message StartSpanArgs {
   optional string origin = 6;
   optional DistributedHTTPHeaders http_headers = 7;
 }
+
+// message InjectHeaderArgs {
+//     optional headers = 1
+//     // what to pass in here, context object, or span object?
+// }
 
 message DistributedHTTPHeaders {
   optional string x_datadog_trace_id_key = 1;
