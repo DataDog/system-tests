@@ -26,23 +26,23 @@ def get_log_formatter():
 
 
 def get_logger(name="tests", use_dedicated_file=False, use_stdout=False):
-    logger = logging.getLogger(name)
+    result = logging.getLogger(name)
 
     if use_stdout:
         stdout_handler = logging.StreamHandler(sys.stdout)
         stdout_handler.setLevel(logging.DEBUG)
         stdout_handler.setFormatter(get_log_formatter())
-        logger.addHandler(stdout_handler)
+        result.addHandler(stdout_handler)
 
     if use_dedicated_file:
         file_handler = logging.FileHandler(f"logs/{name}.log")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(get_log_formatter())
-        logger.addHandler(file_handler)
+        result.addHandler(file_handler)
 
-    logger.setLevel(logging.DEBUG)
+    result.setLevel(logging.DEBUG)
 
-    return logger
+    return result
 
 
 def o(message):

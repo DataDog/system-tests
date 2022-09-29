@@ -37,6 +37,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             if pattern.search(line):
                 return True
 
+        return False
+
     def _get_standardized_level(self, level):
         return level
 
@@ -178,7 +180,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
         if context.library == "php":
             return level.upper()
 
-        return super(_LibraryStdout, self)._get_standardized_level(level)
+        return super()._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):
