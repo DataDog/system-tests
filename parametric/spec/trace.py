@@ -3,9 +3,18 @@ Tracing constants, data structures and helper methods.
 
 These are used to specify, test and work with trace data and protocols.
 """
+import math
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import TypedDict
+
+from ddapm_test_agent.trace import Span
+from ddapm_test_agent.trace import Trace
+from ddapm_test_agent.trace import TraceId
+from ddapm_test_agent.trace import TraceMap
+from ddapm_test_agent.trace import root_span
+from ddapm_test_agent.trace_snapshot import _span_similarity
 
 from ddsketch.ddsketch import BaseDDSketch
 from ddsketch.store import CollapsingLowestDenseStore
@@ -149,3 +158,19 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
     return V06StatsPayload(
         Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets,
     )
+
+
+def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
+    """Return the trace from `traces` with root span most similar to `span`."""
+    assert len(traces) > 0
+
+    max_similarity = -math.inf
+    max_score_trace = traces[0]
+    for trace in traces:
+        root = root_span(trace)
+        similarity = _span_similarity(root, span)
+        print(similarity, root["name"])
+        if similarity > max_similarity:
+            max_score_trace = trace
+            max_similarity = similarity
+    return max_score_trace

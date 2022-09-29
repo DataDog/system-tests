@@ -110,7 +110,7 @@ def node_library_server_factory(env: Dict[str, str]) -> APMLibraryTestServer:
         container_img="""
 FROM node:16.17-buster
 WORKDIR /client
-COPY . /client
+ADD . /client
 RUN npm install
 """,
         container_cmd=["node", "server.js"],
@@ -174,10 +174,11 @@ WORKDIR "/client/."
 _libs = {
     "dotnet": dotnet_library_server_factory,
     "golang": golang_library_server_factory,
+    "nodejs": node_library_server_factory,
     "python": python_library_server_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,nodejs,python").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -489,6 +490,7 @@ def test_server(
     cmd = [
         docker,
         "build",
+        "--progress=plain",  # use plain output to assist in debugging
         "-t",
         apm_test_server.container_tag,
         ".",
@@ -554,7 +556,9 @@ class _TestTracer:
         pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.flush()
+        # Only attempt a flush if there was no exception raised.
+        if exc_type is None:
+            self.flush()
 
     @contextlib.contextmanager
     def start_span(
@@ -580,10 +584,9 @@ def test_server_timeout() -> int:
 
 
 @pytest.fixture
-def test_client(test_server, test_server_timeout):
+def test_client(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[_TestTracer, None, None]:
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
     tracer = _TestTracer(client)
     yield tracer
-    tracer.flush()

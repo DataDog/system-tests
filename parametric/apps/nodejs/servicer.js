@@ -8,8 +8,8 @@ class Servicer {
         this.spans = {};
     }
 
-    StartSpan = (request, callback) => {
-
+    StartSpan = (call, callback) => {
+        const { request } = call;
         let parent;
 
         if (request.parent_id) parent = this.spans[request.parent_id];
@@ -32,17 +32,17 @@ class Servicer {
             childOf: parent,
         });
 
-        this.spans[span.spanId] = span;
+        this.spans[span.context().toSpanId()] = span;
 
         return callback(null, {
-            span_id: span.context()._spanId,
-            trace_id: span.context()._traceId
+            span_id: span.context().toSpanId(),
+            trace_id: span.context().toTraceId()
         });
     }
 
-    SetTag = (request, callback) => {
-        const span = this.spans[request.span_id];
-        span.setTag(request.key, request.value);
+    SetTag = (call, callback) => {
+        const span = this.spans[call.request.span_id];
+        span.setTag(call.request.key, call.request.value);
         return callback(null, {})
 
     }
@@ -58,11 +58,11 @@ class Servicer {
         return callback(null, {})
     }
 
-    FinishSpan = (request, callback) => {
-        const { id } = request;
+    FinishSpan = (call, callback) => {
+        const { id } = call.request;
         const span = this.spans[id];
-        delete this.spans[id];
         span.finish();
+        delete this.spans[id];
         return callback(null, {})
 
     }
