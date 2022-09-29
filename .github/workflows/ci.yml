@@ -455,6 +455,12 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+        if: ${{ matrix.version != 'prod' || matrix.library != 'python' }}
+        run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       # - name: Run REMOTE_CONFIG_MOCKED_BACKEND scenario
       #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND
       #   env:

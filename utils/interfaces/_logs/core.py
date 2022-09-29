@@ -37,6 +37,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             if pattern.search(line):
                 return True
 
+        return False
+
     def _get_standardized_level(self, level):
         return level
 
@@ -45,7 +47,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             logger.info(f"For {self}, reading {filename}")
             log_count = 0
             try:
-                with open(filename, "r") as f:
+                with open(filename, "r", encoding="utf-8") as f:
                     buffer = []
                     for line in f:
                         if line.endswith("\n"):
@@ -55,7 +57,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
                         if self._is_skipped_line(line):
                             continue
 
-                        if self._is_new_log_line(line) and len(buffer):
+                        if self._is_new_log_line(line) and len(buffer) != 0:
                             log_count += 1
                             yield "\n".join(buffer) + "\n"
                             buffer = []
@@ -112,7 +114,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def assert_presence(self, pattern, **extra_conditions):
         self.append_validation(_LogPresence(pattern, **extra_conditions))
 
-    def assert_absence(self, pattern, allowed_patterns=[]):
+    def assert_absence(self, pattern, allowed_patterns=None):
         self.append_validation(_LogAbsence(pattern, allowed_patterns))
 
     def append_log_validation(self, validator):  # TODO rename
@@ -178,7 +180,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
         if context.library == "php":
             return level.upper()
 
-        return super(_LibraryStdout, self)._get_standardized_level(level)
+        return super()._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):
@@ -195,7 +197,7 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
 
         p = "(?P<{}>{})".format
         timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d [+\-]00:00")
-        thread = p("thread", r"[\w\-]+")
+        # thread = p("thread", r"[\w\-]+")
         level = p("level", r"\w+")
         message = p("message", r".*")
         self._parsers.append(re.compile(rf"^{timestamp} \[{level}\] {message}"))
@@ -236,7 +238,8 @@ class _LogPresence(BaseValidation):
                     self.log_info(f"For {self}, {repr(self.pattern.pattern)} was found, but [{key}] field is missing")
                     self.log_info(f"-> Log line is {data['message']}")
                     return
-                elif not extra_pattern.search(data[key]):
+
+                if not extra_pattern.search(data[key]):
                     self.log_info(
                         f"For {self}, {repr(self.pattern.pattern)} was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"
@@ -248,10 +251,10 @@ class _LogPresence(BaseValidation):
 
 
 class _LogAbsence(BaseValidation):
-    def __init__(self, pattern, allowed_patterns=[]):
+    def __init__(self, pattern, allowed_patterns=None):
         super().__init__()
         self.pattern = re.compile(pattern)
-        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns]
+        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns] if allowed_patterns else []
         self.failed_logs = []
 
     def check(self, data):

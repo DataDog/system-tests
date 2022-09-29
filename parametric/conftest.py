@@ -35,11 +35,11 @@ class AgentRequestV06Stats(AgentRequest):
 
 
 @pytest.fixture(autouse=True)
-def skip_by_library(request, apm_test_server):
-    if request.node.get_closest_marker("skip_libraries"):
-        skip_libraries = request.node.get_closest_marker("skip_libraries").args[0]
-        reason = request.node.get_closest_marker("skip_libraries").args[1]
-        if apm_test_server.lang in skip_libraries:
+def skip_library(request, apm_test_server):
+    for marker in request.node.iter_markers("skip_library"):
+        skip_library = marker.args[0]
+        reason = marker.args[1]
+        if apm_test_server.lang == skip_library:
             pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, reason))
 
 
@@ -47,7 +47,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
-    config.addinivalue_line("markers", "skip_libraries(apm_test_server): skip test for library")
+    config.addinivalue_line("markers", "skip_library(library, reason): skip test for library")
 
 
 def _request_token(request):
@@ -146,13 +146,25 @@ WORKDIR "/client/."
     )
 
 
-@pytest.fixture
-def apm_test_server_factory():
-    yield python_library_server_factory
+_libs = {
+    "dotnet": dotnet_library_server_factory,
+    "golang": golang_library_server_factory,
+    "python": python_library_server_factory,
+}
+_enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
+for _lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
+    if _lang not in _libs:
+        raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
+    _enabled_libs.append((_lang, _libs[_lang]))
 
 
-@pytest.fixture
-def apm_test_server(apm_test_server_factory, apm_test_server_env):
+@pytest.fixture(
+    params=list(factory for lang, factory in _enabled_libs), ids=list(lang for lang, factory in _enabled_libs)
+)
+def apm_test_server(request, apm_test_server_env):
+    # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
+    # in pytest.
+    apm_test_server_factory = request.param
     yield apm_test_server_factory(apm_test_server_env)
 
 

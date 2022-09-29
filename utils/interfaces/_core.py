@@ -131,7 +131,7 @@ class InterfaceValidator:
             self.system_test_error = validation.system_test_error
             return
 
-        validation._interface = self.name
+        validation.interface = self.name
 
         logger.debug(f"{repr(validation)} added in {self}[{len(self._validations)}]")
 
@@ -154,7 +154,7 @@ class InterfaceValidator:
         logger.debug(f"{self.name}'s interface receive data on [{data['host']}{data['path']}]")
 
         if self.system_test_error is not None:
-            return
+            return None
 
         try:
             with self._lock:
@@ -165,7 +165,7 @@ class InterfaceValidator:
             log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
             data["log_filename"] = log_filename
 
-            with open(log_filename, "w") as f:
+            with open(log_filename, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             self._data_list.append(data)
@@ -195,10 +195,10 @@ class ObjectDumpEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-class BaseValidation(object):
+class BaseValidation:
     """Base validation item"""
 
-    _interface = None  # which interface will be validated
+    interface = None  # which interface will be validated
     is_success_on_expiry = False  # if validation is still pending at end of procees, is it a success?
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
@@ -232,11 +232,12 @@ class BaseValidation(object):
 
             # Get calling class and calling method
             for frame_info in inspect.getouterframes(inspect.currentframe()):
+
                 if frame_info.function.startswith("test_"):
                     self.frame = frame_info
+                    gc.collect()
                     self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
                     self.calling_class = frame_info.frame.f_locals["self"].__class__
-
                     break
 
             if self.calling_method is None:
@@ -273,13 +274,13 @@ class BaseValidation(object):
             self.system_test_error = e
 
     def __str__(self):
-        return f"Interface: {self._interface} -> {self.__class__.__name__}: {m(self.message)}"
+        return f"Interface: {self.interface} -> {self.__class__.__name__}: {m(self.message)}"
 
     def __repr__(self):
         if self.rid:
             return f"{self.__class__.__name__}({repr(self.message)}, {self.rid})"
-        else:
-            return f"{self.__class__.__name__}({repr(self.message)})"
+
+        return f"{self.__class__.__name__}({repr(self.message)})"
 
     def get_test_source_info(self):
         klass = self.calling_class.__name__
@@ -331,7 +332,7 @@ class BaseValidation(object):
                     extra_info = str(extra_info)
 
                     message += "\n" + "\n".join([f"\t{l}" for l in extra_info.split("\n")])
-            except Exception as exc:
+            except:
                 # silently skip this. It should not happen, but as we have an error to report to users
                 # we should never add an internal error that will give them an hard time ...
                 pass
@@ -368,7 +369,6 @@ class BaseValidation(object):
 
     def final_check(self):
         """Will be called once, at the very end of the process"""
-        pass
 
     def expect(self, condition: bool, err_msg):
         """Sets result to failed and returns True if condition is False, returns False otherwise"""

@@ -1,4 +1,4 @@
-from utils import context, BaseTestCase, interfaces, missing_feature, bug, released
+from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, irrelevant
 
 
 @released(dotnet="2.12.0", java="0.108.1")
@@ -55,6 +55,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.assert_seq_ids_are_roughly_sequential()
         interfaces.library.assert_no_skipped_seq_ids()
 
+    @bug(library="python", reason="To be explained")
     def test_app_started(self):
         """Request type app-started is sent on startup at least once"""
 
@@ -141,3 +142,18 @@ class Test_Telemetry(BaseTestCase):
 
         # At the end, check that all data are consistent
         interfaces.agent.add_final_validation(check_data_consistency)
+
+    @irrelevant(library="java")
+    @irrelevant(library="nodejs")
+    @irrelevant(library="dotnet")
+    def test_app_dependencies_loaded_not_sent(self):
+        """app-dependencies-loaded request should not be sent"""
+        # Request type app-dependencies-loaded is never sent from certain language tracers
+        # In case this changes we need to adjust the backend, by adding the language to this list https://github.com/DataDog/dd-go/blob/prod/domains/appsec/libs/vulnerability_management/model.go#L262
+        # This change means we cannot deduplicate runtime with the same library dependencies in the backend since we never have guarantees that we have all the dependencies at one point in time
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
+                raise Exception(f"request_type app-dependencies-loaded should not be used by this tracer")
+
+        interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=True)
