@@ -176,15 +176,9 @@ def _wait_interface(interface, session):
 
     try:
         if len(interface.validations) != 0:
-            if timeout:
-                terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
-            else:
-                terminal.write_sep("-", f"Async validations for {interface}")
+            terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
 
-        if timeout:
-            interface.wait(timeout=timeout)
-        else:
-            interface.wait()
+        interface.wait(timeout=timeout)
 
     except Exception as e:
         session.shouldfail = f"{interface} is not validated"
