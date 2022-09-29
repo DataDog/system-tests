@@ -3,6 +3,8 @@ import pytest
 from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 
 
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("dotnet", "not impemented")
 def test_distributed_headers_extract_datadog(test_agent, test_client):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
@@ -25,9 +27,12 @@ def test_distributed_headers_extract_datadog(test_agent, test_client):
     assert span.get("parent_id") == 123
 
 
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("dotnet", "not impemented")
 @pytest.mark.parametrize("apm_test_server_env", [{"DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C"}])
 def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, test_client):
-    """
+    """Ensure that W3C distributed tracing headers are extracted
+    and activated properly.
     """
 
     with test_client:
