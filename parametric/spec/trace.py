@@ -169,7 +169,6 @@ def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
     for trace in traces:
         root = root_span(trace)
         similarity = _span_similarity(root, span)
-        print(similarity, root["name"])
         if similarity > max_similarity:
             max_score_trace = trace
             max_similarity = similarity

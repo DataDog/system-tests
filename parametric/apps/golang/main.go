@@ -22,10 +22,6 @@ type apmClientServer struct {
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
 	var opts []tracer.StartSpanOption
-	if args.ParentId != nil && *args.ParentId > 0 {
-	    parent := s.spans[*args.ParentId]
-		opts = append(opts, tracer.ChildOf(parent.Context()))
-	}
 	if args.Resource != nil {
 		opts = append(opts, tracer.ResourceName(*args.Resource))
 	}
@@ -35,7 +31,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	if args.Type != nil {
 		opts = append(opts, tracer.SpanType(*args.Type))
 	}
-	span := tracer.StartSpan(args.Name, opts...)
+	span, _ := tracer.StartSpanFromContext(ctx, args.Name, opts...)
 
 	if args.Origin != nil  {
         span.SetTag("_dd.origin", *args.Origin)

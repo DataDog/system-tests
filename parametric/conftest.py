@@ -108,15 +108,16 @@ def node_library_server_factory(env: Dict[str, str]) -> APMLibraryTestServer:
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img="""
-FROM node:16.17-buster
+FROM node:18.10-slim
 WORKDIR /client
-ADD . /client
+COPY package.json /client
+COPY package-lock.json /client
+COPY *.js /client
 RUN npm install
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_dir,
         volumes=[
-            (os.path.join(nodejs_dir), "/client"),
             (
                 os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
                 "/client/apm_test_client.proto",
