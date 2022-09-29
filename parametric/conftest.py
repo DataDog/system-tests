@@ -518,21 +518,35 @@ class _TestTracer:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.flush()
+
     DistributedHTTPHeaders = {}
 
     @contextlib.contextmanager
     def start_span(
-        self, name: str, service: str = "", resource: str = "", parent_id: int = 0, typestr: str = "", origin: str = "", http_headers: DistributedHTTPHeaders = None,
+        self,
+        name: str,
+        service: str = "",
+        resource: str = "",
+        parent_id: int = 0,
+        typestr: str = "",
+        origin: str = "",
+        http_headers: DistributedHTTPHeaders = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
-                name=name, service=service, resource=resource, parent_id=parent_id, type=typestr, origin=origin, http_headers=http_headers
+                name=name,
+                service=service,
+                resource=resource,
+                parent_id=parent_id,
+                type=typestr,
+                origin=origin,
+                http_headers=http_headers,
             )
         )
         span = _TestSpan(self._client, resp.span_id)
         yield span
         span.finish()
-    
+
     #     def inject_span(
     #     self, name: str, service: str = "", resource: str = "", parent_id: int = 0, typestr: str = "", origin: str = ""
     # ) -> Generator[_TestSpan, None, None]:
