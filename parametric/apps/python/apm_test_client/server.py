@@ -32,10 +32,13 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
             
         if request.http_headers is not None:
-            if request.http_headers.trace_parent_key == "traceparent":
-                parent = HTTPPropagator.extract({request.http_headers.trace_parent_key:request.http_headers.trace_parent_value})
-        else:
-            raise TypeError
+            parent = HTTPPropagator.extract({
+                request.http_headers.x_datadog_trace_id_key: request.http_headers.x_datadog_trace_id_value,
+                request.http_headers.x_datadog_parent_id_key: request.http_headers.x_datadog_parent_id_value,
+                request.http_headers.x_datadog_sampling_priority_key: request.http_headers.x_datadog_sampling_priority_value,
+                request.http_headers.traceparent_key: request.http_headers.traceparent_value,
+            })
+
         span = ddtrace.tracer.start_span(
             request.name,
             service="best_service",
