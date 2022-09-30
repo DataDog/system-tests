@@ -37,7 +37,8 @@ disable = [
     "too-many-public-methods",
     "too-many-nested-blocks",
     "too-many-return-statements",
-    "duplicate-code"
+    "duplicate-code",
+    "abstract-method"
 ]
 ignore = "utils/test_the_test"
 generated-members = [
