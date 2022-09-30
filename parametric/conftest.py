@@ -102,17 +102,19 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_server_factory(env: Dict[str, str]) -> APMLibraryTestServer:
-    nodejs_dir = os.path.join(os.path.dirname(__file__), "apps", "nodejs")
+    nodejs_appdir = os.path.join("apps", "nodejs")
+    nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
+    nodejs_reldir = os.path.join("parametric", nodejs_appdir)
     return APMLibraryTestServer(
         lang="nodejs",
         container_name="node-test-client",
         container_tag="node-test-client",
-        container_img="""
+        container_img=f"""
 FROM node:18.10-slim
 WORKDIR /client
-COPY package.json /client
-COPY package-lock.json /client
-COPY *.js /client
+COPY {nodejs_reldir}/package.json /client/
+COPY {nodejs_reldir}/package-lock.json /client/
+COPY {nodejs_reldir}/*.js /client/
 RUN npm install
 """,
         container_cmd=["node", "server.js"],
