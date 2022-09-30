@@ -5,6 +5,7 @@ import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 
 import datadog.opentracing.DDTracer;
+import datadog.trace.common.metrics.MetricsAggregator;
 import datadog.trace.core.CoreTracer;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -18,11 +19,12 @@ public class App {
     static final Logger LOGGER = Logger.getLogger(App.class.getName());
     private static final int CLIENT_SERVER_PORT = 50051;
     private final DDTracer tracer;
-    private final Runnable flushTracerRunnable;
+    private Runnable flushTracerRunnable;
+    private Runnable flushTraceStatsRunnable;
 
     public App() throws ReflectiveOperationException, IOException {
         this.tracer = createTracer();
-        this.flushTracerRunnable = createFlushRunnable();
+        extractFlushRunnable();
         startServer(CLIENT_SERVER_PORT);
     }
 
@@ -71,14 +73,28 @@ public class App {
         return tracer;
     }
 
-    private Runnable createFlushRunnable() throws ReflectiveOperationException {
-        for (Field declaredField : DDTracer.class.getDeclaredFields()) {
-            if ("tracer".equals(declaredField.getName())) {
-                declaredField.setAccessible(true);
-                CoreTracer tracerApi = (CoreTracer) declaredField.get(this.tracer);
-                return tracerApi::flush;
+    private void extractFlushRunnable() throws ReflectiveOperationException {
+        for (Field field : DDTracer.class.getDeclaredFields()) {
+            if ("tracer".equals(field.getName())) {
+                field.setAccessible(true);
+                CoreTracer tracerApi = (CoreTracer) field.get(this.tracer);
+                this.flushTracerRunnable = tracerApi::flush;
+                extractFlushStatsRunnable(tracerApi);
+                return;
             }
         }
         throw new NoSuchFieldException("tracer");
+    }
+
+    private void extractFlushStatsRunnable(CoreTracer tracerApi) throws ReflectiveOperationException {
+        for (Field field : CoreTracer.class.getDeclaredFields()) {
+           if ("metricsAggregator".equals(field.getName())) {
+               field.setAccessible(true);
+                MetricsAggregator aggregator = (MetricsAggregator) field.get(tracerApi);
+                this.flushTraceStatsRunnable = aggregator::report;
+                return;
+            }
+        }
+        throw new NoSuchFieldException("metricsAggregator");
     }
 }
