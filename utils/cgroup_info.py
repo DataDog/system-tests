@@ -13,16 +13,18 @@ def get_container_id(infos):
         if info:
             return info.container_id
 
+    return None
+
 
 @attr.s(slots=True)
-class _CGroupInfo(object):
+class _CGroupInfo:
     """
     CGroup class for container information parsed from a group cgroup file.
 
     This class is cloned from dd-trace-py implementation and serves as reference implementation
     for container id extraction.
 
-    See https://github.com/DataDog/dd-trace-py/blob/73f50d50d39d84511eaeed75a12ce81049478628/ddtrace/internal/runtime/container.py
+    See https://github.com/DataDog/dd-trace-py/blob/1.x/ddtrace/internal/runtime/container.py
     """
 
     id = attr.ib(default=None)
@@ -37,10 +39,8 @@ class _CGroupInfo(object):
     TASK_PATTERN = r"[0-9a-f]{32}-\d+"
 
     LINE_RE = re.compile(r"^(\d+):([^:]*):(.+)$")
-    POD_RE = re.compile(r"pod({0})(?:\.slice)?$".format(UUID_SOURCE_PATTERN))
-    CONTAINER_RE = re.compile(
-        r"(?:.+)?({0}|{1}|{2})(?:\.scope)?$".format(UUID_SOURCE_PATTERN, CONTAINER_SOURCE_PATTERN, TASK_PATTERN)
-    )
+    POD_RE = re.compile(fr"pod({UUID_SOURCE_PATTERN})(?:\.slice)?$")
+    CONTAINER_RE = re.compile(fr"(?:.+)?({UUID_SOURCE_PATTERN}|{CONTAINER_SOURCE_PATTERN}|{TASK_PATTERN})(?:\.scope)?$")
 
     @classmethod
     def from_line(cls, line):
@@ -68,18 +68,18 @@ class _CGroupInfo(object):
         # Break up the path to grab container_id and pod_id if available
         # e.g. /docker/<container_id>
         # e.g. /kubepods/test/pod<pod_id>/<container_id>
-        parts = [p for p in path.split("/")]
+        parts = list(path.split("/"))
 
         # Grab the container id from the path if a valid id is present
         container_id = None
-        if len(parts):
+        if len(parts) != 0:
             match = cls.CONTAINER_RE.match(parts.pop())
             if match:
                 container_id = match.group(1)
 
         # Grab the pod id from the path if a valid id is present
         pod_id = None
-        if len(parts):
+        if len(parts) != 0:
             match = cls.POD_RE.match(parts.pop())
             if match:
                 pod_id = match.group(1)

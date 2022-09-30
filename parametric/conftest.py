@@ -128,18 +128,20 @@ RUN npm install
 
 
 def golang_library_server_factory(env: Dict[str, str]):
-    go_dir = os.path.join(os.path.dirname(__file__), "apps", "golang")
+    go_appdir = os.path.join("apps", "golang")
+    go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
+    go_reldir = os.path.join("parametric", go_appdir)
     return APMLibraryTestServer(
         lang="golang",
         container_name="go-test-library",
         container_tag="go118-test-library",
-        container_img="""
+        container_img=f"""
 FROM golang:1.18
 WORKDIR /client
-COPY go.mod /client
-COPY go.sum /client
+COPY {go_reldir}/go.mod /client
+COPY {go_reldir}/go.sum /client
 RUN go mod download
-COPY . /client
+COPY {go_reldir} /client
 RUN go get gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer
 RUN go install
 """,
@@ -151,18 +153,20 @@ RUN go install
 
 
 def dotnet_library_server_factory(env: Dict[str, str]):
-    dotnet_dir = os.path.join(os.path.dirname(__file__), "apps", "dotnet")
+    dotnet_appdir = os.path.join("apps", "dotnet")
+    dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
+    dotnet_reldir = os.path.join("parametric", dotnet_appdir)
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
     return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
-        container_img="""
+        container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["ApmTestClient.csproj", "."]
+COPY ["{dotnet_reldir}/ApmTestClient.csproj", "."]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
+COPY {dotnet_reldir} .
 WORKDIR "/client/."
 """,
         container_cmd=["dotnet", "run"],
@@ -488,19 +492,22 @@ def test_server(
         dockf.write(apm_test_server.container_img)
     # Build the container
     docker = shutil.which("docker")
+    root_path = ".."
     cmd = [
         docker,
         "build",
         "--progress=plain",  # use plain output to assist in debugging
         "-t",
         apm_test_server.container_tag,
+        "-f",
+        dockf_path,
         ".",
     ]
-    test_server_log_file.write("running %r in %r\n\n" % (" ".join(cmd), apm_test_server.container_build_dir))
+    test_server_log_file.write("running %r in %r\n\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
     subprocess.run(
         cmd,
-        cwd=apm_test_server.container_build_dir,
+        cwd=root_path,
         stdout=test_server_log_file,
         stderr=test_server_log_file,
         check=True,
@@ -527,6 +534,9 @@ def test_server(
         network_name=docker_network,
     ):
         yield apm_test_server
+
+    # Clean up generated files
+    os.remove(dockf_path)
 
 
 class _TestSpan:

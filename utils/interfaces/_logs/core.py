@@ -37,6 +37,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             if pattern.search(line):
                 return True
 
+        return False
+
     def _get_standardized_level(self, level):
         return level
 
@@ -69,7 +71,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self):
+    def wait(self, timeout):
         for log_line in self._read():
 
             parsed = {}
@@ -85,7 +87,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             self.append_data(parsed)
 
-        super().wait(0)
+        super().wait(timeout)
 
     def append_data(self, data):
         if self.system_test_error is not None:
@@ -94,7 +96,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         try:
             for validation in self._validations:
                 if not validation.closed:
-                    validation._check(data)
+                    validation.check(data)
 
             self._check_closed_status()
         except Exception as e:
@@ -102,7 +104,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             raise
 
     def __test__(self):
-        self.wait()
+        self.wait(0)
         print(f"Interface result: {self.is_success}")
         for v in self._validations:
             if not v.is_success:
@@ -178,7 +180,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
         if context.library == "php":
             return level.upper()
 
-        return super(_LibraryStdout, self)._get_standardized_level(level)
+        return super()._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):
