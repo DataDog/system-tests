@@ -142,7 +142,7 @@ class Runner:
 
         try:
             async with ClientSession(loop=self.loop, connector=UnixConnector(path="/var/run/docker.sock")) as session:
-                async with session.get(f"http://localhost/containers/system-tests_weblog_1/stats") as resp:
+                async with session.get("http://localhost/containers/system-tests_weblog_1/stats") as resp:
                     async for line in resp.content:
                         if self.finished:
                             break
