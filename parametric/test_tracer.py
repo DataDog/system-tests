@@ -1,5 +1,3 @@
-import pytest
-
 from parametric.spec.trace import Span
 from parametric.spec.trace import find_trace_by_root
 
@@ -8,7 +6,6 @@ from .conftest import _TestAgentAPI
 from .conftest import _TestTracer
 
 
-@pytest.mark.skip_library("golang", "golang parenting is broken")
 def test_tracer_simple(test_client: _TestTracer, test_agent: _TestAgentAPI) -> None:
     """Do a simple trace to ensure that the test client is working properly."""
     with test_client:

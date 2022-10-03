@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-class cached_property(object):
+class cached_property:
     """
     Descriptor (non-data) for building an attribute on-demand on first use.
     """
