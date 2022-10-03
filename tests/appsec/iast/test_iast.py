@@ -57,7 +57,6 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
 
-
     @missing_feature(library="java", reason="Need to be implement endpoint")
     def test_insecure_cipher(self):
         """Test weak cipher algorithm is reported as insecure"""
