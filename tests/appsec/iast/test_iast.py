@@ -56,3 +56,18 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
 
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
+
+
+    @missing_feature(library="java", reason="Need to be implement endpoint")
+    def test_insecure_cipher(self):
+        """Test weak cipher algorithm is reported as insecure"""
+        r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
+
+        interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_CIPHER", evidence="des-ede-cbc")
+
+    @missing_feature(library="java", reason="Need to be implement endpoint")
+    def test_secure_cipher(self):
+        """Test strong cipher algorithm is not reported as insecure"""
+        r = self.weblog_get("/iast/insecure_cipher/test_secure_algorithm")
+
+        interfaces.library.expect_no_vulnerabilities(r)
