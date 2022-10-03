@@ -5,16 +5,16 @@
 import json
 from collections import defaultdict
 
-from utils import BaseTestCase, context, coverage, interfaces, proxies, released, rfc
+from utils import BaseTestCase, context, coverage, interfaces, released, rfc
 from utils.tools import logger
 
-with open("scenarios/remote_config/rc_expected_requests_live_debugging.json") as f:
+with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
     LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
-with open("scenarios/remote_config/rc_expected_requests_features.json") as f:
+with open("scenarios/remote_config/rc_expected_requests_features.json", encoding="utf-8") as f:
     FEATURES_EXPECTED_REQUESTS = json.load(f)
 
-with open("scenarios/remote_config/rc_expected_requests_asm_dd.json") as f:
+with open("scenarios/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
     ASM_DD_EXPECTED_REQUESTS = json.load(f)
 
 
@@ -60,10 +60,10 @@ class Test_RemoteConfigurationFields(BaseTestCase):
             content = data["request"]["content"]
             state = content.get("client", {}).get("state", {})
 
-            if "has_error" in state and state["has_error"] == True:
+            if "has_error" in state and state["has_error"] is True:
                 assert (
                     "error" in state and state["error"] != ""
-                ), f"'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
+                ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
 
         interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
 
@@ -74,13 +74,13 @@ class Test_RemoteConfigurationFields(BaseTestCase):
             content = data["request"]["content"]
             client = content.get("client", {})
 
-            assert "is_agent" not in client, f"'client.is_agent' MUST either NOT be set or set to false"
-            assert "client_agent" not in client, f"'client.client_agent' must NOT be set"
+            assert "is_agent" not in client, "'client.is_agent' MUST either NOT be set or set to false"
+            assert "client_agent" not in client, "'client.client_agent' must NOT be set"
 
             client_tracer = client.get("client_tracer", {})
             assert (
                 client["id"] != client_tracer["runtime_id"]
-            ), f"'client.id' and 'client.client_tracer.runtime_id' must be distinct"
+            ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
 
         interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
 
@@ -89,7 +89,8 @@ def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
 
-    # verify that the tracer properly updated the TUF targets version, if it's not included we assume it to be 0 in the agent.
+    # verify that the tracer properly updated the TUF targets version,
+    # if it's not included we assume it to be 0 in the agent.
     # Our test suite will always emit SOMETHING for this
     expected_targets_version = expected["client"]["state"]["targets_version"]
     targets_version = client_state.get("targets_version", 0)
@@ -102,9 +103,11 @@ def rc_check_request(data, expected, caching):
     config_states = client_state.get("config_states")
     if expected_config_states is None and config_states is not None:
         raise Exception("client is not expected to have stored config but is reporting stored configs")
-    elif expected_config_states is not None and config_states is None:
+
+    if expected_config_states is not None and config_states is None:
         raise Exception("client is expected to have stored confis but isn't reporting any")
-    elif config_states is not None:
+
+    if config_states is not None:
         assert len(config_states) == len(expected_config_states), "client reporting more or less configs than expected"
         for state in expected_config_states:
             assert state in config_states, f"{state} is not in {config_states}"
@@ -120,11 +123,13 @@ def rc_check_request(data, expected, caching):
 
         if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
             raise Exception("client is not expected to have cached config but is reporting cached config")
-        elif expected_cached_target_files is not None and cached_target_files is None:
+
+        if expected_cached_target_files is not None and cached_target_files is None:
             raise Exception(
                 "client is expected to have cached config but did not include the cached_target_files field"
             )
-        elif expected_cached_target_files is not None:
+
+        if expected_cached_target_files is not None:
             # Make sure the client reported all of the expected files
             for file in expected_cached_target_files:
                 assert file in cached_target_files, f"{file} is not in {cached_target_files}"
@@ -154,6 +159,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
 
             self.request_number += 1
 
+            return False
+
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
@@ -181,6 +188,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
 
             self.request_number[runtime_id] += 1
 
+            return False
+
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
@@ -205,6 +214,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
 
             self.request_number += 1
 
+            return False
+
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
@@ -228,6 +239,8 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
             rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
 
             self.request_number += 1
+
+            return False
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
@@ -254,6 +267,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
 
             self.request_number[runtime_id] += 1
 
+            return False
+
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
@@ -277,5 +292,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
             rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=False)
 
             self.request_number += 1
+
+            return False
 
         interfaces.library.add_remote_configuration_validation(validator=validate)

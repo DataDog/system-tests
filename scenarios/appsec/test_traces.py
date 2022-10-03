@@ -5,7 +5,7 @@
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, bug, context, interfaces, irrelevant, missing_feature, released, rfc
+from utils import BaseTestCase, context, interfaces, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -24,7 +24,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         # that is expected to be obfuscated.
         SECRET = "this-is-a-very-secret-value-having-the-attack"
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if SECRET in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             return True
@@ -45,7 +45,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         SECRET_VALUE_WITH_SENSITIVE_KEY = "this-is-a-very-sensitive-cookie-value-having-the-aaaa-attack"
         SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not-a-sensitive-cookie-value-having-an-bbbb-attack"
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             if SECRET_VALUE_WITH_NON_SENSITIVE_KEY not in span["meta"]["_dd.appsec.json"]:

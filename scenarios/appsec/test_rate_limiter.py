@@ -2,9 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug
-import pytest
 import datetime
+import pytest
+from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -32,7 +32,7 @@ class Test_Main(BaseTestCase):
 
         MANUAL_KEEP = 2
 
-        def count(span, appsec_data):
+        def count(span, appsec_data):  # pylint: disable=unused-argument
             # the logic is to set MANUAL_KEEP not on all traces
             # then the sampling mechism drop, or not the traces
             if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
