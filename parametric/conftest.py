@@ -469,6 +469,7 @@ def test_server(
     cmd = [
         docker,
         "build",
+        "--progress=plain",  # use plain output to assist in debugging
         "-t",
         apm_test_server.container_tag,
         "-f",
@@ -539,7 +540,9 @@ class _TestTracer:
         pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.flush()
+        # Only attempt a flush if there was no exception raised.
+        if exc_type is None:
+            self.flush()
 
     @contextlib.contextmanager
     def start_span(
@@ -565,10 +568,9 @@ def test_server_timeout() -> int:
 
 
 @pytest.fixture
-def test_client(test_server, test_server_timeout):
+def test_client(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[_TestTracer, None, None]:
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
     tracer = _TestTracer(client)
     yield tracer
-    tracer.flush()
