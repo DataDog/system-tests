@@ -7,7 +7,7 @@ import os
 from scenarios.fuzzer.tools._tools import cached_property
 
 
-class _Data(object):
+class _Data:
     def __init__(self):
 
         self.header_valid_list = "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~"
@@ -18,7 +18,7 @@ class _Data(object):
 
     @cached_property
     def blns(self):
-        return json.load(open(os.path.join(self._data_path, "blns.json"), "r"))
+        return json.load(open(os.path.join(self._data_path, "blns.json"), "r", encoding="utf-8"))
 
     @cached_property
     def re2_regexs(self):
@@ -26,4 +26,4 @@ class _Data(object):
 
     @cached_property
     def re2_regexs_with_metadata(self):
-        return json.load(open(os.path.join(self._data_path, "regex.json"), "r"))
+        return json.load(open(os.path.join(self._data_path, "regex.json"), "r", encoding="utf-8"))
