@@ -101,6 +101,34 @@ RUN python3.9 -m pip install %s
     )
 
 
+def node_library_server_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    nodejs_appdir = os.path.join("apps", "nodejs")
+    nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
+    nodejs_reldir = os.path.join("parametric", nodejs_appdir)
+    return APMLibraryTestServer(
+        lang="nodejs",
+        container_name="node-test-client",
+        container_tag="node-test-client",
+        container_img=f"""
+FROM node:18.10-slim
+WORKDIR /client
+COPY {nodejs_reldir}/package.json /client/
+COPY {nodejs_reldir}/package-lock.json /client/
+COPY {nodejs_reldir}/*.js /client/
+RUN npm install
+""",
+        container_cmd=["node", "server.js"],
+        container_build_dir=nodejs_dir,
+        volumes=[
+            (
+                os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+                "/client/apm_test_client.proto",
+            ),
+        ],
+        env=env,
+    )
+
+
 def golang_library_server_factory(env: Dict[str, str]):
     go_appdir = os.path.join("apps", "golang")
     go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
@@ -153,10 +181,11 @@ WORKDIR "/client/."
 _libs = {
     "dotnet": dotnet_library_server_factory,
     "golang": golang_library_server_factory,
+    "nodejs": node_library_server_factory,
     "python": python_library_server_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,nodejs,python").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))

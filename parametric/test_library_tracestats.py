@@ -39,6 +39,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
 
 @enable_tracestats()
 @pytest.mark.skip_library("golang", "go sends an empty stats aggregation")
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 def test_metrics_msgpack_serialization_TS001(apm_test_server_env, test_agent, test_client):
     """
     When spans are finished
@@ -91,6 +92,7 @@ def test_metrics_msgpack_serialization_TS001(apm_test_server_env, test_agent, te
 
 
 @enable_tracestats()
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 def test_distinct_aggregationkeys_TS003(apm_test_server_env, test_agent, test_client):
     """
     When spans are created with a unique set of dimensions
@@ -163,6 +165,7 @@ def test_distinct_aggregationkeys_TS003(apm_test_server_env, test_agent, test_cl
 
 @pytest.mark.skip_library("dotnet", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 @pytest.mark.skip_library("golang", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
 def test_measured_spans_TS004(apm_test_server_env, test_agent, test_client):
     """
@@ -200,6 +203,7 @@ def test_measured_spans_TS004(apm_test_server_env, test_agent, test_client):
     assert op2_stats["TopLevelHits"] == 0
 
 
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
 def test_top_level_TS005(apm_test_server_env, test_agent, test_client):
     """
@@ -247,6 +251,7 @@ def test_top_level_TS005(apm_test_server_env, test_agent, test_client):
     assert web_stats["Duration"] > 0
 
 
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
 def test_successes_errors_recorded_separately_TS006(apm_test_server_env, test_agent, test_client):
     """
@@ -296,6 +301,7 @@ def test_successes_errors_recorded_separately_TS006(apm_test_server_env, test_ag
 
 
 @pytest.mark.skip_library("dotnet", "FIXME: No traces should be emitted with the sample rate set to 0")
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats(sample_rate=0.0)
 def test_sample_rate_0_TS007(apm_test_server_env, test_agent, test_client):
     """
@@ -361,6 +367,7 @@ def test_relative_error_TS008(apm_test_server_env, test_agent, test_client):
         ), ("Quantile mismatch for quantile %r" % quantile)
 
 
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
 def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, test_agent, test_client):
     """
@@ -410,6 +417,7 @@ def test_metrics_computed_after_span_finsh_TS008(apm_test_server_env, test_agent
     assert stats[0]["Synthetics"] is True
 
 
+@pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @parametrize("apm_test_server_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
 def test_metrics_computed_after_span_finish_TS010(apm_test_server_env, test_agent, test_client):
     """
