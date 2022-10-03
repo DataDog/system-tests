@@ -25,7 +25,7 @@ class Test_Main:
         stdout.assert_presence(r"some.*file", level="DEBUG")
         stdout.append_log_validation(lambda data: data["level"])
 
-        stdout.wait()
+        stdout.wait(0)
 
         for v in stdout._validations:
             assert v.is_success, v

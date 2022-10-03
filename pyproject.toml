@@ -32,6 +32,15 @@ disable = [
     "too-many-arguments",
     "too-many-branches,",
     "bare-except",
-    "too-many-instance-attributes"
+    "too-many-instance-attributes",
+    "too-many-locals",
+    "too-many-public-methods",
+    "too-many-nested-blocks",
+    "too-many-return-statements",
+    "duplicate-code",
+    "abstract-method"
 ]
 ignore = "utils/test_the_test"
+generated-members = [
+    ".*(self|app)\\.logger\\..*"
+]

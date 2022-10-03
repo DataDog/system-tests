@@ -51,9 +51,7 @@ class _SeqIdLatencyValidation(BaseValidation):
             self.max_seq_id = seq_id
             self.received_max_time = now
         else:
-            if self.received_max_time is None:
-                return
-            elif (now - self.received_max_time) > self.MAX_OUT_OF_ORDER_LAG:
+            if self.received_max_time is not None and (now - self.received_max_time) > self.MAX_OUT_OF_ORDER_LAG:
                 self.set_failure(
                     f"Received message with seq_id {seq_id} to far more than"
                     f"100ms after message with seq_id {self.max_seq_id}"

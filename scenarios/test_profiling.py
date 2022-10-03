@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import BaseTestCase, interfaces, context, bug, irrelevant, rfc, released
+from utils import BaseTestCase, interfaces, bug
 
 
 TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"

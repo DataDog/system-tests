@@ -11,16 +11,18 @@ LIBS = ("golang", "dotnet", "java", "nodejs", "php", "ruby")
 def get_bucket(size):
     if size < 10000:
         return "Requests < 10ko"
-    elif size < 1000000:
+
+    if size < 1000000:
         return "Requests < 1Mo"
-    else:
-        return "Requests > 1Mo"
+
+    return "Requests > 1Mo"
 
 
 def compute_file(filename):
     buckets = defaultdict(list)
     results = {}
-    data = json.load(open(filename))
+    with open(filename, encoding="utf-8") as f:
+        data = json.load(f)
     for _, time, _, size in data["durations"]:
         buckets[get_bucket(size)].append(time)
 
@@ -49,15 +51,15 @@ def compute(lib):
     print()
     report(f"** {lib} **", "Without Appsec", "With Appsec", "Overhead")
     print("-" * 81)
-    for b in without_appsec:
-        mean_without_appsec = without_appsec[b]["mean"]
+    for b, item in without_appsec.items():
+        mean_without_appsec = item["mean"]
         mean_with_appsec = with_appsec[b]["mean"]
 
         diff = mean_with_appsec - mean_without_appsec
 
         report(
             b,
-            f"{without_appsec[b]['mean']:.2f} ±{without_appsec[b]['stdev']:.2f}",  # ({without_appsec[b]['count']})",
+            f"{item['mean']:.2f} ±{item['stdev']:.2f}",  # ({item['count']})",
             f"{with_appsec[b]['mean']:.2f} ±{with_appsec[b]['stdev']:.2f}",  # ({with_appsec[b]['count']})",
             f"{diff:.2f}",
         )
@@ -72,7 +74,8 @@ def plot():
         return
 
     def add_plot(filename, label, axis):
-        data = json.load(open(filename))["memory"]
+        with open(filename, encoding="utf-8") as f:
+            data = json.load(f)["memory"]
 
         x = [d[0] for d in data]
         y = [d[1] / (1024 ** 2) for d in data]

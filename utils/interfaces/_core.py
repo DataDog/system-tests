@@ -87,7 +87,8 @@ class InterfaceValidator:
                 for data in self._data_list:
                     if not validation.closed:
                         try:
-                            validation._check(data)
+                            if validation.should_check(data):
+                                validation.check(data)
                         except Exception as exc:
                             raise Exception(
                                 f"While validating {data['log_filename']}, "
@@ -154,7 +155,7 @@ class InterfaceValidator:
         logger.debug(f"{self.name}'s interface receive data on [{data['host']}{data['path']}]")
 
         if self.system_test_error is not None:
-            return
+            return None
 
         try:
             with self._lock:
@@ -195,7 +196,7 @@ class ObjectDumpEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-class BaseValidation(object):
+class BaseValidation:
     """Base validation item"""
 
     interface = None  # which interface will be validated
@@ -279,8 +280,8 @@ class BaseValidation(object):
     def __repr__(self):
         if self.rid:
             return f"{self.__class__.__name__}({repr(self.message)}, {self.rid})"
-        else:
-            return f"{self.__class__.__name__}({repr(self.message)})"
+
+        return f"{self.__class__.__name__}({repr(self.message)})"
 
     def get_test_source_info(self):
         klass = self.calling_class.__name__
@@ -353,15 +354,15 @@ class BaseValidation(object):
                     self.log_error(f"{self} has expired and is a failure")
             self.set_status(self.is_success_on_expiry)
 
-    def _check(self, data):
+    def should_check(self, data):
         if self.path_filters is not None and all((path.fullmatch(data["path"]) is None for path in self.path_filters)):
-            return
+            return False
 
         # Java sends empty requests during endpoint discovery
         if "request" in data and data["request"]["length"] == 0:
-            return
+            return False
 
-        self.check(data)
+        return True
 
     def check(self, data):
         """Will be called every time a new data is seen threw the interface"""

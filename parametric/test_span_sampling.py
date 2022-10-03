@@ -12,6 +12,9 @@ from .conftest import _TestTracer
 import json
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}])}]
 )
@@ -25,6 +28,9 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_client: _TestTr
     assert_sampling_decision_tags(span)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}])}]
 )
@@ -50,6 +56,9 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_client: _Tes
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize("apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}])}])
 def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent, test_client: _TestTracer):
     """Test span sampling tags are added when both:
@@ -62,6 +71,8 @@ def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent,
     assert_sampling_decision_tags(span)
 
 
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize("apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}])}])
 def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent, test_client: _TestTracer):
     """Test span sampling tags are not added when:
@@ -74,6 +85,9 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [
@@ -132,6 +146,9 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_client: _Tes
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "max_per_second": 2}])}],
@@ -162,6 +179,9 @@ def test_single_rule_rate_limiter_span_sampling_sss08(test_agent, test_client: _
     assert_sampling_decision_tags(span, limit=2)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 0.5}])}],
@@ -213,6 +233,9 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_client: _TestT
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 1.0}])}],
@@ -249,6 +272,9 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_cl
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None, trace_sampling=True)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [

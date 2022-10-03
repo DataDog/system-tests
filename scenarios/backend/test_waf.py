@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import context, coverage, BaseTestCase, interfaces, irrelevant, released
+from utils import context, coverage, BaseTestCase, interfaces, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
