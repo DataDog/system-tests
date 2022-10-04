@@ -7,7 +7,7 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, bug, context, flaky, interfaces, irrelevant, missing_feature, released, rfc
+from utils import BaseTestCase, context, interfaces, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -65,19 +65,22 @@ class Test_Monitoring(BaseTestCase):
 
             if metrics[expected_rules_monitoring_nb_loaded_tag] != expected_nb_loaded:
                 raise Exception(
-                    f"the number of loaded rules should be {expected_nb_loaded} but is `{metrics[expected_rules_monitoring_nb_loaded_tag]}`"
+                    f"the number of loaded rules should be {expected_nb_loaded} but is "
+                    f"`{metrics[expected_rules_monitoring_nb_loaded_tag]}`"
                 )
 
             if metrics[expected_rules_monitoring_nb_errors_tag] != expected_nb_errors:
                 raise Exception(
-                    f"the number of rule errors should be {expected_nb_errors} but is `{metrics[expected_rules_monitoring_nb_errors_tag]}`"
+                    f"the number of rule errors should be {expected_nb_errors} but is "
+                    f"`{metrics[expected_rules_monitoring_nb_errors_tag]}`"
                 )
 
             # Parse the errors meta tag as json
             errors = json.loads(meta[expected_rules_monitoring_error_details_tag])
             if errors != expected_error_details:
                 raise Exception(
-                    f"unexpected span tag {expected_rules_monitoring_error_details_tag} value: got {errors} instead of {expected_error_details}"
+                    f"unexpected span tag {expected_rules_monitoring_error_details_tag} value: "
+                    f"got {errors} instead of {expected_error_details}"
                 )
 
             return True
