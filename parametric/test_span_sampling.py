@@ -12,8 +12,9 @@ from .conftest import _TestTracer
 import json
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
-    "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}])}]
+    "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]), "DD_TRACE_SAMPLE_RATE": 0}]
 )
 def test_single_rule_match_span_sampling_sss001(test_agent, test_client: _TestTracer):
     """Test that span sampling tags are added when both:
@@ -21,12 +22,16 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_client: _TestTr
     2. tracer is set to drop the trace manually"""
     generate_span(test_client)
     span = get_span(test_agent)
+    print("lala span")
+    print(span)
+    assert 0
 
     assert_sampling_decision_tags(span)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
-    "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}])}]
+    "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}]), "DD_TRACE_SAMPLE_RATE": 0}]
 )
 def test_special_glob_characters_span_sampling_sss002(test_agent, test_client: _TestTracer):
     """Test span sampling tags are added when a rule with glob patterns with special characters * and ? match"""
@@ -37,7 +42,7 @@ def test_special_glob_characters_span_sampling_sss002(test_agent, test_client: _
 
 
 @pytest.mark.parametrize(
-    "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "notmatching", "name": "notmatching"}])}]
+    "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "notmatching", "name": "notmatching"}]), "DD_TRACE_SAMPLE_RATE": 0}]
 )
 def test_single_rule_no_match_span_sampling_sss003(test_agent, test_client: _TestTracer):
     """Test span sampling tags are not added when both:
@@ -50,7 +55,10 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_client: _Tes
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
 
-@pytest.mark.parametrize("apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}])}])
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.parametrize(
+    "apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}]
+)
 def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent, test_client: _TestTracer):
     """Test span sampling tags are added when both:
     1. a span sampling rule that only has a service pattern matches
@@ -62,7 +70,8 @@ def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent,
     assert_sampling_decision_tags(span)
 
 
-@pytest.mark.parametrize("apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}])}])
+
+@pytest.mark.parametrize("apm_test_server_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]), "DD_TRACE_SAMPLE_RATE": 0}])
 def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent, test_client: _TestTracer):
     """Test span sampling tags are not added when:
     1. a span sampling rule that only has a name pattern does not match
@@ -74,6 +83,7 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [
@@ -132,9 +142,10 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_client: _Tes
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
-    [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "max_per_second": 2}])}],
+    [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "max_per_second": 2}]), "DD_TRACE_SAMPLE_RATE": 0}],
 )
 def test_single_rule_rate_limiter_span_sampling_sss08(test_agent, test_client: _TestTracer):
     """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
@@ -162,9 +173,10 @@ def test_single_rule_rate_limiter_span_sampling_sss08(test_agent, test_client: _
     assert_sampling_decision_tags(span, limit=2)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
-    [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 0.5}])}],
+    [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 0.5}]), "DD_TRACE_SAMPLE_RATE": 0}],
 )
 def test_sampling_rate_not_absolute_value_sss009(test_agent, test_client: _TestTracer):
     """Test sample rate comes close to expected number of spans sampled. We do this by setting the
@@ -197,7 +209,7 @@ def test_sampling_rate_not_absolute_value_sss009(test_agent, test_client: _TestT
     "apm_test_server_env",
     [
         {
-            "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]),
+            "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]), "DD_TRACE_SAMPLE_RATE": 0,
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "True",
         }
     ],
@@ -212,7 +224,8 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_client: _TestT
     # the below does not apply to all agent APIs
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
-
+@pytest.mark.skip_library("golang", "The Go tracer does not have an easy way to modulate trace sampling")
+@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 1.0}])}],
@@ -235,7 +248,7 @@ def test_single_rule_always_keep_span_sampling_sss011(test_agent, test_client: _
 
 @pytest.mark.parametrize(
     "apm_test_server_env",
-    [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 0}])}],
+    [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request", "sample_rate": 0}]), "DD_TRACE_SAMPLE_RATE": 1.0}],
 )
 def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_client: _TestTracer):
     """Test spans are always kept when tracer keeps, regardless of span sampling rule set to drop.
@@ -244,11 +257,12 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_cl
     """
     # This span is sampled by the tracer, not span sampling, which would try to drop the span, so it's still kept because "_sampling_priority_v1" > 0
     # When the trace is kept by trace sampling, span rules are not applied
-    generate_span(test_client, trace_sampling=True)
+    generate_span(test_client)
     span = get_span(test_agent)
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None, trace_sampling=True)
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
     [
@@ -314,12 +328,12 @@ def assert_sampling_decision_tags(
 
 def generate_span(test_client, name="web.request", service="webserver", trace_sampling=False):
     with test_client.start_span(name=name, service=service) as span:
-        if trace_sampling:
-            span.set_meta(MANUAL_KEEP_KEY, "1")
-        else:
-            span.set_meta(MANUAL_DROP_KEY, "1")
+        pass
+    #     if trace_sampling:
+    #         span.set_meta(MANUAL_KEEP_KEY, "1")
+    #     else:
+    #         span.set_meta(MANUAL_DROP_KEY, "1")
     test_client.flush()
-
 
 def get_span(test_agent):
     traces = test_agent.traces()
