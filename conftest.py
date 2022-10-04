@@ -7,12 +7,12 @@ import collections
 import inspect
 import time
 
-from utils import context, data_collector, interfaces
-from utils.tools import logger, o, w, m, get_log_formatter, get_exception_traceback
-from utils._xfail import xfails
-
 from pytest_jsonreport.plugin import JSONReport
 import _pytest
+
+from utils import context, data_collector, interfaces
+from utils.tools import logger, m, get_log_formatter, get_exception_traceback
+from utils._xfail import xfails
 
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -121,10 +121,11 @@ def pytest_runtestloop(session):
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
-    terminal.write_line(f"Executing weblog warmup...")
+    terminal.write_line("Executing weblog warmup...")
     context.execute_warmups()
 
-    """From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337"""
+    # From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337
+
     if session.testsfailed and not session.config.option.continue_on_collection_errors:
         raise session.Interrupted(
             "%d error%s during collection" % (session.testsfailed, "s" if session.testsfailed != 1 else "")
@@ -175,15 +176,9 @@ def _wait_interface(interface, session):
 
     try:
         if len(interface.validations) != 0:
-            if timeout:
-                terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
-            else:
-                terminal.write_sep("-", f"Async validations for {interface}")
+            terminal.write_sep("-", f"Async validations for {interface} (wait {timeout}s)")
 
-        if timeout:
-            interface.wait(timeout=timeout)
-        else:
-            interface.wait()
+        interface.wait(timeout=timeout)
 
     except Exception as e:
         session.shouldfail = f"{interface} is not validated"
@@ -206,10 +201,10 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     xpassed = []
     xfailed = []
 
-    for interface in interfaces.all:
+    for interface in interfaces.all_interfaces:
 
         if interface.system_test_error is not None:
-            terminalreporter.write_sep("=", f"INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
+            terminalreporter.write_sep("=", "INTERNAL ERROR ON SYSTEM TESTS", red=True, bold=True)
             for line in get_exception_traceback(interface.system_test_error):
                 terminalreporter.line(line, red=True)
             return
@@ -225,7 +220,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
 
 def _print_async_test_list(terminal, validations, passed, failed, xpassed, xfailed):
-    """build list of test file, with a letter for each test method describing the state of the method regarding async validations"""
+    """build list of test file, with a letter for each test method describing
+    the state of the method regarding async validations"""
+
     # Create a tree filename > methods > fails
     files = collections.defaultdict(lambda: collections.defaultdict(list))
 
@@ -308,7 +305,7 @@ def _print_async_failure_report(terminalreporter, failed, passed):
 
                     terminalreporter.write(filename, bold=True, red=True)
                     terminalreporter.line(
-                        f":{fail.frame.lineno}: {m(fail.message)} not validated on {fail._interface} interface"
+                        f":{fail.frame.lineno}: {m(fail.message)} not validated on {fail.interface} interface"
                     )
 
                     logs += fail.logs
@@ -353,7 +350,7 @@ def pytest_json_modifyreport(json_report):
         # report test with a failing asyn validation as failed
         failed_nodeids = set()
 
-        for interface in interfaces.all:
+        for interface in interfaces.all_interfaces:
             for validation in interface._validations:
                 if validation.closed and not validation.is_success:
                     filename, klass, function = validation.get_test_source_info()
@@ -386,8 +383,8 @@ def pytest_json_modifyreport(json_report):
                     del test[k]
 
         logger.debug("Modifying JSON report finished")
-    except Exception as e:
-        logger.error(f"Fail to modify json report", exc_info=True)
+    except:
+        logger.error("Fail to modify json report", exc_info=True)
 
 
 def pytest_sessionfinish(session, exitstatus):

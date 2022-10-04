@@ -134,11 +134,25 @@ Parameterless end point. This endpoint contains a vulnerable souce code line (we
 
 Parameterless end point. This endpoint contains 2 different insecure hashing operations (for example md5 and sha1). These operations are located in differents points of the executed source code. 
 
-## `GET /iast/insecure_hashing/test_algorithm`
+## `GET /iast/insecure_hashing/test_secure_algorithm`
 
-The end point accepts a non mandatory query string parameter `name`, which should be a string with one of these possible algorithm names:
-- sha1
-- md5
-- md4
+The endpoint executes a unique operation of String hashing with secure SHA-256 algorithm
 
 The endpoint executes a unique operation of String hashing with given algorithm name 
+
+## GET /make_distant_call
+
+This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should returns a JSON response : 
+
+```json
+{
+    "url": <url in paramter>,
+    "status_code": <status code of the response>,
+    "request_headers": <request headers as a dict>,
+    "response_headers": <response headers as a dict>,
+}
+```
+
+## `GET /iast/insecure_hashing/test_md5_algorithm`
+
+The endpoint executes a unique operation of String hashing with unsecure MD5 algorithm

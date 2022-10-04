@@ -5,7 +5,7 @@
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import BaseTestCase, context, coverage, interfaces, irrelevant, released, rfc
+from utils import BaseTestCase, context, coverage, interfaces, irrelevant, released, rfc, bug
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -78,6 +78,17 @@ class Test_StandardTagsUrl(BaseTestCase):
                 "http.url": tests[url],
             }
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
+
+    @bug(library="dotnet", reason="APPSEC-5773")
+    def test_multiple_matching_substring(self):
+        url = "/waf?token=03cb9f67dbbc4cb8b966329951e10934&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
+        tag = "http://weblog:7777/waf?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D"
+
+        r = self.weblog_get(url)
+        tags = {
+            "http.url": tag,
+        }
+        interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
 @released(

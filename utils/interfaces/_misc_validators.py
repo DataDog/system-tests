@@ -37,10 +37,10 @@ class HeadersMatchValidation(BaseValidation):
 
     is_success_on_expiry = True
 
-    def __init__(self, path_filters=None, request_headers={}, response_headers={}, check_condition=None):
+    def __init__(self, path_filters=None, request_headers=None, response_headers=None, check_condition=None):
         super().__init__(path_filters=path_filters)
-        self.request_headers = dict(request_headers)
-        self.response_headers = dict(response_headers)
+        self.request_headers = dict(request_headers) if request_headers is not None else {}
+        self.response_headers = dict(response_headers) if response_headers is not None else {}
         self.check_condition = check_condition
 
     def check(self, data):
@@ -51,7 +51,7 @@ class HeadersMatchValidation(BaseValidation):
         for hdr_name, regexp in self.request_headers.items():
             header = request_headers[hdr_name.lower()]
             if header:
-                if re.match(regexp, header) == None:
+                if re.match(regexp, header) is None:
                     self.set_failure(f"Header {hdr_name} did not match {regexp} in request {data['log_filename']}")
             else:
                 self.set_failure(f"Request header {hdr_name} is missing in request {data['log_filename']}")
@@ -60,7 +60,7 @@ class HeadersMatchValidation(BaseValidation):
         for hdr_name, regexp in self.response_headers.items():
             header = response_headers[hdr_name.lower()]
             if header:
-                if re.match(regexp, header) == None:
+                if re.match(regexp, header) is None:
                     self.set_failure(f"header {hdr_name} did not match {regexp} in response {data['log_filename']}")
             else:
                 self.set_failure(f"Response header {hdr_name} is missing in response {data['log_filename']}")
