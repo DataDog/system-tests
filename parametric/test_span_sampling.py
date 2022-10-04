@@ -274,7 +274,7 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_client: _TestT
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "The Go tracer does not have an easy way to modulate trace sampling once started")
+@pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "apm_test_server_env",
