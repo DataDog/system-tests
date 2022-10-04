@@ -18,9 +18,7 @@ def test_distributed_headers_extract_datadog(test_agent, test_client):
         http_headers.x_datadog_parent_id_key = "x-datadog-parent-id"
         http_headers.x_datadog_parent_id_value = "123"
 
-        with test_client.start_span(
-            name="name", service="service", resource="resource", origin="synthetics", http_headers=http_headers
-        ) as span:
+        with test_client.start_span(name="name", http_headers=http_headers) as span:
             span.set_meta(key="http.status_code", val="200")
 
     span = get_span(test_agent)
@@ -40,9 +38,7 @@ def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, tes
         http_headers.traceparent_key = "traceparent"
         http_headers.traceparent_value = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
 
-        with test_client.start_span(
-            name="name", service="service", resource="resource", origin="synthetics", http_headers=http_headers
-        ) as span:
+        with test_client.start_span(name="name", http_headers=http_headers) as span:
             span.set_meta(key="http.status_code", val="200")
 
     span = get_span(test_agent)
