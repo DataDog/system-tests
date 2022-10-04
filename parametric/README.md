@@ -6,22 +6,19 @@ each of the libraries.
 Example:
 
 ```python
-@pytest.mark.parametrize("apm_test_server_env", [
-    {
-        "DD_SERVICE": "svc1",
-    },
-    {
-        "DD_SERVICE": "svc2",
-    }
-])
-def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: TestAgentAPI, test_client: _TestTracer):
-    with test_client:
-        with test_client.start_span(name="web.request", resource="/users") as span:
-            span.set_meta("mytag", "value")
+@parametrize("library_env", [{"DD_ENV": "prod"}, {"DD_ENV": "dev"}])
+def test_tracer_env_environment_variable(library_env, test_library, test_agent):
+  with test_library:
+    with test_library.start_span("operation"):
+      pass
 
-    traces = test_agent.traces()
-    assert traces[0][0]["meta"]["mytag"] == "value"
-    assert traces[0][0]["service"] == apm_test_server_env["DD_SERVICE"]
+  traces = test_agent.traces()
+  trace = find_trace_by_root(traces, Span(name="operation"))
+  assert len(trace) == 1
+
+  span = find_span(trace, Span(name="operation"))
+  assert span["name"] == "operation"
+  assert span["meta"]["env"] == library_env["DD_ENV"]
 ```
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_SERVICE`.
@@ -71,8 +68,7 @@ CLIENTS_ENABLED=dotnet,golang ./run.sh -k test_metrics_
 ```
 
 
-
-Tests can be aborted using CTRL-C.
+Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
 
 ### Debugging 
@@ -118,4 +114,3 @@ Test cases are written in Python and target the shared GRPC interface. The tests
 
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
-

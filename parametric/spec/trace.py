@@ -173,3 +173,17 @@ def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
             max_score_trace = trace
             max_similarity = similarity
     return max_score_trace
+
+
+def find_span(trace: Trace, span: Span) -> Span:
+    """Return a span from the trace which most closely matches `span`."""
+    assert len(trace) > 0
+
+    max_similarity = -math.inf
+    max_similarity_span = trace[0]
+    for other_span in trace:
+        similarity = _span_similarity(span, other_span)
+        if similarity > max_similarity:
+            max_similarity = similarity
+            max_similarity_span = other_span
+    return max_similarity_span
