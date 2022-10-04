@@ -77,6 +77,7 @@ class Test_Propagate(BaseTestCase):
         r = self.weblog_get("/identify-propagate")
         interfaces.library.add_span_validation(r, validate_identify_tags(tagTable))
 
+    # with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C
     def test_identify_tags_incoming(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
 

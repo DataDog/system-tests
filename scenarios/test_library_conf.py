@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, BaseTestCase, interfaces, released, bug, irrelevant, missing_feature
-from utils.tools import logger
+from utils import context, coverage, BaseTestCase, interfaces, released, irrelevant
 
 # PHP JAVA ok
 
@@ -24,7 +23,7 @@ class Test_HeaderTagsShortFormat(BaseTestCase):
         headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
         tags = {"http.request.headers." + tag: headers[tag] for tag in tag_config_list}
 
-        r = self.weblog_get(f"/waf", headers=headers)
+        r = self.weblog_get("/waf", headers=headers)
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
@@ -44,5 +43,5 @@ class Test_HeaderTagsLongFormat(BaseTestCase):
         headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
         tags = {item.split(":")[1]: headers[item.split(":")[0]] for item in tag_config_list}
 
-        r = self.weblog_get(f"/waf", headers=headers)
+        r = self.weblog_get("/waf", headers=headers)
         interfaces.library.add_span_tag_validation(request=r, tags=tags)

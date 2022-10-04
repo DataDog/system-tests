@@ -9,7 +9,7 @@ import random
 from scenarios.fuzzer.tools._tools import cached_property
 
 
-class _StringLists(object):
+class _StringLists:
     def __init__(self):
         self.latin1 = ""
 
