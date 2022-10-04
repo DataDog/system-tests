@@ -2,9 +2,9 @@ import pytest
 
 from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 
-
-@pytest.mark.skip_library("golang", "not impemented")
 @pytest.mark.skip_library("dotnet", "not impemented")
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_extract_datadog(test_agent, test_client):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
