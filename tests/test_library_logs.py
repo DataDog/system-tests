@@ -13,6 +13,6 @@ class Test_NoExceptions(BaseTestCase):
         interfaces.library_dotnet_managed.assert_absence(
             pattern=r"[A-Za-z]+\.[A-Za-z]*Exception",
             allowed_patterns=[
-                r"System.DllNotFoundException: Unable to load shared library 'Datadog.AutoInstrumentation.Profiler.Native.x64'",
+                r"System.DllNotFoundException: Unable to load shared library 'Datadog.AutoInstrumentation.Profiler.Native.x64'",  # pylint: disable=line-too-long
             ],
         )
