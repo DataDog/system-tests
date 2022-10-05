@@ -11,13 +11,13 @@ from typing import TypedDict
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
 from ddapm_test_agent.trace import root_span
+import msgpack
 
 from ddsketch.ddsketch import BaseDDSketch
 from ddsketch.store import CollapsingLowestDenseStore
 from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
-import msgpack
 
 """Key used in the metrics map to indicate tracer sampling priority"""
 SAMPLING_PRIORITY_KEY = "_sampling_priority_v1"

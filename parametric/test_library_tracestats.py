@@ -1,19 +1,18 @@
+import base64
 import pprint
 from typing import Any
 from typing import Optional
 from typing import List
 
-import msgpack
-import base64
-import pytest
 import numpy
+import msgpack
+import pytest
 
 from parametric.spec.trace import SPAN_MEASURED_KEY
 from parametric.spec.trace import V06StatsAggr
 
 
 parametrize = pytest.mark.parametrize
-snapshot = pytest.mark.snapshot
 
 
 def _human_stats(stats: V06StatsAggr) -> str:
@@ -168,7 +167,6 @@ def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
-@pytest.mark.skip_library("golang", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
 def test_measured_spans_TS004(library_env, test_agent, test_library):
@@ -194,7 +192,7 @@ def test_measured_spans_TS004(library_env, test_agent, test_library):
     requests = test_agent.v06_stats_requests()
     stats = requests[0]["body"]["Stats"][0]["Stats"]
     pprint.pprint([_human_stats(s) for s in stats])
-    # FIXME: dotnet, golang AssertionError: assert 4 == 3
+    # FIXME: dotnet AssertionError: assert 4 == 3
     assert len(stats) == 3
 
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
