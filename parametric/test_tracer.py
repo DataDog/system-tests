@@ -61,7 +61,7 @@ def test_tracer_service_name_environment_variable(
     assert span["service"] == library_env["DD_SERVICE"]
 
 
-@parametrize("library_env", [{"DD_ENV": "prod"}, {"DD_ENV": "dev"}])
+@parametrize("library_env", [{"DD_ENV": "prod"}])
 def test_tracer_env_environment_variable(
     library_env: Dict[str, str], test_library: APMLibrary, test_agent: _TestAgentAPI
 ) -> None:
