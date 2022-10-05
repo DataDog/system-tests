@@ -573,13 +573,28 @@ class APMLibrary:
         if exc_type is None:
             self.flush()
 
+    DistributedHTTPHeaders = {}
+
     @contextlib.contextmanager
     def start_span(
-        self, name: str, service: str = "", resource: str = "", parent_id: int = 0, typestr: str = "", origin: str = ""
+        self,
+        name: str,
+        service: str = "",
+        resource: str = "",
+        parent_id: int = 0,
+        typestr: str = "",
+        origin: str = "",
+        http_headers: DistributedHTTPHeaders = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
-                name=name, service=service, resource=resource, parent_id=parent_id, type=typestr, origin=origin,
+                name=name,
+                service=service,
+                resource=resource,
+                parent_id=parent_id,
+                type=typestr,
+                origin=origin,
+                http_headers=http_headers,
             )
         )
         span = _TestSpan(self._client, resp.span_id)
