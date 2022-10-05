@@ -2,8 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import base64
-
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
