@@ -38,10 +38,7 @@ message StartSpanReturn {
   uint64 trace_id = 2;
 }
 
-message InjectHeadersArgs {
-    optional uint64 parent_id = 1;
-    optional DistributedHTTPHeaders http_headers = 2;
-}
+message InjectHeadersArgs {}
 
 message InjectHeadersReturn {
     optional DistributedHTTPHeaders http_headers = 1;

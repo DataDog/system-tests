@@ -52,12 +52,12 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             span_id=span.span_id,
         )
 
-    def Inject(self, request, context):
-        span = self._spans[request.parent_id]
-        context = Context(trace_id=span.trace_id, span_id=request.parent_id, dd_origin=request.origin)
-        HTTPPropagator.inject(context, request.http_headers)
+    def InjectHeaders(self, request, context):
+        ctx = ddtrace.tracer.current_span().context
+        headers = {}
+        HTTPPropagator.inject(ctx, headers)
         return apm_test_client_pb2.InjectHeadersReturn(
-            request.http_headers
+            headers
         )
 
     def SpanSetMeta(self, request, context):

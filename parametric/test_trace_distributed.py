@@ -5,6 +5,7 @@ from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 
 @pytest.mark.skip_library("golang", "not impemented")
 @pytest.mark.skip_library("dotnet", "not impemented")
+@pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_extract_datadog(test_agent, test_client):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
@@ -46,6 +47,28 @@ def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, tes
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 11803532876627986230
+
+
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("dotnet", "not impemented")
+@pytest.mark.skip_library("nodejs", "not impemented")
+def test_distributed_headers_inject_datadog(test_agent, test_client):
+    """Ensure that Datadog distributed tracing headers are injected properly.
+    """
+    with test_client.start_span(
+        name="name"
+    ) as span:
+        span.set_meta(key="http.status_code", val="200")
+        headers = test_client.inject_headers()
+    # I think I should add headers and make span, then while that span is active try to inject its context
+    # Or we could create a span, inject the headers (need to see if we can pull the span id off of the span) and then we can just do the injection
+    # Then from there we can call get_span and then 
+    
+    span = get_span(test_agent)
+
+    print(headers)
+    assert span.get("parent_id") == 123
+
 
 
 def get_span(test_agent):
