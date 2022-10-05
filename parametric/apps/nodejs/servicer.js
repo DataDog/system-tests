@@ -54,7 +54,6 @@ class Servicer {
             'error.type': request.type,
             'error.stack': request.stack
         });
-        span.error = 1;
         return callback(null, {})
     }
 
