@@ -56,15 +56,21 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         ctx = ddtrace.tracer.current_span().context
         headers = {}
         HTTPPropagator.inject(ctx, headers)
-        distrib_headers = apm_test_client_pb2.DistributedHTTPHeaders
+        distrib_headers = apm_test_client_pb2.DistributedHTTPHeaders()
         print("lala headers")
         print(headers)
         if headers["x-datadog-trace-id"]:
             distrib_headers.x_datadog_trace_id_key = "x-datadog-trace-id"
             distrib_headers.x_datadog_trace_id_value = headers["x-datadog-trace-id"]
+            
+            distrib_headers.x_datadog_parent_id_key = "x-datadog-parent-id"
+            distrib_headers.x_datadog_parent_id_value = headers["x-datadog-parent-id"]
+            
+            distrib_headers.x_datadog_sampling_priority_key = "x-datadog-sampling-priority"
+            distrib_headers.x_datadog_sampling_priority_value = headers["x-datadog-sampling-priority"]
 
         return apm_test_client_pb2.InjectHeadersReturn(
-           http_headers=distrib_headers
+           http_headers=distrib_headers,
         )
 
     def SpanSetMeta(self, request, context):
