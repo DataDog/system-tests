@@ -30,7 +30,8 @@ class Test_Iast(BaseTestCase):
         library="java", reason="Need to be implement deduplicate vulnerability hashes and sha1 algorithm detection"
     )
     def test_insecure_hash_remove_duplicates(self):
-        """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request, we will report only one vulnerability"""
+        """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
+        we will report only one vulnerability"""
         r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
         interfaces.library.expect_iast_vulnerabilities(

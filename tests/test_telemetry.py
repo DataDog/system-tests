@@ -81,12 +81,12 @@ class Test_Telemetry(BaseTestCase):
         def validate_integration_changes(data):
             content = data["request"]["content"]
             if content.get("request_type") == "app-integrations-change":
-                assert content["payload"]["integrations"], f"Integration changes must mot be empty"
+                assert content["payload"]["integrations"], "Integration changes must mot be empty"
 
         def validate_dependencies_changes(data):
             content = data["request"]["content"]
             if content["request_type"] == "app-dependencies-loaded":
-                assert content["payload"]["dependencies"], f"dependencies changes must mot be empty"
+                assert content["payload"]["dependencies"], "dependencies changes must mot be empty"
 
         interfaces.library.add_telemetry_validation(validator=validate_integration_changes, is_success_on_expiry=True)
         interfaces.library.add_telemetry_validation(validator=validate_dependencies_changes, is_success_on_expiry=True)
@@ -149,11 +149,13 @@ class Test_Telemetry(BaseTestCase):
     def test_app_dependencies_loaded_not_sent(self):
         """app-dependencies-loaded request should not be sent"""
         # Request type app-dependencies-loaded is never sent from certain language tracers
-        # In case this changes we need to adjust the backend, by adding the language to this list https://github.com/DataDog/dd-go/blob/prod/domains/appsec/libs/vulnerability_management/model.go#L262
-        # This change means we cannot deduplicate runtime with the same library dependencies in the backend since we never have guarantees that we have all the dependencies at one point in time
+        # In case this changes we need to adjust the backend, by adding the language to this list
+        # https://github.com/DataDog/dd-go/blob/prod/domains/appsec/libs/vulnerability_management/model.go#L262
+        # This change means we cannot deduplicate runtime with the same library dependencies in the backend since
+        # we never have guarantees that we have all the dependencies at one point in time
 
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
-                raise Exception(f"request_type app-dependencies-loaded should not be used by this tracer")
+                raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
         interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=True)
