@@ -22,7 +22,9 @@ class AgentInterfaceValidator(InterfaceValidator):
     def __init__(self):
         super().__init__("agent")
         self.ready = threading.Event()
-        self.expected_timeout = 5
+
+    def get_expected_timeout(self, context):
+        return 5
 
     def append_data(self, data):
         data = super().append_data(data)

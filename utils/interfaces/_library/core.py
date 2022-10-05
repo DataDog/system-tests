@@ -4,7 +4,6 @@
 
 import threading
 
-from utils import context
 from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
@@ -44,18 +43,21 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready = threading.Event()
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
+    def get_expected_timeout(self, context):
+        result = 40
+
         if context.library == "java":
-            self.expected_timeout = 80
+            result = 80
         elif context.library.library in ("golang",):
-            self.expected_timeout = 10
+            return 10
         elif context.library.library in ("nodejs",):
-            self.expected_timeout = 5
+            return 5
         elif context.library.library in ("php",):
-            self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
+            return 10  # possibly something weird on obfuscator, let increase the delay for now
         elif context.library.library in ("python",):
-            self.expected_timeout = 25
-        else:
-            self.expected_timeout = 40
+            return 25
+
+        return max(result, self._minimal_expected_timeout)
 
     def append_data(self, data):
         self.ready.set()
