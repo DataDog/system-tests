@@ -12,6 +12,7 @@ from .conftest import APMLibrary
 parametrize = pytest.mark.parametrize
 
 
+@pytest.mark.skip_library("nodejs", "nodejs overrides the manually set service name")
 def test_tracer_span_top_level_attributes(test_library: APMLibrary, test_agent: _TestAgentAPI) -> None:
     """Do a simple trace to ensure that the test client is working properly."""
     with test_library:
@@ -27,19 +28,26 @@ def test_tracer_span_top_level_attributes(test_library: APMLibrary, test_agent: 
     assert len(trace) == 2
 
     root_span = find_span(trace, Span(name="operation"))
+    assert root_span["name"] == "operation"
+    assert root_span["service"] == "my-webserver"
+    assert root_span["resource"] == "/endpoint"
+    assert root_span["type"] == "web"
+    assert root_span["metrics"]["number"] == 10
     child_span = find_span(trace, Span(name="operation.child"))
-    # assert trace[0]["name"] == "operation"
-    # assert trace[0]["service"] == "my-webserver"
-    # assert trace[0]["resource"] == "/endpoint"
-    # assert trace[0]["type"] == "web"
+    assert child_span["name"] == "operation.child"
+    assert child_span["meta"]["key"] == "val"
 
 
-@pytest.mark.skip(reason="Libraries handle empty string for service")
-@parametrize("library_env", [{"DD_SERVICE": "service1"}, {"DD_SERVICE": "service2"}])
+@pytest.mark.skip(reason="Libraries use empty string for service")
+@parametrize("library_env", [{"DD_SERVICE": "service1"}])
 def test_tracer_service_name_environment_variable(
     library_env: Dict[str, str], test_library: APMLibrary, test_agent: _TestAgentAPI
 ) -> None:
-    """Traces should use DD_SERVICE for the service name of traces which do not specify a service name."""
+    """
+    When DD_SERVICE is specified
+        When a span is created
+            The span should use the value of DD_SERVICE for span.service
+    """
     with test_library:
         with test_library.start_span("operation"):
             pass
@@ -59,7 +67,8 @@ def test_tracer_env_environment_variable(
 ) -> None:
     """
     When DD_ENV is specified
-        Spans should set the value of DD_ENV in the meta map.
+        When a span is created
+            The span should have the value of DD_ENV in meta.env
     """
     with test_library:
         with test_library.start_span("operation"):

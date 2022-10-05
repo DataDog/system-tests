@@ -4,17 +4,13 @@ Tracing constants, data structures and helper methods.
 These are used to specify, test and work with trace data and protocols.
 """
 import math
-from typing import Dict
 from typing import List
 from typing import Optional
 from typing import TypedDict
 
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
-from ddapm_test_agent.trace import TraceId
-from ddapm_test_agent.trace import TraceMap
 from ddapm_test_agent.trace import root_span
-from ddapm_test_agent.trace_snapshot import _span_similarity
 
 from ddsketch.ddsketch import BaseDDSketch
 from ddsketch.store import CollapsingLowestDenseStore
@@ -158,6 +154,28 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
     return V06StatsPayload(
         Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets,
     )
+
+
+def _span_similarity(s1: Span, s2: Span) -> int:
+    """Return a similarity rating for the two given spans."""
+    score = 0
+
+    for key in set(s1.keys() & s2.keys()):
+        if s1[key] == s2[key]:
+            score += 1
+
+    s1_meta = s1.get("meta", {})
+    s2_meta = s2.get("meta", {})
+    for key in set(s1_meta.keys()) & set(s2_meta.keys()):
+        if s1_meta[key] == s2_meta[key]:
+            score += 1
+
+    s1_metrics = s1.get("metrics", {})
+    s2_metrics = s2.get("metrics", {})
+    for key in set(s1_metrics.keys()) & set(s2_metrics.keys()):
+        if s1_metrics[key] == s2_metrics[key]:
+            score += 1
+    return score
 
 
 def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:

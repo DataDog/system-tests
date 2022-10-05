@@ -1,7 +1,8 @@
 # APM library parametric tests
 
-The test fixtures in this submodule allow features of the APM libraries to be easily parameterized while still targeting
-each of the libraries.
+The tests in this submodule target a shared interface so that **all** the APM libraries can be tested with a single test case.
+
+This enables us to write unit/integration-style test cases that can be shared.
 
 Example:
 
@@ -21,9 +22,9 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
   assert span["meta"]["env"] == library_env["DD_ENV"]
 ```
 
-- This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_SERVICE`.
-- The test case creates a new root span and sets a tag on it using the shared GRPC interface.
-- Data is flushed to the test agent after the with test_client block closes.
+- This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
+- The test case creates a new span and sets a tag on it using the shared GRPC interface.
+- Data is flushed to the test agent after the with test_library block closes.
 - Data is retrieved using the `test_agent` fixture and asserted on.
 
 
@@ -32,12 +33,12 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
-The following are required to run the tests locally:
+The following dependencies are required to run the tests locally:
 
-- docker
+- Docker
 - Python >= 3.7
 
-then just create a Python virtual environment and install the dependencies:
+then, create a Python virtual environment and install the Python dependencies:
 
 ```sh
 python -m venv venv
@@ -65,6 +66,13 @@ Run all tests matching pattern
 
 ```sh
 CLIENTS_ENABLED=dotnet,golang ./run.sh -k test_metrics_
+```
+
+
+Run all tests from a file
+
+```sh
+CLIENTS_ENABLED=dotnet,golang ./run.sh test_span_sampling.py
 ```
 
 
