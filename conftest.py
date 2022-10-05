@@ -154,7 +154,7 @@ def _wait_interface(interface, session):
     # side note : do NOT skip this function even if interface has no validations
     # internal errors may cause no validation in interface
 
-    timeout = interface.expected_timeout
+    timeout = interface.get_expected_timeout(context=context)
 
     try:
         if len(interface.validations) != 0:
