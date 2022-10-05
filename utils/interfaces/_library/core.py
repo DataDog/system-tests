@@ -49,13 +49,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
         if context.library == "java":
             result = 80
         elif context.library.library in ("golang",):
-            return 10
+            result = 10
         elif context.library.library in ("nodejs",):
-            return 5
+            result = 5
         elif context.library.library in ("php",):
-            return 10  # possibly something weird on obfuscator, let increase the delay for now
+            result = 10  # possibly something weird on obfuscator, let increase the delay for now
         elif context.library.library in ("python",):
-            return 25
+            result = 25
 
         return max(result, self._minimal_expected_timeout)
 

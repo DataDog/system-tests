@@ -24,7 +24,7 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.ready = threading.Event()
 
     def get_expected_timeout(self, context):
-        return 5
+        return max(5, self._minimal_expected_timeout)
 
     def append_data(self, data):
         data = super().append_data(data)
