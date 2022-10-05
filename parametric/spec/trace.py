@@ -48,7 +48,7 @@ AUTO_KEEP_KEY = "auto.keep"
 """
 Key used in metrics to set automatic tracer drop decision.
 """
-AUTO_KEEP_KEY = "manual.keep"
+AUTO_DROP_KEY = "auto.drop"
 
 """
 Key used in the metrics map to toggle measuring a span.
