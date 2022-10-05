@@ -1,6 +1,6 @@
 import pytest
 
-from parametric.protos.apm_test_library_pb2 import DistributedHTTPHeaders
+from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 
 
 @pytest.mark.skip_library("dotnet", "not implemented")

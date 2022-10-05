@@ -354,8 +354,6 @@ def docker() -> str:
 def docker_network_log_file(request) -> TextIO:
     with tempfile.NamedTemporaryFile(mode="w+") as f:
         yield f
-        f.seek(0)
-        request.node._report_sections.append(("teardown", f"Docker Network", "".join(f.readlines())))
 
 
 @pytest.fixture()
