@@ -18,7 +18,20 @@ message StartSpanArgs {
   optional string resource = 4;
   optional string type = 5;
   optional string origin = 6;
+  optional DistributedHTTPHeaders http_headers = 7;
 }
+
+message DistributedHTTPHeaders {
+  optional string x_datadog_trace_id_key = 1;
+  optional string x_datadog_trace_id_value = 2;
+  optional string x_datadog_parent_id_key = 3;
+  optional string x_datadog_parent_id_value = 4;
+  optional string x_datadog_sampling_priority_key = 5;
+  optional string x_datadog_sampling_priority_value = 6;
+  optional string traceparent_key = 7;
+  optional string traceparent_value = 8;
+}
+
 message StartSpanReturn {
   uint64 span_id = 1;
   uint64 trace_id = 2;

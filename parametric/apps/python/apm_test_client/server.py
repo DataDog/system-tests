@@ -8,6 +8,7 @@ from ddtrace.context import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
+from ddtrace.propagation.http import HTTPPropagator
 import grpc
 
 from .protos import apm_test_client_pb2, apm_test_client_pb2_grpc
@@ -29,6 +30,14 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             trace_id = parent.trace_id if parent else None
             parent_id = parent.span_id if parent else None
             parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
+
+        if request.http_headers.ByteSize() > 0:
+            parent = HTTPPropagator.extract({
+                request.http_headers.x_datadog_trace_id_key: request.http_headers.x_datadog_trace_id_value,
+                request.http_headers.x_datadog_parent_id_key: request.http_headers.x_datadog_parent_id_value,
+                request.http_headers.x_datadog_sampling_priority_key: request.http_headers.x_datadog_sampling_priority_value,
+                request.http_headers.traceparent_key: request.http_headers.traceparent_value,
+            })
 
         span = ddtrace.tracer.start_span(
             request.name,

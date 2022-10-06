@@ -72,14 +72,14 @@ class APMLibraryTestServer:
 
 
 @pytest.fixture
-def apm_test_server_env() -> Dict[str, str]:
+def library_env() -> Dict[str, str]:
     return {}
 
 
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 
-def python_library_server_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
@@ -101,7 +101,35 @@ RUN python3.9 -m pip install %s
     )
 
 
-def golang_library_server_factory(env: Dict[str, str]):
+def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    nodejs_appdir = os.path.join("apps", "nodejs")
+    nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
+    nodejs_reldir = os.path.join("parametric", nodejs_appdir)
+    return APMLibraryTestServer(
+        lang="nodejs",
+        container_name="node-test-client",
+        container_tag="node-test-client",
+        container_img=f"""
+FROM node:18.10-slim
+WORKDIR /client
+COPY {nodejs_reldir}/package.json /client/
+COPY {nodejs_reldir}/package-lock.json /client/
+COPY {nodejs_reldir}/*.js /client/
+RUN npm install
+""",
+        container_cmd=["node", "server.js"],
+        container_build_dir=nodejs_dir,
+        volumes=[
+            (
+                os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+                "/client/apm_test_client.proto",
+            ),
+        ],
+        env=env,
+    )
+
+
+def golang_library_factory(env: Dict[str, str]):
     go_appdir = os.path.join("apps", "golang")
     go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
     go_reldir = os.path.join("parametric", go_appdir)
@@ -126,7 +154,7 @@ RUN go install
     )
 
 
-def dotnet_library_server_factory(env: Dict[str, str]):
+def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
     dotnet_reldir = os.path.join("parametric", dotnet_appdir)
@@ -151,12 +179,13 @@ WORKDIR "/client/."
 
 
 _libs = {
-    "dotnet": dotnet_library_server_factory,
-    "golang": golang_library_server_factory,
-    "python": python_library_server_factory,
+    "dotnet": dotnet_library_factory,
+    "golang": golang_library_factory,
+    "nodejs": node_library_factory,
+    "python": python_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,nodejs,python").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -165,11 +194,11 @@ for _lang in os.getenv("CLIENTS_ENABLED", "python,dotnet,golang").split(","):
 @pytest.fixture(
     params=list(factory for lang, factory in _enabled_libs), ids=list(lang for lang, factory in _enabled_libs)
 )
-def apm_test_server(request, apm_test_server_env):
+def apm_test_server(request, library_env):
     # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
     # in pytest.
-    apm_test_server_factory = request.param
-    yield apm_test_server_factory(apm_test_server_env)
+    apm_test_library = request.param
+    yield apm_test_library(library_env)
 
 
 @pytest.fixture
@@ -228,7 +257,7 @@ class _TestAgentAPI:
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
-                pytest.fail(to_unicode(resp.text), pytrace=False)
+                pytest.fail(resp.text.decode("utf-8"), pytrace=False)
         except Exception as e:
             pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
         else:
@@ -532,7 +561,7 @@ class _TestSpan:
         self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
 
 
-class _TestTracer:
+class APMLibrary:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
 
@@ -544,13 +573,28 @@ class _TestTracer:
         if exc_type is None:
             self.flush()
 
+    DistributedHTTPHeaders = {}
+
     @contextlib.contextmanager
     def start_span(
-        self, name: str, service: str = "", resource: str = "", parent_id: int = 0, typestr: str = "", origin: str = ""
+        self,
+        name: str,
+        service: str = "",
+        resource: str = "",
+        parent_id: int = 0,
+        typestr: str = "",
+        origin: str = "",
+        http_headers: DistributedHTTPHeaders = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
-                name=name, service=service, resource=resource, parent_id=parent_id, type=typestr, origin=origin,
+                name=name,
+                service=service,
+                resource=resource,
+                parent_id=parent_id,
+                type=typestr,
+                origin=origin,
+                http_headers=http_headers,
             )
         )
         span = _TestSpan(self._client, resp.span_id)
@@ -568,9 +612,9 @@ def test_server_timeout() -> int:
 
 
 @pytest.fixture
-def test_client(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[_TestTracer, None, None]:
+def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
-    tracer = _TestTracer(client)
+    tracer = APMLibrary(client)
     yield tracer

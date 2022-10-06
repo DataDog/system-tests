@@ -5,10 +5,8 @@
 import os
 import collections
 import inspect
-import time
 
 from pytest_jsonreport.plugin import JSONReport
-import _pytest
 
 from utils import context, data_collector, interfaces
 from utils.tools import logger, m, get_log_formatter, get_exception_traceback
@@ -22,32 +20,6 @@ import xml.etree.ElementTree as ET
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 
-
-class CustomTerminalReporter(_pytest.terminal.TerminalReporter):
-    def pytest_sessionstart(self, session):
-        self._session = session
-        self._sessionstarttime = time.time()
-
-        self.write_sep("=", "test session starts", bold=True)
-        self.write_line(f"Library: {context.library}")
-        self.write_line(f"Agent: {context.agent_version}")
-
-        if context.library == "php":
-            self.write_line(f"AppSec: {context.php_appsec}")
-
-        if context.libddwaf_version:
-            self.write_line(f"libddwaf: {context.libddwaf_version}")
-
-        if context.appsec_rules_file:
-            self.write_line(f"AppSec rules file: {context.appsec_rules_file}")
-
-        self.write_line(f"AppSec rules version: {context.appsec_rules_version}")
-        self.write_line(f"Weblog variant: {context.weblog_variant}")
-        self.write_line(f"Backend: {context.dd_site}")
-
-
-_pytest.terminal.TerminalReporter = CustomTerminalReporter
-
 _docs = {}
 _skip_reasons = {}
 _release_versions = {}
@@ -56,21 +28,32 @@ _rfcs = {}
 
 # Called at the very begening
 def pytest_sessionstart(session):
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
-    logger.debug(f"Library: {context.library}")
-    logger.debug(f"Agent: {context.agent_version}")
-    if context.library == "php":
-        logger.debug(f"AppSec: {context.php_appsec}")
+    def print_info(info):
+        logger.debug(info)
+        terminal.write_line(info)
 
-    logger.debug(f"libddwaf: {context.libddwaf_version}")
-    logger.debug(f"AppSec rules version: {context.appsec_rules_version}")
-    logger.debug(f"Weblog variant: {context.weblog_variant}")
-    logger.debug(f"Backend: {context.dd_site}")
+    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
+        terminal.write_sep("=", "Tested components", bold=True)
+        print_info(f"Library: {context.library}")
+        print_info(f"Agent: {context.agent_version}")
+        if context.library == "php":
+            print_info(f"AppSec: {context.php_appsec}")
 
-    # connect interface validators to data collector
-    data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
-    data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
-    data_collector.start()
+        if context.libddwaf_version:
+            print_info(f"libddwaf: {context.libddwaf_version}")
+
+        if context.appsec_rules_file:
+            print_info(f"AppSec rules version: {context.appsec_rules_version}")
+
+        print_info(f"Weblog variant: {context.weblog_variant}")
+        print_info(f"Backend: {context.dd_site}")
+
+        # connect interface validators to data collector
+        data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
+        data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
+        data_collector.start()
 
 
 # called when each test item is collected
@@ -115,8 +98,9 @@ def _get_skip_reason_from_marker(marker):
     elif marker.name in ("skip", "expected_failure"):
         if len(marker.args):  # if un-named arguments are present, the first one is the reason
             return marker.args[0]
-        else:  #  otherwise, search in named arguments
-            return marker.kwargs.get("reason", "")
+
+        # otherwise, search in named arguments
+        return marker.kwargs.get("reason", "")
 
     return None
 
@@ -131,9 +115,7 @@ def pytest_runtestloop(session):
     # From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337
 
     if session.testsfailed and not session.config.option.continue_on_collection_errors:
-        raise session.Interrupted(
-            "%d error%s during collection" % (session.testsfailed, "s" if session.testsfailed != 1 else "")
-        )
+        raise session.Interrupted(f"{session.testsfailed} error(s) during collection")
 
     if session.config.option.collectonly:
         return True
@@ -176,7 +158,7 @@ def _wait_interface(interface, session):
     # side note : do NOT skip this function even if interface has no validations
     # internal errors may cause no validation in interface
 
-    timeout = interface.expected_timeout
+    timeout = interface.get_expected_timeout(context=context)
 
     try:
         if len(interface.validations) != 0:
@@ -241,11 +223,11 @@ def _print_async_test_list(terminal, validations, passed, failed, xpassed, xfail
         terminal.write(f"{filename} ")
         current_column = len(filename)
 
-        for method, validations in methods.items():
-            is_passed = len([v for v in validations if v in passed]) == len(validations)
-            is_failed = len([v for v in validations if v in failed]) != 0
-            is_xpassed = len([v for v in validations if v in xpassed]) == len(validations)
-            is_xfailed = len([v for v in validations if v in xfailed]) != 0
+        for method, local_validations in methods.items():
+            is_passed = len([v for v in local_validations if v in passed]) == len(local_validations)
+            is_failed = len([v for v in local_validations if v in failed]) != 0
+            is_xpassed = len([v for v in local_validations if v in xpassed]) == len(local_validations)
+            is_xfailed = len([v for v in local_validations if v in xfailed]) != 0
 
             current_column += 1
             if (current_column) % terminal_column_count == 0:
@@ -356,7 +338,7 @@ def pytest_json_modifyreport(json_report):
         failed_nodeids = set()
 
         for interface in interfaces.all_interfaces:
-            for validation in interface._validations:
+            for validation in interface.validations:
                 if validation.closed and not validation.is_success:
                     filename, klass, function = validation.get_test_source_info()
                     nodeid = f"{filename}::{klass}::{function}"
@@ -394,12 +376,13 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
-    data_collector.shutdown()
-    data_collector.join(timeout=10)
+    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
+        data_collector.shutdown()
+        data_collector.join(timeout=10)
 
-    # Is it really a test ?
-    if data_collector.is_alive():
-        logger.error("Can't terminate data collector")
+        # Is it really a test ?
+        if data_collector.is_alive():
+            logger.error("Can't terminate data collector")
 
 
 def _pytest_junit_modifyreport():
