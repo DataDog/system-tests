@@ -4,9 +4,9 @@ from parametric.protos.apm_test_library_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY
 
 
-@pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("dotnet", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("dotnet", "not impemented")
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_extract_datadog(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
@@ -29,9 +29,9 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
     assert span.get("parent_id") == 123
 
 
-@pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("dotnet", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("dotnet", "not impemented")
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_inject_datadog(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are injected properly.
     """

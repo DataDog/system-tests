@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import BaseTestCase, context, coverage, interfaces, released, missing_feature, irrelevant, bug, rfc
+from utils import BaseTestCase, context, coverage, interfaces, released, missing_feature, irrelevant, rfc
 from .waf.utils import rules
 
 

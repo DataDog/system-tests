@@ -8,13 +8,7 @@ import re
 from urllib.parse import quote
 from utils import context
 from scenarios.fuzzer.tools import data
-from scenarios.fuzzer.tools.random_strings import (
-    get_random_unicode as gru,
-    get_random_string,
-    get_random_latin1,
-    string_lists,
-    get_random_unicode,
-)
+from scenarios.fuzzer.tools.random_strings import get_random_unicode as gru, get_random_string, string_lists
 
 
 def _get_data_file(name):
@@ -32,7 +26,7 @@ def _clean_string(item, allowed=None, forbidden=None):
     return item
 
 
-def _mutate_int(item):
+def _random_number():
     _integers = [
         -(2 ** 64) - 1,
         -1025,
@@ -82,7 +76,7 @@ def _mutate_list(item):
 
 def _mutate_item(item):
     if isinstance(item, (int, float)):
-        item = _mutate_int(item)
+        item = _random_number()
 
     if isinstance(item, str):
         item = _mutate_string(item)
@@ -186,7 +180,8 @@ class RequestMutator:
         "HEAD",
         "LABEL",
         "LOCK",
-        "M-SEARCH" "MERGE",
+        "M-SEARCH",
+        "MERGE",
         "MKACTIVITY",
         "MKCALENDAR",
         "MKCOL",
@@ -362,8 +357,8 @@ class RequestMutator:
         methods = [item[0] for item in mutators]
         weights = [item[1] for item in mutators]
 
-        for foo in random.choices(methods, weights, k=mutations):
-            foo(request)
+        for method in random.choices(methods, weights, k=mutations):
+            method(request)
 
     ################################
     def change_method(self, request):
@@ -373,7 +368,7 @@ class RequestMutator:
         path_length = random.randint(0, 32)
         items = random.choices(data.blns, k=path_length)
         items = map(quote, items)
-        request["path"] = (f"/" + "/".join(items))[: self.max_path_length]
+        request["path"] = ("/" + "/".join(items))[: self.max_path_length]
 
     def mutate_path(self, request):
         path = _mutate_string(request["path"], "/azerty?&=")
@@ -473,10 +468,10 @@ class RequestMutator:
 
     ################################
     def get_cookie_key(self):
-        return get_random_unicode()
+        return gru()
 
     def get_cookie_value(self):
-        return get_random_unicode()
+        return gru()
 
     def get_header_key(self):
         result = random.choice(self.header_keys)
@@ -495,11 +490,14 @@ class RequestMutator:
 
         if key == "user-agent":
             return _get_string_from_list(self.user_agents, self.header_characters, min_length=1)
-        elif key == "content-length":
+
+        if key == "content-length":
             return str(random.choice((-1, 0, 1, 12, 2 ** 32, "nan")))
-        elif key == "content-type":
+
+        if key == "content-type":
             return self._get_random_content_type()
-        elif key in self.ip_header_keys:
+
+        if key in self.ip_header_keys:
             return self.mutate_ip(previous_value)
 
         return _get_string_from_list(self.header_values, self.header_characters, min_length=1)
@@ -515,15 +513,16 @@ class RequestMutator:
         if payload_type == "json":
             count = random.randint(1, 10)
             return {self.get_payload_key(): self.get_payload_value(True) for _ in range(count)}
-        else:
-            choice = random.randint(0, 50)
-            if choice <= 1:
-                return gru(1000, 10000)
-            elif choice < 2:
-                return {"file": random.choice(self.file_data)}
-            else:
-                count = random.randint(1, 10)
-                return {self.get_payload_key(): self.get_payload_value() for _ in range(count)}
+
+        choice = random.randint(0, 50)
+        if choice <= 1:
+            return gru(1000, 10000)
+
+        if choice < 2:
+            return {"file": random.choice(self.file_data)}
+
+        count = random.randint(1, 10)
+        return {self.get_payload_key(): self.get_payload_value() for _ in range(count)}
 
     def get_payload_key(self):
         return random.choice(data.blns)
@@ -531,8 +530,8 @@ class RequestMutator:
     def get_payload_value(self, allow_nested=False):
         if not allow_nested:
             return random.choice(self.payload_values)
-        else:
-            return random.choice(({self.get_payload_key(): self.get_payload_value()}, [self.get_payload_value()],))
+
+        return random.choice(({self.get_payload_key(): self.get_payload_value()}, [self.get_payload_value()],))
 
     ################################
     def clean_request(self, request):
@@ -614,7 +613,9 @@ class SinatraRequestMutator(RequestMutator):
     max_path_length = 2048
     header_characters = _clean_string(
         string_lists.latin1,
-        forbidden=" [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ",
+        forbidden=(
+            " [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+        ),
     )
     allowed_json_payload_types = (dict,)
     allow_empty_header_key = False
@@ -623,7 +624,10 @@ class SinatraRequestMutator(RequestMutator):
 class NodeRequestMutator(RequestMutator):
     header_characters = _clean_string(
         string_lists.latin1,
-        forbidden=' [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\u00a0,\\;/()"<>?!{}=@',
+        forbidden=(
+            " [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×"
+            'ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\u00a0,\\;/()"<>?!{}=@'
+        ),
     )
     allow_empty_header_key = False
 
@@ -699,7 +703,10 @@ class JavaRequestMutator(RequestMutator):
 class PhpRequestMutator(RequestMutator):
     header_characters = _clean_string(
         string_lists.latin1,
-        forbidden=" []\u00c3¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ<>\\\u00a0;()={?,@",
+        forbidden=(
+            " []\u00c3¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ"
+            "×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ<>\\\u00a0;()={?,@"
+        ),
     )
     allow_empty_header_key = False
     allow_colon_in_first_in_header_key = False
