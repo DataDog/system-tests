@@ -24,7 +24,6 @@ class Test_AppSecIPBlocking(BaseTestCase):
 
     request_number = 0
 
-
     def test_blocked_ips(self):
         """ test blocked ips are enforced """
 
