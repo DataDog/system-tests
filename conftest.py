@@ -408,9 +408,9 @@ def _pytest_junit_modifyreport():
     json_report = json.load(f)
 
     # Open XML Junit report
-    tree = ET.parse("logs/reportJunit.xml")
+    junit_report = ET.parse("logs/reportJunit.xml")
     # get root element
-    root = tree.getroot()
+    junit_report_root = junit_report.getroot()
 
     for test in json_report["tests"]:
         words = test["nodeid"].split("::")
@@ -424,22 +424,22 @@ def _pytest_junit_modifyreport():
         test_doc = json_report["docs"][test["nodeid"]]
 
         # Get rfc for the test
-        test_rfc = ""
+        test_rfc = None
         if search_class in json_report["rfcs"]:
             test_rfc = json_report["rfcs"][search_class]
 
         # Get coverage for the test
-        test_coverage = ""
+        test_coverage = None
         if search_class in json_report["coverages"]:
             test_coverage = json_report["coverages"][search_class]
 
         # Get release versions for the test
-        test_release = ""
+        test_release = None
         if search_class in json_report["release_versions"]:
             test_release = json_report["release_versions"][search_class]
 
         _create_testcase_results(
-            root,
+            junit_report_root,
             classname,
             testcasename,
             test["outcome"],
@@ -450,12 +450,12 @@ def _pytest_junit_modifyreport():
             test_release,
         )
 
-    for testsuite in root.findall("testsuite"):
+    for testsuite in junit_report_root.findall("testsuite"):
         ts_props = ET.SubElement(testsuite, "properties")
         _create_junit_testsuite_context(ts_props)
         _create_junit_testsuite_summary(ts_props, json_report["summary"])
 
-    tree.write("logs/reportJunit.xml")
+    junit_report.write("logs/reportJunit.xml")
 
 
 def _create_junit_testsuite_context(testsuite_props):
@@ -538,6 +538,9 @@ def _create_testcase_results(
 
     testcase = junit_xml_root.find(f"testsuite/testcase[@classname='{testclass_name}'][@name='{testcase_name}']")
     if testcase:
+        # Change name att because CI Visibility use identifier: testsuite+name
+        testcase.set("name", testclass_name + "." + testcase_name)
+        # Add custom tags
         tc_props = ET.SubElement(testcase, "properties")
         ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=f"{outcome}")
         ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=f"{skip_reason}")
@@ -549,7 +552,7 @@ def _create_testcase_results(
                 ET.SubElement(
                     tc_props,
                     "property",
-                    name=f"dd_tags[systest.case.release.library.{library_name}]",
+                    name=f"dd_tags[systest1.case.release.library.{library_name}]",
                     value=f"{test_release[library_name]}",
                 )
     else:
