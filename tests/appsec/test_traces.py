@@ -4,7 +4,7 @@
 
 import pytest
 from tests.constants import PYTHON_RELEASE_PUBLIC_BETA, PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc
+from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -90,7 +90,8 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
             if span["metrics"]["_dd.appsec.enabled"] != 1:
                 raise Exception(
-                    f'_dd.appsec.enabled in span\'s metrics should be 1 or 1.0, not {span["metrics"]["_dd.appsec.enabled"]}'
+                    "_dd.appsec.enabled in span's metrics should be 1 or 1.0, "
+                    f'not {span["metrics"]["_dd.appsec.enabled"]}'
                 )
 
             if span["meta"]["_dd.runtime_family"] not in RUNTIME_FAMILIES:
@@ -100,7 +101,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validate_custom_span_tags)
 
-    @bug(context.library < "python@{}".format(PYTHON_RELEASE_GA_1_1), reason="a PR was not included in the release")
+    @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="a PR was not included in the release")
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     def test_header_collection(self):
         """
@@ -108,18 +109,18 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         Note that this test checks for collection, not data.
         """
 
-        def assertHeaderInSpanMeta(span, h):
-            if h not in span["meta"]:
-                raise Exception("Can't find {header} in span's meta".format(header=h))
+        def assertHeaderInSpanMeta(span, header):
+            if header not in span["meta"]:
+                raise Exception(f"Can't find {header} in span's meta")
 
         def validate_request_headers(span):
-            for h in ["user-agent", "host", "content-type"]:
-                assertHeaderInSpanMeta(span, f"http.request.headers.{h}")
+            for header in ["user-agent", "host", "content-type"]:
+                assertHeaderInSpanMeta(span, f"http.request.headers.{header}")
             return True
 
         def validate_response_headers(span):
-            for h in ["content-type", "content-length", "content-language"]:
-                assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
+            for header in ["content-type", "content-length", "content-language"]:
+                assertHeaderInSpanMeta(span, f"http.response.headers.{header}")
             return True
 
         r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
@@ -266,13 +267,13 @@ class Test_CollectRespondHeaders(BaseTestCase):
     """AppSec should collect some headers for http.response and store them in span tags."""
 
     def test_header_collection(self):
-        def assertHeaderInSpanMeta(span, h):
-            if h not in span["meta"]:
-                raise Exception("Can't find {header} in span's meta".format(header=h))
+        def assertHeaderInSpanMeta(span, header):
+            if header not in span["meta"]:
+                raise Exception(f"Can't find {header} in span's meta")
 
         def validate_response_headers(span):
-            for h in ["content-type", "content-length", "content-language"]:
-                assertHeaderInSpanMeta(span, f"http.response.headers.{h}")
+            for header in ["content-type", "content-length", "content-language"]:
+                assertHeaderInSpanMeta(span, f"http.response.headers.{header}")
             return True
 
         r = self.weblog_get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})

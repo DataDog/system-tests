@@ -3,16 +3,17 @@
 # Copyright 2021 Datadog, Inc.
 
 import asyncio
-import signal
-import os
-import json
+from datetime import datetime, timedelta
 import hashlib
+import json
 import logging
 from logging.handlers import RotatingFileHandler
+import os
+import signal
+import time
+
 import aiohttp
 from yarl import URL
-import time
-from datetime import datetime, timedelta
 
 from utils import context, data_collector
 
@@ -20,16 +21,20 @@ from scenarios.fuzzer.corpus import get_corpus
 from scenarios.fuzzer.request_mutator import get_mutator
 from scenarios.fuzzer.request_generators import RequestGenerator
 from scenarios.fuzzer.tools.metrics import (
-    RateMetric,
     AccumulatedMetric,
     PerformanceMetric,
     Metric,
     NumericalMetric,
     ResetedAccumulatedMetric,
     AccumulatedMetricWithPercent,
-    SelfAccumulatedMetricWithPercent,
     Report,
 )
+
+
+class Semaphore(asyncio.Semaphore):
+    @property
+    def value(self):
+        return self._value
 
 
 class _RequestDumper:
@@ -45,20 +50,19 @@ class _RequestDumper:
         if not self.enabled:
             return
 
-        if self.logger == None:
+        if self.logger is None:
             self.logger = logging.Logger(__name__)
             self.logger.addHandler(RotatingFileHandler(self.filename))
 
         self.logger.info(json.dumps(payload))
 
 
-class Fuzzer(object):
+class Fuzzer:
     def __init__(
         self,
         corpus,
         no_mutation,
         base_url,
-        port,
         seed,
         max_tasks,
         report_frequency,
@@ -86,7 +90,7 @@ class Fuzzer(object):
         self.max_tasks = max_tasks
         self.max_time = max_time
         self.max_datetime = None  # will be set later
-        self.sem = asyncio.Semaphore(max_tasks, loop=self.loop)
+        self.sem = Semaphore(max_tasks, loop=self.loop)
 
         self.dump_on_status = dump_on_status
         self.enable_response_dump = False
@@ -99,7 +103,6 @@ class Fuzzer(object):
 
         self.count_metric = ResetedAccumulatedMetric("Count")
         self.bytes_metric = ResetedAccumulatedMetric("Bytes")
-        self.with_sqreen = SelfAccumulatedMetricWithPercent("Sqreen", display_length=6)
 
         self.status_metrics = {}
         self.backend_requests = {}
@@ -142,10 +145,9 @@ class Fuzzer(object):
                         break
 
                     resp = await session.request(url=self.base_url, method="GET")
-                except aiohttp.client.ClientConnectionError as exc:
-                    answer = str(exc)
+                except aiohttp.client.ClientConnectionError:
+                    pass
                 else:
-                    answer = str(resp.status)
                     if resp.status in (200, 404, 403):
                         await session.close()
                         self.logger.info(f"First response received after {i} attempts")
@@ -180,20 +182,23 @@ class Fuzzer(object):
                 )
 
                 async with session.request(
-                    url="http://localhost/containers/systemtests_weblog_1/stats", method="GET",
+                    url="http://localhost/containers/system-tests_weblog_1/stats", method="GET",
                 ) as resp:
                     async for line in resp.content:
                         if self.finished:
                             break
                         data = json.loads(line)
-                        self.memory_metric.update(data["memory_stats"]["usage"])
+                        if "memory_stats" in data:
+                            self.memory_metric.update(data["memory_stats"]["usage"])
 
             except FileNotFoundError:
                 self.logger.info("Docker socket not found")
             except aiohttp.client_exceptions.ClientConnectorError:
                 self.logger.info("Can't connect to Docker socket")
-            except Exception as e:
-                self.logger.info(f"Unexpected exception when connecting to Docker socket: {e}")
+            except Exception:
+                self.finished = True
+                raise
+                # self.logger.info(f"Unexpected exception when connecting to Docker socket: {e}")
 
             finally:
                 if session:
@@ -225,10 +230,10 @@ class Fuzzer(object):
         self.report.value("Dump on", str(self.dump_on_status))
 
         if self.max_time:
-            self.report.value(f"Time", self.max_time)
+            self.report.value("Time", self.max_time)
 
         if self.request_count:
-            self.report.value(f"Count", self.request_count)
+            self.report.value("Count", self.request_count)
 
         request_id = 0
 
@@ -247,10 +252,10 @@ class Fuzzer(object):
                 if self.finished:
                     break
 
-                await asyncio.sleep(0, loop=self.loop)
+                await asyncio.sleep(0)
                 await self.sem.acquire()
 
-                task = self.loop.create_task(self._process(session, request, request_id))
+                task = self.loop.create_task(self._process(session, request))
                 tasks.add(task)
                 task.add_done_callback(tasks.remove)
                 task.add_done_callback(lambda t: self.sem.release())
@@ -269,14 +274,14 @@ class Fuzzer(object):
 
             self.loop.stop()
 
-    async def _process(self, session, request, request_id):
+    async def _process(self, session, request):
 
         resp = None
         request_timestamp = datetime.now()
         self.systematic_exporter(request)
 
         try:
-            args = {k: v for k, v in request.items()}
+            args = dict(request)
             args["url"] = URL(self.base_url + args.pop("path"), encoded=True)
             async with session.request(**args) as resp:
 
@@ -284,9 +289,8 @@ class Fuzzer(object):
                 #     open("logs/500.html", "w").write(await resp.text())
                 #     self.finished = True
 
-                with_sqreen = resp.status == 403 or "x-protected-by" in resp.headers
                 await self.update_metrics(
-                    request_id, str(resp.status), request, request_timestamp, with_sqreen, response=resp,
+                    str(resp.status), request, request_timestamp, response=resp,
                 )
 
                 try:
@@ -295,7 +299,7 @@ class Fuzzer(object):
                     await self.logger.signal("Feedback exception", type(exc).__name__)
 
         except Exception as exc:
-            await self.update_metrics(request_id, type(exc).__name__, request, request_timestamp)
+            await self.update_metrics(type(exc).__name__, request, request_timestamp)
 
         finally:
             if resp:
@@ -304,7 +308,7 @@ class Fuzzer(object):
 
     def get_metrics(self):
         task_metric = Metric("Tasks")
-        task_metric.update(self.max_tasks - self.sem._value)
+        task_metric.update(self.max_tasks - self.sem.value)
 
         separator = Metric(name="|", value="|", display_length=1, has_raw_value=False)
 
@@ -314,7 +318,6 @@ class Fuzzer(object):
             self.memory_metric,
             self.bytes_metric,
             task_metric,
-            self.with_sqreen,
             separator,
             self.performances,
             separator,
@@ -329,33 +332,32 @@ class Fuzzer(object):
 
         return result
 
-    async def update_metrics(
-        self, request_id, status, request, request_timestamp, with_sqreen=None, response=None,
-    ):
+    async def update_metrics(self, status, request, request_timestamp, response=None):
 
         ellapsed = (datetime.now() - request_timestamp).total_seconds()
 
         byte_count = len(request["path"])
-
-        if with_sqreen is not None:
-            self.with_sqreen.update(1 if with_sqreen else 0)
 
         self.performances.update(ellapsed)
 
         def get_len(obj):
             if isinstance(obj, (int, float, bool)):
                 return 4
-            elif isinstance(obj, (str, bytearray)):
+
+            if isinstance(obj, (str, bytearray)):
                 return len(obj)
-            elif isinstance(obj, list):
-                return sum([get_len(item) for item in obj])
-            elif isinstance(obj, dict):
-                return sum([len(k) + get_len(v) for k, v in obj.items()])
-            elif obj is None:
+
+            if isinstance(obj, list):
+                return sum(get_len(item) for item in obj)
+
+            if isinstance(obj, dict):
+                return sum(len(k) + get_len(v) for k, v in obj.items())
+
+            if obj is None:
                 return 0
-            else:
-                print(f"Unknown type {type(obj)}")
-                return 0
+
+            print(f"Unknown type {type(obj)}")
+            return 0
 
         for key in ("data", "json", "headers", "cookies"):
             obj = request.get(key, {})
@@ -374,12 +376,12 @@ class Fuzzer(object):
             request_as_json = json.dumps(request, indent=4)
             hashed = hashlib.md5(request_as_json.encode()).hexdigest()
 
-            with open(os.path.join("logs", f"{status}-{hashed}.json"), "w") as f:
+            with open(os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8") as f:
                 f.write(request_as_json)
 
             if response and self.enable_response_dump:
                 text = await response.text()
-                with open(os.path.join("logs", f"{status}-response-{hashed}.html"), "w") as f:
+                with open(os.path.join("logs", f"{status}-response-{hashed}.html"), "w", encoding="utf-8") as f:
                     f.write(text)
 
     def update_backend_metrics(self, data):
@@ -401,19 +403,3 @@ class Fuzzer(object):
         #         self._add_backend_signal(name, name[:5])
 
         #     self.backend_signals[name].update()
-
-        if path in ("/sqreen/v1/app-login", "/sqreen/v1/app-beat"):
-            for item in data["response"]["content"].get("commands", []):
-                self.backend_commands[item["uuid"]] = item
-                self.report.signal("Command", item["name"])
-
-        if path == "/sqreen/v1/app-beat":
-            content = data["request"]["content"]
-
-            for key, result in content.get("command_results", {}).items():
-                if key in self.backend_commands:
-                    command = self.backend_commands.pop(key)
-                else:
-                    command = {"name": key}
-
-                self.report.signal("Command result", command["name"] + " => " + str(result["status"]))

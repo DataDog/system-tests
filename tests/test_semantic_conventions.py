@@ -95,7 +95,8 @@ class Test_Meta(BaseTestCase):
 
             if not isinstance(value, (str, bytes)):
                 raise Exception("Method should always be a string")
-            elif isinstance(value, bytes):
+
+            if isinstance(value, bytes):
                 value = value.decode("ascii")
 
             if value not in ("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"):

@@ -1,9 +1,10 @@
-import json
-from aiohttp import ClientTimeout, ClientSession, UnixConnector, client_exceptions
 import asyncio
 from datetime import datetime
+import json
 from os import environ
 import time
+
+from aiohttp import ClientTimeout, ClientSession, UnixConnector, client_exceptions
 import requests
 
 
@@ -90,7 +91,7 @@ class Runner:
 
         # warmup
         for _ in range(WARMUP_REQUEST_COUNT):
-            requests.get(WEBLOG_URL)
+            requests.get(WEBLOG_URL, timeout=10)
             print(".", end="", flush=True)
             time.sleep(0.6)
 
@@ -102,7 +103,8 @@ class Runner:
 
         data = {"durations": self.results, "memory": self.memory}
 
-        json.dump(data, open(f"{LOG_FOLDER}/stats_{lang}_{appsec}.json", "w"), indent=2)
+        with open(f"{LOG_FOLDER}/stats_{lang}_{appsec}.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
 
     async def fetch(self, session, i):
         try:
@@ -114,7 +116,7 @@ class Runner:
                 ellapsed = (datetime.now() - request_timestamp).total_seconds()
                 self.results.append((i, ellapsed, status, size))
                 return "OK"
-        except Exception as e:
+        except Exception:
             pass
         finally:
             self.semaphore.release()
@@ -142,7 +144,7 @@ class Runner:
 
         try:
             async with ClientSession(loop=self.loop, connector=UnixConnector(path="/var/run/docker.sock")) as session:
-                async with session.get(f"http://localhost/containers/system-tests_weblog_1/stats") as resp:
+                async with session.get("http://localhost/containers/system-tests_weblog_1/stats") as resp:
                     async for line in resp.content:
                         if self.finished:
                             break
