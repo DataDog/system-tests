@@ -402,7 +402,7 @@ def _pytest_junit_modifyreport():
 
     for test in json_report["tests"]:
         words = test["nodeid"].split("::")
-        if len(words) < 2:
+        if len(words) < 3:
             logger.warning(f"test nodeid cannot be parse: {test['nodeid']}")
             continue
         classname = words[0].replace("/", ".").replace(".py", ".") + words[1]
