@@ -387,16 +387,19 @@ def pytest_sessionfinish(session, exitstatus):
 
 def _pytest_junit_modifyreport():
 
-    if not os.path.exists("logs/report.json") or not os.path.exists("logs/reportJunit.xml"):
+    json_report_path = "logs/report.json"
+    junit_report_path = "logs/reportJunit.xml"
+
+    if not os.path.exists(json_report_path) or not os.path.exists(junit_report_path):
         logger.warning("Not all required output reports found(report.json or reportJunit.xml)")
         return
 
     # Opening JSON file
-    f = open("logs/report.json")
+    f = open(json_report_path)
     json_report = json.load(f)
 
     # Open XML Junit report
-    junit_report = ET.parse("logs/reportJunit.xml")
+    junit_report = ET.parse(junit_report_path)
     # get root element
     junit_report_root = junit_report.getroot()
 
@@ -502,16 +505,24 @@ def _create_junit_testsuite_context(testsuite_props):
 
 
 def _create_junit_testsuite_summary(testsuite_props, summary_json):
-
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.summary.passed]", value=f"{ summary_json['passed']}"
-    )
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.summary.xfail]", value=f"{ summary_json['xfail']}"
-    )
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.summary.skipped]", value=f"{ summary_json['skipped']}"
-    )
+    if "passed" in summary_json:
+        ET.SubElement(
+            testsuite_props,
+            "property",
+            name="dd_tags[systest.suite.summary.passed]",
+            value=f"{ summary_json['passed']}",
+        )
+    if "xfail" in summary_json:
+        ET.SubElement(
+            testsuite_props, "property", name="dd_tags[systest.suite.summary.xfail]", value=f"{ summary_json['xfail']}"
+        )
+    if "skipped" in summary_json:
+        ET.SubElement(
+            testsuite_props,
+            "property",
+            name="dd_tags[systest.suite.summary.skipped]",
+            value=f"{ summary_json['skipped']}",
+        )
     ET.SubElement(
         testsuite_props, "property", name="dd_tags[systest.suite.summary.total]", value=f"{ summary_json['total']}"
     )
