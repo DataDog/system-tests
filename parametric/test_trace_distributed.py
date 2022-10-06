@@ -1,6 +1,7 @@
 import pytest
 
 from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
+from parametric.spec.trace import SAMPLING_PRIORITY_KEY
 
 
 @pytest.mark.skip_library("golang", "not implemented")
@@ -28,6 +29,22 @@ def test_distributed_headers_extract_datadog(test_agent, test_client):
     assert span.get("parent_id") == 123
 
 
+@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("nodejs", "not implemented")
+def test_distributed_headers_inject_datadog(test_agent, test_client):
+    """Ensure that Datadog distributed tracing headers are injected properly.
+    """
+    with test_client:
+        with test_client.start_span(name="name") as span:
+            headers = test_client.inject_headers()
+
+    span = get_span(test_agent)
+    assert span.get("trace_id") == int(headers.http_headers.x_datadog_trace_id_value)
+    assert span.get("span_id") == int(headers.http_headers.x_datadog_parent_id_value)
+    assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == int(headers.http_headers.x_datadog_sampling_priority_value)
+
+
 @pytest.mark.skip("needs to be implemented by tracers and test needs to adhere to RFC")
 @pytest.mark.parametrize("apm_test_server_env", [{"DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C"}])
 def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, test_client):
@@ -47,27 +64,6 @@ def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, tes
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 11803532876627986230
-
-
-@pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("dotnet", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
-def test_distributed_headers_inject_datadog(test_agent, test_client):
-    """Ensure that Datadog distributed tracing headers are injected properly.
-    """
-    with test_client:
-        with test_client.start_span(
-            name="name"
-        ) as span:
-            headers = test_client.inject_headers()
-
-    print("lala traces")
-    span = get_span(test_agent)
-    print(span)
-    print("rawr headers")
-    print(headers)
-    assert span.get("trace_id") == 123
-
 
 
 def get_span(test_agent):

@@ -562,10 +562,9 @@ class _TestTracer:
     def flush(self):
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
-    
+
     def inject_headers(self):
         return self._client.InjectHeaders(pb.InjectHeadersArgs())
-
 
 
 @pytest.fixture
