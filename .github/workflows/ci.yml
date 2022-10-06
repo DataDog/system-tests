@@ -455,9 +455,19 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
         if: ${{ matrix.version != 'prod' || matrix.library != 'python' }}
         run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
@@ -471,8 +481,18 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
         run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
@@ -482,9 +502,19 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run UDS scenario
         if: ${{ matrix.library != 'php' && matrix.library != 'cpp' }}
         run: ./run.sh UDS
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
@@ -493,8 +523,18 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run APPSEC_DISABLED scenario
         run: ./run.sh APPSEC_DISABLED
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
@@ -503,13 +543,28 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
         run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run APPSEC_RATE_LIMITER scenario
         run: ./run.sh APPSEC_RATE_LIMITER
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
@@ -523,11 +578,21 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
         run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Upload results CI Visibility
+        run: ./utils/scripts/upload_results_CI_visibility.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
