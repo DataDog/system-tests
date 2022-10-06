@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import pytest
-from tkinter import Misc
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from utils import BaseTestCase, coverage, interfaces, released, rfc, missing_feature, context, irrelevant
@@ -50,7 +49,7 @@ class Test_ConfigurationVariables(BaseTestCase):
 
         SECRET = "This-value-is-secret"
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if SECRET in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             return True
@@ -66,7 +65,7 @@ class Test_ConfigurationVariables(BaseTestCase):
 
         SECRET = "hide_value"
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if SECRET in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             return True

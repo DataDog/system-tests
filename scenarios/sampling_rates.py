@@ -81,16 +81,18 @@ class LibrarySamplingRateValidation(BaseValidation):
         confidence_interval = 3 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
         # E = n * p
         expectation = context.sampling_rate * trace_count
-        if not (expectation - confidence_interval <= self.sampled_count[True] <= expectation + confidence_interval):
+        if not expectation - confidence_interval <= self.sampled_count[True] <= expectation + confidence_interval:
             self.set_failure(
-                f"Sampling rate is set to {context.sampling_rate}, expected count of sampled traces {expectation}/{trace_count}."
+                f"Sampling rate is set to {context.sampling_rate}, "
+                f"expected count of sampled traces {expectation}/{trace_count}."
                 f"Actual {self.sampled_count[True]}/{trace_count}={self.sampled_count[True]/trace_count}, "
                 f"wich is outside of the confidence interval of +-{confidence_interval}\n"
                 "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
             )
         else:
             self.log_info(
-                f"Sampling rate is set to {context.sampling_rate}, expected count of sampled traces {expectation}/{trace_count}."
+                f"Sampling rate is set to {context.sampling_rate}, "
+                f"expected count of sampled traces {expectation}/{trace_count}."
                 f"Actual {self.sampled_count[True]}/{trace_count}={self.sampled_count[True]/trace_count}, "
                 f"wich is inside the confidence interval of +-{confidence_interval}"
             )
@@ -121,7 +123,7 @@ class Test_SamplingRates(BaseTestCase):
                 last_sleep = time.time()
             p = f"/sample_rate_route/{i}"
             paths.append(p)
-            r = self.weblog_get(p)
+            self.weblog_get(p)
 
         interfaces.library.assert_all_traces_requests_forwarded(paths)
         interfaces.library.append_validation(LibrarySamplingRateValidation())
@@ -145,7 +147,10 @@ class Test_SamplingDecisions(BaseTestCase):
 
     @irrelevant(
         context.library in ("nodejs", "php", "dotnet"),
-        reason="sampling decision implemented differently in these tracers which isnt't problematic. Cf https://datadoghq.atlassian.net/browse/AIT-374 for more info.",
+        reason=(
+            "sampling decision implemented differently in these tracers which isnt't problematic. "
+            "Cf https://datadoghq.atlassian.net/browse/AIT-374 for more info."
+        ),
     )
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.92.0")
@@ -171,7 +176,7 @@ class Test_SamplingDecisions(BaseTestCase):
 
         # Generate enough traces to have a high chance to catch sampling problems
         for _ in range(30):
-            r = self.weblog_get(f"/sample_rate_route/{self.next_request_id()}")
+            self.weblog_get(f"/sample_rate_route/{self.next_request_id()}")
 
         interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
 
@@ -183,7 +188,7 @@ class Test_SamplingDecisions(BaseTestCase):
         traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
 
         for trace in traces:
-            r = self.weblog_get(
+            self.weblog_get(
                 f"/sample_rate_route/{self.next_request_id()}",
                 headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"])},
             )
@@ -205,7 +210,7 @@ class Test_SamplingDecisions(BaseTestCase):
         # Send requests with the same trace and parent id twice
         for _ in range(2):
             for trace in traces:
-                r = self.weblog_get(
+                self.weblog_get(
                     f"/sample_rate_route/{self.next_request_id()}",
                     headers={
                         "x-datadog-trace-id": str(trace["trace_id"]),

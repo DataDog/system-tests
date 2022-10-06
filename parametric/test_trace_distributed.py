@@ -4,9 +4,9 @@ from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY
 
 
-@pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("dotnet", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("dotnet", "not impemented")
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_extract_datadog(test_agent, test_client):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
@@ -19,9 +19,7 @@ def test_distributed_headers_extract_datadog(test_agent, test_client):
         http_headers.x_datadog_parent_id_key = "x-datadog-parent-id"
         http_headers.x_datadog_parent_id_value = "123"
 
-        with test_client.start_span(
-            name="name", service="service", resource="resource", origin="synthetics", http_headers=http_headers
-        ) as span:
+        with test_client.start_span(name="name", http_headers=http_headers) as span:
             span.set_meta(key="http.status_code", val="200")
 
     span = get_span(test_agent)
@@ -29,9 +27,9 @@ def test_distributed_headers_extract_datadog(test_agent, test_client):
     assert span.get("parent_id") == 123
 
 
-@pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("dotnet", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("dotnet", "not impemented")
+@pytest.mark.skip_library("golang", "not impemented")
+@pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_inject_datadog(test_agent, test_client):
     """Ensure that Datadog distributed tracing headers are injected properly.
     """
@@ -57,9 +55,7 @@ def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, tes
         http_headers.traceparent_key = "traceparent"
         http_headers.traceparent_value = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
 
-        with test_client.start_span(
-            name="name", service="service", resource="resource", origin="synthetics", http_headers=http_headers
-        ) as span:
+        with test_client.start_span(name="name", http_headers=http_headers) as span:
             span.set_meta(key="http.status_code", val="200")
 
     span = get_span(test_agent)

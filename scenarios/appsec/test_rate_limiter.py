@@ -2,9 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug
-import pytest
 import datetime
+import pytest
+from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -13,9 +13,7 @@ if context.library == "cpp":
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
 @released(dotnet="2.6.0", nodejs="2.0.0")
 @bug(
-    context.library == "nodejs@3.2.0" or context.library == "nodejs@2.15.0",
-    weblog_variant="express4",
-    reason="APPSEC-5427",
+    context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427",
 )
 @coverage.basic
 class Test_Main(BaseTestCase):
@@ -32,7 +30,7 @@ class Test_Main(BaseTestCase):
 
         MANUAL_KEEP = 2
 
-        def count(span, appsec_data):
+        def count(span, appsec_data):  # pylint: disable=unused-argument
             # the logic is to set MANUAL_KEEP not on all traces
             # then the sampling mechism drop, or not the traces
             if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
