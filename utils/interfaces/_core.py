@@ -198,6 +198,23 @@ class ObjectDumpEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
+def current_test():
+    # Get calling class and calling method
+    frame = None
+    calling_method = None
+    calling_class = None
+
+    for frame_info in inspect.getouterframes(inspect.currentframe()):
+        if frame_info.function.startswith("test_"):
+            frame = frame_info
+            gc.collect()
+            calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
+            calling_class = frame_info.frame.f_locals["self"].__class__
+            break
+
+    return frame, calling_method, calling_class
+
+
 class BaseValidation:
     """Base validation item"""
 
@@ -206,7 +223,7 @@ class BaseValidation:
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
 
-    def __init__(self, request=None, path_filters=None):
+    def __init__(self, request=None, path_filters=None, test=None):
         try:
             # keep this two mumber on top, it's used in repr
             self.message = ""
@@ -229,22 +246,16 @@ class BaseValidation:
                 user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
                 self.rid = user_agent[-36:]
 
-            self.frame = None
-            self.calling_method = None
             self.is_xfail = False
 
             # Get calling class and calling method
-            for frame_info in inspect.getouterframes(inspect.currentframe()):
-
-                if frame_info.function.startswith("test_"):
-                    self.frame = frame_info
-                    gc.collect()
-                    self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
-                    self.calling_class = frame_info.frame.f_locals["self"].__class__
-                    break
+            if test is None:
+                self.frame, self.calling_method, self.calling_class = current_test()
+            else:
+                self.frame, self.calling_method, self.calling_class = test
 
             if self.calling_method is None:
-                raise Exception(f"Unexpected error, can't found the method for {self}")
+                raise Exception(f"Unexpected error, can't find the method for {self}")
 
             # try to get the function docstring
             self.message = self.calling_method.__doc__
