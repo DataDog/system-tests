@@ -386,6 +386,11 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def _pytest_junit_modifyreport():
+
+    if not os.path.exists("logs/report.json") or not os.path.exists("logs/reportJunit.xml"):
+        logger.warning("Not all required output reports found(report.json or reportJunit.xml)")
+        return
+
     # Opening JSON file
     f = open("logs/report.json")
     json_report = json.load(f)
