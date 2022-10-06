@@ -564,7 +564,7 @@ class _TestTracer:
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
     
     def inject_headers(self):
-        self._client.InjectHeaders(pb.InjectHeadersArgs())
+        return self._client.InjectHeaders(pb.InjectHeadersArgs())
 
 
 
