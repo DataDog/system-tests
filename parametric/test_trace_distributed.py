@@ -1,6 +1,6 @@
 import pytest
 
-from parametric.protos.apm_test_library_pb2 import DistributedHTTPHeaders
+from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY
 
 
