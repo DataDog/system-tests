@@ -17,11 +17,7 @@ with open("scenarios/appsec/rc_expected_requests_asm_data.json") as f:
 @released(cpp="?", dotnet="2.16.0", java="0.110.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_AppSecIPBlocking(BaseTestCase):
-    """
-    A library should block requests from blocked IP addresses.
-
-    This scenario is a sequence of several stages. A different set of IPs is blocked for each stage.
-    """
+    """ A library should block requests from blocked IP addresses. """
 
     BLOCKED_IPS = ["10.0.0.1"]
     TENTATIVES_PER_IP = 3
