@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from ._core import current_test
 from ._agent.core import AgentInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
 from ._logs.core import _LibraryStdout, _LibraryDotnetManaged

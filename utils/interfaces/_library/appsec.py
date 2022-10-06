@@ -16,8 +16,8 @@ from utils.interfaces._library.appsec_data import rule_id_to_type
 class _BaseAppSecValidation(BaseValidation):
     path_filters = ["/v0.4/traces", "/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
-    def __init__(self, request, **kwargs):
-        super().__init__(request=request, **kwargs)
+    def __init__(self, request):
+        super().__init__(request=request)
         self.spans = []  # list of (trace_id, span_id): span related to rid
         self.appsec_events = []  # list of all appsec events
 
@@ -120,8 +120,8 @@ class _AppSecValidation(_BaseAppSecValidation):
     * raise an exception => validation will fail
     """
 
-    def __init__(self, request, validator, legacy_validator, is_success_on_expiry=False, **kwargs):
-        super().__init__(request=request, **kwargs)
+    def __init__(self, request, validator, legacy_validator, is_success_on_expiry=False):
+        super().__init__(request=request)
         self.legacy_validator = legacy_validator
         self.validator = validator
         self.is_success_on_expiry = is_success_on_expiry
@@ -150,10 +150,8 @@ class _NoAppsecEvent(_BaseAppSecValidation):
 
 
 class _WafAttack(_BaseAppSecValidation):
-    """ Check that a corresponding appsec trigger has been transmitted. """
-
-    def __init__(self, request, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None, **kwargs):
-        super().__init__(request=request, **kwargs)
+    def __init__(self, request, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None):
+        super().__init__(request=request)
 
         # rule can be a rule id, or a rule type
         if rule is None:
