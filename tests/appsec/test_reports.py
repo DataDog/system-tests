@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import pytest
+
 from utils import (
     BaseTestCase,
     context,
@@ -9,15 +11,13 @@ from utils import (
     interfaces,
     released,
     bug,
-    coverage,
     missing_feature,
     flaky,
     rfc,
     irrelevant,
 )
-import pytest
 
-from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
+from tests.constants import PYTHON_RELEASE_GA_1_1
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -73,7 +73,7 @@ class Test_HttpClientIP(BaseTestCase):
         """ AppSec reports the HTTP request peer IP. """
         headers = {"User-Agent": "Arachni/v1"}
         r = self.weblog_get("/waf/", headers=headers, stream=True)
-        actual_remote_ip = r.raw._connection.sock.getsockname()[0]
+        actual_remote_ip = r.raw._connection.sock.getsockname()[0]  # pylint: disable=protected-access
         r.close()
 
         def legacy_validator(event):

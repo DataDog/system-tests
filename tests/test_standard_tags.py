@@ -22,7 +22,7 @@ class Test_StandardTagsMethod(BaseTestCase):
 
         for verb in verbs:
             data = None
-            if verb == "POST" or verb == "PUT":
+            if verb in ("POST", "PUT"):
                 data = "notmuchofabody"
 
             r = self._weblog_request(verb, "/waf", data=data)
@@ -48,7 +48,7 @@ class Test_StandardTagsUrl(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.url tags"""
 
     def test_url_basic(self):
-        r = self.weblog_get(f"/waf")
+        r = self.weblog_get("/waf")
 
         tags = {
             "http.url": "http://weblog:7777/waf",
@@ -56,7 +56,7 @@ class Test_StandardTagsUrl(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
     def test_url_with_query_string(self):
-        r = self.weblog_get(f"/waf?key1=val1&key2=val2&key3=val3")
+        r = self.weblog_get("/waf?key1=val1&key2=val2&key3=val3")
 
         tags = {
             "http.url": "http://weblog:7777/waf?key1=val1&key2=val2&key3=val3",
@@ -65,24 +65,22 @@ class Test_StandardTagsUrl(BaseTestCase):
 
     def test_url_with_sensitive_query_string(self):
         tests = {
-            "/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3": "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3",
-            "/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3": "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3",
-            "/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934": "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>",
-            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": "http://weblog:7777/waf?json=%7B%20%22<redacted>%7D",
+            "/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3": "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3",  # pylint: disable=line-too-long
+            "/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3": "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3",  # pylint: disable=line-too-long
+            "/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934": "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>",  # pylint: disable=line-too-long
+            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": "http://weblog:7777/waf?json=%7B%20%22<redacted>%7D",  # pylint: disable=line-too-long
         }
 
-        for url in tests:
+        for url, tag in tests.items():
             r = self.weblog_get(url)
 
-            tags = {
-                "http.url": tests[url],
-            }
+            tags = {"http.url": tag}
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
     @bug(library="dotnet", reason="APPSEC-5773")
     def test_multiple_matching_substring(self):
-        url = "/waf?token=03cb9f67dbbc4cb8b966329951e10934&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"
-        tag = "http://weblog:7777/waf?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D"
+        url = "/waf?token=03cb9f67dbbc4cb8b966329951e10934&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D"  # pylint: disable=line-too-long
+        tag = "http://weblog:7777/waf?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D"  # pylint: disable=line-too-long
 
         r = self.weblog_get(url)
         tags = {
@@ -105,7 +103,7 @@ class Test_StandardTagsUserAgent(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
 
     def test_useragent(self):
-        r = self.weblog_get(f"/waf", headers={"user-agent": "Mistake Not ..."})
+        r = self.weblog_get("/waf", headers={"user-agent": "Mistake Not ..."})
 
         # system tests uses user-agent to ad a request id => allow anything at the end
         tags = {"http.useragent": r"Mistake Not \.\.\. .*"}
@@ -128,11 +126,9 @@ class Test_StandardTagsStatusCode(BaseTestCase):
     def test_status_code(self):
         codes = ["200", "403", "404", "500"]
         for code in codes:
-            r = self.weblog_get(f"/status?code=" + code)
+            r = self.weblog_get(f"/status?code={code}")
 
-            tags = {
-                "http.status_code": code,
-            }
+            tags = {"http.status_code": code}
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
@@ -147,7 +143,7 @@ class Test_StandardTagsRoute(BaseTestCase):
         reason="net-http does not handle route parameters",
     )
     def test_route(self):
-        r = self.weblog_get(f"/sample_rate_route/1")
+        r = self.weblog_get("/sample_rate_route/1")
 
         tags = {
             "http.route": "/sample_rate_route/{i}",
