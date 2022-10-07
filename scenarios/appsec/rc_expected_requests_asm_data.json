@@ -35,11 +35,11 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/ASM_DATA/ASM_DATA-base/config",
-				"length": 183,
+				"length": 267,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "bdb8a25fecb9dfef8ee271d40ee9e0645622fea8a3a3de18f106f4e955f04499"
+						"hash": "6bac9cfd57abae1d5e22bf2b0a461d5727dae3ca2b76ad0560a55e2ffebf5a56"
 					}
 				]
 			}

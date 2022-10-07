@@ -19,7 +19,8 @@ with open("scenarios/appsec/rc_expected_requests_asm_data.json") as f:
 class Test_AppSecIPBlocking(BaseTestCase):
     """ A library should block requests from blocked IP addresses. """
 
-    BLOCKED_IPS = ["10.0.0.1"]
+    BLOCKED_IPS = ["10.0.0.1", "10.0.0.2"]
+    NOT_BLOCKED_IPS = ["10.0.0.3"]
     TENTATIVES_PER_IP = 3
 
     request_number = 0
@@ -47,3 +48,12 @@ class Test_AppSecIPBlocking(BaseTestCase):
                 time.sleep(2.0)
             else:
                 raise Exception(f"blocked IP {ip} is not enforced after {self.TENTATIVES_PER_IP} tries")
+
+        for ip in self.NOT_BLOCKED_IPS:
+            for _ in range(self.TENTATIVES_PER_IP):
+                r = self.weblog_get(headers={"X-Forwarded-For": ip})
+                if r.status_code == 200:
+                    break
+                time.sleep(2.0)
+            else:
+                raise Exception(f"{ip} must not be blocked")
