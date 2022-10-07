@@ -6,7 +6,7 @@ import json
 
 
 from scenarios.remote_config.test_remote_configuration import rc_check_request
-from utils import BaseTestCase, context, coverage, interfaces, proxies, released, rfc
+from utils import BaseTestCase, context, coverage, interfaces, proxies, released, rfc, bug
 from utils.tools import logger
 
 with open("scenarios/appsec/rc_expected_requests_asm_data.json") as f:
@@ -39,6 +39,7 @@ class Test_AppSecIPBlocking(BaseTestCase):
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
+    @bug(context.library == "java@0.110.0", reason="default action not implemented")
     def test_blocked_ips(self):
         """ test blocked ips are enforced """
 
