@@ -14,7 +14,7 @@ with open("scenarios/appsec/rc_expected_requests_asm_data.json") as f:
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", java="0.110.0", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.16.0", java="0.110.0", php="?", python="?", ruby="?", nodejs="?", golang="?")
 @coverage.basic
 class Test_AppSecIPBlocking(BaseTestCase):
     """ A library should block requests from blocked IP addresses. """
