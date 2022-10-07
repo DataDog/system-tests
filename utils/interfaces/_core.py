@@ -42,7 +42,7 @@ class InterfaceValidator:
         self._closed.set()
         self.is_success = False
 
-        self.expected_timeout = 0
+        self._minimal_expected_timeout = 0
 
         self.passed = []  # list of passed validation
         self.xpassed = []  # list of passed validation, but it was not expected
@@ -55,6 +55,9 @@ class InterfaceValidator:
 
         # list of request ids that used by this interface
         self.rids = set()
+
+    def get_expected_timeout(self, context):
+        return self._minimal_expected_timeout
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -136,8 +139,7 @@ class InterfaceValidator:
 
         logger.debug(f"{repr(validation)} added in {self}[{len(self._validations)}]")
 
-        if validation.expected_timeout is not None and validation.expected_timeout > self.expected_timeout:
-            self.expected_timeout = validation.expected_timeout
+        self._minimal_expected_timeout = max(self._minimal_expected_timeout, validation.expected_timeout)
 
         try:
             with self._lock:
@@ -210,7 +212,7 @@ class BaseValidation:
             self.message = ""
             self.rid = None
 
-            self.expected_timeout = None
+            self.expected_timeout = 0
             self._closed = threading.Event()
             self._is_success = None
 

@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import pytest
+
 from utils import context, BaseTestCase, interfaces, released, bug, coverage, missing_feature
 from .utils import rules
-import pytest
 
 
 if context.library == "cpp":

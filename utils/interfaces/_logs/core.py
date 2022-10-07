@@ -8,7 +8,7 @@ import re
 import os
 from typing import DefaultDict
 
-from utils import context
+from utils._context.core import context
 from utils.tools import logger
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 
