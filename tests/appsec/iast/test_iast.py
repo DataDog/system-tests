@@ -12,7 +12,7 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
     java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.109.0", "*": "?"},
     nodejs={"express4": "4.0.0pre0", "*": "?"},
     php_appsec="?",
-    python="?",
+    python="1.6.0rc1.dev",
     ruby="?",
     cpp="?",
 )
@@ -23,11 +23,16 @@ class Test_Iast(BaseTestCase):
         EXPECTED_LOCATION = "/usr/app/app.js"
     elif context.library == "java":
         EXPECTED_LOCATION = "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+    elif context.library == "python":
+        EXPECTED_LOCATION = "/iast.py"
     else:
         EXPECTED_LOCATION = ""  # (TBD)
 
     @missing_feature(
         library="java", reason="Need to be implement deduplicate vulnerability hashes and sha1 algorithm detection"
+    )
+    @missing_feature(
+        library="python", reason="Need to be implement deduplicate vulnerability hashes and sha1 algorithm detection"
     )
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
@@ -59,6 +64,7 @@ class Test_Iast(BaseTestCase):
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
 
     @missing_feature(library="java", reason="Need to be implement endpoint")
+    @missing_feature(library="python", reason="Need to be implement endpoint")
     def test_insecure_cipher(self):
         """Test weak cipher algorithm is reported as insecure"""
         r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
@@ -66,6 +72,7 @@ class Test_Iast(BaseTestCase):
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_CIPHER", evidence="des-ede-cbc")
 
     @missing_feature(library="java", reason="Need to be implement endpoint")
+    @missing_feature(library="python", reason="Need to be implement endpoint")
     def test_secure_cipher(self):
         """Test strong cipher algorithm is not reported as insecure"""
         r = self.weblog_get("/iast/insecure_cipher/test_secure_algorithm")

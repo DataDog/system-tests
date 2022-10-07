@@ -3,6 +3,8 @@ import requests
 from ddtrace import tracer
 from flask import Flask, request as flask_request, Response
 
+from iast import weak_hash, secure_algorithm
+
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
@@ -100,4 +102,23 @@ def identify_propagate():
         scope="usr.scope",
         propagate=True,
     )
+    return Response("OK")
+
+
+@app.route("/iast/insecure_hashing/multiple_hash")
+def view_weak_hash_multiple_hash():
+    result = weak_hash()
+    result = weak_hash()
+    return Response("OK")
+
+
+@app.route("/iast/insecure_hashing/test_secure_algorithm")
+def view_weak_hash_secure_algorithm():
+    result = secure_algorithm()
+    return Response("OK")
+
+
+@app.route("/iast/insecure_hashing/test_md5_algorithm")
+def view_weak_hash_md5_algorithm():
+    result = weak_hash()
     return Response("OK")
