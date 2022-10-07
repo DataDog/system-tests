@@ -11,16 +11,13 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
     """
-
     with test_library:
-        http_headers = DistributedHTTPHeaders()
-        http_headers.x_datadog_trace_id_key = "x-datadog-trace-id"
-        http_headers.x_datadog_trace_id_value = "12345"
-        http_headers.x_datadog_parent_id_key = "x-datadog-parent-id"
-        http_headers.x_datadog_parent_id_value = "123"
+        distributed_message = DistributedHTTPHeaders()
+        distributed_message.http_headers["x-datadog-trace-id"] = "12345"
+        distributed_message.http_headers["x-datadog-parent-id"] = "123"
 
         with test_library.start_span(
-            name="name", service="service", resource="resource", origin="synthetics", http_headers=http_headers
+            name="name", service="service", resource="resource", origin="synthetics", http_headers=distributed_message
         ) as span:
             span.set_meta(key="http.status_code", val="200")
 
@@ -37,12 +34,11 @@ def test_distributed_headers_inject_datadog(test_agent, test_library):
     """
     with test_library:
         with test_library.start_span(name="name") as span:
-            headers = test_library.inject_headers()
-
+            headers = test_library.inject_headers().http_headers.http_headers
     span = get_span(test_agent)
-    assert span.get("trace_id") == int(headers.http_headers.x_datadog_trace_id_value)
-    assert span.get("span_id") == int(headers.http_headers.x_datadog_parent_id_value)
-    assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == int(headers.http_headers.x_datadog_sampling_priority_value)
+    assert span.get("trace_id") == int(headers["x-datadog-trace-id"])
+    assert span.get("span_id") == int(headers["x-datadog-parent-id"])
+    assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == int(headers["x-datadog-sampling-priority"])
 
 
 @pytest.mark.skip("needs to be implemented by tracers and test needs to adhere to RFC")

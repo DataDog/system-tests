@@ -23,14 +23,7 @@ message StartSpanArgs {
 }
 
 message DistributedHTTPHeaders {
-  optional string x_datadog_trace_id_key = 1;
-  optional string x_datadog_trace_id_value = 2;
-  optional string x_datadog_parent_id_key = 3;
-  optional string x_datadog_parent_id_value = 4;
-  optional string x_datadog_sampling_priority_key = 5;
-  optional string x_datadog_sampling_priority_value = 6;
-  optional string traceparent_key = 7;
-  optional string traceparent_value = 8;
+    map<string, string> http_headers = 9;
 }
 
 message StartSpanReturn {

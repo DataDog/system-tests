@@ -32,12 +32,8 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
 
         if request.http_headers.ByteSize() > 0:
-            parent = HTTPPropagator.extract({
-                request.http_headers.x_datadog_trace_id_key: request.http_headers.x_datadog_trace_id_value,
-                request.http_headers.x_datadog_parent_id_key: request.http_headers.x_datadog_parent_id_value,
-                request.http_headers.x_datadog_sampling_priority_key: request.http_headers.x_datadog_sampling_priority_value,
-                request.http_headers.traceparent_key: request.http_headers.traceparent_value,
-            })
+            headers = dict(request.http_headers.http_headers)
+            parent = HTTPPropagator.extract(headers)
 
         span = ddtrace.tracer.start_span(
             request.name,
@@ -59,14 +55,8 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         distrib_headers = apm_test_client_pb2.DistributedHTTPHeaders()
 
         if headers["x-datadog-trace-id"]:
-            distrib_headers.x_datadog_trace_id_key = "x-datadog-trace-id"
-            distrib_headers.x_datadog_trace_id_value = headers["x-datadog-trace-id"]
-            
-            distrib_headers.x_datadog_parent_id_key = "x-datadog-parent-id"
-            distrib_headers.x_datadog_parent_id_value = headers["x-datadog-parent-id"]
-            
-            distrib_headers.x_datadog_sampling_priority_key = "x-datadog-sampling-priority"
-            distrib_headers.x_datadog_sampling_priority_value = headers["x-datadog-sampling-priority"]
+            for k,v in headers.items():
+                distrib_headers.http_headers[k] = v
 
         return apm_test_client_pb2.InjectHeadersReturn(
            http_headers=distrib_headers,
