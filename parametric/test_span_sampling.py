@@ -5,7 +5,6 @@ from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
 from parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from parametric.spec.trace import MANUAL_DROP_KEY
-from parametric.spec.trace import MANUAL_KEEP_KEY
 from parametric.spec.trace import USER_KEEP
 import time
 from .conftest import APMLibrary
