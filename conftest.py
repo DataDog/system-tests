@@ -16,6 +16,8 @@ from os.path import exists
 import pytest
 import json
 import xml.etree.ElementTree as ET
+from operator import attrgetter
+
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -448,6 +450,9 @@ def _pytest_junit_modifyreport():
         ts_props = ET.SubElement(testsuite, "properties")
         _create_junit_testsuite_context(ts_props)
         _create_junit_testsuite_summary(ts_props, json_report["summary"])
+        # I must to order tags: the tags at suite level only work if they come up in the file before the testcase elements.
+        # This is because we need to parse the XMLs incrementally we don't load all the tests in memory or we would have to limit the number of supported tests per file.
+        testsuite[:] = sorted(testsuite, key=attrgetter("tag"))
 
     junit_report.write("logs/reportJunit.xml")
 
@@ -554,7 +559,7 @@ def _create_testcase_results(
                 ET.SubElement(
                     tc_props,
                     "property",
-                    name=f"dd_tags[systest1.case.release.library.{library_name}]",
+                    name=f"dd_tags[systest.case.release.library.{library_name}]",
                     value=f"{test_release[library_name]}",
                 )
     else:
