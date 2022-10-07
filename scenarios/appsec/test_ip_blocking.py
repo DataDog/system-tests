@@ -25,10 +25,10 @@ class Test_AppSecIPBlocking(BaseTestCase):
 
     request_number = 0
 
-    def test_blocked_ips(self):
-        """ test blocked ips are enforced """
+    def test_rc_protocol(self):
+        """ test sequence of remote config messages """
 
-        def validate_rc_protocol(data):
+        def validate(data):
 
             if self.request_number >= len(EXPECTED_REQUESTS):
                 return True
@@ -37,23 +37,26 @@ class Test_AppSecIPBlocking(BaseTestCase):
             rc_check_request(data, EXPECTED_REQUESTS[self.request_number], caching=True)
             self.request_number += 1
 
-        interfaces.library.add_remote_configuration_validation(validator=validate_rc_protocol)
+        interfaces.library.add_remote_configuration_validation(validator=validate)
+
+    def test_blocked_ips(self):
+        """ test blocked ips are enforced """
 
         for ip in self.BLOCKED_IPS:
+            r = None
             for _ in range(self.TENTATIVES_PER_IP):
                 r = self.weblog_get(headers={"X-Forwarded-For": ip})
                 if r.status_code == 403:
                     interfaces.library.assert_waf_attack(r, rule="blk-001-001")
                     break
                 time.sleep(2.0)
-            else:
-                raise Exception(f"blocked IP {ip} is not enforced after {self.TENTATIVES_PER_IP} tries")
+            interfaces.library.add_assertion(r.status_code == 403)
 
         for ip in self.NOT_BLOCKED_IPS:
+            r = None
             for _ in range(self.TENTATIVES_PER_IP):
                 r = self.weblog_get(headers={"X-Forwarded-For": ip})
                 if r.status_code == 200:
                     break
                 time.sleep(2.0)
-            else:
-                raise Exception(f"{ip} must not be blocked")
+            interfaces.library.add_assertion(r.status_code == 200)
