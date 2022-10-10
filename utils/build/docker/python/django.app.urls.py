@@ -1,9 +1,8 @@
 # pages/urls.py
-from django.urls import path
-from django.http import HttpResponse
 from ddtrace import tracer
-
-from iast import weak_hash, secure_algorithm
+from django.http import HttpResponse
+from django.urls import path
+from iast import secure_algorithm, weak_hash
 
 try:
     from ddtrace.contrib.trace_utils import set_user

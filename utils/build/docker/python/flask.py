@@ -1,9 +1,8 @@
 import requests
-
 from ddtrace import tracer
-from flask import Flask, request as flask_request, Response
-
-from iast import weak_hash, secure_algorithm
+from flask import Flask, Response
+from flask import request as flask_request
+from iast import secure_algorithm, weak_hash
 
 try:
     from ddtrace.contrib.trace_utils import set_user
