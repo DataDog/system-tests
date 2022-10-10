@@ -1,3 +1,4 @@
 * @cbeauchesne
 * @DataDog/system-tests-core
 /utils/build/docker/golang/* @DataDog/appsec-go
+/parametric/* @Kyle-Verhoog 

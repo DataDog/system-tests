@@ -48,14 +48,14 @@ def deserialize_http_message(path, message, data, interface, key):
     if interface == "library" and key == "response" and path == "/info":
         return json.loads(data)
 
-    if content_type == "application/msgpack" or content_type == "application/msgpack, application/msgpack":
+    if content_type in ("application/msgpack", "application/msgpack, application/msgpack"):
         result = msgpack.unpackb(data, unicode_errors="replace")
 
         if interface == "library" and path == "/v0.4/traces":
             for span in (span for trace in result for span in trace):
-                for key in ("trace_id", "parent_id", "span_id"):
-                    if key in span.keys():
-                        span[key] = parse_as_unsigned_int(span[key], 64)
+                for sub_key in ("trace_id", "parent_id", "span_id"):
+                    if sub_key in span.keys():
+                        span[sub_key] = parse_as_unsigned_int(span[sub_key], 64)
 
         _convert_bytes_values(result)
 

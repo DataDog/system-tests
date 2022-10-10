@@ -31,6 +31,7 @@ class Test_Library(BaseTestCase):
                 r"'protocol_version' is a required property on instance ",
             )
         elif context.library == "java":
+            # pylint: disable=line-too-long
             allowed_errors = (
                 r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
                 r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
@@ -65,6 +66,7 @@ class Test_Agent(BaseTestCase):
                 r"'protocol_version' is a required property on instance ",
             )
         elif context.library == "java":
+            # pylint: disable=line-too-long
             allowed_errors = (
                 r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
                 r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",

@@ -45,7 +45,7 @@ class AppSecValidation(_BaseAppSecValidation):
 
         for payload, chunk, span, appsec_data in self._get_related_events(data):
             try:
-                if self.validate(payload, chunk, span, appsec_data):
+                if self.validator(payload, chunk, span, appsec_data):
                     self.log_debug(f"{self} is validated by {log_filename}")
                     self.is_success_on_expiry = True
             except Exception as e:

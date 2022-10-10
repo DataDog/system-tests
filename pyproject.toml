@@ -32,6 +32,17 @@ disable = [
     "too-many-arguments",
     "too-many-branches,",
     "bare-except",
-    "too-many-instance-attributes"
+    "too-many-instance-attributes",
+    "too-many-locals",
+    "too-many-public-methods",
+    "too-many-nested-blocks",
+    "too-many-return-statements",
+    "duplicate-code",
+    "abstract-method",
+    "inconsistent-return-statements", # because lot of validator function returns nothing
+    "unused-argument", # pain, as there are some function that MUST have a prototype. TODO...
 ]
 ignore = "utils/test_the_test"
+generated-members = [
+    ".*(self|app)\\.logger\\..*"
+]

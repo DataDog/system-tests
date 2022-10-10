@@ -1,34 +1,99 @@
 # APM library parametric tests
 
-The test fixtures in this submodule allow features of the APM libraries to be easily parameterized while still targeting
-each of the libraries.
+The tests in this submodule target a shared interface so that **all** the APM libraries can be tested with a single test case.
+
+This enables us to write unit/integration-style test cases that can be shared.
 
 Example:
 
 ```python
-@all_libs()
-@pytest.mark.parametrize("apm_test_server_env", [
-    {
-        "DD_SERVICE": "svc1",
-    },
-    {
-        "DD_SERVICE": "svc2",
-    }
-])
-def test_the_suite(apm_test_server_env: Dict[str, str], test_agent: TestAgentAPI, test_client: _TestTracer):
-    with test_client:
-        with test_client.start_span(name="web.request", resource="/users") as span:
-            span.set_meta("mytag", "value")
+@parametrize("library_env", [{"DD_ENV": "prod"}, {"DD_ENV": "dev"}])
+def test_tracer_env_environment_variable(library_env, test_library, test_agent):
+  with test_library:
+    with test_library.start_span("operation"):
+      pass
 
-    traces = test_agent.traces()
-    assert traces[0][0]["meta"]["mytag"] == "value"
-    assert traces[0][0]["service"] == apm_test_server_env["DD_SERVICE"]
+  traces = test_agent.traces()
+  trace = find_trace_by_root(traces, Span(name="operation"))
+  assert len(trace) == 1
+
+  span = find_span(trace, Span(name="operation"))
+  assert span["name"] == "operation"
+  assert span["meta"]["env"] == library_env["DD_ENV"]
 ```
 
-- This test case runs against all the APM libraries (`all_libs()`) and is parameterized with two different environments specifying two different values of the environment variable `DD_SERVICE`.
-- The test case creates a new root span and sets a tag on it using the shared GRPC interface.
-- Data is flushed to the test agent after the with test_client block closes.
+- This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
+- The test case creates a new span and sets a tag on it using the shared GRPC interface.
+- Data is flushed to the test agent after the with test_library block closes.
 - Data is retrieved using the `test_agent` fixture and asserted on.
+
+
+## Usage
+
+
+### Installation
+
+The following dependencies are required to run the tests locally:
+
+- Docker
+- Python >= 3.7
+
+then, create a Python virtual environment and install the Python dependencies:
+
+```sh
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+
+### Running the tests
+
+Run all the tests:
+
+```sh
+./run.sh
+```
+
+Run a specific test (`test_metrics_msgpack_serialization_TS001`) against multiple libraries (`dotnet`, `golang`):
+
+```sh
+CLIENTS_ENABLED=dotnet,golang ./run.sh -k test_metrics_msgpack_serialization_TS001
+```
+
+
+Run all tests matching pattern
+
+```sh
+CLIENTS_ENABLED=dotnet,golang ./run.sh -k test_metrics_
+```
+
+
+Run all tests from a file
+
+```sh
+CLIENTS_ENABLED=dotnet,golang ./run.sh test_span_sampling.py
+```
+
+
+Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
+
+
+### Debugging 
+
+The stdout and stderr logs of the test run will include the output from the library server and the test agent container.
+These can be used to debug the test case.
+
+The output also contains the commands used to build and run the containers which can be run manually to debug the issue
+further.
+
+
+## Troubleshooting
+
+- Ensure docker is running.
+- Exiting the tests abruptly maybe leave some docker containers running. Use `docker ps` to find and `docker kill` any
+  containers that may still be running.
+
 
 ## Implementation
 
@@ -57,25 +122,3 @@ Test cases are written in Python and target the shared GRPC interface. The tests
 
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
-
-
-## Local Development
-
-### Requirements
-- docker
-- protobuf
-- Python >= 3.7
-
-### Running the Tests
-
-In the root of the system-tests repo, run the following:
-
-(Note that `parametric/run.sh` explicitly ignores the root `conftest.py`, otherwise the root `conftest.py` will interfere with the parametric tests.)
-
-```bash
-cd parametric
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-CLIENTS_ENABLED=<client_language> ./run.sh
-```
