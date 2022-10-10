@@ -19,8 +19,8 @@ with open("scenarios/appsec/rc_expected_requests_asm_data.json") as f:
 class Test_AppSecIPBlocking(BaseTestCase):
     """ A library should block requests from blocked IP addresses. """
 
-    BLOCKED_IPS = ["10.0.0.1", "10.0.0.2"]
-    NOT_BLOCKED_IPS = ["10.0.0.3"]
+    BLOCKED_IPS = ["42.42.42.1", "42.42.42.2"]
+    NOT_BLOCKED_IPS = ["42.42.42.3"]
     TENTATIVES_PER_IP = 3
 
     request_number = 0
