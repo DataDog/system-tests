@@ -62,18 +62,18 @@ def identify_propagate(request):
     return HttpResponse("OK")
 
 
-def view_weak_hash_multiple_hash():
+def view_weak_hash_multiple_hash(request):
     result = weak_hash()
     result = weak_hash()
     return HttpResponse("OK")
 
 
-def view_weak_hash_secure_algorithm():
+def view_weak_hash_secure_algorithm(request):
     result = secure_algorithm()
     return HttpResponse("OK")
 
 
-def view_weak_hash_md5_algorithm():
+def view_weak_hash_md5_algorithm(request):
     result = weak_hash()
     return HttpResponse("OK")
 
@@ -91,5 +91,5 @@ urlpatterns = [
     path("identify-propagate", identify_propagate),
     path("iast/insecure_hashing/multiple_hash", view_weak_hash_multiple_hash),
     path("iast/insecure_hashing/test_secure_algorithm", view_weak_hash_secure_algorithm),
-    path("iast/iast/insecure_hashing/test_md5_algorithm", view_weak_hash_md5_algorithm),
+    path("iast/insecure_hashing/test_md5_algorithm", view_weak_hash_md5_algorithm),
 ]
