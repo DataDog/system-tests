@@ -132,7 +132,7 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="?", ruby="?")
+@released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0rc1.dev", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
@@ -156,6 +156,9 @@ class Test_StandardTagsRoute(BaseTestCase):
             tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
+        if context.library == "python":
+            if context.weblog_variant == "flask":
+                tags["http.route"] = "/sample_rate_route/<i>"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
