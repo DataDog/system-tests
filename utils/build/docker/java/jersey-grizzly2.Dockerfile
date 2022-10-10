@@ -5,14 +5,14 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-
 COPY ./utils/build/docker/java/jersey-grizzly2/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/jersey-grizzly2/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
+
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
 
 FROM adoptopenjdk:11-jre-hotspot
 
