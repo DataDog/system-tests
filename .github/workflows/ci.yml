@@ -540,7 +540,7 @@ jobs:
           path: artifact.tar.gz
 
       - name: Upload results CI Visibility
-        run: ./utils/scripts/upload_results_CI_visibility.sh
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} ${{ matrix.library }} ${{ matrix.weblog-variant }}
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
           
