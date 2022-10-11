@@ -543,7 +543,7 @@ jobs:
       - name: Upload results CI Visibility
         run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} ${{ matrix.library }} ${{ matrix.weblog-variant }}
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
           
       - name: Print fancy log report
         if: ${{ always() }}

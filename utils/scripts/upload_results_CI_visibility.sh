@@ -12,7 +12,7 @@ fi
 
 export DD_CIVISIBILITY_LOGS_ENABLED='1'
 export DD_CIVISIBILITY_AGENTLESS_ENABLED='1'
-export DD_SITE=datad0g.com
+export DD_SITE=datadoghq.com
 
 #Download tool
 curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "$(pwd)/datadog-ci" && chmod +x $(pwd)/datadog-ci
