@@ -447,9 +447,9 @@ def _pytest_junit_modifyreport():
         )
 
     for testsuite in junit_report_root.findall("testsuite"):
-        #Test suite name will be the scanario name
-        testsuite.set("name", os.environ.get('SYSTEMTESTS_SCENARIO'))
-        #New properties node to add our custom tags
+        # Test suite name will be the scanario name
+        testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO"))
+        # New properties node to add our custom tags
         ts_props = ET.SubElement(testsuite, "properties")
         _create_junit_testsuite_context(ts_props)
         _create_junit_testsuite_summary(ts_props, json_report["summary"])
