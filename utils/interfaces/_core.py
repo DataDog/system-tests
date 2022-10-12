@@ -35,6 +35,9 @@ class InterfaceValidator:
 
         self.message_counter = 0
 
+        self._wait_for_event = threading.Event()
+        self._wait_for_function = None
+
         self._lock = threading.RLock()
         self._validations = []
         self._data_list = []
@@ -173,6 +176,9 @@ class InterfaceValidator:
 
             self._data_list.append(data)
 
+            if self._wait_for_function and self._wait_for_function(data):
+                self._wait_for_event.set()
+
         except Exception as e:
             self.system_test_error = e
             raise
@@ -189,6 +195,26 @@ class InterfaceValidator:
 
     def add_final_validation(self, validator):
         self.append_validation(_FinalValidation(validator))
+
+    def wait_for(self, wait_for_function, timeout):
+
+        # first, try existing data
+        with self._lock:
+            for data in self._data_list:
+                if wait_for_function(data):
+                    return
+
+            # then set the lock, and wait for append_data to release it
+            self._wait_for_event.clear()
+            self._wait_for_function = wait_for_function
+
+        # release the main lock, and sleep !
+        if self._wait_for_event.wait(timeout):
+            logger.info(f"wait for {wait_for_function} finished in success")
+        else:
+            logger.error(f"Wait for {wait_for_function} finished in error")
+
+        self._wait_for_function = None
 
 
 class ObjectDumpEncoder(json.JSONEncoder):

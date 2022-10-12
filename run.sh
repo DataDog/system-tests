@@ -130,7 +130,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "BACKEND_WAF" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_ip_blocking.py::Test_AppSecIPBlocking"
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_mocked_backend_asm_data
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_ip_blocking
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_FEATURES" ]; then
