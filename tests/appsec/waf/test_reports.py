@@ -7,7 +7,7 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage
+from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage, bug
 
 
 if context.library == "cpp":
@@ -29,6 +29,7 @@ class Test_Monitoring(BaseTestCase):
 
     expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
 
+    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_waf_monitoring(self):
         """WAF monitoring span tags and metrics are expected to be sent on each request"""
 
