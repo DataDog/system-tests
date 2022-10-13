@@ -1,4 +1,5 @@
 venv/
 .git/
+.vscode/
 vendor
 logs
