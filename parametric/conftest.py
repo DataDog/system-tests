@@ -108,6 +108,7 @@ def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("apps", "nodejs")
     nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
     nodejs_reldir = os.path.join("parametric", nodejs_appdir)
+    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
         container_name="node-test-client",
@@ -119,6 +120,7 @@ COPY {nodejs_reldir}/package.json /client/
 COPY {nodejs_reldir}/package-lock.json /client/
 COPY {nodejs_reldir}/*.js /client/
 RUN npm install
+RUN npm install {node_module}
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_dir,
