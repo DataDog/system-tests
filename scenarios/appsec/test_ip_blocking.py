@@ -18,6 +18,7 @@ class Test_AppSecIPBlocking(BaseTestCase):
     """A library should block requests from blocked IP addresses."""
 
     request_number = 0
+    remote_config_is_sent = False
 
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
@@ -40,17 +41,27 @@ class Test_AppSecIPBlocking(BaseTestCase):
         BLOCKED_IPS = ["42.42.42.1", "42.42.42.2"]
         NOT_BLOCKED_IPS = ["42.42.42.3"]
 
-        def remote_config_is_sent(data):
+        def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":
                 if "client_configs" in data.get("response", {}).get("content", {}):
+                    self.remote_config_is_sent = True
                     return True
 
             return False
 
-        # Probably a race condition here. We should wait for an explicit signal from the tracer
-        # that the config has been applied. Otherwise, if applying the config take a while,
-        # this test may be flacky
-        interfaces.library.wait_for(remote_config_is_sent, timeout=30)
+        def remote_config_is_applied(data):
+            if data["path"] == "/v0.7/config" and self.remote_config_is_sent:
+                if "config_states" in data.get("request", {}).get("content", {}).get("client", {}).get("state", {}):
+                    config_states = data["request"]["content"]["client"]["state"]["config_states"]
+
+                    for state in config_states:
+                        if state["id"] == "ASM_DATA-base":
+                            return True
+
+            return False
+
+        interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
+        interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
         for ip in BLOCKED_IPS:
             r = self.weblog_get(headers={"X-Forwarded-For": ip})
