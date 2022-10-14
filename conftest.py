@@ -566,8 +566,12 @@ def _create_testcase_results(
                     value=f"{test_release[library_name]}",
                 )
         if outcome == "failed":
-            tc_failure = ET.SubElement(testcase, "failure")
-            tc_failure.text = "failed test"
+            if bool(skip_reason):
+                tc_skipped = ET.SubElement(testcase, "skipped")
+                tc_skipped.text = skip_reason
+            else:
+                tc_failure = ET.SubElement(testcase, "failure")
+                tc_failure.text = "failed test"
 
     else:
         logger.error(f"Not found in Junit xml report. Test class:{testclass_name} and test case name:{testcase_name}")
