@@ -10,11 +10,9 @@ import threading
 
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
-from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
+from utils.interfaces._profiling import _ProfilingFieldAssertion
 from utils.interfaces._agent.appsec import AppSecValidation
-from utils.interfaces._agent.telemetry import _TelemetryValidation
 from utils.interfaces._misc_validators import HeadersPresenceValidation, HeadersMatchValidation
-from utils.tools import m
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -44,7 +42,7 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.append_validation(_MetricExistence(metric_name))
 
     def add_profiling_validation(self, validator):
-        self.append_validation(_ProfilingValidation(validator))
+        self.add_validation(validator, path_filters="/api/v2/profile")
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
@@ -61,10 +59,14 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.append_validation(HeadersMatchValidation(path_filter, request_headers, response_headers, check_condition))
 
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
-        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+        self.add_validation(
+            validator=validator, is_success_on_expiry=is_success_on_expiry, path_filters="/api/v2/apmtelemetry"
+        )
 
     def add_traces_validation(self, validator, is_success_on_expiry=False):
-        self.append_validation(_TracesValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+        self.add_validation(
+            validator=validator, is_success_on_expiry=is_success_on_expiry, path_filters=r"/api/v0\.[1-9]+/traces"
+        )
 
 
 class _UseDomain(BaseValidation):
@@ -94,26 +96,3 @@ class _MetricExistence(BaseValidation):
                 if "metrics" in span and self.metric_name in span["metrics"]:
                     self.set_status(True)
                     break
-
-
-class _TracesValidation(BaseValidation):
-    """will run an arbitrary check on traces. Validator function can :
-    * returns true => validation will be validated at the end (but trace will continue to be checked)
-    * returns False or None => nothing is done
-    * raise an exception => validation will fail
-    """
-
-    path_filters = r"/api/v0\.[1-9]+/traces"
-
-    def __init__(self, validator, is_success_on_expiry):
-        super().__init__()
-        self.is_success_on_expiry = is_success_on_expiry
-        self.validator = validator
-
-    def check(self, data):
-        try:
-            if self.validator(data):
-                self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
-                self.is_success_on_expiry = True
-        except Exception as exc:
-            self.set_failure(exception=exc, data=data, extra_info=data)
