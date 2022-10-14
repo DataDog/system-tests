@@ -35,7 +35,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_count=1, vulnerability_type="WEAK_HASHhhhhhh", location_path=self.EXPECTED_LOCATION
+            r, vulnerability_count=1, vulnerability_type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
         )
 
     def test_insecure_hash_multiple(self):
