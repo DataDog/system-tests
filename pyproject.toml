@@ -23,6 +23,7 @@ markers =[
 ]
 
 [tool.pylint]
+init-hook='import sys; sys.path.append(".")'
 max-line-length = 120
 disable = [
     "missing-module-docstring",

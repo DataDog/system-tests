@@ -190,6 +190,9 @@ class InterfaceValidator:
     def add_final_validation(self, validator):
         self.append_validation(_FinalValidation(validator))
 
+    def add_validation(self, validator, is_success_on_expiry=False):
+        self.append_validation(_Validation(validator, is_success_on_expiry=is_success_on_expiry))
+
 
 class ObjectDumpEncoder(json.JSONEncoder):
     def default(self, o):
@@ -388,6 +391,29 @@ class _StaticValidation(BaseValidation):
 
     def check(self, data):
         pass
+
+
+class _Validation(BaseValidation):
+    """will run an arbitrary check on data.
+
+    Validator function can :
+    * returns true => validation will be validated at the end (but other will also be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
+    """
+
+    def __init__(self, validator, is_success_on_expiry):
+        super().__init__()
+        self.validator = validator
+        self.is_success_on_expiry = is_success_on_expiry
+
+    def check(self, data):
+        try:
+            if self.validator(data):
+                self.log_debug(f"{self} is validated by {data['log_filename']}")
+                self.is_success_on_expiry = True
+        except Exception as e:
+            self.set_failure(exception=e, data=data)
 
 
 class _FinalValidation(BaseValidation):
