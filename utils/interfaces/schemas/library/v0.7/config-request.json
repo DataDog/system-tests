@@ -4,7 +4,7 @@
   "required": ["client"],
   "properties": {
     "client": {
-      "required": ["id", "state", "is_tracer", "products", "client_tracer"],
+      "required": ["id", "state", "is_tracer", "client_tracer"],
       "properties": {
         "id": { "$ref": "#/definitions/non-empty-string" },
         "is_tracer": {
