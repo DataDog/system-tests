@@ -42,7 +42,7 @@ class InterfaceValidator:
         self._closed.set()
         self.is_success = False
 
-        self.expected_timeout = 0
+        self._minimal_expected_timeout = 0
 
         self.passed = []  # list of passed validation
         self.xpassed = []  # list of passed validation, but it was not expected
@@ -55,6 +55,9 @@ class InterfaceValidator:
 
         # list of request ids that used by this interface
         self.rids = set()
+
+    def get_expected_timeout(self, context):
+        return self._minimal_expected_timeout
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -124,6 +127,7 @@ class InterfaceValidator:
     def closed(self):
         return self._closed.is_set()
 
+    # TODO: rename, and make it private
     def append_validation(self, validation):
         if self.system_test_error is not None:
             return
@@ -136,8 +140,7 @@ class InterfaceValidator:
 
         logger.debug(f"{repr(validation)} added in {self}[{len(self._validations)}]")
 
-        if validation.expected_timeout is not None and validation.expected_timeout > self.expected_timeout:
-            self.expected_timeout = validation.expected_timeout
+        self._minimal_expected_timeout = max(self._minimal_expected_timeout, validation.expected_timeout)
 
         try:
             with self._lock:
@@ -188,6 +191,11 @@ class InterfaceValidator:
     def add_final_validation(self, validator):
         self.append_validation(_FinalValidation(validator))
 
+    def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
+        self.append_validation(
+            _Validation(validator, is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
+        )
+
 
 class ObjectDumpEncoder(json.JSONEncoder):
     def default(self, o):
@@ -204,15 +212,18 @@ class BaseValidation:
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
 
-    def __init__(self, request=None, path_filters=None):
+    def __init__(self, request=None, is_success_on_expiry=None, path_filters=None):
         try:
             # keep this two mumber on top, it's used in repr
             self.message = ""
             self.rid = None
 
-            self.expected_timeout = None
+            self.expected_timeout = 0
             self._closed = threading.Event()
             self._is_success = None
+
+            if is_success_on_expiry is not None:
+                self.is_success_on_expiry = is_success_on_expiry
 
             if path_filters is not None:
                 self.path_filters = path_filters
@@ -386,6 +397,28 @@ class _StaticValidation(BaseValidation):
 
     def check(self, data):
         pass
+
+
+class _Validation(BaseValidation):
+    """will run an arbitrary check on data.
+
+    Validator function can :
+    * returns true => validation will be validated at the end (but other will also be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
+    """
+
+    def __init__(self, validator, is_success_on_expiry=None, path_filters=None):
+        super().__init__(is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
+        self.validator = validator
+
+    def check(self, data):
+        try:
+            if self.validator(data):
+                self.log_debug(f"{self} is validated by {data['log_filename']}")
+                self.is_success_on_expiry = True
+        except Exception as e:
+            self.set_failure(exception=e, data=data)
 
 
 class _FinalValidation(BaseValidation):

@@ -12,6 +12,9 @@ class _RequestExtractor(HTMLParser):
         self.base_url = None
         self.request = None
 
+    def error(self, message):
+        pass
+
     def handle_endtag(self, tag):
         if tag == "form":
             self.callback(self.request)
@@ -20,16 +23,18 @@ class _RequestExtractor(HTMLParser):
     def handle_starttag(self, tag, attrs):
         def get_path(url_or_path):
             if not url_or_path:
-                return
+                return None
+
             if url_or_path.startswith("/"):
                 return url_or_path
-            elif url_or_path.startswith(self.base_url):
+
+            if url_or_path.startswith(self.base_url):
                 return url_or_path.replace(self.base_url, "")
-            else:
-                return
+
+            return None
 
         if tag == "form":
-            attrs = {k: v for k, v in attrs}
+            attrs = dict(attrs)
             self.request = {
                 "method": attrs["method"],
                 "path": get_path(attrs.get("action", "/")),
@@ -37,7 +42,7 @@ class _RequestExtractor(HTMLParser):
             }
 
         elif tag == "input" and self.request:
-            attrs = {k: v for k, v in attrs}
+            attrs = dict(attrs)
 
             name = attrs.get("id", attrs.get("name", None))
             if name:

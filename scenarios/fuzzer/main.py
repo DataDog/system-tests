@@ -5,7 +5,7 @@
 import random
 import argparse
 
-from utils import data_collector, context
+from utils import data_collector
 from utils.tools import get_logger
 
 from scenarios.fuzzer.core import Fuzzer
@@ -52,7 +52,6 @@ def main():
         corpus=args.corpus,
         no_mutation=args.no_mutation,
         base_url=f"{args.url}:{args.port}",
-        port=args.port,
         seed=args.seed,
         report_frequency=args.report_frequency,
         max_tasks=args.concurrent,

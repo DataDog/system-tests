@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature
+from utils import BaseTestCase, interfaces, missing_feature
 
 
 @missing_feature(True, reason="Need to build endpoint on weblog")

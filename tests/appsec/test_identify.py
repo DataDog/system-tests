@@ -2,12 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import base64
-
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, context, coverage, interfaces, released
+from utils import BaseTestCase, context, coverage, interfaces, released, bug
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -20,6 +18,7 @@ if context.library == "cpp":
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK for AppSec"""
 
+    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
 
