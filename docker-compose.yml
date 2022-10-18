@@ -105,6 +105,7 @@ services:
       start_period: 5s
       retries: 25
     environment:
+      - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY
       - DD_APPLICATION_KEY=${DD_APPLICATION_KEY:-}
       - COLUMNS=${COLUMNS:-120}
