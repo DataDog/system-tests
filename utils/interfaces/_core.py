@@ -127,6 +127,7 @@ class InterfaceValidator:
     def closed(self):
         return self._closed.is_set()
 
+    # TODO: rename, and make it private
     def append_validation(self, validation):
         if self.system_test_error is not None:
             return
@@ -190,8 +191,10 @@ class InterfaceValidator:
     def add_final_validation(self, validator):
         self.append_validation(_FinalValidation(validator))
 
-    def add_validation(self, validator, is_success_on_expiry=False):
-        self.append_validation(_Validation(validator, is_success_on_expiry=is_success_on_expiry))
+    def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
+        self.append_validation(
+            _Validation(validator, is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
+        )
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -209,7 +212,7 @@ class BaseValidation:
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
 
-    def __init__(self, request=None, path_filters=None):
+    def __init__(self, request=None, is_success_on_expiry=None, path_filters=None):
         try:
             # keep this two mumber on top, it's used in repr
             self.message = ""
@@ -218,6 +221,9 @@ class BaseValidation:
             self.expected_timeout = 0
             self._closed = threading.Event()
             self._is_success = None
+
+            if is_success_on_expiry is not None:
+                self.is_success_on_expiry = is_success_on_expiry
 
             if path_filters is not None:
                 self.path_filters = path_filters
@@ -402,10 +408,9 @@ class _Validation(BaseValidation):
     * raise an exception => validation will fail
     """
 
-    def __init__(self, validator, is_success_on_expiry):
-        super().__init__()
+    def __init__(self, validator, is_success_on_expiry=None, path_filters=None):
+        super().__init__(is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
         self.validator = validator
-        self.is_success_on_expiry = is_success_on_expiry
 
     def check(self, data):
         try:

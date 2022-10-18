@@ -49,5 +49,4 @@ class AppSecValidation(_BaseAppSecValidation):
                     self.log_debug(f"{self} is validated by {log_filename}")
                     self.is_success_on_expiry = True
             except Exception as e:
-                msg = traceback.format_exception_only(type(e), e)[0]
-                self.set_failure(f"{m(self.message)} not validated on {log_filename}: {msg}")
+                self.set_failure(exception=e, data=data, extra_info=span)
