@@ -159,6 +159,36 @@ elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_trace_propagation_style_w3c
     WEBLOG_ENV="DD_TRACE_PROPAGATION_STYLE_INJECT=W3C\nDD_TRACE_PROPAGATION_STYLE_EXTRACT=W3C"
 
+elif [ $SYSTEMTESTS_SCENARIO = "HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_ENABLED" ]; then
+    export RUNNER_ARGS="scenarios/test_client_ip.py::Test_StandardTagsClientIp::test_is_reported"
+    export SYSTEMTESTS_LOG_FOLDER=logs_http_client_ip_appsec_disabled_client_ip_enabled
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false\nDD_TRACE_CLIENT_IP_HEADER_DISABLED=false"
+
+elif [ $SYSTEMTESTS_SCENARIO = "HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_DISABLED" ]; then
+    export RUNNER_ARGS="scenarios/test_client_ip.py::Test_StandardTagsClientIp::test_is_not_reported"
+    export SYSTEMTESTS_LOG_FOLDER=logs_http_client_ip_appsec_disabled_client_ip_disabled
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false\nDD_TRACE_CLIENT_IP_HEADER_DISABLED=true"
+
+elif [ $SYSTEMTESTS_SCENARIO = "HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_UNSET" ]; then
+    export RUNNER_ARGS="scenarios/test_client_ip.py::Test_StandardTagsClientIp::test_is_not_reported"
+    export SYSTEMTESTS_LOG_FOLDER=logs_http_client_ip_appsec_disabled_client_ip_unset
+    WEBLOG_ENV="DD_APPSEC_ENABLED=false"
+
+elif [ $SYSTEMTESTS_SCENARIO = "HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_ENABLED" ]; then
+    export RUNNER_ARGS="scenarios/test_client_ip.py::Test_StandardTagsClientIp::test_is_reported"
+    export SYSTEMTESTS_LOG_FOLDER=logs_http_client_ip_appsec_enabled_client_ip_enabled
+    WEBLOG_ENV="DD_APPSEC_ENABLED=true\nDD_TRACE_CLIENT_IP_HEADER_DISABLED=false"
+
+elif [ $SYSTEMTESTS_SCENARIO = "HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_DISABLED" ]; then
+    export RUNNER_ARGS="scenarios/test_client_ip.py::Test_StandardTagsClientIp::test_is_not_reported"
+    export SYSTEMTESTS_LOG_FOLDER=logs_http_client_ip_appsec_enabled_client_ip_disabled
+    WEBLOG_ENV="DD_APPSEC_ENABLED=true\nDD_TRACE_CLIENT_IP_HEADER_DISABLED=true"
+
+elif [ $SYSTEMTESTS_SCENARIO = "HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_UNSET" ]; then
+    export RUNNER_ARGS="scenarios/test_client_ip.py::Test_StandardTagsClientIp::test_is_reported"
+    export SYSTEMTESTS_LOG_FOLDER=logs_http_client_ip_appsec_enabled_client_ip_unset
+    WEBLOG_ENV="DD_APPSEC_ENABLED=true"
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
