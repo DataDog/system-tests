@@ -532,6 +532,36 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_ENABLED scenario
+        run: ./run.sh HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_ENABLED
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_DISABLED scenario
+        run: ./run.sh HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_DISABLED
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_UNSET scenario
+        run: ./run.sh HTTP_CLIENT_IP_APPSEC_DISABLED_CLIENT_IP_UNSET
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_ENABLED scenario
+        run: ./run.sh HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_ENABLED
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_DISABLED scenario
+        run: ./run.sh HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_DISABLED
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_UNSET scenario
+        run: ./run.sh HTTP_CLIENT_IP_APPSEC_ENABLED_CLIENT_IP_UNSET
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)

@@ -24,14 +24,56 @@ class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
     def test_is_reported(self):
-        headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1"}
+        headers = {
+            "X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1",
+            "User-Agent": "Arachni/v1",
+        }
         r = self.weblog_get("/waf/", headers=headers)
 
-        tags = {
-            "http.client_ip": "43.43.43.43",
-            "http.headers.x-cluster-client-ip": "43.43.43.43",
-        }
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
+        def validator(span):
+            meta = span["meta"]
+            if "http.client_ip" not in meta:
+                raise Exception("missing http.client_ip tag")
+
+            got = meta["http.client_ip"]
+            expected = "43.43.43.43"
+            if got != expected:
+                raise Exception(f"unexpected http.client_ip value {got} instead of {expected}")
+
+            if "appsec.event" in meta:
+                # AppSec is enabled and detected the Arachni user-agent.
+                # It should report the http.headers.* tags related to the IP address.
+                if "http.headers.x-cluster-client-ip" not in meta:
+                    raise Exception("missing http.headers.x-cluster-client-ip tag")
+            else:
+                if "http.headers.x-cluster-client-ip" in meta:
+                    raise Exception("unexpected http.headers.x-cluster-client-ip tag being reported despite the absence of appsec event")
+
+            return True
+
+        interfaces.library.add_span_validation(request=r, validator=validator)
 
     def test_is_not_reported(self):
-        # TODO
+        headers = {
+            "X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1",
+            "User-Agent": "Arachni/v1",
+        }
+        r = self.weblog_get("/waf/", headers=headers)
+
+        def validator(span):
+            meta = span["meta"]
+            if "http.client_ip" in meta:
+                raise Exception("unexpected http.client_ip tag")
+
+            if "appsec.event" in meta:
+                # AppSec is enabled and detected the Arachni user-agent.
+                # It should report the http.headers.* tags related to the IP address.
+                if "http.headers.x-cluster-client-ip" not in meta:
+                    raise Exception("missing http.headers.x-cluster-client-ip tag")
+            else:
+                if "http.headers.x-cluster-client-ip" in meta:
+                    raise Exception("unexpected http.headers.x-cluster-client-ip tag being reported despite the absence of appsec event")
+
+            return True
+
+        interfaces.library.add_span_validation(request=r, validator=validator)
