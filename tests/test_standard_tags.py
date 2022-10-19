@@ -158,26 +158,3 @@ class Test_StandardTagsRoute(BaseTestCase):
             tags["http.route"] = "/sample_rate_route/{i:int}"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
-
-
-@released(
-    dotnet="2.13.0",
-    golang="1.39.0",
-    java="0.107.1",
-    nodejs="3.2.0",
-    php="0.76.0",
-    python=PYTHON_RELEASE_GA_1_1,
-    ruby="?",
-)
-@coverage.basic
-class Test_StandardTagsClientIp(BaseTestCase):
-    """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
-
-    def test_client_ip(self):
-        headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1"}
-        r = self.weblog_get("/waf/", headers=headers)
-
-        tags = {
-            "http.client_ip": "43.43.43.43",
-        }
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
