@@ -11,12 +11,12 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 @released(
-    dotnet="2.13.0",
-    golang="1.39.0",
-    java="0.107.1",
-    nodejs="3.2.0",
-    php="0.76.0",
-    python=PYTHON_RELEASE_GA_1_1,
+    dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
+    php="?",
+    python="?",
     ruby="?",
 )
 @coverage.basic
