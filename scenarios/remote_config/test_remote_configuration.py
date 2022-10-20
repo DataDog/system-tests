@@ -278,6 +278,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
