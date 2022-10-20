@@ -10,17 +10,8 @@
         "is_tracer": {
           "const": true
         },
-        "state": {
-          "required": ["root_version", "targets_version"],
-          "properties": {
-            "root_version": { 
-              "$comment": "Must be set to 1 until root updates are supported",
-              "const": 1
-            },
-            "targets_version": { "type": "integer" },
-            "has_error": { "type": "boolean" },
-            "error": { "$ref": "#/definitions/non-empty-string" }
-          }
+        "state": { 
+          "$id": "/library/v0.7/misc/config-state.json"
         },
         "client_tracer": {
           "required": ["runtime_id", "service", "env", "app_version", "tracer_version"],

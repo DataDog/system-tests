@@ -1,0 +1,30 @@
+{
+  "$id": "/library/v0.7/misc/config-state.json",
+  "description": "Array of spans",
+  "required": ["root_version", "targets_version"],
+  "properties": {
+    "root_version": {
+      "$comment": "Must be set to 1 until root updates are supported",
+      "const": 1
+    },
+    "targets_version": { "type": "integer" },
+    "has_error": { "type": "boolean" }
+  },
+  "if": {
+    "properties": {
+      "has_error": { "const": true }
+    }
+  },
+  "then": {
+    "properties": {
+      "error": { "$ref": "#/definitions/non-empty-string" }
+    },
+    "required": ["root_version", "targets_version", "error"]
+  },
+  "definitions": {
+    "non-empty-string": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
