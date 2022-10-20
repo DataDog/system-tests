@@ -17,7 +17,9 @@
               "$comment": "Must be set to 1 until root updates are supported",
               "const": 1
             },
-            "targets_version": { "type": "integer" }
+            "targets_version": { "type": "integer" },
+            "has_error": { "type": "boolean" },
+            "error": { "$ref": "#/definitions/non-empty-string" }
           }
         },
         "client_tracer": {
@@ -27,7 +29,8 @@
             "service": { "$ref": "#/definitions/non-empty-string" },
             "env": { "$ref": "#/definitions/non-empty-string" },
             "app_version": { "$ref": "#/definitions/non-empty-string" },
-            "tracer_version": { "$ref": "#/definitions/non-empty-string" }
+            "tracer_version": { "$ref": "#/definitions/non-empty-string" },
+            "language": {"enum": ["cpp", "dotnet", "go", "node", "java", "php", "python", "ruby"]}
           }
         },
         "products": {
