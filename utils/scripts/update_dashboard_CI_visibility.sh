@@ -31,7 +31,7 @@ do
         -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
         -d @- << EOF 
         $dashboard_json_updated
-        EOF )
+        )
         echo "Updating done"
         break
     fi
