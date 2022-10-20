@@ -22,18 +22,16 @@ do
     echo "-> $dashboard_json_variable"
     if [ "$dashboard_json_variable" = "$DASHBOARD_VARIABLE_NAME" ]; then
         echo "Updating dashboard variable: $DASHBOARD_VARIABLE_NAME "
-        dashboard_json_updated=$(jq -r ".template_variables[$counter].default = \"$SYS_PIPELINE_RUN_ID\""  <<< "$dashboard_json")
-
-        $(curl -X PUT "https://api.datadoghq.com/api/v1/dashboard/${dashboard_id}" \
-        -H "Accept: application/json" \
-        -H "Content-Type: application/json" \
-        -H "DD-API-KEY: ${DD_API_KEY}" \
-        -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
-        -d @- << EOF 
-        $dashboard_json_updated
-        )
-        echo "Updating done"
+        export dashboard_json_updated=$(jq -r ".template_variables[${counter}].default = \"$SYS_PIPELINE_RUN_ID\""  <<< "$dashboard_json")
         break
     fi
 done
 
+curl -X PUT "https://api.datadoghq.com/api/v1/dashboard/${dashboard_id}" \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "DD-API-KEY: ${DD_API_KEY}" \
+-H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
+-d @- << EOF
+$dashboard_json_updated
+EOF
