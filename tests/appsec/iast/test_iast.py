@@ -75,4 +75,4 @@ class Test_Iast(BaseTestCase):
 
     def test_mock_flaky(self):
         """DELETE THIS TEST. Flaky test"""
-        assert bool(random.getrandbits(1)) == True
+        assert random.choice([True, False]) == True
