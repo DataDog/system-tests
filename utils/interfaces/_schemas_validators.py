@@ -113,7 +113,7 @@ class Test_Logs:
 
         path = f"logs/interfaces/{interface}"
 
-        for f in os.listdir(path):
+        for f in sorted(os.listdir(path)):
             data_path = os.path.join(path, f)
             print(f"  * {data_path}")
             if os.path.isfile(data_path):

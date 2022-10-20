@@ -13,7 +13,8 @@
   "if": {
     "properties": {
       "has_error": { "const": true }
-    }
+    },
+    "required": ["has_error"]
   },
   "then": {
     "properties": {

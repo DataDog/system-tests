@@ -11,7 +11,7 @@
           "const": true
         },
         "state": { 
-          "$id": "/library/v0.7/misc/config-state.json"
+          "$ref": "/library/v0.7/misc/config-state.json"
         },
         "client_tracer": {
           "required": ["runtime_id", "service", "env", "app_version", "tracer_version"],
