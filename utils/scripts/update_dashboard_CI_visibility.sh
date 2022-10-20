@@ -2,9 +2,9 @@ if [ "$#" -ne 1 ] ; then
   echo "Script execution requires one parameter: Pipeline id" 
   exit 1
 fi
-SYS_PIPELINE_ID=$1
+SYS_PIPELINE_RUN_ID=$1
 
-echo "PIPELINE ID $SYS_PIPELINE_ID"
+echo "PIPELINE RUN ID $SYS_PIPELINE_RUN_ID"
 
 # Path parameters
 export dashboard_id="zqg-kqn-2mc"
@@ -15,7 +15,7 @@ curl -X GET "https://api.datadoghq.com/api/v1/dashboard/${dashboard_id}" \
 -H "DD-API-KEY: ${DD_API_KEY}" \
 -H "DD-APPLICATION-KEY: ${DD_APP_KEY}")
 
-dashboard_json_updated=$(jq -r ".template_variables[0].default = \"$SYS_PIPELINE_ID\""  <<< "$dashboard_json")
+dashboard_json_updated=$(jq -r ".template_variables[0].default = \"$SYS_PIPELINE_RUN_ID\""  <<< "$dashboard_json")
 
 
 
