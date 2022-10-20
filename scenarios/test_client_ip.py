@@ -70,6 +70,8 @@ class Test_StandardTagsClientIp(BaseTestCase):
             if "appsec.event" in meta:
                 # AppSec is enabled and detected the Arachni user-agent.
                 # It should report the IP address tags and the HTTP header tags even when the reporting is disabled.
+                if "http.client_ip" not in meta:
+                    raise Exception("missing http.client_ip tag")
                 if "network.client.ip" not in meta:
                     raise Exception("missing network.client.ip tag")
                 if "http.request.headers.x-cluster-client-ip" not in meta:
