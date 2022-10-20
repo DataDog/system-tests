@@ -554,6 +554,7 @@ jobs:
         if: ${{ always() }}
         run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   post_test-the-tests:
+    runs-on: ubuntu-latest
     if: ${{ always() }}
     needs: [test-the-tests]
     steps:
