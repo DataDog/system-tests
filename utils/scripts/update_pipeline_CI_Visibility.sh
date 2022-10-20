@@ -1,5 +1,5 @@
 if [ "$#" -ne 1 ] ; then
-  echo "Script execution requires 1 parameter: Pipeline id" 
+  echo "Script execution requires one parameter: Pipeline id" 
   exit 1
 fi
 SYS_PIPELINE_ID=$1
