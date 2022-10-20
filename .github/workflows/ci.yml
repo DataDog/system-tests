@@ -558,9 +558,11 @@ jobs:
     if: ${{ always() }}
     needs: [test-the-tests]
     steps:
-      - name: Update CI Dashboard..
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Update CI Dashboard
         if: ${{ always() }}
-        run: ./utils/scripts/update_dashboard_CI_visibility.sh ${{ github.run_id }}-${{ github.run_attempt }}
+        run: ./utils/scripts/update_dashboard_CI_visibility.sh ${{ github.run_id }}-${{ github.run_attempt }} systest.pipeline.last.id
         env:
           DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
           DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
