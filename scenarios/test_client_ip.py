@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 @released(
     dotnet="?",
-    golang="?",
+    golang="v1.44.0",
     java="?",
     nodejs="?",
     php="?",
@@ -35,9 +35,6 @@ class Test_StandardTagsClientIp(BaseTestCase):
             if "http.client_ip" not in meta:
                 raise Exception("missing http.client_ip tag")
 
-            if "network.client.ip" not in meta:
-                raise Exception("missing network.client.ip tag")
-
             got = meta["http.client_ip"]
             expected = "43.43.43.43"
             if got != expected:
@@ -45,10 +42,15 @@ class Test_StandardTagsClientIp(BaseTestCase):
 
             if "appsec.event" in meta:
                 # AppSec is enabled and detected the Arachni user-agent.
-                # It should report the http.headers.* tags related to the IP address.
+                # It should report the IP address tags and the HTTP header tags.
+                if "network.client.ip" not in meta:
+                    raise Exception("missing network.client.ip tag")
                 if "http.request.headers.x-cluster-client-ip" not in meta:
                     raise Exception("missing http.request.headers.x-cluster-client-ip tag")
+
             else:
+                if "network.client.ip" in meta:
+                    raise Exception("unexpected network.client.ip tag being reported despite the absence of appsec event")
                 if "http.request.headers.x-cluster-client-ip" in meta:
                     raise Exception("unexpected http.request.headers.x-cluster-client-ip tag being reported despite the absence of appsec event")
 
@@ -65,18 +67,19 @@ class Test_StandardTagsClientIp(BaseTestCase):
 
         def validator(span):
             meta = span["meta"]
-            if "http.client_ip" in meta:
-                raise Exception("unexpected http.client_ip tag")
-
-            if "network.client.ip" in meta:
-                raise Exception("unexpected network.client.ip tag")
-
             if "appsec.event" in meta:
                 # AppSec is enabled and detected the Arachni user-agent.
-                # It should report the http.headers.* tags related to the IP address.
+                # It should report the IP address tags and the HTTP header tags even when the reporting is disabled.
+                if "network.client.ip" not in meta:
+                    raise Exception("missing network.client.ip tag")
                 if "http.request.headers.x-cluster-client-ip" not in meta:
-                    raise Exception("missing http.request..headers.x-cluster-client-ip tag")
+                    raise Exception("missing http.request.headers.x-cluster-client-ip tag")
+
             else:
+                if "http.client_ip" in meta:
+                    raise Exception("unexpected http.client_ip tag being reported despite the absence of appsec event")
+                if "network.client.ip" in meta:
+                    raise Exception("unexpected network.client.ip tag being reported despite the absence of appsec event")
                 if "http.request.headers.x-cluster-client-ip" in meta:
                     raise Exception("unexpected http.request.headers.x-cluster-client-ip tag being reported despite the absence of appsec event")
 
