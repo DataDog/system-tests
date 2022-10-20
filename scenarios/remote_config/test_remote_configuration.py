@@ -19,7 +19,7 @@ with open("scenarios/remote_config/rc_expected_requests_asm_dd.json", encoding="
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="0.114.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationFields(BaseTestCase):
     """ Misc tests on fields and values on remote configuration reauests """
@@ -194,7 +194,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="0.114.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
@@ -220,7 +220,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="0.114.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
@@ -246,7 +246,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="0.114.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
@@ -273,7 +273,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="0.114.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
