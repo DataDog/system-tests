@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
+import random
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
@@ -71,3 +72,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_cipher/test_secure_algorithm")
 
         interfaces.library.expect_no_vulnerabilities(r)
+
+    def test_mock_flaky(self):
+        """DELETE THIS TEST. Flaky test"""
+        assert bool(random.getrandbits(1)) == True
