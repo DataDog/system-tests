@@ -16,7 +16,9 @@ curl -X GET "https://api.datadoghq.com/api/v1/dashboard/${dashboard_id}" \
 -H "DD-API-KEY: ${DD_API_KEY}" \
 -H "DD-APPLICATION-KEY: ${DD_APP_KEY}")
 
-for counter in 0 1 2 3 4 5 
+#Search in all template variables (no more than 4) trying to find DASHBOARD_VARIABLE_NAME pass as parameter
+#When I achieve to find the variable, I will change the default value with the last pipelineId + run attemp number 
+for counter in 0 1 2 3  
 do
     dashboard_json_variable=$(jq -r ".template_variables[$counter].prefix"  <<< "$dashboard_json")
     echo "-> $dashboard_json_variable"
