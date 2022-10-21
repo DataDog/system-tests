@@ -10,14 +10,9 @@ from utils import BaseTestCase, context, coverage, interfaces, irrelevant, relea
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+
 @released(
-    dotnet="?",
-    golang="v1.44.0",
-    java="?",
-    nodejs="?",
-    php="?",
-    python="?",
-    ruby="?",
+    dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?",
 )
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):

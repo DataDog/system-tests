@@ -161,13 +161,7 @@ class Test_StandardTagsRoute(BaseTestCase):
 
 
 @released(
-    dotnet="?",
-    golang="1.44.0",
-    java="?",
-    nodejs="?",
-    php="?",
-    python="?",
-    ruby="?",
+    dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?",
 )
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
@@ -200,9 +194,13 @@ class Test_StandardTagsClientIp(BaseTestCase):
                     if "appsec.event" in meta:
                         raise Exception("unexpected appsec.event tag")
                     if "network.client.ip" in meta:
-                        raise Exception("unexpected network.client.ip tag being reported despite the absence of appsec event")
+                        raise Exception(
+                            "unexpected network.client.ip tag being reported despite the absence of appsec event"
+                        )
                     if "http.request.headers.x-cluster-client-ip" in meta:
-                        raise Exception("unexpected http.request.headers.x-cluster-client-ip tag being reported despite the absence of appsec event")
+                        raise Exception(
+                            "unexpected http.request.headers.x-cluster-client-ip tag being reported despite the absence of appsec event"
+                        )
 
                 return True
 
