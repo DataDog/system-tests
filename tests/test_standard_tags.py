@@ -185,7 +185,7 @@ class Test_StandardTagsClientIp(BaseTestCase):
 
             got = meta["http.client_ip"]
             expected = "43.43.43.43"
-            assert got != expected, f"unexpected http.client_ip value {got} instead of {expected}"
+            assert got == expected, f"unexpected http.client_ip value {got} instead of {expected}"
 
             return True
 
