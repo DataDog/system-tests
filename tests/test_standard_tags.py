@@ -181,7 +181,7 @@ class Test_StandardTagsClientIp(BaseTestCase):
 
         def validator(span):
             meta = span.get("meta", {})
-            assert "http.client_ip" not in meta, "missing http.client_ip tag"
+            assert "http.client_ip" in meta, "missing http.client_ip tag"
 
             got = meta["http.client_ip"]
             expected = "43.43.43.43"
