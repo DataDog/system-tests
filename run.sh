@@ -90,7 +90,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_DISABLED" ]; then
     # disable appsec
-    export RUNNER_ARGS=scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_disabled
+    export RUNNER_ARGS="scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_disabled scenarios/appsec/test_client_ip.py"
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_disabled
     WEBLOG_ENV="DD_APPSEC_ENABLED=false"
 
