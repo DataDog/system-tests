@@ -181,20 +181,18 @@ class Test_StandardTagsClientIp(BaseTestCase):
 
         def validator(span):
             meta = span.get("meta", {})
-            if "http.client_ip" not in meta:
-                raise Exception("missing http.client_ip tag")
+            assert "http.client_ip" not in meta, "missing http.client_ip tag"
 
             got = meta["http.client_ip"]
             expected = "43.43.43.43"
-            if got != expected:
-                raise Exception(f"unexpected http.client_ip value {got} instead of {expected}")
+            assert got != expected, f"unexpected http.client_ip value {got} instead of {expected}"
 
             return True
 
         interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)
         interfaces.library.add_span_validation(request=self.request_without_attack, validator=validator)
 
-    def test_tags_with_appsec_event(self):
+    def test_client_ip_with_appsec_event(self):
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled"""
 
         def validator(span):
@@ -210,20 +208,3 @@ class Test_StandardTagsClientIp(BaseTestCase):
             return True
 
         interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)
-
-    def test_tags_without_appsec_event(self):
-        """Test that meta tag are correctly filled when no appsec event is present and ASM is enabled"""
-
-        def validator(span):
-            meta = span.get("meta", {})
-
-            # ASM shouldn't report extra IP-related span tags when there are no appsec event
-            assert "appsec.event" not in meta, "unexpected appsec.event tag"
-            assert "network.client.ip" not in meta, "unexpected network.client.ip tag"
-            assert (
-                "http.request.headers.x-cluster-client-ip" not in meta
-            ), "unexpected http.request.headers.x-cluster-client-ip tag"
-
-            return True
-
-        interfaces.library.add_span_validation(request=self.request_without_attack, validator=validator)
