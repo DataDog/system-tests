@@ -530,7 +530,6 @@ jobs:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run APPSEC_IP_BLOCKING scenario
-        if: ${{ matrix.library != 'java' || matrix.weblog-variant == 'spring-boot' }}
         run: ./run.sh APPSEC_IP_BLOCKING
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
