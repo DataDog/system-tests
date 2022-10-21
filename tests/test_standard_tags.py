@@ -158,3 +158,67 @@ class Test_StandardTagsRoute(BaseTestCase):
             tags["http.route"] = "/sample_rate_route/{i:int}"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
+
+
+@released(
+    dotnet="?",
+    golang="1.44.0",
+    java="?",
+    nodejs="?",
+    php="?",
+    python="?",
+    ruby="?",
+)
+@coverage.basic
+class Test_StandardTagsClientIp(BaseTestCase):
+    """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
+
+    def test_client_ip(self):
+        """Test http.client_ip is reported in the default scenario which has ASM enabled"""
+
+        def make_validator(appsec_event_expected):
+            def validator(span):
+                meta = span["meta"]
+                if "http.client_ip" not in meta:
+                    raise Exception("missing http.client_ip tag")
+
+                got = meta["http.client_ip"]
+                expected = "43.43.43.43"
+                if got != expected:
+                    raise Exception(f"unexpected http.client_ip value {got} instead of {expected}")
+
+                if appsec_event_expected:
+                    # ASM should also report extra IP-related span tags.
+                    if "appsec.event" not in meta:
+                        raise Exception("missing appsec.event tag")
+                    if "network.client.ip" not in meta:
+                        raise Exception("missing network.client.ip tag")
+                    if "http.request.headers.x-cluster-client-ip" not in meta:
+                        raise Exception("missing http.request.headers.x-cluster-client-ip tag")
+
+                else:
+                    if "appsec.event" in meta:
+                        raise Exception("unexpected appsec.event tag")
+                    if "network.client.ip" in meta:
+                        raise Exception("unexpected network.client.ip tag being reported despite the absence of appsec event")
+                    if "http.request.headers.x-cluster-client-ip" in meta:
+                        raise Exception("unexpected http.request.headers.x-cluster-client-ip tag being reported despite the absence of appsec event")
+
+                return True
+
+            return validator
+
+        # HTTP request leading to an appsec event
+        headers = {
+            "X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1",
+            "User-Agent": "Arachni/v1",
+        }
+        r = self.weblog_get("/waf/", headers=headers)
+        interfaces.library.add_span_validation(request=r, validator=make_validator(appsec_event_expected=True))
+
+        # HTTP request without an appsec event
+        headers = {
+            "X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1",
+        }
+        r = self.weblog_get("/waf/", headers=headers)
+        interfaces.library.add_span_validation(request=r, validator=make_validator(appsec_event_expected=False))
