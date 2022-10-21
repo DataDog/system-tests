@@ -3,7 +3,6 @@ from utils import context, BaseTestCase, interfaces, missing_feature, bug, relea
 
 @released(dotnet="2.12.0", java="0.108.1")
 @missing_feature(library="cpp")
-@missing_feature(library="java")
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
@@ -17,6 +16,7 @@ class Test_Telemetry(BaseTestCase):
 
     app_started_count = 0
 
+    @missing_feature(library="java")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
@@ -50,6 +50,7 @@ class Test_Telemetry(BaseTestCase):
         )
 
     @missing_feature(library="python")
+    @missing_feature(library="java")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
         interfaces.library.assert_seq_ids_are_roughly_sequential()
@@ -65,6 +66,7 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator=validator)
 
     @missing_feature(library="python")
+    @missing_feature(library="java")
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
