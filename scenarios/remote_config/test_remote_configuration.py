@@ -5,7 +5,7 @@
 import json
 from collections import defaultdict
 
-from utils import BaseTestCase, context, coverage, interfaces, released, rfc
+from utils import BaseTestCase, coverage, interfaces, released, rfc, bug
 from utils.tools import logger
 
 with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
@@ -19,50 +19,22 @@ with open("scenarios/remote_config/rc_expected_requests_asm_dd.json", encoding="
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
-@coverage.basic
-class Test_RemoteConfigurationFields(BaseTestCase):
+class RemoteConfigurationFieldsBasicTests(BaseTestCase):
     """ Misc tests on fields and values on remote configuration reauests """
 
     def test_schemas(self):
         """ Test all library schemas """
         interfaces.library.assert_schemas()
 
-    def test_tracer_language(self):
-        """ Ensure that tracer clients use the correct word for the language """
-
-        def validator(data):
-            content = data["request"]["content"]
-            assert "client" in content, f"'client' is missing in {data['log_filename']}"
-            assert "client_tracer" in content["client"], f"'client_tracer' is missing in {data['log_filename']}"
-
-            language = data["request"]["content"]["client"]["client_tracer"].get("language")
-
-            expected_language = {
-                "cpp": "cpp",
-                "dotnet": "dotnet",
-                "golang": "go",
-                "nodejs": "node",
-                "java": "java",
-                "php": "php",
-                "python": "python",
-                "ruby": "ruby",
-            }[context.library.library]
-
-            assert language == expected_language, f"language is '{language}', I was expecting '{expected_language}'"
-
-        interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
-
     def test_client_state_errors(self):
         """ Ensure that the Client State error is consistent """
 
         def validator(data):
-            content = data["request"]["content"]
-            state = content.get("client", {}).get("state", {})
+            state = data["request"]["content"]["client"]["state"]
 
-            if "has_error" in state and state["has_error"] is True:
+            if state.get("has_error") is True:
                 assert (
-                    "error" in state and state["error"] != ""
+                    "error" in state
                 ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
 
         interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
@@ -71,13 +43,11 @@ class Test_RemoteConfigurationFields(BaseTestCase):
         """ Ensure that the Client field is appropriately filled out in update requests"""
 
         def validator(data):
-            content = data["request"]["content"]
-            client = content.get("client", {})
+            client = data["request"]["content"]["client"]
+            client_tracer = client["client_tracer"]
 
             assert "is_agent" not in client, "'client.is_agent' MUST either NOT be set or set to false"
             assert "client_agent" not in client, "'client.client_agent' must NOT be set"
-
-            client_tracer = client.get("client_tracer", {})
             assert (
                 client["id"] != client_tracer["runtime_id"]
             ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
@@ -139,9 +109,10 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
@@ -165,9 +136,9 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
     # Index the request number by runtime ID so that we can support applications
@@ -194,9 +165,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
     request_number = 0
@@ -220,9 +192,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", golang="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
@@ -246,9 +219,10 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
     request_number = defaultdict(int)
@@ -273,9 +247,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
     request_number = 0
