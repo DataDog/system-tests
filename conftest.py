@@ -462,10 +462,7 @@ def _create_junit_testsuite_context(testsuite_props):
         testsuite_props, "property", name="dd_tags[systest.suite.context.agent]", value=str(context.agent_version)
     )
     ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.library.name]",
-        value=context.library.library,
+        testsuite_props, "property", name="dd_tags[systest.suite.context.library.name]", value=context.library.library
     )
     ET.SubElement(
         testsuite_props,
@@ -474,10 +471,7 @@ def _create_junit_testsuite_context(testsuite_props):
         value=str(context.library.version),
     )
     ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.weblog_variant]",
-        value=context.weblog_variant,
+        testsuite_props, "property", name="dd_tags[systest.suite.context.weblog_variant]", value=context.weblog_variant
     )
     ET.SubElement(
         testsuite_props,
