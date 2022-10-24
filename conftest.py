@@ -443,7 +443,7 @@ def _pytest_junit_modifyreport():
 
     for testsuite in junit_report_root.findall("testsuite"):
         # Test suite name will be the scanario name
-        testsuite.set("name", f"{os.environ.get('SYSTEMTESTS_SCENARIO','EMPTY_SCENARIO')}")
+        testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
         # New properties node to add our custom tags
         ts_props = ET.SubElement(testsuite, "properties")
         _create_junit_testsuite_context(ts_props)
@@ -459,52 +459,49 @@ def _pytest_junit_modifyreport():
 def _create_junit_testsuite_context(testsuite_props):
 
     ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.context.agent]", value=f"{context.agent_version}"
+        testsuite_props, "property", name="dd_tags[systest.suite.context.agent]", value=str(context.agent_version)
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.library.name]",
-        value=f"{context.library.library}",
+        value=context.library.library,
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.library.version]",
-        value=f"{context.library.version}",
+        value=str(context.library.version),
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.weblog_variant]",
-        value=f"{context.weblog_variant}",
-    )
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.context.dd_site]", value=f"{context.dd_site}"
+        value=context.weblog_variant,
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.sampling_rate]",
-        value=f"{context.sampling_rate}",
+        value=str(context.sampling_rate or ""),
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.libddwaf_version]",
-        value=f"{context.libddwaf_version}",
+        value=str(context.libddwaf_version or ""),
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.appsec_rules_file]",
-        value=f"{context.appsec_rules_file}",
+        value=str(context.appsec_rules_file or ""),
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.scenario]",
-        value=f"{os.environ.get('SYSTEMTESTS_SCENARIO')}",
+        value=os.environ.get("SYSTEMTESTS_SCENARIO"),
     )
 
 
@@ -514,27 +511,33 @@ def _create_junit_testsuite_summary(testsuite_props, summary_json):
             testsuite_props,
             "property",
             name="dd_tags[systest.suite.summary.passed]",
-            value=f"{ summary_json['passed']}",
+            value=str(summary_json.get("passed", 0)),
         )
     if "xfail" in summary_json:
         ET.SubElement(
-            testsuite_props, "property", name="dd_tags[systest.suite.summary.xfail]", value=f"{ summary_json['xfail']}"
+            testsuite_props,
+            "property",
+            name="dd_tags[systest.suite.summary.xfail]",
+            value=str(summary_json.get("xfail", 0)),
         )
     if "skipped" in summary_json:
         ET.SubElement(
             testsuite_props,
             "property",
             name="dd_tags[systest.suite.summary.skipped]",
-            value=f"{ summary_json['skipped']}",
+            value=str(summary_json.get("skipped")),
         )
     ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.summary.total]", value=f"{ summary_json['total']}"
+        testsuite_props,
+        "property",
+        name="dd_tags[systest.suite.summary.total]",
+        value=str(summary_json.get("total", 0)),
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.summary.collected]",
-        value=f"{ summary_json['collected']}",
+        value=str(summary_json.get("collected", 0)),
     )
 
 
@@ -548,11 +551,11 @@ def _create_testcase_results(
         testcase.set("name", testclass_name + "." + testcase_name)
         # Add custom tags
         tc_props = ET.SubElement(testcase, "properties")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=f"{outcome}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=f"{skip_reason}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.doc]", value=f"{test_doc}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.rfc]", value=f"{test_rfc}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.coverage]", value=f"{test_coverage}")
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=outcome)
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=str(skip_reason or ""))
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.doc]", value=str(test_doc or ""))
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.rfc]", value=str(test_rfc or ""))
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.coverage]", value=str(test_coverage or ""))
         if test_release:
             for library_name in test_release:
                 ET.SubElement(
