@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ "$#" -ne 2 ] ; then
   echo "Script execution requires 2 parameters: Pipeline id and dashboard variable name" 
   exit 1

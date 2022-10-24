@@ -1,22 +1,18 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
 import os
 import collections
 import inspect
+import json
+import xml.etree.ElementTree as ET
+from operator import attrgetter
 
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context, data_collector, interfaces
 from utils.tools import logger, m, get_log_formatter, get_exception_traceback
 from utils._xfail import xfails
-from os.path import exists
-
-import pytest
-import json
-import xml.etree.ElementTree as ET
-from operator import attrgetter
 
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -396,65 +392,65 @@ def _pytest_junit_modifyreport():
         logger.warning("Not all required output reports found(report.json or reportJunit.xml)")
         return
 
-    # Opening JSON file
-    f = open(json_report_path)
-    json_report = json.load(f)
+    with open(json_report_path, encoding="utf-8") as f:
+        json_report = json.load(f)
 
-    # Open XML Junit report
-    junit_report = ET.parse(junit_report_path)
-    # get root element
-    junit_report_root = junit_report.getroot()
+        # Open XML Junit report
+        junit_report = ET.parse(junit_report_path)
+        # get root element
+        junit_report_root = junit_report.getroot()
 
-    for test in json_report["tests"]:
-        words = test["nodeid"].split("::")
-        if len(words) < 3:
-            logger.warning(f"test nodeid cannot be parse: {test['nodeid']}")
-            continue
-        classname = words[0].replace("/", ".").replace(".py", ".") + words[1]
-        testcasename = words[2]
+        for test in json_report["tests"]:
+            words = test["nodeid"].split("::")
+            if len(words) < 3:
+                logger.warning(f"test nodeid cannot be parse: {test['nodeid']}")
+                continue
+            classname = words[0].replace("/", ".").replace(".py", ".") + words[1]
+            testcasename = words[2]
 
-        # Util to search for rfcs and coverages
-        search_class = words[0] + "::" + words[1]
+            # Util to search for rfcs and coverages
+            search_class = words[0] + "::" + words[1]
 
-        # Get doc/description for the test
-        test_doc = json_report["docs"][test["nodeid"]]
+            # Get doc/description for the test
+            test_doc = json_report["docs"][test["nodeid"]]
 
-        # Get rfc for the test
-        test_rfc = None
-        if search_class in json_report["rfcs"]:
-            test_rfc = json_report["rfcs"][search_class]
+            # Get rfc for the test
+            test_rfc = None
+            if search_class in json_report["rfcs"]:
+                test_rfc = json_report["rfcs"][search_class]
 
-        # Get coverage for the test
-        test_coverage = None
-        if search_class in json_report["coverages"]:
-            test_coverage = json_report["coverages"][search_class]
+            # Get coverage for the test
+            test_coverage = None
+            if search_class in json_report["coverages"]:
+                test_coverage = json_report["coverages"][search_class]
 
-        # Get release versions for the test
-        test_release = None
-        if search_class in json_report["release_versions"]:
-            test_release = json_report["release_versions"][search_class]
+            # Get release versions for the test
+            test_release = None
+            if search_class in json_report["release_versions"]:
+                test_release = json_report["release_versions"][search_class]
 
-        _create_testcase_results(
-            junit_report_root,
-            classname,
-            testcasename,
-            test["outcome"],
-            test["skip_reason"],
-            test_doc,
-            test_rfc,
-            test_coverage,
-            test_release,
-        )
+            _create_testcase_results(
+                junit_report_root,
+                classname,
+                testcasename,
+                test["outcome"],
+                test["skip_reason"],
+                test_doc,
+                test_rfc,
+                test_coverage,
+                test_release,
+            )
 
     for testsuite in junit_report_root.findall("testsuite"):
         # Test suite name will be the scanario name
-        testsuite.set("name", f"{os.environ.get('SYSTEMTESTS_SCENARIO','EMPTY_SCENARIO')}")
+        testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
         # New properties node to add our custom tags
         ts_props = ET.SubElement(testsuite, "properties")
         _create_junit_testsuite_context(ts_props)
         _create_junit_testsuite_summary(ts_props, json_report["summary"])
-        # I must to order tags: the tags at suite level only work if they come up in the file before the testcase elements.
-        # This is because we need to parse the XMLs incrementally we don't load all the tests in memory or we would have to limit the number of supported tests per file.
+        # I must to order tags: suite level tags works if they come up in the file before the testcase elements.
+        # This is because we need to parse the XMLs incrementally we don't load all the tests in memory or
+        # we would have to limit the number of supported tests per file.
         testsuite[:] = sorted(testsuite, key=attrgetter("tag"))
 
     junit_report.write("logs/reportJunit.xml")
@@ -462,53 +458,49 @@ def _pytest_junit_modifyreport():
 
 def _create_junit_testsuite_context(testsuite_props):
 
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.context.agent]", value=f"{context.agent_version}"
-    )
+    ET.SubElement(testsuite_props, "property", name="dd_tags[systest.suite.context.agent]", value=context.agent_version)
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.library.name]",
-        value=f"{context.library.library}",
+        value=context.library.library,
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.library.version]",
-        value=f"{context.library.version}",
+        value=context.library.version,
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.weblog_variant]",
-        value=f"{context.weblog_variant}",
+        value=context.weblog_variant,
     )
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.context.dd_site]", value=f"{context.dd_site}"
-    )
+    ET.SubElement(testsuite_props, "property", name="dd_tags[systest.suite.context.dd_site]", value=context.dd_site)
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.sampling_rate]",
-        value=f"{context.sampling_rate}",
+        value=context.sampling_rate,
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.libddwaf_version]",
-        value=f"{context.libddwaf_version}",
+        value=context.libddwaf_version,
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.appsec_rules_file]",
-        value=f"{context.appsec_rules_file}",
+        value=context.appsec_rules_file,
     )
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.scenario]",
-        value=f"{os.environ.get('SYSTEMTESTS_SCENARIO')}",
+        value=os.environ.get("SYSTEMTESTS_SCENARIO"),
     )
 
 
@@ -518,27 +510,25 @@ def _create_junit_testsuite_summary(testsuite_props, summary_json):
             testsuite_props,
             "property",
             name="dd_tags[systest.suite.summary.passed]",
-            value=f"{ summary_json['passed']}",
+            value=summary_json["passed"],
         )
     if "xfail" in summary_json:
         ET.SubElement(
-            testsuite_props, "property", name="dd_tags[systest.suite.summary.xfail]", value=f"{ summary_json['xfail']}"
+            testsuite_props, "property", name="dd_tags[systest.suite.summary.xfail]", value=summary_json["xfail"]
         )
     if "skipped" in summary_json:
         ET.SubElement(
             testsuite_props,
             "property",
             name="dd_tags[systest.suite.summary.skipped]",
-            value=f"{ summary_json['skipped']}",
+            value=summary_json["skipped"],
         )
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.summary.total]", value=f"{ summary_json['total']}"
-    )
+    ET.SubElement(testsuite_props, "property", name="dd_tags[systest.suite.summary.total]", value=summary_json["total"])
     ET.SubElement(
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.summary.collected]",
-        value=f"{ summary_json['collected']}",
+        value=summary_json["collected"],
     )
 
 
@@ -552,18 +542,18 @@ def _create_testcase_results(
         testcase.set("name", testclass_name + "." + testcase_name)
         # Add custom tags
         tc_props = ET.SubElement(testcase, "properties")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=f"{outcome}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=f"{skip_reason}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.doc]", value=f"{test_doc}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.rfc]", value=f"{test_rfc}")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.coverage]", value=f"{test_coverage}")
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=outcome)
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=skip_reason)
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.doc]", value=test_doc)
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.rfc]", value=test_rfc)
+        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.coverage]", value=test_coverage)
         if test_release:
             for library_name in test_release:
                 ET.SubElement(
                     tc_props,
                     "property",
                     name=f"dd_tags[systest.case.release.library.{library_name}]",
-                    value=f"{test_release[library_name]}",
+                    value=test_release[library_name],
                 )
         if outcome == "failed":
             if bool(skip_reason):

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ "$#" -ne 4 ] ; then
   echo "Script execution requires 4 parameters: environment name (dev, prod), language (java,node...), weblog variant name, pipeline run-id " 
   exit 1
