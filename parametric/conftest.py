@@ -526,16 +526,18 @@ def test_server(
     ]
     test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
-    subprocess.run(
+    p = subprocess.run(
         cmd,
         cwd=root_path,
-        check=True,
         text=True,
         input=apm_test_server.container_img,
         stdout=test_server_log_file,
         stderr=test_server_log_file,
         env={"DOCKER_SCAN_SUGGEST": "false",},  # Docker outputs an annoying synk message on every build
     )
+    if p.returncode != 0:
+        test_server_log_file.seek(0)
+        pytest.fail("".join(test_server_log_file.readlines()), pytrace=False)
 
     env = {
         "DD_TRACE_DEBUG": "true",
