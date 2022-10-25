@@ -5,15 +5,13 @@ import os
 import collections
 import inspect
 import json
-import xml.etree.ElementTree as ET
-from operator import attrgetter
 
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context, data_collector, interfaces
 from utils.tools import logger, m, get_log_formatter, get_exception_traceback
 from utils._xfail import xfails
-
+from utils.scripts.junit_report import junit_modifyreport
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -327,20 +325,26 @@ def _print_async_failure_report(terminalreporter, failed, passed):
         terminalreporter.line("")
 
 
+def get_failed_nodeids():
+    # report test with a failing asyn validation as failed
+    failed_nodeids = {}
+
+    for interface in interfaces.all_interfaces:
+        for validation in interface.validations:
+            if validation.closed and not validation.is_success:
+                filename, klass, function = validation.get_test_source_info()
+                nodeid = f"{filename}::{klass}::{function}"
+                failed_nodeids[nodeid] = validation
+
+    return failed_nodeids
+
+
 def pytest_json_modifyreport(json_report):
 
     try:
         logger.debug("Modifying JSON report")
 
-        # report test with a failing asyn validation as failed
-        failed_nodeids = set()
-
-        for interface in interfaces.all_interfaces:
-            for validation in interface.validations:
-                if validation.closed and not validation.is_success:
-                    filename, klass, function = validation.get_test_source_info()
-                    nodeid = f"{filename}::{klass}::{function}"
-                    failed_nodeids.add(nodeid)
+        failed_nodeids = get_failed_nodeids()
 
         # populate and adjust some data
         for test in json_report["tests"]:
@@ -384,193 +388,12 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def _pytest_junit_modifyreport():
-
     json_report_path = "logs/report.json"
     junit_report_path = "logs/reportJunit.xml"
-
-    if not os.path.exists(json_report_path) or not os.path.exists(junit_report_path):
-        logger.warning("Not all required output reports found(report.json or reportJunit.xml)")
-        return
+    failed_nodeids = get_failed_nodeids()
 
     with open(json_report_path, encoding="utf-8") as f:
         json_report = json.load(f)
-
-        # Open XML Junit report
-        junit_report = ET.parse(junit_report_path)
-        # get root element
-        junit_report_root = junit_report.getroot()
-
-        for test in json_report["tests"]:
-            words = test["nodeid"].split("::")
-            if len(words) < 3:
-                logger.warning(f"test nodeid cannot be parse: {test['nodeid']}")
-                continue
-            classname = words[0].replace("/", ".").replace(".py", ".") + words[1]
-            testcasename = words[2]
-
-            # Util to search for rfcs and coverages
-            search_class = words[0] + "::" + words[1]
-
-            # Get doc/description for the test
-            test_doc = json_report["docs"][test["nodeid"]]
-
-            # Get rfc for the test
-            test_rfc = None
-            if search_class in json_report["rfcs"]:
-                test_rfc = json_report["rfcs"][search_class]
-
-            # Get coverage for the test
-            test_coverage = None
-            if search_class in json_report["coverages"]:
-                test_coverage = json_report["coverages"][search_class]
-
-            # Get release versions for the test
-            test_release = None
-            if search_class in json_report["release_versions"]:
-                test_release = json_report["release_versions"][search_class]
-
-            _create_testcase_results(
-                junit_report_root,
-                classname,
-                testcasename,
-                test["outcome"],
-                test["skip_reason"],
-                test_doc,
-                test_rfc,
-                test_coverage,
-                test_release,
-            )
-
-    for testsuite in junit_report_root.findall("testsuite"):
-        # Test suite name will be the scanario name
-        testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
-        # New properties node to add our custom tags
-        ts_props = ET.SubElement(testsuite, "properties")
-        _create_junit_testsuite_context(ts_props)
-        _create_junit_testsuite_summary(ts_props, json_report["summary"])
-        # I must to order tags: suite level tags works if they come up in the file before the testcase elements.
-        # This is because we need to parse the XMLs incrementally we don't load all the tests in memory or
-        # we would have to limit the number of supported tests per file.
-        testsuite[:] = sorted(testsuite, key=attrgetter("tag"))
-
-    junit_report.write("logs/reportJunit.xml")
-
-
-def _create_junit_testsuite_context(testsuite_props):
-
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.context.agent]", value=str(context.agent_version or "")
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.library.name]",
-        value=str(context.library.library or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.library.version]",
-        value=str(context.library.version or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.weblog_variant]",
-        value=str(context.weblog_variant or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.sampling_rate]",
-        value=str(context.sampling_rate or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.libddwaf_version]",
-        value=str(context.libddwaf_version or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.appsec_rules_file]",
-        value=str(context.appsec_rules_file or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.scenario]",
-        value=os.environ.get("SYSTEMTESTS_SCENARIO", ""),
-    )
-
-
-def _create_junit_testsuite_summary(testsuite_props, summary_json):
-    if "passed" in summary_json:
-        ET.SubElement(
-            testsuite_props,
-            "property",
-            name="dd_tags[systest.suite.summary.passed]",
-            value=str(summary_json.get("passed", 0)),
+        junit_modifyreport(
+            json_report, junit_report_path, failed_nodeids, _skip_reasons, _docs, _rfcs, _coverages, _release_versions
         )
-    if "xfail" in summary_json:
-        ET.SubElement(
-            testsuite_props,
-            "property",
-            name="dd_tags[systest.suite.summary.xfail]",
-            value=str(summary_json.get("xfail", 0)),
-        )
-    if "skipped" in summary_json:
-        ET.SubElement(
-            testsuite_props,
-            "property",
-            name="dd_tags[systest.suite.summary.skipped]",
-            value=str(summary_json.get("skipped")),
-        )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.summary.total]",
-        value=str(summary_json.get("total", 0)),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.summary.collected]",
-        value=str(summary_json.get("collected", 0)),
-    )
-
-
-def _create_testcase_results(
-    junit_xml_root, testclass_name, testcase_name, outcome, skip_reason, test_doc, test_rfc, test_coverage, test_release
-):
-
-    testcase = junit_xml_root.find(f"testsuite/testcase[@classname='{testclass_name}'][@name='{testcase_name}']")
-    if testcase:
-        # Change name att because CI Visibility uses identifier: testsuite+name
-        testcase.set("name", testclass_name + "." + testcase_name)
-        # Add custom tags
-        tc_props = ET.SubElement(testcase, "properties")
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=outcome)
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=str(skip_reason or ""))
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.doc]", value=str(test_doc or ""))
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.rfc]", value=str(test_rfc or ""))
-        ET.SubElement(tc_props, "property", name="dd_tags[systest.case.coverage]", value=str(test_coverage or ""))
-        if test_release:
-            for library_name in test_release:
-                ET.SubElement(
-                    tc_props,
-                    "property",
-                    name=f"dd_tags[systest.case.release.library.{library_name}]",
-                    value=test_release[library_name],
-                )
-        if outcome == "failed":
-            if bool(skip_reason):
-                tc_skipped = ET.SubElement(testcase, "skipped")
-                tc_skipped.text = skip_reason
-            else:
-                tc_failure = ET.SubElement(testcase, "failure")
-                tc_failure.text = "failed test"
-
-    else:
-        logger.error(f"Not found in Junit xml report. Test class:{testclass_name} and test case name:{testcase_name}")
