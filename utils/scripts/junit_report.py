@@ -81,7 +81,7 @@ def junit_modifyreport(
 
     for testsuite in junit_report_root.findall("testsuite"):
         # Test suite name will be the scanario name
-        #testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
+        # MONTERO DELETE THIS testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
         testsuite.set("name", classname)
         # New properties node to add our custom tags
         ts_props = ET.SubElement(testsuite, "properties")
