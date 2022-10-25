@@ -1,4 +1,4 @@
-FROM maven:3.6-jdk-8 as build
+FROM maven:3.8-jdk-8 as build
 
 RUN apt-get update && \
 	apt-get install -y libarchive-tools
@@ -25,6 +25,6 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-RUN echo "#!/bin/bash\njava -Xmx362m -javaagent:/app/dd-java-agent.jar -jar /app/myproject-0.0.1-SNAPSHOT.jar --server.port=7777 " > app.sh
+RUN echo "#!/bin/bash\njava -Xmx362m -javaagent:/app/dd-java-agent.jar -Ddd.remote_config.enabled=true -jar /app/myproject-0.0.1-SNAPSHOT.jar --server.port=7777 " > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
