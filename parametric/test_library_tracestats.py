@@ -92,7 +92,7 @@ def test_metrics_msgpack_serialization_TS001(library_env, test_agent, test_libra
 
 @enable_tracestats()
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
-def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library):
+def test_distinct_aggregationkeys_TS002(library_env, test_agent, test_library, test_server):
     """
     When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
@@ -148,8 +148,12 @@ def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library):
         ) as span:
             span.set_meta(key="http.status_code", val="400")
 
+    if test_server.lang == "golang":
+        # https://github.com/DataDog/system-tests/issues/596
+        test_library.stop()
+
     requests = test_agent.v06_stats_requests()
-    assert len(requests) == 1, "Only one stats request is expected"
+    assert len(requests) == 1, "Exactly one stats request is expected"
     request = requests[0]["body"]
     buckets = request["Stats"]
     assert len(buckets) == 1, "There should be one bucket containing the stats"
@@ -169,7 +173,7 @@ def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library):
 @pytest.mark.skip_library("dotnet", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
-def test_measured_spans_TS004(library_env, test_agent, test_library):
+def test_measured_spans_TS003(library_env, test_agent, test_library, test_server):
     """
     When spans are marked as measured
         Each has stats computed for it
@@ -189,7 +193,12 @@ def test_measured_spans_TS004(library_env, test_agent, test_library):
             with test_library.start_span(name="child.op3", resource="", service="webserver", parent_id=span.span_id):
                 pass
 
+    if test_server.lang == "golang":
+        # https://github.com/DataDog/system-tests/issues/596
+        test_library.stop()
+
     requests = test_agent.v06_stats_requests()
+    assert len(requests) > 0
     stats = requests[0]["body"]["Stats"][0]["Stats"]
     pprint.pprint([_human_stats(s) for s in stats])
     # FIXME: dotnet AssertionError: assert 4 == 3
@@ -207,7 +216,7 @@ def test_measured_spans_TS004(library_env, test_agent, test_library):
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
-def test_top_level_TS005(library_env, test_agent, test_library):
+def test_top_level_TS004(library_env, test_agent, test_library, test_server):
     """
     When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
@@ -220,6 +229,10 @@ def test_top_level_TS005(library_env, test_agent, test_library):
                 name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
             ):
                 pass
+
+    if test_server.lang == "golang":
+        # https://github.com/DataDog/system-tests/issues/596
+        test_library.stop()
 
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Only one stats request is expected"
@@ -255,7 +268,7 @@ def test_top_level_TS005(library_env, test_agent, test_library):
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
-def test_successes_errors_recorded_separately_TS006(library_env, test_agent, test_library):
+def test_successes_errors_recorded_separately_TS005(library_env, test_agent, test_library, test_server):
     """
     When spans are marked as errors
         The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
@@ -273,6 +286,10 @@ def test_successes_errors_recorded_separately_TS006(library_env, test_agent, tes
             name="web.request", resource="/health-check", service="webserver", typestr="web"
         ) as span:
             span.set_error(message="Unable to load resources")
+
+    if test_server.lang == "golang":
+        # https://github.com/DataDog/system-tests/issues/596
+        test_library.stop()
 
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Only one stats request is expected"
@@ -305,7 +322,7 @@ def test_successes_errors_recorded_separately_TS006(library_env, test_agent, tes
 @pytest.mark.skip_library("dotnet", "FIXME: No traces should be emitted with the sample rate set to 0")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats(sample_rate=0.0)
-def test_sample_rate_0_TS007(library_env, test_agent, test_library):
+def test_sample_rate_0_TS006(library_env, test_agent, test_library, test_server):
     """
     When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
@@ -314,6 +331,10 @@ def test_sample_rate_0_TS007(library_env, test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", resource="/users", service="webserver"):
             pass
+
+    if test_server.lang == "golang":
+        # https://github.com/DataDog/system-tests/issues/596
+        test_library.stop()
 
     traces = test_agent.traces()
     # FIXME: dotnet AssertionError: len(traces) == 1
@@ -329,7 +350,7 @@ def test_sample_rate_0_TS007(library_env, test_agent, test_library):
 
 @pytest.mark.skip(reason="relative error test is broken")
 @enable_tracestats()
-def test_relative_error_TS008(library_env, test_agent, test_library):
+def test_relative_error_TS007(library_env, test_agent, test_library):
     """
     When trace stats are computed for traces
         The stats should be accurate to within 1% of the real values
@@ -371,7 +392,7 @@ def test_relative_error_TS008(library_env, test_agent, test_library):
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
-def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_library):
+def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_library, test_server):
     """
     When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
@@ -402,6 +423,10 @@ def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_l
         span2.set_meta(key="_dd.origin", val="not_synthetics")
         span2.set_meta(key="http.status_code", val="202")
 
+    if test_server.lang == "golang":
+        # https://github.com/DataDog/system-tests/issues/596
+        test_library.stop()
+
     requests = test_agent.v06_stats_requests()
 
     assert len(requests) == 1, "Only one stats request is expected"
@@ -423,7 +448,7 @@ def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_l
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @parametrize("library_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
-def test_metrics_computed_after_span_finish_TS010(library_env, test_agent, test_library):
+def test_metrics_computed_after_span_finish_TS09(library_env, test_agent, test_library):
     """
     When DD_TRACE_STATS_COMPUTATION_ENABLED=False
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after

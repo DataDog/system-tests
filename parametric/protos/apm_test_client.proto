@@ -10,6 +10,7 @@ service APMClient {
   rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
+  rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 
 message StartSpanArgs {
@@ -72,3 +73,6 @@ message FlushSpansReturn {}
 
 message FlushTraceStatsArgs {}
 message FlushTraceStatsReturn {}
+
+message StopTracerArgs {}
+message StopTracerReturn {}

@@ -5,7 +5,7 @@ go 1.18
 require (
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20221014182725-b538ec5e8369
+	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20221024220052-59a1713841c8
 )
 
 require (
@@ -26,6 +26,7 @@ require (
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.3.1 // indirect
+	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/theupdateframework/go-tuf v0.3.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect

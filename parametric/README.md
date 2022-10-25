@@ -78,6 +78,17 @@ CLIENTS_ENABLED=dotnet,golang ./run.sh test_span_sampling.py
 
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
+#### Go
+
+For running the Go tests, see the README in apps/golang.
+
+To test unmerged PRs locally, run the following in the apps/golang directory:
+
+```sh
+go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
+go mod tidy
+```
+
 
 ### Debugging 
 

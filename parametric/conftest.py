@@ -624,6 +624,9 @@ class APMLibrary:
     def inject_headers(self):
         return self._client.InjectHeaders(pb.InjectHeadersArgs())
 
+    def stop(self):
+        return self._client.StopTracer(pb.StopTracerArgs())
+
 
 @pytest.fixture
 def test_server_timeout() -> int:

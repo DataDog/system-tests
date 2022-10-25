@@ -62,7 +62,6 @@ func (s *apmClientServer) SpanSetMetric(ctx context.Context, args *SpanSetMetric
 func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) (*FinishSpanReturn, error) {
 	span := s.spans[args.Id]
 	span.Finish()
-	delete(s.spans, args.Id)
 	return &FinishSpanReturn{}, nil
 }
 
@@ -76,6 +75,11 @@ func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs)
 	tracer.Flush()
 	s.spans = make(map[uint64]tracer.Span)
 	return &FlushTraceStatsReturn{}, nil
+}
+
+func (s *apmClientServer) StopTracer(context.Context, *StopTracerArgs) (*StopTracerReturn, error) {
+	tracer.Stop()
+	return &StopTracerReturn{}, nil
 }
 
 func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorArgs) (*SpanSetErrorReturn, error) {
