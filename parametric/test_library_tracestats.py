@@ -92,7 +92,7 @@ def test_metrics_msgpack_serialization_TS001(library_env, test_agent, test_libra
 
 @enable_tracestats()
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
-def test_distinct_aggregationkeys_TS002(library_env, test_agent, test_library, test_server):
+def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library, test_server):
     """
     When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
@@ -173,7 +173,7 @@ def test_distinct_aggregationkeys_TS002(library_env, test_agent, test_library, t
 @pytest.mark.skip_library("dotnet", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
-def test_measured_spans_TS003(library_env, test_agent, test_library, test_server):
+def test_measured_spans_TS004(library_env, test_agent, test_library, test_server):
     """
     When spans are marked as measured
         Each has stats computed for it
@@ -216,7 +216,7 @@ def test_measured_spans_TS003(library_env, test_agent, test_library, test_server
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
-def test_top_level_TS004(library_env, test_agent, test_library, test_server):
+def test_top_level_TS005(library_env, test_agent, test_library, test_server):
     """
     When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
@@ -268,7 +268,7 @@ def test_top_level_TS004(library_env, test_agent, test_library, test_server):
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
-def test_successes_errors_recorded_separately_TS005(library_env, test_agent, test_library, test_server):
+def test_successes_errors_recorded_separately_TS006(library_env, test_agent, test_library, test_server):
     """
     When spans are marked as errors
         The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
@@ -322,7 +322,7 @@ def test_successes_errors_recorded_separately_TS005(library_env, test_agent, tes
 @pytest.mark.skip_library("dotnet", "FIXME: No traces should be emitted with the sample rate set to 0")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats(sample_rate=0.0)
-def test_sample_rate_0_TS006(library_env, test_agent, test_library, test_server):
+def test_sample_rate_0_TS007(library_env, test_agent, test_library, test_server):
     """
     When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
@@ -350,7 +350,7 @@ def test_sample_rate_0_TS006(library_env, test_agent, test_library, test_server)
 
 @pytest.mark.skip(reason="relative error test is broken")
 @enable_tracestats()
-def test_relative_error_TS007(library_env, test_agent, test_library):
+def test_relative_error_TS008(library_env, test_agent, test_library):
     """
     When trace stats are computed for traces
         The stats should be accurate to within 1% of the real values
@@ -448,7 +448,7 @@ def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_l
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @parametrize("library_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
-def test_metrics_computed_after_span_finish_TS09(library_env, test_agent, test_library):
+def test_metrics_computed_after_span_finish_TS010(library_env, test_agent, test_library):
     """
     When DD_TRACE_STATS_COMPUTATION_ENABLED=False
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
