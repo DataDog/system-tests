@@ -181,7 +181,7 @@ class Forwarder:
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD)
         elif self.state.get("mock_remote_config_backend") == "ASM_DATA":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DATA)
-        if self.state.get("mock_remote_config_backend") == "ASM_FEATURES_NO_CACHE":
+        elif self.state.get("mock_remote_config_backend") == "ASM_FEATURES_NO_CACHE":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_FEATURES_NO_CACHE)
         elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING_NO_CACHE":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE)
