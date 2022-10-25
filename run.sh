@@ -16,6 +16,10 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
+echo "MONTERO::TEST_LIBRARY: ${TEST_LIBRARY}"
+echo "MONTERO::WEBLOG_VARIANT: ${WEBLOG_VARIANT}"
+
+
 containers=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library backend)
 
