@@ -81,7 +81,8 @@ def junit_modifyreport(
 
     for testsuite in junit_report_root.findall("testsuite"):
         # Test suite name will be the scanario name
-        testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
+        #testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
+        testsuite.set("name", classname)
         # New properties node to add our custom tags
         ts_props = ET.SubElement(testsuite, "properties")
         _create_junit_testsuite_context(ts_props)
@@ -109,8 +110,9 @@ def _create_testcase_results(
 
     testcase = junit_xml_root.find(f"testsuite/testcase[@classname='{testclass_name}'][@name='{testcase_name}']")
     if testcase:
-        # Change name att because CI Visibility uses identifier: testsuite+name
-        testcase.set("name", testclass_name + "." + testcase_name)
+        # MONTERO- DELETE THIS Change name att because CI Visibility uses identifier: testsuite+name
+        # testcase.set("name", testclass_name + "." + testcase_name)
+
         # Add custom tags
         tc_props = ET.SubElement(testcase, "properties")
 
