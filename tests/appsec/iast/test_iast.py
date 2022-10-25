@@ -28,9 +28,7 @@ class Test_Iast(BaseTestCase):
     else:
         EXPECTED_LOCATION = ""  # (TBD)
 
-    @missing_feature(
-        library="python", reason="Need to be implement deduplicate vulnerability hashes"
-    )
+    @missing_feature(library="python", reason="Need to be implement deduplicate vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
