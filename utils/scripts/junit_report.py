@@ -12,6 +12,7 @@ from utils.tools import logger, get_log_formatter
 def junit_modifyreport(
     json_report, junit_report_path, failed_nodeids, _skip_reasons, _docs, _rfcs, _coverages, _release_versions
 ):
+    """Add extra information to auto generated JUnit xml file"""
 
     # Open XML Junit report
     junit_report = ET.parse(junit_report_path)
@@ -128,7 +129,7 @@ def _create_testcase_results(
                     value=test_release[library_name],
                 )
         if outcome == "failed":
-            if bool(skip_reason):
+            if skip_reason:
                 tc_skipped = ET.SubElement(testcase, "skipped")
                 tc_skipped.text = skip_reason
             else:
