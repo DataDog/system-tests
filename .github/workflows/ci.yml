@@ -465,10 +465,35 @@ jobs:
       #   env:
       #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      # - name: Run REMOTE_CONFIG_MOCKED_BACKEND scenario
-      #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND
-      #   env:
-      #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_FEATURES scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_FEATURES
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_FEATURES_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_FEATURES_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run APPSEC_CUSTOM_RULES scenario
         run: ./run.sh APPSEC_CUSTOM_RULES
@@ -529,6 +554,11 @@ jobs:
 
       - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
         run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run APPSEC_IP_BLOCKING scenario
+        run: ./run.sh APPSEC_IP_BLOCKING
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

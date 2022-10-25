@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Fail on any command failure
+set -e
+
 # Absolute path to this script, e.g. /home/user/bin/foo.sh
 SCRIPT_PATH=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
