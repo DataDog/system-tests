@@ -129,7 +129,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "BACKEND_WAF" ]; then
     WEBLOG_ENV="DD_APPSEC_ENABLED=false"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; then
-    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationFields scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
+    export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_features
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES"}'
     WEBLOG_ENV="DD_APPSEC_ENABLED="
