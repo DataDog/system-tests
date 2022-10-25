@@ -5,7 +5,7 @@
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, context, interfaces, released, rfc
+from utils import BaseTestCase, context, interfaces, released, rfc, bug
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -17,6 +17,7 @@ if context.library == "cpp":
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
+    @bug(context.php_appsec == "0.4.0")
     def test_appsec_obfuscator_key(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.

@@ -167,6 +167,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
+    @bug(context.php_appsec == "0.4.0")
     def test_appsec_obfuscator_key(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -215,6 +216,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
 
     @missing_feature(library="java")
+    @bug(context.php_appsec == "0.4.0")
     def test_appsec_obfuscator_value(self):
         """Obfuscation test of a matching rule parameter value containing a sensitive keyword."""
         # Validate that the AppSec event do not contain the following secret value.
