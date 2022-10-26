@@ -103,5 +103,5 @@ def deserialize(data, interface):
                 content = ast.literal_eval(data[key]["content"])
                 decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
                 data[key]["content"] = decoded
-            except Exception as e:
-                logger.critical("\n".join(get_exception_traceback(e)))
+            except Exception:
+                logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)

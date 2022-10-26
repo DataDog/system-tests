@@ -10,7 +10,7 @@ import random
 @released(
     dotnet="?",
     golang="?",
-    java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.109.0", "*": "?"},
+    java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "*": "?"},
     nodejs={"express4": "4.0.0pre0", "*": "?"},
     php_appsec="?",
     python="?",
@@ -27,9 +27,6 @@ class Test_Iast(BaseTestCase):
     else:
         EXPECTED_LOCATION = ""  # (TBD)
 
-    @missing_feature(
-        library="java", reason="Need to be implement deduplicate vulnerability hashes and sha1 algorithm detection"
-    )
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
