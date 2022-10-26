@@ -1,9 +1,8 @@
-from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, irrelevant
+from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky, irrelevant
 
 
 @released(dotnet="2.12.0", java="0.108.1")
 @missing_feature(library="cpp")
-@missing_feature(library="java")
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
@@ -17,6 +16,7 @@ class Test_Telemetry(BaseTestCase):
 
     app_started_count = 0
 
+    @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
