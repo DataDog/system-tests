@@ -100,7 +100,6 @@ jobs:
       - name: Run
         run: ./lib-injection/run.sh
 
-
   test-the-tests:
     runs-on: ubuntu-latest
     needs: lint_and_test

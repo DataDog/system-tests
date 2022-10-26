@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set +e
+
 if [ "$#" -ne 2 ] ; then
   echo "Script execution requires 2 parameter.  Repo Identification ,  Pipeline id + pipeline run attemp " 
   echo "Repositoriy identification examples: system-tests, night-tracer, night-agent, tracer-java, tracer-nodejs"
