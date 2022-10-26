@@ -192,8 +192,7 @@ done
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
 # But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
 # them in the docker-compose.yml is not possible
-echo -e ${WEBLOG_ENV:-} #> $SYSTEMTESTS_LOG_FOLDER/.weblog.env
-exit 1
+echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
 
 echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
 echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
