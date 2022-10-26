@@ -53,25 +53,7 @@ services:
         condition: service_healthy
       agent:
         condition: service_healthy
-      cassandra_db:
-        condition: service_started
-      mongodb:
-        condition: service_started
 
-  cassandra_db:
-    container_name: cassandra
-    image: cassandra:latest
-    restart: always
-    ports:
-      - "127.0.0.1:9042:9042"
-
-  mongodb:
-    container_name: mongodb
-    image: mongo:latest
-    restart: always
-    ports:
-      - "127.0.0.1:27017:27017"
-  
   agent:
     container_name: agent
     image: system_tests/agent
@@ -123,3 +105,18 @@ services:
       - ./scenarios/:/app/scenarios/
       - /var/run/docker.sock:/var/run/docker.sock
     command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
+
+  cassandra_db:
+    container_name: cassandra
+    image: cassandra:latest
+    restart: always
+    ports:
+      - "127.0.0.1:9042:9042"
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    restart: always
+    ports:
+      - "127.0.0.1:27017:27017"
+  

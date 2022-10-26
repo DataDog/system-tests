@@ -16,7 +16,7 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
-containers=(weblog agent runner agent_proxy library_proxy)
+CONTAINERS=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library backend)
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
@@ -122,6 +122,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
     DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
     WEBLOG_ENV="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_ip_blocking.py::Test_AppSecIPBlocking"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_ip_blocking
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
+
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_FEATURES" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_features
@@ -159,6 +164,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_trace_propagation_style_w3c
     WEBLOG_ENV="DD_TRACE_PROPAGATION_STYLE_INJECT=W3C\nDD_TRACE_PROPAGATION_STYLE_EXTRACT=W3C"
 
+elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
+    export RUNNER_ARGS="scenarios/integrations"
+    export SYSTEMTESTS_LOG_FOLDER=logs_integrations
+    CONTAINERS+=(cassandra_db mongodb)
+
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
@@ -170,9 +180,9 @@ for interface in ${interfaces[@]}
 do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/interfaces/$interface
 done
-for container in ${containers[@]}
+for CONTAINER in ${CONTAINERS[@]}
 do
-    mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/$container
+    mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/$CONTAINER
 done
 
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
@@ -186,20 +196,20 @@ echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-echo "Starting containers in background."
-docker-compose up -d --force-recreate
+echo "Starting containers in background"
+docker-compose up -d --force-recreate ${CONTAINERS[*]}
 
 export container_log_folder="unset"
 # Save docker logs
-for container in ${containers[@]}
+for CONTAINER in ${CONTAINERS[@]}
 do
-    container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${container}"
-    docker-compose logs --no-color --no-log-prefix -f $container > $container_log_folder/stdout.log &
+    container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${CONTAINER}"
+    docker-compose logs --no-color --no-log-prefix -f $CONTAINER > $container_log_folder/stdout.log &
 
     # checking container, if should not be stopped here
-    if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $container)` ]; then
-        echo "ERROR: $container container is unexpectably stopped. Here is the output:"
-        docker-compose logs $container
+    if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $CONTAINER)` ]; then
+        echo "ERROR: $CONTAINER container is unexpectably stopped. Here is the output:"
+        docker-compose logs $CONTAINER
         exit 1
     fi
 done
