@@ -18,7 +18,7 @@ fi
 
 CONTAINERS=(weblog agent runner agent_proxy library_proxy)
 interfaces=(agent library backend)
-WEBLOG_ENV="DD_APPSEC_ENABLED=true"
+WEBLOG_ENV="DD_APPSEC_ENABLED=true\n"
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
 export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
@@ -53,27 +53,27 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export RUNNER_ARGS=scenarios/sampling_rates.py
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_TRACE_SAMPLE_RATE=0.5"
+    WEBLOG_ENV+="DD_TRACE_SAMPLE_RATE=0.5"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_MissingRules
     export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_APPSEC_RULES=/donotexists"
+    WEBLOG_ENV+="DD_APPSEC_RULES=/donotexists"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
     export RUNNER_ARGS=scenarios/appsec/test_customconf.py::Test_CorruptedRules
     export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_APPSEC_RULES=/appsec_corrupted_rules.yml"
+    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_customconf.py::Test_ConfRuleSet scenarios/appsec/test_customconf.py::Test_NoLimitOnWafRules scenarios/appsec/waf/test_addresses.py scenarios/appsec/test_traces.py scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_appsec_rules"
     export SYSTEMTESTS_LOG_FOLDER=logs_custom_appsec_rules
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_APPSEC_RULES=/appsec_custom_rules.json"
+    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules.json"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
     export RUNNER_ARGS="scenarios/appsec/waf/test_reports.py"
     export SYSTEMTESTS_LOG_FOLDER=logs_rules_monitoring_with_errors
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
+    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
 
 elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     export RUNNER_ARGS=scenarios/test_profiling.py
@@ -99,29 +99,29 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_LOW_WAF_TIMEOUT" ]; then
     # disable appsec
     export RUNNER_ARGS=scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_waf_timeout
     export SYSTEMTESTS_LOG_FOLDER=logs_low_waf_timeout
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_APPSEC_WAF_TIMEOUT=1"
+    WEBLOG_ENV+="DD_APPSEC_WAF_TIMEOUT=1"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key scenarios/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value"
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_custom_obfuscation
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
+    WEBLOG_ENV+="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_rate_limiter.py"
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_APPSEC_TRACE_RATE_LIMIT=1"
+    WEBLOG_ENV+="DD_APPSEC_TRACE_RATE_LIMIT=1"
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
     export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsShortFormat"
     export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_short
     DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1,header-tag2"
+    WEBLOG_ENV+="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1,header-tag2"
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
     export RUNNER_ARGS="scenarios/test_library_conf.py::Test_HeaderTagsLongFormat"
     export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
     DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
+    WEBLOG_ENV+="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
     export RUNNER_ARGS="scenarios/appsec/test_ip_blocking.py::Test_AppSecIPBlocking"
@@ -139,7 +139,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; 
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true\nDD_INTERNAL_RCM_POLL_INTERVAL=1000"
+    WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true\nDD_INTERNAL_RCM_POLL_INTERVAL=1000"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD"
@@ -156,7 +156,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCA
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
+    WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache"
@@ -166,7 +166,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; 
 elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
     export RUNNER_ARGS="scenarios/test_distributed.py"
     export SYSTEMTESTS_LOG_FOLDER=logs_trace_propagation_style_w3c
-    WEBLOG_ENV="$WEBLOG_ENV\nDD_TRACE_PROPAGATION_STYLE_INJECT=W3C\nDD_TRACE_PROPAGATION_STYLE_EXTRACT=W3C"
+    WEBLOG_ENV+="DD_TRACE_PROPAGATION_STYLE_INJECT=W3C\nDD_TRACE_PROPAGATION_STYLE_EXTRACT=W3C"
 
 elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
     export RUNNER_ARGS="scenarios/integrations"
@@ -192,7 +192,8 @@ done
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
 # But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
 # them in the docker-compose.yml is not possible
-echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
+echo -e ${WEBLOG_ENV:-} #> $SYSTEMTESTS_LOG_FOLDER/.weblog.env
+exit 1
 
 echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
 echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
