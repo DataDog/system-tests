@@ -131,7 +131,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; th
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_features
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES"}'
-    WEBLOG_ENV="DD_APPSEC_ENABLED="
+    #WEBLOG_ENV="DD_APPSEC_ENABLED="
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging"
