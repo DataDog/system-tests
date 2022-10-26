@@ -2,7 +2,13 @@ package com.datadoghq.system_tests.springboot.iast.utils;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
@@ -52,6 +58,23 @@ public class CryptoExamples {
     public String insecureMd5Hashing(final String password) throws NoSuchAlgorithmException {
         final MessageDigest md5 = MessageDigest.getInstance("md5");
         return consumeMessageDigest(md5, password);
+    }
+
+    public String insecureCipher(final String password) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return doCipher(password, "Blowfish");
+    }
+
+    public String secureCipher(final String password) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return doCipher(password, "DESede");
+    }
+
+    private static String doCipher(final String password, final String algorithm) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        String Key = "key";
+        byte[] KeyData = Key.getBytes();
+        SecretKeySpec KS = new SecretKeySpec(KeyData, algorithm);
+        Cipher cipher = Cipher.getInstance(algorithm);
+        cipher.init(Cipher.ENCRYPT_MODE, KS);
+        return new String(cipher.doFinal(password.getBytes()));
     }
 
     private String consumeMessageDigest(final MessageDigest md, final String password) {
