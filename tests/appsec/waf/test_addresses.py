@@ -192,7 +192,8 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
+@released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", ruby="?")
+@released(python={"django-poc": "1.5.2", "*": "?"})
 @coverage.basic
 class Test_BodyRaw(BaseTestCase):
     """Appsec supports <body>"""
@@ -324,21 +325,15 @@ class Test_ResponseStatus(BaseTestCase):
 
 
 @released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="?")
-@released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
+@released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "resteasy-netty3": "?", "jersey-grizzly2": "?", "*": "0.95.1"})
+@released(golang={"gin": "1.37.0", "*": "1.36.0"})
 @released(
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
-        "uwsgi-poc": "?",
+        "uwsgi-poc": "1.5.2",
         "pylons": "1.1.0rc2.dev",
     }
-)
-@released(
-    java="?"
-    if context.weblog_variant in ["jersey-grizzly2", "resteasy-netty3"]
-    else "0.99.0"
-    if context.weblog_variant in ["vertx3", "ratpack"]
-    else "0.95.1"
 )
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
