@@ -4,9 +4,10 @@
 
 """Exhaustive tests on WAF default rule set"""
 
+import pytest
+
 from utils import context, BaseTestCase, interfaces, released, bug, missing_feature, irrelevant, flaky, coverage
 from .utils import rules
-import pytest
 
 
 if context.library == "cpp":

@@ -8,6 +8,7 @@ from ddtrace.context import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
+from ddtrace.propagation.http import HTTPPropagator
 import grpc
 
 from .protos import apm_test_client_pb2, apm_test_client_pb2_grpc
@@ -30,6 +31,10 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             parent_id = parent.span_id if parent else None
             parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
 
+        if request.http_headers.ByteSize() > 0:
+            headers = dict(request.http_headers.http_headers)
+            parent = HTTPPropagator.extract(headers)
+
         span = ddtrace.tracer.start_span(
             request.name,
             service=request.service,
@@ -41,6 +46,20 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         self._spans[span.span_id] = span
         return apm_test_client_pb2.StartSpanReturn(
             span_id=span.span_id,
+        )
+
+    def InjectHeaders(self, request, context):
+        ctx = ddtrace.tracer.current_span().context
+        headers = {}
+        HTTPPropagator.inject(ctx, headers)
+        distrib_headers = apm_test_client_pb2.DistributedHTTPHeaders()
+
+        if headers["x-datadog-trace-id"]:
+            for k,v in headers.items():
+                distrib_headers.http_headers[k] = v
+
+        return apm_test_client_pb2.InjectHeadersReturn(
+           http_headers=distrib_headers,
         )
 
     def SpanSetMeta(self, request, context):

@@ -7,8 +7,10 @@ service APMClient {
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
   rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
+  rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
+  rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 
 message StartSpanArgs {
@@ -18,10 +20,22 @@ message StartSpanArgs {
   optional string resource = 4;
   optional string type = 5;
   optional string origin = 6;
+  optional DistributedHTTPHeaders http_headers = 7;
 }
+
+message DistributedHTTPHeaders {
+    map<string, string> http_headers = 9;
+}
+
 message StartSpanReturn {
   uint64 span_id = 1;
   uint64 trace_id = 2;
+}
+
+message InjectHeadersArgs {}
+
+message InjectHeadersReturn {
+    optional DistributedHTTPHeaders http_headers = 1;
 }
 
 message FinishSpanArgs {
@@ -59,3 +73,6 @@ message FlushSpansReturn {}
 
 message FlushTraceStatsArgs {}
 message FlushTraceStatsReturn {}
+
+message StopTracerArgs {}
+message StopTracerReturn {}

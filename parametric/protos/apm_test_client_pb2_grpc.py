@@ -40,6 +40,11 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.FromString,
                 )
+        self.InjectHeaders = channel.unary_unary(
+                '/APMClient/InjectHeaders',
+                request_serializer=protos_dot_apm__test__client__pb2.InjectHeadersArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.InjectHeadersReturn.FromString,
+                )
         self.FlushSpans = channel.unary_unary(
                 '/APMClient/FlushSpans',
                 request_serializer=protos_dot_apm__test__client__pb2.FlushSpansArgs.SerializeToString,
@@ -49,6 +54,11 @@ class APMClientStub(object):
                 '/APMClient/FlushTraceStats',
                 request_serializer=protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
+                )
+        self.StopTracer = channel.unary_unary(
+                '/APMClient/StopTracer',
+                request_serializer=protos_dot_apm__test__client__pb2.StopTracerArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.StopTracerReturn.FromString,
                 )
 
 
@@ -86,6 +96,12 @@ class APMClientServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def InjectHeaders(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def FlushSpans(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -93,6 +109,12 @@ class APMClientServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def FlushTraceStats(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StopTracer(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -126,6 +148,11 @@ def add_APMClientServicer_to_server(servicer, server):
                     request_deserializer=protos_dot_apm__test__client__pb2.SpanSetErrorArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.SpanSetErrorReturn.SerializeToString,
             ),
+            'InjectHeaders': grpc.unary_unary_rpc_method_handler(
+                    servicer.InjectHeaders,
+                    request_deserializer=protos_dot_apm__test__client__pb2.InjectHeadersArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.InjectHeadersReturn.SerializeToString,
+            ),
             'FlushSpans': grpc.unary_unary_rpc_method_handler(
                     servicer.FlushSpans,
                     request_deserializer=protos_dot_apm__test__client__pb2.FlushSpansArgs.FromString,
@@ -135,6 +162,11 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.FlushTraceStats,
                     request_deserializer=protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.SerializeToString,
+            ),
+            'StopTracer': grpc.unary_unary_rpc_method_handler(
+                    servicer.StopTracer,
+                    request_deserializer=protos_dot_apm__test__client__pb2.StopTracerArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.StopTracerReturn.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -233,6 +265,23 @@ class APMClient(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
+    def InjectHeaders(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/InjectHeaders',
+            protos_dot_apm__test__client__pb2.InjectHeadersArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.InjectHeadersReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
     def FlushSpans(request,
             target,
             options=(),
@@ -263,5 +312,22 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/FlushTraceStats',
             protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StopTracer(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/StopTracer',
+            protos_dot_apm__test__client__pb2.StopTracerArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.StopTracerReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

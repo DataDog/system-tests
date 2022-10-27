@@ -9,7 +9,7 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
 @released(
     dotnet="?",
     golang="?",
-    java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.109.0", "*": "?"},
+    java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "*": "?"},
     nodejs={"express4": "4.0.0pre0", "*": "?"},
     php_appsec="?",
     python="?",
@@ -21,16 +21,17 @@ class Test_Iast(BaseTestCase):
 
     if context.library == "nodejs":
         EXPECTED_LOCATION = "/usr/app/app.js"
+        WEAK_CIPHER_ALGORITHM = "des-ede-cbc"
     elif context.library == "java":
         EXPECTED_LOCATION = "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+        WEAK_CIPHER_ALGORITHM = "Blowfish"
     else:
         EXPECTED_LOCATION = ""  # (TBD)
+        WEAK_CIPHER_ALGORITHM = ""
 
-    @missing_feature(
-        library="java", reason="Need to be implement deduplicate vulnerability hashes and sha1 algorithm detection"
-    )
     def test_insecure_hash_remove_duplicates(self):
-        """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request, we will report only one vulnerability"""
+        """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
+        we will report only one vulnerability"""
         r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
         interfaces.library.expect_iast_vulnerabilities(
@@ -56,3 +57,17 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
 
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
+
+    def test_insecure_cipher(self):
+        """Test weak cipher algorithm is reported as insecure"""
+        r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
+
+        interfaces.library.expect_iast_vulnerabilities(
+            r, vulnerability_type="WEAK_CIPHER", evidence=self.WEAK_CIPHER_ALGORITHM
+        )
+
+    def test_secure_cipher(self):
+        """Test strong cipher algorithm is not reported as insecure"""
+        r = self.weblog_get("/iast/insecure_cipher/test_secure_algorithm")
+
+        interfaces.library.expect_no_vulnerabilities(r)

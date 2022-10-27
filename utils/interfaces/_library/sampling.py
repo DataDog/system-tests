@@ -116,7 +116,8 @@ class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation)
         if len(errors) > 0:
             for err in errors:
                 self.log_error(err)
-            return self.set_status(False)
+
+            self.set_status(False)
 
 
 class _AddSamplingDecisionValidation(BaseValidation):

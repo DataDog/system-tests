@@ -4,13 +4,12 @@ import dataclasses
 import os
 import shutil
 import subprocess
-import sys
+import tempfile
 import time
 from typing import Callable, Dict, Generator, List, TextIO, Tuple, TypedDict
 import urllib.parse
 
 import grpc
-
 import requests
 import pytest
 
@@ -35,11 +34,15 @@ class AgentRequestV06Stats(AgentRequest):
 
 
 @pytest.fixture(autouse=True)
-def skip_by_library(request, apm_test_server):
-    if request.node.get_closest_marker("skip_libraries"):
-        skip_libraries = request.node.get_closest_marker("skip_libraries").args[0]
-        reason = request.node.get_closest_marker("skip_libraries").args[1]
-        if apm_test_server.lang in skip_libraries:
+def skip_library(request, apm_test_server):
+    overrides = set([s.strip() for s in os.getenv("OVERRIDE_SKIPS", "").split(",")])
+    for marker in request.node.iter_markers("skip_library"):
+        skip_library = marker.args[0]
+        reason = marker.args[1]
+
+        # Have to use `originalname` since `name` will contain the parameterization
+        # eg. test_case[python]
+        if apm_test_server.lang == skip_library and request.node.originalname not in overrides:
             pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, reason))
 
 
@@ -47,7 +50,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
-    config.addinivalue_line("markers", "skip_libraries(apm_test_server): skip test for library")
+    config.addinivalue_line("markers", "skip_library(library, reason): skip test for library")
 
 
 def _request_token(request):
@@ -72,20 +75,20 @@ class APMLibraryTestServer:
 
 
 @pytest.fixture
-def apm_test_server_env() -> Dict[str, str]:
+def library_env() -> Dict[str, str]:
     return {}
 
 
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 
-def python_library_server_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
         container_name="python-test-library",
-        container_tag="py39-test-library",
+        container_tag="python-test-library",
         container_img="""
 FROM datadog/dd-trace-py:buster
 WORKDIR /client
@@ -101,19 +104,51 @@ RUN python3.9 -m pip install %s
     )
 
 
-def golang_library_server_factory(env: Dict[str, str]):
-    go_dir = os.path.join(os.path.dirname(__file__), "apps", "golang")
+def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    nodejs_appdir = os.path.join("apps", "nodejs")
+    nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
+    nodejs_reldir = os.path.join("parametric", nodejs_appdir)
+    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
+    return APMLibraryTestServer(
+        lang="nodejs",
+        container_name="node-test-client",
+        container_tag="node-test-client",
+        container_img=f"""
+FROM node:18.10-slim
+WORKDIR /client
+COPY {nodejs_reldir}/package.json /client/
+COPY {nodejs_reldir}/package-lock.json /client/
+COPY {nodejs_reldir}/*.js /client/
+RUN npm install
+RUN npm install {node_module}
+""",
+        container_cmd=["node", "server.js"],
+        container_build_dir=nodejs_dir,
+        volumes=[
+            (
+                os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+                "/client/apm_test_client.proto",
+            ),
+        ],
+        env=env,
+    )
+
+
+def golang_library_factory(env: Dict[str, str]):
+    go_appdir = os.path.join("apps", "golang")
+    go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
+    go_reldir = os.path.join("parametric", go_appdir)
     return APMLibraryTestServer(
         lang="golang",
         container_name="go-test-library",
         container_tag="go118-test-library",
-        container_img="""
+        container_img=f"""
 FROM golang:1.18
 WORKDIR /client
-COPY go.mod /client
-COPY go.sum /client
+COPY {go_reldir}/go.mod /client
+COPY {go_reldir}/go.sum /client
 RUN go mod download
-COPY . /client
+COPY {go_reldir} /client
 RUN go get gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer
 RUN go install
 """,
@@ -124,19 +159,21 @@ RUN go install
     )
 
 
-def dotnet_library_server_factory(env: Dict[str, str]):
-    dotnet_dir = os.path.join(os.path.dirname(__file__), "apps", "dotnet")
+def dotnet_library_factory(env: Dict[str, str]):
+    dotnet_appdir = os.path.join("apps", "dotnet")
+    dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
+    dotnet_reldir = os.path.join("parametric", dotnet_appdir)
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
     return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
-        container_img="""
+        container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["ApmTestClient.csproj", "."]
+COPY ["{dotnet_reldir}/ApmTestClient.csproj", "."]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
+COPY {dotnet_reldir} .
 WORKDIR "/client/."
 """,
         container_cmd=["dotnet", "run"],
@@ -146,21 +183,43 @@ WORKDIR "/client/."
     )
 
 
-@pytest.fixture
-def apm_test_server_factory():
-    yield python_library_server_factory
+_libs = {
+    "dotnet": dotnet_library_factory,
+    "golang": golang_library_factory,
+    "nodejs": node_library_factory,
+    "python": python_library_factory,
+}
+_enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,nodejs,python").split(","):
+    if _lang not in _libs:
+        raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
+    _enabled_libs.append((_lang, _libs[_lang]))
+
+
+@pytest.fixture(
+    params=list(factory for lang, factory in _enabled_libs), ids=list(lang for lang, factory in _enabled_libs)
+)
+def apm_test_server(request, library_env):
+    # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
+    # in pytest.
+    apm_test_library = request.param
+    yield apm_test_library(library_env)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
 
 
 @pytest.fixture
-def apm_test_server(apm_test_server_factory, apm_test_server_env):
-    yield apm_test_server_factory(apm_test_server_env)
-
-
-@pytest.fixture
-def test_server_log_file(apm_test_server, tmp_path) -> TextIO:
-    # timestr = time.strftime("%Y%m%d-%H%M%S")
-    # yield tmp_path / ("%s_%s.out" % (apm_test_server.container_name, timestr))
-    return sys.stderr
+def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
+    with tempfile.NamedTemporaryFile(mode="w+") as f:
+        yield f
+        f.seek(0)
+        request.node._report_sections.append(
+            ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
+        )
 
 
 class _TestAgentAPI:
@@ -212,7 +271,7 @@ class _TestAgentAPI:
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
-                pytest.fail(to_unicode(resp.text), pytrace=False)
+                pytest.fail(resp.text.decode("utf-8"), pytrace=False)
         except Exception as e:
             pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
         else:
@@ -252,7 +311,8 @@ def docker_run(
         _cmd.extend(["-p", "%s:%s" % (k, v)])
     _cmd += [image]
     _cmd.extend(cmd)
-    log_file.write("$ " + " ".join(_cmd) + "\n\n")
+
+    log_file.write("$ " + " ".join(_cmd) + "\n")
     log_file.flush()
     docker = shutil.which("docker")
 
@@ -277,15 +337,15 @@ def docker_run(
     finally:
         docker_logs.kill()
         _cmd = [docker, "kill", name]
-        log_file.write(" ".join(_cmd) + "\n\n")
+        log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
         subprocess.run(
             _cmd, stdout=log_file, stderr=log_file, check=True,
         )
 
 
-@pytest.fixture
-def docker() -> None:
+@pytest.fixture()
+def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
     r = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -293,30 +353,32 @@ def docker() -> None:
         pytest.fail(
             "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
         )
+    return shutil.which("docker")
 
 
-@pytest.fixture
-def docker_network_log_file() -> TextIO:
-    return sys.stderr
+@pytest.fixture()
+def docker_network_log_file(request) -> TextIO:
+    with tempfile.NamedTemporaryFile(mode="w+") as f:
+        yield f
 
 
-@pytest.fixture
+@pytest.fixture()
 def docker_network_name() -> str:
     return "apm_shared_tests_network"
 
 
-@pytest.fixture
-def docker_network(docker_network_log_file: TextIO, docker_network_name: str) -> str:
+@pytest.fixture()
+def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_name: str) -> str:
     # Initial check to see if docker network already exists
     cmd = [
-        shutil.which("docker"),
+        docker,
         "network",
         "inspect",
         docker_network_name,
     ]
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
-    r = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    r = subprocess.run(cmd, stderr=docker_network_log_file)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
             "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
@@ -362,8 +424,11 @@ def test_agent_port() -> str:
 
 
 @pytest.fixture
-def test_agent_log_file() -> TextIO:
-    return sys.stderr
+def test_agent_log_file(request) -> Generator[TextIO, None, None]:
+    with tempfile.NamedTemporaryFile(mode="w+") as f:
+        yield f
+        f.seek(0)
+        request.node._report_sections.append(("teardown", f"Test Agent Output", "".join(f.readlines())))
 
 
 @pytest.fixture
@@ -444,29 +509,35 @@ def test_server(
     # Note that this needs to be done as the context cannot be
     # specified if Dockerfiles are read from stdin.
     dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
-    test_server_log_file.write("writing dockerfile %r\n" % dockf_path)
     with open(dockf_path, "w") as dockf:
         dockf.write(apm_test_server.container_img)
     # Build the container
     docker = shutil.which("docker")
+    root_path = ".."
     cmd = [
         docker,
         "build",
+        "--progress=plain",  # use plain output to assist in debugging
         "-t",
         apm_test_server.container_tag,
+        "-f",
+        dockf_path,
         ".",
     ]
-    test_server_log_file.write("running %r in %r\n\n" % (" ".join(cmd), apm_test_server.container_build_dir))
+    test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
-    subprocess.run(
+    p = subprocess.run(
         cmd,
-        cwd=apm_test_server.container_build_dir,
-        stdout=test_server_log_file,
-        stderr=test_server_log_file,
-        check=True,
+        cwd=root_path,
         text=True,
         input=apm_test_server.container_img,
+        stdout=test_server_log_file,
+        stderr=test_server_log_file,
+        env={"DOCKER_SCAN_SUGGEST": "false",},  # Docker outputs an annoying synk message on every build
     )
+    if p.returncode != 0:
+        test_server_log_file.seek(0)
+        pytest.fail("".join(test_server_log_file.readlines()), pytrace=False)
 
     env = {
         "DD_TRACE_DEBUG": "true",
@@ -487,6 +558,9 @@ def test_server(
         network_name=docker_network,
     ):
         yield apm_test_server
+
+    # Clean up generated files
+    os.remove(dockf_path)
 
 
 class _TestSpan:
@@ -509,7 +583,7 @@ class _TestSpan:
         self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
 
 
-class _TestTracer:
+class APMLibrary:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
 
@@ -517,15 +591,32 @@ class _TestTracer:
         pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.flush()
+        # Only attempt a flush if there was no exception raised.
+        if exc_type is None:
+            self.flush()
+
+    DistributedHTTPHeaders = {}
 
     @contextlib.contextmanager
     def start_span(
-        self, name: str, service: str = "", resource: str = "", parent_id: int = 0, typestr: str = "", origin: str = ""
+        self,
+        name: str,
+        service: str = "",
+        resource: str = "",
+        parent_id: int = 0,
+        typestr: str = "",
+        origin: str = "",
+        http_headers: DistributedHTTPHeaders = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
-                name=name, service=service, resource=resource, parent_id=parent_id, type=typestr, origin=origin,
+                name=name,
+                service=service,
+                resource=resource,
+                parent_id=parent_id,
+                type=typestr,
+                origin=origin,
+                http_headers=http_headers,
             )
         )
         span = _TestSpan(self._client, resp.span_id)
@@ -536,6 +627,12 @@ class _TestTracer:
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
+    def inject_headers(self):
+        return self._client.InjectHeaders(pb.InjectHeadersArgs())
+
+    def stop(self):
+        return self._client.StopTracer(pb.StopTracerArgs())
+
 
 @pytest.fixture
 def test_server_timeout() -> int:
@@ -543,10 +640,9 @@ def test_server_timeout() -> int:
 
 
 @pytest.fixture
-def test_client(test_server, test_server_timeout):
+def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
-    tracer = _TestTracer(client)
+    tracer = APMLibrary(client)
     yield tracer
-    tracer.flush()

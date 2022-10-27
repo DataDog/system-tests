@@ -4,22 +4,19 @@
 
 import threading
 
-from utils import context
 from utils.interfaces._core import InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
 from utils.interfaces._library.appsec_iast import _AppSecIastValidation, _NoIastEvent
 
-from utils.interfaces._library.remote_configuration import _RemoteConfigurationValidation
-from utils.interfaces._profiling import _ProfilingValidation, _ProfilingFieldAssertion
+from utils.interfaces._profiling import _ProfilingFieldAssertion
 from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
 from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
     _ReceiveRequestRootTrace,
     _SpanValidation,
     _SpanTagValidation,
-    _TracesValidation,
     _TraceExistence,
 )
 from utils.interfaces._library.sampling import (
@@ -29,7 +26,6 @@ from utils.interfaces._library.sampling import (
     _DistributedTracesDeterministicSamplingDecisisonValidation,
 )
 from utils.interfaces._library.telemetry import (
-    _TelemetryValidation,
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
@@ -44,18 +40,21 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready = threading.Event()
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
+    def get_expected_timeout(self, context):
+        result = 40
+
         if context.library == "java":
-            self.expected_timeout = 80
+            result = 80
         elif context.library.library in ("golang",):
-            self.expected_timeout = 10
+            result = 10
         elif context.library.library in ("nodejs",):
-            self.expected_timeout = 5
+            result = 5
         elif context.library.library in ("php",):
-            self.expected_timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
+            result = 10  # possibly something weird on obfuscator, let increase the delay for now
         elif context.library.library in ("python",):
-            self.expected_timeout = 25
-        else:
-            self.expected_timeout = 40
+            result = 25
+
+        return max(result, self._minimal_expected_timeout)
 
     def append_data(self, data):
         self.ready.set()
@@ -106,7 +105,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_MetricAbsence(metric_name))
 
     def add_traces_validation(self, validator, is_success_on_expiry=False):
-        self.append_validation(_TracesValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+        self.add_validation(
+            validator=validator, is_success_on_expiry=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces"
+        )
 
     def add_span_validation(self, request=None, validator=None, is_success_on_expiry=False):
         self.append_validation(
@@ -151,8 +152,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def expect_no_vulnerabilities(self, request):
         self.append_validation(_NoIastEvent(request=request))
 
-    def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
-        self.append_validation(_TelemetryValidation(validator=validator, is_success_on_expiry=is_success_on_expiry))
+    def add_telemetry_validation(self, validator, is_success_on_expiry=False):
+        self.add_validation(
+            validator=validator,
+            is_success_on_expiry=is_success_on_expiry,
+            path_filters="/telemetry/proxy/api/v2/apmtelemetry",
+        )
 
     def add_appsec_reported_header(self, request, header_name):
         self.append_validation(_ReportedHeader(request, header_name))
@@ -164,7 +169,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_NoSkippedSeqId())
 
     def add_profiling_validation(self, validator):
-        self.append_validation(_ProfilingValidation(validator))
+        self.add_validation(validator, path_filters="/profiling/v1/input")
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
@@ -173,7 +178,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_TraceExistence(request=request, span_type=span_type))
 
     def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
-        self.append_validation(_RemoteConfigurationValidation(validator, is_success_on_expiry=is_success_on_expiry))
+        self.add_validation(validator, is_success_on_expiry=is_success_on_expiry, path_filters=r"/v\d+.\d+/config")
 
 
 class _TraceIdUniquenessExceptions:

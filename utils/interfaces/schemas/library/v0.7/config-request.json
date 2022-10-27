@@ -4,21 +4,14 @@
   "required": ["client"],
   "properties": {
     "client": {
-      "required": ["id", "state", "is_tracer", "products", "client_tracer"],
+      "required": ["id", "state", "is_tracer", "client_tracer"],
       "properties": {
         "id": { "$ref": "#/definitions/non-empty-string" },
         "is_tracer": {
           "const": true
         },
-        "state": {
-          "required": ["root_version", "targets_version"],
-          "properties": {
-            "root_version": { 
-              "$comment": "Must be set to 1 until root updates are supported",
-              "const": 1
-            },
-            "targets_version": { "type": "integer" }
-          }
+        "state": { 
+          "$ref": "/library/v0.7/misc/config-state.json"
         },
         "client_tracer": {
           "required": ["runtime_id", "service", "env", "app_version", "tracer_version"],
@@ -27,7 +20,8 @@
             "service": { "$ref": "#/definitions/non-empty-string" },
             "env": { "$ref": "#/definitions/non-empty-string" },
             "app_version": { "$ref": "#/definitions/non-empty-string" },
-            "tracer_version": { "$ref": "#/definitions/non-empty-string" }
+            "tracer_version": { "$ref": "#/definitions/non-empty-string" },
+            "language": {"enum": ["cpp", "dotnet", "go", "node", "java", "php", "python", "ruby"]}
           }
         },
         "products": {

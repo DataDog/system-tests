@@ -53,25 +53,7 @@ services:
         condition: service_healthy
       agent:
         condition: service_healthy
-      cassandra_db:
-        condition: service_started
-      mongodb:
-        condition: service_started
 
-  cassandra_db:
-    container_name: cassandra
-    image: cassandra:latest
-    restart: always
-    ports:
-      - "127.0.0.1:9042:9042"
-
-  mongodb:
-    container_name: mongodb
-    image: mongo:latest
-    restart: always
-    ports:
-      - "127.0.0.1:27017:27017"
-  
   agent:
     container_name: agent
     image: system_tests/agent
@@ -105,6 +87,7 @@ services:
       start_period: 5s
       retries: 25
     environment:
+      - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY
       - DD_APPLICATION_KEY=${DD_APPLICATION_KEY:-}
       - COLUMNS=${COLUMNS:-120}
@@ -114,7 +97,6 @@ services:
       - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
-      # - ./pytest.ini:/app/pytest.ini
       - ./pyproject.toml:/app/pyproject.toml
       - ./conftest.py:/app/conftest.py
       - ./tests/:/app/tests/
@@ -123,3 +105,18 @@ services:
       - ./scenarios/:/app/scenarios/
       - /var/run/docker.sock:/var/run/docker.sock
     command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
+
+  cassandra_db:
+    container_name: cassandra
+    image: cassandra:latest
+    restart: always
+    ports:
+      - "127.0.0.1:9042:9042"
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    restart: always
+    ports:
+      - "127.0.0.1:27017:27017"
+  

@@ -5,65 +5,37 @@
 import json
 from collections import defaultdict
 
-from utils import BaseTestCase, context, coverage, interfaces, proxies, released, rfc
+from utils import BaseTestCase, coverage, interfaces, released, rfc, bug
 from utils.tools import logger
 
-with open("scenarios/remote_config/rc_expected_requests_live_debugging.json") as f:
+with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
     LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
-with open("scenarios/remote_config/rc_expected_requests_features.json") as f:
-    FEATURES_EXPECTED_REQUESTS = json.load(f)
+with open("scenarios/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
+    ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
 
-with open("scenarios/remote_config/rc_expected_requests_asm_dd.json") as f:
+with open("scenarios/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
     ASM_DD_EXPECTED_REQUESTS = json.load(f)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
-@coverage.basic
-class Test_RemoteConfigurationFields(BaseTestCase):
+class RemoteConfigurationFieldsBasicTests(BaseTestCase):
     """ Misc tests on fields and values on remote configuration reauests """
 
     def test_schemas(self):
         """ Test all library schemas """
         interfaces.library.assert_schemas()
 
-    def test_tracer_language(self):
-        """ Ensure that tracer clients use the correct word for the language """
-
-        def validator(data):
-            content = data["request"]["content"]
-            assert "client" in content, f"'client' is missing in {data['log_filename']}"
-            assert "client_tracer" in content["client"], f"'client_tracer' is missing in {data['log_filename']}"
-
-            language = data["request"]["content"]["client"]["client_tracer"].get("language")
-
-            expected_language = {
-                "cpp": "cpp",
-                "dotnet": "dotnet",
-                "golang": "go",
-                "nodejs": "node",
-                "java": "java",
-                "php": "php",
-                "python": "python",
-                "ruby": "ruby",
-            }[context.library.library]
-
-            assert language == expected_language, f"language is '{language}', I was expecting '{expected_language}'"
-
-        interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
-
     def test_client_state_errors(self):
         """ Ensure that the Client State error is consistent """
 
         def validator(data):
-            content = data["request"]["content"]
-            state = content.get("client", {}).get("state", {})
+            state = data["request"]["content"]["client"]["state"]
 
-            if "has_error" in state and state["has_error"] == True:
+            if state.get("has_error") is True:
                 assert (
-                    "error" in state and state["error"] != ""
-                ), f"'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
+                    "error" in state
+                ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
 
         interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
 
@@ -71,16 +43,14 @@ class Test_RemoteConfigurationFields(BaseTestCase):
         """ Ensure that the Client field is appropriately filled out in update requests"""
 
         def validator(data):
-            content = data["request"]["content"]
-            client = content.get("client", {})
+            client = data["request"]["content"]["client"]
+            client_tracer = client["client_tracer"]
 
-            assert "is_agent" not in client, f"'client.is_agent' MUST either NOT be set or set to false"
-            assert "client_agent" not in client, f"'client.client_agent' must NOT be set"
-
-            client_tracer = client.get("client_tracer", {})
+            assert "is_agent" not in client, "'client.is_agent' MUST either NOT be set or set to false"
+            assert "client_agent" not in client, "'client.client_agent' must NOT be set"
             assert (
                 client["id"] != client_tracer["runtime_id"]
-            ), f"'client.id' and 'client.client_tracer.runtime_id' must be distinct"
+            ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
 
         interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
 
@@ -89,7 +59,8 @@ def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
 
-    # verify that the tracer properly updated the TUF targets version, if it's not included we assume it to be 0 in the agent.
+    # verify that the tracer properly updated the TUF targets version,
+    # if it's not included we assume it to be 0 in the agent.
     # Our test suite will always emit SOMETHING for this
     expected_targets_version = expected["client"]["state"]["targets_version"]
     targets_version = client_state.get("targets_version", 0)
@@ -102,9 +73,11 @@ def rc_check_request(data, expected, caching):
     config_states = client_state.get("config_states")
     if expected_config_states is None and config_states is not None:
         raise Exception("client is not expected to have stored config but is reporting stored configs")
-    elif expected_config_states is not None and config_states is None:
+
+    if expected_config_states is not None and config_states is None:
         raise Exception("client is expected to have stored confis but isn't reporting any")
-    elif config_states is not None:
+
+    if config_states is not None:
         assert len(config_states) == len(expected_config_states), "client reporting more or less configs than expected"
         for state in expected_config_states:
             assert state in config_states, f"{state} is not in {config_states}"
@@ -120,11 +93,13 @@ def rc_check_request(data, expected, caching):
 
         if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
             raise Exception("client is not expected to have cached config but is reporting cached config")
-        elif expected_cached_target_files is not None and cached_target_files is None:
+
+        if expected_cached_target_files is not None and cached_target_files is None:
             raise Exception(
                 "client is expected to have cached config but did not include the cached_target_files field"
             )
-        elif expected_cached_target_files is not None:
+
+        if expected_cached_target_files is not None:
             # Make sure the client reported all of the expected files
             for file in expected_cached_target_files:
                 assert file in cached_target_files, f"{file} is not in {cached_target_files}"
@@ -134,9 +109,10 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
@@ -147,20 +123,22 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(BaseTestCase):
         def validate(data):
             """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(FEATURES_EXPECTED_REQUESTS):
+            if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
+            rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
 
             self.request_number += 1
+
+            return False
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
     # Index the request number by runtime ID so that we can support applications
@@ -181,13 +159,16 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(BaseTestCase):
 
             self.request_number[runtime_id] += 1
 
+            return False
+
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
     request_number = 0
@@ -205,13 +186,16 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(BaseTestCase):
 
             self.request_number += 1
 
+            return False
+
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", golang="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
@@ -222,20 +206,23 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(BaseTestCase):
         def validate(data):
             """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(FEATURES_EXPECTED_REQUESTS):
+            if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
+            rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
 
             self.request_number += 1
+
+            return False
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
     request_number = defaultdict(int)
@@ -254,13 +241,16 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(BaseTestCase):
 
             self.request_number[runtime_id] += 1
 
+            return False
+
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@bug(library="dotnet")
 @coverage.basic
-class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
+class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
     request_number = 0
@@ -277,5 +267,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(BaseTestCase):
             rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=False)
 
             self.request_number += 1
+
+            return False
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
