@@ -16,11 +16,11 @@ class _Xfails:
         return klass in self.classes
 
     def add_validation_from_method(self, method, validation):
-        """ The validation is xfail because the calling method is xfail"""
+        """The validation is xfail because the calling method is xfail"""
         self.methods[method].append(validation)
 
     def add_validation_from_class(self, klass, method, validation):
-        """ The validation is xfail because the parent class of calling method is xfail"""
+        """The validation is xfail because the parent class of calling method is xfail"""
         assert self.is_xfail_class(klass)
         if not self.is_xfail_method(method):
             self.add_xfailed_method(method)

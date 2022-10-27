@@ -1,25 +1,37 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
-from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, coverage
-import pytest
 import re
+import json
+
+import pytest
+
+from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage, bug
 
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0", php_appsec="0.3.0", python="?", ruby="?")
+@released(
+    golang="1.38.0",
+    dotnet="2.9.0",
+    java="0.100.0",
+    nodejs="2.8.0",
+    php_appsec="0.3.0",
+    python=PYTHON_RELEASE_GA_1_1,
+    ruby="?",
+)
 @coverage.good
 class Test_Monitoring(BaseTestCase):
-    """ Support In-App WAF monitoring tags and metrics  """
+    """Support In-App WAF monitoring tags and metrics"""
 
     expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
 
+    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_waf_monitoring(self):
-        """ WAF monitoring span tags and metrics are expected to be sent on each request """
+        """WAF monitoring span tags and metrics are expected to be sent on each request"""
 
         # Tags that are expected to be reported on every request
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
@@ -29,7 +41,7 @@ class Test_Monitoring(BaseTestCase):
         # Tags that are expected to be reported at least once at some point
 
         def validate_waf_monitoring_span_tags(span, appsec_data):
-            """ Validate the mandatory waf monitoring span tags are added to the request span having an attack """
+            """Validate the mandatory waf monitoring span tags are added to the request span having an attack"""
 
             meta = span["meta"]
             for m in expected_waf_monitoring_meta_tags:
@@ -48,12 +60,14 @@ class Test_Monitoring(BaseTestCase):
 
             if meta[expected_rules_version_tag] != str(context.appsec_rules_version):
                 raise Exception(
-                    f"the event rules version `{meta[expected_rules_version_tag]}` reported in the span tag {expected_rules_version_tag} isn't equal to the weblog context version `{context.appsec_rules_version}`"
+                    f"the event rules version `{meta[expected_rules_version_tag]}` reported in the span tag "
+                    f"{expected_rules_version_tag} isn't equal to the weblog context version "
+                    f"`{context.appsec_rules_version}`"
                 )
 
             return True
 
-        r = self.weblog_get("/waf/", headers={"User-Agent": f"Arachni/v1"})
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_appsec_validation(r, validate_waf_monitoring_span_tags)
 
@@ -96,36 +110,43 @@ class Test_Monitoring(BaseTestCase):
                 and metrics[expected_rules_monitoring_nb_loaded_tag] <= 0
             ):
                 raise Exception(
-                    f"the number of loaded rules should be strictly positive when using the recommended rules"
+                    "the number of loaded rules should be strictly positive when using the recommended rules"
                 )
 
-            if (
-                expected_rules_monitoring_nb_errors_tag in metrics
-                and metrics[expected_rules_monitoring_nb_errors_tag] != 0
-            ):
-                raise Exception(f"the number of rule errors should be 0")
-
-            possible_errors_tag_values = ["null", "{}"]
-            if (
-                expected_rules_errors_meta_tag in meta
-                and meta[expected_rules_errors_meta_tag] not in possible_errors_tag_values
-            ):
-                raise Exception(
-                    f"if there's no rule errors and if there are rule errors detail, then `{expected_rules_errors_meta_tag}` should be {{}} or null but was `{meta[expected_rules_errors_meta_tag]}`"
-                )
+            num_errors = metrics.get(expected_rules_monitoring_nb_errors_tag, 0)
+            if num_errors == 0:
+                possible_errors_tag_values = ["null", "{}"]
+                if (
+                    expected_rules_errors_meta_tag in meta
+                    and meta[expected_rules_errors_meta_tag] not in possible_errors_tag_values
+                ):
+                    raise Exception(
+                        "if there's no rule errors and if there are rule errors detail, then "
+                        f"`{expected_rules_errors_meta_tag}` should be {{}} or null but was "
+                        f"`{meta[expected_rules_errors_meta_tag]}`"
+                    )
+            else:
+                if expected_rules_errors_meta_tag not in meta:
+                    raise Exception("if there are rule errors, there should be rule error details too")
+                try:
+                    json.loads(meta[expected_rules_errors_meta_tag])
+                except ValueError:
+                    raise Exception(
+                        f"rule error details should be valid JSON but was `{meta[expected_rules_errors_meta_tag]}`"
+                    )
 
             return True
 
         # Perform an attack for the sake of having a request and an event in
         # order to be able to run this test alone. But the validation function
         # is not associated with the attack request.
-        r = self.weblog_get("/waf/", headers={"User-Agent": f"Arachni/v1"})
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_span_validation(validator=validate_rules_monitoring_span_tags)
 
-    @irrelevant(condition=context.library not in ["golang", "dotnet", "nodejs"], reason="optional tags")
+    @irrelevant(condition=context.library not in ["python", "golang", "dotnet", "nodejs"], reason="optional tags")
     def test_waf_monitoring_optional(self):
-        """ WAF monitoring span tags and metrics may send extra optional tags """
+        """WAF monitoring span tags and metrics may send extra optional tags"""
 
         expected_waf_duration_metric = "_dd.appsec.waf.duration"
         expected_bindings_duration_metric = "_dd.appsec.waf.duration_ext"
@@ -139,11 +160,13 @@ class Test_Monitoring(BaseTestCase):
 
             if metrics[expected_bindings_duration_metric] < metrics[expected_waf_duration_metric]:
                 raise Exception(
-                    f"unexpected waf duration metrics: the overall execution duration (with bindings) `{metrics[expected_bindings_duration_metric]}` is less than the internal waf duration `{metrics[expected_waf_duration_metric]}`"
+                    "unexpected waf duration metrics: the overall execution duration (with bindings) "
+                    f"`{metrics[expected_bindings_duration_metric]}` is less than the internal "
+                    f"waf duration `{metrics[expected_waf_duration_metric]}`"
                 )
 
             return True
 
-        r = self.weblog_get("/waf/", headers={"User-Agent": f"Arachni/v1"})
+        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_waf_attack(r)
         interfaces.library.add_appsec_validation(r, validate_waf_span_tags)

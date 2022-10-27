@@ -8,7 +8,7 @@ import re
 import os
 from typing import DefaultDict
 
-from utils import context
+from utils._context.core import context
 from utils.tools import logger
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 
@@ -37,6 +37,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             if pattern.search(line):
                 return True
 
+        return False
+
     def _get_standardized_level(self, level):
         return level
 
@@ -45,7 +47,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             logger.info(f"For {self}, reading {filename}")
             log_count = 0
             try:
-                with open(filename, "r") as f:
+                with open(filename, "r", encoding="utf-8") as f:
                     buffer = []
                     for line in f:
                         if line.endswith("\n"):
@@ -55,7 +57,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
                         if self._is_skipped_line(line):
                             continue
 
-                        if self._is_new_log_line(line) and len(buffer):
+                        if self._is_new_log_line(line) and len(buffer) != 0:
                             log_count += 1
                             yield "\n".join(buffer) + "\n"
                             buffer = []
@@ -69,7 +71,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self):
+    def wait(self, timeout):
         for log_line in self._read():
 
             parsed = {}
@@ -85,7 +87,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             self.append_data(parsed)
 
-        super().wait(0)
+        super().wait(timeout)
 
     def append_data(self, data):
         if self.system_test_error is not None:
@@ -94,7 +96,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         try:
             for validation in self._validations:
                 if not validation.closed:
-                    validation._check(data)
+                    validation.check(data)
 
             self._check_closed_status()
         except Exception as e:
@@ -102,7 +104,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             raise
 
     def __test__(self):
-        self.wait()
+        self.wait(0)
         print(f"Interface result: {self.is_success}")
         for v in self._validations:
             if not v.is_success:
@@ -112,7 +114,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def assert_presence(self, pattern, **extra_conditions):
         self.append_validation(_LogPresence(pattern, **extra_conditions))
 
-    def assert_absence(self, pattern, allowed_patterns=[]):
+    def assert_absence(self, pattern, allowed_patterns=None):
         self.append_validation(_LogAbsence(pattern, allowed_patterns))
 
     def append_log_validation(self, validator):  # TODO rename
@@ -143,11 +145,11 @@ class _LibraryStdout(_LogsInterfaceValidator):
             level = p("level", r"\w+")
             klass = p("klass", r"[\w\.$]+")
             message = p("message", r".*")
-            self._parsers.append(re.compile(fr"^\[{source} {timestamp}\] \[{thread}\] {level} {klass} - {message}"))
+            self._parsers.append(re.compile(rf"^\[{source} {timestamp}\] \[{thread}\] {level} {klass} - {message}"))
 
             timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d")
             klass = p("klass", r"[\w\.$\[\]/]+")
-            self._parsers.append(re.compile(fr"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
+            self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
 
         elif context.library == "dotnet":
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
@@ -160,7 +162,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
             level = p("level", r"\w+")
             thread = p("thread", r"\d+")
             message = p("message", r".+")
-            self._parsers.append(re.compile(fr"\[{timestamp}\]\[{level}\]\[{thread}\] {message}"))
+            self._parsers.append(re.compile(rf"\[{timestamp}\]\[{level}\]\[{thread}\] {message}"))
         else:
             self._new_log_line_pattern = re.compile(r".")
             self._parsers.append(re.compile(p("message", r".*")))
@@ -177,8 +179,8 @@ class _LibraryStdout(_LogsInterfaceValidator):
     def _get_standardized_level(self, level):
         if context.library == "php":
             return level.upper()
-        else:
-            return super(_LibraryStdout, self)._get_standardized_level(level)
+
+        return super()._get_standardized_level(level)
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):
@@ -195,10 +197,10 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
 
         p = "(?P<{}>{})".format
         timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d [+\-]00:00")
-        thread = p("thread", r"[\w\-]+")
+        # thread = p("thread", r"[\w\-]+")
         level = p("level", r"\w+")
         message = p("message", r".*")
-        self._parsers.append(re.compile(fr"^{timestamp} \[{level}\] {message}"))
+        self._parsers.append(re.compile(rf"^{timestamp} \[{level}\] {message}"))
 
     def _get_files(self):
         result = []
@@ -236,7 +238,8 @@ class _LogPresence(BaseValidation):
                     self.log_info(f"For {self}, {repr(self.pattern.pattern)} was found, but [{key}] field is missing")
                     self.log_info(f"-> Log line is {data['message']}")
                     return
-                elif not extra_pattern.search(data[key]):
+
+                if not extra_pattern.search(data[key]):
                     self.log_info(
                         f"For {self}, {repr(self.pattern.pattern)} was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"
@@ -248,10 +251,10 @@ class _LogPresence(BaseValidation):
 
 
 class _LogAbsence(BaseValidation):
-    def __init__(self, pattern, allowed_patterns=[]):
+    def __init__(self, pattern, allowed_patterns=None):
         super().__init__()
         self.pattern = re.compile(pattern)
-        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns]
+        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns] if allowed_patterns else []
         self.failed_logs = []
 
     def check(self, data):
@@ -270,7 +273,7 @@ class _LogAbsence(BaseValidation):
 
         aggregated_logs = DefaultDict(int)
         for l in self.failed_logs:
-            cleaned = re.sub("^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d \+\d\d:\d\d +", "", l)
+            cleaned = re.sub(r"^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d \+\d\d:\d\d +", "", l)
             aggregated_logs[cleaned] += 1
 
         for log, count in aggregated_logs.items():
@@ -283,12 +286,12 @@ class _LogAbsence(BaseValidation):
 
 
 class _LogValidation(BaseValidation):
-    """ will run an arbitrary check on log
+    """will run an arbitrary check on log
 
-        Validator function can :
-        * returns true => validation will be validated at the end (but trace will continue to be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    Validator function can :
+    * returns true => validation will be validated at the end (but trace will continue to be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     def __init__(self, validator):
@@ -305,7 +308,7 @@ class _LogValidation(BaseValidation):
 
 class Test:
     def test_main(self):
-        """ Test example """
+        """Test example"""
         i = _LibraryStdout()
         i.assert_presence(r".*", level="DEBUG")
         i.__test__()

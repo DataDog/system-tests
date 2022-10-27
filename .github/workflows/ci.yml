@@ -7,6 +7,9 @@ on:
   pull_request:
     branches:
       - "**"
+  push:
+    branches:
+      - main
 env:
   REGISTRY: ghcr.io
 
@@ -455,10 +458,47 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      # - name: Run REMOTE_CONFIG_MOCKED_BACKEND scenario
-      #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND
+      - name: Run INTEGRATIONS scenario
+        run: ./run.sh INTEGRATIONS
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      # not working as now
+      # - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+      #   if: ${{ matrix.version != 'prod' || matrix.library != 'python' }}
+      #   run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       #   env:
       #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run APPSEC_CUSTOM_RULES scenario
         run: ./run.sh APPSEC_CUSTOM_RULES
@@ -522,6 +562,11 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run APPSEC_IP_BLOCKING scenario
+        run: ./run.sh APPSEC_IP_BLOCKING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
@@ -549,3 +594,41 @@ jobs:
         run: ./scenarios/perfs/run.sh golang
       - name: Display
         run: python scenarios/perfs/process.py
+
+  fuzzer:
+    runs-on: ubuntu-latest
+    needs: lint_and_test
+    env:
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: ./build.sh golang
+      - name: Run
+        run: ./run.sh scenarios/fuzzer/main.py -t 60
+        env:
+          RUNNER_CMD: python
+
+  parametric:
+    runs-on: ubuntu-latest
+    needs: lint_and_test
+    strategy:
+      matrix:
+        client: ['python', 'dotnet', 'golang', 'nodejs']
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          # FIXME: pytest==5.4.3 does not support Python 3.10
+          python-version: '3.9'
+      - name: Install
+        run: |
+          pip install wheel
+      - name: Run
+        run: |
+          cd parametric
+          pip install -r requirements.txt
+          CLIENTS_ENABLED=${{ matrix.client }} ./run.sh

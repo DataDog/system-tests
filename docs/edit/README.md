@@ -1,3 +1,17 @@
+## Dev env
+
+First of all, it'll be more confortable to set-up your dev env. The repo contains basic conf for VSCode, feel free to add conf for other IDE.
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+That's it. If you're using VScode with python extension, your terminal will automatically switch to the virtual env, nad you will be avble to use lint/format tools.
+
+## Propose a modification
+
 The workflow is very simple: add your test case, commit into a branch and create a PR. We'll review it ASAP.
 
 Depending of how far is your test from an existing tests, it'll ask you some effort. The very first step is to add it and execute it. For instance, in a new file `tests/test_some_feature.py`:
@@ -42,7 +56,5 @@ class Test_Feature(BaseTestCase):
         r = self.weblog_get("/url")
         interfaces.library.add_span_validation(r, lamda span: span["meta"]["http.method"] == "GET")
 ```
-You can also have a look at the validations of IAST features ([IAST features validation](../edit/iast_validations.md)).
 
 You now have the basics. It proably won't be as easy, and you may needs to dive into internals, so please do not hesitate to ask for help on slack at [#apm-integrations-reliability-and-performance-team](https://dd.slack.com/archives/C01CGB22DC2)
-

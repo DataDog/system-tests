@@ -8,7 +8,7 @@ context.execute_warmups = lambda *args, **kwargs: None
 
 class Test_Main:
     def test_stdout_reader(self):
-        """ Test stdout reader """
+        """Test stdout reader"""
 
         context.library = LibraryVersion("java", "0.66.0")
         os.makedirs("logs/docker/weblog", exist_ok=True)
@@ -25,7 +25,7 @@ class Test_Main:
         stdout.assert_presence(r"some.*file", level="DEBUG")
         stdout.append_log_validation(lambda data: data["level"])
 
-        stdout.wait()
+        stdout.wait(0)
 
         for v in stdout._validations:
             assert v.is_success, v

@@ -1,4 +1,3 @@
-.vscode
 .idea
 .env
 __pycache__
@@ -33,3 +32,6 @@ dist/
 
 # VSCode
 .ionide/
+
+# Visual Studio
+.vs/

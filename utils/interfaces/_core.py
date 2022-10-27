@@ -15,14 +15,14 @@ import json
 import re
 
 from utils._xfail import xfails
-from utils.tools import get_logger, m, e as format_error, get_exception_traceback
+from utils.tools import get_logger, m, e as format_error
 from ._deserializer import deserialize
 
 logger = get_logger()
 
 
-class InterfaceValidator(object):
-    """ Validate an interface
+class InterfaceValidator:
+    """Validate an interface
 
     Main thread use append_validation() method to AsyncValidation objects
     data_collector use append_data() method to add data from interfaces
@@ -35,6 +35,9 @@ class InterfaceValidator(object):
 
         self.message_counter = 0
 
+        self._wait_for_event = threading.Event()
+        self._wait_for_function = None
+
         self._lock = threading.RLock()
         self._validations = []
         self._data_list = []
@@ -42,7 +45,7 @@ class InterfaceValidator(object):
         self._closed.set()
         self.is_success = False
 
-        self.expected_timeout = 0
+        self._minimal_expected_timeout = 0
 
         self.passed = []  # list of passed validation
         self.xpassed = []  # list of passed validation, but it was not expected
@@ -55,6 +58,9 @@ class InterfaceValidator(object):
 
         # list of request ids that used by this interface
         self.rids = set()
+
+    def get_expected_timeout(self, context):
+        return self._minimal_expected_timeout
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -87,10 +93,12 @@ class InterfaceValidator(object):
                 for data in self._data_list:
                     if not validation.closed:
                         try:
-                            validation._check(data)
+                            if validation.should_check(data):
+                                validation.check(data)
                         except Exception as exc:
                             raise Exception(
-                                f"While validating {data['log_filename']}, unexpected error occurs for {m(validation.message)}"
+                                f"While validating {data['log_filename']}, "
+                                f"unexpected error occurs for {m(validation.message)}"
                             ) from exc
 
                         if validation.closed:
@@ -122,6 +130,7 @@ class InterfaceValidator(object):
     def closed(self):
         return self._closed.is_set()
 
+    # TODO: rename, and make it private
     def append_validation(self, validation):
         if self.system_test_error is not None:
             return
@@ -130,12 +139,11 @@ class InterfaceValidator(object):
             self.system_test_error = validation.system_test_error
             return
 
-        validation._interface = self.name
+        validation.interface = self.name
 
         logger.debug(f"{repr(validation)} added in {self}[{len(self._validations)}]")
 
-        if validation.expected_timeout is not None and validation.expected_timeout > self.expected_timeout:
-            self.expected_timeout = validation.expected_timeout
+        self._minimal_expected_timeout = max(self._minimal_expected_timeout, validation.expected_timeout)
 
         try:
             with self._lock:
@@ -153,21 +161,25 @@ class InterfaceValidator(object):
         logger.debug(f"{self.name}'s interface receive data on [{data['host']}{data['path']}]")
 
         if self.system_test_error is not None:
-            return
+            return None
 
         try:
             with self._lock:
                 count = self.message_counter
                 self.message_counter += 1
-            deserialize(data, self.name)
 
             log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
             data["log_filename"] = log_filename
 
-            with open(log_filename, "w") as f:
+            deserialize(data, self.name)
+
+            with open(log_filename, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             self._data_list.append(data)
+
+            if self._wait_for_function and self._wait_for_function(data):
+                self._wait_for_event.set()
 
         except Exception as e:
             self.system_test_error = e
@@ -186,6 +198,31 @@ class InterfaceValidator(object):
     def add_final_validation(self, validator):
         self.append_validation(_FinalValidation(validator))
 
+    def wait_for(self, wait_for_function, timeout):
+
+        # first, try existing data
+        with self._lock:
+            for data in self._data_list:
+                if wait_for_function(data):
+                    return
+
+            # then set the lock, and wait for append_data to release it
+            self._wait_for_event.clear()
+            self._wait_for_function = wait_for_function
+
+        # release the main lock, and sleep !
+        if self._wait_for_event.wait(timeout):
+            logger.info(f"wait for {wait_for_function} finished in success")
+        else:
+            logger.error(f"Wait for {wait_for_function} finished in error")
+
+        self._wait_for_function = None
+
+    def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
+        self.append_validation(
+            _Validation(validator, is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
+        )
+
 
 class ObjectDumpEncoder(json.JSONEncoder):
     def default(self, o):
@@ -194,20 +231,26 @@ class ObjectDumpEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-class BaseValidation(object):
+class BaseValidation:
     """Base validation item"""
 
-    _interface = None  # which interface will be validated
+    interface = None  # which interface will be validated
     is_success_on_expiry = False  # if validation is still pending at end of procees, is it a success?
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
 
-    def __init__(self, message=None, request=None, path_filters=None):
+    def __init__(self, request=None, is_success_on_expiry=None, path_filters=None):
         try:
-            self.expected_timeout = None
-            self.message = message
+            # keep this two mumber on top, it's used in repr
+            self.message = ""
+            self.rid = None
+
+            self.expected_timeout = 0
             self._closed = threading.Event()
             self._is_success = None
+
+            if is_success_on_expiry is not None:
+                self.is_success_on_expiry = is_success_on_expiry
 
             if path_filters is not None:
                 self.path_filters = path_filters
@@ -221,8 +264,6 @@ class BaseValidation(object):
             if request is not None:
                 user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
                 self.rid = user_agent[-36:]
-            else:
-                self.rid = None
 
             self.frame = None
             self.calling_method = None
@@ -230,29 +271,30 @@ class BaseValidation(object):
 
             # Get calling class and calling method
             for frame_info in inspect.getouterframes(inspect.currentframe()):
+
                 if frame_info.function.startswith("test_"):
                     self.frame = frame_info
+                    gc.collect()
                     self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
                     self.calling_class = frame_info.frame.f_locals["self"].__class__
-
                     break
 
             if self.calling_method is None:
                 raise Exception(f"Unexpected error, can't found the method for {self}")
 
-            if self.message is None:
-                # if the message is missing, try to get the function docstring
-                self.message = self.calling_method.__doc__
+            # try to get the function docstring
+            self.message = self.calling_method.__doc__
 
-                # if the message is missing, try to get the parent class docstring
-                if self.message is None:
-                    self.message = self.calling_class.__doc__
+            # if the message is missing, try to get the parent class docstring
+            if self.message is None:
+                self.message = self.calling_class.__doc__
 
             if self.message is None:
                 raise Exception(f"Please set a message for {self.frame.function}")
 
-            # remove new lines for logging
-            self.message = self.message.replace("\n", " ")
+            # remove new lines, duplicated spaces and tailing/heading spaces for logging
+            self.message = self.message.replace("\n", " ").strip()
+            self.message = re.sub(r" {2,}", " ", self.message)
 
             if xfails.is_xfail_method(self.calling_method):
                 logger.debug(f"{self} is called from {self.calling_method}, which is xfail")
@@ -271,13 +313,13 @@ class BaseValidation(object):
             self.system_test_error = e
 
     def __str__(self):
-        return f"Interface: {self._interface} -> {self.__class__.__name__}: {m(self.message)}"
+        return f"Interface: {self.interface} -> {self.__class__.__name__}: {m(self.message)}"
 
     def __repr__(self):
         if self.rid:
             return f"{self.__class__.__name__}({repr(self.message)}, {self.rid})"
-        else:
-            return f"{self.__class__.__name__}({repr(self.message)})"
+
+        return f"{self.__class__.__name__}({repr(self.message)})"
 
     def get_test_source_info(self):
         klass = self.calling_class.__name__
@@ -313,7 +355,27 @@ class BaseValidation(object):
         self._is_success = is_success
         self._closed.set()
 
-    def set_failure(self, message):
+    def set_failure(self, message="", exception="", data=None, extra_info=None):
+        if not message:
+
+            message = f"{m(self.message)} is not validated: {format_error(str(exception))}"
+
+            try:
+                if data and isinstance(data, dict) and "log_filename" in data:
+                    message += f"\n\t Failing payload is in {data['log_filename']}"
+
+                if extra_info:
+                    if isinstance(extra_info, (dict, list)):
+                        extra_info = json.dumps(extra_info, indent=4)
+
+                    extra_info = str(extra_info)
+
+                    message += "\n" + "\n".join([f"\t{l}" for l in extra_info.split("\n")])
+            except:
+                # silently skip this. It should not happen, but as we have an error to report to users
+                # we should never add an internal error that will give them an hard time ...
+                pass
+
         if not self.is_xfail:
             self.log_error(message)
         else:
@@ -330,15 +392,15 @@ class BaseValidation(object):
                     self.log_error(f"{self} has expired and is a failure")
             self.set_status(self.is_success_on_expiry)
 
-    def _check(self, data):
+    def should_check(self, data):
         if self.path_filters is not None and all((path.fullmatch(data["path"]) is None for path in self.path_filters)):
-            return
+            return False
 
         # Java sends empty requests during endpoint discovery
         if "request" in data and data["request"]["length"] == 0:
-            return
+            return False
 
-        self.check(data)
+        return True
 
     def check(self, data):
         """Will be called every time a new data is seen threw the interface"""
@@ -346,7 +408,6 @@ class BaseValidation(object):
 
     def final_check(self):
         """Will be called once, at the very end of the process"""
-        pass
 
     def expect(self, condition: bool, err_msg):
         """Sets result to failed and returns True if condition is False, returns False otherwise"""
@@ -363,6 +424,28 @@ class _StaticValidation(BaseValidation):
 
     def check(self, data):
         pass
+
+
+class _Validation(BaseValidation):
+    """will run an arbitrary check on data.
+
+    Validator function can :
+    * returns true => validation will be validated at the end (but other will also be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
+    """
+
+    def __init__(self, validator, is_success_on_expiry=None, path_filters=None):
+        super().__init__(is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
+        self.validator = validator
+
+    def check(self, data):
+        try:
+            if self.validator(data):
+                self.log_debug(f"{self} is validated by {data['log_filename']}")
+                self.is_success_on_expiry = True
+        except Exception as e:
+            self.set_failure(exception=e, data=data)
 
 
 class _FinalValidation(BaseValidation):

@@ -10,7 +10,7 @@ import requests
 import grpc
 import google.protobuf.struct_pb2 as pb
 
-from utils.tools import logger, m
+from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 
@@ -79,8 +79,7 @@ class BaseTestCase(unittest.TestCase):
         return r
 
     def _get_weblog_url(self, path, query=None):
-        """ Return a query with the passed host
-        """
+        """Return a query with the passed host"""
         # Make all absolute paths to be relative
         if path.startswith("/"):
             path = path[1:]
@@ -92,7 +91,7 @@ class BaseTestCase(unittest.TestCase):
 
         return res
 
-    def weblog_grpc(self, string_value, metadata=[]):
+    def weblog_grpc(self, string_value):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
@@ -105,7 +104,7 @@ class BaseTestCase(unittest.TestCase):
 
         logger.debug(f"Sending grpc request {rid}")
 
-        request = pb.Value(string_value=string_value)
+        request = pb.Value(string_value=string_value)  # pylint: disable=no-member
 
         try:
             response = _grpc_client.Unary(request)

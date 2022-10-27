@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, bug, context, interfaces, released, coverage, rfc
 import pytest
-import base64
+
+from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils import BaseTestCase, bug, context, coverage, interfaces, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -22,7 +23,7 @@ def assertTagInSpanMeta(span, tag, expected):
 def validate_identify_tags(tags):
     def inner_validate(span):
         for tag in tags:
-            if type(tags) is dict:
+            if isinstance(tags, dict):
                 assertTagInSpanMeta(span, tag, tags[tag])
             else:
                 fullTag = f"usr.{tag}"
@@ -32,7 +33,9 @@ def validate_identify_tags(tags):
     return inner_validate
 
 
-@released(dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0", php="0.72.0", python="?", ruby="1.0.0")
+@released(
+    dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0", php="0.72.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0"
+)
 @coverage.basic
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK"""
@@ -46,6 +49,7 @@ class Test_Basic(BaseTestCase):
         reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
     )
     @bug(library="ruby", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
+    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags(self):
         # Send a request to the identify endpoint
         r = self.weblog_get("/identify")
@@ -53,6 +57,8 @@ class Test_Basic(BaseTestCase):
             r, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
+    @bug(context.library >= "php@1.0.0", reason="Under investigation")
+    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
         r = self.weblog_get("/identify", headers={"User-Agent": "Arachni/v1"})
@@ -62,11 +68,12 @@ class Test_Basic(BaseTestCase):
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
-@released(dotnet="?", golang="1.41.0", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
+@released(dotnet="?", golang="1.41.0", java="?", nodejs="?", php="0.76.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.basic
 class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
 
+    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags_outgoing(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
 
@@ -74,6 +81,7 @@ class Test_Propagate(BaseTestCase):
         r = self.weblog_get("/identify-propagate")
         interfaces.library.add_span_validation(r, validate_identify_tags(tagTable))
 
+    # with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C
     def test_identify_tags_incoming(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
 

@@ -111,13 +111,13 @@ class _BaseAppSecValidation(BaseValidation):
 
 
 class _AppSecValidation(_BaseAppSecValidation):
-    """ will run an arbitrary check on appsec event. If a request is provided, only events
-        related to this request will be checked.
+    """will run an arbitrary check on appsec event. If a request is provided, only events
+    related to this request will be checked.
 
-        Validator function can :
-        * returns true => validation will be validated at the end (but trace will continue to be checked)
-        * returns False or None => nothing is done
-        * raise an exception => validation will fail
+    Validator function can :
+    * returns true => validation will be validated at the end (but trace will continue to be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
     """
 
     def __init__(self, request, validator, legacy_validator, is_success_on_expiry=False):
@@ -129,14 +129,14 @@ class _AppSecValidation(_BaseAppSecValidation):
     def validate_legacy(self, event):
         if self.legacy_validator:
             return self.legacy_validator(event)
-        else:
-            raise NotImplementedError
+
+        raise NotImplementedError
 
     def validate(self, span, appsec_data):
         if self.validator:
             return self.validator(span, appsec_data)
-        else:
-            raise NotImplementedError
+
+        raise NotImplementedError
 
 
 class _NoAppsecEvent(_BaseAppSecValidation):

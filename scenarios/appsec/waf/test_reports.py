@@ -2,16 +2,26 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, bug, irrelevant, missing_feature, flaky, rfc
-import pytest
 import json
 
+import pytest
+
+from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils import BaseTestCase, context, interfaces, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(golang="1.38.0", dotnet="2.7.0", java="0.100.0", nodejs="2.8.0", php_appsec="0.3.0", python="?", ruby="?")
+@released(
+    golang="1.38.0",
+    dotnet="2.7.0",
+    java="0.100.0",
+    nodejs="2.8.0",
+    php_appsec="0.3.0",
+    python=PYTHON_RELEASE_GA_1_1,
+    ruby="?",
+)
 class Test_Monitoring(BaseTestCase):
     """ Support In-App WAF monitoring tags and metrics  """
 
@@ -55,19 +65,22 @@ class Test_Monitoring(BaseTestCase):
 
             if metrics[expected_rules_monitoring_nb_loaded_tag] != expected_nb_loaded:
                 raise Exception(
-                    f"the number of loaded rules should be {expected_nb_loaded} but is `{metrics[expected_rules_monitoring_nb_loaded_tag]}`"
+                    f"the number of loaded rules should be {expected_nb_loaded} but is "
+                    f"`{metrics[expected_rules_monitoring_nb_loaded_tag]}`"
                 )
 
             if metrics[expected_rules_monitoring_nb_errors_tag] != expected_nb_errors:
                 raise Exception(
-                    f"the number of rule errors should be {expected_nb_errors} but is `{metrics[expected_rules_monitoring_nb_errors_tag]}`"
+                    f"the number of rule errors should be {expected_nb_errors} but is "
+                    f"`{metrics[expected_rules_monitoring_nb_errors_tag]}`"
                 )
 
             # Parse the errors meta tag as json
             errors = json.loads(meta[expected_rules_monitoring_error_details_tag])
             if errors != expected_error_details:
                 raise Exception(
-                    f"unexpected span tag {expected_rules_monitoring_error_details_tag} value: got {errors} instead of {expected_error_details}"
+                    f"unexpected span tag {expected_rules_monitoring_error_details_tag} value: "
+                    f"got {errors} instead of {expected_error_details}"
                 )
 
             return True

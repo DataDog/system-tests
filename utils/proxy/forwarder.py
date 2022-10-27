@@ -9,8 +9,8 @@ from collections import defaultdict
 from datetime import datetime
 from http.client import HTTPConnection
 import logging
-from mitmproxy import http
-from mitmproxy.flow import Error as FlowError
+from mitmproxy import http  # pylint: disable=import-error
+from mitmproxy.flow import Error as FlowError  # pylint: disable=import-error
 
 
 SIMPLE_TYPES = (bool, int, float, type(None))
@@ -22,26 +22,29 @@ handler.setFormatter(logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s 
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
-with open("system-tests/utils/proxy/rc_mocked_responses_live_debugging.json") as f:
+with open("system-tests/utils/proxy/rc_mocked_responses_live_debugging.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_LIVE_DEBUGGING = json.load(f)
 
-with open("system-tests/utils/proxy/rc_mocked_responses_features.json") as f:
-    RC_MOCKED_RESPONSES_FEATURES = json.load(f)
+with open("system-tests/utils/proxy/rc_mocked_responses_asm_features.json", encoding="utf-8") as f:
+    RC_MOCKED_RESPONSES_ASM_FEATURES = json.load(f)
 
-with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd.json") as f:
+with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM_DD = json.load(f)
 
-with open("system-tests/utils/proxy/rc_mocked_responses_live_debugging_nocache.json") as f:
+with open("system-tests/utils/proxy/rc_mocked_responses_asm_data.json", encoding="utf-8") as f:
+    RC_MOCKED_RESPONSES_ASM_DATA = json.load(f)
+
+with open("system-tests/utils/proxy/rc_mocked_responses_live_debugging_nocache.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE = json.load(f)
 
-with open("system-tests/utils/proxy/rc_mocked_responses_features_nocache.json") as f:
-    RC_MOCKED_RESPONSES_FEATURES_NO_CACHE = json.load(f)
+with open("system-tests/utils/proxy/rc_mocked_responses_asm_features_nocache.json", encoding="utf-8") as f:
+    RC_MOCKED_RESPONSES_ASM_FEATURES_NO_CACHE = json.load(f)
 
-with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd_nocache.json") as f:
+with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd_nocache.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE = json.load(f)
 
 
-class Forwarder(object):
+class Forwarder:
     def __init__(self):
         self.forward_ip = os.environ.get("FORWARD_TO_HOST", "runner")
         self.forward_port = os.environ.get("FORWARD_TO_PORT", "8081")
@@ -62,15 +65,18 @@ class Forwarder(object):
     def _scrub(self, content):
         if isinstance(content, str):
             return content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
-        elif isinstance(content, (list, set, tuple)):
+
+        if isinstance(content, (list, set, tuple)):
             return [self._scrub(item) for item in content]
-        elif isinstance(content, dict):
+
+        if isinstance(content, dict):
             return {key: self._scrub(value) for key, value in content.items()}
-        elif isinstance(content, SIMPLE_TYPES):
+
+        if isinstance(content, SIMPLE_TYPES):
             return content
-        else:
-            logger.error(f"Can't scrub type {type(content)}")
-            return content
+
+        logger.error(f"Can't scrub type {type(content)}")
+        return content
 
     @staticmethod
     def is_direct_command(flow):
@@ -130,13 +136,13 @@ class Forwarder(object):
             "request": {
                 "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
                 "content": request_content,
-                "headers": [(k, v) for k, v in flow.request.headers.items()],
+                "headers": list(flow.request.headers.items()),
                 "length": len(flow.request.content) if flow.request.content else 0,
             },
             "response": {
                 "status_code": flow.response.status_code,
                 "content": response_content,
-                "headers": [(k, v) for k, v in flow.response.headers.items()],
+                "headers": list(flow.response.headers.items()),
                 "length": len(flow.response.content) if flow.response.content else 0,
             },
         }
@@ -167,14 +173,16 @@ class Forwarder(object):
             conn.close()
 
     def _modify_response(self, flow):
-        if self.state.get("mock_remote_config_backend") == "FEATURES":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_FEATURES)
+        if self.state.get("mock_remote_config_backend") == "ASM_FEATURES":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_FEATURES)
         elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING)
         elif self.state.get("mock_remote_config_backend") == "ASM_DD":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD)
-        if self.state.get("mock_remote_config_backend") == "FEATURES_NO_CACHE":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_FEATURES_NO_CACHE)
+        elif self.state.get("mock_remote_config_backend") == "ASM_DATA":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DATA)
+        elif self.state.get("mock_remote_config_backend") == "ASM_FEATURES_NO_CACHE":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_FEATURES_NO_CACHE)
         elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING_NO_CACHE":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE)
         elif self.state.get("mock_remote_config_backend") == "ASM_DD_NO_CACHE":
@@ -182,7 +190,7 @@ class Forwarder(object):
 
     def _modify_response_rc(self, flow, mocked_responses):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
-            logger.info(f"Overwriting /info response to include /v0.7/config")
+            logger.info("Overwriting /info response to include /v0.7/config")
             c = json.loads(flow.response.content)
             c["endpoints"].append("/v0.7/config")
             flow.response.content = json.dumps(c).encode()

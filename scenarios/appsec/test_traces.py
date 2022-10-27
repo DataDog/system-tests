@@ -4,8 +4,8 @@
 
 import pytest
 
-from utils import BaseTestCase, context, interfaces, released, bug, missing_feature, irrelevant, rfc
-
+from tests.constants import PYTHON_RELEASE_GA_1_1
+from utils import BaseTestCase, context, interfaces, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -13,7 +13,7 @@ if context.library == "cpp":
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @released(golang="1.38.0", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
-@released(php_appsec="0.3.0", python="?", ruby="?")
+@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 
@@ -24,7 +24,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         # that is expected to be obfuscated.
         SECRET = "this-is-a-very-secret-value-having-the-attack"
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if SECRET in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             return True
@@ -45,7 +45,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         SECRET_VALUE_WITH_SENSITIVE_KEY = "this-is-a-very-sensitive-cookie-value-having-the-aaaa-attack"
         SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not-a-sensitive-cookie-value-having-an-bbbb-attack"
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             if SECRET_VALUE_WITH_NON_SENSITIVE_KEY not in span["meta"]["_dd.appsec.json"]:
