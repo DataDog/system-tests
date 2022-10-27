@@ -163,7 +163,7 @@ class Test_StandardTagsRoute(BaseTestCase):
 
 
 @released(dotnet="?", golang="?", java="?")
-@released(nodejs="?", php="?", python="?", ruby="?")
+@released(nodejs="?", php_appsec="0.4.4", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
