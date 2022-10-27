@@ -4,8 +4,7 @@
 
 import pytest
 
-from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import BaseTestCase, context, coverage, interfaces, irrelevant, released, rfc, bug
+from utils import BaseTestCase, context, coverage, interfaces, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
