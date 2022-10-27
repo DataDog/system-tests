@@ -21,12 +21,16 @@ class Test_Iast(BaseTestCase):
 
     if context.library == "nodejs":
         EXPECTED_LOCATION = "/usr/app/app.js"
+        WEAK_CIPHER_ALGORITHM = "des-ede-cbc"
     elif context.library == "java":
         EXPECTED_LOCATION = "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+        WEAK_CIPHER_ALGORITHM = "Blowfish"
     elif context.library == "python":
         EXPECTED_LOCATION = "/iast.py"
+        WEAK_CIPHER_ALGORITHM = "????"
     else:
         EXPECTED_LOCATION = ""  # (TBD)
+        WEAK_CIPHER_ALGORITHM = ""
 
     @missing_feature(library="python", reason="Need to be implement deduplicate vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
@@ -58,15 +62,15 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
 
-    @missing_feature(library="java", reason="Need to be implement endpoint")
     @missing_feature(library="python", reason="Need to be implement endpoint")
     def test_insecure_cipher(self):
         """Test weak cipher algorithm is reported as insecure"""
         r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
 
-        interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_CIPHER", evidence="des-ede-cbc")
+        interfaces.library.expect_iast_vulnerabilities(
+            r, vulnerability_type="WEAK_CIPHER", evidence=self.WEAK_CIPHER_ALGORITHM
+        )
 
-    @missing_feature(library="java", reason="Need to be implement endpoint")
     @missing_feature(library="python", reason="Need to be implement endpoint")
     def test_secure_cipher(self):
         """Test strong cipher algorithm is not reported as insecure"""
