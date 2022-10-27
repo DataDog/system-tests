@@ -41,7 +41,9 @@ class Test_StandardTagsMethod(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0", php="0.76.0", python="?", ruby="?")
+@released(
+    dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0", php="0.76.0", python="1.6.0rc1.dev", ruby="?"
+)
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
@@ -163,24 +165,51 @@ class Test_StandardTagsRoute(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(
-    dotnet="2.13.0",
-    golang="1.39.0",
-    java="0.107.1",
-    nodejs="3.2.0",
-    php="0.76.0",
-    python=PYTHON_RELEASE_GA_1_1,
-    ruby="?",
-)
+@released(dotnet="?", golang="?", java="?")
+@released(nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
-    def test_client_ip(self):
-        headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1"}
-        r = self.weblog_get("/waf/", headers=headers)
+    @classmethod
+    def setup_class(cls):
+        """Send two_request, on with an attack, another one without attack"""
+        get = cls().weblog_get
 
-        tags = {
-            "http.client_ip": "43.43.43.43",
-        }
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
+        headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1"}
+        attack_headers = {"User-Agent": "Arachni/v1"}
+        cls.request_with_attack = get("/waf/", headers=headers | attack_headers)
+        cls.request_without_attack = get("/waf/", headers=headers)
+
+    def test_client_ip(self):
+        """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
+
+        def validator(span):
+            meta = span.get("meta", {})
+            assert "http.client_ip" in meta, "missing http.client_ip tag"
+
+            got = meta["http.client_ip"]
+            expected = "43.43.43.43"
+            assert got == expected, f"unexpected http.client_ip value {got} instead of {expected}"
+
+            return True
+
+        interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)
+        interfaces.library.add_span_validation(request=self.request_without_attack, validator=validator)
+
+    def test_client_ip_with_appsec_event(self):
+        """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled"""
+
+        def validator(span):
+            meta = span.get("meta", {})
+
+            # ASM should report extra IP-related span tags.
+            assert "appsec.event" in meta, "missing appsec.event tag"
+            assert "network.client.ip" in meta, "missing network.client.ip tag"
+            assert (
+                "http.request.headers.x-cluster-client-ip" in meta
+            ), "missing http.request.headers.x-cluster-client-ip tag"
+
+            return True
+
+        interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)

@@ -35,10 +35,14 @@ class AgentRequestV06Stats(AgentRequest):
 
 @pytest.fixture(autouse=True)
 def skip_library(request, apm_test_server):
+    overrides = set([s.strip() for s in os.getenv("OVERRIDE_SKIPS", "").split(",")])
     for marker in request.node.iter_markers("skip_library"):
         skip_library = marker.args[0]
         reason = marker.args[1]
-        if apm_test_server.lang == skip_library:
+
+        # Have to use `originalname` since `name` will contain the parameterization
+        # eg. test_case[python]
+        if apm_test_server.lang == skip_library and request.node.originalname not in overrides:
             pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, reason))
 
 
@@ -104,6 +108,7 @@ def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("apps", "nodejs")
     nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
     nodejs_reldir = os.path.join("parametric", nodejs_appdir)
+    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
         container_name="node-test-client",
@@ -115,6 +120,7 @@ COPY {nodejs_reldir}/package.json /client/
 COPY {nodejs_reldir}/package-lock.json /client/
 COPY {nodejs_reldir}/*.js /client/
 RUN npm install
+RUN npm install {node_module}
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_dir,
@@ -520,16 +526,18 @@ def test_server(
     ]
     test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
-    subprocess.run(
+    p = subprocess.run(
         cmd,
         cwd=root_path,
-        check=True,
         text=True,
         input=apm_test_server.container_img,
         stdout=test_server_log_file,
         stderr=test_server_log_file,
         env={"DOCKER_SCAN_SUGGEST": "false",},  # Docker outputs an annoying synk message on every build
     )
+    if p.returncode != 0:
+        test_server_log_file.seek(0)
+        pytest.fail("".join(test_server_log_file.readlines()), pytrace=False)
 
     env = {
         "DD_TRACE_DEBUG": "true",
@@ -621,6 +629,9 @@ class APMLibrary:
 
     def inject_headers(self):
         return self._client.InjectHeaders(pb.InjectHeadersArgs())
+
+    def stop(self):
+        return self._client.StopTracer(pb.StopTracerArgs())
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@
 
 import pytest
 from tests.constants import PYTHON_RELEASE_PUBLIC_BETA, PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, released, rfc
+from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, released, rfc, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -157,7 +157,7 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 @released(
     golang="1.38.0",
     dotnet="2.7.0",
-    java="?",
+    java="0.113.0",
     nodejs="2.6.0",
     php_appsec="0.3.0",
     python=PYTHON_RELEASE_GA_1_1,
@@ -188,6 +188,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.query")
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
 
+    @missing_feature(library="java")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_appsec_obfuscator_cookies(self):
         """
@@ -213,6 +214,7 @@ class Test_AppSecObfuscator(BaseTestCase):
         interfaces.library.assert_waf_attack(r, address="server.request.cookies")
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
 
+    @missing_feature(library="java")
     def test_appsec_obfuscator_value(self):
         """Obfuscation test of a matching rule parameter value containing a sensitive keyword."""
         # Validate that the AppSec event do not contain the following secret value.
