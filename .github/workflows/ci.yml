@@ -470,8 +470,8 @@ jobs:
       #   env:
       #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_FEATURES scenario
-        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_FEATURES
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
@@ -485,8 +485,8 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_FEATURES_NOCACHE scenario
-        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_FEATURES_NOCACHE
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
