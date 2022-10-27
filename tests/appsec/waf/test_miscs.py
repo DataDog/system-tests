@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import context, BaseTestCase, interfaces, released, bug, coverage, missing_feature
+from utils import context, BaseTestCase, interfaces, released, bug, coverage, missing_feature, irrelevant
 from .utils import rules
 
 
@@ -19,11 +19,16 @@ if context.library == "cpp":
 class Test_404(BaseTestCase):
     """ Appsec WAF misc tests """
 
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_404(self):
         """ AppSec WAF catches attacks, even on 404"""
 
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
-        assert r.status_code == 404
+        interfaces.library.add_assertion(r.status_code == 404)
         interfaces.library.assert_waf_attack(
             r,
             rule=rules.security_scanner.ua0_600_12x,

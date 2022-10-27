@@ -36,9 +36,14 @@ if context.library == "cpp":
 class Test_StatusCode(BaseTestCase):
     """ Appsec reports good status code """
 
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_basic(self):
         r = self.weblog_get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
-        assert r.status_code == 404
+        interfaces.library.add_assertion(r.status_code == 404)
         interfaces.library.assert_waf_attack(r)
 
         def check_http_code_legacy(event):
