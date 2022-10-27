@@ -35,6 +35,9 @@ class InterfaceValidator:
 
         self.message_counter = 0
 
+        self._wait_for_event = threading.Event()
+        self._wait_for_function = None
+
         self._lock = threading.RLock()
         self._validations = []
         self._data_list = []
@@ -127,6 +130,7 @@ class InterfaceValidator:
     def closed(self):
         return self._closed.is_set()
 
+    # TODO: rename, and make it private
     def append_validation(self, validation):
         if self.system_test_error is not None:
             return
@@ -163,15 +167,19 @@ class InterfaceValidator:
             with self._lock:
                 count = self.message_counter
                 self.message_counter += 1
-            deserialize(data, self.name)
 
             log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
             data["log_filename"] = log_filename
+
+            deserialize(data, self.name)
 
             with open(log_filename, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             self._data_list.append(data)
+
+            if self._wait_for_function and self._wait_for_function(data):
+                self._wait_for_event.set()
 
         except Exception as e:
             self.system_test_error = e
@@ -190,6 +198,31 @@ class InterfaceValidator:
     def add_final_validation(self, validator):
         self.append_validation(_FinalValidation(validator))
 
+    def wait_for(self, wait_for_function, timeout):
+
+        # first, try existing data
+        with self._lock:
+            for data in self._data_list:
+                if wait_for_function(data):
+                    return
+
+            # then set the lock, and wait for append_data to release it
+            self._wait_for_event.clear()
+            self._wait_for_function = wait_for_function
+
+        # release the main lock, and sleep !
+        if self._wait_for_event.wait(timeout):
+            logger.info(f"wait for {wait_for_function} finished in success")
+        else:
+            logger.error(f"Wait for {wait_for_function} finished in error")
+
+        self._wait_for_function = None
+
+    def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
+        self.append_validation(
+            _Validation(validator, is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
+        )
+
 
 class ObjectDumpEncoder(json.JSONEncoder):
     def default(self, o):
@@ -206,7 +239,7 @@ class BaseValidation:
     path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
     system_test_error = None  # if something bad happen, the excpetion will be stored here
 
-    def __init__(self, request=None, path_filters=None):
+    def __init__(self, request=None, is_success_on_expiry=None, path_filters=None):
         try:
             # keep this two mumber on top, it's used in repr
             self.message = ""
@@ -215,6 +248,9 @@ class BaseValidation:
             self.expected_timeout = 0
             self._closed = threading.Event()
             self._is_success = None
+
+            if is_success_on_expiry is not None:
+                self.is_success_on_expiry = is_success_on_expiry
 
             if path_filters is not None:
                 self.path_filters = path_filters
@@ -388,6 +424,28 @@ class _StaticValidation(BaseValidation):
 
     def check(self, data):
         pass
+
+
+class _Validation(BaseValidation):
+    """will run an arbitrary check on data.
+
+    Validator function can :
+    * returns true => validation will be validated at the end (but other will also be checked)
+    * returns False or None => nothing is done
+    * raise an exception => validation will fail
+    """
+
+    def __init__(self, validator, is_success_on_expiry=None, path_filters=None):
+        super().__init__(is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
+        self.validator = validator
+
+    def check(self, data):
+        try:
+            if self.validator(data):
+                self.log_debug(f"{self} is validated by {data['log_filename']}")
+                self.is_success_on_expiry = True
+        except Exception as e:
+            self.set_failure(exception=e, data=data)
 
 
 class _FinalValidation(BaseValidation):

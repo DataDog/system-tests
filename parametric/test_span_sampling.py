@@ -12,7 +12,6 @@ import json
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -34,7 +33,6 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -49,7 +47,6 @@ def test_special_glob_characters_span_sampling_sss002(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -72,7 +69,6 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
@@ -89,7 +85,6 @@ def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent,
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]), "DD_TRACE_SAMPLE_RATE": 0}]
@@ -106,7 +101,6 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -139,7 +133,6 @@ def test_multi_rule_keep_drop_span_sampling_sss006(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -172,7 +165,6 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -204,7 +196,7 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
     assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
 
     # wait a second for rate limiter tokens to replenish
-    time.sleep(1)
+    time.sleep(2)
     # now span should be kept by rule
     generate_span(test_library)
     span = get_span(test_agent)
@@ -212,7 +204,6 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -322,7 +313,6 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
