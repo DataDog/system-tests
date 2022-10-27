@@ -115,7 +115,9 @@ def _create_testcase_results(
 
         # Add custom tags
         tc_props = ET.SubElement(testcase, "properties")
-
+        ET.SubElement(
+            tc_props, "property", name="dd_tags[systest.case.fullname]", value=testclass_name + "." + testcase_name
+        )
         ET.SubElement(tc_props, "property", name="dd_tags[systest.case.outcome]", value=outcome)
         ET.SubElement(tc_props, "property", name="dd_tags[systest.case.skip_reason]", value=str(skip_reason or ""))
 
