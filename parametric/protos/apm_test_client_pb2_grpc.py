@@ -55,6 +55,11 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
                 )
+        self.StopTracer = channel.unary_unary(
+                '/APMClient/StopTracer',
+                request_serializer=protos_dot_apm__test__client__pb2.StopTracerArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.StopTracerReturn.FromString,
+                )
 
 
 class APMClientServicer(object):
@@ -109,6 +114,12 @@ class APMClientServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def StopTracer(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_APMClientServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -151,6 +162,11 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.FlushTraceStats,
                     request_deserializer=protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.SerializeToString,
+            ),
+            'StopTracer': grpc.unary_unary_rpc_method_handler(
+                    servicer.StopTracer,
+                    request_deserializer=protos_dot_apm__test__client__pb2.StopTracerArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.StopTracerReturn.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -296,5 +312,22 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/FlushTraceStats',
             protos_dot_apm__test__client__pb2.FlushTraceStatsArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.FlushTraceStatsReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StopTracer(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/StopTracer',
+            protos_dot_apm__test__client__pb2.StopTracerArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.StopTracerReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
