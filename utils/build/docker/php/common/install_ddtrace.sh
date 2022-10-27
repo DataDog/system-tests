@@ -45,10 +45,10 @@ else
 fi
 
 php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
-  ./SYSTEM_TESTS_LIBRARY_VERSION
+  ./SYSTEM_TESTS_LIBRARY_VERSION 2> /dev/null
 
 php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
-  ./SYSTEM_TESTS_PHP_APPSEC_VERSION
+  ./SYSTEM_TESTS_PHP_APPSEC_VERSION 2> /dev/null
 
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
