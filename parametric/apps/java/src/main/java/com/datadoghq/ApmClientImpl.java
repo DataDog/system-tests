@@ -16,18 +16,20 @@ import java.util.Map;
 
 public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     private final Tracer tracer;
-    private final Runnable flushOperation;
+    private final Runnable flushTraceRunnable;
+    private final Runnable flushStatsRunnable;
     private final Map<Long, Span> spans;
 
-    public ApmClientImpl(Tracer tracer, Runnable flushOperation) {
+    public ApmClientImpl(Tracer tracer, Runnable flushTraceRunnable, Runnable flushStatsRunnable) {
         this.tracer = tracer;
-        this.flushOperation = flushOperation;
+        this.flushTraceRunnable = flushTraceRunnable;
+        this.flushStatsRunnable = flushStatsRunnable;
         this.spans = new HashMap<>();
     }
     @Override
     public void startSpan(ApmTestClient.StartSpanArgs request, StreamObserver<ApmTestClient.StartSpanReturn> responseObserver) {
         LOGGER.info("Creating span: "+request.toString());
-        Tracer.SpanBuilder builder = tracer.buildSpan(request.getName());
+        Tracer.SpanBuilder builder = this.tracer.buildSpan(request.getName());
         if (request.hasService()) {
             builder.withTag(DDTags.SERVICE_NAME, request.getService());
         }
@@ -88,8 +90,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
         LOGGER.info("Setting span metric: "+request.toString());
         Span span = getSpan(request.getSpanId(), responseObserver);
         if (span != null) {
-            // ((AgentSpan)((OTSpan) span).getDelegate()).setMetrics
-            span.setTag(request.getKey(), request.getValue()); // TODO Check behavior? setMetric?
+            span.setTag(request.getKey(), request.getValue());
             responseObserver.onNext(ApmTestClient.SpanSetMetricReturn.newBuilder().build());
             responseObserver.onCompleted();
         }
@@ -118,7 +119,8 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     @Override
     public void flushSpans(ApmTestClient.FlushSpansArgs request, StreamObserver<ApmTestClient.FlushSpansReturn> responseObserver) {
         LOGGER.info("Flushing span: "+request.toString());
-        this.flushOperation.run();
+        this.flushTraceRunnable.run();
+        this.spans.clear();
         responseObserver.onNext(ApmTestClient.FlushSpansReturn.newBuilder().build());
         responseObserver.onCompleted();
     }
@@ -126,7 +128,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     @Override
     public void flushTraceStats(ApmTestClient.FlushTraceStatsArgs request, StreamObserver<ApmTestClient.FlushTraceStatsReturn> responseObserver) {
         LOGGER.info("Flushing trace stats: "+request.toString());
-        this.flushOperation.run();
+        this.flushStatsRunnable.run();
         responseObserver.onNext(ApmTestClient.FlushTraceStatsReturn.newBuilder().build());
         responseObserver.onCompleted();
     }

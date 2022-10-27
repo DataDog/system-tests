@@ -19,8 +19,8 @@ public class App {
     static final Logger LOGGER = Logger.getLogger(App.class.getName());
     private static final int CLIENT_SERVER_PORT = 50051;
     private final DDTracer tracer;
-    private Runnable flushTracerRunnable;
-    private Runnable flushTraceStatsRunnable;
+    private Runnable flushTraceRunnable;
+    private Runnable flushStatsRunnable;
 
     public App() throws ReflectiveOperationException, IOException {
         this.tracer = createTracer();
@@ -40,7 +40,11 @@ public class App {
 
     private void startServer(int port) throws IOException {
         Server server = ServerBuilder.forPort(port)
-                .addService(new ApmClientImpl(GlobalTracer.get(), this.flushTracerRunnable))
+                .addService(new ApmClientImpl(
+                        this.tracer,
+                        this.flushTraceRunnable,
+                        this.flushStatsRunnable
+                ))
                 .build()
                 .start();
         LOGGER.info("Server started at port " + port + ".");
@@ -78,7 +82,12 @@ public class App {
             if ("tracer".equals(field.getName())) {
                 field.setAccessible(true);
                 CoreTracer tracerApi = (CoreTracer) field.get(this.tracer);
-                this.flushTracerRunnable = tracerApi::flush;
+//              this.flushTraceRunnable = tracerApi::flush;
+                // TODO How to ensure trace flush? Is closing a solution in Java library?
+                this.flushTraceRunnable = () -> {
+                        tracerApi.flush();
+//                        tracer.close();
+                };
                 extractFlushStatsRunnable(tracerApi);
                 return;
             }
@@ -91,7 +100,17 @@ public class App {
            if ("metricsAggregator".equals(field.getName())) {
                field.setAccessible(true);
                 MetricsAggregator aggregator = (MetricsAggregator) field.get(tracerApi);
-                this.flushTraceStatsRunnable = aggregator::report;
+//              this.flushStatsRunnable = aggregator::report;
+                // TODO How to ensure to flush metrics? Wait long enough to be sure to flush (every 10s by default)
+                this.flushStatsRunnable = () -> {
+                    aggregator.report();
+//                  tracer.close();
+                    try {
+                        Thread.sleep(15_000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
                 return;
             }
         }
