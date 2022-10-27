@@ -5,7 +5,7 @@
 import json
 from collections import defaultdict
 
-from utils import BaseTestCase, coverage, interfaces, released, rfc, bug
+from utils import BaseTestCase, coverage, interfaces, released, rfc, bug, irrelevant
 from utils.tools import logger
 
 with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
@@ -109,7 +109,7 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="3.7.0")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
@@ -192,8 +192,9 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", golang="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?")
 @bug(library="dotnet")
+@irrelevant(library="nodejs")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
