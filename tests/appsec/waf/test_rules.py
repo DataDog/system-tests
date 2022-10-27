@@ -55,7 +55,8 @@ class Test_HttpProtocol(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(python={"flask-poc": "1.5.2", "*": "?"})
+@released(nodejs="2.0.0", php_appsec="0.1.0")
 @coverage.good
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
