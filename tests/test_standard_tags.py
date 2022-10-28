@@ -162,7 +162,7 @@ class Test_StandardTagsRoute(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?")
+@released(dotnet="?", golang="?", java="0.114.0")
 @released(nodejs="?", php="?", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
