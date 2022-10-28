@@ -39,10 +39,7 @@ class Test_Telemetry(BaseTestCase):
             path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
         )
 
-    @missing_feature(library="java")
-    @missing_feature(library="dotnet")
-    @missing_feature(library="python")
-    @missing_feature(library="nodejs")
+    @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
