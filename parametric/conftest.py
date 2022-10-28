@@ -362,9 +362,14 @@ def docker_network_log_file(request) -> TextIO:
         yield f
 
 
+network_id = 0
+
+
 @pytest.fixture()
 def docker_network_name() -> str:
-    return "apm_shared_tests_network"
+    global network_id
+    network_id += 1
+    return "apm_shared_tests_network%i" % network_id
 
 
 @pytest.fixture()
