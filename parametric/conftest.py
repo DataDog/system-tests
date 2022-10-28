@@ -453,7 +453,7 @@ def test_agent(
     env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
 
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.7.2",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
         name=test_agent_container_name,
         cmd=[],
         env=env,
