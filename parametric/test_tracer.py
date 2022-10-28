@@ -1,6 +1,7 @@
 from typing import Dict
 
 import pytest
+import time
 
 from parametric.spec.trace import Span
 from parametric.spec.trace import find_trace_by_root
@@ -23,6 +24,7 @@ def test_tracer_span_top_level_attributes(test_library: APMLibrary, test_agent: 
             with test_library.start_span("operation.child", parent_id=parent.span_id) as child:
                 child.set_meta("key", "val")
 
+    time.sleep(1)
     traces = test_agent.traces()
     trace = find_trace_by_root(traces, Span(name="operation"))
     assert len(trace) == 2
