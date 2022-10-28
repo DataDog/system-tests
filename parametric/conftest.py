@@ -181,14 +181,39 @@ WORKDIR "/client/."
     )
 
 
+def java_library_factory(env: Dict[str, str]):
+    java_appdir = os.path.join("apps", "java")
+    java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
+    java_reldir = os.path.join("parametric", java_appdir)
+    return APMLibraryTestServer(
+        lang="java",
+        container_name="java-test-client",
+        container_tag="java8-test-client",
+        container_img=f"""
+FROM maven:3-jdk-8
+WORKDIR /client
+COPY {java_reldir}/src src
+COPY {java_reldir}/pom.xml .
+COPY {java_reldir}/run.sh .
+COPY binaries* /binaries/
+RUN mvn package
+""",
+        container_cmd=["./run.sh"],
+        container_build_dir=java_dir,
+        volumes=[],
+        env=env,
+    )
+
+
 _libs = {
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
+    "java": java_library_factory,
     "nodejs": node_library_factory,
     "python": python_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,nodejs,python").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
