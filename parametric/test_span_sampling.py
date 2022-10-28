@@ -1,13 +1,14 @@
 import pytest
+from parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
 from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
 from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
 from parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
-from parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from parametric.spec.trace import MANUAL_DROP_KEY
 from parametric.spec.trace import USER_KEEP
+from parametric.spec.trace import Span
+from parametric.spec.trace import find_span_in_traces
 import time
-from .conftest import APMLibrary
 import json
 
 
@@ -26,10 +27,14 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_library):
     """Test that span sampling tags are added when both:
     1. a span sampling rule matches
     2. tracer is set to drop the trace manually"""
-    generate_span(test_library)
-    span = get_span(test_agent)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
 
-    assert_sampling_decision_tags(span)
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -40,10 +45,14 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_library):
 )
 def test_special_glob_characters_span_sampling_sss002(test_agent, test_library):
     """Test span sampling tags are added when a rule with glob patterns with special characters * and ? match"""
-    generate_span(test_library)
-    span = get_span(test_agent)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
 
-    assert_sampling_decision_tags(span)
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -62,10 +71,14 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_library):
     1. a basic span sampling rule does not match
     2. the tracer is set to drop the span manually
     """
-    generate_span(test_library)
-    span = get_span(test_agent)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
 
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -78,10 +91,13 @@ def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent,
     1. a span sampling rule that only has a service pattern matches
     2. the tracer is set to drop the span manually
     """
-    generate_span(test_library)
-    span = get_span(test_agent)
-
-    assert_sampling_decision_tags(span)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -94,10 +110,13 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
     1. a span sampling rule that only has a name pattern does not match
     2. the tracer is set to drop the span manually
     """
-    generate_span(test_library)
-    span = get_span(test_agent)
-
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -126,10 +145,13 @@ def test_multi_rule_keep_drop_span_sampling_sss006(test_agent, test_library):
     1. rules are assessed in order of their listing
     2. that once a rule is matched, we do not try to match against further rules. We do this by assuming that the "sample_rate": 0 of the second rule, if matched against would cause the span to not have span sampling tags.
     """
-    generate_span(test_library)
-    span = get_span(test_agent)
-
-    assert_sampling_decision_tags(span)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -158,10 +180,13 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
     1. rules are assessed in order of their listing
     2. that once a rule is matched, we do not try to match against further rules. We do this by assuming that the "sample_rate": 0 of the first rule, will cause the span to not have span sampling tags.
     """
-    generate_span(test_library)
-    span = get_span(test_agent)
-
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -181,26 +206,35 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
     """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
     # generate spans until we hit the rate limit
     while True:
-        generate_span(test_library)
-        span = get_span(test_agent)
+        with test_library:
+            with test_library.start_span(name="web.request", service="webserver"):
+                pass
+        span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
         # if we don't have the span sampling mechanism tag on the span
         # it means we hit the limit and this span will be dropped due to the rate limiter
-        if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == None:
+        if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None:
             break
 
     # we test that after making another span that matches the rule,
     # it has none of the span sampling tags because we hit the rate limit
-    generate_span(test_library)
-    traces = test_agent.traces()
-    span = traces[0][0]
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     # wait a second for rate limiter tokens to replenish
     time.sleep(2)
     # now span should be kept by rule
-    generate_span(test_library)
-    span = get_span(test_agent)
-    assert_sampling_decision_tags(span, limit=2)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -221,8 +255,9 @@ def test_sampling_rate_not_absolute_value_sss009(test_agent, test_library):
     """
     # make 100 new traces, each with one span
     for i in range(100):
-        # generate_span always creates a new trace
-        generate_span(test_library)
+        with test_library:
+            with test_library.start_span(name="web.request", service="webserver"):
+                pass
     traces = test_agent.traces()
     assert len(traces) == 100
     sampled = []
@@ -253,9 +288,13 @@ def test_sampling_rate_not_absolute_value_sss009(test_agent, test_library):
 )
 def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
     """Test when stats computation is enabled and span sampling applied, spans have manual_keep and still sent."""
-    generate_span(test_library)
-    span = get_span(test_agent)
-    assert_sampling_decision_tags(span)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
     # We should be setting sampling priority to manual keep so the agent sampler won't be affected
     # TODO: we need a way to check that the chunk that contains the span was associated with USER_KEEP priority,
     # the below does not apply to all agent APIs
@@ -279,16 +318,25 @@ def test_single_rule_always_keep_span_sampling_sss011(test_agent, test_library):
 
     Basically, if we have a rule for spans with sample_rate:1.0 we should always keep those spans, either due to trace sampling or span sampling"""
     # This span is set to be dropped by the tracer/user, however it is kept by span sampling
-    generate_span(test_library, manual_drop=True)
-    span = get_span(test_agent)
-
-    assert_sampling_decision_tags(span)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver") as span:
+            span.set_meta(MANUAL_DROP_KEY, "1")
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     # This span is sampled by the tracer, not span sampling.
     # Therefore it won't have the span sampling tags, but rather the trace sampling tags.
-    generate_span(test_library)
-    span = get_span(test_agent)
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None, trace_sampling=True)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver") as span:
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+    assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
 
 @pytest.mark.parametrize(
@@ -307,9 +355,15 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
     """
     # This span is sampled by the tracer, not span sampling, which would try to drop the span, so it's still kept because "_sampling_priority_v1" > 0
     # When the trace is kept by trace sampling, span rules are not applied
-    generate_span(test_library)
-    span = get_span(test_agent)
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None, trace_sampling=True)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+    assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -334,58 +388,52 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     """
     # generate spans until we hit the first rule's rate limit
     while True:
-        generate_span(test_library)
-        span = get_span(test_agent)
+        with test_library:
+            with test_library.start_span(name="web.request", service="webserver"):
+                pass
+
+        span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
         # if we don't have the span sampling mechanism tag on the span
         # it means we hit the limit and this span will be dropped due to the rate limiter
         if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == None:
             break
 
-    generate_span(test_library)
-    span = get_span(test_agent)
-    # We test that after making another span matching the first rule, it has none of the span sampling tags because we hit the rate limiter
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    # We test that after making another span matching the first rule, it has none of the span sampling tags because we
+    # hit the rate limiter
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     # This span matches the second rule and is kept
     # it has span sampling tags because it has its own rate limiter
-    generate_span(test_library, service="webserver2", name="web.request2")
-    span = get_span(test_agent)
-    assert_sampling_decision_tags(span, limit=5)
+    with test_library:
+        with test_library.start_span(name="web.request2", service="webserver2"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request2", service="webserver2"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 5
 
     # We create another span that will match the first rule which should still be at the rate limit,
     # it has none of the span sampling tags because we hit the rate limit of the first rule
-    generate_span(test_library)
-    span = get_span(test_agent)
-    assert_sampling_decision_tags(span, sample_rate=None, mechanism=None)
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     # wait a couple of seconds for rate limiter tokens
     time.sleep(2)
     # Now span should be kept by first rule
-    generate_span(test_library)
-    span = get_span(test_agent)
-    assert_sampling_decision_tags(span, limit=1)
-
-
-def assert_sampling_decision_tags(
-    span, sample_rate=1.0, mechanism=SINGLE_SPAN_SAMPLING_MECHANISM_VALUE, limit=None, trace_sampling=False
-):
-
-    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == sample_rate
-    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == mechanism
-    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == limit
-
-    if trace_sampling:
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
-
-
-def generate_span(test_library, name="web.request", service="webserver", manual_drop=False):
-    with test_library.start_span(name=name, service=service) as span:
-        if manual_drop:
-            span.set_meta(MANUAL_DROP_KEY, "1")
-    test_library.flush()
-
-
-def get_span(test_agent):
-    traces = test_agent.traces()
-    span = traces[0][0]
-    return span
+    with test_library:
+        with test_library.start_span(name="web.request", service="webserver"):
+            pass
+    span = find_span_in_traces(test_agent.traces(), Span(name="web.request"))
+    assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
