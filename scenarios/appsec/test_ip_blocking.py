@@ -22,6 +22,7 @@ class Test_AppSecIPBlocking(BaseTestCase):
     remote_config_is_sent = False
 
     @bug(context.library == "java@0.114.0" and context.appsec_rules_version == "1.4.2")
+    @bug(context.library == "java@0.115.0" and context.appsec_rules_version == "1.4.2")
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
 
@@ -38,6 +39,7 @@ class Test_AppSecIPBlocking(BaseTestCase):
 
     @bug(context.library == "java@0.110.0", reason="default action not implemented")
     @bug(context.library == "java@0.114.0" and context.appsec_rules_version == "1.4.2")
+    @bug(context.library == "java@0.115.0" and context.appsec_rules_version == "1.4.2")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

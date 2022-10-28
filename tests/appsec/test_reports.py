@@ -90,31 +90,6 @@ class Test_HttpClientIP(BaseTestCase):
 
         interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
 
-    @irrelevant(condition=context.library >= "golang@1.39.0", reason="The backend copies http.client_ip into actor.ip")
-    @missing_feature(library="nodejs", reason="Not clear if it must be done on backend side. Waiting for clarification")
-    @missing_feature(library="ruby", reason="Not clear if it must be done on backend side. Waiting for clarification")
-    def test_http_client_ip(self):
-        """ AppSec reports the correct http client ip. """
-
-        headers = {"X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1", "User-Agent": "Arachni/v1"}
-        r = self.weblog_get("/waf/", headers=headers)
-
-        def legacy_validator(event):
-            assert "http" in event["context"], "http is missing from context"
-            http_client_ip = event["context"]["http"]["client_ip"]["address"]
-            assert http_client_ip == "43.43.43.43", f"actor should be 43.43.43.43, not {http_client_ip}"
-
-            return True
-
-        def validator(span, appsec_data):
-            assert "http.client_ip" in span["meta"], "http.client_ip is missing from in meta tags"
-            http_client_ip = span["meta"]["http.client_ip"]
-            assert http_client_ip == "43.43.43.43", f"http.client_ip should be 43.43.43.43, not {http_client_ip}"
-
-            return True
-
-        interfaces.library.add_appsec_validation(r, validator=validator, legacy_validator=legacy_validator)
-
 
 @released(
     golang="1.37.0"
