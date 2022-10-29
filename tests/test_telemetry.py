@@ -2,6 +2,7 @@ from utils import context, BaseTestCase, interfaces, missing_feature, bug, relea
 
 
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
+@bug(context.scenario == "UDS" and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="ruby")
 @missing_feature(library="php")
