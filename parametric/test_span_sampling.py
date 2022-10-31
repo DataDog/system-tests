@@ -325,7 +325,7 @@ def test_single_rule_always_keep_span_sampling_sss011(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver") as span:
             span.set_meta(MANUAL_DROP_KEY, "1")
-    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
