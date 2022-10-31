@@ -16,6 +16,7 @@ import pytest
 from parametric.protos import apm_test_client_pb2 as pb
 from parametric.protos import apm_test_client_pb2_grpc
 from parametric.spec.trace import V06StatsPayload
+from parametric.spec.trace import Trace
 from parametric.spec.trace import decode_v06_stats
 
 
@@ -253,8 +254,10 @@ class _TestAgentAPI:
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
-    def traces(self, **kwargs):
+    def traces(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
+        if clear:
+            self.clear()
         return resp.json()
 
     def tracestats(self, **kwargs):
@@ -279,9 +282,8 @@ class _TestAgentAPI:
             )
         return requests
 
-    def clear(self, **kwargs):
-        resp = self._session.get(self._url("/test/session/clear"), **kwargs)
-        return resp.json()
+    def clear(self, **kwargs) -> None:
+        self._session.get(self._url("/test/session/clear"), **kwargs)
 
     def info(self, **kwargs):
         resp = self._session.get(self._url("/info"), **kwargs)
@@ -305,6 +307,25 @@ class _TestAgentAPI:
             )
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
+
+    def wait_for_num_traces(self, num: int, clear: bool = False) -> List[Trace]:
+        """Wait for `num` to be received from the test agent.
+
+        Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
+        """
+        num_received = None
+        for i in range(20):
+            try:
+                traces = self.traces(clear=clear)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                num_received = len(traces)
+                if num_received == num:
+                    return traces
+            time.sleep(0.1)
+        raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+
 
 
 @contextlib.contextmanager
@@ -655,6 +676,7 @@ class APMLibrary:
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
+
 
 
 @pytest.fixture

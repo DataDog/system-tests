@@ -24,8 +24,7 @@ def test_tracer_span_top_level_attributes(test_library: APMLibrary, test_agent: 
             with test_library.start_span("operation.child", parent_id=parent.span_id) as child:
                 child.set_meta("key", "val")
 
-    time.sleep(1)
-    traces = test_agent.traces()
+    traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, Span(name="operation"))
     assert len(trace) == 2
 
@@ -54,9 +53,8 @@ def test_tracer_service_name_environment_variable(
         with test_library.start_span("operation"):
             pass
 
-    traces = test_agent.traces()
+    traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, Span(name="operation"))
-    assert len(trace) == 1
 
     span = find_span(trace, Span(name="operation"))
     assert span["name"] == "operation"
@@ -76,9 +74,8 @@ def test_tracer_env_environment_variable(
         with test_library.start_span("operation"):
             pass
 
-    traces = test_agent.traces()
+    traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, Span(name="operation"))
-    assert len(trace) == 1
 
     span = find_span(trace, Span(name="operation"))
     assert span["name"] == "operation"

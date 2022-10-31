@@ -30,7 +30,7 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
@@ -48,7 +48,7 @@ def test_special_glob_characters_span_sampling_sss002(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
@@ -74,7 +74,7 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
@@ -94,7 +94,7 @@ def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent,
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -113,7 +113,7 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -148,7 +148,7 @@ def test_multi_rule_keep_drop_span_sampling_sss006(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -183,7 +183,7 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -209,7 +209,7 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
         # if we don't have the span sampling mechanism tag on the span
         # it means we hit the limit and this span will be dropped due to the rate limiter
         if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None:
@@ -220,7 +220,7 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -231,7 +231,7 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
@@ -258,7 +258,7 @@ def test_sampling_rate_not_absolute_value_sss009(test_agent, test_library):
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-    traces = test_agent.traces()
+    traces = test_agent.wait_for_num_traces(num=100)
     assert len(traces) == 100
     sampled = []
     unsampled = []
@@ -291,7 +291,7 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -321,7 +321,7 @@ def test_single_rule_always_keep_span_sampling_sss011(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver") as span:
             span.set_meta(MANUAL_DROP_KEY, "1")
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -331,7 +331,7 @@ def test_single_rule_always_keep_span_sampling_sss011(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver") as span:
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
@@ -358,7 +358,7 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request", service="webserver"))
 
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
@@ -392,7 +392,7 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
 
-        span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
         # if we don't have the span sampling mechanism tag on the span
         # it means we hit the limit and this span will be dropped due to the rate limiter
         if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == None:
@@ -401,7 +401,7 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
     # We test that after making another span matching the first rule, it has none of the span sampling tags because we
     # hit the rate limiter
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
@@ -413,7 +413,7 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request2", service="webserver2"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request2", service="webserver2"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request2", service="webserver2"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 5
@@ -424,7 +424,7 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
         with test_library.start_span(name="web.request", service="webserver"):
             pass
 
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -435,5 +435,5 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.traces(), Span(name="web.request"))
+    span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
