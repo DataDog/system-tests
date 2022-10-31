@@ -209,7 +209,9 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
         with test_library:
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
+        span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver")
+        )
         # if we don't have the span sampling mechanism tag on the span
         # it means we hit the limit and this span will be dropped due to the rate limiter
         if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None:
@@ -220,7 +222,9 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(
+        test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver")
+    )
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -392,7 +396,9 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
             with test_library.start_span(name="web.request", service="webserver"):
                 pass
 
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
+        span = find_span_in_traces(
+            test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver")
+        )
         # if we don't have the span sampling mechanism tag on the span
         # it means we hit the limit and this span will be dropped due to the rate limiter
         if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == None:
@@ -401,7 +407,9 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request", service="webserver"):
             pass
-    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver"))
+    span = find_span_in_traces(
+        test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request", service="webserver")
+    )
     # We test that after making another span matching the first rule, it has none of the span sampling tags because we
     # hit the rate limiter
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
@@ -413,7 +421,9 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     with test_library:
         with test_library.start_span(name="web.request2", service="webserver2"):
             pass
-    span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request2", service="webserver2"))
+    span = find_span_in_traces(
+        test_agent.wait_for_num_traces(1, clear=True), Span(name="web.request2", service="webserver2")
+    )
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 5

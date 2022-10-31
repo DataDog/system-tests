@@ -327,7 +327,6 @@ class _TestAgentAPI:
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
 
 
-
 @contextlib.contextmanager
 def docker_run(
     image: str,
@@ -676,7 +675,6 @@ class APMLibrary:
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
-
 
 
 @pytest.fixture
