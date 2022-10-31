@@ -45,6 +45,7 @@ def pytest_sessionstart(session):
 
         print_info(f"Weblog variant: {context.weblog_variant}")
         print_info(f"Backend: {context.dd_site}")
+        print_info(f"Scenario: {context.scenario}")
 
         # connect interface validators to data collector
         data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
