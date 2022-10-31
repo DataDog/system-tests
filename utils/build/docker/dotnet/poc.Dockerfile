@@ -37,6 +37,12 @@ ENV DD_INTEGRATIONS=/opt/datadog/integrations.json
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
+# Dump on crash
+ENV COMPlus_DbgEnableMiniDump=1
+# MiniDumpWithPrivateReadWriteMemory is 2
+ENV COMPlus_DbgMiniDumpType=2
+
+
 RUN echo "#!/bin/bash\ndotnet app.dll" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]

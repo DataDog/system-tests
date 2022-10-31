@@ -229,6 +229,9 @@ EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.Exi
 # Stop all containers
 docker-compose down --remove-orphans
 
+mkdir -p $SYSTEMTESTS_LOG_FOLDER/dumps
+cp /tmp/coredump* $SYSTEMTESTS_LOG_FOLDER/dumps
+
 # Exit with runner's status
 echo "Exiting with ${EXIT_CODE}"
 exit $EXIT_CODE
