@@ -9,7 +9,7 @@ namespace weblog
     {
         public static void Main(string[] args)
         {
-            throw new Exception("boom!");
+            CreateHostBuilder(args).Build().Run();
         }
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
