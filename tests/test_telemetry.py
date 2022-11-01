@@ -1,5 +1,6 @@
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky, irrelevant
 
+
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
 @bug(context.scenario == "UDS" and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
@@ -33,23 +34,27 @@ class Test_Telemetry(BaseTestCase):
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-agent-hostname", "dd-agent-env"],
         )
         interfaces.agent.assert_headers_match(
-            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
+            path_filter="/api/v2/apmtelemetry",
+            request_headers={"via": r"trace-agent 7\..+"},
         )
 
     @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["datadog-container-id"],
         )
 
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["dd-api-key", "dd-telemetry-api-version", "dd-telemetry-request-type"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-api-key", "dd-telemetry-api-version", "dd-telemetry-request-type"],
         )
 
     @missing_feature(library="python")
@@ -96,11 +101,13 @@ class Test_Telemetry(BaseTestCase):
                 else:
                     if check_integration_w_version:
                         # Check for integration versions if sent in app_started
-                        assert dependency_id not in integrations_with_version, "Integration must have version if specified in app-started"
+                        assert (
+                            dependency_id not in integrations_with_version
+                        ), "Integration must have version if specified in app-started"
 
                 assert dependency_id not in seen_dependencies, "Dependency payload must not contain duplicates"
                 seen_dependencies.add(dependency_id)
-                    
+
         def validate_top_level_keys(data):
             content = data["request"]["content"]
             required_top_level_keys = ["api_version", "request_type", "runtime_id", "payload", "host", "tracer_time"]
@@ -111,11 +118,18 @@ class Test_Telemetry(BaseTestCase):
             assert application, "Application must not be empty"
             for field in required_application_keys:
                 assert application.get(field), f"{field} must not be empty"
-            
+
         def validate_app_started(content):
             host = content["host"]
             payload = content["payload"]
-            required_app_started_payload_keys = ["hostname", "os", "os_version", "kernel_name", "kernel_release"]
+            required_app_started_payload_keys = [
+                "hostname",
+                "os",
+                "os_version",
+                "kernel_name",
+                "kernel_release",
+                "kernel_version",
+            ]
             for field in required_app_started_payload_keys:
                 assert host.get(field), f"{field} must not be empty"
             if payload.get("dependencies"):
@@ -139,7 +153,7 @@ class Test_Telemetry(BaseTestCase):
                 validate_dependencies_loaded(content)
             elif content.get("request_type") == "app-integrations-change":
                 validate_integrations_change(content)
-            
+
         interfaces.library.add_telemetry_validation(validator=validate_top_level_keys, is_success_on_expiry=True)
         interfaces.library.add_telemetry_validation(validator=validate_event_payloads, is_success_on_expiry=True)
 
