@@ -1,6 +1,5 @@
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky, irrelevant
 
-
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
 @bug(context.scenario == "UDS" and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
@@ -47,6 +46,12 @@ class Test_Telemetry(BaseTestCase):
             path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
         )
 
+    def test_telemetry_message_required_headers(self):
+        """Test telemetry messages contain required headers"""
+        interfaces.agent.assert_headers_presence(
+            path_filter="/api/v2/apmtelemetry", request_headers=["dd-api-key", "dd-telemetry-api-version", "dd-telemetry-request-type"],
+        )
+
     @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
@@ -76,18 +81,67 @@ class Test_Telemetry(BaseTestCase):
     def test_telemetry_messages_valid(self):
         """Telemetry messages additional validation"""
 
-        def validate_integration_changes(data):
-            content = data["request"]["content"]
-            if content.get("request_type") == "app-integrations-change":
-                assert content["payload"]["integrations"], "Integration changes must mot be empty"
+        integrations_with_version = set()
 
-        def validate_dependencies_changes(data):
-            content = data["request"]["content"]
-            if content["request_type"] == "app-dependencies-loaded":
-                assert content["payload"]["dependencies"], "dependencies changes must mot be empty"
+        def validate_dependencies(dependencies, track_integration_w_version=False, check_integration_w_version=False):
+            seen_dependencies = set()
+            for dependency in dependencies:
+                assert dependency.get("name"), "Dependency name must be specified"
+                dependency_id = dependency["name"]
+                if dependency.get("version"):
+                    dependency_id += dependency["version"]
+                    if track_integration_w_version:
+                        # Track integrations with versions
+                        integrations_with_version.add(dependency["name"])
+                else:
+                    if check_integration_w_version:
+                        # Check for integration versions if sent in app_started
+                        assert dependency_id not in integrations_with_version, "Integration must have version if specified in app-started"
 
-        interfaces.library.add_telemetry_validation(validator=validate_integration_changes, is_success_on_expiry=True)
-        interfaces.library.add_telemetry_validation(validator=validate_dependencies_changes, is_success_on_expiry=True)
+                assert dependency_id not in seen_dependencies, "Dependency payload must not contain duplicates"
+                seen_dependencies.add(dependency_id)
+                    
+        def validate_top_level_keys(data):
+            content = data["request"]["content"]
+            required_top_level_keys = ["api_version", "request_type", "runtime_id", "payload", "host", "tracer_time"]
+            for field in required_top_level_keys:
+                assert content.get(field), f"{field} must not be empty"
+            application = content.get("application")
+            required_application_keys = ["language_name", "language_version", "service_name", "tracer_version"]
+            assert application, "Application must not be empty"
+            for field in required_application_keys:
+                assert application.get(field), f"{field} must not be empty"
+            
+        def validate_app_started(content):
+            host = content["host"]
+            payload = content["payload"]
+            required_app_started_payload_keys = ["hostname", "os", "os_version", "kernel_name", "kernel_release"]
+            for field in required_app_started_payload_keys:
+                assert host.get(field), f"{field} must not be empty"
+            if payload.get("dependencies"):
+                validate_dependencies(payload["dependencies"])
+            if payload.get("integrations"):
+                validate_dependencies(payload["integrations"], track_integration_w_version=True)
+
+        def validate_integrations_change(content):
+            assert content["payload"]["integrations"], "Integrations changes must not be empty"
+            validate_dependencies(content["payload"]["integrations"], check_integration_w_version=True)
+
+        def validate_dependencies_loaded(content):
+            assert content["payload"]["dependencies"], "Dependencies loaded must not be empty"
+            validate_dependencies(content["payload"]["dependencies"])
+
+        def validate_event_payloads(data):
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-started":
+                validate_app_started(content)
+            elif content.get("request_type") == "app-dependencies-loaded":
+                validate_dependencies_loaded(content)
+            elif content.get("request_type") == "app-integrations-change":
+                validate_integrations_change(content)
+            
+        interfaces.library.add_telemetry_validation(validator=validate_top_level_keys, is_success_on_expiry=True)
+        interfaces.library.add_telemetry_validation(validator=validate_event_payloads, is_success_on_expiry=True)
 
     @bug(
         library="dotnet",
