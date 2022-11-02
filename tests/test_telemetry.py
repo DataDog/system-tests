@@ -107,6 +107,8 @@ class Test_Telemetry(BaseTestCase):
 
         def validate_top_level_keys(data):
             content = data["request"]["content"]
+            if content.get("request_type") == "app-heartbeat" or content.get("request_type") == "app-closing":
+                return
             required_top_level_keys = ["api_version", "request_type", "runtime_id", "payload", "host", "tracer_time"]
             for field in required_top_level_keys:
                 assert content.get(field), f"{field} must not be empty"
