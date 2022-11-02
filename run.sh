@@ -171,7 +171,8 @@ elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
     export RUNNER_ARGS="scenarios/integrations"
     export SYSTEMTESTS_LOG_FOLDER=logs_integrations
-    CONTAINERS+=(cassandra_db mongodb)
+    WEBLOG_ENV+="DD_DBM_PROPAGATION_MODE=full\nDD_TRACE_SQL_COMMENT_INJECTION_MODE=full\n"
+    CONTAINERS+=(cassandra_db mongodb postgres)
 
 else # Let user choose the target
     export RUNNER_ARGS=$@

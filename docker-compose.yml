@@ -119,4 +119,22 @@ services:
     restart: always
     ports:
       - "127.0.0.1:27017:27017"
-  
+
+  postgres:
+    # container_name: postgres
+    image: postgres
+    user: postgres
+    environment:
+      - POSTGRES_PASSWORD=password
+      - PGPORT=5433 # if users have another pg instance
+    volumes:
+      - ./utils/build/docker/postgres-init-db.sh:/docker-entrypoint-initdb.d/init_db.sh
+    expose:
+      - 5433
+    ports:
+      - 5433:5433
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
