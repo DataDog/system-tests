@@ -11,3 +11,4 @@ from utils import interfaces
 from utils._data_collector import data_collector
 from utils import coverage
 from utils._proxies import proxies
+from utils.interfaces._core import ValidationError

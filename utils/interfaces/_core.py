@@ -364,6 +364,9 @@ class BaseValidation:
                 if data and isinstance(data, dict) and "log_filename" in data:
                     message += f"\n\t Failing payload is in {data['log_filename']}"
 
+                if isinstance(exception, ValidationError) and extra_info is None:
+                    extra_info = exception.extra_info
+
                 if extra_info:
                     if isinstance(extra_info, (dict, list)):
                         extra_info = json.dumps(extra_info, indent=4)
@@ -415,6 +418,12 @@ class BaseValidation:
             self.set_failure(err_msg)
 
         return not condition
+
+
+class ValidationError(Exception):
+    def __init__(self, *args: object, extra_info=None) -> None:
+        super().__init__(*args)
+        self.extra_info = extra_info
 
 
 class _StaticValidation(BaseValidation):
