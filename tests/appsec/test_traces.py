@@ -103,6 +103,11 @@ class Test_AppSecEventSpanTags(BaseTestCase):
 
     @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="a PR was not included in the release")
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_header_collection(self):
         """
         AppSec should collect some headers for http.request and http.response and store them in span tags.
