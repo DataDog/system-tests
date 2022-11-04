@@ -128,6 +128,13 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_ip_blocking
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RUNTIME_ACTIVATION" ]; then
+    export RUNNER_ARGS="scenarios/appsec/test_runtime_activation.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_runtime_activation
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
+    # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
+    WEBLOG_ENV=""
+
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_features

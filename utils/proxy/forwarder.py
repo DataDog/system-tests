@@ -28,6 +28,9 @@ with open("system-tests/utils/proxy/rc_mocked_responses_live_debugging.json", en
 with open("system-tests/utils/proxy/rc_mocked_responses_asm_features.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM_FEATURES = json.load(f)
 
+with open("system-tests/utils/proxy/rc_mocked_responses_asm_activate_only.json", encoding="utf-8") as f:
+    RC_MOCKED_RESPONSES_ASM_ACTIVATE_ONLY = json.load(f)
+
 with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM_DD = json.load(f)
 
@@ -175,6 +178,8 @@ class Forwarder:
     def _modify_response(self, flow):
         if self.state.get("mock_remote_config_backend") == "ASM_FEATURES":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_FEATURES)
+        elif self.state.get("mock_remote_config_backend") == "ASM_ACTIVATE_ONLY":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_ACTIVATE_ONLY)
         elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING)
         elif self.state.get("mock_remote_config_backend") == "ASM_DD":
