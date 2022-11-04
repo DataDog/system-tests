@@ -14,6 +14,7 @@ RUN /binaries/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTE_CONFIGURATION_ENABLED=true
+ENV DD_REMOTECONFIG_POLL_SECONDS=0.5
 
 # docker startup
 RUN echo '#!/bin/bash \n\

@@ -93,7 +93,7 @@ def rc_check_request(data, expected, caching):
         cached_target_files = content.get("cached_target_files")
 
         if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
-            raise Exception("client is not expected to have cached config but is reporting cached config")
+            raise Exception(f"client is not expected to have cached config but is reporting cached config: {cached_target_files}")
 
         if expected_cached_target_files is not None and cached_target_files is None:
             raise Exception(
@@ -104,7 +104,7 @@ def rc_check_request(data, expected, caching):
             # Make sure the client reported all of the expected files
             for file in expected_cached_target_files:
                 if file not in cached_target_files:
-                    raise ValidationError(f"{file} should be in cached_target_files property", extra_info=content)
+                    raise ValidationError(f"{file} should be in cached_target_files property: {cached_target_files}", extra_info=content)
 
             # Make sure the client isn't reporting any extra cached files
             for file in cached_target_files:
@@ -113,7 +113,7 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="1.5.0rc1.dev", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="1.6.0rc1.dev", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
@@ -169,7 +169,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="1.5.0rc1.dev", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
@@ -196,7 +196,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="?", php="?", python="1.5.0rc1.dev", ruby="?", nodejs="?")
+@released(cpp="?", golang="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
