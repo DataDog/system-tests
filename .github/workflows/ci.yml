@@ -155,6 +155,9 @@ jobs:
             weblog-variant: spring-boot-jetty
             version: prod
           - library: java
+            weblog-variant: spring-boot-openliberty
+            version: prod
+          - library: java
             weblog-variant: jersey-grizzly2
             version: prod
           - library: java
