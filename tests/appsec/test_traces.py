@@ -28,7 +28,6 @@ class Test_RetainTraces(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_appsec_event_span_tags(self):
         """
         Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
@@ -73,7 +72,6 @@ class Test_AppSecEventSpanTags(BaseTestCase):
         get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
@@ -275,7 +273,6 @@ class Test_AppSecObfuscator(BaseTestCase):
 class Test_CollectRespondHeaders(BaseTestCase):
     """AppSec should collect some headers for http.response and store them in span tags."""
 
-    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_header_collection(self):
         def assertHeaderInSpanMeta(span, header):
             if header not in span["meta"]:
