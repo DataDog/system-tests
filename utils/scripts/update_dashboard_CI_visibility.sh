@@ -62,4 +62,4 @@ $dashboard_json_updated
 EOF
 
 # Update monitors
-update_monitor_CI_Visibility.sh $@
+./utils/scripts/update_monitor_CI_Visibility.sh $@
