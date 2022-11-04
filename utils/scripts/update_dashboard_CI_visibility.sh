@@ -60,3 +60,6 @@ curl -X PUT "https://api.datadoghq.com/api/v1/dashboard/${dashboard_id}" \
 -d @- << EOF
 $dashboard_json_updated
 EOF
+
+# Update monitors
+update_monitor_CI_Visibility.sh $@
