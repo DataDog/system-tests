@@ -155,6 +155,42 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>openliberty</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.openliberty.tools</groupId>
+                        <artifactId>liberty-maven-plugin</artifactId>
+                        <version>3.5.1</version>
+                        <configuration>
+                            <appsDirectory>apps</appsDirectory>
+                            <installAppPackages>spring-boot-project</installAppPackages>
+                            <include>minify,runnable</include>
+                            <packageName>myproject-0.0.1-SNAPSHOT</packageName>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>package-server</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>create</goal>
+                                    <goal>install-feature</goal>
+                                    <goal>deploy</goal>
+                                    <goal>package</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
