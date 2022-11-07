@@ -165,8 +165,8 @@ class Test_StandardTagsRoute(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?")
-@released(nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="0.114.0")
+@released(nodejs="3.6.0", php_appsec="0.4.4", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

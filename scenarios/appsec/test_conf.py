@@ -35,7 +35,8 @@ class Test_ConfigurationVariables(BaseTestCase):
         r = self.weblog_get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
         interfaces.library.assert_waf_attack(r, pattern="dedicated-value-for-testing-purpose")
 
-    @missing_feature(context.library < "java@0.113.0", reason="request is reported")
+    @missing_feature(context.library < "java@0.113.0")
+    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(1000)))
