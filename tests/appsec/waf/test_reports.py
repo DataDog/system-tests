@@ -7,7 +7,7 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage
+from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage, bug
 
 
 if context.library == "cpp":

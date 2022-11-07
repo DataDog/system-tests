@@ -55,7 +55,8 @@ class Test_HttpProtocol(BaseTestCase):
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
-@released(nodejs="2.0.0", php_appsec="0.1.0", python="?")
+@released(python={"flask-poc": "1.5.2", "*": "?"})
+@released(nodejs="2.0.0", php_appsec="0.1.0")
 @coverage.good
 class Test_LFI(BaseTestCase):
     """ Appsec WAF tests on LFI rules """
@@ -347,6 +348,11 @@ class Test_DiscoveryScan(BaseTestCase):
     """AppSec WAF Tests on Discovery Scan rules"""
 
     @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""
         r = self.weblog_get("/etc/")

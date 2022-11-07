@@ -7,6 +7,9 @@ on:
   pull_request:
     branches:
       - "**"
+  push:
+    branches:
+      - main
 env:
   REGISTRY: ghcr.io
 
@@ -150,6 +153,9 @@ jobs:
             version: prod
           - library: java
             weblog-variant: spring-boot-jetty
+            version: prod
+          - library: java
+            weblog-variant: spring-boot-openliberty
             version: prod
           - library: java
             weblog-variant: jersey-grizzly2
@@ -455,16 +461,47 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-        if: ${{ matrix.version != 'prod' || matrix.library != 'python' }}
-        run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+      - name: Run INTEGRATIONS scenario
+        run: ./run.sh INTEGRATIONS
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      # - name: Run REMOTE_CONFIG_MOCKED_BACKEND scenario
-      #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND
+      # not working as now
+      # - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+      #   if: ${{ matrix.version != 'prod' || matrix.library != 'python' }}
+      #   run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       #   env:
       #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run APPSEC_CUSTOM_RULES scenario
         run: ./run.sh APPSEC_CUSTOM_RULES
@@ -528,6 +565,11 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run APPSEC_IP_BLOCKING scenario
+        run: ./run.sh APPSEC_IP_BLOCKING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
@@ -539,10 +581,27 @@ jobs:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}_${{ matrix.version }}
           path: artifact.tar.gz
 
+      - name: Upload results CI Visibility
+        if: ${{ always() }}
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+          
       - name: Print fancy log report
         if: ${{ always() }}
         run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
-
+  post_test-the-tests:
+    runs-on: ubuntu-latest
+    needs: [test-the-tests]
+    if: always() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Update CI Dashboard
+        run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+          DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
     runs-on: ubuntu-latest
     needs: lint_and_test

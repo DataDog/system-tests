@@ -5,14 +5,14 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pjetty -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mvn -Dmaven.repo.local=/maven -Pjetty package
+
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
 
 FROM adoptopenjdk:11-jre-hotspot
 
@@ -25,6 +25,6 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-RUN echo "#!/bin/bash\njava -Xmx362m -javaagent:/app/dd-java-agent.jar -jar /app/myproject-0.0.1-SNAPSHOT.jar --server.port=7777" > app.sh
+RUN echo "#!/bin/bash\njava -Xmx362m -javaagent:/app/dd-java-agent.jar -Ddd.remote_config.enabled=true -jar /app/myproject-0.0.1-SNAPSHOT.jar --server.port=7777" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
