@@ -2,6 +2,7 @@ from time import time
 from datetime import datetime, timedelta
 
 from utils.interfaces._core import BaseValidation
+from utils import context
 
 TELEMETRY_AGENT_ENDPOINT = "/telemetry/proxy/api/v2/apmtelemetry"
 TELEMETRY_INTAKE_ENDPOINT = "/api/v2/apmtelemetry"
@@ -72,7 +73,7 @@ class _AppHeartbeatValidation(BaseValidation):
     def __init__(self):
         super().__init__()
         self.prev_message_time = -1
-        self.TELEMETRY_HEARTBEAT_INTERVAL = 5  # Sync with scenario in run.sh
+        self.TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
         self.ALLOWED_INTERVALS = 2
         self.fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
