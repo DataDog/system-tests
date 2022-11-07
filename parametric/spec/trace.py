@@ -205,3 +205,20 @@ def find_span(trace: Trace, span: Span) -> Span:
             max_similarity = similarity
             max_similarity_span = other_span
     return max_similarity_span
+
+
+def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
+    """Return a span from the traces which most closely matches `span`."""
+    assert len(traces) > 0
+
+    max_similarity = -math.inf
+    max_similarity_span = None
+    for trace in traces:
+        similar_span = find_span(trace, span)
+        if max_similarity_span is None:
+            max_similarity_span = similar_span
+        similarity = _span_similarity(span, max_similarity_span)
+        if similarity > max_similarity:
+            max_similarity_span = similar_span
+            max_similarity = similarity
+    return max_similarity_span

@@ -8,6 +8,7 @@ import numpy
 import msgpack
 import pytest
 
+
 from parametric.spec.trace import SPAN_MEASURED_KEY
 from parametric.spec.trace import V06StatsAggr
 
@@ -27,6 +28,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python
         "DD_TRACE_FEATURES": "discovery",  # golang
+        "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
     }
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
