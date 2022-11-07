@@ -155,6 +155,9 @@ jobs:
             weblog-variant: spring-boot-jetty
             version: prod
           - library: java
+            weblog-variant: spring-boot-openliberty
+            version: prod
+          - library: java
             weblog-variant: jersey-grizzly2
             version: prod
           - library: java
@@ -632,9 +635,7 @@ jobs:
     needs: lint_and_test
     strategy:
       matrix:
-        # removing golang for now, as it's constantly failing
-        # client: ['python', 'dotnet', 'golang', 'nodejs']
-        client: ['python', 'dotnet', 'nodejs']
+        client: ['python', 'dotnet', 'golang', 'nodejs']
       fail-fast: false
     steps:
       - name: Checkout

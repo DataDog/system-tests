@@ -17,3 +17,5 @@ jsonschema==4.16.0
 rfc3339-validator==0.1.4
 
 matplotlib
+
+docker==6.0.0

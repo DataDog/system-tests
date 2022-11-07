@@ -55,6 +55,11 @@ class Test_Telemetry(BaseTestCase):
         )
 
     @missing_feature(library="python")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
         interfaces.library.assert_seq_ids_are_roughly_sequential()
@@ -70,6 +75,11 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator=validator)
 
     @missing_feature(library="python")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
@@ -162,6 +172,11 @@ class Test_Telemetry(BaseTestCase):
             Bug in the telemetry agent proxy, that can't reopen connections if they're closed by timeout
             https://github.com/DataDog/datadog-agent/pull/11880
         """,
+    )
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
