@@ -22,11 +22,14 @@ for lib in ${1:-dotnet golang java nodejs php python ruby}
 do
     ./build.sh $lib
 
-    docker-compose -f scenarios/perfs/docker-compose.yml down
     docker inspect system_tests/weblog > logs/weblog_image.json
     export SYSTEM_TESTS_LIBRARY=$(cat logs/weblog_image.json | jq .[0].Config.Env | grep SYSTEM_TESTS_LIBRARY= | sed -E "s/.*=(.*)\",/\1/g")
+
     docker-compose -f scenarios/perfs/docker-compose.yml --project-directory . up runner
-    docker-compose -f scenarios/perfs/docker-compose.yml down
+    docker-compose -f scenarios/perfs/docker-compose.yml down  --remove-orphans
+    docker-compose -f scenarios/perfs/docker-compose.yml rm -s runner weblog agent
+
     DD_APPSEC_ENABLED=true docker-compose -f scenarios/perfs/docker-compose.yml --project-directory . up runner
-    docker-compose -f scenarios/perfs/docker-compose.yml down
+    docker-compose -f scenarios/perfs/docker-compose.yml down  --remove-orphans
+    docker-compose -f scenarios/perfs/docker-compose.yml rm -s runner weblog agent
 done

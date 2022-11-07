@@ -5,8 +5,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import javax.xml.bind.DatatypeConverter;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -69,11 +70,10 @@ public class CryptoExamples {
     }
 
     private static String doCipher(final String password, final String algorithm) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        String Key = "key";
-        byte[] KeyData = Key.getBytes();
-        SecretKeySpec KS = new SecretKeySpec(KeyData, algorithm);
+        KeyGenerator keygenerator = KeyGenerator.getInstance(algorithm);
+        SecretKey key = keygenerator.generateKey();
         Cipher cipher = Cipher.getInstance(algorithm);
-        cipher.init(Cipher.ENCRYPT_MODE, KS);
+        cipher.init(Cipher.ENCRYPT_MODE, key);
         return new String(cipher.doFinal(password.getBytes()));
     }
 

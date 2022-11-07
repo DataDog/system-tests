@@ -49,7 +49,6 @@ class Test_Basic(BaseTestCase):
         reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
     )
     @bug(library="ruby", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
-    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags(self):
         # Send a request to the identify endpoint
         r = self.weblog_get("/identify")
@@ -57,8 +56,6 @@ class Test_Basic(BaseTestCase):
             r, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
-    @bug(context.library >= "php@1.0.0", reason="Under investigation")
-    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
         r = self.weblog_get("/identify", headers={"User-Agent": "Arachni/v1"})
@@ -73,7 +70,6 @@ class Test_Basic(BaseTestCase):
 class Test_Propagate(BaseTestCase):
     """Propagation tests for Identify SDK"""
 
-    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags_outgoing(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
 
