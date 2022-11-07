@@ -1,4 +1,5 @@
 from time import time
+from datetime import datetime, timedelta
 
 from utils.interfaces._core import BaseValidation
 
@@ -60,3 +61,27 @@ class _NoSkippedSeqId(BaseValidation):
                 self.set_failure(
                     f"Detected non conscutive seq_ids between {self.seq_ids[i + 1][1]} and {self.seq_ids[i][1]}"
                 )
+
+
+class _AppHeartbeatValidation(BaseValidation):
+    """Verify telemetry messages are sent every heartbeat interval."""
+
+    path_filters = TELEMETRY_AGENT_ENDPOINT
+    is_success_on_expiry = True
+
+    def __init__(self):
+        super().__init__()
+        self.prev_message_time = -1
+        self.TELEMETRY_HEARTBEAT_INTERVAL = 5  # Sync with scenario in run.sh
+        self.ALLOWED_INTERVALS = 2
+        self.fmt = "%Y-%m-%dT%H:%M:%S.%f"
+
+    def check(self, data):
+        curr_message_time = datetime.strptime(data["request"]["timestamp_start"], self.fmt)
+        if self.prev_message_time != -1:
+            delta = curr_message_time - self.prev_message_time
+            if delta > timedelta(seconds=self.ALLOWED_INTERVALS * self.TELEMETRY_HEARTBEAT_INTERVAL):
+                self.set_failure(
+                    f"No heartbeat or message sent in {self.ALLOWED_INTERVALS} hearbeat intervals: {self.TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
+                )
+        self.prev_message_time = curr_message_time
