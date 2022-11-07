@@ -1,4 +1,4 @@
-FROM maven:3.6-jdk-8 as build
+FROM maven:3.8-jdk-8 as build
 
 RUN apt-get update && \
 	apt-get install -y libarchive-tools
@@ -6,10 +6,9 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pundertow -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven -Pundertow package
+RUN mvn -Popenliberty package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -25,6 +24,8 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-RUN echo "#!/bin/bash\njava -Xmx362m -javaagent:/app/dd-java-agent.jar -Ddd.remote_config.enabled=true -jar /app/myproject-0.0.1-SNAPSHOT.jar --server.port=7777" > app.sh
+ENV JAVA_TOOL_OPTIONS='-javaagent:/app/dd-java-agent.jar -Ddd.remote_config.enabled=true -Ddd.jmxfetch.enabled=false'
+
+RUN echo "#!/bin/bash\njava -Xmx362m -jar /app/myproject-0.0.1-SNAPSHOT.jar" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]

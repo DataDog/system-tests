@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="demo-server">
+
+  <featureManager>
+    <feature>servlet-4.0</feature>
+    <feature>springBoot-2.0</feature>
+  </featureManager>
+
+  <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="7777" httpsPort="9443" />
+  <springBootApplication id="myproject"
+                         location="thin-myproject-0.0.1-SNAPSHOT.jar"
+                         name="myproject" />
+</server>

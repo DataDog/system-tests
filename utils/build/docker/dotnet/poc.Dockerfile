@@ -38,7 +38,13 @@ ENV DD_INTEGRATIONS=/opt/datadog/integrations.json
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-RUN echo "#!/bin/bash\ndotnet app.dll" > app.sh
+# Dump on crash
+ENV COMPlus_DbgEnableMiniDump=1
+# MiniDumpWithPrivateReadWriteMemory is 2
+ENV COMPlus_DbgMiniDumpType=2
+
+
+RUN echo "#!/bin/bash\n\necho starting app\n\nif ( ! dotnet app.dll); then\n\techo recovering dump to /var/log/system-tests/dumps \n\tmkdir -p /var/log/system-tests/dumps\n\tfind /tmp -name 'coredump*' -exec cp '{}' /var/log/system-tests/dumps \;\nsudo chmod -R 644 /var/log/system-tests/dumps/* || true\nfi" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
 

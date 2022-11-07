@@ -1,12 +1,12 @@
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky, irrelevant
 
 
-@released(dotnet="2.12.0", java="0.108.1")
+@released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
+@bug(context.scenario == "UDS" and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
-@bug(library="nodejs", reason="Telemetry seems to be totally not working in UDS mode")
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
@@ -40,9 +40,7 @@ class Test_Telemetry(BaseTestCase):
             path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
         )
 
-    @missing_feature(library="java")
-    @missing_feature(library="dotnet")
-    @missing_feature(library="python")
+    @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -50,6 +48,11 @@ class Test_Telemetry(BaseTestCase):
         )
 
     @missing_feature(library="python")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
         interfaces.library.assert_seq_ids_are_roughly_sequential()
@@ -65,6 +68,11 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator=validator)
 
     @missing_feature(library="python")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
@@ -97,6 +105,11 @@ class Test_Telemetry(BaseTestCase):
             Bug in the telemetry agent proxy, that can't reopen connections if they're closed by timeout
             https://github.com/DataDog/datadog-agent/pull/11880
         """,
+    )
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
