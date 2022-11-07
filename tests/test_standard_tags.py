@@ -3,9 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 import pytest
-
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import BaseTestCase, context, coverage, interfaces, irrelevant, released, rfc, bug
+from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, released, rfc
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -17,7 +16,6 @@ class Test_StandardTagsMethod(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.method tags"""
 
     def test_method(self):
-
         verbs = ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
 
         for verb in verbs:
@@ -65,10 +63,18 @@ class Test_StandardTagsUrl(BaseTestCase):
 
     def test_url_with_sensitive_query_string(self):
         tests = {
-            "/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3": "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3",  # pylint: disable=line-too-long
-            "/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3": "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3",  # pylint: disable=line-too-long
-            "/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934": "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>",  # pylint: disable=line-too-long
-            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": "http://weblog:7777/waf?json=%7B%20%22<redacted>%7D",  # pylint: disable=line-too-long
+            "/waf?pass=03cb9f67-dbbc-4cb8-b966-329951e10934&key2=val2&key3=val3": (  # pylint: disable=line-too-long
+                "http://weblog:7777/waf?<redacted>&key2=val2&key3=val3"
+            ),
+            "/waf?key1=val1&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3": (  # pylint: disable=line-too-long
+                "http://weblog:7777/waf?key1=val1&<redacted>&key3=val3"
+            ),
+            "/waf?key1=val1&key2=val2&token=03cb9f67dbbc4cb8b966329951e10934": (  # pylint: disable=line-too-long
+                "http://weblog:7777/waf?key1=val1&key2=val2&<redacted>"
+            ),
+            "/waf?json=%7B%20%22sign%22%3A%20%22%7B0x03cb9f67%2C0xdbbc%2C0x4cb8%2C%7B0xb9%2C0x66%2C0x32%2C0x99%2C0x51%2C0xe1%2C0x09%2C0x34%7D%7D%22%7D": (  # pylint: disable=line-too-long
+                "http://weblog:7777/waf?json=%7B%20%22<redacted>%7D"
+            ),
         }
 
         for url, tag in tests.items():
@@ -132,7 +138,7 @@ class Test_StandardTagsStatusCode(BaseTestCase):
             interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0rc1.dev", ruby="?")
+@released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.5.0rc2.dev", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @coverage.basic
 class Test_StandardTagsRoute(BaseTestCase):
