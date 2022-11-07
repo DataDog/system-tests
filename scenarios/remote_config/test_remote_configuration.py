@@ -93,7 +93,9 @@ def rc_check_request(data, expected, caching):
         cached_target_files = content.get("cached_target_files")
 
         if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
-            raise Exception(f"client is not expected to have cached config but is reporting cached config: {cached_target_files}")
+            raise Exception(
+                f"client is not expected to have cached config but is reporting cached config: {cached_target_files}"
+            )
 
         if expected_cached_target_files is not None and cached_target_files is None:
             raise Exception(
@@ -104,7 +106,9 @@ def rc_check_request(data, expected, caching):
             # Make sure the client reported all of the expected files
             for file in expected_cached_target_files:
                 if file not in cached_target_files:
-                    raise ValidationError(f"{file} should be in cached_target_files property: {cached_target_files}", extra_info=content)
+                    raise ValidationError(
+                        f"{file} should be in cached_target_files property: {cached_target_files}", extra_info=content
+                    )
 
             # Make sure the client isn't reporting any extra cached files
             for file in cached_target_files:
