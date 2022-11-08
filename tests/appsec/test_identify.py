@@ -18,7 +18,6 @@ if context.library == "cpp":
 class Test_Basic(BaseTestCase):
     """Basic tests for Identify SDK for AppSec"""
 
-    @bug(context.library >= "php@1.0.0", reason="Duplicated root span, october 8th 2022")
     def test_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
 

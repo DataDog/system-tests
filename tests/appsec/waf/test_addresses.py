@@ -226,6 +226,11 @@ class Test_BodyUrlEncoded(BaseTestCase):
         r = self.weblog_post("/waf", data={'<vmlframe src="xss">': "value"})
         interfaces.library.assert_waf_attack(r, pattern="x", address="x")
 
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         r = self.weblog_post("/waf", data={"value": '<vmlframe src="xss">'})
@@ -318,6 +323,11 @@ class Test_ClientIP(BaseTestCase):
 class Test_ResponseStatus(BaseTestCase):
     """Appsec supports values on server.response.status"""
 
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_basic(self):
         """AppSec reports 404 responses"""
         r = self.weblog_get("/mysql")

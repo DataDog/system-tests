@@ -52,7 +52,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
 
         self.dd_site = os.environ.get("DD_SITE")
 
-        self.scenario = self.weblog_image.env.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
+        self.scenario = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
 
         library = self.weblog_image.env.get("SYSTEM_TESTS_LIBRARY", None)
         version = self.weblog_image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None)
