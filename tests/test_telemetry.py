@@ -1,3 +1,4 @@
+import time
 from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky, irrelevant
 
 
@@ -172,3 +173,8 @@ class Test_Telemetry(BaseTestCase):
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
         interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=True)
+
+    def test_app_heartbeat(self):
+        """Check for heartbeat or messages within interval and valid started and closing messages"""
+        time.sleep(20)
+        interfaces.library.assert_app_heartbeat_validation()
