@@ -168,7 +168,7 @@ class Test_StandardTagsRoute(BaseTestCase):
             if context.weblog_variant in ("flask-poc", "uwsgi-poc"):
                 tags["http.route"] = "/sample_rate_route/<i>"
             elif context.weblog_variant == "django-poc":
-                tags["http.route"] = "/sample_rate_route/<int:i>"
+                tags["http.route"] = "sample_rate_route/<int:i>"
 
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
