@@ -15,6 +15,11 @@ VARIANT_COMPONENT_MAP = {
     "express4-typescript": "express",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "spring-boot": {
+        "servlet.request": "tomcat-server",
+        "spring.handler": "spring web-controller",
+        "servlet.forward": "java-web-servlet-dispatcher",
+    },
 }
 
 
@@ -149,6 +154,7 @@ class Test_Meta(BaseTestCase):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
         def validator(span):
+            test_component = False
 
             if span.get("type") != "web":  # do nothing if is not web related
                 return
@@ -156,9 +162,14 @@ class Test_Meta(BaseTestCase):
             # using weblog variant to get name of component that should be on set within each span's metadata
             expected_component = VARIANT_COMPONENT_MAP[context.weblog_variant]
 
-            if span.get("name").split(".")[0] == expected_component:
+            # if type of component is a dictionary, get the component tag value by searching dict with current span name
+            if type(expected_component) is dict:
+                test_component = True
+                expected_component = expected_component[span.get("name")]
+
+            if span.get("name").split(".")[0] == expected_component or test_component:
                 if "component" not in span.get("meta"):
-                    raise Exception(f"Expected span from {expected_component} to have a component meta tag.")
+                    raise Exception(f"No component tag found. Expected span component to be: {expected_component}.")
 
                 actual_component = span.get("meta")["component"]
 
