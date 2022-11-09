@@ -82,9 +82,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r,
-            vulnerability_type="WEAK_CIPHER",
-            evidence=self.__expected_weak_cipher_algorithm(),
+            r, vulnerability_type="WEAK_CIPHER", evidence=self.__expected_weak_cipher_algorithm(),
         )
 
     def test_secure_cipher(self):
