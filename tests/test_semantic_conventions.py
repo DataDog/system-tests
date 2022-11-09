@@ -6,15 +6,24 @@ from urllib.parse import urlparse
 
 from utils import context, BaseTestCase, interfaces, bug
 
+RUNTIME_LANGUAGE_MAP = {
+    "nodejs": "javascript",
+}
+VARIANT_COMPONENT_MAP = {
+    "flask-poc": "flask",
+    "express4": "express",
+    "express4-typescript": "express",
+    "uwsgi-poc": "flask",
+    "django-poc": "django",
+}
+
 
 class Test_Meta(BaseTestCase):
     """meta object in spans respect all conventions"""
 
-    @bug(library="python", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="ruby", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="golang", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="php", reason="span.kind not included, should be discussed of actually a bug or not")
-    @bug(library="cpp", reason="span.kind not included, should be discussed of actually a bug or not")
+    @bug(library="ruby", reason="Span.kind not implemented yet")
+    @bug(library="golang", reason="Span.kind not implemented yet")
+    @bug(library="php", reason="Span.kind not implemented yet")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -106,6 +115,51 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
+    @bug(library="php", reason="language tag not implemented")
+    @bug(library="cpp", reason="language tag not implemented")
+    @bug(library="golang", reason="language tag only implemented on root spans")
+    def test_meta_language_tag(self):
+        """Assert that all spans have required language tag."""
+
+        def validator(span):
+            library = context.library.library
+
+            # if span.kind is client or producer we should not set language tag
+            if span['meta'].get('span.kind') in ['client', 'producer']:
+                if span['meta'].get('language') is not None:
+                    raise Exception("Span should not have language tag set with span.kind of {}.".format(span['meta']['span.kind']))
+            
+            # else we should set the language tag
+            elif RUNTIME_LANGUAGE_MAP.get(library, library) != span['meta']['language']:
+                raise Exception("Span actual language, {}, did not match expected language, {}.".format(span['meta']['language'], RUNTIME_LANGUAGE_MAP.get(library, library)))
+            return True
+
+        interfaces.library.add_span_validation(validator=validator)
+
+    @bug(library="php", reason="component tag not implemented")
+    @bug(library="golang", reason="component tag not implemented")
+    def test_meta_component_tag(self):
+        """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
+
+        def validator(span):
+
+            if span.get("type") != "web":  # do nothing if is not web related
+                return
+
+            # using weblog variant to get name of component that should be on set within each span's metadata
+            expected_component = VARIANT_COMPONENT_MAP[context.weblog_variant]
+
+            if span.get("name").split(".")[0] == expected_component:
+                if "component" not in span.get("meta"):
+                    raise Exception(f"Expected span from {expected_component} to have a component meta tag.")
+
+                actual_component = span.get("meta")["component"]
+
+                if actual_component != expected_component:
+                    raise Exception(f"Expected span to have component meta tag, {expected_component}, got: {actual_component}.")
+            return True
+        interfaces.library.add_span_validation(validator=validator)
+
 
 @bug(
     context.library in ("cpp", "python", "ruby"),
@@ -124,4 +178,25 @@ class Test_MetaDatadogTags(BaseTestCase):
 
             return True
 
+        interfaces.library.add_span_validation(validator=validator)
+
+class Test_MetricsStandardTags(BaseTestCase):
+    """metrics object in spans respect all conventions regarding basic tags"""
+
+    @bug(library="cpp", reason="Not implemented")
+    @bug(library="java", reason="Not implemented")
+    @bug(library="php", reason="Currently system.pid")
+    @bug(library="golang", reason="Currently system.pid")
+    @bug(library="ruby", reason="Currently system.pid")
+    def test_metrics_process_id(self):
+        """Validates that root spans from traces contain a process_id field"""
+
+        def validator(span):
+            if span.get("parent_id") not in (0, None):  # do nothing if not root span
+                return
+
+            if "process_id" not in span["metrics"]:
+                raise Exception("web span expect a process_id metrics tag")
+
+            return True
         interfaces.library.add_span_validation(validator=validator)
