@@ -6,7 +6,6 @@
 This file contains base class used to validate interfaces
 """
 
-import traceback
 import logging
 import threading
 import inspect
@@ -34,6 +33,9 @@ class InterfaceValidator:
         self.name = name
 
         self.message_counter = 0
+
+        self._wait_for_event = threading.Event()
+        self._wait_for_function = None
 
         self._lock = threading.RLock()
         self._validations = []
@@ -164,15 +166,19 @@ class InterfaceValidator:
             with self._lock:
                 count = self.message_counter
                 self.message_counter += 1
-            deserialize(data, self.name)
 
             log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
             data["log_filename"] = log_filename
+
+            deserialize(data, self.name)
 
             with open(log_filename, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             self._data_list.append(data)
+
+            if self._wait_for_function and self._wait_for_function(data):
+                self._wait_for_event.set()
 
         except Exception as e:
             self.system_test_error = e
@@ -190,6 +196,26 @@ class InterfaceValidator:
 
     def add_final_validation(self, validator):
         self.append_validation(_FinalValidation(validator))
+
+    def wait_for(self, wait_for_function, timeout):
+
+        # first, try existing data
+        with self._lock:
+            for data in self._data_list:
+                if wait_for_function(data):
+                    return
+
+            # then set the lock, and wait for append_data to release it
+            self._wait_for_event.clear()
+            self._wait_for_function = wait_for_function
+
+        # release the main lock, and sleep !
+        if self._wait_for_event.wait(timeout):
+            logger.info(f"wait for {wait_for_function} finished in success")
+        else:
+            logger.error(f"Wait for {wait_for_function} finished in error")
+
+        self._wait_for_function = None
 
     def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
         self.append_validation(
@@ -337,9 +363,12 @@ class BaseValidation:
                 if data and isinstance(data, dict) and "log_filename" in data:
                     message += f"\n\t Failing payload is in {data['log_filename']}"
 
+                if not extra_info and hasattr(exception, "extra_info"):
+                    extra_info = exception.extra_info
+
                 if extra_info:
                     if isinstance(extra_info, (dict, list)):
-                        extra_info = json.dumps(extra_info, indent=4)
+                        extra_info = json.dumps(extra_info, indent=2)
 
                     extra_info = str(extra_info)
 
@@ -437,5 +466,4 @@ class _FinalValidation(BaseValidation):
             else:
                 self.set_status(False)
         except Exception as e:
-            msg = traceback.format_exception_only(type(e), e)[0]
-            self.set_failure(f"{m(self.message)} not validated: {msg}")
+            self.set_failure(exception=e)

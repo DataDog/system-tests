@@ -23,7 +23,7 @@ type apmClientServer struct {
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
 	var opts []tracer.StartSpanOption
 	if args.ParentId != nil && *args.ParentId > 0 {
-	    parent := s.spans[*args.ParentId]
+		parent := s.spans[*args.ParentId]
 		opts = append(opts, tracer.ChildOf(parent.Context()))
 	}
 	if args.Resource != nil {
@@ -37,8 +37,8 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	}
 	span := tracer.StartSpan(args.Name, opts...)
 
-	if args.Origin != nil  {
-        span.SetTag("_dd.origin", *args.Origin)
+	if args.Origin != nil {
+		span.SetTag("_dd.origin", *args.Origin)
 	}
 	s.spans[span.Context().SpanID()] = span
 	return &StartSpanReturn{
@@ -66,23 +66,29 @@ func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) 
 }
 
 func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
-	tracer.Stop()
+	tracer.Flush()
 	s.spans = make(map[uint64]tracer.Span)
 	return &FlushSpansReturn{}, nil
 }
 
 func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs) (*FlushTraceStatsReturn, error) {
-	tracer.Stop()
+	tracer.Flush()
+	s.spans = make(map[uint64]tracer.Span)
 	return &FlushTraceStatsReturn{}, nil
+}
+
+func (s *apmClientServer) StopTracer(context.Context, *StopTracerArgs) (*StopTracerReturn, error) {
+	tracer.Stop()
+	return &StopTracerReturn{}, nil
 }
 
 func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorArgs) (*SpanSetErrorReturn, error) {
 	span := s.spans[args.SpanId]
-    span.SetTag("error", true)
-    span.SetTag("error.msg", args.Message)
-    span.SetTag("error.type", args.Type)
-    span.SetTag("error.stack", args.Stack)
-    return &SpanSetErrorReturn{}, nil
+	span.SetTag("error", true)
+	span.SetTag("error.msg", args.Message)
+	span.SetTag("error.type", args.Type)
+	span.SetTag("error.stack", args.Stack)
+	return &SpanSetErrorReturn{}, nil
 }
 
 func newServer() *apmClientServer {

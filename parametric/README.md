@@ -86,6 +86,17 @@ CLIENTS_ENABLED=nodejs OVERRIDE_SKIPS=test_single_rule_match_span_sampling_sss00
 
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
+#### Go
+
+For running the Go tests, see the README in apps/golang.
+
+To test unmerged PRs locally, run the following in the apps/golang directory:
+
+```sh
+go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
+go mod tidy
+```
+
 
 ### Debugging 
 

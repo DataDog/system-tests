@@ -27,7 +27,7 @@ jobs:
 
       - run:
           name: Run
-          command: DD_API_KEY=todo ./run.sh
+          command: ./run.sh
 
       - store_artifacts:
           path: logs

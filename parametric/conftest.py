@@ -16,6 +16,7 @@ import pytest
 from parametric.protos import apm_test_client_pb2 as pb
 from parametric.protos import apm_test_client_pb2_grpc
 from parametric.spec.trace import V06StatsPayload
+from parametric.spec.trace import Trace
 from parametric.spec.trace import decode_v06_stats
 
 
@@ -147,9 +148,7 @@ FROM golang:1.18
 WORKDIR /client
 COPY {go_reldir}/go.mod /client
 COPY {go_reldir}/go.sum /client
-RUN go mod download
 COPY {go_reldir} /client
-RUN go get gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer
 RUN go install
 """,
         container_cmd=["main"],
@@ -183,14 +182,39 @@ WORKDIR "/client/."
     )
 
 
+def java_library_factory(env: Dict[str, str]):
+    java_appdir = os.path.join("apps", "java")
+    java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
+    java_reldir = os.path.join("parametric", java_appdir)
+    return APMLibraryTestServer(
+        lang="java",
+        container_name="java-test-client",
+        container_tag="java8-test-client",
+        container_img=f"""
+FROM maven:3-jdk-8
+WORKDIR /client
+COPY {java_reldir}/src src
+COPY {java_reldir}/pom.xml .
+COPY {java_reldir}/run.sh .
+COPY binaries* /binaries/
+RUN mvn package
+""",
+        container_cmd=["./run.sh"],
+        container_build_dir=java_dir,
+        volumes=[],
+        env=env,
+    )
+
+
 _libs = {
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
+    "java": java_library_factory,
     "nodejs": node_library_factory,
     "python": python_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,nodejs,python").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -230,8 +254,10 @@ class _TestAgentAPI:
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
-    def traces(self, **kwargs):
+    def traces(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
+        if clear:
+            self.clear()
         return resp.json()
 
     def tracestats(self, **kwargs):
@@ -256,9 +282,8 @@ class _TestAgentAPI:
             )
         return requests
 
-    def clear(self, **kwargs):
-        resp = self._session.get(self._url("/test/session/clear"), **kwargs)
-        return resp.json()
+    def clear(self, **kwargs) -> None:
+        self._session.get(self._url("/test/session/clear"), **kwargs)
 
     def info(self, **kwargs):
         resp = self._session.get(self._url("/info"), **kwargs)
@@ -282,6 +307,24 @@ class _TestAgentAPI:
             )
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
+
+    def wait_for_num_traces(self, num: int, clear: bool = False) -> List[Trace]:
+        """Wait for `num` to be received from the test agent.
+
+        Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
+        """
+        num_received = None
+        for i in range(20):
+            try:
+                traces = self.traces(clear=clear)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                num_received = len(traces)
+                if num_received == num:
+                    return traces
+            time.sleep(0.1)
+        raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
 
 
 @contextlib.contextmanager
@@ -362,9 +405,14 @@ def docker_network_log_file(request) -> TextIO:
         yield f
 
 
+network_id = 0
+
+
 @pytest.fixture()
 def docker_network_name() -> str:
-    return "apm_shared_tests_network"
+    global network_id
+    network_id += 1
+    return "apm_shared_tests_network%i" % network_id
 
 
 @pytest.fixture()
@@ -629,6 +677,9 @@ class APMLibrary:
 
     def inject_headers(self):
         return self._client.InjectHeaders(pb.InjectHeadersArgs())
+
+    def stop(self):
+        return self._client.StopTracer(pb.StopTracerArgs())
 
 
 @pytest.fixture

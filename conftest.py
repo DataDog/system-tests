@@ -1,17 +1,17 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
 import os
 import collections
 import inspect
+import json
 
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context, data_collector, interfaces
 from utils.tools import logger, m, get_log_formatter, get_exception_traceback
 from utils._xfail import xfails
-
+from utils.scripts.junit_report import junit_modifyreport
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -45,6 +45,7 @@ def pytest_sessionstart(session):
 
         print_info(f"Weblog variant: {context.weblog_variant}")
         print_info(f"Backend: {context.dd_site}")
+        print_info(f"Scenario: {context.scenario}")
 
         # connect interface validators to data collector
         data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
@@ -199,6 +200,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
     _print_async_test_list(terminalreporter, validations, passed, failed, xpassed, xfailed)
     _print_async_failure_report(terminalreporter, failed, passed)
+    _pytest_junit_modifyreport()
 
 
 def _print_async_test_list(terminal, validations, passed, failed, xpassed, xfailed):
@@ -324,20 +326,26 @@ def _print_async_failure_report(terminalreporter, failed, passed):
         terminalreporter.line("")
 
 
+def get_failed_nodeids():
+    # report test with a failing asyn validation as failed
+    failed_nodeids = {}
+
+    for interface in interfaces.all_interfaces:
+        for validation in interface.validations:
+            if validation.closed and not validation.is_success:
+                filename, klass, function = validation.get_test_source_info()
+                nodeid = f"{filename}::{klass}::{function}"
+                failed_nodeids[nodeid] = validation
+
+    return failed_nodeids
+
+
 def pytest_json_modifyreport(json_report):
 
     try:
         logger.debug("Modifying JSON report")
 
-        # report test with a failing asyn validation as failed
-        failed_nodeids = set()
-
-        for interface in interfaces.all_interfaces:
-            for validation in interface.validations:
-                if validation.closed and not validation.is_success:
-                    filename, klass, function = validation.get_test_source_info()
-                    nodeid = f"{filename}::{klass}::{function}"
-                    failed_nodeids.add(nodeid)
+        failed_nodeids = get_failed_nodeids()
 
         # populate and adjust some data
         for test in json_report["tests"]:
@@ -378,3 +386,15 @@ def pytest_sessionfinish(session, exitstatus):
         # Is it really a test ?
         if data_collector.is_alive():
             logger.error("Can't terminate data collector")
+
+
+def _pytest_junit_modifyreport():
+    json_report_path = "logs/report.json"
+    junit_report_path = "logs/reportJunit.xml"
+    failed_nodeids = get_failed_nodeids()
+
+    with open(json_report_path, encoding="utf-8") as f:
+        json_report = json.load(f)
+        junit_modifyreport(
+            json_report, junit_report_path, failed_nodeids, _skip_reasons, _docs, _rfcs, _coverages, _release_versions
+        )

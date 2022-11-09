@@ -4,15 +4,14 @@
 
 import pytest
 
-from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import BaseTestCase, context, coverage, interfaces, irrelevant, released, rfc, bug
+from utils import BaseTestCase, context, coverage, interfaces, released
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="?", golang="?", java="?")
-@released(nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="0.114.0")
+@released(nodejs="3.6.0", php="0.81.0", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

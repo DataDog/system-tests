@@ -11,8 +11,8 @@ from utils.tools import logger
 with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
     LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
-with open("scenarios/remote_config/rc_expected_requests_features.json", encoding="utf-8") as f:
-    FEATURES_EXPECTED_REQUESTS = json.load(f)
+with open("scenarios/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
+    ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
 
 with open("scenarios/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
     ASM_DD_EXPECTED_REQUESTS = json.load(f)
@@ -123,10 +123,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         def validate(data):
             """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(FEATURES_EXPECTED_REQUESTS):
+            if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
+            rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
 
             self.request_number += 1
 
@@ -136,7 +136,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="0.113.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
@@ -206,10 +206,10 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         def validate(data):
             """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(FEATURES_EXPECTED_REQUESTS):
+            if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
+            rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
 
             self.request_number += 1
 

@@ -41,7 +41,9 @@ class Test_StandardTagsMethod(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0", php="0.76.0", python="?", ruby="?")
+@released(
+    dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0", php="0.76.0", python="1.6.0rc1.dev", ruby="?"
+)
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
 class Test_StandardTagsUrl(BaseTestCase):
@@ -160,8 +162,8 @@ class Test_StandardTagsRoute(BaseTestCase):
         interfaces.library.add_span_tag_validation(request=r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="?")
-@released(nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="0.114.0")
+@released(nodejs="3.6.0", php_appsec="0.4.4", python="?", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

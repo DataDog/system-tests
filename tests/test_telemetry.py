@@ -1,13 +1,12 @@
-from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, irrelevant
+from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky, irrelevant
 
 
-@released(dotnet="2.12.0", java="0.108.1")
+@released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
+@bug(context.scenario == "UDS" and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
-@missing_feature(library="java")
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
-@bug(library="nodejs", reason="Telemetry seems to be totally not working in UDS mode")
 class Test_Telemetry(BaseTestCase):
     """Test that instrumentation telemetry is sent"""
 
@@ -17,6 +16,7 @@ class Test_Telemetry(BaseTestCase):
 
     app_started_count = 0
 
+    @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
@@ -40,9 +40,7 @@ class Test_Telemetry(BaseTestCase):
             path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
         )
 
-    @missing_feature(library="java")
-    @missing_feature(library="dotnet")
-    @missing_feature(library="python")
+    @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -50,6 +48,11 @@ class Test_Telemetry(BaseTestCase):
         )
 
     @missing_feature(library="python")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
         interfaces.library.assert_seq_ids_are_roughly_sequential()
@@ -65,6 +68,11 @@ class Test_Telemetry(BaseTestCase):
         interfaces.library.add_telemetry_validation(validator=validator)
 
     @missing_feature(library="python")
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
@@ -98,6 +106,11 @@ class Test_Telemetry(BaseTestCase):
             https://github.com/DataDog/datadog-agent/pull/11880
         """,
     )
+    @bug(
+        library="java",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+    )
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
@@ -112,9 +125,22 @@ class Test_Telemetry(BaseTestCase):
                 agent_message, agent_log_file = agent_data["request"]["content"], agent_data["log_filename"]
 
                 if key not in self.library_requests:
-                    raise Exception(
-                        f"Agent proxy forwarded a message that was not sent by the library: {agent_log_file}"
-                    )
+                    # once the library interface is validated, weblog is not stopped. But it can send other data, and
+                    # they won't be seen. The agent interface wait 5 second after, and can collect data. So iof the
+                    # library sent some data during this 5s, the agent interface will see it, but not the library
+                    # interface. For now, simply do not consider this use case, waiting for a better solution.
+
+                    pass
+
+                    # extra_info = {
+                    #     "library_requests": [{"seq_id": s, "runtime_id": r} for s, r in self.library_requests],
+                    #     "agent_requests": [{"seq_id": s, "runtime_id": r} for s, r in self.agent_requests],
+                    # }
+
+                    # raise ValidationException(
+                    #     f"Agent proxy forwarded a message that was not sent by the library: {agent_log_file}",
+                    #     extra_info=extra_info,
+                    # )
 
                 lib_data = self.library_requests.pop(key)
                 lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
