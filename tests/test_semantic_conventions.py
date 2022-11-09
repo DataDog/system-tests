@@ -17,7 +17,7 @@ VARIANT_COMPONENT_MAP = {
     "uwsgi-poc": "flask",
     "django-poc": "django",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
-    "sinatra": {"rack.request": "rack", "sinatra.request": "sinatra"},
+    "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
         "spring.handler": "spring-web-controller",
@@ -29,7 +29,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
     },
     "spring-boot-openliberty": {
-        "servlet.request": "liberty-server",
+        "servlet.request": ["liberty-server", "java-web-servlet"],
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
     },
@@ -59,8 +59,9 @@ def get_component_name(weblog_variant, language, span_name):
         expected_component = VARIANT_COMPONENT_MAP.get(weblog_variant, weblog_variant)
 
     # if type of component is a dictionary, get the component tag value by searching dict with current span name
+    # try to get component name from name of span, otherwise use beginning of span as expected component, e.g: 'rack' for span name 'rack.request'
     if type(expected_component) is dict:
-        expected_component = expected_component[span_name]
+        expected_component = expected_component.get(span_name, span_name.split(".")[0])
     return expected_component
 
 
