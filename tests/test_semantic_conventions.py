@@ -16,14 +16,30 @@ VARIANT_COMPONENT_MAP = {
     "express4-typescript": "express",
     "uwsgi-poc": "flask",
     "django-poc": "django",
-    "jersey-grizzly2": "grizzly",
+    "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
+    "sinatra": {"rack.request": "rack", "sinatra.request": "sinatra"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
-        "spring.handler": "spring web-controller",
+        "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
     },
-    "resteasy-netty3": "netty",
-    "rails": {"rails.action_controller": "action_pack", "rails.render_template": "action_view"},
+    "spring-boot-jetty": {
+        "servlet.request": "jetty-server",
+        "spring.handler": "spring-web-controller",
+        "servlet.forward": "java-web-servlet-dispatcher",
+    },
+    "spring-boot-openliberty": {
+        "servlet.request": "liberty-server",
+        "spring.handler": "spring-web-controller",
+        "servlet.forward": "java-web-servlet-dispatcher",
+    },
+    "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
+    "rails": {
+        "rails.action_controller": "action_pack",
+        "rails.render_template": "action_view",
+        "rack.request": "rack",
+        "sinatra.request": "sinatra",
+    },
     "ratpack": {"ratpack.handler": "ratpack", "netty.request": "netty"},
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
 }
@@ -42,9 +58,9 @@ def get_component_name(weblog_variant, language, span_name):
         # using weblog variant to get name of component that should be on set within each span's metadata
         expected_component = VARIANT_COMPONENT_MAP.get(weblog_variant, weblog_variant)
 
-        # if type of component is a dictionary, get the component tag value by searching dict with current span name
-        if type(expected_component) is dict:
-            expected_component = expected_component[span_name]
+    # if type of component is a dictionary, get the component tag value by searching dict with current span name
+    if type(expected_component) is dict:
+        expected_component = expected_component[span_name]
     return expected_component
 
 
@@ -54,6 +70,7 @@ class Test_Meta(BaseTestCase):
     @bug(library="ruby", reason="Span.kind not implemented yet")
     @bug(library="golang", reason="Span.kind not implemented yet")
     @bug(library="php", reason="Span.kind not implemented yet")
+    @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -146,6 +163,7 @@ class Test_Meta(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
     @bug(library="php", reason="language tag not implemented")
+    @bug(library="ruby", reason="language tag not implemented")
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="golang", reason="language tag only implemented on root spans")
     @bug(library="java", reason="language tag being set on all spans including client and producer spans")
@@ -189,10 +207,16 @@ class Test_Meta(BaseTestCase):
 
             actual_component = span.get("meta")["component"]
 
-            if actual_component != expected_component:
-                raise Exception(
-                    f"Expected span to have component meta tag, {expected_component}, got: {actual_component}."
-                )
+            if type(expected_component) is list:
+                if actual_component not in expected_component:
+                    raise Exception(
+                        f"Expected span to have component meta tag equal to one of the following, [{expected_component}], got: {actual_component}."
+                    )
+            else:
+                if actual_component != expected_component:
+                    raise Exception(
+                        f"Expected span to have component meta tag, {expected_component}, got: {actual_component}."
+                    )
             return True
 
         interfaces.library.add_span_validation(validator=validator)
