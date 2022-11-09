@@ -15,8 +15,14 @@ RUN npm install
 
 EXPOSE 7777
 
+ENV PGUSER=system_tests_user
+ENV PGPASSWORD=system_tests
+ENV PGDATABASE=system_tests
+ENV PGHOST=postgres
+ENV PGPORT=5433
+
 # docker startup
-RUN echo '#!/bin/bash\nPGPASSWORD=system_tests PGUSER=system_tests_user PGPORT=5433 PGDATABASE=system_tests PGHOST=postgres node app.js' > app.sh
+RUN echo '#!/bin/bash\nnode app.js' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 
