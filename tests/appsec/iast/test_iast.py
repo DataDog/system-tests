@@ -21,10 +21,7 @@ class Test_Iast(BaseTestCase):
 
     EXPECTATIONS = {
         "nodejs": {
-            "LOCATION": {
-                "WEAK_HASH": "/usr/app/iast.js",
-                "SQL_INJECTION": "/usr/app/iast.js",
-            },
+            "LOCATION": {"WEAK_HASH": "/usr/app/iast.js", "SQL_INJECTION": "/usr/app/iast.js",},
             "WEAK_CIPHER_ALGORITHM": "des-ede-cbc",
         },
         "java": {
@@ -85,7 +82,9 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_type="WEAK_CIPHER", evidence=self.__expected_weak_cipher_algorithm(),
+            r,
+            vulnerability_type="WEAK_CIPHER",
+            evidence=self.__expected_weak_cipher_algorithm(),
         )
 
     def test_secure_cipher(self):
