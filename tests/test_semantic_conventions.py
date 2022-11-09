@@ -118,6 +118,7 @@ class Test_Meta(BaseTestCase):
     @bug(library="php", reason="language tag not implemented")
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="golang", reason="language tag only implemented on root spans")
+    @bug(library="java", reason="language tag being set on all spans including client and producer spans")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
@@ -125,13 +126,19 @@ class Test_Meta(BaseTestCase):
             library = context.library.library
 
             # if span.kind is client or producer we should not set language tag
-            if span['meta'].get('span.kind') in ['client', 'producer']:
-                if span['meta'].get('language') is not None:
-                    raise Exception("Span should not have language tag set with span.kind of {}.".format(span['meta']['span.kind']))
-            
+            if span["meta"].get("span.kind") in ["client", "producer"]:
+                if span["meta"].get("language") is not None:
+                    raise Exception(
+                        "Span should not have language tag set with span.kind of {}.".format(span["meta"]["span.kind"])
+                    )
+
             # else we should set the language tag
-            elif RUNTIME_LANGUAGE_MAP.get(library, library) != span['meta']['language']:
-                raise Exception("Span actual language, {}, did not match expected language, {}.".format(span['meta']['language'], RUNTIME_LANGUAGE_MAP.get(library, library)))
+            elif RUNTIME_LANGUAGE_MAP.get(library, library) != span["meta"]["language"]:
+                raise Exception(
+                    "Span actual language, {}, did not match expected language, {}.".format(
+                        span["meta"]["language"], RUNTIME_LANGUAGE_MAP.get(library, library)
+                    )
+                )
             return True
 
         interfaces.library.add_span_validation(validator=validator)
@@ -156,8 +163,11 @@ class Test_Meta(BaseTestCase):
                 actual_component = span.get("meta")["component"]
 
                 if actual_component != expected_component:
-                    raise Exception(f"Expected span to have component meta tag, {expected_component}, got: {actual_component}.")
+                    raise Exception(
+                        f"Expected span to have component meta tag, {expected_component}, got: {actual_component}."
+                    )
             return True
+
         interfaces.library.add_span_validation(validator=validator)
 
 
@@ -180,6 +190,7 @@ class Test_MetaDatadogTags(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
+
 class Test_MetricsStandardTags(BaseTestCase):
     """metrics object in spans respect all conventions regarding basic tags"""
 
@@ -199,4 +210,5 @@ class Test_MetricsStandardTags(BaseTestCase):
                 raise Exception("web span expect a process_id metrics tag")
 
             return True
+
         interfaces.library.add_span_validation(validator=validator)
