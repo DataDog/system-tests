@@ -1,0 +1,7 @@
+#!/bin/sh
+export FORWARD_TO_PORT=${FORWARD_TO_PORT:-8081}
+export INTERFACE_NAME=${INTERFACE_NAME:-library}
+export TARGET_HOSTNAME=${TARGET_HOSTNAME:-agent}
+export HIDDEN_APM_PORT_OVERRIDE=${HIDDEN_APM_PORT_OVERRIDE:-8126}
+
+mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE} --mode reverse:http://${TARGET_HOSTNAME}:${HIDDEN_APM_PORT_OVERRIDE}/ -s /mitm/forwarder.py
