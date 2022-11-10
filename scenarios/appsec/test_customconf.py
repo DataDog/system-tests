@@ -13,20 +13,10 @@ if context.library == "cpp":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-class _BaseNoAppSec(BaseTestCase):
-    def test_no_attack_detected(self):
-        """ Appsec does not catch any attack """
-        r = self.weblog_get("/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.assert_no_appsec_event(r)
-
-        r = self.weblog_get("/waf", params={"attack": "<script>"})
-        interfaces.library.assert_no_appsec_event(r)
-
-
 @released(java="0.93.0", php_appsec="0.3.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_CORRUPTED_RULES")
-class Test_CorruptedRules(_BaseNoAppSec):
+class Test_CorruptedRules(BaseTestCase):
     """AppSec do not report anything if rule file is invalid"""
 
     @missing_feature(library="golang")
@@ -38,11 +28,19 @@ class Test_CorruptedRules(_BaseNoAppSec):
         """Log C5: Rules file is corrupted"""
         stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
 
+    def test_no_attack_detected(self):
+        """ Appsec does not catch any attack """
+        r = self.weblog_get("/", headers={"User-Agent": "Arachni/v1"})
+        interfaces.library.assert_no_appsec_event(r)
+
+        r = self.weblog_get("/waf", params={"attack": "<script>"})
+        interfaces.library.assert_no_appsec_event(r)
+
 
 @released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_MISSING_RULES")
-class Test_MissingRules(_BaseNoAppSec):
+class Test_MissingRules(BaseTestCase):
     """AppSec do not report anything if rule file is missing"""
 
     @missing_feature(library="golang")
@@ -58,6 +56,14 @@ class Test_MissingRules(_BaseNoAppSec):
             r"No security activities will be collected.",
             level="CRITICAL",
         )
+
+    def test_no_attack_detected(self):
+        """ Appsec does not catch any attack """
+        r = self.weblog_get("/", headers={"User-Agent": "Arachni/v1"})
+        interfaces.library.assert_no_appsec_event(r)
+
+        r = self.weblog_get("/waf", params={"attack": "<script>"})
+        interfaces.library.assert_no_appsec_event(r)
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
