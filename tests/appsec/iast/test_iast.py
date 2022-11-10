@@ -21,10 +21,8 @@ class Test_Iast(BaseTestCase):
 
     EXPECTATIONS = {
         "python": {
-            "LOCATION": {
-                "WEAK_HASH": "/iast.py" if context.weblog_variant != "uwsgi-poc" else "/./iast.py"
-            },
-            "WEAK_CIPHER_ALGORITHM": "????"
+            "LOCATION": {"WEAK_HASH": "/iast.py" if context.weblog_variant != "uwsgi-poc" else "/./iast.py"},
+            "WEAK_CIPHER_ALGORITHM": "????",
         },
         "nodejs": {"LOCATION": {"WEAK_HASH": "/usr/app/app.js"}, "WEAK_CIPHER_ALGORITHM": "des-ede-cbc"},
         "java": {
