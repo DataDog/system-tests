@@ -9,6 +9,7 @@ from utils import context, BaseTestCase, interfaces, bug
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
+    "golang": "go",
 }
 VARIANT_COMPONENT_MAP = {
     "flask-poc": "flask",
