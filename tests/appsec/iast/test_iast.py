@@ -40,6 +40,7 @@ class Test_Iast(BaseTestCase):
         expected = self.EXPECTATIONS.get(context.library.library)
         return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
 
+    @missing_feature(library="python", reason="Need to be implement deduplicate vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
