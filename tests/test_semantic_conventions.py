@@ -12,7 +12,9 @@ RUNTIME_LANGUAGE_MAP = {
     "golang": "go",
 }
 VARIANT_COMPONENT_MAP = {
+    "chi": "chi.v5",
     "flask-poc": "flask",
+    "echo": "labstack/echo.v4",
     "express4": "express",
     "express4-typescript": "express",
     "uwsgi-poc": "flask",
