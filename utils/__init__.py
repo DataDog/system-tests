@@ -12,3 +12,9 @@ from utils._data_collector import data_collector
 from utils import coverage
 from utils._proxies import proxies
 from utils.interfaces._core import ValidationError
+
+
+class ValidationException(Exception):
+    def __init__(self, message, extra_info=None) -> None:
+        super().__init__(message)
+        self.extra_info = extra_info

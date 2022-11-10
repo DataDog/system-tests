@@ -6,7 +6,6 @@
 This file contains base class used to validate interfaces
 """
 
-import traceback
 import logging
 import threading
 import inspect
@@ -364,12 +363,12 @@ class BaseValidation:
                 if data and isinstance(data, dict) and "log_filename" in data:
                     message += f"\n\t Failing payload is in {data['log_filename']}"
 
-                if isinstance(exception, ValidationError) and extra_info is None:
+                if not extra_info and hasattr(exception, "extra_info"):
                     extra_info = exception.extra_info
 
                 if extra_info:
                     if isinstance(extra_info, (dict, list)):
-                        extra_info = json.dumps(extra_info, indent=4)
+                        extra_info = json.dumps(extra_info, indent=2)
 
                     extra_info = str(extra_info)
 
@@ -473,5 +472,4 @@ class _FinalValidation(BaseValidation):
             else:
                 self.set_status(False)
         except Exception as e:
-            msg = traceback.format_exception_only(type(e), e)[0]
-            self.set_failure(f"{m(self.message)} not validated: {msg}")
+            self.set_failure(exception=e)
