@@ -17,7 +17,9 @@ VARIANT_COMPONENT_MAP = {
     "express4-typescript": "express",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "gorilla": "gorilla/mux",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
+    "net-http": "net/http",
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
