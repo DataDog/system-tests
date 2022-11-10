@@ -102,5 +102,8 @@ class Test_Iast(BaseTestCase):
         """Insecure SQL queries are reported as insecure"""
         r = self.weblog_post("/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"})
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_type="WEAK_CIPHER", evidence=self.__expected_weak_cipher_algorithm(),
+            r,
+            vulnerability_count=1,
+            vulnerability_type="SQL_INJECTION",
+            location_path=self.__expected_location("SQL_INJECTION"),
         )
