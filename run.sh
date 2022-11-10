@@ -49,9 +49,8 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
         echo "Testing explicit UDS configuration path."
         export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
     fi
-fi
 
-if [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
+elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     WEBLOG_ENV+="DD_TRACE_SAMPLE_RATE=0.5"
 
