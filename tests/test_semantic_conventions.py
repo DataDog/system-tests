@@ -69,7 +69,6 @@ class Test_Meta(BaseTestCase):
     """meta object in spans respect all conventions"""
 
     @bug(library="ruby", reason="Span.kind not implemented yet")
-    @bug(library="golang", reason="Span.kind not implemented yet")
     @bug(library="php", reason="Span.kind not implemented yet")
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
     def test_meta_span_kind(self):
@@ -166,7 +165,6 @@ class Test_Meta(BaseTestCase):
     @bug(library="php", reason="language tag not implemented")
     @bug(library="ruby", reason="language tag not implemented")
     @bug(library="cpp", reason="language tag not implemented")
-    @bug(library="golang", reason="language tag only implemented on root spans")
     @bug(library="java", reason="language tag being set on all spans including client and producer spans")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
@@ -193,7 +191,6 @@ class Test_Meta(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
     @bug(library="php", reason="component tag not implemented")
-    @bug(library="golang", reason="component tag not implemented")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -249,7 +246,6 @@ class Test_MetricsStandardTags(BaseTestCase):
     @bug(library="cpp", reason="Not implemented")
     @bug(library="java", reason="Not implemented")
     @bug(library="php", reason="Currently system.pid")
-    @bug(library="golang", reason="Currently system.pid")
     @bug(library="ruby", reason="Currently system.pid")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
