@@ -131,11 +131,6 @@ def pytest_collection_modifyitems(session, config, items):
     for item in items:
         declared_scenario = get_declared_scenario(item)
 
-        if declared_scenario is None:
-            assert scenario == "DEFAULT", item.nodeid
-        else:
-            assert scenario == declared_scenario, item.nodeid
-
         if declared_scenario == scenario:
             selected.append(item)
         elif declared_scenario is None and scenario == "DEFAULT":
