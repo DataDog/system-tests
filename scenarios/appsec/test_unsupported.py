@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces
+from utils import BaseTestCase, interfaces, scenario
 
 
+@scenario("APPSEC_UNSUPPORTED")
 class TestAppSecDeactivated(BaseTestCase):
     def test_no_attack_detected(self):
         """ Appsec does not catch any attack """

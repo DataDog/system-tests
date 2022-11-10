@@ -102,6 +102,51 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
+def pytest_collection_modifyitems(session, config, items):
+    """unselect items that are not included in the current scenario"""
+
+    def get_declared_scenario(item):
+        for marker in item.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
+        for marker in item.parent.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
+        return None
+
+    scenario = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
+
+    if scenario == "CUSTOM":
+        # user has specifed which test to run, do nothing
+        return
+
+    if scenario == "UDS":
+        scenario = "DEFAULT"  # TODO : it's a variant
+
+    selected = []
+    deselected = []
+
+    for item in items:
+        declared_scenario = get_declared_scenario(item)
+
+        if declared_scenario is None:
+            assert scenario == "DEFAULT", item.nodeid
+        else:
+            assert scenario == declared_scenario, item.nodeid
+
+        if declared_scenario == scenario:
+            selected.append(item)
+        elif declared_scenario is None and scenario == "DEFAULT":
+            selected.append(item)
+        else:
+            deselected.append(item)
+
+    items[:] = selected
+    config.hook.pytest_deselected(items=deselected)
+
+
 def pytest_runtestloop(session):
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")

@@ -191,6 +191,9 @@ def rfc(link):
     return wrapper
 
 
+scenario = pytest.mark.scenario
+
+
 def _compute_released_version(released_version):
     if isinstance(released_version, str):
         return released_version

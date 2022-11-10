@@ -4,7 +4,7 @@
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, coverage, interfaces, released, rfc, missing_feature, context, irrelevant
+from utils import BaseTestCase, coverage, interfaces, released, rfc, missing_feature, context, irrelevant, scenario
 
 
 if context.library == "cpp":
@@ -25,11 +25,13 @@ class Test_ConfigurationVariables(BaseTestCase):
         context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21"],
         reason="Conf is done in weblog instead of library",
     )
+    @scenario("APPSEC_DISABLED")
     def test_disabled(self):
         """ test DD_APPSEC_ENABLED = false """
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
         interfaces.library.assert_no_appsec_event(r)
 
+    @scenario("APPSEC_CUSTOM_RULES")
     def test_appsec_rules(self):
         """ test DD_APPSEC_RULES = custom rules file """
         r = self.weblog_get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
@@ -37,6 +39,7 @@ class Test_ConfigurationVariables(BaseTestCase):
 
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
+    @scenario("APPSEC_LOW_WAF_TIMEOUT")
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value{i}") for i in range(1000)))
@@ -45,6 +48,7 @@ class Test_ConfigurationVariables(BaseTestCase):
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
+    @scenario("APPSEC_CUSTOM_OBFUSCATION")
     def test_obfuscation_parameter_key(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
@@ -61,6 +65,7 @@ class Test_ConfigurationVariables(BaseTestCase):
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
+    @scenario("APPSEC_CUSTOM_OBFUSCATION")
     def test_obfuscation_parameter_value(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 

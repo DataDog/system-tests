@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import BaseTestCase, context, coverage, interfaces, released, bug, missing_feature
+from utils import BaseTestCase, context, coverage, interfaces, released, bug, missing_feature, scenario
 
 
 if context.library == "cpp":
@@ -25,6 +25,7 @@ class _BaseNoAppSec(BaseTestCase):
 
 @released(java="0.93.0", php_appsec="0.3.0", ruby="?")
 @coverage.basic
+@scenario("APPSEC_CORRUPTED_RULES")
 class Test_CorruptedRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is invalid"""
 
@@ -40,6 +41,7 @@ class Test_CorruptedRules(_BaseNoAppSec):
 
 @released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
 @coverage.basic
+@scenario("APPSEC_MISSING_RULES")
 class Test_MissingRules(_BaseNoAppSec):
     """AppSec do not report anything if rule file is missing"""
 
@@ -62,6 +64,7 @@ class Test_MissingRules(_BaseNoAppSec):
 @released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
 @coverage.good
+@scenario("APPSEC_CUSTOM_RULES")
 class Test_ConfRuleSet(BaseTestCase):
     """AppSec support env var DD_APPSEC_RULES"""
 
@@ -83,6 +86,7 @@ class Test_ConfRuleSet(BaseTestCase):
 @released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
 @coverage.basic
+@scenario("APPSEC_CUSTOM_RULES")
 class Test_NoLimitOnWafRules(BaseTestCase):
     """ Serialize WAF rules without limiting their sizes """
 
