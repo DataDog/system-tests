@@ -161,7 +161,7 @@ RUN go install
 def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
-    dotnet_reldir = os.path.join("parametric", dotnet_appdir)
+    dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
     return APMLibraryTestServer(
         lang="dotnet",
