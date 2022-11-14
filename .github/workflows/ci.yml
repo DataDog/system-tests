@@ -454,7 +454,7 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Build
-        run: ./build.sh
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
 
       - name: Run default scenario
         run: ./run.sh
@@ -567,6 +567,11 @@ jobs:
 
       - name: Run APPSEC_IP_BLOCKING scenario
         run: ./run.sh APPSEC_IP_BLOCKING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run APPSEC_RUNTIME_ACTIVATION scenario
+        run: ./run.sh APPSEC_RUNTIME_ACTIVATION
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

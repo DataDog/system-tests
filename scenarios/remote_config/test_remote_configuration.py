@@ -5,7 +5,7 @@
 import json
 from collections import defaultdict
 
-from utils import BaseTestCase, coverage, interfaces, released, rfc, bug, irrelevant
+from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, irrelevant
 from utils.tools import logger
 
 with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
@@ -109,7 +109,7 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="3.7.0")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="?", ruby="?", nodejs="3.7.0")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
@@ -117,6 +117,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
     request_number = 0
 
+    @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -165,7 +166,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
@@ -173,6 +174,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
     request_number = 0
 
+    @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -192,7 +194,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="?", ruby="?")
 @bug(library="dotnet")
 @irrelevant(library="nodejs")
 @coverage.basic
@@ -201,6 +203,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
     request_number = 0
 
+    @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -220,7 +223,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
@@ -228,6 +231,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
     request_number = defaultdict(int)
 
+    @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -248,7 +252,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
@@ -256,6 +260,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
     request_number = 0
 
+    @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 

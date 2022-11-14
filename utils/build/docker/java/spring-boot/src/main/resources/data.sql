@@ -1,0 +1,8 @@
+INSERT INTO USER (USERNAME, PASSWORD)
+VALUES ('shaquille_oatmeal', '123456');
+INSERT INTO USER (USERNAME, PASSWORD)
+VALUES ('bread_pitt', '123abc');
+INSERT INTO USER (USERNAME, PASSWORD)
+VALUES ('fast_and_the_curious', 'my_password');
+INSERT INTO USER (USERNAME, PASSWORD)
+VALUES ('fedora_the_explorer', '555555');

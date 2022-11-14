@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
 RUN apt-get update && apt-get install dos2unix
 
@@ -18,7 +18,8 @@ RUN /binaries/install_ddtrace.sh
 
 RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") dotnet publish -c Release -o out
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime
+
 WORKDIR /app
 COPY --from=build /app/out .
 
@@ -30,6 +31,7 @@ COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_
 COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 #Setup Datadog APM
+ENV ASPNETCORE_hostBuilder__reloadConfigOnChange=false
 ENV CORECLR_ENABLE_PROFILING=1
 ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
@@ -43,7 +45,7 @@ ENV COMPlus_DbgEnableMiniDump=1
 ENV COMPlus_DbgMiniDumpType=2
 
 
-RUN echo "#!/bin/bash\n\necho starting app\n\nif ( ! dotnet app.dll); then\n\techo recovering dump to /var/log/system-tests/dumps \n\tmkdir -p /var/log/system-tests/dumps\n\tfind /tmp -name 'coredump*' -exec cp '{}' /var/log/system-tests/dumps \;\nsudo chmod -R 644 /var/log/system-tests/dumps/* || true\nfi" > app.sh
+RUN echo "#!/bin/bash\n\necho starting app\n\nif ( ! dotnet app.dll); then\n\techo recovering dump to /var/log/system-tests/dumps \n\tmkdir -p /var/log/system-tests/dumps\n\tfind /tmp -name 'coredump*' -exec cp '{}' /var/log/system-tests/dumps \;\nchmod -R 644 /var/log/system-tests/dumps/* || true\nfi" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
 

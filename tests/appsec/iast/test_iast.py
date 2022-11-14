@@ -19,15 +19,25 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
 class Test_Iast(BaseTestCase):
     """Verify IAST features"""
 
-    if context.library == "nodejs":
-        EXPECTED_LOCATION = "/usr/app/app.js"
-        WEAK_CIPHER_ALGORITHM = "des-ede-cbc"
-    elif context.library == "java":
-        EXPECTED_LOCATION = "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
-        WEAK_CIPHER_ALGORITHM = "Blowfish"
-    else:
-        EXPECTED_LOCATION = ""  # (TBD)
-        WEAK_CIPHER_ALGORITHM = ""
+    EXPECTATIONS = {
+        "nodejs": {"LOCATION": {"WEAK_HASH": "/usr/app/app.js",}, "WEAK_CIPHER_ALGORITHM": "des-ede-cbc",},
+        "java": {
+            "LOCATION": {
+                "WEAK_HASH": "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples",
+                "SQL_INJECTION": "com.datadoghq.system_tests.springboot.iast.utils.SqlExamples",
+            },
+            "WEAK_CIPHER_ALGORITHM": "Blowfish",
+        },
+    }
+
+    def __expected_location(self, vulnerability):
+        expected = self.EXPECTATIONS.get(context.library.library)
+        location = expected.get("LOCATION") if expected else None
+        return location.get(vulnerability) if location else None
+
+    def __expected_weak_cipher_algorithm(self):
+        expected = self.EXPECTATIONS.get(context.library.library)
+        return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
 
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
@@ -35,7 +45,10 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/deduplicate")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_count=1, vulnerability_type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+            r,
+            vulnerability_count=1,
+            vulnerability_type="WEAK_HASH",
+            location_path=self.__expected_location("WEAK_HASH"),
         )
 
     def test_insecure_hash_multiple(self):
@@ -43,7 +56,10 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/multiple_hash")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_count=2, vulnerability_type="WEAK_HASH", location_path=self.EXPECTED_LOCATION
+            r,
+            vulnerability_count=2,
+            vulnerability_type="WEAK_HASH",
+            location_path=self.__expected_location("WEAK_HASH"),
         )
 
     @missing_feature(context.library < "nodejs@3.3.1", reason="Need to be implement global vulnerability deduplication")
@@ -63,7 +79,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
 
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_type="WEAK_CIPHER", evidence=self.WEAK_CIPHER_ALGORITHM
+            r, vulnerability_type="WEAK_CIPHER", evidence=self.__expected_weak_cipher_algorithm(),
         )
 
     def test_secure_cipher(self):
@@ -71,3 +87,20 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_cipher/test_secure_algorithm")
 
         interfaces.library.expect_no_vulnerabilities(r)
+
+    @missing_feature(reason="Need to implement SQL injection detection")
+    def test_secure_sql(self):
+        """Secure SQL queries are not reported as insecure"""
+        r = self.weblog_post("/iast/sqli/test_secure", data={"username": "shaquille_oatmeal", "password": "123456"})
+        interfaces.library.expect_no_vulnerabilities(r)
+
+    @missing_feature(reason="Need to implement SQL injection detection")
+    def test_insecure_sql(self):
+        """Insecure SQL queries are reported as insecure"""
+        r = self.weblog_post("/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"})
+        interfaces.library.expect_iast_vulnerabilities(
+            r,
+            vulnerability_count=1,
+            vulnerability_type="SQL_INJECTION",
+            location_path=self.__expected_location("SQL_INJECTION"),
+        )
