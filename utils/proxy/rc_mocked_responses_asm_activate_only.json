@@ -1,15 +1,15 @@
 [
   {
-    "client_configs" : [
+    "client_configs": [
       "datadog/2/ASM_FEATURES/asm_features_activation/config"
     ],
-    "roots" : [],
-    "target_files" : [
+    "roots": [],
+    "target_files": [
       {
-        "path" : "datadog/2/ASM_FEATURES/asm_features_activation/config",
-        "raw" : "eyJhc20iOnsiZW5hYmxlZCI6dHJ1ZX19"
+        "path": "datadog/2/ASM_FEATURES/asm_features_activation/config",
+        "raw": "eyJhc20iOnsiZW5hYmxlZCI6dHJ1ZX19"
       }
     ],
-    "targets" : "eyJzaWduZWQiOnsiZXhwaXJlcyI6IjIwMjItMDktMTdUMTI6NDk6MTVaIiwic3BlY192ZXJzaW9uIjoiMS4wLjAiLCJjdXN0b20iOnsib3BhcXVlX2JhY2tlbmRfc3RhdGUiOiJhYWFhYSJ9LCJ0YXJnZXRzIjp7ImRhdGFkb2cvMi9BU01fRkVBVFVSRVMvYXNtX2ZlYXR1cmVzX2FjdGl2YXRpb24vY29uZmlnIjp7ImN1c3RvbSI6eyJ2IjoxfSwiaGFzaGVzIjp7InNoYTI1NiI6IjE1OTY1OGFiODViZTcyMDc3NjFhNDExMTE3MmIwMTU1ODM5NGJmYzc0YTFmZTFkMzE0ZjIwMjNmN2M2NTZkYiJ9LCJsZW5ndGgiOjI0fX0sInZlcnNpb24iOjIzMzM3MzkzfSwic2lnbmF0dXJlcyI6W3sia2V5aWQiOiJURVNUX0tFWV9JRCIsInNpZyI6IjUwNzM1YTg5MmI5ZTViOTdhZjljMGRmMTJjY2Q5MTczNDBkYjQzNzBmYWJkNWY1M2ViNzBmNjZmM2NlNDg0NDVkMjFkMGYwZWFkZmJlZWY4NGI4MDhmYjI3NjUxYzU4NWVjZWQ4MDZkOTUzZDlmNDQzNmE2ZDQ4ZjM1MGE3ZjBjIn1dfQ=="
+    "targets": "eyJzaWduZWQiOnsiZXhwaXJlcyI6IjIwMjItMDktMTdUMTI6NDk6MTVaIiwic3BlY192ZXJzaW9uIjoiMS4wLjAiLCJjdXN0b20iOnsib3BhcXVlX2JhY2tlbmRfc3RhdGUiOiJhYWFhYSJ9LCJ0YXJnZXRzIjp7ImRhdGFkb2cvMi9BU01fRkVBVFVSRVMvYXNtX2ZlYXR1cmVzX2FjdGl2YXRpb24vY29uZmlnIjp7ImN1c3RvbSI6eyJ2IjoxfSwiaGFzaGVzIjp7InNoYTI1NiI6IjE1OTY1OGFiODViZTcyMDc3NjFhNDExMTE3MmIwMTU1ODM5NGJmYzc0YTFmZTFkMzE0ZjIwMjNmN2M2NTZkYiJ9LCJsZW5ndGgiOjI0fX0sInZlcnNpb24iOjIzMzM3MzkzfSwic2lnbmF0dXJlcyI6W3sia2V5aWQiOiJURVNUX0tFWV9JRCIsInNpZyI6ImRhODhmZTg3NzVjNjM4MzFiNGU3Nzk2MWIyYTk5NzhkYjM2YTNmZGUzMWExZmJjMGMyMTA2ZWRmMWQ4ZDJkYjI2NzAyN2U4NTI0YzI2NTg5MDhkMzA1Yjc3YTQ5NmE5ZjFkMWM1ZWQ2MjFiNmMwZjA2MTA4OTk5Y2FlOGFmOTBlIn1dfQo="
   }
 ]

@@ -133,7 +133,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RUNTIME_ACTIVATION" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_runtime_activation
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
     # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
-    WEBLOG_ENV=""
+    WEBLOG_ENV="DD_RC_TARGETS_KEY_ID=TEST_KEY_ID\nDD_RC_TARGETS_KEY=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c\nDD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; then
     export RUNNER_ARGS="scenarios/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures"
