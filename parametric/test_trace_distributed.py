@@ -4,7 +4,6 @@ from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 
 
-@pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_extract_datadog(test_agent, test_library):
@@ -33,7 +32,6 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
     assert span["meta"].get("_dd.p.dm") == expected_datadog_tags_dict.get("_dd.p.dm")
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == int(distributed_message.http_headers["x-datadog-sampling-priority"])
 
-@pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_extractinvalid_datadog(test_agent, test_library):
@@ -44,7 +42,7 @@ def test_distributed_headers_extractinvalid_datadog(test_agent, test_library):
         distributed_message = DistributedHTTPHeaders()
         distributed_message.http_headers["x-datadog-trace-id"] = "0"
         distributed_message.http_headers["x-datadog-parent-id"] = "0"
-        distributed_message.http_headers["x-datadog-sampling-priority"] = "1"
+        distributed_message.http_headers["x-datadog-sampling-priority"] = "-1"
 
         with test_library.start_span(
             name="name", service="service", resource="resource", http_headers=distributed_message
@@ -54,9 +52,8 @@ def test_distributed_headers_extractinvalid_datadog(test_agent, test_library):
     span = get_span(test_agent)
     assert span.get("trace_id") != int(distributed_message.http_headers["x-datadog-trace-id"])
     assert span.get("parent_id") != int(distributed_message.http_headers["x-datadog-parent-id"])
+    assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != int(distributed_message.http_headers["x-datadog-sampling-priority"])
 
-
-@pytest.mark.skip_library("dotnet", "not impemented")
 @pytest.mark.skip_library("golang", "not impemented")
 @pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_inject_datadog(test_agent, test_library):
@@ -70,7 +67,6 @@ def test_distributed_headers_inject_datadog(test_agent, test_library):
     assert span.get("span_id") == int(headers["x-datadog-parent-id"])
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == int(headers["x-datadog-sampling-priority"])
 
-@pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_extractandinject_datadog(test_agent, test_library):
