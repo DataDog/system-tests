@@ -2,6 +2,7 @@ package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.springboot.iast.utils.CmdExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples;
+import com.datadoghq.system_tests.springboot.iast.utils.PathExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.SqlExamples;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -24,10 +25,12 @@ public class AppSecIast {
 
     private final SqlExamples sqlExamples;
     private final CmdExamples cmdExamples;
+    private final PathExamples pathExamples;
 
-    public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples) {
+    public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples) {
         this.sqlExamples = sqlExamples;
         this.cmdExamples = cmdExamples;
+        this.pathExamples = pathExamples;
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -108,5 +111,15 @@ public class AppSecIast {
         }
         final String cmd = request.getParameter("cmd");
         return cmdExamples.insecureCmd(cmd);
+    }
+
+    @PostMapping("/path_traversal/test_insecure")
+    String insecurePathTraversal(final ServletRequest request) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+        final String path = request.getParameter("path");
+        return pathExamples.insecurePathTraversal(path);
     }
 }
