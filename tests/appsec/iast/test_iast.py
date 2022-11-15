@@ -24,7 +24,10 @@ class Test_Iast(BaseTestCase):
             "LOCATION": {"WEAK_HASH": "/iast.py" if context.weblog_variant != "uwsgi-poc" else "/./iast.py"},
             "WEAK_CIPHER_ALGORITHM": "????",
         },
-        "nodejs": {"LOCATION": {"WEAK_HASH": "/usr/app/app.js"}, "WEAK_CIPHER_ALGORITHM": "des-ede-cbc"},
+        "nodejs": {
+            "LOCATION": {"WEAK_HASH": "/usr/app/iast.js", "SQL_INJECTION": "/usr/app/iast.js",},
+            "WEAK_CIPHER_ALGORITHM": "des-ede-cbc",
+        },
         "java": {
             "LOCATION": {
                 "WEAK_HASH": "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples",
