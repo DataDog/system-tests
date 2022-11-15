@@ -12,7 +12,10 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
 class TestIastCommandInjection(BaseTestCase):
     """Verify IAST features"""
 
-    EXPECTATIONS = {"java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"}}
+    EXPECTATIONS = {
+        "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"},
+        "nodejs": {"LOCATION": "/usr/app/iast.js"},
+    }
 
     def __expected_location(self):
         expected = self.EXPECTATIONS.get(context.library.library)
