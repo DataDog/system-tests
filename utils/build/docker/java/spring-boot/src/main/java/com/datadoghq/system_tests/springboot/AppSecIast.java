@@ -1,5 +1,6 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.springboot.iast.utils.CmdExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.SqlExamples;
 import io.opentracing.Span;
@@ -22,9 +23,11 @@ public class AppSecIast {
     String superSecretAccessKey = "insecure";
 
     private final SqlExamples sqlExamples;
+    private final CmdExamples cmdExamples;
 
-    public AppSecIast(final SqlExamples sqlExamples) {
+    public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples) {
         this.sqlExamples = sqlExamples;
+        this.cmdExamples = cmdExamples;
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -95,5 +98,15 @@ public class AppSecIast {
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
         return sqlExamples.secureSql(username, password);
+    }
+
+    @PostMapping("/cmdi/test_insecure")
+    String insecureCmd(final ServletRequest request) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+        final String cmd = request.getParameter("cmd");
+        return cmdExamples.insecureCmd(cmd);
     }
 }
