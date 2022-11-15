@@ -21,14 +21,22 @@ ls datadog-dotnet-apm-*.tar.gz > /app/SYSTEM_TESTS_LIBRARY_VERSION
 mkdir -p /opt/datadog
 tar xzf $(ls datadog-dotnet-apm-*.tar.gz) -C /opt/datadog
 
+ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+ARTIFACT_NAME="linux-x64"
+
+if [ "$ARCH" = "arm64" ]; then
+    ARTIFACT_NAME="linux-arm64"
+fi
+
 if [ -e /opt/datadog/tracer/Datadog.Tracer.Native.so ]
 then
     # native tracer is in tracer subfolder
     cp /opt/datadog/tracer/Datadog.Tracer.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
-elif [ -e /opt/datadog/linux-x64/Datadog.Tracer.Native.so ]
+elif [ -e /opt/datadog/$ARTIFACT_NAME/Datadog.Tracer.Native.so ]
 then
     # native tracer is in arch folder - Waf expects Datadog.Tracer.Native for PInvoke
-    cp /opt/datadog/linux-x64/Datadog.Tracer.Native.so /binaries/Datadog.Tracer.Native.so
+    echo "Using /opt/datadog/$ARTIFACT_NAME/Datadog.Tracer.Native.so"
+    cp /opt/datadog/$ARTIFACT_NAME/Datadog.Tracer.Native.so /binaries/Datadog.Tracer.Native.so
 else
     cp /opt/datadog/Datadog.Trace.ClrProfiler.Native.so /binaries/libDatadog.Trace.ClrProfiler.Native.so
 fi
