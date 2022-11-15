@@ -675,8 +675,8 @@ class APMLibrary:
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
-    def inject_headers(self):
-        return self._client.InjectHeaders(pb.InjectHeadersArgs())
+    def inject_headers(self, span_id):
+        return self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())

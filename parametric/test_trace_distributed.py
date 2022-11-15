@@ -64,7 +64,7 @@ def test_distributed_headers_inject_datadog(test_agent, test_library):
     """
     with test_library:
         with test_library.start_span(name="name") as span:
-            headers = test_library.inject_headers().http_headers.http_headers
+            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
     span = get_span(test_agent)
     assert span.get("trace_id") == int(headers["x-datadog-trace-id"])
     assert span.get("span_id") == int(headers["x-datadog-parent-id"])
@@ -88,7 +88,7 @@ def test_distributed_headers_extractandinject_datadog(test_agent, test_library):
         with test_library.start_span(
             name="name", service="service", resource="resource", http_headers=distributed_message
         ) as span:
-            headers = test_library.inject_headers().http_headers.http_headers
+            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
 
     expected_datadog_tags_dict = dict(e.split("=") for e in distributed_message.http_headers["x-datadog-tags"].split(','))
 
