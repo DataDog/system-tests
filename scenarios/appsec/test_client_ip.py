@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @released(dotnet="?", golang="?", java="0.114.0")
-@released(nodejs="3.6.0", php="0.81.0", python="?", ruby="?")
+@released(nodejs="3.6.0", php="0.81.0", python="1.5.0", ruby="?")
 @coverage.basic
 class Test_StandardTagsClientIp(BaseTestCase):
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

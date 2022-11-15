@@ -31,6 +31,7 @@ fi
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export RUNNER_ARGS=tests/
     export SYSTEMTESTS_LOG_FOLDER=logs
+    CONTAINERS+=(postgres)
 
 elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     echo "Running all tests in UDS mode."
@@ -183,8 +184,8 @@ elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
 else # Let user choose the target
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
+    CONTAINERS+=(postgres)
 fi
-
 # Clean logs/ folder
 rm -rf $SYSTEMTESTS_LOG_FOLDER
 for interface in ${interfaces[@]}

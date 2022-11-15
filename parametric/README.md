@@ -46,6 +46,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+```powershell
+python -m venv venv
+. .\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
 
 ### Running the tests
 
@@ -55,10 +61,19 @@ Run all the tests:
 ./run.sh
 ```
 
+```powershell
+.\run.ps1
+```
+
 Run a specific test (`test_metrics_msgpack_serialization_TS001`) against multiple libraries (`dotnet`, `golang`):
 
 ```sh
 CLIENTS_ENABLED=dotnet,golang,nodejs ./run.sh -k test_metrics_msgpack_serialization_TS001
+```
+
+```powershell
+$env:CLIENTS_ENABLED="dotnet,golang,nodejs"
+.\run.ps1 -k test_metrics_msgpack_serialization_TS001
 ```
 
 
@@ -68,11 +83,21 @@ Run all tests matching pattern
 CLIENTS_ENABLED=dotnet,golang ./run.sh -k test_metrics_
 ```
 
+```powershell
+$env:CLIENTS_ENABLED="dotnet,golang"
+.\run.ps1 -k test_metrics_
+```
+
 
 Run all tests from a file
 
 ```sh
 CLIENTS_ENABLED=dotnet,golang ./run.sh test_span_sampling.py
+```
+
+```powershell
+$env:CLIENTS_ENABLED="dotnet,golang"
+.\run.ps1 test_span_sampling.py
 ```
 
 
@@ -81,6 +106,12 @@ and the test has not been updated in this repo yet (but you want the test to run
 
 ```sh
 CLIENTS_ENABLED=nodejs OVERRIDE_SKIPS=test_single_rule_match_span_sampling_sss001 ./run.sh test_span_sampling.py
+```
+
+```powershell
+$env:CLIENTS_ENABLED="nodejs"
+$env:OVERRIDE_SKIPS="test_single_rule_match_span_sampling_sss001"
+.\run.ps1 test_span_sampling.py
 ```
 
 
