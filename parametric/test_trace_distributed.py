@@ -30,6 +30,7 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
     assert span["meta"].get("_dd.p.dm") == "-4"
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
+
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
@@ -56,6 +57,7 @@ def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
     assert span["meta"].get("_dd.p.dm") != "-4"
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
 
+
 @pytest.mark.skip_library("golang", "not impemented")
 @pytest.mark.skip_library("nodejs", "not impemented")
 def test_distributed_headers_inject_datadog(test_agent, test_library):
@@ -68,6 +70,7 @@ def test_distributed_headers_inject_datadog(test_agent, test_library):
     assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
     assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
     assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
+
 
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
@@ -94,6 +97,7 @@ def test_distributed_headers_extractandinject_datadog(test_agent, test_library):
     assert headers["x-datadog-sampling-priority"] == "2"
     assert headers["x-datadog-origin"] == "synthetics"
     assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
+
 
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
