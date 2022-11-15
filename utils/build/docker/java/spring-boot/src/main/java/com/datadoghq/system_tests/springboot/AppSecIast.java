@@ -3,13 +3,16 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.springboot.iast.utils.CmdExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.PathExamples;
+import com.datadoghq.system_tests.springboot.iast.utils.LDAPExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.SqlExamples;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.naming.NamingException;
 import javax.servlet.ServletRequest;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -26,11 +29,13 @@ public class AppSecIast {
     private final SqlExamples sqlExamples;
     private final CmdExamples cmdExamples;
     private final PathExamples pathExamples;
+    private final LDAPExamples ldapExamples;
 
-    public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples) {
+    public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples, final LDAPExamples ldapExamples) {
         this.sqlExamples = sqlExamples;
         this.cmdExamples = cmdExamples;
         this.pathExamples = pathExamples;
+        this.ldapExamples = ldapExamples;
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -112,6 +117,27 @@ public class AppSecIast {
         final String cmd = request.getParameter("cmd");
         return cmdExamples.insecureCmd(cmd);
     }
+
+    @PostMapping("/ldapi/test_insecure")
+    String insecureLDAP(final ServletRequest request) throws NamingException {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+        final String username = request.getParameter("username");
+        final String password = request.getParameter("password");
+        return ldapExamples.injection(username, password);
+    }
+
+    @PostMapping("/ldapi/test_secure")
+    String secureLDAP(final ServletRequest request) throws NamingException {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+        return ldapExamples.secure();
+    }
+
 
     @PostMapping("/path_traversal/test_insecure")
     String insecurePathTraversal(final ServletRequest request) {
