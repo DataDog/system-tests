@@ -1,7 +1,6 @@
 import inspect
 import pytest
 
-from utils.tools import logger
 from utils._context.core import context
 from utils._xfail import xfails
 
@@ -10,8 +9,6 @@ def _get_skipped_item(item, skip_reason):
 
     if not inspect.isfunction(item) and not inspect.isclass(item):
         raise Exception(f"Unexpected skipped object: {item}")
-
-    logger.info(f"{item.__name__} => {skip_reason} => skipped")
 
     if not hasattr(item, "pytestmark"):
         setattr(item, "pytestmark", [])
@@ -25,8 +22,6 @@ def _get_expected_failure_item(item, skip_reason):
 
     if not inspect.isfunction(item) and not inspect.isclass(item):
         raise Exception(f"Unexpected skipped object: {item}")
-
-    logger.info(f"{item.__name__} => {skip_reason} => xfail")
 
     xfails.add_xfailed_method(item)
 
@@ -148,9 +143,6 @@ def released(
                 raise Exception("TODO remove this test, it should never happen")
 
             if tested_version >= released_version:
-                logger.debug(
-                    f"{test_class.__name__} feature has been released in {released_version} => added in test queue"
-                )
                 return None
 
             return (
@@ -173,9 +165,6 @@ def released(
         skip_reasons = [reason for reason in skip_reasons if reason is not None]  # remove None
 
         if len(skip_reasons) != 0:
-            for reason in skip_reasons:
-                logger.info(f"{test_class.__name__} class, {reason} => skipped")
-
             return _get_expected_failure_item(test_class, skip_reasons[0])  # use the first skip reason found
 
         return test_class

@@ -54,7 +54,7 @@ def pytest_sessionstart(session):
 
 
 # called when each test item is collected
-def pytest_itemcollected(item):
+def _collect_item_metadata(item):
 
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
@@ -84,6 +84,7 @@ def pytest_itemcollected(item):
     for marker in reversed(markers):
         skip_reason = _get_skip_reason_from_marker(marker)
         if skip_reason:
+            logger.debug(f"{item.nodeid} => {skip_reason} => skipped")
             _skip_reasons[item.nodeid] = skip_reason
             break
 
@@ -131,11 +132,12 @@ def pytest_collection_modifyitems(session, config, items):
     for item in items:
         declared_scenario = get_declared_scenario(item)
 
-        if declared_scenario == scenario:
+        if declared_scenario == scenario or declared_scenario is None and scenario == "DEFAULT":
+            logger.info(f"{item.nodeid} is included in scenario {scenario}")
             selected.append(item)
-        elif declared_scenario is None and scenario == "DEFAULT":
-            selected.append(item)
+            _collect_item_metadata(item)
         else:
+            logger.debug(f"{item.nodeid} is not included in scenario {scenario}")
             deselected.append(item)
 
     items[:] = selected

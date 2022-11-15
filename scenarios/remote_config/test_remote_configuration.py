@@ -19,12 +19,6 @@ with open("scenarios/remote_config/rc_expected_requests_asm_dd.json", encoding="
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING")
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD")
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE")
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE")
 class RemoteConfigurationFieldsBasicTests(BaseTestCase):
     """ Misc tests on fields and values on remote configuration reauests """
 
