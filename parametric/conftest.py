@@ -206,7 +206,7 @@ def dotnet_library_factory(env: Dict[str, str]):
         container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["{dotnet_reldir}/ApmTestClient.csproj", "."]
+COPY ["{dotnet_reldir}/ApmTestClient.csproj","{dotnet_reldir}/nuget.config","{dotnet_reldir}/*.nupkg", "."]
 RUN dotnet restore "./ApmTestClient.csproj"
 COPY {dotnet_reldir} .
 WORKDIR "/client/."
