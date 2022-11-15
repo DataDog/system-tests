@@ -12,7 +12,7 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
     java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "spring-boot-openliberty": "0.108.0", "*": "?"},
     nodejs={"express4": "3.6.0", "*": "?"},
     php_appsec="?",
-    python="1.6.0rc1.dev",
+    python="1.6.0",
     ruby="?",
     cpp="?",
 )
