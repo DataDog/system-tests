@@ -32,6 +32,7 @@ export RUNNER_ARGS="scenarios/ tests/"
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export SYSTEMTESTS_LOG_FOLDER=logs
+    CONTAINERS+=(postgres)
 
 elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     echo "Running all tests in UDS mode."
@@ -113,6 +114,12 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_appsec_ip_blocking
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RUNTIME_ACTIVATION" ]; then
+    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_runtime_activation
+    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
+    # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
+    WEBLOG_ENV="DD_RC_TARGETS_KEY_ID=TEST_KEY_ID\nDD_RC_TARGETS_KEY=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c\nDD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED=true"
+
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; then
     export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_features
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES"}'
@@ -154,8 +161,8 @@ else # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
+    CONTAINERS+=(postgres)
 fi
-
 # Clean logs/ folder
 rm -rf $SYSTEMTESTS_LOG_FOLDER
 for interface in ${interfaces[@]}

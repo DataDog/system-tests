@@ -4,7 +4,7 @@
 import json
 
 from scenarios.remote_config.test_remote_configuration import rc_check_request
-from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, scenario
+from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, irrelevant, scenario
 from utils.tools import logger
 
 with open("scenarios/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") as f:
@@ -14,7 +14,7 @@ with open("scenarios/appsec/rc_expected_requests_asm_data.json", encoding="utf-8
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @released(cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="?")
 @released(java={"spring-boot": "0.110.0", "sprint-boot-jetty": "0.111.0", "spring-boot-undertow": "0.111.0", "*": "?"})
-@bug(context.library >= "java@0.114.0" and context.appsec_rules_version >= "1.4.2")
+@irrelevant(context.appsec_rules_file == "")
 @coverage.basic
 @scenario("APPSEC_IP_BLOCKING")
 class Test_AppSecIPBlocking(BaseTestCase):
@@ -37,6 +37,7 @@ class Test_AppSecIPBlocking(BaseTestCase):
 
         interfaces.library.add_remote_configuration_validation(validator=validate)
 
+    @bug(context.library == "java@0.110.0", reason="default action not implemented")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 
