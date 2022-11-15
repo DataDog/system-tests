@@ -20,7 +20,10 @@ class Test_Iast(BaseTestCase):
     """Verify IAST features"""
 
     EXPECTATIONS = {
-        "nodejs": {"LOCATION": {"WEAK_HASH": "/usr/app/app.js",}, "WEAK_CIPHER_ALGORITHM": "des-ede-cbc",},
+        "nodejs": {
+            "LOCATION": {"WEAK_HASH": "/usr/app/iast.js", "SQL_INJECTION": "/usr/app/iast.js",},
+            "WEAK_CIPHER_ALGORITHM": "des-ede-cbc",
+        },
         "java": {
             "LOCATION": {
                 "WEAK_HASH": "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples",

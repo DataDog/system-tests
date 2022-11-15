@@ -24,7 +24,7 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-ENV JAVA_TOOL_OPTIONS='-javaagent:/app/dd-java-agent.jar -Ddd.remote_config.enabled=true -Ddd.jmxfetch.enabled=false'
+ENV JAVA_TOOL_OPTIONS='-javaagent:/app/dd-java-agent.jar -Ddd.jmxfetch.enabled=false'
 
 RUN echo "#!/bin/bash\njava -Xmx362m -jar /app/myproject-0.0.1-SNAPSHOT.jar" > app.sh
 RUN chmod +x app.sh
