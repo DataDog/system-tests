@@ -79,6 +79,7 @@ class Test_Iast(BaseTestCase):
 
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
 
+    @bug(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_cipher(self):
         """Test weak cipher algorithm is reported as insecure"""
         r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
