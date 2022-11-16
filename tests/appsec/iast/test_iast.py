@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
+from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released, bug
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
