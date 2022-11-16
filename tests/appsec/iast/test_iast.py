@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
+from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released, bug
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
@@ -42,6 +42,7 @@ class Test_Iast(BaseTestCase):
         expected = self.EXPECTATIONS.get(context.library.library)
         return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
 
+    @missing_feature(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -71,12 +72,14 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/test_secure_algorithm")
         interfaces.library.expect_no_vulnerabilities(r)
 
+    @bug(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_md5_hash(self):
         """Test md5 weak hash algorithm reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
 
         interfaces.library.expect_iast_vulnerabilities(r, vulnerability_type="WEAK_HASH", evidence="md5")
 
+    @bug(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_cipher(self):
         """Test weak cipher algorithm is reported as insecure"""
         r = self.weblog_get("/iast/insecure_cipher/test_insecure_algorithm")
