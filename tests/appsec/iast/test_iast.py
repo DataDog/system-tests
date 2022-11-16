@@ -4,6 +4,7 @@
 
 from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
 
+
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
 @released(
