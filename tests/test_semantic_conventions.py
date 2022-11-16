@@ -75,7 +75,6 @@ class Test_Meta(BaseTestCase):
     """meta object in spans respect all conventions"""
 
     @bug(library="ruby", reason="Span.kind not implemented yet")
-    @bug(library="php", reason="Span.kind not implemented yet")
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
@@ -251,7 +250,6 @@ class Test_MetricsStandardTags(BaseTestCase):
 
     @bug(library="cpp", reason="Not implemented")
     @bug(library="java", reason="Not implemented")
-    @bug(library="php", reason="Currently system.pid")
     @bug(library="ruby", reason="Currently system.pid")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
