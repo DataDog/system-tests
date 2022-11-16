@@ -72,7 +72,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/test_secure_algorithm")
         interfaces.library.expect_no_vulnerabilities(r)
 
-    @missing_feature(context.weblog_variant == "spring-boot-openliberty")
+    @bug(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_md5_hash(self):
         """Test md5 weak hash algorithm reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
