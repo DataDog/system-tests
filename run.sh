@@ -29,6 +29,7 @@ if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
 fi
 
 export RUNNER_ARGS="scenarios/ tests/"
+export SYSTEMTESTS_LOG_FOLDER="logs_${SYSTEMTESTS_SCENARIO,,}"
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export SYSTEMTESTS_LOG_FOLDER=logs
@@ -36,7 +37,6 @@ if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
 
 elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     echo "Running all tests in UDS mode."
-    export SYSTEMTESTS_LOG_FOLDER=logs_uds
     unset DD_TRACE_AGENT_PORT
     unset DD_AGENT_HOST
     export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
@@ -52,115 +52,89 @@ elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as
     fi
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_sampling_rate
     WEBLOG_ENV+="DD_TRACE_SAMPLE_RATE=0.5"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_missing_appsec_rules
     WEBLOG_ENV+="DD_APPSEC_RULES=/donotexists"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_corrupted_appsec_rules
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_custom_appsec_rules
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules.json"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_rules_monitoring_with_errors
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
 
 elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_profiling
 
-elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then
-    # armv7 tests
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_unsupported
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then # armv7 tests
 
-elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
-    # cgroup test
-    export SYSTEMTESTS_LOG_FOLDER=logs_cgroup
+elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then # cgroup test
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_DISABLED" ]; then
     # disable appsec
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_disabled
     WEBLOG_ENV="DD_APPSEC_ENABLED=false"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_LOW_WAF_TIMEOUT" ]; then
     # disable appsec
-    export SYSTEMTESTS_LOG_FOLDER=logs_low_waf_timeout
     WEBLOG_ENV+="DD_APPSEC_WAF_TIMEOUT=1"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_custom_obfuscation
     WEBLOG_ENV+="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_rate_limiter
     WEBLOG_ENV+="DD_APPSEC_TRACE_RATE_LIMIT=1"
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_short
     DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
     WEBLOG_ENV+="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1,header-tag2"
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_library_conf_custom_headers_long
     DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
     WEBLOG_ENV+="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_ip_blocking
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RUNTIME_ACTIVATION" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_appsec_runtime_activation
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
     # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
     WEBLOG_ENV="DD_RC_TARGETS_KEY_ID=TEST_KEY_ID\nDD_RC_TARGETS_KEY=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c\nDD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_features
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES"}'
     # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
     WEBLOG_ENV=""
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
     WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true\nDD_INTERNAL_RCM_POLL_INTERVAL=1000"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_dd
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_features_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"}'
     WEBLOG_ENV=""
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_live_debugging_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
     WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_remote_config_mocked_backend_asm_dd_nocache
     export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_trace_propagation_style_w3c
     WEBLOG_ENV+="DD_TRACE_PROPAGATION_STYLE_INJECT=W3C\nDD_TRACE_PROPAGATION_STYLE_EXTRACT=W3C"
 
 elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs_integrations
     CONTAINERS+=(cassandra_db mongodb)
 
 else # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
     export RUNNER_ARGS=$@
-    export SYSTEMTESTS_LOG_FOLDER=${SYSTEMTESTS_LOG_FOLDER:-logs}
+    export SYSTEMTESTS_LOG_FOLDER=logs
     CONTAINERS+=(postgres)
 fi
 # Clean logs/ folder
