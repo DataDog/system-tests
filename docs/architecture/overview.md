@@ -163,7 +163,6 @@ The first argument to the `./run.sh` script is the scenario (`$SCENARIO`) which 
  - `./run.sh`
  - `./run.sh DEFAULT`
  - `./run.sh SAMPLING`
- - `./run.sh PROFILING`
 
 You can see all available scenarios within the `./run.sh` script.
 

@@ -29,7 +29,7 @@ if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
 fi
 
 export RUNNER_ARGS="scenarios/ tests/"
-export SYSTEMTESTS_LOG_FOLDER="logs_${SYSTEMTESTS_SCENARIO,,}"
+export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export SYSTEMTESTS_LOG_FOLDER=logs
@@ -66,11 +66,15 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
 
-elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
-
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then # armv7 tests
-
-elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then # cgroup test
+    # we'll probably need to remove this one
+    echo
+    
+elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
+    # cgroup test
+    # require a dedicated warmup. Need to check the stability before 
+    # merging it into the default scenario
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_DISABLED" ]; then
     # disable appsec

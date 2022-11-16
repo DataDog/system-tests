@@ -513,12 +513,6 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      - name: Run PROFILING test
-        if: ${{ matrix.library == 'nodejs' }}
-        run: ./run.sh PROFILING
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-
       - name: Run UDS scenario
         if: ${{ matrix.library != 'php' && matrix.library != 'cpp' }}
         run: ./run.sh UDS
