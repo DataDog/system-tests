@@ -12,13 +12,14 @@ RUNTIME_LANGUAGE_MAP = {
     "golang": "go",
 }
 VARIANT_COMPONENT_MAP = {
-    "chi": "chi.v5",
+    "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
-    "echo": "labstack/echo.v4",
+    "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "gin": "gin-gonic/gin",
     "gorilla": "gorilla/mux",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
