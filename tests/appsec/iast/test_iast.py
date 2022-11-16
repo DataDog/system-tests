@@ -42,6 +42,7 @@ class Test_Iast(BaseTestCase):
         expected = self.EXPECTATIONS.get(context.library.library)
         return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
 
+    @missing_feature(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -71,6 +72,7 @@ class Test_Iast(BaseTestCase):
         r = self.weblog_get("/iast/insecure_hashing/test_secure_algorithm")
         interfaces.library.expect_no_vulnerabilities(r)
 
+    @missing_feature(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_md5_hash(self):
         """Test md5 weak hash algorithm reported as insecure"""
         r = self.weblog_get("/iast/insecure_hashing/test_md5_algorithm")
