@@ -54,7 +54,7 @@ def pytest_sessionstart(session):
 
 
 # called when each test item is collected
-def pytest_itemcollected(item):
+def _collect_item_metadata(item):
 
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
@@ -84,6 +84,7 @@ def pytest_itemcollected(item):
     for marker in reversed(markers):
         skip_reason = _get_skip_reason_from_marker(marker)
         if skip_reason:
+            logger.debug(f"{item.nodeid} => {skip_reason} => skipped")
             _skip_reasons[item.nodeid] = skip_reason
             break
 
@@ -100,6 +101,47 @@ def _get_skip_reason_from_marker(marker):
         return marker.kwargs.get("reason", "")
 
     return None
+
+
+def pytest_collection_modifyitems(session, config, items):
+    """unselect items that are not included in the current scenario"""
+
+    def get_declared_scenario(item):
+        for marker in item.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
+        for marker in item.parent.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
+        return None
+
+    scenario = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
+
+    if scenario == "CUSTOM":
+        # user has specifed which test to run, do nothing
+        return
+
+    if scenario == "UDS":
+        scenario = "DEFAULT"  # TODO : it's a variant
+
+    selected = []
+    deselected = []
+
+    for item in items:
+        declared_scenario = get_declared_scenario(item)
+
+        if declared_scenario == scenario or declared_scenario is None and scenario == "DEFAULT":
+            logger.info(f"{item.nodeid} is included in scenario {scenario}")
+            selected.append(item)
+            _collect_item_metadata(item)
+        else:
+            logger.debug(f"{item.nodeid} is not included in scenario {scenario}")
+            deselected.append(item)
+
+    items[:] = selected
+    config.hook.pytest_deselected(items=deselected)
 
 
 def pytest_runtestloop(session):

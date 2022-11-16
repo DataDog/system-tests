@@ -4,7 +4,7 @@
 import json
 
 from scenarios.remote_config.test_remote_configuration import rc_check_request
-from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, irrelevant
+from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, irrelevant, scenario
 from utils.tools import logger
 
 with open("scenarios/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") as f:
@@ -24,6 +24,7 @@ with open("scenarios/appsec/rc_expected_requests_asm_data.json", encoding="utf-8
 )
 @irrelevant(context.appsec_rules_file == "")
 @coverage.basic
+@scenario("APPSEC_IP_BLOCKING")
 class Test_AppSecIPBlocking(BaseTestCase):
     """A library should block requests from blocked IP addresses."""
 

@@ -3,12 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import BaseTestCase, interfaces, context, bug, rfc
+from utils import BaseTestCase, interfaces, context, bug, rfc, scenario
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
 
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
+@scenario("CGROUP")
 class Test_TraceHeaders(BaseTestCase):
     """All required headers are present in all traces submitted to the agent"""
 
