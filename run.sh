@@ -37,6 +37,7 @@ if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
 
 elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
     echo "Running all tests in UDS mode."
+    CONTAINERS+=(postgres)
     unset DD_TRACE_AGENT_PORT
     unset DD_AGENT_HOST
     export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
