@@ -88,7 +88,6 @@ class Test_Iast(BaseTestCase):
             r, vulnerability_type="WEAK_CIPHER", evidence=self.__expected_weak_cipher_algorithm(),
         )
 
-    @bug(context.library >= "java@1.0.0" and context.weblog_variant == "spring-boot-openliberty", reason="?")
     def test_secure_cipher(self):
         """Test strong cipher algorithm is not reported as insecure"""
         r = self.weblog_get("/iast/insecure_cipher/test_secure_algorithm")
