@@ -119,6 +119,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
 
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
+    @bug(context.library >= "java@1.1.0", reason="?")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
