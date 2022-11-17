@@ -67,6 +67,10 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
 
+elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
+    # big timeout
+    echo
+
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_UNSUPPORTED" ]; then # armv7 tests
     # we'll probably need to remove this one
     echo
