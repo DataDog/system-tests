@@ -10,9 +10,11 @@ TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"
 
 
 @bug(library="cpp", reason="Need to understand how to activate profiling")
-@bug(library="golang", reason="Need to understand how to activate profiling")
 @bug(library="dotnet", reason="Need to understand how to activate profiling")
+@bug(library="golang", reason="Need to understand how to activate profiling")
+@bug(library="java", reason="Need to understand how to activate profiling")
 @bug(library="php", reason="Need to understand how to activate profiling")
+@bug(library="python", reason="Need to understand how to activate profiling")
 @bug(library="ruby", reason="Need to understand how to activate profiling")
 @scenario("PROFILING")
 class Test_Basic(BaseTestCase):
