@@ -11,7 +11,7 @@ function initData () {
   })
 }
 function init (app, tracer) {  
-  initData()
+  initData().catch(() => {})
 
   app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
     const span = tracer.scope().active();
@@ -76,11 +76,11 @@ function init (app, tracer) {
     const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = \'' + req.body.username + '\' AND PASSWORD = \'' + req.body.password + '\''  
     const client = new Client()
     client.connect().then(() => {
-      client.query(sql).then((queryResult) => {
+      return client.query(sql).then((queryResult) => {
         res.json(queryResult)
-      }).catch((err) => {
-        res.status(500).json({message: 'Error on request'})
       })
+    }).catch((err) => {
+      res.status(500).json({message: 'Error on request'})
     })
   });
   
@@ -91,11 +91,11 @@ function init (app, tracer) {
     const values = [req.body.username, req.body.password]
     const client = new Client()
     client.connect().then(() => {
-      client.query(sql, values).then((queryResult) => {
+      return client.query(sql, values).then((queryResult) => {
         res.json(queryResult)
-      }).catch((err) => {
-        res.status(500).json({message: 'Error on request'})
       })
+    }).catch((err) => {
+      res.status(500).json({message: 'Error on request'})
     })
   });
 
