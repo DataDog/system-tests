@@ -32,6 +32,7 @@ class Test_AppSecIPBlocking(BaseTestCase):
     remote_config_is_sent = False
 
     @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot-openliberty")
+    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot")
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
 
@@ -49,6 +50,7 @@ class Test_AppSecIPBlocking(BaseTestCase):
     @bug(context.library == "java@0.110.0", reason="default action not implemented")
     @bug(context.library <= "java@0.114.0" and context.weblog_variant == "spring-boot-openliberty")
     @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot-openliberty")
+    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 
