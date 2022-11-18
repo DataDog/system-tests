@@ -138,9 +138,6 @@ class Test_SamplingDecisions(BaseTestCase):
 
     rid = 0
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
     @classmethod
     def next_request_id(cls):
         rid = cls.rid
