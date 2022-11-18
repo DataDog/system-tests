@@ -14,7 +14,6 @@ from utils import (
     missing_feature,
     flaky,
     rfc,
-    irrelevant,
 )
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
