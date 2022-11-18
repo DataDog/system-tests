@@ -5,7 +5,7 @@
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, context, interfaces, released, rfc
+from utils import BaseTestCase, context, interfaces, released, rfc, scenario
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -14,6 +14,7 @@ if context.library == "cpp":
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @released(golang="1.38.0", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
 @released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@scenario("APPSEC_CUSTOM_RULES")
 class Test_AppSecObfuscator(BaseTestCase):
     """AppSec obfuscates sensitive data."""
 

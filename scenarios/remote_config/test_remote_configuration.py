@@ -5,7 +5,18 @@
 import json
 from collections import defaultdict
 
-from utils import BaseTestCase, ValidationError, bug, context, coverage, interfaces, missing_feature, released, rfc, bug
+from utils import (
+    BaseTestCase,
+    ValidationError,
+    scenario,
+    context,
+    coverage,
+    interfaces,
+    missing_feature,
+    released,
+    rfc,
+    bug,
+)
 from utils.tools import logger
 
 with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
@@ -120,12 +131,14 @@ def rc_check_request(data, expected, caching):
 @released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="1.7.0rc1.dev", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
+@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
 
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
+    @bug(context.library >= "java@1.1.0", reason="?")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -147,6 +160,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="0.113.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
+@scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING")
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -177,11 +191,13 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
+@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
     request_number = 0
 
+    @bug(context.library >= "java@1.1.0", reason="?")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
@@ -207,6 +223,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @bug(weblog_variant="django-poc")
 @missing_feature(context.library > "python@1.7.0", reason="RC Cache is implemented in 1.7")
 @coverage.basic
+@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -235,6 +252,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 @released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
+@scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE")
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -264,6 +282,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 @released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
+@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE")
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
