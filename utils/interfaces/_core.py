@@ -419,6 +419,12 @@ class BaseValidation:
         return not condition
 
 
+class ValidationError(Exception):
+    def __init__(self, *args: object, extra_info=None) -> None:
+        super().__init__(*args)
+        self.extra_info = extra_info
+
+
 class _StaticValidation(BaseValidation):
     def __init__(self, condition):
         super().__init__()
