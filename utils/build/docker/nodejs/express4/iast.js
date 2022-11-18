@@ -105,6 +105,13 @@ function init (app, tracer) {
     res.send(result.toString())
   })
 
+  app.post('/iast/path_traversal/test_insecure', (req, res) => {
+    const span = tracer.scope().active();
+    span.setTag('appsec.event"', true);
+    const stats = fs.statSync(req.body.path)
+    res.send(JSON.stringify(stats))
+  });
+
 }
 
 module.exports = init;
