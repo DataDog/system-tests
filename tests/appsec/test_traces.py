@@ -4,7 +4,7 @@
 
 import pytest
 from tests.constants import PYTHON_RELEASE_PUBLIC_BETA, PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, released, rfc, missing_feature
+from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, released, rfc, missing_feature, scenario
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -258,6 +258,49 @@ class Test_AppSecObfuscator(BaseTestCase):
         )
         interfaces.library.assert_waf_attack(r, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(r, address="server.request.query")
+        interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
+
+    @scenario("APPSEC_CUSTOM_RULES")
+    def test_appsec_obfuscator_key_with_custom_rules(self):
+        """General obfuscation test of several attacks on several rule addresses."""
+        # Validate that the AppSec events do not contain the following secret value.
+        # Note that this value must contain an attack pattern in order to be part of the security event data
+        # that is expected to be obfuscated.
+        SECRET = "this-is-a-very-secret-value-having-the-attack"
+
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+            if SECRET in span["meta"]["_dd.appsec.json"]:
+                raise Exception("The security events contain the secret value that should be obfuscated")
+            return True
+
+        r = self.weblog_get("/waf/", cookies={"Bearer": f"{SECRET}aaaa"}, params={"pwd": f'{SECRET} o:3:"d":3:{{}}'})
+        interfaces.library.assert_waf_attack(r, address="server.request.cookies")
+        interfaces.library.assert_waf_attack(r, address="server.request.query")
+        interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
+
+    @scenario("APPSEC_CUSTOM_RULES")
+    def test_appsec_obfuscator_cookies_with_custom_rules(self):
+        """
+        Specific obfuscation test for the cookies which often contain sensitive data and are
+        expected to be properly obfuscated on sensitive cookies only.
+        """
+        # Validate that the AppSec events do not contain the following secret value.
+        # Note that this value must contain an attack pattern in order to be part of the security event data
+        # that is expected to be obfuscated.
+        SECRET_VALUE_WITH_SENSITIVE_KEY = "this-is-a-very-sensitive-cookie-value-having-the-aaaa-attack"
+        SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not-a-sensitive-cookie-value-having-an-bbbb-attack"
+
+        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+            if SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
+                raise Exception("The security events contain the secret value that should be obfuscated")
+            if SECRET_VALUE_WITH_NON_SENSITIVE_KEY not in span["meta"]["_dd.appsec.json"]:
+                raise Exception("Could not find the non-sensitive cookie data")
+            return True
+
+        r = self.weblog_get(
+            "/waf/", cookies={"Bearer": SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": SECRET_VALUE_WITH_NON_SENSITIVE_KEY}
+        )
+        interfaces.library.assert_waf_attack(r, address="server.request.cookies")
         interfaces.library.add_appsec_validation(r, validate_appsec_span_tags)
 
 
