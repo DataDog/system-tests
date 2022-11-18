@@ -7,7 +7,7 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, context, interfaces, released
+from utils import BaseTestCase, context, interfaces, released, scenario
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -22,6 +22,7 @@ if context.library == "cpp":
     python=PYTHON_RELEASE_GA_1_1,
     ruby="?",
 )
+@scenario("APPSEC_RULES_MONITORING_WITH_ERRORS")
 class Test_Monitoring(BaseTestCase):
     """ Support In-App WAF monitoring tags and metrics  """
 

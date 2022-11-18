@@ -1,0 +1,6 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/agent/api/v1/metadata-request.json",
+    "description": "..."
+  }
+  

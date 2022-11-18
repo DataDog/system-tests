@@ -62,6 +62,8 @@ def _get_schema_validator(schema_id):
     store = _get_schemas_store()
 
     if schema_id not in store:
+        for x in store:
+            print(x)
         raise FileNotFoundError(f"There is no schema file that describe {schema_id}")
 
     schema = store[schema_id]

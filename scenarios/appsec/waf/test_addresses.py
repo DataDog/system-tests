@@ -5,7 +5,7 @@
 
 import pytest
 from tests.constants import PYTHON_RELEASE_PUBLIC_BETA
-from utils import BaseTestCase, bug, context, interfaces, irrelevant, released
+from utils import BaseTestCase, bug, context, interfaces, irrelevant, released, scenario
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -27,6 +27,7 @@ if context.library == "cpp":
         "pylons": "1.1.0rc2.dev",
     }
 )
+@scenario("APPSEC_CUSTOM_RULES")
 class Test_Cookies(BaseTestCase):
     """Appsec supports server.request.cookies"""
 

@@ -12,7 +12,7 @@ jobs:
       GO111MODULE: off
       GOPATH: ${{ github.workspace }}/binaries/go
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: main
       - uses: actions/setup-go@v2
@@ -21,7 +21,7 @@ jobs:
       - run: go get github.com/gogo/protobuf/gogoproto
       - run: protoc --version && go version  
       - name: checkout DataDog/datadog-agent
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: 'DataDog/datadog-agent'
           path: 'binaries/datadog-agent'

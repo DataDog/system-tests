@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, BaseTestCase, interfaces, released, irrelevant
+from utils import context, coverage, BaseTestCase, interfaces, released, irrelevant, scenario
 
 # PHP JAVA ok
 
@@ -10,6 +10,7 @@ from utils import context, coverage, BaseTestCase, interfaces, released, irrelev
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
 @coverage.basic
+@scenario("LIBRARY_CONF_CUSTOM_HEADERS_SHORT")
 class Test_HeaderTagsShortFormat(BaseTestCase):
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
 
@@ -30,6 +31,7 @@ class Test_HeaderTagsShortFormat(BaseTestCase):
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
+@scenario("LIBRARY_CONF_CUSTOM_HEADERS_LONG")
 class Test_HeaderTagsLongFormat(BaseTestCase):
     """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
 
