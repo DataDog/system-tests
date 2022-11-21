@@ -6,7 +6,7 @@ from threading import Lock
 import time
 from random import randint
 
-from utils import BaseTestCase, interfaces, context, missing_feature, released, bug, irrelevant, flaky
+from utils import BaseTestCase, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenario
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_root_spans
 
@@ -101,6 +101,7 @@ class LibrarySamplingRateValidation(BaseValidation):
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
 @bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
 @bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
+@scenario("SAMPLING")
 class Test_SamplingRates(BaseTestCase):
     """Rate at which traces are sampled is the actual sample rate"""
 
@@ -131,13 +132,11 @@ class Test_SamplingRates(BaseTestCase):
 
 
 @released(php="0.71.0")
+@scenario("SAMPLING")
 class Test_SamplingDecisions(BaseTestCase):
     """Sampling configuration"""
 
     rid = 0
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
 
     @classmethod
     def next_request_id(cls):

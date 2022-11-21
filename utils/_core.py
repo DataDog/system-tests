@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import unittest
 import urllib
 import string
 import random
@@ -34,7 +33,7 @@ class _GrpcQuery:
         self.response = response
 
 
-class BaseTestCase(unittest.TestCase):
+class BaseTestCase:
     _weblog_url_prefix = "http://weblog:7777"
     _weblog_grpc_target = "weblog:7778"
 

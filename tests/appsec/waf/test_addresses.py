@@ -6,7 +6,19 @@
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import BaseTestCase, bug, context, coverage, flaky, interfaces, irrelevant, missing_feature, released, rfc
+from utils import (
+    BaseTestCase,
+    bug,
+    context,
+    coverage,
+    flaky,
+    interfaces,
+    irrelevant,
+    missing_feature,
+    released,
+    rfc,
+    scenario,
+)
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -47,13 +59,7 @@ class Test_UrlQuery(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0000012345", address="server.request.query")
 
 
-@released(
-    golang="1.37.0"
-    if context.weblog_variant == "gin"
-    else "1.36.0"
-    if context.weblog_variant in ["echo", "chi"]
-    else "1.34.0"
-)
+@released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
@@ -67,13 +73,7 @@ class Test_UrlRaw(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
-@released(
-    golang="1.37.0"
-    if context.weblog_variant == "gin"
-    else "1.36.0"
-    if context.weblog_variant in ["echo", "chi"]
-    else "1.34.0"
-)
+@released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(python="1.1.0rc2.dev")
@@ -134,14 +134,7 @@ class Test_Headers(BaseTestCase):
         interfaces.library.assert_no_appsec_event(r)
 
 
-@irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-@released(
-    golang="1.37.0"
-    if context.weblog_variant == "gin"
-    else "1.36.0"
-    if context.weblog_variant in ["echo", "chi"]
-    else "1.34.0"
-)
+@released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(
     python={
@@ -158,6 +151,7 @@ class Test_Cookies(BaseTestCase):
     # Cookies rules has been removed in rules version 1.2.7. Test on cookies are now done on custom rules scenario.
     # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
 
+    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_cookies(self):
         """Appsec WAF detects attackes in cookies"""
         r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
@@ -169,6 +163,7 @@ class Test_Cookies(BaseTestCase):
         "encoded to represent disallowed octets",
     )
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
+    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_cookies_with_semicolon(self):
         """Cookie with pattern containing a semicolon"""
         r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
@@ -178,6 +173,7 @@ class Test_Cookies(BaseTestCase):
         interfaces.library.assert_waf_attack(r, pattern=".cookie-;domain=", address="server.request.cookies")
 
     @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
+    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_cookies_with_spaces(self):
         """Cookie with pattern containing a space"""
         r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
@@ -186,7 +182,43 @@ class Test_Cookies(BaseTestCase):
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
     @bug(context.library < "java@0.96.0")
+    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_cookies_with_special_chars2(self):
+        """Other cookies patterns"""
+        r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
+        interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
+
+    @scenario("APPSEC_CUSTOM_RULES")
+    def test_cookies_custom_rules(self):
+        """ Appsec WAF detects attackes in cookies """
+        r = self.weblog_get("/waf/", cookies={"attack": ".htaccess"})
+        interfaces.library.assert_waf_attack(r, pattern=".htaccess", address="server.request.cookies")
+
+    @irrelevant(
+        library="java",
+        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
+        "encoded to represent disallowed octets",
+    )
+    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
+    @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
+    @scenario("APPSEC_CUSTOM_RULES")
+    def test_cookies_with_semicolon_custom_rules(self):
+        """ Cookie with pattern containing a semicolon """
+        r = self.weblog_get("/waf", cookies={"value": "%3Bshutdown--"})
+        interfaces.library.assert_waf_attack(r, pattern=";shutdown--", address="server.request.cookies")
+
+    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
+    @scenario("APPSEC_CUSTOM_RULES")
+    def test_cookies_with_spaces_custom_rules(self):
+        """ Cookie with pattern containing a space """
+        r = self.weblog_get("/waf/", cookies={"x-attack": "var_dump ()"})
+        interfaces.library.assert_waf_attack(r, pattern="var_dump ()", address="server.request.cookies")
+
+    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
+    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
+    @bug(context.library < "java@0.96.0")
+    @scenario("APPSEC_CUSTOM_RULES")
+    def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
         r = self.weblog_get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
         interfaces.library.assert_waf_attack(r, pattern='o:4:"x":5:{d}', address="server.request.cookies")
