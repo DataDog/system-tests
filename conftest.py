@@ -144,12 +144,53 @@ def pytest_collection_modifyitems(session, config, items):
     config.hook.pytest_deselected(items=deselected)
 
 
-def pytest_runtestloop(session):
+def pytest_collection_finish(session):
+
+    if session.config.option.collectonly:
+        return
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     terminal.write_line("Executing weblog warmup...")
     context.execute_warmups()
+
+    last_file = ""
+    for item in session.items:
+
+        if item.instance:  # item is a method bounded to a class
+
+            # the test metohd name is like test_xxxx
+            # we replace the test_ by setup_, and call it if it exists
+
+            setup_method_name = f"setup_{item.name[5:]}"
+
+            if hasattr(item.instance, setup_method_name):
+
+                if last_file != item.location[0]:
+                    if len(last_file) == 0:
+                        terminal.write_sep("-", "Tests setup", bold=True)
+
+                    terminal.write(f"\n{item.location[0]} ")
+                    last_file = item.location[0]
+
+                setup_method = getattr(item.instance, setup_method_name)
+                logger.debug(f"Call {setup_method} for {item}")
+                try:
+                    setup_method()
+                except Exception:
+                    logger.exception()
+                    terminal.write("x", bold=True, red=True)
+                    raise
+                else:
+                    terminal.write(".", bold=True, green=True)
+
+    terminal.write("\n")
+    terminal.write_sep("-", bold=True)
+
+
+def pytest_runtestloop(session):
+
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     # From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337
 
