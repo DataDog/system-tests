@@ -2,14 +2,23 @@ import requests
 
 from ddtrace import tracer
 from flask import Flask, request as flask_request, Response
+import psycopg2
 
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
     set_user = lambda *args, **kwargs: None
 
+POSTGRES_CONFIG = dict(
+    host="postgres",
+    port="5432",
+    user="postgres",
+    password="postgres",
+    dbname="postgres",
+)
 
 app = Flask(__name__)
+db = psycopg2.connect(**POSTGRES_CONFIG)
 
 tracer.trace("init.service").finish()
 
@@ -100,4 +109,10 @@ def identify_propagate():
         scope="usr.scope",
         propagate=True,
     )
+    return Response("OK")
+
+
+@app.route("/dbm")
+def dbm():
+    db.cursor().execute("""select 'blah'""")
     return Response("OK")

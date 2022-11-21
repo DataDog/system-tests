@@ -53,6 +53,8 @@ services:
         condition: service_healthy
       agent:
         condition: service_healthy
+      postgres:
+        condition: service_started
 
   agent:
     container_name: agent
@@ -119,7 +121,7 @@ services:
     restart: always
     ports:
       - "127.0.0.1:27017:27017"
-  
+
   postgres:
     container_name: postgres
     image: postgres
