@@ -2,8 +2,8 @@ package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.springboot.iast.utils.CmdExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples;
-import com.datadoghq.system_tests.springboot.iast.utils.PathExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.LDAPExamples;
+import com.datadoghq.system_tests.springboot.iast.utils.PathExamples;
 import com.datadoghq.system_tests.springboot.iast.utils.SqlExamples;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.naming.NamingException;
-import javax.servlet.ServletRequest;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.naming.NamingException;
+import javax.servlet.ServletRequest;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
@@ -26,26 +26,37 @@ import java.sql.SQLException;
 public class AppSecIast {
     String superSecretAccessKey = "insecure";
 
+    private final CryptoExamples cryptoExamples;
     private final SqlExamples sqlExamples;
     private final CmdExamples cmdExamples;
     private final PathExamples pathExamples;
     private final LDAPExamples ldapExamples;
 
-    public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples, final LDAPExamples ldapExamples) {
+    public AppSecIast(final CryptoExamples cryptoExamples,
+                      final SqlExamples sqlExamples,
+                      final CmdExamples cmdExamples,
+                      final PathExamples pathExamples,
+                      final LDAPExamples ldapExamples) {
+        this.cryptoExamples = cryptoExamples;
         this.sqlExamples = sqlExamples;
         this.cmdExamples = cmdExamples;
         this.pathExamples = pathExamples;
         this.ldapExamples = ldapExamples;
     }
 
+    @GetMapping("/")
+    String index() {
+        return "Welcome to the IAST testing app";
+    }
+
     @RequestMapping("/insecure_hashing/deduplicate")
     String removeDuplicates() throws NoSuchAlgorithmException {
-        return CryptoExamples.getSingleton().removeDuplicates(superSecretAccessKey);
+        return cryptoExamples.removeDuplicates(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_hashing/multiple_hash")
     String multipleInsecureHash() throws NoSuchAlgorithmException {
-        return CryptoExamples.getSingleton().multipleInsecureHash(superSecretAccessKey);
+        return cryptoExamples.multipleInsecureHash(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_hashing/test_secure_algorithm")
@@ -54,7 +65,7 @@ public class AppSecIast {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().secureHashing(superSecretAccessKey);
+        return cryptoExamples.secureHashing(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_hashing/test_md5_algorithm")
@@ -63,7 +74,7 @@ public class AppSecIast {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().insecureMd5Hashing(superSecretAccessKey);
+        return cryptoExamples.insecureMd5Hashing(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_cipher/test_secure_algorithm")
@@ -73,7 +84,7 @@ public class AppSecIast {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().secureCipher(superSecretAccessKey);
+        return cryptoExamples.secureCipher(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_cipher/test_insecure_algorithm")
@@ -83,7 +94,7 @@ public class AppSecIast {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().insecureCipher(superSecretAccessKey);
+        return cryptoExamples.insecureCipher(superSecretAccessKey);
     }
 
     @PostMapping("/sqli/test_insecure")

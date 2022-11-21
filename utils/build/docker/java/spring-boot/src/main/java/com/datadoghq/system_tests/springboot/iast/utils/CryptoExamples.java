@@ -1,7 +1,9 @@
 package com.datadoghq.system_tests.springboot.iast.utils;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -15,20 +17,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.Arrays;
 
+@Component
 public class CryptoExamples {
 
-    private static CryptoExamples singleton;
-
-    private CryptoExamples() {
-    }
-
-    public static CryptoExamples getSingleton() {
-        if (singleton == null) {
-            // Needed for MD4 implementation
-            Security.addProvider(new BouncyCastleProvider());
-            singleton = new CryptoExamples();
-        }
-        return singleton;
+    @PostConstruct
+    public void setup() throws NoSuchAlgorithmException {
+        Security.addProvider(new BouncyCastleProvider());
+        final MessageDigest md4 = MessageDigest.getInstance("md4");
+        consumeMessageDigest(md4, "vulnerability during startup");
     }
 
     public String removeDuplicates(final String password) throws NoSuchAlgorithmException {
