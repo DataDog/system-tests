@@ -6,6 +6,36 @@
 * **added values**: It'll be easier to run and debug test logics. And using native pytest feature, we'll be able to include parametric test in system tests.
 
 
+### Test code before
+
+```python
+class Test_Feature(BaseTestCase):
+    """A test on a feature"""
+
+    def test_main(self):
+
+        def validator(trace):
+            assert "feature" in trace
+
+        r = self.weblog_get("/feature")
+        interfaces.library.add_trace_assertion(r, validator)
+```
+
+### Test code after
+
+```python
+class Test_Feature(BaseTestCase):
+    """A test on a feature"""
+
+    def setup_main(self):
+        self.r = self.weblog_get("/feature")
+
+    def test_main(self):
+        for trace in interfaces.library.get_traces_related_to(request=self.r)
+            assert "feature" in trace
+```
+
+
 ## Revamp description
 
 As now, all validation are made asynchronously, after the end of the test session. It comes with a lot of hack around pytest, and, as a consequence, make harder to debug test logic, and requires a minimum understanding of the asynchronous logic.
@@ -31,32 +61,3 @@ Overwrite test result      | pytest_json_modifyreport, with lot of hacks        
 
 One nice feature of the actual system if that if a feature needs an weblog HTTP request to be tested, this request is in the test method. And even if test logic is not **in** the test function (mostly in a nested function, or directly in some system test internal, like `assert_waf_attack(request)`), it's close enough to be easily understable. With the new model, it must be in a separated method. We'll try to mitigate this slighlty bigger distance by organizing test classes to keep every setup method just above the associated test method.
 
-
-## Test code before
-
-```python
-class Test_Feature(BaseTestCase):
-    """A test on a feature"""
-
-    def test_main(self):
-
-        def validator(trace):
-            assert "feature" in trace
-
-        r = self.weblog_get("/feature")
-        interfaces.library.add_trace_assertion(r, validator)
-```
-
-## Test code after
-
-```python
-class Test_Feature(BaseTestCase):
-    """A test on a feature"""
-
-    def setup_main(self):
-        self.r = self.weblog_get("/feature")
-
-    def test_main(self):
-        for trace in interfaces.library.get_traces_related_to(request=self.r)
-            assert "feature" in trace
-```
