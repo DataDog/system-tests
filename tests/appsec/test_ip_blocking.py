@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-from scenarios.remote_config.test_remote_configuration import rc_check_request
+from tests.remote_config.test_remote_configuration import rc_check_request
 from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, irrelevant, scenario
 from utils.tools import logger
 
