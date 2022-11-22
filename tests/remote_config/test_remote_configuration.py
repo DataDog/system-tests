@@ -19,13 +19,13 @@ from utils import (
 )
 from utils.tools import logger
 
-with open("scenarios/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
+with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
     LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
-with open("scenarios/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
+with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
     ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
 
-with open("scenarios/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
+with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
     ASM_DD_EXPECTED_REQUESTS = json.load(f)
 
 
