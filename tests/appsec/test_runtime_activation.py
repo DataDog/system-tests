@@ -12,6 +12,9 @@ from utils import BaseTestCase, context, coverage, interfaces, released, irrelev
 @scenario("APPSEC_RUNTIME_ACTIVATION")
 @released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="?")
 @irrelevant(context.appsec_rules_file == "")
+@irrelevant(
+    context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with cutom rule file"
+)
 @coverage.basic
 class Test_RuntimeActivation(BaseTestCase):
     """A library should block requests after AppSec is activated via remote config."""
