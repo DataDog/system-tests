@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, released
+from utils import BaseTestCase, interfaces, context, missing_feature, released, scenario
 
 
 @released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
 @missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
+@scenario("INTEGRATIONS")
 class Test_Dbm(BaseTestCase):
     """Verify behavior of DBM propagation"""
 

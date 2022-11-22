@@ -11,10 +11,10 @@ except ImportError:
 
 POSTGRES_CONFIG = dict(
     host="postgres",
-    port="5432",
-    user="postgres",
-    password="postgres",
-    dbname="postgres",
+    port="5433",
+    user="system_tests_user",
+    password="system_tests",
+    dbname="system_tests",
 )
 
 app = Flask(__name__)
