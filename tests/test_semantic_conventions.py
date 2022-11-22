@@ -224,6 +224,19 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
+    @bug(library="cpp", reason="component tag not implemented")
+    def test_meta_runtime_id_tag(self):
+        """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
+
+        def validator(span):
+
+            if "runtime-id" not in span.get("meta"):
+                raise Exception(f"No runtime-id tag found. Expected tag to be present.")
+
+            return True
+
+        interfaces.library.add_span_validation(validator=validator)
+
 
 @bug(
     context.library in ("cpp", "python", "ruby"),
