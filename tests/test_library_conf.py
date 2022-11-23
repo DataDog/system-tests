@@ -2,14 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, BaseTestCase, interfaces, released, irrelevant, scenario
+from utils import context, coverage, weblog, interfaces, released, irrelevant, scenario
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
 @released(dotnet="?", golang="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
-class Test_HeaderTags(BaseTestCase):
+class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
 
     def test_trace_header_tags_basic(self):
@@ -26,8 +26,12 @@ class Test_HeaderTags(BaseTestCase):
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 @scenario("LIBRARY_CONF_CUSTOM_HEADERS_SHORT")
-class Test_HeaderTagsShortFormat(BaseTestCase):
+class Test_HeaderTagsShortFormat:
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
+
+    def setup_trace_header_tags(self):
+        self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
@@ -36,19 +40,21 @@ class Test_HeaderTagsShortFormat(BaseTestCase):
         # skip the first item, as this required to make the tests work on some platforms
         tag_config_list = full_tag_config_list[1::]
 
-        headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
-        tags = {"http.request.headers." + tag: headers[tag] for tag in tag_config_list}
+        tags = {"http.request.headers." + tag: self.headers[tag] for tag in tag_config_list}
 
-        r = self.weblog_get("/waf", headers=headers)
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
+        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 @scenario("LIBRARY_CONF_CUSTOM_HEADERS_LONG")
-class Test_HeaderTagsLongFormat(BaseTestCase):
+class Test_HeaderTagsLongFormat:
     """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
+
+    def setup_trace_header_tags(self):
+        self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
         tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
@@ -57,8 +63,6 @@ class Test_HeaderTagsLongFormat(BaseTestCase):
         # skip the first item, as this required to make the tests work on some platforms
         tag_config_list = full_tag_config_list[1::]
 
-        headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
-        tags = {item.split(":")[1]: headers[item.split(":")[0]] for item in tag_config_list}
+        tags = {item.split(":")[1]: self.headers[item.split(":")[0]] for item in tag_config_list}
 
-        r = self.weblog_get("/waf", headers=headers)
-        interfaces.library.add_span_tag_validation(request=r, tags=tags)
+        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
