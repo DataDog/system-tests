@@ -28,6 +28,7 @@ from utils.interfaces._library.sampling import (
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
+    _AppHeartbeatValidation,
 )
 from utils.interfaces._misc_validators import HeadersPresenceValidation
 
@@ -167,6 +168,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def assert_no_skipped_seq_ids(self):
         self.append_validation(_NoSkippedSeqId())
+
+    def assert_app_heartbeat_validation(self):
+        self.append_validation(_AppHeartbeatValidation())
 
     def add_profiling_validation(self, validator):
         self.add_validation(validator, path_filters="/profiling/v1/input")

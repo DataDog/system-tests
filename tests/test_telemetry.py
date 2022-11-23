@@ -1,4 +1,15 @@
-from utils import context, BaseTestCase, interfaces, missing_feature, bug, released, flaky, irrelevant
+import time
+from utils import (
+    context,
+    BaseTestCase,
+    interfaces,
+    missing_feature,
+    bug,
+    released,
+    flaky,
+    irrelevant,
+    ValidationException,
+)
 
 
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
@@ -116,7 +127,7 @@ class Test_Telemetry(BaseTestCase):
 
                 if key not in self.library_requests:
                     # once the library interface is validated, weblog is not stopped. But it can send other data, and
-                    # they won't be seen. The agent interface wait 5 second after, and can collect data. So iof the
+                    # they won't be seen. The agent interface wait 5 second after, and can collect data. So if the
                     # library sent some data during this 5s, the agent interface will see it, but not the library
                     # interface. For now, simply do not consider this use case, waiting for a better solution.
 
@@ -131,21 +142,21 @@ class Test_Telemetry(BaseTestCase):
                     #     f"Agent proxy forwarded a message that was not sent by the library: {agent_log_file}",
                     #     extra_info=extra_info,
                     # )
+                else:
+                    lib_data = self.library_requests.pop(key)
+                    lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
 
-                lib_data = self.library_requests.pop(key)
-                lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
-
-                if agent_message != lib_message:
-                    raise Exception(
-                        f"Telemetry proxy message different in messages {lib_log_file} and {agent_log_file}:\n"
-                        f"library sent {lib_message}\n"
-                        f"agent sent {agent_message}"
-                    )
+                    if agent_message != lib_message:
+                        raise Exception(
+                            f"Telemetry proxy message different in messages {lib_log_file} and {agent_log_file}:\n"
+                            f"library sent {lib_message}\n"
+                            f"agent sent {agent_message}"
+                        )
 
             if len(self.library_requests) != 0:
-                raise Exception(
-                    f"The following telemetry messages were not forwarded by the agent: \n"
-                    f"{' '.join((data for _, data in self.library_requests.values()))}"
+                raise ValidationException(
+                    "The following telemetry messages were not forwarded by the agent",
+                    extra_info=[{"seq_id": s, "runtime_id": r} for s, r in self.library_requests],
                 )
 
             return True  # all good!
@@ -175,3 +186,8 @@ class Test_Telemetry(BaseTestCase):
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
         interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=True)
+
+    def test_app_heartbeat(self):
+        """Check for heartbeat or messages within interval and valid started and closing messages"""
+        time.sleep(20)
+        interfaces.library.assert_app_heartbeat_validation()
