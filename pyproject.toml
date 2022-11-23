@@ -49,6 +49,7 @@ disable = [
     "abstract-method",
     "inconsistent-return-statements", # because lot of validator function returns nothing
     "unused-argument", # pain, as there are some function that MUST have a prototype. TODO...
+    "attribute-defined-outside-init",
 ]
 ignore = "utils/test_the_test"
 generated-members = [
