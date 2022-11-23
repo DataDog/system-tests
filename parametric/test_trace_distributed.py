@@ -16,7 +16,7 @@ def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
         distributed_message.http_headers["x-datadog-trace-id"] = "123456789"
         distributed_message.http_headers["x-datadog-parent-id"] = "987654321"
         distributed_message.http_headers["x-datadog-sampling-priority"] = "2"
-        distributed_message.http_headers["x-datadog-origin"] = "synthetics"
+        distributed_message.http_headers["x-datadog-origin"] = "synthetics,=web"
         distributed_message.http_headers["x-datadog-tags"] = "_dd.p.dm=-4"
 
         with test_library.start_span(
@@ -27,7 +27,7 @@ def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
     span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert span.get("trace_id") == 123456789
     assert span.get("parent_id") == 987654321
-    assert span["meta"].get(ORIGIN) == "synthetics"
+    assert span["meta"].get(ORIGIN) == "synthetics,=web"
     assert span["meta"].get("_dd.p.dm") == "-4"
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
@@ -35,8 +35,7 @@ def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_library):
-    """Ensure that Datadog distributed tracing headers are extracted
-    and activated properly.
+    """Ensure that invalid Datadog distributed tracing headers are not extracted.
     """
     with test_library:
         distributed_message = DistributedHTTPHeaders()
@@ -75,9 +74,9 @@ def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
 
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-def test_distributed_headers_extractandinject_datadog_D004(test_agent, test_library):
+def test_distributed_headers_propagate_datadog_D004(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
-    and activated properly.
+    and injected properly.
     """
     with test_library:
         distributed_message = DistributedHTTPHeaders()
