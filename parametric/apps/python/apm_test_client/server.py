@@ -49,7 +49,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         )
 
     def InjectHeaders(self, request, context):
-        ctx = ddtrace.tracer.current_span().context
+        ctx = self._spans[request.span_id].context
         headers = {}
         HTTPPropagator.inject(ctx, headers)
         distrib_headers = apm_test_client_pb2.DistributedHTTPHeaders()
@@ -100,6 +100,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         if len(stats_proc):
             stats_proc[0].periodic()
         return apm_test_client_pb2.FlushTraceStatsReturn()
+
+    def StopTracer(self, request, context):
+        return apm_test_client_pb2.StopTracerReturn()
 
 
 def serve(port: str):
