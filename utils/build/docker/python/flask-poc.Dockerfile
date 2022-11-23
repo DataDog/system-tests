@@ -4,7 +4,7 @@ FROM python:3.9
 RUN python --version && curl --version
 
 # install hello world app
-RUN pip install flask gunicorn gevent requests
+RUN pip install flask gunicorn gevent requests pycryptodome
 
 COPY utils/build/docker/python/flask.py app.py
 COPY utils/build/docker/python/iast.py iast.py

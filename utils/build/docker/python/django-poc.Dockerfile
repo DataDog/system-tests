@@ -4,7 +4,7 @@ FROM python:3.9
 RUN python --version && curl --version
 
 # install hello world app
-RUN pip install django
+RUN pip install django pycryptodome
 
 
 RUN django-admin startproject django_app .

@@ -2,7 +2,14 @@
 from ddtrace import tracer
 from django.http import HttpResponse
 from django.urls import path
-from iast import secure_algorithm, weak_hash
+from iast import (
+    weak_hash_secure_algorithm,
+    weak_hash,
+    weak_hash_multiple,
+    weak_hash_duplicates,
+    weak_cipher,
+    weak_cipher_secure_algorithm,
+)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -62,18 +69,32 @@ def identify_propagate(request):
 
 
 def view_weak_hash_multiple_hash(request):
-    result = weak_hash()
-    result = weak_hash()
+    weak_hash_multiple()
     return HttpResponse("OK")
 
 
 def view_weak_hash_secure_algorithm(request):
-    result = secure_algorithm()
+    result = weak_hash_secure_algorithm()
     return HttpResponse("OK")
 
 
 def view_weak_hash_md5_algorithm(request):
     result = weak_hash()
+    return HttpResponse("OK")
+
+
+def view_weak_hash_deduplicate(request):
+    result = weak_hash_duplicates()
+    return HttpResponse("OK")
+
+
+def view_weak_cipher_insecure(request):
+    weak_cipher()
+    return HttpResponse("OK")
+
+
+def view_weak_cipher_secure(request):
+    weak_cipher_secure_algorithm()
     return HttpResponse("OK")
 
 
@@ -91,4 +112,7 @@ urlpatterns = [
     path("iast/insecure_hashing/multiple_hash", view_weak_hash_multiple_hash),
     path("iast/insecure_hashing/test_secure_algorithm", view_weak_hash_secure_algorithm),
     path("iast/insecure_hashing/test_md5_algorithm", view_weak_hash_md5_algorithm),
+    path("iast/insecure_hashing/deduplicate", view_weak_hash_deduplicate),
+    path("iast/insecure_cipher/test_insecure_algorithm", view_weak_cipher_insecure),
+    path("iast/insecure_cipher/test_secure_algorithm", view_weak_cipher_secure),
 ]

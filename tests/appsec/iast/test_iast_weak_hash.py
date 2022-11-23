@@ -33,7 +33,6 @@ class TestIastWeakHash(BaseTestCase):
         expected = self.EXPECTATIONS.get(context.library.library)
         return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
 
-    @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
     @missing_feature(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
