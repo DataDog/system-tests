@@ -197,7 +197,7 @@ COPY {java_reldir}/src src
 COPY {java_reldir}/pom.xml .
 COPY {java_reldir}/run.sh .
 COPY binaries* /binaries/
-RUN mvn package
+RUN mvn -Dmaven.repo.local=/binaries/repo package
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_dir,

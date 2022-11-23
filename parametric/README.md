@@ -128,6 +128,42 @@ go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
 go mod tidy
 ```
 
+#### Java
+
+##### Run Parametric tests with a custom Java Tracer version
+
+1. Set local maven repo to point to the `system-tests/binaries/repo` folder. In order to do so, add `~/.m2/settings.xml`
+```xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <localRepository>/Users/YOUR_HOME_FOLDER/dd/system-tests/binaries/repo</localRepository>
+</settings>   
+```
+
+2. Publish Java Tracer into that directory
+```bash
+./gradlew :dd-trace-ot:publishToMavenLocal
+./gradlew :dd-trace-api:publishToMavenLocal
+```
+
+3. Check that the artifacts have been published into the `system-tests/binaries/repo` folder.
+
+4. Change `dd-trace-ot` version in  `system-tests/parametric/apps/java/pom.xml`
+```xml
+    <dependency>
+      <groupId>com.datadoghq</groupId>
+      <artifactId>dd-trace-ot</artifactId>
+      <version>0.115.0-SNAPSHOT</version>
+    </dependency>
+```
+
+5. Run Parametric tests from the `system-tests/parametric` folder:
+
+```bash
+CLIENTS_ENABLED=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
+```
 
 ### Debugging 
 
