@@ -28,7 +28,7 @@ if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
     export HIDDEN_APM_PORT_OVERRIDE=8126
 fi
 
-export RUNNER_ARGS="scenarios/ tests/"
+export RUNNER_ARGS="tests/"
 export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
