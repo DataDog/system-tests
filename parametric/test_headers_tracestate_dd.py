@@ -20,7 +20,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
-def test_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
+def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
     '''
     harness sends a request with both tracestate and traceparent
     expects a valid traceparent from the output header with the same trace_id
@@ -176,7 +176,7 @@ def test_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
-def test_tracestate_dd_propagate_origin(test_agent, test_library):
+def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     '''
     harness sends a request with both tracestate and traceparent
     expects a valid traceparent from the output header with the same trace_id
@@ -287,7 +287,7 @@ def test_tracestate_dd_propagate_origin(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
-def test_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
+def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     '''
     harness sends a request with both tracestate and traceparent
     expects a valid traceparent from the output header with the same trace_id
