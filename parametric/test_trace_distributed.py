@@ -23,7 +23,7 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
         ) as span:
             span.set_meta(key="http.status_code", val="200")
 
-    span = get_span(test_agent)
+    span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert span.get("trace_id") == 123456789
     assert span.get("parent_id") == 987654321
     assert span["meta"].get(ORIGIN) == "synthetics"
@@ -50,7 +50,7 @@ def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
         ) as span:
             span.set_meta(key="http.status_code", val="200")
 
-    span = get_span(test_agent)
+    span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert span.get("trace_id") != 0
     assert span.get("parent_id") != 0
     # assert span["meta"].get(ORIGIN) is None # TODO: Determine if we keep x-datadog-origin for an invalid trace-id/parent-id
@@ -58,15 +58,15 @@ def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
 
 
-@pytest.mark.skip_library("golang", "not impemented")
-@pytest.mark.skip_library("nodejs", "not impemented")
+@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_inject_datadog(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are injected properly.
     """
     with test_library:
         with test_library.start_span(name="name") as span:
             headers = test_library.inject_headers(span.span_id).http_headers.http_headers
-    span = get_span(test_agent)
+    span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
     assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
     assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
@@ -91,7 +91,7 @@ def test_distributed_headers_extractandinject_datadog(test_agent, test_library):
         ) as span:
             headers = test_library.inject_headers(span.span_id).http_headers.http_headers
 
-    span = get_span(test_agent)
+    span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert headers["x-datadog-trace-id"] == "123456789"
     assert headers["x-datadog-parent-id"] != "987654321"
     assert headers["x-datadog-sampling-priority"] == "2"
@@ -118,7 +118,7 @@ def test_distributed_headers_extractandinject_datadog_invalid(test_agent, test_l
         ) as span:
             headers = test_library.inject_headers(span.span_id).http_headers.http_headers
 
-    span = get_span(test_agent)
+    span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert headers["x-datadog-trace-id"] != "0"
     assert headers["x-datadog-parent-id"] != "0"
     assert headers["x-datadog-sampling-priority"] != "2"
@@ -143,11 +143,5 @@ def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, tes
         ) as span:
             span.set_meta(key="http.status_code", val="200")
 
-    span = get_span(test_agent)
+    span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert span.get("trace_id") == 11803532876627986230
-
-
-def get_span(test_agent):
-    traces = test_agent.traces()
-    span = traces[0][0]
-    return span
