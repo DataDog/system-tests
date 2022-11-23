@@ -19,6 +19,9 @@ from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
 
+"""Key used in the meta map to indicate the span origin"""
+ORIGIN = "_dd.origin"
+
 """Key used in the metrics map to indicate tracer sampling priority"""
 SAMPLING_PRIORITY_KEY = "_sampling_priority_v1"
 

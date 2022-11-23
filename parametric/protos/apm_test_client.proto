@@ -32,7 +32,9 @@ message StartSpanReturn {
   uint64 trace_id = 2;
 }
 
-message InjectHeadersArgs {}
+message InjectHeadersArgs {
+  uint64 span_id = 1;
+}
 
 message InjectHeadersReturn {
     optional DistributedHTTPHeaders http_headers = 1;
