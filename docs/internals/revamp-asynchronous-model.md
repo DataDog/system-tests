@@ -40,7 +40,7 @@ class Test_Feature(BaseTestCase):
 
 As now, all validation are made asynchronously, after the end of the test session. It comes with a lot of hack around pytest, and, as a consequence, make harder to debug test logic, and requires a minimum understanding of the asynchronous logic.
 
-Furthermore, as the test function does not have any test logic, they must not fail, which is a non-sense from pytest perspective. For instance, any error when writing a test on a `xfail` method is interpreted as normal by pytest, making any test very hard.
+Furthermore, as the test function does not have any test logic, they must not fail, which is a non-sense from pytest perspective. For instance, any error when writing a test on a `xfail` method is interpreted as normal by pytest, making writing conplex test hard.
 
 Cherry on the (bad) cake, we have lot of unecessary complexity to gater logs, and overwrite test results and the end of the test session.
 

@@ -3,11 +3,11 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-from scenarios.remote_config.test_remote_configuration import rc_check_request
+from tests.remote_config.test_remote_configuration import rc_check_request
 from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, irrelevant, scenario
 from utils.tools import logger
 
-with open("scenarios/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") as f:
+with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
