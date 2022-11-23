@@ -7,6 +7,7 @@ RUN python --version && curl --version
 RUN pip install flask gunicorn gevent requests
 
 COPY utils/build/docker/python/flask.py app.py
+COPY utils/build/docker/python/iast.py iast.py
 ENV FLASK_APP=app.py
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/

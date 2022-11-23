@@ -12,7 +12,7 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
     java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "spring-boot-openliberty": "0.108.0", "*": "?"},
     nodejs={"express4": "3.6.0", "*": "?"},
     php_appsec="?",
-    python="?",
+    python="1.6.0",
     ruby="?",
     cpp="?",
 )
@@ -20,6 +20,7 @@ class TestIastWeakHash(BaseTestCase):
     """Verify IAST WEAK HASH detection feature"""
 
     EXPECTATIONS = {
+        "python": {"LOCATION": "/iast.py" if context.weblog_variant != "uwsgi-poc" else "/./iast.py"},
         "nodejs": {"LOCATION": "/usr/app/iast.js"},
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"},
     }
@@ -32,6 +33,7 @@ class TestIastWeakHash(BaseTestCase):
         expected = self.EXPECTATIONS.get(context.library.library)
         return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
 
+    @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
     @missing_feature(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
