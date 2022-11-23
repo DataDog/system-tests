@@ -1,6 +1,20 @@
 System tests code is in python, and is linted using [black](https://black.readthedocs.io/en/stable/).
 
-As the framework use `docker`, you may not have the setup to run it, and it can be painful to pass the CI. So here here the easy step to a quick setup:
+As the framework uses `docker`, you may not have the setup to run it, and it can be painful to pass the CI. So here here the easy step to a quick setup:
+
+## Using Docker
+
+There is a script `format.sh` in the root of the repository which will package the right `black` version in a Docker image and will run it:
+
+```bash
+# format everything
+./format.sh
+
+# format a directory or file
+./format.sh tests
+```
+
+## Using a virtualenv
 
 * [install python 3](https://www.python.org/downloads/). You may have it by default:
   * run `python --version`. As long as the version is 3, it's ok
