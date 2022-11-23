@@ -18,7 +18,6 @@ POSTGRES_CONFIG = dict(
 )
 
 app = Flask(__name__)
-db = psycopg2.connect(**POSTGRES_CONFIG)
 
 tracer.trace("init.service").finish()
 
@@ -114,5 +113,17 @@ def identify_propagate():
 
 @app.route("/dbm")
 def dbm():
-    db.cursor().execute("""select 'blah'""")
-    return Response("OK")
+    integration = flask_request.headers.get('integration')
+    if integration == "psycopg":
+        postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+        cursor = postgres_db.cursor()
+        cursor_method = flask_request.headers.get('cursor_method')
+        if cursor_method == "execute":
+            cursor.execute("select 'blah'")
+            return Response("OK")
+        elif cursor_method == "executemany":
+            cursor.executemany("select %s", (("blah",), ("moo",) ))
+            return Response("OK")
+        return Response(f"Cursor method is not supported: {cursor_method}", 406)
+
+    return Response(f"Integration is not supported: {integration}", 406)

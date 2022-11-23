@@ -21,9 +21,14 @@ class Test_Dbm(BaseTestCase):
 
             return True
 
-        r = self.weblog_get("/dbm", params={"url": "http://weblog:7777"})
+        # test psycopg execute()
+        r = self.weblog_get("/dbm", params={"url": "http://weblog:7777"}, headers={"integration": "psycopg", "cursor_method": "execute"})
         interfaces.library.add_assertion(r.status_code == 200)
-        interfaces.library.add_span_validation(request=r, validator=validator)
+        interfaces.library.add_span_validation(request=r, validator=validator, is_success_on_expiry=True)
+        # test psycopg executemany()
+        r = self.weblog_get("/dbm", params={"url": "http://weblog:7777"}, headers={"integration": "psycopg", "cursor_method": "executemany"})
+        interfaces.library.add_assertion(r.status_code == 200)
+        interfaces.library.add_span_validation(request=r, validator=validator, is_success_on_expiry=True)
 
     def test_dbm_payload(self):
         # TODO: Add schema for validation of dbm payload agent/backend
