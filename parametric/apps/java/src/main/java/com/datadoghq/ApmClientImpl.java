@@ -4,8 +4,10 @@ import static com.datadoghq.App.LOGGER;
 
 import com.datadoghq.client.APMClientGrpc;
 import com.datadoghq.client.ApmTestClient;
-import datadog.trace.api.DDId;
+import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTags;
+import datadog.trace.api.DDTraceId;
+import datadog.trace.api.internal.InternalTracer;
 import io.grpc.stub.StreamObserver;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
@@ -16,19 +18,16 @@ import java.util.Map;
 
 public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     private final Tracer tracer;
-    private final Runnable flushTraceRunnable;
-    private final Runnable flushStatsRunnable;
     private final Map<Long, Span> spans;
 
-    public ApmClientImpl(Tracer tracer, Runnable flushTraceRunnable, Runnable flushStatsRunnable) {
+    public ApmClientImpl(Tracer tracer) {
         this.tracer = tracer;
-        this.flushTraceRunnable = flushTraceRunnable;
-        this.flushStatsRunnable = flushStatsRunnable;
         this.spans = new HashMap<>();
     }
+
     @Override
     public void startSpan(ApmTestClient.StartSpanArgs request, StreamObserver<ApmTestClient.StartSpanReturn> responseObserver) {
-        LOGGER.info("Creating span: "+request.toString());
+        LOGGER.info("Creating span: " + request.toString());
         Tracer.SpanBuilder builder = this.tracer.buildSpan(request.getName());
         if (request.hasService()) {
             builder.withTag(DDTags.SERVICE_NAME, request.getService());
@@ -51,8 +50,8 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
         }
 
         Span span = builder.start();
-        long spanId = DDId.from(span.context().toSpanId()).toLong();
-        long traceId = DDId.from(span.context().toTraceId()).toLong();
+        long spanId = DDSpanId.from(span.context().toSpanId());
+        long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
         this.spans.put(spanId, span);
 
         responseObserver.onNext(ApmTestClient.StartSpanReturn.newBuilder()
@@ -65,7 +64,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
 
     @Override
     public void finishSpan(ApmTestClient.FinishSpanArgs request, StreamObserver<ApmTestClient.FinishSpanReturn> responseObserver) {
-        LOGGER.info("Finishing span: "+request.toString());
+        LOGGER.info("Finishing span: " + request.toString());
         Span span = getSpan(request.getId(), responseObserver);
         if (span != null) {
             span.finish();
@@ -76,7 +75,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
 
     @Override
     public void spanSetMeta(ApmTestClient.SpanSetMetaArgs request, StreamObserver<ApmTestClient.SpanSetMetaReturn> responseObserver) {
-        LOGGER.info("Setting meta span: "+request.toString());
+        LOGGER.info("Setting meta span: " + request.toString());
         Span span = getSpan(request.getSpanId(), responseObserver);
         if (span != null) {
             span.setTag(request.getKey(), request.getValue());
@@ -87,7 +86,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
 
     @Override
     public void spanSetMetric(ApmTestClient.SpanSetMetricArgs request, StreamObserver<ApmTestClient.SpanSetMetricReturn> responseObserver) {
-        LOGGER.info("Setting span metric: "+request.toString());
+        LOGGER.info("Setting span metric: " + request.toString());
         Span span = getSpan(request.getSpanId(), responseObserver);
         if (span != null) {
             span.setTag(request.getKey(), request.getValue());
@@ -98,7 +97,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
 
     @Override
     public void spanSetError(ApmTestClient.SpanSetErrorArgs request, StreamObserver<ApmTestClient.SpanSetErrorReturn> responseObserver) {
-        LOGGER.info("Setting span error: "+request.toString());
+        LOGGER.info("Setting span error: " + request.toString());
         Span span = getSpan(request.getSpanId(), responseObserver);
         if (span != null) {
             span.setTag(Tags.ERROR, true);
@@ -118,8 +117,8 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
 
     @Override
     public void flushSpans(ApmTestClient.FlushSpansArgs request, StreamObserver<ApmTestClient.FlushSpansReturn> responseObserver) {
-        LOGGER.info("Flushing span: "+request.toString());
-        this.flushTraceRunnable.run();
+        LOGGER.info("Flushing span: " + request.toString());
+        ((InternalTracer) this.tracer).flush();
         this.spans.clear();
         responseObserver.onNext(ApmTestClient.FlushSpansReturn.newBuilder().build());
         responseObserver.onCompleted();
@@ -127,8 +126,8 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
 
     @Override
     public void flushTraceStats(ApmTestClient.FlushTraceStatsArgs request, StreamObserver<ApmTestClient.FlushTraceStatsReturn> responseObserver) {
-        LOGGER.info("Flushing trace stats: "+request.toString());
-        this.flushStatsRunnable.run();
+        LOGGER.info("Flushing trace stats: " + request.toString());
+        ((InternalTracer) this.tracer).flushMetrics();
         responseObserver.onNext(ApmTestClient.FlushTraceStatsReturn.newBuilder().build());
         responseObserver.onCompleted();
     }

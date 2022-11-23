@@ -21,7 +21,7 @@
     <dependency>
       <groupId>com.datadoghq</groupId>
       <artifactId>dd-trace-ot</artifactId>
-      <version>0.113.0</version>
+      <version>[1.1,2)</version>
     </dependency>
     <!-- gRPC server -->
     <dependency>
