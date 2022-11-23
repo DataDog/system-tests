@@ -54,7 +54,7 @@ services:
       agent:
         condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
 
   agent:
     container_name: agent
