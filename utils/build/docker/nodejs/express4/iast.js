@@ -2,6 +2,7 @@ const { Client, Pool } = require('pg')
 const { readFileSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto');
+const { execSync } = require('child_process')
 
 function initData () {
   const query = readFileSync(join(__dirname, 'resources', 'iast-data.sql')).toString()
@@ -11,7 +12,7 @@ function initData () {
   })
 }
 function init (app, tracer) {  
-  initData()
+  initData().catch(() => {})
 
   app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
     const span = tracer.scope().active();
@@ -76,11 +77,11 @@ function init (app, tracer) {
     const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = \'' + req.body.username + '\' AND PASSWORD = \'' + req.body.password + '\''  
     const client = new Client()
     client.connect().then(() => {
-      client.query(sql).then((queryResult) => {
+      return client.query(sql).then((queryResult) => {
         res.json(queryResult)
-      }).catch((err) => {
-        res.status(500).json({message: 'Error on request'})
       })
+    }).catch((err) => {
+      res.status(500).json({message: 'Error on request'})
     })
   });
   
@@ -91,12 +92,24 @@ function init (app, tracer) {
     const values = [req.body.username, req.body.password]
     const client = new Client()
     client.connect().then(() => {
-      client.query(sql, values).then((queryResult) => {
+      return client.query(sql, values).then((queryResult) => {
         res.json(queryResult)
-      }).catch((err) => {
-        res.status(500).json({message: 'Error on request'})
       })
+    }).catch((err) => {
+      res.status(500).json({message: 'Error on request'})
     })
+  });
+
+  app.post('/iast/cmdi/test_insecure', (req, res) => {
+    const result = execSync(req.body.cmd)
+    res.send(result.toString())
+  })
+
+  app.post('/iast/path_traversal/test_insecure', (req, res) => {
+    const span = tracer.scope().active();
+    span.setTag('appsec.event"', true);
+    const stats = fs.statSync(req.body.path)
+    res.send(JSON.stringify(stats))
   });
 
 }

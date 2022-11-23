@@ -3,6 +3,7 @@ import logging
 
 from utils import interfaces, bug, context, irrelevant, missing_feature, flaky, rfc, released
 from utils.tools import logger
+from utils._xfail import xfails
 from utils._context.library_version import LibraryVersion
 
 
@@ -10,6 +11,8 @@ context.weblog_variant = "spring"
 context.library = LibraryVersion("java", "0.66.0")
 # monkey patch
 context.execute_warmups = lambda *args, **kwargs: None
+
+BASE_PATH = "utils/test_the_test/test_decorators.py"
 
 
 def is_skipped(item, reason):
@@ -143,10 +146,7 @@ class Test_Metadata:
             pass
 
         assert Test_DictBasic.__released__["java"] == "2.1"
-        assert (
-            "Test_DictBasic => missing feature for java: release version is 2.1, tested version is 0.66.0 => xfail\n"
-            in logs
-        )
+        assert Test_DictBasic in xfails.classes
 
     def test_version_sugar_syntax_wildcard(self):
         @released(java={"*": "2.1", "vertx": "0.2"})
@@ -154,10 +154,7 @@ class Test_Metadata:
             pass
 
         assert Test_DictBasic.__released__["java"] == "2.1"
-        assert (
-            "Test_DictBasic => missing feature for java: release version is 2.1, tested version is 0.66.0 => xfail\n"
-            in logs
-        )
+        assert Test_DictBasic in xfails.classes
 
 
 class Test_Skips:
@@ -165,15 +162,15 @@ class Test_Skips:
         assert is_skipped(Test_IrrelevantClass, "not relevant")
         assert is_skipped(Test_Class.test_irrelevant_method, "not relevant")
 
-        assert "Test_IrrelevantClass => not relevant => skipped\n" in logs
-        assert "test_irrelevant_method => not relevant => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_IrrelevantClass::test_method => not relevant => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_Class::test_irrelevant_method => not relevant => skipped\n" in logs
 
     def test_flaky(self):
         assert is_skipped(Test_FlakyClass, "known bug (flaky)")
         assert is_skipped(Test_Class.test_flaky_method, "known bug (flaky)")
 
-        assert "Test_FlakyClass => known bug (flaky) => skipped\n" in logs
-        assert "test_flaky_method => known bug (flaky) => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_FlakyClass::test_method => known bug (flaky) => skipped\n" in logs
+        assert f"{BASE_PATH}::Test_Class::test_flaky_method => known bug (flaky) => skipped\n" in logs
 
     def test_regular(self):
         assert is_not_skipped(Test_Class)
@@ -190,7 +187,7 @@ class Test_Skips:
         assert is_skipped(Test_BugClass, "known bug")
         assert Test_BugClass.executed, "Bug decorator execute the test"
 
-        assert "Test_BugClass => known bug => xfail\n" in logs
+        assert Test_BugClass in xfails.classes
 
     def test_not_released(self):
         assert is_skipped(Test_NotReleased, "missing feature: release not yet planned")

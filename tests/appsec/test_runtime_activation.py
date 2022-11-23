@@ -2,15 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, coverage, interfaces, released, irrelevant
+from utils import BaseTestCase, context, coverage, interfaces, released, irrelevant, scenario
 
 # dd.rc.targets.key.id=TEST_KEY_ID
 # dd.rc.targets.key=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c
 # private key: a78bd01afe0dc0baa6904e1b65448a6bbe160e07f7fc375c3bcb3ec08f008cc5
 
 
+@scenario("APPSEC_RUNTIME_ACTIVATION")
 @released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="?")
 @irrelevant(context.appsec_rules_file == "")
+@irrelevant(
+    context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with cutom rule file"
+)
 @coverage.basic
 class Test_RuntimeActivation(BaseTestCase):
     """A library should block requests after AppSec is activated via remote config."""
