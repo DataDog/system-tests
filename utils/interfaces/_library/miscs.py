@@ -48,7 +48,7 @@ class _TraceIdUniqueness(BaseValidation):
 class _ReceiveRequestRootTrace(BaseValidation):
     """Asserts that a trace for a request has been sent to the agent"""
 
-    path_filters = ["/v0.4/traces"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
     is_success_on_expiry = False
 
     def check(self, data):
@@ -74,7 +74,7 @@ class _SpanValidation(BaseValidation):
     * raise an exception => validation will fail
     """
 
-    path_filters = "/v0.4/traces"
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def __init__(self, request, validator, is_success_on_expiry):
         super().__init__(request=request)
@@ -105,7 +105,7 @@ class _SpanValidation(BaseValidation):
 class _SpanTagValidation(BaseValidation):
     """will run an arbitrary check on spans. If a request is provided, only span"""
 
-    path_filters = "/v0.4/traces"
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def __init__(self, request, tags, value_as_regular_expression):
         super().__init__(request=request)
@@ -155,7 +155,7 @@ class _TraceExistence(BaseValidation):
         super().__init__(request=request)
         self.span_type = span_type
 
-    path_filters = "/v0.4/traces"
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def check(self, data):
         if not isinstance(data["request"]["content"], list):

@@ -14,7 +14,7 @@ from utils.tools import m
 class _BaseAppSecIastValidation(BaseValidation):
     """Base class for all IAST validations"""
 
-    path_filters = ["/v0.4/traces"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def __init__(self, request):
         super().__init__(request=request)
@@ -22,14 +22,13 @@ class _BaseAppSecIastValidation(BaseValidation):
         self.request = request
 
     def check(self, data):
-        if data["path"] == "/v0.4/traces":
-            content = data["request"]["content"]
+        content = data["request"]["content"]
 
-            for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
-                self.log_debug(f'Found span with rid={self.rid}: span_id={span["span_id"]}')
+        for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
+            self.log_debug(f'Found span with rid={self.rid}: span_id={span["span_id"]}')
 
-                if "_dd.iast.json" in span.get("meta", {}):
-                    self.appsec_iast_events.append({"span": span, "i": i, "log_filename": data["log_filename"]})
+            if "_dd.iast.json" in span.get("meta", {}):
+                self.appsec_iast_events.append({"span": span, "i": i, "log_filename": data["log_filename"]})
 
     def final_check(self):
         def vulnerability_dict(vulDict):

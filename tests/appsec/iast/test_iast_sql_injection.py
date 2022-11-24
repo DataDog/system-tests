@@ -6,7 +6,16 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?", cpp="?")
+@released(
+    dotnet="?",
+    golang="?",
+    java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "*": "?"},
+    nodejs="?",
+    php_appsec="?",
+    python="?",
+    ruby="?",
+    cpp="?",
+)
 class TestIastSqlInjection(BaseTestCase):
     """Verify IAST SQL INJECTION feature"""
 
