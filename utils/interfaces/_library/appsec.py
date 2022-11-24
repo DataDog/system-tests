@@ -14,7 +14,7 @@ from utils.interfaces._library.appsec_data import rule_id_to_type
 
 
 class _BaseAppSecValidation(BaseValidation):
-    path_filters = ["/v0.4/traces", "/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces", "/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
     def __init__(self, request):
         super().__init__(request=request)
@@ -22,7 +22,7 @@ class _BaseAppSecValidation(BaseValidation):
         self.appsec_events = []  # list of all appsec events
 
     def check(self, data):
-        if data["path"] == "/v0.4/traces":
+        if data["path"] in ("/v0.4/traces", "/v0.5/traces"):
             content = data["request"]["content"]
 
             for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
