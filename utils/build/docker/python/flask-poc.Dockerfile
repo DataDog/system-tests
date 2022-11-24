@@ -4,7 +4,7 @@ FROM python:3.9
 RUN python --version && curl --version
 
 # install hello world app
-RUN pip install flask gunicorn gevent requests
+RUN pip install flask gunicorn gevent requests psycopg2
 
 COPY utils/build/docker/python/flask.py app.py
 COPY utils/build/docker/python/iast.py iast.py
@@ -17,6 +17,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 
 # docker startup
+# FIXME: Ensure gevent patching occurs before ddtrace
 RUN echo '#!/bin/bash \n\
 ddtrace-run gunicorn -w 2 -b 0.0.0.0:7777 --access-logfile - app:app -k gevent\n' > /app.sh
 RUN chmod +x /app.sh

@@ -3,12 +3,16 @@ from ddtrace import tracer
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import secure_algorithm, weak_hash
+import psycopg2
 
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
     set_user = lambda *args, **kwargs: None
 
+POSTGRES_CONFIG = dict(
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+)
 
 app = Flask(__name__)
 
@@ -102,6 +106,24 @@ def identify_propagate():
         propagate=True,
     )
     return Response("OK")
+
+
+@app.route("/dbm")
+def dbm():
+    integration = flask_request.headers.get("integration")
+    if integration == "psycopg":
+        postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+        cursor = postgres_db.cursor()
+        cursor_method = flask_request.headers.get("cursor_method")
+        if cursor_method == "execute":
+            cursor.execute("select 'blah'")
+            return Response("OK")
+        elif cursor_method == "executemany":
+            cursor.executemany("select %s", (("blah",), ("moo",)))
+            return Response("OK")
+        return Response(f"Cursor method is not supported: {cursor_method}", 406)
+
+    return Response(f"Integration is not supported: {integration}", 406)
 
 
 @app.route("/iast/insecure_hashing/multiple_hash")
