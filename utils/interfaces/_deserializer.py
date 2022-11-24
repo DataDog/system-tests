@@ -38,6 +38,7 @@ def _decode_unsigned_int_traces(content):
 
 
 def _decode_v_0_5_traces(content):
+    # https://github.com/DataDog/architecture/blob/master/rfcs/apm/agent/v0.5-endpoint/rfc.md
     strings, payload = content
 
     result = []
