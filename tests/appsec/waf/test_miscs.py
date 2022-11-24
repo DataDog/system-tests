@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import context, BaseTestCase, interfaces, released, bug, coverage, missing_feature, irrelevant
+from utils import context, BaseTestCase, interfaces, released, bug, coverage, missing_feature
 from .utils import rules
 
 

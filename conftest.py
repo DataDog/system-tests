@@ -54,7 +54,7 @@ def pytest_sessionstart(session):
 
 
 # called when each test item is collected
-def pytest_itemcollected(item):
+def _collect_item_metadata(item):
 
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
@@ -84,6 +84,7 @@ def pytest_itemcollected(item):
     for marker in reversed(markers):
         skip_reason = _get_skip_reason_from_marker(marker)
         if skip_reason:
+            logger.debug(f"{item.nodeid} => {skip_reason} => skipped")
             _skip_reasons[item.nodeid] = skip_reason
             break
 
@@ -102,12 +103,94 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
-def pytest_runtestloop(session):
+def pytest_collection_modifyitems(session, config, items):
+    """unselect items that are not included in the current scenario"""
+
+    def get_declared_scenario(item):
+        for marker in item.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
+        for marker in item.parent.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
+        return None
+
+    scenario = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
+
+    if scenario == "CUSTOM":
+        # user has specifed which test to run, do nothing
+        return
+
+    if scenario == "UDS":
+        scenario = "DEFAULT"  # TODO : it's a variant
+
+    selected = []
+    deselected = []
+
+    for item in items:
+        declared_scenario = get_declared_scenario(item)
+
+        if declared_scenario == scenario or declared_scenario is None and scenario == "DEFAULT":
+            logger.info(f"{item.nodeid} is included in scenario {scenario}")
+            selected.append(item)
+            _collect_item_metadata(item)
+        else:
+            logger.debug(f"{item.nodeid} is not included in scenario {scenario}")
+            deselected.append(item)
+
+    items[:] = selected
+    config.hook.pytest_deselected(items=deselected)
+
+
+def pytest_collection_finish(session):
+
+    if session.config.option.collectonly:
+        return
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     terminal.write_line("Executing weblog warmup...")
     context.execute_warmups()
+
+    last_file = ""
+    for item in session.items:
+
+        if item.instance:  # item is a method bounded to a class
+
+            # the test metohd name is like test_xxxx
+            # we replace the test_ by setup_, and call it if it exists
+
+            setup_method_name = f"setup_{item.name[5:]}"
+
+            if hasattr(item.instance, setup_method_name):
+
+                if last_file != item.location[0]:
+                    if len(last_file) == 0:
+                        terminal.write_sep("-", "Tests setup", bold=True)
+
+                    terminal.write(f"\n{item.location[0]} ")
+                    last_file = item.location[0]
+
+                setup_method = getattr(item.instance, setup_method_name)
+                logger.debug(f"Call {setup_method} for {item}")
+                try:
+                    setup_method()
+                except Exception:
+                    logger.exception()
+                    terminal.write("x", bold=True, red=True)
+                    raise
+                else:
+                    terminal.write(".", bold=True, green=True)
+
+    terminal.write("\n")
+    terminal.write_sep("-", bold=True)
+
+
+def pytest_runtestloop(session):
+
+    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     # From https://github.com/pytest-dev/pytest/blob/33c6ad5bf76231f1a3ba2b75b05ea2cd728f9919/src/_pytest/main.py#L337
 

@@ -66,7 +66,7 @@ public class CryptoExamples {
     }
 
     public String secureCipher(final String password) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return doCipher(password, "DESede");
+        return doCipher(password, "AES");
     }
 
     private static String doCipher(final String password, final String algorithm) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {

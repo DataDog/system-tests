@@ -161,7 +161,7 @@ RUN go install
 def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
-    dotnet_reldir = os.path.join("parametric", dotnet_appdir)
+    dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
     return APMLibraryTestServer(
         lang="dotnet",
@@ -675,8 +675,8 @@ class APMLibrary:
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
-    def inject_headers(self):
-        return self._client.InjectHeaders(pb.InjectHeadersArgs())
+    def inject_headers(self, span_id):
+        return self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())

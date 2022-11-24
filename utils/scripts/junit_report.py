@@ -32,7 +32,9 @@ def junit_modifyreport(
         search_class = words[0] + "::" + words[1]
 
         # Get doc/description for the test
-        test_doc = _docs[nodeid]
+        test_doc = None
+        if nodeid in _docs:
+            test_doc = _docs[nodeid]
 
         # Get rfc for the test
         test_rfc = None
