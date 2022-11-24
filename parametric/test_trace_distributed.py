@@ -30,6 +30,7 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
     assert span["meta"].get("_dd.p.dm") == "-4"
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
+
 @pytest.mark.skip_library("python", "Needs to be adapted to traces v0.5")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
