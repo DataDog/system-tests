@@ -7,7 +7,14 @@ from utils import BaseTestCase, interfaces, context, missing_feature, coverage, 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
 @released(
-    dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?", cpp="?",
+    dotnet="?",
+    golang="?",
+    java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "*": "?"},
+    nodejs="?",
+    php_appsec="?",
+    python="?",
+    ruby="?",
+    cpp="?",
 )
 class TestIastCommandInjection(BaseTestCase):
     """Verify IAST features"""
@@ -21,7 +28,6 @@ class TestIastCommandInjection(BaseTestCase):
         expected = self.EXPECTATIONS.get(context.library.library)
         return expected.get("LOCATION") if expected else None
 
-    @missing_feature(reason="Need to implement Command injection detection")
     def test_insecure_command_injection(self):
         """Insecure command executions are reported as insecure"""
         r = self.weblog_post("/iast/cmdi/test_insecure", data={"cmd": "ls"})

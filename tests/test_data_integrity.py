@@ -3,12 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import BaseTestCase, interfaces, context, bug, rfc, scenario
+from utils import weblog, interfaces, context, bug, rfc, scenario
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
 
-class Test_TraceUniqueness(BaseTestCase):
+class Test_TraceUniqueness:
     """All trace ids are uniques"""
 
     def test_trace_ids(self):
@@ -16,7 +16,7 @@ class Test_TraceUniqueness(BaseTestCase):
 
 
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
-class Test_TraceHeaders(BaseTestCase):
+class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
     @bug(context.library <= "golang@1.37.0")
@@ -66,18 +66,14 @@ class Test_TraceHeaders(BaseTestCase):
 
         interfaces.library.add_traces_validation(validator=validator, is_success_on_expiry=True)
 
-    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
-    @scenario("CGROUP")
-    def test_trace_header_container_tags(self):
-        """Datadog-Container-ID header value is right in all traces submitted to the agent"""
-
-        weblog_container_id = None
+    def setup_trace_header_container_tags(self):
+        self.weblog_container_id = None
 
         USE_NEW_CGROUP_GETTER = context.weblog_variant in ("flask-poc",)
 
         if USE_NEW_CGROUP_GETTER:
             logger.debug("cgroup: using HTTP endpoint")
-            r = self.weblog_get("/read_file", params={"file": "/proc/self/cgroup"})
+            r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
             infos = r.text.split("\n")
         else:
             logger.debug("cgroup: using log file")
@@ -86,8 +82,13 @@ class Test_TraceHeaders(BaseTestCase):
 
         logger.info(f"cgroup: file content is {infos}")
 
-        weblog_container_id = get_container_id(infos)
-        logger.info(f"cgroup: weblog container id is {weblog_container_id}")
+        self.weblog_container_id = get_container_id(infos)
+        logger.info(f"cgroup: weblog container id is {self.weblog_container_id}")
+
+    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
+    @scenario("CGROUP")
+    def test_trace_header_container_tags(self):
+        """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
         def validator(data):
 
@@ -108,13 +109,13 @@ class Test_TraceHeaders(BaseTestCase):
 
             request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
 
-            if weblog_container_id is not None:
+            if self.weblog_container_id is not None:
                 if "datadog-container-id" not in request_headers:
                     raise Exception(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
 
-                if request_headers["datadog-container-id"] != weblog_container_id:
+                if request_headers["datadog-container-id"] != self.weblog_container_id:
                     raise Exception(
-                        f"Expected Datadog-Container-ID header to be {weblog_container_id}, "
+                        f"Expected Datadog-Container-ID header to be {self.weblog_container_id}, "
                         f"but got {request_headers['datadog-container-id']} "
                         f"in request {data['log_filename']}"
                     )
