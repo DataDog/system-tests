@@ -6,7 +6,7 @@ from utils.interfaces._core import BaseValidation
 
 
 class _BaseMetricValidation(BaseValidation):
-    path_filters = "/v0.4/traces"
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def __init__(self, metric_name):
         super().__init__()

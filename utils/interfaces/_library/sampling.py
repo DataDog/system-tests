@@ -11,7 +11,7 @@ from utils.interfaces._library._utils import get_root_spans, _spans_with_parent
 
 class _AllRequestsTransmitted(BaseValidation):
     is_success_on_expiry = False
-    path_filters = ["/v0.4/traces"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def __init__(self, paths):
         super().__init__()
@@ -34,7 +34,7 @@ class _AllRequestsTransmitted(BaseValidation):
 
 class _TracesSamplingDecision(BaseValidation):
     is_success_on_expiry = True
-    path_filters = ["/v0.4/traces"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def __init__(self, sample_rate):
         super().__init__()
@@ -80,7 +80,7 @@ class _TracesSamplingDecision(BaseValidation):
 class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation):
     """Asserts that traces with the same id have the same sampling decisions"""
 
-    path_filters = ["/v0.4/traces"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
     is_success_on_expiry = False
 
     def __init__(self, traces, request=None):
@@ -123,7 +123,7 @@ class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation)
 class _AddSamplingDecisionValidation(BaseValidation):
     """Asserts that a trace sampling decisions are taken for choosen traces and spans"""
 
-    path_filters = ["/v0.4/traces"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
     is_success_on_expiry = False
 
     def __init__(self, traces, request=None):

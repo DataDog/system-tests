@@ -2,21 +2,24 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, released, scenario
+from utils import weblog, interfaces, context, missing_feature, released, scenario
 
 
 @released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
 @released(python="1.5.0rc2.dev")  # TODO : is it the good version number ?
 @missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
 @scenario("TRACE_PROPAGATION_STYLE_W3C")
-class Test_DistributedHttp(BaseTestCase):
+class Test_DistributedHttp:
     """ Verify behavior of http clients and distributed traces """
+
+    def setup_main(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
 
     def test_main(self):
         def validator():
-            assert r.status_code == 200
-            assert r.json() is not None
-            data = r.json()
+            assert self.r.status_code == 200
+            assert self.r.json() is not None
+            data = self.r.json()
             assert "traceparent" in data["request_headers"]
             assert "x-datadog-parent-id" not in data["request_headers"]
             assert "x-datadog-sampling-priority" not in data["request_headers"]
@@ -25,6 +28,5 @@ class Test_DistributedHttp(BaseTestCase):
 
             return True
 
-        r = self.weblog_get("/make_distant_call", params={"url": "http://weblog:7777"})
-        interfaces.library.assert_trace_exists(r)
+        interfaces.library.assert_trace_exists(self.r)
         interfaces.library.add_final_validation(validator)
