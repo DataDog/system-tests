@@ -49,7 +49,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
         elif context.library.library in ("golang",):
             result = 10
         elif context.library.library in ("nodejs",):
-            result = 5
+            # if scenario is REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+            # result = 60
+            # else result = 5
+            result = 60
         elif context.library.library in ("php",):
             result = 10  # possibly something weird on obfuscator, let increase the delay for now
         elif context.library.library in ("python",):
