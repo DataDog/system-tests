@@ -8,14 +8,14 @@ import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
 from google.protobuf.json_format import MessageToDict
 from utils.interfaces._decoders.protobuf_schemas import TracePayload
-from utils.tools import logger, get_exception_traceback
+from utils.tools import logger
 
 
 def get_header_value(name, headers):
     return next((h[1] for h in headers if h[0].lower() == name.lower()), None)
 
 
-def parse_as_unsigned_int(value, size_in_bits):
+def _parse_as_unsigned_int(value, size_in_bits):
     """This is necessary because some fields in spans are decribed as a 64 bits unsigned integers, but
     java, and other languages only supports signed integer. As such, they might send trace ids as negative
     number if >2**63 -1. The agent parses it signed and interpret the bytes as unsigned. See
@@ -28,6 +28,41 @@ def parse_as_unsigned_int(value, size_in_bits):
 
     # Take two's complement of the number if negative
     return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
+
+
+def _decode_unsigned_int_traces(content):
+    for span in (span for trace in content for span in trace):
+        for sub_key in ("trace_id", "parent_id", "span_id"):
+            if sub_key in span:
+                span[sub_key] = _parse_as_unsigned_int(span[sub_key], 64)
+
+
+def _decode_v_0_5_traces(content):
+    strings, payload = content
+
+    result = []
+    for spans in payload:
+        decoded_spans = []
+        result.append(decoded_spans)
+        for span in spans:
+            decoded_span = {
+                "service": strings[int(span[0])],
+                "name": strings[int(span[1])],
+                "resource": strings[int(span[2])],
+                "trace_id": span[3],
+                "span_id": span[4],
+                "parent_id": span[5] if span[5] != 0 else None,
+                "start": span[6],
+                "duration": span[7] if span[7] != 0 else None,
+                "error": span[8],
+                "meta": {strings[int(key)]: strings[int(value)] for key, value in span[9].items()},
+                "metrics": {strings[int(key)]: value for key, value in span[10].items()},
+                "type": strings[int(span[11])],
+            }
+
+            decoded_spans.append(decoded_span)
+
+    return result
 
 
 def deserialize_http_message(path, message, data, interface, key):
@@ -49,13 +84,15 @@ def deserialize_http_message(path, message, data, interface, key):
         return json.loads(data)
 
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack"):
-        result = msgpack.unpackb(data, unicode_errors="replace")
+        result = msgpack.unpackb(data, unicode_errors="replace", strict_map_key=False)
 
-        if interface == "library" and path == "/v0.4/traces":
-            for span in (span for trace in result for span in trace):
-                for sub_key in ("trace_id", "parent_id", "span_id"):
-                    if sub_key in span.keys():
-                        span[sub_key] = parse_as_unsigned_int(span[sub_key], 64)
+        if interface == "library":
+            if path == "/v0.4/traces":
+                _decode_unsigned_int_traces(result)
+
+            elif path == "/v0.5/traces":
+                result = _decode_v_0_5_traces(result)
+                _decode_unsigned_int_traces(result)
 
         _convert_bytes_values(result)
 
@@ -105,3 +142,8 @@ def deserialize(data, interface):
                 data[key]["content"] = decoded
             except Exception:
                 logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
+
+
+# if __name__ == "__main__":
+#     content = json.load(open("logs/interfaces/library/005__v0.5_traces.json"))["request"]["content"]
+#     print(json.dumps(_decode_v_0_5_traces(content), indent=2))

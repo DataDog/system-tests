@@ -58,7 +58,7 @@ class AgentSampledFwdValidation(BaseValidation):
 
 class LibrarySamplingRateValidation(BaseValidation):
     is_success_on_expiry = True
-    path_filters = ["/v0.4/traces"]
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
     def __init__(self, request=None):
         super().__init__(request=request)

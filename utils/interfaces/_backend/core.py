@@ -31,7 +31,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         logger.info(f"Get data for {self.rids}")
         for data in library._data_list:
-            if data["path"] != "/v0.4/traces":
+            if data["path"] not in ("/v0.4/traces", "/v0.5/traces"):
                 continue
 
             for trace in data["request"]["content"]:
