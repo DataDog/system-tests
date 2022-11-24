@@ -9,7 +9,7 @@ from utils import BaseTestCase, context, coverage, interfaces, released, irrelev
 # private key: a78bd01afe0dc0baa6904e1b65448a6bbe160e07f7fc375c3bcb3ec08f008cc5
 
 
-@released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="3.9.0", golang="?")
+@released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="?")
 @irrelevant(context.appsec_rules_file == "")
 @coverage.basic
 class Test_RuntimeActivation(BaseTestCase):
