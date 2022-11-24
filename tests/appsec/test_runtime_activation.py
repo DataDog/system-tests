@@ -31,6 +31,7 @@ class Test_RuntimeActivation(BaseTestCase):
                 )
                 return any(st["product"] == "ASM_FEATURES" and st["apply_state"] == 2 for st in config_states)
 
+        # TODO : need to check how to do this in new model
         interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
 
         r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})

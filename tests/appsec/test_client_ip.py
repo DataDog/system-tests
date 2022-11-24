@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, coverage, interfaces, released, scenario
+from utils import weblog, context, coverage, interfaces, released, scenario
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -14,8 +14,16 @@ if context.library == "cpp":
 @released(nodejs="3.6.0", php="0.81.0", python="1.5.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_DISABLED")
-class Test_StandardTagsClientIp(BaseTestCase):
+class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
+
+    def setup_not_reported(self):
+        headers = {
+            "X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1",
+            "User-Agent": "Arachni/v1",
+        }
+
+        self.r = weblog.get("/waf/", headers=headers)
 
     def test_not_reported(self):
         """Test IP-related span tags are not reported when ASM is disabled"""
@@ -31,10 +39,4 @@ class Test_StandardTagsClientIp(BaseTestCase):
 
             return True
 
-        headers = {
-            "X-Cluster-Client-IP": "10.42.42.42, 43.43.43.43, fe80::1",
-            "User-Agent": "Arachni/v1",
-        }
-        r = self.weblog_get("/waf/", headers=headers)
-
-        interfaces.library.add_span_validation(request=r, validator=validator)
+        interfaces.library.add_span_validation(request=self.r, validator=validator)
