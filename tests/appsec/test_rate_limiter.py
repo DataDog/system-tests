@@ -4,7 +4,7 @@
 
 import datetime
 import pytest
-from utils import BaseTestCase, context, coverage, interfaces, released, rfc, bug, scenario
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenario
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -17,7 +17,7 @@ if context.library == "cpp":
 )
 @coverage.basic
 @scenario("APPSEC_RATE_LIMITER")
-class Test_Main(BaseTestCase):
+class Test_Main:
     """Basic tests for rate limiter"""
 
     # TODO: a scenario with DD_TRACE_SAMPLE_RATE set to something
@@ -25,6 +25,16 @@ class Test_Main(BaseTestCase):
 
     trace_count = 0
     request_count = 0
+
+    def setup_main(self):
+        self.requests = []
+
+        end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
+
+        while datetime.datetime.now() < end_time:
+
+            self.requests.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
+            self.request_count += 1
 
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
@@ -45,11 +55,7 @@ class Test_Main(BaseTestCase):
 
             return True
 
-        end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
-
-        while datetime.datetime.now() < end_time:
-            r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
+        for r in self.requests:
             interfaces.library.add_appsec_validation(r, count, is_success_on_expiry=True)
-            self.request_count += 1
 
         interfaces.library.add_final_validation(validator)
