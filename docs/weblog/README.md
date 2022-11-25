@@ -162,12 +162,10 @@ The endpoint executes a unique operation of String hashing with unsecure MD5 alg
 This endpoint executes database queries for DBM supported libraries. A 200 response is returned if the query
 is executed successfully.
 
-Expected HTTP Headers:
-  - integration: Name of DBM supported library
-    - Type: string
+Expected query params:
+  - `integration`: Name of DBM supported library
     - Possible Values: `psycopg`
-  - cursor_method: Method used to execute database statements
-    - Type: string
+  - `cursor_method`: Method used to execute database statements
     - Possible Values: `execute`, `executemany`
 
 

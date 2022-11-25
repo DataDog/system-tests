@@ -2,14 +2,18 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, released, scenario
+from utils import weblog, interfaces, context, missing_feature, released, scenario
 
 
 @released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
 @missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
 @scenario("INTEGRATIONS")
-class Test_Dbm(BaseTestCase):
+class Test_Dbm:
     """Verify behavior of DBM propagation"""
+
+    def setup_trace_payload(self):
+        self.r_execute = weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "execute"})
+        self.r_many = weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "executemany"})
 
     def test_trace_payload(self):
         def validator(span):
@@ -22,19 +26,12 @@ class Test_Dbm(BaseTestCase):
             return True
 
         # test psycopg execute()
-        r = self.weblog_get(
-            "/dbm", params={"url": "http://weblog:7777"}, headers={"integration": "psycopg", "cursor_method": "execute"}
-        )
-        interfaces.library.add_assertion(r.status_code == 200)
-        interfaces.library.add_span_validation(request=r, validator=validator, is_success_on_expiry=True)
+        interfaces.library.add_assertion(self.r_execute.status_code == 200)
+        interfaces.library.add_span_validation(self.r_execute, validator=validator, is_success_on_expiry=True)
+
         # test psycopg executemany()
-        r = self.weblog_get(
-            "/dbm",
-            params={"url": "http://weblog:7777"},
-            headers={"integration": "psycopg", "cursor_method": "executemany"},
-        )
-        interfaces.library.add_assertion(r.status_code == 200)
-        interfaces.library.add_span_validation(request=r, validator=validator, is_success_on_expiry=True)
+        interfaces.library.add_assertion(self.r_many.status_code == 200)
+        interfaces.library.add_span_validation(self.r_many, validator=validator, is_success_on_expiry=True)
 
     def test_dbm_payload(self):
         # TODO: Add schema for validation of dbm payload agent/backend
