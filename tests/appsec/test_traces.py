@@ -171,6 +171,9 @@ class Test_AppSecObfuscator:
     SECRET_VALUE_WITH_NON_SENSITIVE_KEY = "not-a-sensitive-cookie-value-having-an-select-pg_sleep-attack"
     VALUE_WITH_SECRET = "BEARER lwqjedqwdoqwidmoqwndun32i"
 
+    SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM = "this-is-a-very-sensitive-cookie-value-having-the-aaaa-attack"
+    SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM = "not-a-sensitive-cookie-value-having-an-bbbb-attack"
+
     def setup_appsec_obfuscator_key(self):
         self.r_key = weblog.get(
             "/waf/",
@@ -291,7 +294,10 @@ class Test_AppSecObfuscator:
         interfaces.library.add_appsec_validation(self.r_custom, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
-        cookies = {"Bearer": self.SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY}
+        cookies = {
+            "Bearer": self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM,
+            "Good": self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM,
+        }
         self.r_cookies_custom = weblog.get("/waf/", cookies=cookies)
 
     @scenario("APPSEC_CUSTOM_RULES")
@@ -305,9 +311,9 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET_VALUE_WITH_SENSITIVE_KEY in span["meta"]["_dd.appsec.json"]:
+            if self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
-            if self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY not in span["meta"]["_dd.appsec.json"]:
+            if self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM not in span["meta"]["_dd.appsec.json"]:
                 raise Exception("Could not find the non-sensitive cookie data")
             return True
 
