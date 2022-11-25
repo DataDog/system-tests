@@ -110,11 +110,11 @@ def identify_propagate():
 
 @app.route("/dbm")
 def dbm():
-    integration = flask_request.headers.get("integration")
+    integration = flask_request.args.get("integration")
     if integration == "psycopg":
         postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
         cursor = postgres_db.cursor()
-        cursor_method = flask_request.headers.get("cursor_method")
+        cursor_method = flask_request.args.get("cursor_method")
         if cursor_method == "execute":
             cursor.execute("select 'blah'")
             return Response("OK")
