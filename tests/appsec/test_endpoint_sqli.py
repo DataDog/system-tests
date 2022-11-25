@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature
+from utils import weblog, interfaces, context, missing_feature
 
 
 @missing_feature(context.library != "java", reason="Need to build endpoint on weblog")
@@ -10,10 +10,12 @@ from utils import BaseTestCase, interfaces, context, missing_feature
 @missing_feature(weblog_variant="resteasy-netty3", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="ratpack", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="vertx3", reason="Need to build endpoint on weblog")
-class Test_Sqli(BaseTestCase):
+class Test_Sqli:
     """ Verify the /rasp/sqli endpoint is setup """
 
+    def setup_main(self):
+        self.r = weblog.get("/rasp/sqli")
+
     def test_main(self):
-        r = self.weblog_get("/rasp/sqli")
-        interfaces.library.assert_trace_exists(r)
-        interfaces.library.add_assertion(r.status_code == 200)
+        interfaces.library.assert_trace_exists(self.r)
+        interfaces.library.add_assertion(self.r.status_code == 200)

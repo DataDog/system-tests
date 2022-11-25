@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cprotos/apm_test_client.proto\"\x8a\x02\n\rStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x07service\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x15\n\x08resource\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x11\n\x04type\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x13\n\x06origin\x18\x06 \x01(\tH\x04\x88\x01\x01\x12\x32\n\x0chttp_headers\x18\x07 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x05\x88\x01\x01\x42\n\n\x08_serviceB\x0c\n\n_parent_idB\x0b\n\t_resourceB\x07\n\x05_typeB\t\n\x07_originB\x0f\n\r_http_headers\"\x8c\x01\n\x16\x44istributedHTTPHeaders\x12>\n\x0chttp_headers\x18\t \x03(\x0b\x32(.DistributedHTTPHeaders.HttpHeadersEntry\x1a\x32\n\x10HttpHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"4\n\x0fStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"\x13\n\x11InjectHeadersArgs\"Z\n\x13InjectHeadersReturn\x12\x32\n\x0chttp_headers\x18\x01 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x00\x88\x01\x01\x42\x0f\n\r_http_headers\"\x1c\n\x0e\x46inishSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\"\x12\n\x10\x46inishSpanReturn\">\n\x0fSpanSetMetaArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\t\"\x13\n\x11SpanSetMetaReturn\"@\n\x11SpanSetMetricArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\"\x15\n\x13SpanSetMetricReturn\"\x7f\n\x10SpanSetErrorArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x11\n\x04type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07message\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05stack\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x07\n\x05_typeB\n\n\x08_messageB\x08\n\x06_stack\"\x14\n\x12SpanSetErrorReturn\"\x10\n\x0e\x46lushSpansArgs\"\x12\n\x10\x46lushSpansReturn\"\x15\n\x13\x46lushTraceStatsArgs\"\x17\n\x15\x46lushTraceStatsReturn2\xd2\x03\n\tAPMClient\x12/\n\tStartSpan\x12\x0e.StartSpanArgs\x1a\x10.StartSpanReturn\"\x00\x12\x32\n\nFinishSpan\x12\x0f.FinishSpanArgs\x1a\x11.FinishSpanReturn\"\x00\x12\x35\n\x0bSpanSetMeta\x12\x10.SpanSetMetaArgs\x1a\x12.SpanSetMetaReturn\"\x00\x12;\n\rSpanSetMetric\x12\x12.SpanSetMetricArgs\x1a\x14.SpanSetMetricReturn\"\x00\x12\x38\n\x0cSpanSetError\x12\x11.SpanSetErrorArgs\x1a\x13.SpanSetErrorReturn\"\x00\x12;\n\rInjectHeaders\x12\x12.InjectHeadersArgs\x1a\x14.InjectHeadersReturn\"\x00\x12\x32\n\nFlushSpans\x12\x0f.FlushSpansArgs\x1a\x11.FlushSpansReturn\"\x00\x12\x41\n\x0f\x46lushTraceStats\x12\x14.FlushTraceStatsArgs\x1a\x16.FlushTraceStatsReturn\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cprotos/apm_test_client.proto\"\x8a\x02\n\rStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x07service\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x15\n\x08resource\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x11\n\x04type\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x13\n\x06origin\x18\x06 \x01(\tH\x04\x88\x01\x01\x12\x32\n\x0chttp_headers\x18\x07 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x05\x88\x01\x01\x42\n\n\x08_serviceB\x0c\n\n_parent_idB\x0b\n\t_resourceB\x07\n\x05_typeB\t\n\x07_originB\x0f\n\r_http_headers\"\x8c\x01\n\x16\x44istributedHTTPHeaders\x12>\n\x0chttp_headers\x18\t \x03(\x0b\x32(.DistributedHTTPHeaders.HttpHeadersEntry\x1a\x32\n\x10HttpHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"4\n\x0fStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"$\n\x11InjectHeadersArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\"Z\n\x13InjectHeadersReturn\x12\x32\n\x0chttp_headers\x18\x01 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x00\x88\x01\x01\x42\x0f\n\r_http_headers\"\x1c\n\x0e\x46inishSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\"\x12\n\x10\x46inishSpanReturn\">\n\x0fSpanSetMetaArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\t\"\x13\n\x11SpanSetMetaReturn\"@\n\x11SpanSetMetricArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\"\x15\n\x13SpanSetMetricReturn\"\x7f\n\x10SpanSetErrorArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x11\n\x04type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07message\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05stack\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x07\n\x05_typeB\n\n\x08_messageB\x08\n\x06_stack\"\x14\n\x12SpanSetErrorReturn\"\x10\n\x0e\x46lushSpansArgs\"\x12\n\x10\x46lushSpansReturn\"\x15\n\x13\x46lushTraceStatsArgs\"\x17\n\x15\x46lushTraceStatsReturn\"\x10\n\x0eStopTracerArgs\"\x12\n\x10StopTracerReturn2\x86\x04\n\tAPMClient\x12/\n\tStartSpan\x12\x0e.StartSpanArgs\x1a\x10.StartSpanReturn\"\x00\x12\x32\n\nFinishSpan\x12\x0f.FinishSpanArgs\x1a\x11.FinishSpanReturn\"\x00\x12\x35\n\x0bSpanSetMeta\x12\x10.SpanSetMetaArgs\x1a\x12.SpanSetMetaReturn\"\x00\x12;\n\rSpanSetMetric\x12\x12.SpanSetMetricArgs\x1a\x14.SpanSetMetricReturn\"\x00\x12\x38\n\x0cSpanSetError\x12\x11.SpanSetErrorArgs\x1a\x13.SpanSetErrorReturn\"\x00\x12;\n\rInjectHeaders\x12\x12.InjectHeadersArgs\x1a\x14.InjectHeadersReturn\"\x00\x12\x32\n\nFlushSpans\x12\x0f.FlushSpansArgs\x1a\x11.FlushSpansReturn\"\x00\x12\x41\n\x0f\x46lushTraceStats\x12\x14.FlushTraceStatsArgs\x1a\x16.FlushTraceStatsReturn\"\x00\x12\x32\n\nStopTracer\x12\x0f.StopTracerArgs\x1a\x11.StopTracerReturn\"\x00\x62\x06proto3')
 
 
 
@@ -36,6 +36,8 @@ _FLUSHSPANSARGS = DESCRIPTOR.message_types_by_name['FlushSpansArgs']
 _FLUSHSPANSRETURN = DESCRIPTOR.message_types_by_name['FlushSpansReturn']
 _FLUSHTRACESTATSARGS = DESCRIPTOR.message_types_by_name['FlushTraceStatsArgs']
 _FLUSHTRACESTATSRETURN = DESCRIPTOR.message_types_by_name['FlushTraceStatsReturn']
+_STOPTRACERARGS = DESCRIPTOR.message_types_by_name['StopTracerArgs']
+_STOPTRACERRETURN = DESCRIPTOR.message_types_by_name['StopTracerReturn']
 StartSpanArgs = _reflection.GeneratedProtocolMessageType('StartSpanArgs', (_message.Message,), {
   'DESCRIPTOR' : _STARTSPANARGS,
   '__module__' : 'protos.apm_test_client_pb2'
@@ -163,6 +165,20 @@ FlushTraceStatsReturn = _reflection.GeneratedProtocolMessageType('FlushTraceStat
   })
 _sym_db.RegisterMessage(FlushTraceStatsReturn)
 
+StopTracerArgs = _reflection.GeneratedProtocolMessageType('StopTracerArgs', (_message.Message,), {
+  'DESCRIPTOR' : _STOPTRACERARGS,
+  '__module__' : 'protos.apm_test_client_pb2'
+  # @@protoc_insertion_point(class_scope:StopTracerArgs)
+  })
+_sym_db.RegisterMessage(StopTracerArgs)
+
+StopTracerReturn = _reflection.GeneratedProtocolMessageType('StopTracerReturn', (_message.Message,), {
+  'DESCRIPTOR' : _STOPTRACERRETURN,
+  '__module__' : 'protos.apm_test_client_pb2'
+  # @@protoc_insertion_point(class_scope:StopTracerReturn)
+  })
+_sym_db.RegisterMessage(StopTracerReturn)
+
 _APMCLIENT = DESCRIPTOR.services_by_name['APMClient']
 if _descriptor._USE_C_DESCRIPTORS == False:
 
@@ -178,33 +194,37 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _STARTSPANRETURN._serialized_start=444
   _STARTSPANRETURN._serialized_end=496
   _INJECTHEADERSARGS._serialized_start=498
-  _INJECTHEADERSARGS._serialized_end=517
-  _INJECTHEADERSRETURN._serialized_start=519
-  _INJECTHEADERSRETURN._serialized_end=609
-  _FINISHSPANARGS._serialized_start=611
-  _FINISHSPANARGS._serialized_end=639
-  _FINISHSPANRETURN._serialized_start=641
-  _FINISHSPANRETURN._serialized_end=659
-  _SPANSETMETAARGS._serialized_start=661
-  _SPANSETMETAARGS._serialized_end=723
-  _SPANSETMETARETURN._serialized_start=725
-  _SPANSETMETARETURN._serialized_end=744
-  _SPANSETMETRICARGS._serialized_start=746
-  _SPANSETMETRICARGS._serialized_end=810
-  _SPANSETMETRICRETURN._serialized_start=812
-  _SPANSETMETRICRETURN._serialized_end=833
-  _SPANSETERRORARGS._serialized_start=835
-  _SPANSETERRORARGS._serialized_end=962
-  _SPANSETERRORRETURN._serialized_start=964
-  _SPANSETERRORRETURN._serialized_end=984
-  _FLUSHSPANSARGS._serialized_start=986
-  _FLUSHSPANSARGS._serialized_end=1002
-  _FLUSHSPANSRETURN._serialized_start=1004
-  _FLUSHSPANSRETURN._serialized_end=1022
-  _FLUSHTRACESTATSARGS._serialized_start=1024
-  _FLUSHTRACESTATSARGS._serialized_end=1045
-  _FLUSHTRACESTATSRETURN._serialized_start=1047
-  _FLUSHTRACESTATSRETURN._serialized_end=1070
-  _APMCLIENT._serialized_start=1073
-  _APMCLIENT._serialized_end=1539
+  _INJECTHEADERSARGS._serialized_end=534
+  _INJECTHEADERSRETURN._serialized_start=536
+  _INJECTHEADERSRETURN._serialized_end=626
+  _FINISHSPANARGS._serialized_start=628
+  _FINISHSPANARGS._serialized_end=656
+  _FINISHSPANRETURN._serialized_start=658
+  _FINISHSPANRETURN._serialized_end=676
+  _SPANSETMETAARGS._serialized_start=678
+  _SPANSETMETAARGS._serialized_end=740
+  _SPANSETMETARETURN._serialized_start=742
+  _SPANSETMETARETURN._serialized_end=761
+  _SPANSETMETRICARGS._serialized_start=763
+  _SPANSETMETRICARGS._serialized_end=827
+  _SPANSETMETRICRETURN._serialized_start=829
+  _SPANSETMETRICRETURN._serialized_end=850
+  _SPANSETERRORARGS._serialized_start=852
+  _SPANSETERRORARGS._serialized_end=979
+  _SPANSETERRORRETURN._serialized_start=981
+  _SPANSETERRORRETURN._serialized_end=1001
+  _FLUSHSPANSARGS._serialized_start=1003
+  _FLUSHSPANSARGS._serialized_end=1019
+  _FLUSHSPANSRETURN._serialized_start=1021
+  _FLUSHSPANSRETURN._serialized_end=1039
+  _FLUSHTRACESTATSARGS._serialized_start=1041
+  _FLUSHTRACESTATSARGS._serialized_end=1062
+  _FLUSHTRACESTATSRETURN._serialized_start=1064
+  _FLUSHTRACESTATSRETURN._serialized_end=1087
+  _STOPTRACERARGS._serialized_start=1089
+  _STOPTRACERARGS._serialized_end=1105
+  _STOPTRACERRETURN._serialized_start=1107
+  _STOPTRACERRETURN._serialized_end=1125
+  _APMCLIENT._serialized_start=1128
+  _APMCLIENT._serialized_end=1646
 # @@protoc_insertion_point(module_scope)

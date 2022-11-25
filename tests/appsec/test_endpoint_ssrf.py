@@ -2,14 +2,16 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, missing_feature
+from utils import weblog, interfaces, missing_feature
 
 
 @missing_feature(True, reason="Need to build endpoint on weblog")
-class Test_Ssrf(BaseTestCase):
+class Test_Ssrf:
     """ Verify the /trace/ssrf endpoint is setup """
 
+    def setup_main(self):
+        self.r = weblog.get("/trace/ssrf")
+
     def test_main(self):
-        r = self.weblog_get("/trace/ssrf")
-        interfaces.library.assert_trace_exists(r)
-        interfaces.library.add_assertion(r.status_code == 200)
+        interfaces.library.assert_trace_exists(self.r)
+        interfaces.library.add_assertion(self.r.status_code == 200)

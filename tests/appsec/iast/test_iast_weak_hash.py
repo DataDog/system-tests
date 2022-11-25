@@ -34,6 +34,7 @@ class TestIastWeakHash(BaseTestCase):
         return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
 
     @missing_feature(context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -43,7 +44,7 @@ class TestIastWeakHash(BaseTestCase):
             r, vulnerability_count=1, vulnerability_type="WEAK_HASH", location_path=self.__expected_location(),
         )
 
-    @missing_feature(context.weblog_variant == "spring-boot-openliberty")
+    @bug(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
         r = self.weblog_get("/iast/insecure_hashing/multiple_hash")

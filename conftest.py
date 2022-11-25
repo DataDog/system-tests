@@ -178,7 +178,7 @@ def pytest_collection_finish(session):
                 try:
                     setup_method()
                 except Exception:
-                    logger.exception()
+                    logger.exception("Unexpected failure during setup method call")
                     terminal.write("x", bold=True, red=True)
                     raise
                 else:
