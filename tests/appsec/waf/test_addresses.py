@@ -303,7 +303,7 @@ class Test_BodyUrlEncoded:
         self.r_value = weblog.post("/waf", data={"value": '<vmlframe src="xss">'})
 
     @bug(
-        library="java",
+        context.library < "java@1.2.0",
         weblog_variant="spring-boot-openliberty",
         reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
