@@ -89,6 +89,9 @@ class Test_ConfigurationVariables:
 
     SECRET = "This-value-is-secret"
 
+    # this value is defined in DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP
+    SECRET_WITH_HIDDEN_VALUE = "hide_value"
+
     def setup_enabled(self):
         self.r_enabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
@@ -147,7 +150,8 @@ class Test_ConfigurationVariables:
         interfaces.library.add_appsec_validation(self.r_op_key, validate_appsec_span_tags)
 
     def setup_obfuscation_parameter_value(self):
-        self.r_op_value = weblog.get("/waf", headers={"attack": f"acunetix-user-agreement {self.SECRET}"})
+        headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
+        self.r_op_value = weblog.get("/waf", headers=headers)
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
@@ -156,7 +160,7 @@ class Test_ConfigurationVariables:
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
-            if self.SECRET in span["meta"]["_dd.appsec.json"]:
+            if self.SECRET_WITH_HIDDEN_VALUE in span["meta"]["_dd.appsec.json"]:
                 raise Exception("The security events contain the secret value that should be obfuscated")
             return True
 
