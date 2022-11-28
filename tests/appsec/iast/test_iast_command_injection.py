@@ -2,21 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, missing_feature, coverage, released
+import pytest
+from utils import weblog, interfaces, context, coverage, released
+
+
+if context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(
-    dotnet="?",
-    golang="?",
-    java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "*": "?"},
-    nodejs="?",
-    php_appsec="?",
-    python="?",
-    ruby="?",
-    cpp="?",
-)
-class TestIastCommandInjection(BaseTestCase):
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "*": "?"})
+class TestIastCommandInjection:
     """Verify IAST features"""
 
     EXPECTATIONS = {
@@ -28,9 +26,14 @@ class TestIastCommandInjection(BaseTestCase):
         expected = self.EXPECTATIONS.get(context.library.library)
         return expected.get("LOCATION") if expected else None
 
+    def setup_insecure_command_injection(self):
+        self.r = weblog.post("/iast/cmdi/test_insecure", data={"cmd": "ls"})
+
     def test_insecure_command_injection(self):
         """Insecure command executions are reported as insecure"""
-        r = self.weblog_post("/iast/cmdi/test_insecure", data={"cmd": "ls"})
         interfaces.library.expect_iast_vulnerabilities(
-            r, vulnerability_count=1, vulnerability_type="COMMAND_INJECTION", location_path=self.__expected_location(),
+            self.r,
+            vulnerability_count=1,
+            vulnerability_type="COMMAND_INJECTION",
+            location_path=self.__expected_location(),
         )

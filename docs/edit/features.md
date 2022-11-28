@@ -5,9 +5,7 @@ Let's take an example with a new `Awesome feature`, part of meta feature `stuffs
 ## Hello world test
 
 ```python
-from utils import BaseTestCase
-
-class Test_AwesomeFeature(BaseTestCase)
+class Test_AwesomeFeature:
     """ Short description of Awesome feature """
 
     def test_basic(self)
@@ -39,11 +37,11 @@ And then, an `reason` argument with mor details. It's very handy for `@bug`, the
 
 
 ```python
-from utils import BaseTestCase, irrelevant
+from utils import irrelevant
 
 
 @irrelevant(library="nodejs")
-class Test_AwesomeFeature(BaseTestCase)
+class Test_AwesomeFeature:
     """ Short description of Awesome feature """
 
     @bug(weblog_variant="echo", reason="JIRA-666")
@@ -63,11 +61,11 @@ class Test_AwesomeFeature(BaseTestCase)
 
 When the RFC exists, you must use this decorator:
 ```python
-from utils import BaseTestCase, rfc
+from utils import rfc
 
 
 @rfc("http://www.claymath.org/millennium-problems")
-class Test_Millenium(BaseTestCase)
+class Test_Millenium:
     """ Test on small details """
 ```
 
