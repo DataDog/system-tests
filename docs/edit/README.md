@@ -28,7 +28,7 @@ Please note that you don't have to rebuild images at each iteration. Simply re-r
 ./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail
 ```
 
-You now want to send something on the [weblog](../edit/weblog.md), and check it. You need to inherits from `BaseTestCase`, and use an interface validator:
+You now want to send something on the [weblog](../edit/weblog.md), and check it. You need to use an interface validator:
 
 ```python
 from utils import weblog, interfaces
