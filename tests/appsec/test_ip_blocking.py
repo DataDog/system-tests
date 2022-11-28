@@ -51,16 +51,6 @@ class Test_AppSecIPBlocking:
         NOT_BLOCKED_IP = "42.42.42.3"
         BLOCKED_IPS = ["42.42.42.1", "42.42.42.2"]
 
-        self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
-        self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
-
-    @bug(context.library == "java@0.110.0", reason="default action not implemented")
-    @bug(context.library <= "java@0.114.0" and context.weblog_variant == "spring-boot-openliberty")
-    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot-openliberty")
-    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot")
-    def test_blocked_ips(self):
-        """test blocked ips are enforced"""
-
         def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":
                 if "client_configs" in data.get("response", {}).get("content", {}):
@@ -82,6 +72,16 @@ class Test_AppSecIPBlocking:
 
         interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
+
+        self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
+        self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
+
+    @bug(context.library == "java@0.110.0", reason="default action not implemented")
+    @bug(context.library <= "java@0.114.0" and context.weblog_variant == "spring-boot-openliberty")
+    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot-openliberty")
+    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot")
+    def test_blocked_ips(self):
+        """test blocked ips are enforced"""
 
         for r in self.blocked_requests:
             interfaces.library.add_assertion(r.status_code == 403)
