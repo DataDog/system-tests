@@ -1,7 +1,6 @@
 import time
 from utils import (
     context,
-    BaseTestCase,
     interfaces,
     missing_feature,
     bug,
@@ -18,7 +17,7 @@ from utils import (
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
-class Test_Telemetry(BaseTestCase):
+class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
     # containers for telemetry request to check consistency between library payloads and agent payloads
