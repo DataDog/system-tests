@@ -2,6 +2,7 @@ import pytest
 
 from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from parametric.spec.trace import span_has_no_parent
 
 
 @pytest.mark.skip_library("golang", "not implemented")
@@ -31,7 +32,6 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
 
-@pytest.mark.skip_library("python", "Needs to be adapted to traces v0.5")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
@@ -53,7 +53,7 @@ def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
 
     span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert span.get("trace_id") != 0
-    assert span.get("parent_id") != 0
+    assert span_has_no_parent(span)
     # assert span["meta"].get(ORIGIN) is None # TODO: Determine if we keep x-datadog-origin for an invalid trace-id/parent-id
     assert span["meta"].get("_dd.p.dm") != "-4"
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
