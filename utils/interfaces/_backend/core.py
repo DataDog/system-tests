@@ -21,9 +21,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         super().__init__("backend")
         self.ready = threading.Event()
         self.ready.set()
-
-    def get_expected_timeout(self, context):
-        return 5
+        self.timeout = 5
 
     def collect_data(self):
         from utils.interfaces import library

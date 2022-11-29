@@ -2,7 +2,6 @@ import inspect
 import pytest
 
 from utils._context.core import context
-from utils._xfail import xfails
 
 
 def _get_skipped_item(item, skip_reason):
@@ -23,15 +22,10 @@ def _get_expected_failure_item(item, skip_reason):
     if not inspect.isfunction(item) and not inspect.isclass(item):
         raise Exception(f"Unexpected skipped object: {item}")
 
-    xfails.add_xfailed_method(item)
-
     if not hasattr(item, "pytestmark"):
         setattr(item, "pytestmark", [])
 
-    item.pytestmark.append(pytest.mark.expected_failure(reason=skip_reason))
-
-    if inspect.isclass(item):
-        xfails.add_xfailed_class(item)
+    item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
 
     return item
 

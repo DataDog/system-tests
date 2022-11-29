@@ -12,7 +12,7 @@ import json
 import re
 import functools
 
-from jsonschema import Draft7Validator, RefResolver, exceptions as jsonschema_exceptions
+from jsonschema import Draft7Validator, RefResolver
 from jsonschema.validators import extend
 from utils.interfaces._core import BaseValidation
 
@@ -86,60 +86,17 @@ class SchemaValidator(BaseValidation):
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
-        try:
-            validator = _get_schema_validator(schema_id)
-            if not validator.is_valid(data["request"]["content"]):
-                messages = []
+        validator = _get_schema_validator(schema_id)
+        if not validator.is_valid(data["request"]["content"]):
+            messages = []
 
-                for error in validator.iter_errors(data["request"]["content"]):
-                    message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
-                    if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
-                        messages.append(message)
+            for error in validator.iter_errors(data["request"]["content"]):
+                message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
+                if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
+                    messages.append(message)
 
-                if len(messages) != 0:
-                    self.set_status(False)
-                    self.log_error(f"In message {data['log_filename']}:")
-                    for message in messages:
-                        self.log_error(f"* {message}")
-
-        except FileNotFoundError as e:
-            self.set_failure(e)
-
-        except jsonschema_exceptions.ValidationError as e:
-            self.set_failure(e)
-
-
-class Test_Logs:
-    def test_main(self, interface):
-        """ Test current logs """
-
-        path = f"logs/interfaces/{interface}"
-
-        for f in sorted(os.listdir(path)):
-            data_path = os.path.join(path, f)
-            print(f"  * {data_path}")
-            if os.path.isfile(data_path):
-                with open(data_path, "r", encoding="utf-8") as f:
-                    systemtest_interface_log_data = json.load(f)
-
-                # We re-use BaseValidation sub class SchemaValidator to avoid logic duplication
-                # but we need to stick to in BaseValidation internals...
-
-                validator = SchemaValidator(interface)
-                if validator.system_test_error:
-                    raise validator.system_test_error
-
-                validator.check(systemtest_interface_log_data)
-                validator.set_expired()
-
-                if not validator.is_success:
-                    print("    ---> ERROR:")
-                    print("")
-                    for log in validator.logs:
-                        print(log)
-
-
-if __name__ == "__main__":
-    print("# Validate logs output from system tests")
-    Test_Logs().test_main("library")
-    Test_Logs().test_main("agent")
+            if len(messages) != 0:
+                self.set_status(False)
+                self.log_error(f"In message {data['log_filename']}:")
+                for message in messages:
+                    self.log_error(f"* {message}")

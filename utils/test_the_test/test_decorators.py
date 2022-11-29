@@ -3,7 +3,6 @@ import logging
 
 from utils import interfaces, bug, context, irrelevant, missing_feature, flaky, rfc, released
 from utils.tools import logger
-from utils._xfail import xfails
 from utils._context.library_version import LibraryVersion
 
 
@@ -20,7 +19,7 @@ def is_skipped(item, reason):
         print(f"{item} has not pytestmark attribute")
     else:
         for mark in item.pytestmark:
-            if mark.name in ("skip", "expected_failure"):
+            if mark.name in ("skip", "xfail"):
 
                 if mark.kwargs["reason"] == reason:
                     print(f"Found expected {mark} for {item}")
@@ -34,7 +33,7 @@ def is_skipped(item, reason):
 def is_not_skipped(item):
     if hasattr(item, "pytestmark"):
         for mark in item.pytestmark:
-            if mark.name == ("skip", "expected_failure"):
+            if mark.name == ("skip", "xfail"):
                 raise Exception(f"{item} is skipped")
 
     return True
@@ -146,7 +145,6 @@ class Test_Metadata:
             pass
 
         assert Test_DictBasic.__released__["java"] == "2.1"
-        assert Test_DictBasic in xfails.classes
 
     def test_version_sugar_syntax_wildcard(self):
         @released(java={"*": "2.1", "vertx": "0.2"})
@@ -154,7 +152,6 @@ class Test_Metadata:
             pass
 
         assert Test_DictBasic.__released__["java"] == "2.1"
-        assert Test_DictBasic in xfails.classes
 
 
 class Test_Skips:
@@ -186,8 +183,6 @@ class Test_Skips:
     def test_bug(self):
         assert is_skipped(Test_BugClass, "known bug")
         assert Test_BugClass.executed, "Bug decorator execute the test"
-
-        assert Test_BugClass in xfails.classes
 
     def test_not_released(self):
         assert is_skipped(Test_NotReleased, "missing feature: release not yet planned")

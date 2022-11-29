@@ -2,9 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
 import threading
 
-from utils.interfaces._core import InterfaceValidator
+from utils.tools import logger
+from utils._context.core import context
+from utils.interfaces._core import InterfaceValidator, get_rid
+from utils.interfaces._library._utils import _get_rid_from_span, get_rid_from_user_agent
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
@@ -41,25 +45,107 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready = threading.Event()
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
-    def get_expected_timeout(self, context):
-        result = 40
-
         if context.library == "java":
-            result = 80
+            self.timeout = 80
         elif context.library.library in ("golang",):
-            result = 10
+            self.timeout = 10
         elif context.library.library in ("nodejs",):
-            result = 5
+            self.timeout = 5
         elif context.library.library in ("php",):
-            result = 10  # possibly something weird on obfuscator, let increase the delay for now
+            self.timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
         elif context.library.library in ("python",):
-            result = 25
-
-        return max(result, self._minimal_expected_timeout)
+            self.timeout = 25
+        else:
+            self.timeout = 40
 
     def append_data(self, data):
         self.ready.set()
         return super().append_data(data)
+
+    ############################################################
+    def get_traces(self, request=None):
+        rid = get_rid(request)
+
+        paths = ["/v0.4/traces", "/v0.5/traces"]
+
+        for data in self.get_data(path_filters=paths):
+            traces = data["request"]["content"]
+            for trace in traces:
+                if len(trace) != 0:
+                    if rid is None:
+                        yield data, trace
+                    else:
+                        first_span = trace[0]
+                        span_rid = _get_rid_from_span(first_span)
+                        if span_rid == rid:
+                            yield data, trace
+
+    def get_spans(self, request=None):
+        for data, trace in self.get_traces(request=request):
+            for span in trace:
+                yield data, trace, span
+
+    def get_appsec_events(self, request=None):
+        for data, trace, span in self.get_spans(request):
+            if "_dd.appsec.json" in span.get("meta", {}):
+                appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+                yield data, trace, span, appsec_data
+
+    def get_legacy_appsec_events(self, request):
+        paths_with_appsec_events = ["/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
+
+        rid = get_rid(request)
+
+        for data in self.get_data(path_filters=paths_with_appsec_events):
+            events = data["request"]["content"]["events"]
+            for event in events:
+                if "trace" in event["context"] and "span" in event["context"]:
+
+                    if rid is None:
+                        yield data, event
+                    else:
+                        user_agents = (
+                            event.get("context", {})
+                            .get("http", {})
+                            .get("request", {})
+                            .get("headers", {})
+                            .get("user-agent", [])
+                        )
+
+                        # version 1 of appsec events schema
+                        if isinstance(user_agents, str):
+                            user_agents = [
+                                user_agents,
+                            ]
+
+                        for user_agent in user_agents:
+                            if get_rid_from_user_agent(user_agent) == rid:
+                                yield data, event
+                                break
+
+    ############################################################
+
+    def validate_appsec(self, request, validator, success_by_default=False, legacy_validator=None):
+        for data, _, span, appsec_data in self.get_appsec_events(request=request):
+
+            if request:  # do not spam log if all data are sent to the validator
+                logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
+
+            if validator(span, appsec_data):
+                return
+
+        if legacy_validator:
+            for data, event in self.get_legacy_appsec_events(request=request):
+                if request:  # do not spam log if all data are sent to the validator
+                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}")
+
+                    if validator(event):
+                        return
+
+        if not success_by_default:
+            raise Exception("No appsec event has been found")
+
+    ######################################################
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         self.append_validation(
@@ -93,10 +179,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_waf_attack(
         self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
     ):
-        self.append_validation(
-            _WafAttack(
-                request, rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path
-            )
+        validator = _WafAttack(
+            rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path,
+        )
+
+        self.validate_appsec(
+            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
         )
 
     def assert_metric_existence(self, metric_name):

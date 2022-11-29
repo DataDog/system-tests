@@ -3,20 +3,19 @@
 # Copyright 2021 Datadog, Inc.
 
 """ AppSec validations """
-import traceback
 import json
 
 from collections import Counter
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import get_spans_related_to_rid, get_rid_from_user_agent
-from utils.tools import m
+from utils.tools import m, logger
 from utils.interfaces._library.appsec_data import rule_id_to_type
 
 
 class _BaseAppSecValidation(BaseValidation):
     path_filters = ["/v0.4/traces", "/v0.5/traces", "/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
-    def __init__(self, request):
+    def __init__(self, request=None):
         super().__init__(request=request)
         self.spans = []  # list of (trace_id, span_id): span related to rid
         self.appsec_events = []  # list of all appsec events
@@ -26,7 +25,7 @@ class _BaseAppSecValidation(BaseValidation):
             content = data["request"]["content"]
 
             for i, span in enumerate(get_spans_related_to_rid(content, self.rid)):
-                self.log_debug(f'Found span with rid={self.rid}: span_id={span["span_id"]}')
+                logger.debug(f'Found span with rid={self.rid}: span_id={span["span_id"]}')
                 self.spans.append(f'{span["trace_id"]}#{span["span_id"]}')
 
                 if "_dd.appsec.json" in span.get("meta", {}):
@@ -75,33 +74,21 @@ class _BaseAppSecValidation(BaseValidation):
         spans = self._get_related_spans()
 
         if len(spans) == 0 and not self.is_success_on_expiry:
-            self.set_failure(f"{self.message} not validated: Can't find any related event")
+            raise Exception(f"{self.message} not validated: Can't find any related event")
 
         for span in spans:
             if not self.closed:
                 if "legacy_event" in span:
                     event = span["legacy_event"]
-                    try:
-                        if self.validate_legacy(event):
-                            self.log_debug(f"{self} is validated (legacy) by {span['log_filename']}")
-                            self.is_success_on_expiry = True
-                    except Exception as e:
-                        msg = traceback.format_exception_only(type(e), e)[0]
-                        self.set_failure(
-                            f"{m(self.message)} not validated on {span['log_filename']}, event #{span['i']}: {msg}"
-                        )
+                    if self.validate_legacy(event):
+                        logger.debug(f"{self} is validated (legacy) by {span['log_filename']}")
+                        self.is_success_on_expiry = True
                 else:
                     span_data = span["span"]
                     appsec_data = json.loads(span_data["meta"]["_dd.appsec.json"])
-                    try:
-                        if self.validate(span_data, appsec_data):
-                            self.log_debug(f"{self} is validated by {span['log_filename']}")
-                            self.is_success_on_expiry = True
-                    except Exception as e:
-                        msg = traceback.format_exception_only(type(e), e)[0]
-                        self.set_failure(
-                            f"{m(self.message)} not validated on {span['log_filename']}, event #{span['i']}: {msg}"
-                        )
+                    if self.validate(span_data, appsec_data):
+                        logger.debug(f"{self} is validated by {span['log_filename']}")
+                        self.is_success_on_expiry = True
 
     def validate_legacy(self, event):
         raise NotImplementedError
@@ -149,9 +136,8 @@ class _NoAppsecEvent(_BaseAppSecValidation):
         self.set_failure(f"{m(self.message)} => request has been reported")
 
 
-class _WafAttack(_BaseAppSecValidation):
-    def __init__(self, request, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None):
-        super().__init__(request=request)
+class _WafAttack:
+    def __init__(self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None):
 
         # rule can be a rule id, or a rule type
         if rule is None:
@@ -200,7 +186,10 @@ class _WafAttack(_BaseAppSecValidation):
         return result
 
     def validate(self, span, appsec_data):
-        for trigger in appsec_data.get("triggers", []):
+        if "triggers" not in appsec_data:
+            logger.error("triggers is not in appsec_data")
+
+        for trigger in appsec_data["triggers"]:
             patterns = []
             values = []
             addresses = []
@@ -226,28 +215,28 @@ class _WafAttack(_BaseAppSecValidation):
                         full_addresses.append((parameter["address"], key_path))
 
             if self.rule_id and self.rule_id != rule_id:
-                self.log_info(f"{self.message} => saw {rule_id}, expecting {self.rule_id}")
+                logger.info(f"saw {rule_id}, expecting {self.rule_id}")
 
             elif self.rule_type and self.rule_type != rule_type:
-                self.log_info(f"{self.message} => saw rule type {rule_type}, expecting {self.rule_type}")
+                logger.info(f"saw rule type {rule_type}, expecting {self.rule_type}")
 
             elif self.pattern and self.pattern not in patterns:
-                self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
+                logger.info(f"saw {patterns}, expecting {self.pattern}")
 
             elif self.patterns and Counter(self.patterns) != Counter(patterns):
-                self.log_info(f"{self.message} => saw {patterns}, expecting {self.patterns}")
+                logger.info(f"saw {patterns}, expecting {self.patterns}")
 
             elif self.value and self.value not in values:
-                self.log_info(f"{self.message} => saw {values}, expecting {self.value}")
+                logger.info(f"saw {values}, expecting {self.value}")
 
             elif self.address and self.key_path is None and self.address not in addresses:
-                self.log_info(f"{self.message} => saw {addresses}, expecting {self.address}")
+                logger.info(f"saw {addresses}, expecting {self.address}")
 
             elif self.address and self.key_path and (self.address, self.key_path) not in full_addresses:
-                self.log_info(f"{self.message} => saw {full_addresses}, expecting {(self.address, self.key_path)}")
+                logger.info(f"saw {full_addresses}, expecting {(self.address, self.key_path)}")
 
             else:
-                self.set_status(True)
+                return True
 
     def validate_legacy(self, event):
         event_version = event.get("event_version", "0.1.0")
@@ -266,22 +255,22 @@ class _WafAttack(_BaseAppSecValidation):
         key_path = self.key_path if event_version != "0.1.0" else None
 
         if self.rule_id and self.rule_id != rule_id:
-            self.log_info(f"{self.message} => saw rule id {rule_id}, expecting {self.rule_id}")
+            logger.info(f"saw rule id {rule_id}, expecting {self.rule_id}")
 
         elif self.rule_type and self.rule_type != rule_type:
-            self.log_info(f"{self.message} => saw rule type {rule_type}, expecting {self.rule_type}")
+            logger.info(f"saw rule type {rule_type}, expecting {self.rule_type}")
 
         elif self.pattern and self.pattern not in patterns:
-            self.log_info(f"{self.message} => saw {patterns}, expecting {self.pattern}")
+            logger.info(f"saw {patterns}, expecting {self.pattern}")
 
         elif self.address and key_path is None and self.address not in addresses:
-            self.log_info(f"{self.message} => saw {addresses}, expecting {self.address}")
+            logger.info(f"saw {addresses}, expecting {self.address}")
 
         elif self.address and key_path and (self.address, key_path) not in parameters:
-            self.log_info(f"{self.message} => saw {parameters}, expecting {(self.address, key_path)}")
+            logger.info(f"saw {parameters}, expecting {(self.address, key_path)}")
 
         else:
-            self.set_status(True)
+            return True
 
 
 class _ReportedHeader(_BaseAppSecValidation):

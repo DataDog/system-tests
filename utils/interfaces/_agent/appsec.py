@@ -4,12 +4,10 @@
 
 """ AppSec validations """
 
-import traceback
 import json
 
 from utils.interfaces._core import BaseValidation
 from utils.interfaces._library._utils import _get_rid_from_span
-from utils.tools import m
 
 
 class _BaseAppSecValidation(BaseValidation):

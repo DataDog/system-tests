@@ -6,7 +6,7 @@ import random
 import argparse
 
 from utils import data_collector
-from utils.tools import get_logger
+from utils.tools import _get_logger
 
 from scenarios.fuzzer.core import Fuzzer
 

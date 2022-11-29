@@ -22,6 +22,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         ]
         self._new_log_line_pattern = re.compile(r".")
         self._parsers = []
+        self.timeout = 0
 
     def _get_files(self):
         raise NotImplementedError()
@@ -71,7 +72,9 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self, timeout):
+    def wait(self):
+        super().wait()
+
         for log_line in self._read():
 
             parsed = {}
@@ -85,31 +88,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             parsed["raw"] = log_line
 
-            self.append_data(parsed)
-
-        super().wait(timeout)
-
-    def append_data(self, data):
-        if self.system_test_error is not None:
-            return
-
-        try:
-            for validation in self._validations:
-                if not validation.closed:
-                    validation.check(data)
-
-            self._check_closed_status()
-        except Exception as e:
-            self.system_test_error = e
-            raise
-
-    def __test__(self):
-        self.wait(0)
-        print(f"Interface result: {self.is_success}")
-        for v in self._validations:
-            if not v.is_success:
-                for l in v.logs:
-                    print(l)
+            self._data_list.append(parsed)
 
     def assert_presence(self, pattern, **extra_conditions):
         self.append_validation(_LogPresence(pattern, **extra_conditions))
@@ -310,8 +289,8 @@ class Test:
     def test_main(self):
         """Test example"""
         i = _LibraryStdout()
+        i.wait()
         i.assert_presence(r".*", level="DEBUG")
-        i.__test__()
 
 
 if __name__ == "__main__":

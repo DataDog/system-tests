@@ -11,7 +11,11 @@ from utils.interfaces._core import BaseValidation
 class _ProfilingFieldAssertion(BaseValidation):
     def __init__(self, field_name, content_pattern):
         super().__init__(path_filters=["/profiling/v1/input", "/api/v2/profile"])
-        self.expected_timeout = 160
+
+        from utils import interfaces  # TODO : find a better way
+
+        interfaces.agent.timeout = 160
+        interfaces.library.timeout = 160
         self.field_name = field_name
         self.content_pattern = re.compile(content_pattern) if content_pattern else None
 

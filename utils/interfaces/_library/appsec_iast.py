@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 """ AppSec IAST validations """
-import traceback
 import json
 from collections import namedtuple
 from utils.interfaces._core import BaseValidation
@@ -40,15 +39,9 @@ class _BaseAppSecIastValidation(BaseValidation):
             if not self.closed:
                 appsec_iast_data = json.loads(span["span"]["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
                 vulnerabilities = appsec_iast_data.vulnerabilities
-                try:
-                    if self.validate(vulnerabilities):
-                        self.log_debug(f"{self} is validated by {span['log_filename']}")
-                        self.set_status(True)
-                except Exception as e:
-                    msg = traceback.format_exception_only(type(e), e)[0]
-                    self.set_failure(
-                        f"{m(self.message)} not validated on {span['log_filename']}, event #{span['i']}: {msg}"
-                    )
+                if self.validate(vulnerabilities):
+                    self.log_debug(f"{self} is validated by {span['log_filename']}")
+                    self.set_status(True)
 
     def validate(self, vulnerabilities):
         raise NotImplementedError

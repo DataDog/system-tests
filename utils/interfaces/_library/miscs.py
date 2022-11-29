@@ -92,14 +92,10 @@ class _SpanValidation(BaseValidation):
                     if self.rid != _get_rid_from_span(span):
                         continue
 
-                    self.log_debug(f"Found a trace for {m(self.message)}")
+                    self.log_debug(f"Found a trace for {m(self.message)} in {data['log_filename']}")
 
-                try:
                     if self.validator(span):
-                        self.log_debug(f"Trace in {data['log_filename']} validates {m(self.message)}")
                         self.is_success_on_expiry = True
-                except Exception as exc:
-                    self.set_failure(exception=exc, data=data, extra_info=span)
 
 
 class _SpanTagValidation(BaseValidation):

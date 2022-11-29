@@ -73,8 +73,6 @@ def deserialize_http_message(path, message, data, interface, key):
     content_type = get_header_value("content-type", message["headers"])
     content_type = None if content_type is None else content_type.lower()
 
-    logger.debug(f"Deserialize {content_type} for {path} {key}")
-
     if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
         return json.loads(data)
 

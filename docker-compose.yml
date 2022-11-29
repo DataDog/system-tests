@@ -99,12 +99,12 @@ services:
       - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./conftest.py:/app/conftest.py
-      - ./tests/:/app/tests/
-      - ./utils/:/app/utils/
+      - ./scenarios/:/app/scenarios/:ro
+      - ./tests/:/app/tests/:ro
+      - ./utils/:/app/utils/:ro
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./conftest.py:/app/conftest.py:ro
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/:/app/logs/
-      - ./scenarios/:/app/scenarios/
       - /var/run/docker.sock:/var/run/docker.sock
     command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
 
