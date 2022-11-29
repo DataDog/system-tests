@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, coverage, interfaces, released, irrelevant, scenario
+from utils import weblog, context, coverage, interfaces, released, irrelevant, scenario
 
 # dd.rc.targets.key.id=TEST_KEY_ID
 # dd.rc.targets.key=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c
@@ -16,10 +16,10 @@ from utils import BaseTestCase, context, coverage, interfaces, released, irrelev
     context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with cutom rule file"
 )
 @coverage.basic
-class Test_RuntimeActivation(BaseTestCase):
+class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""
 
-    def test_asm_features(self):
+    def setup_asm_features(self):
         def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":
                 config_states = (
@@ -31,8 +31,9 @@ class Test_RuntimeActivation(BaseTestCase):
                 )
                 return any(st["product"] == "ASM_FEATURES" and st["apply_state"] == 2 for st in config_states)
 
-        # TODO : need to check how to do this in new model
         interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
 
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.assert_waf_attack(r)
+        self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+    def test_asm_features(self):
+        interfaces.library.assert_waf_attack(self.r)

@@ -4,7 +4,7 @@
 
 import pytest
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import BaseTestCase, bug, context, coverage, interfaces, irrelevant, released, rfc, weblog
+from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 @released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="?")
 @coverage.good
-class Test_StandardTagsMethod(BaseTestCase):
+class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
 
     def setup_methods(self):
@@ -39,7 +39,7 @@ class Test_StandardTagsMethod(BaseTestCase):
 @released(php="0.76.0", python="1.6.0rc1.dev", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @coverage.basic
-class Test_StandardTagsUrl(BaseTestCase):
+class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
 
     def setup_url_basic(self):
@@ -96,7 +96,7 @@ class Test_StandardTagsUrl(BaseTestCase):
 @released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0")
 @released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.basic
-class Test_StandardTagsUserAgent(BaseTestCase):
+class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
 
     def setup_useragent(self):
@@ -111,7 +111,7 @@ class Test_StandardTagsUserAgent(BaseTestCase):
 @released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0")
 @released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="?")
 @coverage.good
-class Test_StandardTagsStatusCode(BaseTestCase):
+class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
 
     def setup_status_code(self):
@@ -126,7 +126,7 @@ class Test_StandardTagsStatusCode(BaseTestCase):
 @released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
 @coverage.basic
-class Test_StandardTagsRoute(BaseTestCase):
+class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""
 
     def setup_route(self):
@@ -159,7 +159,7 @@ class Test_StandardTagsRoute(BaseTestCase):
 @released(dotnet="?", golang="?", java="0.114.0")
 @released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="?")
 @coverage.basic
-class Test_StandardTagsClientIp(BaseTestCase):
+class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
     def setup(self):
