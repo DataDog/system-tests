@@ -11,8 +11,8 @@ parametrize = pytest.mark.parametrize
 
 def temporary_enable_optin_tracecontext() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,W3C",  # dotnet
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,W3C",  # dotnet
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
     }
     return parametrize("library_env", [env])
 
