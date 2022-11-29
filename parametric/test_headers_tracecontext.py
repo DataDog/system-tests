@@ -17,6 +17,7 @@ def temporary_enable_optin_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -29,6 +30,7 @@ def test_both_traceparent_and_tracestate_missing(test_agent, test_library):
         traceparent, tracestate = make_single_request_and_get_tracecontext(test_library, [])
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -66,6 +68,7 @@ def test_traceparent_duplicated(test_agent, test_library):
     assert traceparent.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -114,6 +117,7 @@ def test_traceparent_header_name_valid_casing(test_agent, test_library):
     assert traceparent3.trace_id == '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -201,6 +205,7 @@ def test_traceparent_version_illegal_characters(test_agent, test_library):
     assert traceparent2.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -222,6 +227,7 @@ def test_traceparent_version_too_long(test_agent, test_library):
     assert traceparent2.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -238,6 +244,7 @@ def test_traceparent_version_too_short(test_agent, test_library):
     assert traceparent.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -276,6 +283,7 @@ def test_traceparent_trace_id_illegal_characters(test_agent, test_library):
     assert traceparent2.trace_id != '1234567890123456789012345678901.'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -294,6 +302,7 @@ def test_traceparent_trace_id_too_long(test_agent, test_library):
     assert traceparent.trace_id != '23456789012345678901234567890123'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -349,6 +358,7 @@ def test_traceparent_parent_id_illegal_characters(test_agent, test_library):
     assert traceparent2.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -365,6 +375,7 @@ def test_traceparent_parent_id_too_long(test_agent, test_library):
     assert traceparent.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -381,6 +392,7 @@ def test_traceparent_parent_id_too_short(test_agent, test_library):
     assert traceparent.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -402,6 +414,7 @@ def test_traceparent_trace_flags_illegal_characters(test_agent, test_library):
     assert traceparent2.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -418,6 +431,7 @@ def test_traceparent_trace_flags_too_long(test_agent, test_library):
     assert traceparent.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -434,6 +448,7 @@ def test_traceparent_trace_flags_too_short(test_agent, test_library):
     assert traceparent.trace_id != '12345678901234567890123456789012'
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
