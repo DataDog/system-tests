@@ -6,7 +6,6 @@ import json
 from collections import defaultdict
 
 from utils import (
-    BaseTestCase,
     ValidationError,
     scenario,
     context,
@@ -30,7 +29,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-class RemoteConfigurationFieldsBasicTests(BaseTestCase):
+class RemoteConfigurationFieldsBasicTests:
     """ Misc tests on fields and values on remote configuration reauests """
 
     def test_schemas(self):
