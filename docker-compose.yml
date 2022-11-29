@@ -14,7 +14,7 @@ services:
       - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_AGENT_PROXY_STATE:-}
     volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
+      - ./utils/proxy/:/system-tests/utils/proxy/:ro
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
     ports:
       - "127.0.0.1:8082:8082"
@@ -29,7 +29,7 @@ services:
       - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_LIBRARY_PROXY_STATE:-}
     volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
+      - ./utils/proxy/:/system-tests/utils/proxy/:ro
     command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:

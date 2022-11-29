@@ -194,9 +194,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_MetricAbsence(metric_name))
 
     def add_traces_validation(self, validator, is_success_on_expiry=False):
-        self.add_validation(
-            validator=validator, is_success_on_expiry=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces"
-        )
+        self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces")
 
     def add_span_validation(self, request=None, validator=None, is_success_on_expiry=False):
         self.append_validation(
@@ -242,9 +240,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_NoIastEvent(request=request))
 
     def add_telemetry_validation(self, validator, is_success_on_expiry=False):
-        self.add_validation(
+        self.validate(
             validator=validator,
-            is_success_on_expiry=is_success_on_expiry,
+            success_by_default=is_success_on_expiry,
             path_filters="/telemetry/proxy/api/v2/apmtelemetry",
         )
 
@@ -261,7 +259,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_AppHeartbeatValidation())
 
     def add_profiling_validation(self, validator):
-        self.add_validation(validator, path_filters="/profiling/v1/input")
+        self.validate(validator, path_filters="/profiling/v1/input")
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
@@ -270,7 +268,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_TraceExistence(request=request, span_type=span_type))
 
     def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
-        self.add_validation(validator, is_success_on_expiry=is_success_on_expiry, path_filters=r"/v\d+.\d+/config")
+        self.validate(validator, success_by_default=is_success_on_expiry, path_filters=r"/v\d+.\d+/config")
 
 
 class _TraceIdUniquenessExceptions:

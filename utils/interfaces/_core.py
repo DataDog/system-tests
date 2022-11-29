@@ -100,13 +100,17 @@ class InterfaceValidator:
 
             yield data
 
-    def validate(self, validator, success_by_default=False):
-        for data in self._data_list:
+    def validate(self, validator, path_filters=None, success_by_default=False):
+        for data in self.get_data(path_filters=path_filters):
             if validator(data) is True:
                 return
 
         if not success_by_default:
             raise Exception("Test has not been validated by any data")
+
+    def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
+        warnings.warn("add_validation() is deprecated, please use validate()", DeprecationWarning)
+        self.validate(validator=validator, path_filters=path_filters, success_by_default=is_success_on_expiry)
 
     def append_validation(self, validation):
 
@@ -124,11 +128,12 @@ class InterfaceValidator:
             validation.final_check()
 
     def add_assertion(self, condition):
-        warnings.warn("add_assertion() is deprecated, please use bare assert", DeprecationWarning)  # TODO
+        warnings.warn("add_assertion() is deprecated, please use bare assert", DeprecationWarning)
         assert condition
 
     def add_final_validation(self, validator):
-        self.append_validation(_FinalValidation(validator))
+        warnings.warn("add_final_validation() is deprecated, simply call your validator", DeprecationWarning)
+        assert validator()
 
     def wait_for(self, wait_for_function, timeout):
 
@@ -149,11 +154,6 @@ class InterfaceValidator:
             logger.error(f"Wait for {wait_for_function} finished in error")
 
         self._wait_for_function = None
-
-    def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
-        self.append_validation(
-            _Validation(validator, is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
-        )
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -304,47 +304,6 @@ class ValidationError(Exception):
     def __init__(self, *args: object, extra_info=None) -> None:
         super().__init__(*args)
         self.extra_info = extra_info
-
-
-class _Validation(BaseValidation):
-    """will run an arbitrary check on data.
-
-    Validator function can :
-    * returns true => validation will be validated at the end (but other will also be checked)
-    * returns False or None => nothing is done
-    * raise an exception => validation will fail
-    """
-
-    def __init__(self, validator, is_success_on_expiry=None, path_filters=None):
-        super().__init__(is_success_on_expiry=is_success_on_expiry, path_filters=path_filters)
-        self.validator = validator
-
-    def check(self, data):
-        try:
-            if self.validator(data):
-                self.log_debug(f"{self} is validated by {data['log_filename']}")
-                self.is_success_on_expiry = True
-        except Exception as e:
-            self.set_failure(exception=e, data=data)
-
-
-class _FinalValidation(BaseValidation):
-    def __init__(self, validator):
-        super().__init__()
-        self.validator = validator
-
-    def check(self, data):
-        pass
-
-    def final_check(self):
-        try:
-            if self.validator():
-                self.log_debug(f"{self} is validated")
-                self.set_status(True)
-            else:
-                self.set_status(False)
-        except Exception as e:
-            self.set_failure(exception=e)
 
 
 def get_rid(request):

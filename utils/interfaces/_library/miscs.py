@@ -58,11 +58,12 @@ class _ReceiveRequestRootTrace(BaseValidation):
             self.set_status(True)
 
     def set_expired(self):
-        super().set_expired()
         if not self.is_success:
             self.log_error(
                 f'Validation "{self.message}", nothing has been reported. No request root span with has been found'
             )
+
+        super().set_expired()
 
 
 class _SpanValidation(BaseValidation):

@@ -40,7 +40,7 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.append_validation(_MetricExistence(metric_name))
 
     def add_profiling_validation(self, validator):
-        self.add_validation(validator, path_filters="/api/v2/profile")
+        self.validate(validator, path_filters="/api/v2/profile")
 
     def profiling_assert_field(self, field_name, content_pattern=None):
         self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
@@ -57,13 +57,11 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.append_validation(HeadersMatchValidation(path_filter, request_headers, response_headers, check_condition))
 
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
-        self.add_validation(
-            validator=validator, is_success_on_expiry=is_success_on_expiry, path_filters="/api/v2/apmtelemetry"
-        )
+        self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters="/api/v2/apmtelemetry")
 
     def add_traces_validation(self, validator, is_success_on_expiry=False):
-        self.add_validation(
-            validator=validator, is_success_on_expiry=is_success_on_expiry, path_filters=r"/api/v0\.[1-9]+/traces"
+        self.validate(
+            validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/api/v0\.[1-9]+/traces"
         )
 
 
