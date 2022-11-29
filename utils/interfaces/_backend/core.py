@@ -9,7 +9,6 @@ import threading
 import requests
 
 from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
-from utils.tools import logger
 
 
 class _BackendInterfaceValidator(InterfaceValidator):
@@ -21,6 +20,8 @@ class _BackendInterfaceValidator(InterfaceValidator):
         self.ready.set()
         self.timeout = 5
 
+        self.rid_to_trace_id = {}
+
     def wait(self):
         super().wait()
         from utils.interfaces import library
@@ -28,57 +29,56 @@ class _BackendInterfaceValidator(InterfaceValidator):
         for _, _, span in library.get_spans():
             if span.get("parent_id") in (0, None):
                 rid = get_rid_from_span(span)
-                trace_id = span.get("trace_id")
-                if rid:
-                    logger.info(f"Found rid/trace_id: {rid} -> {trace_id}, collect data from backend")
-                    path = f"/api/v1/trace/{trace_id}"
-                    host = "https://dd.datad0g.com"
+                self.rid_to_trace_id[rid] = span.get("trace_id")
 
-                    headers = {
-                        "DD-API-KEY": os.environ["DD_API_KEY"],
-                        "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
-                    }
-                    r = requests.get(f"{host}{path}", headers=headers, timeout=10)
-
-                    self.append_data(
-                        {
-                            "host": host,
-                            "path": path,
-                            "rid": rid,
-                            "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
-                        }
-                    )
-
-    def get_appsec_data(self, request):
+    def _get_backend_data(self, request):
         rid = get_rid_from_request(request)
 
-        for data in self.get_data():
-            if rid == data["rid"]:
-                yield data
+        if rid not in self.rid_to_trace_id:
+            raise Exception("There is no trace id related to this request ")
+
+        trace_id = self.rid_to_trace_id[rid]
+
+        path = f"/api/v1/trace/{trace_id}"
+        host = "https://dd.datad0g.com"
+
+        headers = {
+            "DD-API-KEY": os.environ["DD_API_KEY"],
+            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+        }
+        r = requests.get(f"{host}{path}", headers=headers, timeout=10)
+
+        return {
+            "host": host,
+            "path": path,
+            "rid": rid,
+            "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
+        }
 
     def assert_waf_attack(self, request):
-        for data in self.get_appsec_data(request):
-            status_code = data["response"]["status_code"]
-            if status_code != 200:
-                raise Exception(f"Backend did not provide trace: {data['path']}. Status is {status_code}")
+        data = self._get_backend_data(request)
 
-            trace = data["response"]["content"].get("trace", {})
-            for span in trace.get("spans", {}).values():
-                if not span["parent_id"] in (None, 0, "0"):  # only root span
-                    continue
+        status_code = data["response"]["status_code"]
+        if status_code != 200:
+            raise Exception(f"Backend did not provide trace: {data['path']}. Status is {status_code}")
 
-                meta = span.get("meta", {})
+        trace = data["response"]["content"].get("trace", {})
+        for span in trace.get("spans", {}).values():
+            if not span["parent_id"] in (None, 0, "0"):  # only root span
+                continue
 
-                if "_dd.appsec.source" not in meta:
-                    raise Exception("'_dd.appsec.source' should be in span's meta tags")
+            meta = span.get("meta", {})
 
-                elif meta["_dd.appsec.source"] != "backendwaf":
-                    raise Exception(
-                        f"'_dd.appsec.source' values should be 'backendwaf', not {meta['_dd.appsec.source']} in {data['log_filename']}"
-                    )
+            if "_dd.appsec.source" not in meta:
+                raise Exception("'_dd.appsec.source' should be in span's meta tags")
 
-                elif "appsec" not in meta:
-                    raise Exception(f"'appsec' should be in span's meta tags in {data['log_filename']}")
+            elif meta["_dd.appsec.source"] != "backendwaf":
+                raise Exception(
+                    f"'_dd.appsec.source' values should be 'backendwaf', not {meta['_dd.appsec.source']} in {data['log_filename']}"
+                )
 
-                else:
-                    return
+            elif "appsec" not in meta:
+                raise Exception(f"'appsec' should be in span's meta tags in {data['log_filename']}")
+
+            else:
+                return

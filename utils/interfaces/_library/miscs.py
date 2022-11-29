@@ -44,39 +44,6 @@ class _TraceIdUniqueness(BaseValidation):
                 self.log_error(f"Found duplicate trace id {trace_id}")
 
 
-class _SpanValidation(BaseValidation):
-    """will run an arbitrary check on spans. If a request is provided, only span
-    related to this request will be checked.
-    Validator function can :
-    * returns true => validation will be validated at the end (but trace will continue to be checked)
-    * returns False or None => nothing is done
-    * raise an exception => validation will fail
-    """
-
-    path_filters = ["/v0.4/traces", "/v0.5/traces"]
-
-    def __init__(self, request, validator, is_success_on_expiry):
-        super().__init__(request=request)
-        self.validator = validator
-        self.is_success_on_expiry = is_success_on_expiry
-
-    def check(self, data):
-        if not isinstance(data["request"]["content"], list):
-            self.log_error(f"In {data['log_filename']}, traces should be an array")
-            return  # do not fail, it's schema's job
-
-        for trace in data["request"]["content"]:
-            for span in trace:
-                if self.rid:
-                    if self.rid != get_rid_from_span(span):
-                        continue
-
-                    self.log_debug(f"Found a trace for {m(self.message)} in {data['log_filename']}")
-
-                    if self.validator(span):
-                        self.is_success_on_expiry = True
-
-
 class _SpanTagValidation(BaseValidation):
     """will run an arbitrary check on spans. If a request is provided, only span"""
 

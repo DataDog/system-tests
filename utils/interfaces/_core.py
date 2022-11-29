@@ -115,8 +115,7 @@ class InterfaceValidator:
 
         for data in self.get_data(validation.path_filters):
             if validation.check(data):
-                validation.set_status(True)
-                break
+                return
 
         if not validation.closed:
             validation.final_check()

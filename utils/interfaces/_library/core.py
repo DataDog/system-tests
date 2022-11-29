@@ -16,7 +16,6 @@ from utils.interfaces._library.appsec_iast import _AppSecIastValidation, _NoIast
 from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
-    _SpanValidation,
     _SpanTagValidation,
     _TraceExistence,
 )
@@ -60,27 +59,28 @@ class LibraryInterfaceValidator(InterfaceValidator):
         return super().append_data(data)
 
     ############################################################
-    def get_traces(self, request=None):
-        rid = get_rid_from_request(request)
+    def get_traces(self):
 
         paths = ["/v0.4/traces", "/v0.5/traces"]
 
         for data in self.get_data(path_filters=paths):
             traces = data["request"]["content"]
             for trace in traces:
-                if len(trace) != 0:
-                    if rid is None:
-                        yield data, trace
-                    else:
-                        first_span = trace[0]
-                        span_rid = get_rid_from_span(first_span)
-                        if span_rid == rid:
-                            yield data, trace
+                yield data, trace
 
     def get_spans(self, request=None):
-        for data, trace in self.get_traces(request=request):
+        rid = get_rid_from_request(request)
+
+        if rid:
+            logger.debug(f"Try to found spans related to request {rid}")
+
+        for data, trace in self.get_traces():
             for span in trace:
-                yield data, trace, span
+                if rid is None:
+                    yield data, trace, span
+                elif rid == get_rid_from_span(span):
+                    logger.debug(f"A span is found in {data['log_filename']}")
+                    yield data, trace, span
 
     def get_root_spans(self):
         for _, _, span in self.get_spans():
@@ -90,6 +90,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def get_appsec_events(self, request=None):
         for data, trace, span in self.get_spans(request):
             if "_dd.appsec.json" in span.get("meta", {}):
+
+                if request:  # do not spam log if all data are sent to the validator
+                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
+
                 appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
                 yield data, trace, span, appsec_data
 
@@ -122,25 +126,22 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
                         for user_agent in user_agents:
                             if get_rid_from_user_agent(user_agent) == rid:
+
+                                if request:  # do not spam log if all data are sent to the validator
+                                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}")
+
                                 yield data, event
                                 break
 
     ############################################################
 
     def validate_appsec(self, request, validator, success_by_default=False, legacy_validator=None):
-        for data, _, span, appsec_data in self.get_appsec_events(request=request):
-
-            if request:  # do not spam log if all data are sent to the validator
-                logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
-
+        for _, _, span, appsec_data in self.get_appsec_events(request=request):
             if validator(span, appsec_data):
                 return
 
         if legacy_validator:
-            for data, event in self.get_legacy_appsec_events(request=request):
-                if request:  # do not spam log if all data are sent to the validator
-                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}")
-
+            for _, event in self.get_legacy_appsec_events(request=request):
                 if validator(event):
                     return
 
@@ -199,9 +200,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces")
 
     def add_span_validation(self, request=None, validator=None, is_success_on_expiry=False):
-        self.append_validation(
-            _SpanValidation(request=request, validator=validator, is_success_on_expiry=is_success_on_expiry)
-        )
+        for _, _, span in self.get_spans(request=request):
+            if validator(span):
+                return
+
+        if not is_success_on_expiry:
+            raise Exception("No span validates this test")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         self.append_validation(
