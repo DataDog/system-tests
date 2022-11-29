@@ -6,10 +6,10 @@
 import json
 
 from collections import Counter
-from utils.interfaces._core import BaseValidation
-from utils.interfaces._library._utils import get_spans_related_to_rid, get_rid_from_user_agent
-from utils.tools import m, logger
+from utils.interfaces._core import BaseValidation, get_rid_from_user_agent
+from utils.interfaces._library._utils import get_spans_related_to_rid
 from utils.interfaces._library.appsec_data import rule_id_to_type
+from utils.tools import m, logger
 
 
 class _BaseAppSecValidation(BaseValidation):

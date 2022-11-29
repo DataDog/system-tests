@@ -2,9 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This file contains base class used to validate interfaces
-"""
+""" This file contains base class used to validate interfaces """
 
 import threading
 import inspect
@@ -40,8 +38,6 @@ class InterfaceValidator:
 
         self.timeout = 0
 
-        # list of request ids that used by this interface
-        self.rids = set()
         self.accept_data = True
 
     def __repr__(self):
@@ -49,9 +45,6 @@ class InterfaceValidator:
 
     def __str__(self):
         return f"{self.name} interface"
-
-    def collect_data(self):
-        pass
 
     def wait(self):
         time.sleep(self.timeout)
@@ -120,9 +113,6 @@ class InterfaceValidator:
 
         validation.interface = self.name
 
-        if validation.rid:
-            self.rids.add(validation.rid)
-
         for data in self.get_data(validation.path_filters):
             if validation.check(data):
                 validation.set_status(True)
@@ -130,6 +120,9 @@ class InterfaceValidator:
 
         if not validation.closed:
             validation.final_check()
+
+        if not validation.is_success_on_expiry and not validation.is_success:
+            raise Exception("???")
 
     def add_assertion(self, condition):
         warnings.warn("add_assertion() is deprecated, please use bare assert", DeprecationWarning)
@@ -193,7 +186,7 @@ class BaseValidation:
         if self.path_filters is not None:
             self.path_filters = [re.compile(path) for path in self.path_filters]
 
-        self.rid = get_rid(request)
+        self.rid = get_rid_from_request(request)
 
         self.frame = None
         self.calling_method = None
@@ -310,9 +303,48 @@ class ValidationError(Exception):
         self.extra_info = extra_info
 
 
-def get_rid(request):
+def get_rid_from_request(request):
     if request is None:
         return None
 
     user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
     return user_agent[-36:]
+
+
+def get_rid_from_span(span):
+
+    if not isinstance(span, dict):
+        logger.error(f"Span should be an object, not {type(span)}")
+        return None
+
+    meta = span.get("meta", {})
+
+    user_agent = None
+
+    if span.get("type") == "rpc":
+        user_agent = meta.get("grpc.metadata.user-agent")
+        # java does not fill this tag; it uses the normal http tags
+
+    if not user_agent:
+        # code version
+        user_agent = meta.get("http.request.headers.user-agent")
+
+    if not user_agent:  # try something for .NET
+        user_agent = meta.get("http_request_headers_user-agent")
+
+    if not user_agent:  # last hope
+        user_agent = meta.get("http.useragent")
+
+    return get_rid_from_user_agent(user_agent)
+
+
+def get_rid_from_user_agent(user_agent):
+    if not user_agent:
+        return None
+
+    match = re.search("rid/([A-Z]{36})", user_agent)
+
+    if not match:
+        return None
+
+    return match.group(1)

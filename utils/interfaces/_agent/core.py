@@ -6,12 +6,13 @@
 This files will validate data flow between agent and backend
 """
 
+import json
 import threading
 
-from utils.interfaces._core import BaseValidation, InterfaceValidator
+from utils.tools import logger
+from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span
 from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._profiling import _ProfilingFieldValidator
-from utils.interfaces._agent.appsec import AppSecValidation
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
@@ -29,6 +30,31 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.ready.set()
 
         return data
+
+    def get_appsec_data(self, request):
+
+        rid = get_rid_from_request(request)
+
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            if "tracerPayloads" not in data["request"]["content"]:
+                continue
+
+            content = data["request"]["content"]["tracerPayloads"]
+
+            for payload in content:
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+
+                        if "meta" not in span or "_dd.appsec.json" not in span["meta"]:
+                            continue
+
+                        appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
+
+                        if rid is None:
+                            yield data, payload, chunk, span, appsec_data
+                        elif get_rid_from_span(span) == rid:
+                            logger.debug(f'Found span with rid={rid} in {data["log_filename"]}')
+                            yield data, payload, chunk, span, appsec_data
 
     def assert_use_domain(self, expected_domain):
         # TODO: Move this in test class
@@ -51,7 +77,11 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
     def add_appsec_validation(self, request, validator):
-        self.append_validation(AppSecValidation(request, validator))
+        for _, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
+            if validator(payload, chunk, span, appsec_data):
+                return
+
+        raise Exception("No data validate this test")
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)

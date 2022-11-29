@@ -7,8 +7,7 @@ import threading
 
 from utils.tools import logger
 from utils._context.core import context
-from utils.interfaces._core import InterfaceValidator, get_rid
-from utils.interfaces._library._utils import _get_rid_from_span, get_rid_from_user_agent
+from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
@@ -62,7 +61,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     ############################################################
     def get_traces(self, request=None):
-        rid = get_rid(request)
+        rid = get_rid_from_request(request)
 
         paths = ["/v0.4/traces", "/v0.5/traces"]
 
@@ -74,7 +73,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                         yield data, trace
                     else:
                         first_span = trace[0]
-                        span_rid = _get_rid_from_span(first_span)
+                        span_rid = get_rid_from_span(first_span)
                         if span_rid == rid:
                             yield data, trace
 
@@ -97,7 +96,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def get_legacy_appsec_events(self, request):
         paths_with_appsec_events = ["/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
-        rid = get_rid(request)
+        rid = get_rid_from_request(request)
 
         for data in self.get_data(path_filters=paths_with_appsec_events):
             events = data["request"]["content"]["events"]

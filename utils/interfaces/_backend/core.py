@@ -2,15 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This files will validate data flow between agent and backend
-"""
+""" This files will validate data flow between agent and backend """
 
 import os
 import threading
 import requests
 
-from utils.interfaces._core import BaseValidation, InterfaceValidator
+from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
 from utils.tools import logger
 
 
@@ -23,61 +21,46 @@ class _BackendInterfaceValidator(InterfaceValidator):
         self.ready.set()
         self.timeout = 5
 
-    def collect_data(self):
+    def wait(self):
+        super().wait()
         from utils.interfaces import library
-        from utils.interfaces._library._utils import _get_rid_from_span
 
-        logger.info(f"Get data for {self.rids}")
-        for data in library._data_list:
-            if data["path"] not in ("/v0.4/traces", "/v0.5/traces"):
-                continue
+        for _, _, span in library.get_spans():
+            if span.get("parent_id") in (0, None):
+                rid = get_rid_from_span(span)
+                trace_id = span.get("trace_id")
+                if rid:
+                    logger.info(f"Found rid/trace_id: {rid} -> {trace_id}, collect data from backend")
+                    path = f"/api/v1/trace/{trace_id}"
+                    host = "https://dd.datad0g.com"
 
-            for trace in data["request"]["content"]:
-                for span in trace:
-                    if span.get("parent_id") in (0, None):
-                        rid = _get_rid_from_span(span)
-                        trace_id = span.get("trace_id")
-                        if rid and rid in self.rids:
-                            logger.info(f"Found rid/trace_id: {rid} -> {trace_id}, collect data from backend")
-                            path = f"/api/v1/trace/{trace_id}"
-                            host = "https://dd.datad0g.com"
+                    headers = {
+                        "DD-API-KEY": os.environ["DD_API_KEY"],
+                        "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+                    }
+                    r = requests.get(f"{host}{path}", headers=headers, timeout=10)
 
-                            headers = {
-                                "DD-API-KEY": os.environ["DD_API_KEY"],
-                                "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
-                            }
-                            r = requests.get(f"{host}{path}", headers=headers)
+                    self.append_data(
+                        {
+                            "host": host,
+                            "path": path,
+                            "rid": rid,
+                            "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
+                        }
+                    )
 
-                            self.append_data(
-                                {
-                                    "host": host,
-                                    "path": path,
-                                    "rid": rid,
-                                    "response": {
-                                        "status_code": r.status_code,
-                                        "content": r.text,
-                                        "headers": dict(r.headers),
-                                    },
-                                }
-                            )
-                        elif rid:
-                            logger.info(f"Found rid/trace_id: {rid} -> {trace_id}, but I don't need it")
+    def get_appsec_data(self, request):
+        rid = get_rid_from_request(request)
+
+        for data in self.get_data():
+            if rid == data["rid"]:
+                yield data
 
     def assert_waf_attack(self, request):
-        self.append_validation(_AssertWafAttack(request=request))
-
-
-class _AssertWafAttack(BaseValidation):
-    def __init__(self, request):
-        super().__init__(request=request)
-
-    def check(self, data):
-        if data["rid"] == self.rid:
-
+        for data in self.get_appsec_data(request):
             status_code = data["response"]["status_code"]
             if status_code != 200:
-                self.set_failure(f"Backend did not provide trace: {data['path']}. Status is {status_code}")
-                return
+                raise Exception(f"Backend did not provide trace: {data['path']}. Status is {status_code}")
 
             trace = data["response"]["content"].get("trace", {})
             for span in trace.get("spans", {}).values():
@@ -87,16 +70,15 @@ class _AssertWafAttack(BaseValidation):
                 meta = span.get("meta", {})
 
                 if "_dd.appsec.source" not in meta:
-                    self.set_failure(f"'_dd.appsec.source' should be in span's meta tags")
+                    raise Exception("'_dd.appsec.source' should be in span's meta tags")
 
                 elif meta["_dd.appsec.source"] != "backendwaf":
-                    self.set_failure(
+                    raise Exception(
                         f"'_dd.appsec.source' values should be 'backendwaf', not {meta['_dd.appsec.source']} in {data['log_filename']}"
                     )
 
                 elif "appsec" not in meta:
-                    self.set_failure(f"'appsec' should be in span's meta tags in {data['log_filename']}")
+                    raise Exception(f"'appsec' should be in span's meta tags in {data['log_filename']}")
 
                 else:
-                    self.set_status(True)
                     return

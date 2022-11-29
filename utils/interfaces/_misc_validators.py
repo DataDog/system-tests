@@ -36,7 +36,7 @@ class HeadersMatchValidator:
         self.response_headers = dict(response_headers) if response_headers is not None else {}
         self.check_condition = check_condition
 
-    def check(self, data):
+    def __call__(self, data):
         if self.check_condition and not self.check_condition(data):
             return
 

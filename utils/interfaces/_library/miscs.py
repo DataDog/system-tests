@@ -9,8 +9,7 @@ import re
 from collections import Counter
 
 from utils.tools import m
-from utils.interfaces._core import BaseValidation
-from utils.interfaces._library._utils import get_root_spans, _get_rid_from_span
+from utils.interfaces._core import BaseValidation, get_rid_from_span
 
 
 class _TraceIdUniqueness(BaseValidation):
@@ -69,7 +68,7 @@ class _SpanValidation(BaseValidation):
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid:
-                    if self.rid != _get_rid_from_span(span):
+                    if self.rid != get_rid_from_span(span):
                         continue
 
                     self.log_debug(f"Found a trace for {m(self.message)} in {data['log_filename']}")
@@ -96,7 +95,7 @@ class _SpanTagValidation(BaseValidation):
         for trace in data["request"]["content"]:
             for span in trace:
                 if self.rid:
-                    if self.rid != _get_rid_from_span(span):
+                    if self.rid != get_rid_from_span(span):
                         continue
 
                     self.log_debug(f"Found a trace for {m(self.message)}")
@@ -145,7 +144,7 @@ class _TraceExistence(BaseValidation):
 
         for trace in data["request"]["content"]:
             for span in trace:
-                if self.rid == _get_rid_from_span(span):
+                if self.rid == get_rid_from_span(span):
                     for correlated_span in trace:
                         span_count = span_count + 1
                         span_types.append(correlated_span.get("type"))
