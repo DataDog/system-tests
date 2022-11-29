@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections import namedtuple
 import json
 import threading
 import warnings
@@ -12,10 +13,10 @@ from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
-from utils.interfaces._library.appsec_iast import _AppSecIastValidation, _NoIastEvent
+from utils.interfaces._library.appsec_iast import _AppSecIastValidator
 
 from utils.interfaces._profiling import _ProfilingFieldValidator
-from utils.interfaces._library.miscs import _SpanTagValidation
+from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
     _AllRequestsTransmitted,
@@ -130,6 +131,18 @@ class LibraryInterfaceValidator(InterfaceValidator):
                                 yield data, event
                                 break
 
+    def get_iast_events(self, request=None):
+        def vulnerability_dict(vulDict):
+            return namedtuple("X", vulDict.keys())(*vulDict.values())
+
+        for data, _, span in self.get_spans(request):
+            if "_dd.iast.json" in span.get("meta", {}):
+                if request:  # do not spam log if all data are sent to the validator
+                    logger.debug(f"Try to find relevant iast data in {data['log_filename']}; span #{span['span_id']}")
+
+                appsec_iast_data = json.loads(span["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
+                yield data, span, appsec_iast_data
+
     ############################################################
 
     def validate_appsec(self, request, validator, success_by_default=False, legacy_validator=None):
@@ -236,9 +249,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
             raise Exception("No span validates this test")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
-        self.append_validation(
-            _SpanTagValidation(request=request, tags=tags, value_as_regular_expression=value_as_regular_expression)
-        )
+        validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
+        success = False
+        for _, _, span in self.get_spans(request=request):
+            success = success or validator(span)
+
+        if not success:
+            raise Exception("Can't find anything to validate this test")
 
     def expect_iast_vulnerabilities(
         self,
@@ -249,19 +266,24 @@ class LibraryInterfaceValidator(InterfaceValidator):
         evidence=None,
         vulnerability_count=None,
     ):
-        self.append_validation(
-            _AppSecIastValidation(
-                request=request,
-                vulnerability_type=vulnerability_type,
-                location_path=location_path,
-                location_line=location_line,
-                evidence=evidence,
-                vulnerability_count=vulnerability_count,
-            )
+        validator = _AppSecIastValidator(
+            vulnerability_type=vulnerability_type,
+            location_path=location_path,
+            location_line=location_line,
+            evidence=evidence,
+            vulnerability_count=vulnerability_count,
         )
 
+        for _, _, iast_data in self.get_iast_events(request=request):
+            if validator(vulnerabilities=iast_data.vulnerabilities):
+                return
+
+        raise Exception("No data validates this tests")
+
     def expect_no_vulnerabilities(self, request):
-        self.append_validation(_NoIastEvent(request=request))
+        for data, _, iast_data in self.get_iast_events(request=request):
+            logger.error(json.dumps(iast_data, indent=2))
+            raise Exception(f"Found IAST event in {data['log_filename']}")
 
     def add_telemetry_validation(self, validator, is_success_on_expiry=False):
         self.validate(
