@@ -6,42 +6,8 @@
 
 import re
 
-from collections import Counter
-
 from utils.tools import m
 from utils.interfaces._core import BaseValidation, get_rid_from_span
-
-
-class _TraceIdUniqueness(BaseValidation):
-    path_filters = r"/v[0-9]\.[0-9]+/traces"  # Should be implemented independently from the endpoint version
-
-    is_success_on_expiry = False  # I need at least one value to be validated
-
-    def __init__(self, uniqueness_exceptions):
-        super().__init__()
-        self.traces_ids = Counter()
-        self.uniqueness_exceptions = uniqueness_exceptions
-
-    def check(self, data):
-        if not isinstance(data["request"]["content"], list):
-            self.log_error(f"For {data['log_filename']}, traces shoud be an array")
-            return
-
-        for trace in data["request"]["content"]:
-            if len(trace):
-                span = trace[0]
-                self.is_success_on_expiry = True
-
-                if "trace_id" not in span:
-                    self.set_failure(f"Can't find trace_id in request {data['log_filename']}")
-                else:
-                    trace_id = span["trace_id"]
-                    self.traces_ids[trace_id] += 1
-
-    def final_check(self):
-        for trace_id, count in self.traces_ids.items():
-            if count > 1 and self.uniqueness_exceptions.should_be_unique(trace_id):
-                self.log_error(f"Found duplicate trace id {trace_id}")
 
 
 class _SpanTagValidation(BaseValidation):
@@ -90,41 +56,3 @@ class _SpanTagValidation(BaseValidation):
                     self.is_success_on_expiry = True
                 except Exception as exc:
                     self.set_failure(exception=exc, data=data, extra_info=span)
-
-
-class _TraceExistence(BaseValidation):
-    def __init__(self, request, span_type=None):
-        super().__init__(request=request)
-        self.span_type = span_type
-
-    path_filters = ["/v0.4/traces", "/v0.5/traces"]
-
-    def check(self, data):
-        if not isinstance(data["request"]["content"], list):
-            # do not fail here, it's schema's job, simply ignore it
-            self.log_error(f"{data['log_filename']} content should be an array")
-            return
-
-        diagnostics = ["Diagnostics:"]
-        span_types = []
-        span_count = len(span_types)
-
-        for trace in data["request"]["content"]:
-            for span in trace:
-                if self.rid == get_rid_from_span(span):
-                    for correlated_span in trace:
-                        span_count = span_count + 1
-                        span_types.append(correlated_span.get("type"))
-                        diagnostics.append(str(correlated_span))
-                    continue
-
-        if span_count > 0:
-            if self.span_type is None:
-                self.log_debug(f"Found a trace for {self.message}")
-                self.set_status(True)
-            elif self.span_type in span_types:
-                self.log_debug(f"Found a span with type {self.span_type}")
-                self.set_status(True)
-            else:
-                self.log_error(f"Did not find span type '{self.span_type}' in reported span types: {span_types}")
-                self.log_error("\n".join(diagnostics))

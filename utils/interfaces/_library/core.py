@@ -4,21 +4,18 @@
 
 import json
 import threading
+import warnings
 
 from utils.tools import logger
 from utils._context.core import context
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
 from utils.interfaces._schemas_validators import SchemaValidator
 
-from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
+from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.appsec_iast import _AppSecIastValidation, _NoIastEvent
 
 from utils.interfaces._profiling import _ProfilingFieldValidator
-from utils.interfaces._library.miscs import (
-    _TraceIdUniqueness,
-    _SpanTagValidation,
-    _TraceExistence,
-)
+from utils.interfaces._library.miscs import _SpanTagValidation
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecision,
     _AllRequestsTransmitted,
@@ -174,7 +171,19 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_AllRequestsTransmitted(paths))
 
     def assert_trace_id_uniqueness(self):
-        self.append_validation(_TraceIdUniqueness(self.uniqueness_exceptions))
+        trace_ids = {}
+
+        for data, trace in self.get_traces():
+            if len(trace):
+                log_filename = data["log_filename"]
+                span = trace[0]
+                assert "trace_id" in span, f"trace_id is missing in {log_filename}"
+                trace_id = span["trace_id"]
+
+                if trace_id in trace_ids:
+                    raise Exception(f"Found duplicated trace id in {log_filename} and {trace_ids[trace_id]}")
+
+                trace_ids[trace_id] = log_filename
 
     def assert_sampling_decisions_added(self, traces):
         self.append_validation(_AddSamplingDecisionValidation(traces))
@@ -183,7 +192,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.append_validation(_DistributedTracesDeterministicSamplingDecisisonValidation(traces))
 
     def assert_no_appsec_event(self, request):
-        self.append_validation(_NoAppsecEvent(request))
+        for data, _, _, appsec_data in self.get_appsec_events(request=request):
+            logger.error(json.dumps(appsec_data, indent=2))
+            raise Exception(f"An appsec event has been reported in {data['log_filename']}")
+
+        for data, event in self.get_legacy_appsec_events(request=request):
+            logger.error(json.dumps(event, indent=2))
+            raise Exception(f"An appsec event has been reported in {data['log_filename']}")
 
     def assert_waf_attack(
         self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
@@ -194,6 +209,19 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         self.validate_appsec(
             request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
+        )
+
+    def add_appsec_reported_header(self, request, header_name):
+        validator = _ReportedHeader(header_name)
+
+        self.validate_appsec(
+            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
+        )
+
+    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None, is_success_on_expiry=False):
+        warnings.warn("add_appsec_validation() is deprecated, please use validate_appsec()", DeprecationWarning)
+        self.validate_appsec(
+            request, validator=validator, legacy_validator=legacy_validator, success_by_default=is_success_on_expiry
         )
 
     def add_traces_validation(self, validator, is_success_on_expiry=False):
@@ -210,16 +238,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         self.append_validation(
             _SpanTagValidation(request=request, tags=tags, value_as_regular_expression=value_as_regular_expression)
-        )
-
-    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None, is_success_on_expiry=False):
-        self.append_validation(
-            _AppSecValidation(
-                request=request,
-                validator=validator,
-                legacy_validator=legacy_validator,
-                is_success_on_expiry=is_success_on_expiry,
-            )
         )
 
     def expect_iast_vulnerabilities(
@@ -252,9 +270,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
             path_filters="/telemetry/proxy/api/v2/apmtelemetry",
         )
 
-    def add_appsec_reported_header(self, request, header_name):
-        self.append_validation(_ReportedHeader(request, header_name))
-
     def assert_seq_ids_are_roughly_sequential(self):
         self.append_validation(_SeqIdLatencyValidation())
 
@@ -272,7 +287,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
     def assert_trace_exists(self, request, span_type=None):
-        self.append_validation(_TraceExistence(request=request, span_type=span_type))
+        for _, _, span in self.get_spans(request=request):
+            if span_type is None or span.get("type") == span_type:
+                return
+
+        raise Exception(f"No trace has been found for request {get_rid_from_request(request)}")
 
     def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
         self.validate(validator, success_by_default=is_success_on_expiry, path_filters=r"/v\d+.\d+/config")
