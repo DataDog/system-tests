@@ -20,6 +20,13 @@ export DD_CIVISIBILITY_LOGS_ENABLED='1'
 export DD_CIVISIBILITY_AGENTLESS_ENABLED='1'
 export DD_SITE=datadoghq.com
 
+echo "El valoor de la variable secreta: ${TEST_SECURITY}" > logs/security.log 
+echo "Estoy en el directorio "
+pwd
+echo "Ahora listo el contenido del directorio: "
+ls
+echo "Ahora saco el valor de la variable por consola"
+echo $TEST_SECURITY
 #Download tool
 curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "$(pwd)/datadog-ci" && chmod +x $(pwd)/datadog-ci
 for folder in $(find . -name "logs*" -type d -maxdepth 1); do 
