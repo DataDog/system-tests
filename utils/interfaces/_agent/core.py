@@ -10,9 +10,9 @@ import threading
 
 from utils.interfaces._core import BaseValidation, InterfaceValidator
 from utils.interfaces._schemas_validators import SchemaValidator
-from utils.interfaces._profiling import _ProfilingFieldAssertion
+from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._agent.appsec import AppSecValidation
-from utils.interfaces._misc_validators import HeadersPresenceValidation, HeadersMatchValidation
+from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
 class AgentInterfaceValidator(InterfaceValidator):
@@ -30,31 +30,36 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         return data
 
-    def assert_use_domain(self, domain):
-        self.append_validation(_UseDomain(domain))
+    def assert_use_domain(self, expected_domain):
+        # TODO: Move this in test class
+
+        for data in self.get_data():
+            domain = data["host"][-len(expected_domain) :]
+
+            if domain != expected_domain:
+                raise Exception(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
 
     def assert_schemas(self, allowed_errors=None):
-        self.append_validation(SchemaValidator("agent", allowed_errors))
+        validator = SchemaValidator("agent", allowed_errors)
+        self.validate(validator, success_by_default=True)
 
-    def assert_metric_existence(self, metric_name):
-        self.append_validation(_MetricExistence(metric_name))
-
-    def add_profiling_validation(self, validator):
-        self.validate(validator, path_filters="/api/v2/profile")
+    def add_profiling_validation(self, validator, success_by_default=False):
+        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
 
     def profiling_assert_field(self, field_name, content_pattern=None):
-        self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
+        self.timeout = 160
+        self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
     def add_appsec_validation(self, request, validator):
         self.append_validation(AppSecValidation(request, validator))
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
-        self.append_validation(
-            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
-        )
+        validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
+        self.validate(validator, path_filters=path_filter, success_by_default=True)
 
     def assert_headers_match(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
-        self.append_validation(HeadersMatchValidation(path_filter, request_headers, response_headers, check_condition))
+        validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
+        self.validate(validator, path_filters=path_filter, success_by_default=True)
 
     def add_telemetry_validation(self, validator=None, is_success_on_expiry=False):
         self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters="/api/v2/apmtelemetry")
@@ -63,32 +68,3 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.validate(
             validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/api/v0\.[1-9]+/traces"
         )
-
-
-class _UseDomain(BaseValidation):
-    is_success_on_expiry = True
-
-    def __init__(self, domain):
-        super().__init__()
-        self.domain = domain
-
-    def check(self, data):
-        domain = data["host"][-len(self.domain) :]
-
-        if domain != self.domain:
-            self.set_failure(f"Message #{data['log_filename']} uses host {domain} instead of {self.domain}")
-
-
-class _MetricExistence(BaseValidation):
-    path_filters = "/api/v0.2/traces"
-
-    def __init__(self, metric_name):
-        super().__init__()
-        self.metric_name = metric_name
-
-    def check(self, data):
-        for trace in data["request"]["content"]["traces"]:
-            for span in trace["spans"]:
-                if "metrics" in span and self.metric_name in span["metrics"]:
-                    self.set_status(True)
-                    break

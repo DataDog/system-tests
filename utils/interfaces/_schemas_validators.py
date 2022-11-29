@@ -14,7 +14,6 @@ import functools
 
 from jsonschema import Draft7Validator, RefResolver
 from jsonschema.validators import extend
-from utils.interfaces._core import BaseValidation
 
 
 def _is_bytes_or_string(_checker, instance):
@@ -62,8 +61,6 @@ def _get_schema_validator(schema_id):
     store = _get_schemas_store()
 
     if schema_id not in store:
-        for x in store:
-            print(x)
         raise FileNotFoundError(f"There is no schema file that describe {schema_id}")
 
     schema = store[schema_id]
@@ -71,18 +68,15 @@ def _get_schema_validator(schema_id):
     return _ApiObjectValidator(schema, resolver=resolver, format_checker=Draft7Validator.FORMAT_CHECKER)
 
 
-class SchemaValidator(BaseValidation):
-    is_success_on_expiry = True
-
+class SchemaValidator:
     def __init__(self, interface, allowed_errors=None):
-        super().__init__()
         self.interface = interface
         self.allowed_errors = []
 
         for pattern in allowed_errors or []:
             self.allowed_errors.append(re.compile(pattern))
 
-    def check(self, data):
+    def __call__(self, data):
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
@@ -96,7 +90,7 @@ class SchemaValidator(BaseValidation):
                     messages.append(message)
 
             if len(messages) != 0:
-                self.set_status(False)
-                self.log_error(f"In message {data['log_filename']}:")
                 for message in messages:
                     self.log_error(f"* {message}")
+
+                raise Exception(f"Schema is invalid in {data['log_filename']}")

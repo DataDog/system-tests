@@ -25,4 +25,3 @@ class Test_Main:
         stdout.assert_presence(r"AppSec initial \d+\.\d+\.\d+", level="INFO")
 
         stdout.assert_presence(r"some.*file", level="DEBUG")
-        stdout.append_log_validation(lambda data: data["level"])

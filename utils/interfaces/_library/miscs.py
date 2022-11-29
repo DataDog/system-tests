@@ -45,27 +45,6 @@ class _TraceIdUniqueness(BaseValidation):
                 self.log_error(f"Found duplicate trace id {trace_id}")
 
 
-class _ReceiveRequestRootTrace(BaseValidation):
-    """Asserts that a trace for a request has been sent to the agent"""
-
-    path_filters = ["/v0.4/traces", "/v0.5/traces"]
-    is_success_on_expiry = False
-
-    def check(self, data):
-        for root_span in get_root_spans(data["request"]["content"]):
-            if root_span.get("type") != "web":
-                continue
-            self.set_status(True)
-
-    def set_expired(self):
-        if not self.is_success:
-            self.log_error(
-                f'Validation "{self.message}", nothing has been reported. No request root span with has been found'
-            )
-
-        super().set_expired()
-
-
 class _SpanValidation(BaseValidation):
     """will run an arbitrary check on spans. If a request is provided, only span
     related to this request will be checked.

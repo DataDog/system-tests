@@ -102,8 +102,12 @@ class InterfaceValidator:
 
     def validate(self, validator, path_filters=None, success_by_default=False):
         for data in self.get_data(path_filters=path_filters):
-            if validator(data) is True:
-                return
+            try:
+                if validator(data) is True:
+                    return
+            except Exception:
+                logger.error(f"{data['log_filename']} did not validate this test")
+                raise
 
         if not success_by_default:
             raise Exception("Test has not been validated by any data")

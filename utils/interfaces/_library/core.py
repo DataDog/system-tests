@@ -14,11 +14,9 @@ from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._library.appsec import _NoAppsecEvent, _WafAttack, _AppSecValidation, _ReportedHeader
 from utils.interfaces._library.appsec_iast import _AppSecIastValidation, _NoIastEvent
 
-from utils.interfaces._profiling import _ProfilingFieldAssertion
-from utils.interfaces._library.metrics import _MetricAbsence, _MetricExistence
+from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._library.miscs import (
     _TraceIdUniqueness,
-    _ReceiveRequestRootTrace,
     _SpanValidation,
     _SpanTagValidation,
     _TraceExistence,
@@ -34,7 +32,7 @@ from utils.interfaces._library.telemetry import (
     _NoSkippedSeqId,
     _AppHeartbeatValidation,
 )
-from utils.interfaces._misc_validators import HeadersPresenceValidation
+from utils.interfaces._misc_validators import HeadersPresenceValidator
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
@@ -84,6 +82,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
         for data, trace in self.get_traces(request=request):
             for span in trace:
                 yield data, trace, span
+
+    def get_root_spans(self):
+        for _, _, span in self.get_spans():
+            if span.get("parent_id") in (0, None):
+                yield span
 
     def get_appsec_events(self, request=None):
         for data, trace, span in self.get_spans(request):
@@ -139,8 +142,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}")
 
-                    if validator(event):
-                        return
+                if validator(event):
+                    return
 
         if not success_by_default:
             raise Exception("No appsec event has been found")
@@ -148,15 +151,21 @@ class LibraryInterfaceValidator(InterfaceValidator):
     ######################################################
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
-        self.append_validation(
-            HeadersPresenceValidation(path_filter, request_headers, response_headers, check_condition)
-        )
+        validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
+        self.validate(validator, path_filters=path_filter, success_by_default=True)
 
-    def assert_receive_request_root_trace(self):
-        self.append_validation(_ReceiveRequestRootTrace())
+    def assert_receive_request_root_trace(self):  # TODO : move this in test class
+        """Asserts that a trace for a request has been sent to the agent"""
+
+        for span in self.get_root_spans():
+            if span.get("type") == "web":
+                return
+
+        raise Exception("Nothing has been reported. No request root span with has been found")
 
     def assert_schemas(self, allowed_errors=None):
-        self.append_validation(SchemaValidator("library", allowed_errors))
+        validator = SchemaValidator("library", allowed_errors)
+        self.validate(validator, success_by_default=True)
 
     def assert_sampling_decision_respected(self, sampling_rate):
         self.append_validation(_TracesSamplingDecision(sampling_rate))
@@ -186,12 +195,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.validate_appsec(
             request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
         )
-
-    def assert_metric_existence(self, metric_name):
-        self.append_validation(_MetricExistence(metric_name))
-
-    def assert_metric_absence(self, metric_name):
-        self.append_validation(_MetricAbsence(metric_name))
 
     def add_traces_validation(self, validator, is_success_on_expiry=False):
         self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces")
@@ -258,11 +261,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_app_heartbeat_validation(self):
         self.append_validation(_AppHeartbeatValidation())
 
-    def add_profiling_validation(self, validator):
-        self.validate(validator, path_filters="/profiling/v1/input")
+    def add_profiling_validation(self, validator, success_by_default=True):
+        self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
 
     def profiling_assert_field(self, field_name, content_pattern=None):
-        self.append_validation(_ProfilingFieldAssertion(field_name, content_pattern))
+        self.timeout = 160
+        self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
     def assert_trace_exists(self, request, span_type=None):
         self.append_validation(_TraceExistence(request=request, span_type=span_type))
