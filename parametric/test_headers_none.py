@@ -57,7 +57,8 @@ def test_headers_none_extract(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_headers_none_extract_with_other_propagators(test_agent, test_library):
-    """Ensure that b3 distributed tracing headers are extracted
+    """Ensure that the 'none' propagator is ignored when other propagators are present.
+    In this case, ensure that the Datadog distributed tracing headers are extracted
     and activated properly.
     """
     with test_library:
@@ -103,8 +104,8 @@ def test_headers_none_inject(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not impemented")
 @pytest.mark.skip_library("nodejs", "not impemented")
 def test_headers_none_inject_with_other_propagators(test_agent, test_library):
-    """Ensure that the 'none' propagator is ignored and
-    Datadog distributed tracing headers are injected properly.
+    """Ensure that the 'none' propagator is ignored when other propagators are present.
+    In this case, ensure that the Datadog distributed tracing headers are injected properly.
     """
     with test_library:
         with test_library.start_span(name="name") as span:
@@ -118,8 +119,8 @@ def test_headers_none_inject_with_other_propagators(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_headers_none_propagate(test_agent, test_library):
-    """Ensure that b3 distributed tracing headers are extracted
-    and injected properly.
+    """Ensure that the 'none' propagator is used and
+    no Datadog distributed tracing headers are extracted or injected.
     """
     with test_library:
         distributed_message = DistributedHTTPHeaders()

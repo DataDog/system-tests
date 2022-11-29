@@ -10,8 +10,8 @@ parametrize = pytest.mark.parametrize
 
 def temporary_enable_propagationstyle_default() -> Any:
     env = {
-        "DD_PROPAGATION_STYLE_EXTRACT": "tracecontext,W3C,Datadog",  # dotnet
-        "DD_PROPAGATION_STYLE_INJECT": "tracecontext,W3C,Datadog",  # dotnet
+        "DD_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
+        "DD_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
     }
     return parametrize("library_env", [env])
 

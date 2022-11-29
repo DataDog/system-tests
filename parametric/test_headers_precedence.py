@@ -10,26 +10,27 @@ parametrize = pytest.mark.parametrize
 
 def temporary_enable_propagationstyle_default() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,W3C,Datadog",  # dotnet
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,W3C,Datadog",  # dotnet
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
     }
     return parametrize("library_env", [env])
 
 def temporary_enable_propagationstyle_tracecontext() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,W3C",  # dotnet
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,W3C",  # dotnet
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
     }
     return parametrize("library_env", [env])
 
 def temporary_enable_propagationstyle_datadog() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog",  # dotnet
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog",  # dotnet
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog",
     }
     return parametrize("library_env", [env])
 
 @temporary_enable_propagationstyle_default()
+@pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -142,6 +143,7 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     assert headers5['x-datadog-sampling-priority'] != -2
 
 @temporary_enable_propagationstyle_tracecontext()
+@pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
