@@ -22,7 +22,7 @@ namespace weblog
                 }
 
                 // Send custom span tags
-                string customSpanTags = Environment.GetEnvironmentVariable("DD_SPAN_CUSTOM_TAGS");
+                string customSpanTags = Environment.GetEnvironmentVariable("TEST_SPAN_CUSTOM_TAGS");
                 if (!String.IsNullOrEmpty(customSpanTags)) {
                     string[] customSpanTagsArr = customSpanTags.Split(',');
                     foreach (var tag in customSpanTagsArr)
