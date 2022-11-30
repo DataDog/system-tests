@@ -10,6 +10,7 @@ import warnings
 from utils.tools import logger
 from utils._context.core import context
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
+from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._schemas_validators import SchemaValidator
 
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
@@ -18,8 +19,7 @@ from utils.interfaces._library.appsec_iast import _AppSecIastValidator
 from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.sampling import (
-    _TracesSamplingDecision,
-    _AllRequestsTransmitted,
+    _TracesSamplingDecisionValidator,
     _AddSamplingDecisionValidation,
     _DistributedTracesDeterministicSamplingDecisisonValidation,
 )
@@ -81,9 +81,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
                     yield data, trace, span
 
     def get_root_spans(self):
-        for _, _, span in self.get_spans():
+        for data, _, span in self.get_spans():
             if span.get("parent_id") in (0, None):
-                yield span
+                yield data, span
 
     def get_appsec_events(self, request=None):
         for data, trace, span in self.get_spans(request):
@@ -145,6 +145,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     ############################################################
 
+    def validate_telemetry(self, validator, success_by_default=False):
+        self.validate(
+            validator, path_filters="/telemetry/proxy/api/v2/apmtelemetry", success_by_default=success_by_default
+        )
+
     def validate_appsec(self, request, validator, success_by_default=False, legacy_validator=None):
         for _, _, span, appsec_data in self.get_appsec_events(request=request):
             if validator(span, appsec_data):
@@ -167,7 +172,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def assert_receive_request_root_trace(self):  # TODO : move this in test class
         """Asserts that a trace for a request has been sent to the agent"""
 
-        for span in self.get_root_spans():
+        for _, span in self.get_root_spans():
             if span.get("type") == "web":
                 return
 
@@ -178,10 +183,30 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.validate(validator, success_by_default=True)
 
     def assert_sampling_decision_respected(self, sampling_rate):
-        self.append_validation(_TracesSamplingDecision(sampling_rate))
+        # TODO : move this in test class
+
+        validator = _TracesSamplingDecisionValidator(sampling_rate)
+
+        for data, span in self.get_root_spans():
+            validator(data, span)
 
     def assert_all_traces_requests_forwarded(self, paths):
-        self.append_validation(_AllRequestsTransmitted(paths))
+        # TODO : move this in test class
+        paths = set(paths)
+
+        for _, span in self.get_root_spans():
+            path = get_trace_request_path(span)
+
+            if path is None or path not in paths:
+                continue
+
+            paths.remove(path)
+
+        if len(paths) == 0:
+            for path in paths:
+                logger.error(f"A path has not been transmitted: {path}")
+
+            raise Exception("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
         trace_ids = {}
@@ -293,13 +318,17 @@ class LibraryInterfaceValidator(InterfaceValidator):
         )
 
     def assert_seq_ids_are_roughly_sequential(self):
-        self.append_validation(_SeqIdLatencyValidation())
+        validator = _SeqIdLatencyValidation()
+        self.add_telemetry_validation(validator, is_success_on_expiry=True)
 
     def assert_no_skipped_seq_ids(self):
-        self.append_validation(_NoSkippedSeqId())
+        validator = _NoSkippedSeqId()
+        self.add_telemetry_validation(validator, is_success_on_expiry=True)
+
+        validator.final_check()
 
     def assert_app_heartbeat_validation(self):
-        self.append_validation(_AppHeartbeatValidation())
+        self.validate_telemetry(_AppHeartbeatValidation(), success_by_default=True)
 
     def add_profiling_validation(self, validator, success_by_default=True):
         self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)

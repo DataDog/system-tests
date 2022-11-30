@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from urllib.parse import urlparse
 from utils.tools import logger
 from utils.interfaces._core import get_rid_from_span
 
@@ -30,3 +31,17 @@ def get_spans_related_to_rid(traces, rid):
             for span in trace:
                 if rid is None or rid == get_rid_from_span(span):
                     yield span
+
+
+def get_trace_request_path(root_span):
+    if root_span.get("type") != "web":
+        return None
+
+    url = root_span["meta"].get("http.url")
+
+    if url is None:
+        return None
+
+    path = urlparse(url).path
+
+    return path

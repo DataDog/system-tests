@@ -192,7 +192,7 @@ def pytest_collection_finish(session):
 
 def _wait_interface(interface, session):
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-    terminal.write_sep("-", f"Wait for {interface} interface ({interface.timeout}s)")
+    terminal.write_sep("-", f"Wait for {interface} ({interface.timeout}s)")
     terminal.flush()
 
     interface.wait()
