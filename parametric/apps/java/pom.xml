@@ -165,7 +165,7 @@
         <dependency>
           <groupId>com.datadoghq</groupId>
           <artifactId>dd-trace-ot</artifactId>
-          <version>${dd-trace.version}</version>
+          <version>dev</version>
           <scope>system</scope>
           <systemPath>${customDdTraceOt}</systemPath>
         </dependency>
@@ -208,7 +208,7 @@
         <dependency>
           <groupId>com.datadoghq</groupId>
           <artifactId>dd-trace-api</artifactId>
-          <version>${dd-trace.version}</version>
+          <version>dev</version>
           <scope>system</scope>
           <systemPath>${customDdTraceApi}</systemPath>
         </dependency>
