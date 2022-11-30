@@ -24,7 +24,7 @@ def get_log_formatter():
     return logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S")
 
 
-def _get_logger(name="tests", use_stdout=False):
+def get_logger(name="tests", use_stdout=False):
     result = logging.getLogger(name)
 
     if use_stdout:
@@ -54,4 +54,4 @@ def e(message):
     return f"{bcolors.RED}{message}{bcolors.ENDC}"
 
 
-logger = _get_logger()
+logger = get_logger()
