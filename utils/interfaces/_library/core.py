@@ -212,9 +212,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
         trace_ids = {}
 
         for data, trace in self.get_traces():
-            if len(trace):
+            spans = [span for span in trace if span.get("parent_id") in ("0", 0, None)]
+
+            if len(spans):
                 log_filename = data["log_filename"]
-                span = trace[0]
+                span = spans[0]
                 assert "trace_id" in span, f"'trace_id' is missing in {log_filename}"
                 trace_id = span["trace_id"]
 

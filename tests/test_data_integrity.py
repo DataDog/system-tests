@@ -11,7 +11,6 @@ from utils.cgroup_info import get_container_id
 class Test_TraceUniqueness:
     """All trace ids are uniques"""
 
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APMJAVA-871")
     def test_trace_ids(self):
         interfaces.library.assert_trace_id_uniqueness()
 
