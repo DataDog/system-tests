@@ -215,11 +215,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
             if len(trace):
                 log_filename = data["log_filename"]
                 span = trace[0]
-                assert "trace_id" in span, f"trace_id is missing in {log_filename}"
+                assert "trace_id" in span, f"'trace_id' is missing in {log_filename}"
                 trace_id = span["trace_id"]
 
                 if trace_id in trace_ids:
-                    raise Exception(f"Found duplicated trace id in {log_filename} and {trace_ids[trace_id]}")
+                    raise Exception(f"Found duplicated trace id {trace_id} in {log_filename} and {trace_ids[trace_id]}")
 
                 trace_ids[trace_id] = log_filename
 
