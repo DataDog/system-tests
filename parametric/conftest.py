@@ -197,6 +197,7 @@ COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
 COPY {java_reldir}/run.sh .
+COPY binaries /binaries
 RUN bash build.sh
 """,
         container_cmd=["./run.sh"],
