@@ -128,6 +128,9 @@
               <mainClass>com.datadoghq.App</mainClass>
               <classpathPrefix>lib/</classpathPrefix>
             </manifest>
+            <manifestEntries>
+              <Class-Path>lib/dd-trace-ot-dev.jar lib/dd-trace-ot-dev.jar</Class-Path>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
