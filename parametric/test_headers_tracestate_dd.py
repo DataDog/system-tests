@@ -200,7 +200,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
         headers3 = make_single_request_and_get_headers(test_library, [
             ['x-datadog-trace-id', '7890123456789012'],
             ['x-datadog-parent-id', '1234567890123456'],
-            ['x-datadog-origin', 'synthetics,=web'],
+            ['x-datadog-origin', 'synthetics;,=web'],
         ])
 
         # 4) tracestate[dd][o] is not present
@@ -243,13 +243,13 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
 
     # 3) x-datadog-origin has invalid characters
     # Result: Origin set to header value, where invalid characters replaced by '_'
-    assert headers3['x-datadog-origin'] == 'synthetics,=web'
+    assert headers3['x-datadog-origin'] == 'synthetics;,=web'
 
     traceparent3, tracestate3 = get_tracecontext(headers3)
     dd_items3 = tracestate3['dd'].split(';')
     assert 'traceparent' in headers3
     assert 'tracestate' in headers3
-    assert 'o:synthetics__web' in dd_items3
+    assert 'o:synthetics___web' in dd_items3
 
     # 4) tracestate[dd][o] is not present
     # Result: Origin is not set
