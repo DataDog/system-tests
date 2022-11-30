@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 
-from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.tracecontext import get_tracecontext
+from parametric.utils.headers import make_single_request_and_get_headers
 
 parametrize = pytest.mark.parametrize
 
@@ -818,18 +818,5 @@ def test_tracestate_ows_handling(test_agent, test_library):
 # - test_multiple_requests_without_traceparent(self):
 # - test_multiple_requests_with_illegal_traceparent(self):
 
-def get_span(test_agent):
-    traces = test_agent.traces()
-    span = traces[0][0]
-    return span
-
 def make_single_request_and_get_tracecontext(test_library, headers_list):
-    distributed_message = DistributedHTTPHeaders()
-    for key, value in headers_list:
-        distributed_message.http_headers[key] = value
-
-    with test_library.start_span(
-        name="name", service="service", resource="resource", http_headers=distributed_message
-    ) as span:
-        headers = test_library.inject_headers(span.span_id).http_headers.http_headers
-        return get_tracecontext(headers)
+    return get_tracecontext(make_single_request_and_get_headers(test_library, headers_list))

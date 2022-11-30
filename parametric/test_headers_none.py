@@ -2,8 +2,9 @@ from typing import Any
 
 import pytest
 
-from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from parametric.utils.headers import make_single_request_and_get_headers
+from parametric.utils.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
 
@@ -35,17 +36,13 @@ def test_headers_none_extract(test_agent, test_library):
     """Ensure that no distributed tracing headers are extracted.
     """
     with test_library:
-        distributed_message = DistributedHTTPHeaders()
-        distributed_message.http_headers["x-datadog-trace-id"] = "123456789"
-        distributed_message.http_headers["x-datadog-parent-id"] = "987654321"
-        distributed_message.http_headers["x-datadog-sampling-priority"] = "2"
-        distributed_message.http_headers["x-datadog-origin"] = "synthetics"
-        distributed_message.http_headers["x-datadog-tags"] = "_dd.p.dm=-4"
-
-        with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-        ) as span:
-            span.set_meta(key="http.status_code", val="200")
+        headers = make_single_request_and_get_headers(test_library, [
+            ['x-datadog-trace-id', '123456789'],
+            ['x-datadog-parent-id', '987654321'],
+            ['x-datadog-sampling-priority', '2'],
+            ['x-datadog-origin', 'synthetics'],
+            ['x-datadog-tags', '_dd.p.dm=-4'],
+        ])
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 123456789
@@ -63,17 +60,13 @@ def test_headers_none_extract_with_other_propagators(test_agent, test_library):
     and activated properly.
     """
     with test_library:
-        distributed_message = DistributedHTTPHeaders()
-        distributed_message.http_headers["x-datadog-trace-id"] = "123456789"
-        distributed_message.http_headers["x-datadog-parent-id"] = "987654321"
-        distributed_message.http_headers["x-datadog-sampling-priority"] = "2"
-        distributed_message.http_headers["x-datadog-origin"] = "synthetics"
-        distributed_message.http_headers["x-datadog-tags"] = "_dd.p.dm=-4"
-
-        with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-        ) as span:
-            span.set_meta(key="http.status_code", val="200")
+        headers = make_single_request_and_get_headers(test_library, [
+            ['x-datadog-trace-id', '123456789'],
+            ['x-datadog-parent-id', '987654321'],
+            ['x-datadog-sampling-priority', '2'],
+            ['x-datadog-origin', 'synthetics'],
+            ['x-datadog-tags', '_dd.p.dm=-4'],
+        ])
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 123456789
@@ -91,8 +84,8 @@ def test_headers_none_inject(test_agent, test_library):
     no Datadog distributed tracing headers are injected.
     """
     with test_library:
-        with test_library.start_span(name="name") as span:
-            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
+        headers = make_single_request_and_get_headers(test_library, [
+        ])
 
     assert "traceparent" not in headers
     assert "tracestate" not in headers
@@ -110,8 +103,9 @@ def test_headers_none_inject_with_other_propagators(test_agent, test_library):
     In this case, ensure that the Datadog distributed tracing headers are injected properly.
     """
     with test_library:
-        with test_library.start_span(name="name") as span:
-            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
+        headers = make_single_request_and_get_headers(test_library, [
+        ])
+
     span = get_span(test_agent)
     assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
     assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
@@ -126,17 +120,13 @@ def test_headers_none_propagate(test_agent, test_library):
     no Datadog distributed tracing headers are extracted or injected.
     """
     with test_library:
-        distributed_message = DistributedHTTPHeaders()
-        distributed_message.http_headers["x-datadog-trace-id"] = "123456789"
-        distributed_message.http_headers["x-datadog-parent-id"] = "987654321"
-        distributed_message.http_headers["x-datadog-sampling-priority"] = "2"
-        distributed_message.http_headers["x-datadog-origin"] = "synthetics"
-        distributed_message.http_headers["x-datadog-tags"] = "_dd.p.dm=-4"
-
-        with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-        ) as span:
-            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
+        headers = make_single_request_and_get_headers(test_library, [
+            ['x-datadog-trace-id', '123456789'],
+            ['x-datadog-parent-id', '987654321'],
+            ['x-datadog-sampling-priority', '2'],
+            ['x-datadog-origin', 'synthetics'],
+            ['x-datadog-tags', '_dd.p.dm=-4'],
+        ])
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 123456789
@@ -152,8 +142,3 @@ def test_headers_none_propagate(test_agent, test_library):
     assert "x-datadog-sampling-priority" not in headers
     assert "x-datadog-origin" not in headers
     assert "x-datadog-tags" not in headers
-
-def get_span(test_agent):
-    traces = test_agent.traces()
-    span = traces[0][0]
-    return span
