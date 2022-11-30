@@ -29,4 +29,4 @@ else
 fi
 
 echo Running Maven build with profiles \"$MAVEN_PROFILES\"
-mvn $MAVEN_PROFILES package
+mvn -q $MAVEN_PROFILES package
