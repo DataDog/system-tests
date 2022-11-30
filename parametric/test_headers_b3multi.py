@@ -2,8 +2,9 @@ from typing import Any
 
 import pytest
 
-from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from parametric.utils.headers import make_single_request_and_get_headers
+from parametric.utils.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
 
@@ -33,15 +34,11 @@ def test_headers_b3multi_extract_valid(test_agent, test_library):
     and activated properly.
     """
     with test_library:
-        distributed_message = DistributedHTTPHeaders()
-        distributed_message.http_headers["x-b3-traceid"] = "000000000000000000000000075bcd15"
-        distributed_message.http_headers["x-b3-spanid"] = "000000003ade68b1"
-        distributed_message.http_headers["x-b3-sampled"] = "1"
-
-        with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-        ) as span:
-            span.set_meta(key="http.status_code", val="200")
+        headers = make_single_request_and_get_headers(test_library, [
+            ['x-b3-traceid', '000000000000000000000000075bcd15'],
+            ['x-b3-spanid', '000000003ade68b1'],
+            ['x-b3-sampled', '1'],
+        ])
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 123456789
@@ -56,15 +53,11 @@ def test_headers_b3multi_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted.
     """
     with test_library:
-        distributed_message = DistributedHTTPHeaders()
-        distributed_message.http_headers["x-b3-traceid"] = "0"
-        distributed_message.http_headers["x-b3-spanid"] = "0"
-        distributed_message.http_headers["x-b3-sampled"] = "1"
-
-        with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-        ) as span:
-            span.set_meta(key="http.status_code", val="200")
+        headers = make_single_request_and_get_headers(test_library, [
+            ['x-b3-traceid', '0'],
+            ['x-b3-spanid', '0'],
+            ['x-b3-sampled', '1'],
+        ])
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 0
@@ -79,8 +72,8 @@ def test_headers_b3multi_inject_valid(test_agent, test_library):
     """Ensure that b3multi distributed tracing headers are injected properly.
     """
     with test_library:
-        with test_library.start_span(name="name") as span:
-            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
+        headers = make_single_request_and_get_headers(test_library, [
+        ])
 
     span = get_span(test_agent)
     b3_trace_id = headers["x-b3-traceid"]
@@ -102,15 +95,11 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
     and injected properly.
     """
     with test_library:
-        distributed_message = DistributedHTTPHeaders()
-        distributed_message.http_headers["x-b3-traceid"] = "000000000000000000000000075bcd15"
-        distributed_message.http_headers["x-b3-spanid"] = "000000003ade68b1"
-        distributed_message.http_headers["x-b3-sampled"] = "1"
-
-        with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-        ) as span:
-            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
+        headers = make_single_request_and_get_headers(test_library, [
+            ['x-b3-traceid', '000000000000000000000000075bcd15'],
+            ['x-b3-spanid', '000000003ade68b1'],
+            ['x-b3-sampled', '1'],
+        ])
 
     span = get_span(test_agent)
     b3_trace_id = headers["x-b3-traceid"]
@@ -132,15 +121,11 @@ def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     and the new span context is injected properly.
     """
     with test_library:
-        distributed_message = DistributedHTTPHeaders()
-        distributed_message.http_headers["x-b3-traceid"] = "0"
-        distributed_message.http_headers["x-b3-spanid"] = "0"
-        distributed_message.http_headers["x-b3-sampled"] = "1"
-
-        with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-        ) as span:
-            headers = test_library.inject_headers(span.span_id).http_headers.http_headers
+        headers = make_single_request_and_get_headers(test_library, [
+            ['x-b3-traceid', '0'],
+            ['x-b3-spanid', '0'],
+            ['x-b3-sampled', '1'],
+        ])
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 0
@@ -155,8 +140,3 @@ def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
     assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
     assert span["meta"].get(ORIGIN) is None
-
-def get_span(test_agent):
-    traces = test_agent.traces()
-    span = traces[0][0]
-    return span

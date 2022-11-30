@@ -2,9 +2,8 @@ from typing import Any
 
 import pytest
 
-from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
-from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from parametric.spec.tracecontext import get_tracecontext
+from parametric.utils.headers import make_single_request_and_get_headers
 
 parametrize = pytest.mark.parametrize
 
@@ -305,19 +304,3 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     assert 'x-datadog-parent-id' in headers5
     assert headers5['x-datadog-parent-id'] != '123456789'
     assert headers5['x-datadog-sampling-priority'] == '-2'
-
-def get_span(test_agent):
-    traces = test_agent.traces()
-    span = traces[0][0]
-    return span
-
-def make_single_request_and_get_headers(test_library, headers_list):
-    distributed_message = DistributedHTTPHeaders()
-    for key, value in headers_list:
-        distributed_message.http_headers[key] = value
-
-    with test_library.start_span(
-        name="name", service="service", resource="resource", http_headers=distributed_message
-    ) as span:
-        headers = test_library.inject_headers(span.span_id).http_headers.http_headers
-        return headers
