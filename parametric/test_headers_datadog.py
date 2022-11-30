@@ -17,14 +17,14 @@ def test_headers_datadog_extract_valid(test_agent, test_library):
             ['x-datadog-trace-id', '123456789'],
             ['x-datadog-parent-id', '987654321'],
             ['x-datadog-sampling-priority', '2'],
-            ['x-datadog-origin', 'synthetics,=web'],
+            ['x-datadog-origin', 'synthetics;,=web'],
             ['x-datadog-tags', '_dd.p.dm=-4'],
         ])
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 123456789
     assert span.get("parent_id") == 987654321
-    assert span["meta"].get(ORIGIN) == "synthetics,=web"
+    assert span["meta"].get(ORIGIN) == "synthetics;,=web"
     assert span["meta"].get("_dd.p.dm") == "-4"
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
