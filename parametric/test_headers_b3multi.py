@@ -8,6 +8,7 @@ from parametric.utils.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
 
+
 def enable_b3multi() -> Any:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "B3MULTI",
@@ -25,6 +26,7 @@ def enable_b3multi() -> Any:
     }
     return parametrize("library_env", [env1, env2, env3, env4])
 
+
 @enable_b3multi()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
@@ -34,17 +36,21 @@ def test_headers_b3multi_extract_valid(test_agent, test_library):
     and activated properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-b3-traceid', '000000000000000000000000075bcd15'],
-            ['x-b3-spanid', '000000003ade68b1'],
-            ['x-b3-sampled', '1'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["x-b3-traceid", "000000000000000000000000075bcd15"],
+                ["x-b3-spanid", "000000003ade68b1"],
+                ["x-b3-sampled", "1"],
+            ],
+        )
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 123456789
     assert span.get("parent_id") == 987654321
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
     assert span["meta"].get(ORIGIN) is None
+
 
 @enable_b3multi()
 @pytest.mark.skip_library("golang", "not implemented")
@@ -53,16 +59,15 @@ def test_headers_b3multi_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-b3-traceid', '0'],
-            ['x-b3-spanid', '0'],
-            ['x-b3-sampled', '1'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+        )
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 0
     assert span.get("parent_id") != 0
     assert span["meta"].get(ORIGIN) is None
+
 
 @enable_b3multi()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
@@ -72,8 +77,7 @@ def test_headers_b3multi_inject_valid(test_agent, test_library):
     """Ensure that b3multi distributed tracing headers are injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-        ])
+        headers = make_single_request_and_get_headers(test_library, [])
 
     span = get_span(test_agent)
     b3_trace_id = headers["x-b3-traceid"]
@@ -86,6 +90,7 @@ def test_headers_b3multi_inject_valid(test_agent, test_library):
     assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
     assert span["meta"].get(ORIGIN) is None
 
+
 @enable_b3multi()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
@@ -95,11 +100,14 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
     and injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-b3-traceid', '000000000000000000000000075bcd15'],
-            ['x-b3-spanid', '000000003ade68b1'],
-            ['x-b3-sampled', '1'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["x-b3-traceid", "000000000000000000000000075bcd15"],
+                ["x-b3-spanid", "000000003ade68b1"],
+                ["x-b3-sampled", "1"],
+            ],
+        )
 
     span = get_span(test_agent)
     b3_trace_id = headers["x-b3-traceid"]
@@ -112,6 +120,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
     assert b3_sampling == "1"
     assert span["meta"].get(ORIGIN) is None
 
+
 @enable_b3multi()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
@@ -121,11 +130,9 @@ def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     and the new span context is injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-b3-traceid', '0'],
-            ['x-b3-spanid', '0'],
-            ['x-b3-sampled', '1'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+        )
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 0

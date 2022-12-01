@@ -4,15 +4,16 @@
 from collections import OrderedDict
 import re
 
-traceparent_name_re = re.compile(r'^traceparent$', re.IGNORECASE)
-tracestate_name_re = re.compile(r'^tracestate$', re.IGNORECASE)
+traceparent_name_re = re.compile(r"^traceparent$", re.IGNORECASE)
+tracestate_name_re = re.compile(r"^tracestate$", re.IGNORECASE)
+
 
 def get_traceparent(headers):
     retval = []
     for key, value in headers.items():
         if traceparent_name_re.match(key):
             retval.append((key, value))
-    
+
     assert len(retval) == 1
     version, trace_id, span_id, trace_flags = retval[0][1].split("-")
 
@@ -24,6 +25,7 @@ def get_traceparent(headers):
 
     return Traceparent(version, trace_id, span_id, trace_flags)
 
+
 def get_tracestate(headers):
     tracestate = Tracestate()
     for key, value in headers.items():
@@ -31,27 +33,30 @@ def get_tracestate(headers):
             tracestate.from_string(value)
     return tracestate
 
+
 def get_tracecontext(headers):
     return (get_traceparent(headers), get_tracestate(headers))
 
+
 class Traceparent(object):
-    def __init__(self, version = 0, trace_id = None, parent_id = None, trace_flags = 0):
+    def __init__(self, version=0, trace_id=None, parent_id=None, trace_flags=0):
         self.version = version
         self.trace_id = trace_id
         self.parent_id = parent_id
         self.trace_flags = trace_flags
 
+
 # The tracestate class was obtained from https://github.com/w3c/trace-context/blob/84b583d86ecb7005a9eab8fed86ab7117b050b48/test/tracecontext/tracestate.py
 # All tests in this Repository are licensed by contributors to be distributed under the W3C 3-clause BSD License: https://www.w3.org/Consortium/Legal/2008/03-bsd-license.html
 class Tracestate(object):
-    _KEY_WITHOUT_VENDOR_FORMAT = r'[a-z][_0-9a-z\-\*\/]{0,255}'
-    _KEY_WITH_VENDOR_FORMAT = r'[0-9a-z][_0-9a-z\-\*\/]{0,240}@[a-z][_0-9a-z\-\*\/]{0,13}'
-    _KEY_FORMAT = _KEY_WITHOUT_VENDOR_FORMAT + '|' + _KEY_WITH_VENDOR_FORMAT
-    _VALUE_FORMAT = r'[\x20-\x2b\x2d-\x3c\x3e-\x7e]{0,255}[\x21-\x2b\x2d-\x3c\x3e-\x7e]'
-    _DELIMITER_FORMAT_RE = re.compile('[ \t]*,[ \t]*')
-    _KEY_VALIDATION_RE = re.compile('^(' + _KEY_FORMAT + ')$')
-    _VALUE_VALIDATION_RE = re.compile('^(' + _VALUE_FORMAT + ')$')
-    _MEMBER_FORMAT_RE = re.compile('^(%s)(=)(%s)$' % (_KEY_FORMAT, _VALUE_FORMAT))
+    _KEY_WITHOUT_VENDOR_FORMAT = r"[a-z][_0-9a-z\-\*\/]{0,255}"
+    _KEY_WITH_VENDOR_FORMAT = r"[0-9a-z][_0-9a-z\-\*\/]{0,240}@[a-z][_0-9a-z\-\*\/]{0,13}"
+    _KEY_FORMAT = _KEY_WITHOUT_VENDOR_FORMAT + "|" + _KEY_WITH_VENDOR_FORMAT
+    _VALUE_FORMAT = r"[\x20-\x2b\x2d-\x3c\x3e-\x7e]{0,255}[\x21-\x2b\x2d-\x3c\x3e-\x7e]"
+    _DELIMITER_FORMAT_RE = re.compile("[ \t]*,[ \t]*")
+    _KEY_VALIDATION_RE = re.compile("^(" + _KEY_FORMAT + ")$")
+    _VALUE_VALIDATION_RE = re.compile("^(" + _VALUE_FORMAT + ")$")
+    _MEMBER_FORMAT_RE = re.compile("^(%s)(=)(%s)$" % (_KEY_FORMAT, _VALUE_FORMAT))
 
     def __init__(self, *args, **kwds):
         if len(args) == 1 and not kwds:
@@ -71,22 +76,22 @@ class Tracestate(object):
         return len(self._traits)
 
     def __repr__(self):
-        return '{}({!r})'.format(type(self).__name__, str(self))
+        return "{}({!r})".format(type(self).__name__, str(self))
 
     def __getitem__(self, key):
         return self._traits[key]
 
     def __setitem__(self, key, value):
         if not isinstance(key, str):
-            raise ValueError('key must be an instance of str')
+            raise ValueError("key must be an instance of str")
         if not re.match(self._KEY_VALIDATION_RE, key):
-            raise ValueError('illegal key provided')
+            raise ValueError("illegal key provided")
         if not isinstance(value, str):
-            raise ValueError('value must be an instance of str')
+            raise ValueError("value must be an instance of str")
         if not re.match(self._VALUE_VALIDATION_RE, value):
-            raise ValueError('illegal value provided')
+            raise ValueError("illegal value provided")
         self._traits[key] = value
-        self._traits.move_to_end(key, last = False)
+        self._traits.move_to_end(key, last=False)
 
     def __str__(self):
         return self.to_string()
@@ -96,7 +101,7 @@ class Tracestate(object):
             if member:
                 match = self._MEMBER_FORMAT_RE.match(member)
                 if not match:
-                    raise ValueError('illegal key-value format {!r}'.format(member))
+                    raise ValueError("illegal key-value format {!r}".format(member))
                 key, eq, value = match.groups()
                 if key not in self._traits:
                     self._traits[key] = value
@@ -106,7 +111,7 @@ class Tracestate(object):
         return self
 
     def to_string(self):
-        return ','.join(map(lambda key: key + '=' + self[key], self._traits))
+        return ",".join(map(lambda key: key + "=" + self[key], self._traits))
 
     # make this an optional choice instead of enforcement during put/update
     # if the tracestate value size is bigger than 512 characters, the tracer

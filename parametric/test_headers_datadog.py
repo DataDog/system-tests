@@ -13,13 +13,16 @@ def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
     and activated properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-datadog-trace-id', '123456789'],
-            ['x-datadog-parent-id', '987654321'],
-            ['x-datadog-sampling-priority', '2'],
-            ['x-datadog-origin', 'synthetics;,=web'],
-            ['x-datadog-tags', '_dd.p.dm=-4'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "2"],
+                ["x-datadog-origin", "synthetics;,=web"],
+                ["x-datadog-tags", "_dd.p.dm=-4"],
+            ],
+        )
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 123456789
@@ -35,13 +38,16 @@ def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_libra
     """Ensure that invalid Datadog distributed tracing headers are not extracted.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-datadog-trace-id', '0'],
-            ['x-datadog-parent-id', '0'],
-            ['x-datadog-sampling-priority', '2'],
-            ['x-datadog-origin', 'synthetics'],
-            ['x-datadog-tags', '_dd.p.dm=-4'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["x-datadog-trace-id", "0"],
+                ["x-datadog-parent-id", "0"],
+                ["x-datadog-sampling-priority", "2"],
+                ["x-datadog-origin", "synthetics"],
+                ["x-datadog-tags", "_dd.p.dm=-4"],
+            ],
+        )
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 0
@@ -57,8 +63,7 @@ def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-        ])
+        headers = make_single_request_and_get_headers(test_library, [])
 
     span = get_span(test_agent)
     assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
@@ -73,13 +78,16 @@ def test_distributed_headers_propagate_datadog_D004(test_agent, test_library):
     and injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-datadog-trace-id', '123456789'],
-            ['x-datadog-parent-id', '987654321'],
-            ['x-datadog-sampling-priority', '2'],
-            ['x-datadog-origin', 'synthetics'],
-            ['x-datadog-tags', '_dd.p.dm=-4'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "2"],
+                ["x-datadog-origin", "synthetics"],
+                ["x-datadog-tags", "_dd.p.dm=-4"],
+            ],
+        )
 
     span = get_span(test_agent)
     assert headers["x-datadog-trace-id"] == "123456789"
@@ -96,13 +104,16 @@ def test_distributed_headers_extractandinject_datadog_invalid_D005(test_agent, t
     and the new span context is injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [
-            ['x-datadog-trace-id', '0'],
-            ['x-datadog-parent-id', '0'],
-            ['x-datadog-sampling-priority', '2'],
-            ['x-datadog-origin', 'synthetics'],
-            ['x-datadog-tags', '_dd.p.dm=-4'],
-        ])
+        headers = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["x-datadog-trace-id", "0"],
+                ["x-datadog-parent-id", "0"],
+                ["x-datadog-sampling-priority", "2"],
+                ["x-datadog-origin", "synthetics"],
+                ["x-datadog-tags", "_dd.p.dm=-4"],
+            ],
+        )
 
     assert headers["x-datadog-trace-id"] != "0"
     assert headers["x-datadog-parent-id"] != "0"
