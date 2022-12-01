@@ -5,7 +5,6 @@
 from collections import namedtuple
 import json
 import threading
-import warnings
 
 from utils.tools import logger
 from utils._context.core import context
@@ -95,7 +94,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
                 yield data, trace, span, appsec_data
 
-    def get_legacy_appsec_events(self, request):
+    def get_legacy_appsec_events(self, request=None):
         paths_with_appsec_events = ["/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
         rid = get_rid_from_request(request)
@@ -150,10 +149,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
             validator, path_filters="/telemetry/proxy/api/v2/apmtelemetry", success_by_default=success_by_default
         )
 
-    def validate_appsec(self, request, validator, success_by_default=False, legacy_validator=None):
-        for _, _, span, appsec_data in self.get_appsec_events(request=request):
-            if validator(span, appsec_data):
-                return
+    def validate_appsec(self, request=None, validator=None, success_by_default=False, legacy_validator=None):
+
+        if validator:
+            for _, _, span, appsec_data in self.get_appsec_events(request=request):
+                if validator(span, appsec_data):
+                    return
 
         if legacy_validator:
             for _, event in self.get_legacy_appsec_events(request=request):
@@ -226,11 +227,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 trace_ids[trace_id] = log_filename
 
     def assert_sampling_decisions_added(self, traces):
+        # TODO: move this into test class
         validator = _AddSamplingDecisionValidator(traces)
         self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
         validator.final_check()
 
     def assert_deterministic_sampling_decisions(self, traces):
+        # TODO: move this into test class
         validator = _DistributedTracesDeterministicSamplingDecisisonValidator(traces)
         self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
         validator.final_check()
@@ -262,21 +265,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
             request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
         )
 
-    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None, is_success_on_expiry=False):
-        warnings.warn("add_appsec_validation() is deprecated, please use validate_appsec()", DeprecationWarning)
-        self.validate_appsec(
-            request, validator=validator, legacy_validator=legacy_validator, success_by_default=is_success_on_expiry
-        )
+    def add_traces_validation(self, validator, success_by_default=False):
+        self.validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
 
-    def add_traces_validation(self, validator, is_success_on_expiry=False):
-        self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces")
-
-    def add_span_validation(self, request=None, validator=None, is_success_on_expiry=False):
+    def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
             if validator(span):
                 return
 
-        if not is_success_on_expiry:
+        if not success_by_default:
             raise Exception("No span validates this test")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
@@ -316,20 +313,20 @@ class LibraryInterfaceValidator(InterfaceValidator):
             logger.error(json.dumps(iast_data, indent=2))
             raise Exception(f"Found IAST event in {data['log_filename']}")
 
-    def add_telemetry_validation(self, validator, is_success_on_expiry=False):
+    def add_telemetry_validation(self, validator, success_by_default=False):
         self.validate(
             validator=validator,
-            success_by_default=is_success_on_expiry,
+            success_by_default=success_by_default,
             path_filters="/telemetry/proxy/api/v2/apmtelemetry",
         )
 
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
-        self.add_telemetry_validation(validator, is_success_on_expiry=True)
+        self.add_telemetry_validation(validator, success_by_default=True)
 
     def assert_no_skipped_seq_ids(self):
         validator = _NoSkippedSeqId()
-        self.add_telemetry_validation(validator, is_success_on_expiry=True)
+        self.add_telemetry_validation(validator, success_by_default=True)
 
         validator.final_check()
 
@@ -350,8 +347,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         raise Exception(f"No trace has been found for request {get_rid_from_request(request)}")
 
-    def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
-        self.validate(validator, success_by_default=is_success_on_expiry, path_filters=r"/v\d+.\d+/config")
+    def add_remote_configuration_validation(self, validator, success_by_default=False):
+        self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
 
 class _TraceIdUniquenessExceptions:

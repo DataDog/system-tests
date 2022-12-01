@@ -47,7 +47,7 @@ class RemoteConfigurationFieldsBasicTests:
                     "error" in state
                 ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
 
-        interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
+        interfaces.library.add_remote_configuration_validation(validator=validator, success_by_default=True)
 
     def test_client_fields(self):
         """ Ensure that the Client field is appropriately filled out in update requests"""
@@ -62,7 +62,7 @@ class RemoteConfigurationFieldsBasicTests:
                 client["id"] != client_tracer["runtime_id"]
             ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
 
-        interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
+        interfaces.library.add_remote_configuration_validation(validator=validator, success_by_default=True)
 
 
 def rc_check_request(data, expected, caching):
