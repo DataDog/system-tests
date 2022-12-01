@@ -27,8 +27,8 @@ class Test_Telemetry:
             repsonse_code = data["response"]["status_code"]
             assert 200 <= repsonse_code < 300, f"Got response code {repsonse_code}"
 
-        interfaces.library.add_telemetry_validation(validator, is_success_on_expiry=True)
-        interfaces.agent.add_telemetry_validation(validator, is_success_on_expiry=True)
+        interfaces.library.add_telemetry_validation(validator, success_by_default=True)
+        interfaces.agent.add_telemetry_validation(validator, success_by_default=True)
 
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
@@ -74,7 +74,7 @@ class Test_Telemetry:
                 self.app_started_count += 1
                 assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
 
-        interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=True)
+        interfaces.library.add_telemetry_validation(validator=validator, success_by_default=True)
 
     def test_telemetry_messages_valid(self):
         """Telemetry messages additional validation"""
@@ -89,8 +89,8 @@ class Test_Telemetry:
             if content["request_type"] == "app-dependencies-loaded":
                 assert content["payload"]["dependencies"], "dependencies changes must mot be empty"
 
-        interfaces.library.add_telemetry_validation(validator=validate_integration_changes, is_success_on_expiry=True)
-        interfaces.library.add_telemetry_validation(validator=validate_dependencies_changes, is_success_on_expiry=True)
+        interfaces.library.add_telemetry_validation(validator=validate_integration_changes, success_by_default=True)
+        interfaces.library.add_telemetry_validation(validator=validate_dependencies_changes, success_by_default=True)
 
     @bug(
         library="dotnet",
@@ -170,7 +170,7 @@ class Test_Telemetry:
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
-        interfaces.library.add_telemetry_validation(validator=validator, is_success_on_expiry=True)
+        interfaces.library.add_telemetry_validation(validator=validator, success_by_default=True)
 
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""

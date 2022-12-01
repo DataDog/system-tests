@@ -265,8 +265,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
             request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
         )
 
-    def add_traces_validation(self, validator, is_success_on_expiry=False):
-        self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces")
+    def add_traces_validation(self, validator, success_by_default=False):
+        self.validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
 
     def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
@@ -313,20 +313,20 @@ class LibraryInterfaceValidator(InterfaceValidator):
             logger.error(json.dumps(iast_data, indent=2))
             raise Exception(f"Found IAST event in {data['log_filename']}")
 
-    def add_telemetry_validation(self, validator, is_success_on_expiry=False):
+    def add_telemetry_validation(self, validator, success_by_default=False):
         self.validate(
             validator=validator,
-            success_by_default=is_success_on_expiry,
+            success_by_default=success_by_default,
             path_filters="/telemetry/proxy/api/v2/apmtelemetry",
         )
 
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
-        self.add_telemetry_validation(validator, is_success_on_expiry=True)
+        self.add_telemetry_validation(validator, success_by_default=True)
 
     def assert_no_skipped_seq_ids(self):
         validator = _NoSkippedSeqId()
-        self.add_telemetry_validation(validator, is_success_on_expiry=True)
+        self.add_telemetry_validation(validator, success_by_default=True)
 
         validator.final_check()
 
@@ -347,8 +347,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         raise Exception(f"No trace has been found for request {get_rid_from_request(request)}")
 
-    def add_remote_configuration_validation(self, validator, is_success_on_expiry=False):
-        self.validate(validator, success_by_default=is_success_on_expiry, path_filters=r"/v\d+.\d+/config")
+    def add_remote_configuration_validation(self, validator, success_by_default=False):
+        self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
 
 class _TraceIdUniquenessExceptions:
