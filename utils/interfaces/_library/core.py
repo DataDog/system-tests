@@ -227,11 +227,13 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 trace_ids[trace_id] = log_filename
 
     def assert_sampling_decisions_added(self, traces):
+        # TODO: move this into test class
         validator = _AddSamplingDecisionValidator(traces)
         self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
         validator.final_check()
 
     def assert_deterministic_sampling_decisions(self, traces):
+        # TODO: move this into test class
         validator = _DistributedTracesDeterministicSamplingDecisisonValidator(traces)
         self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
         validator.final_check()
@@ -266,12 +268,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_traces_validation(self, validator, is_success_on_expiry=False):
         self.validate(validator=validator, success_by_default=is_success_on_expiry, path_filters=r"/v0\.[1-9]+/traces")
 
-    def add_span_validation(self, request=None, validator=None, is_success_on_expiry=False):
+    def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
             if validator(span):
                 return
 
-        if not is_success_on_expiry:
+        if not success_by_default:
             raise Exception("No span validates this test")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):

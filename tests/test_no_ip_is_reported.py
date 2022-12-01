@@ -54,4 +54,4 @@ class Test_NoIpIsReported:
         def validator(data):
             assert_no_ip(data["request"]["content"], "request")
 
-        interfaces.agent.add_validation(validator, is_success_on_expiry=True)
+        interfaces.agent.validate(validator, success_by_default=True)

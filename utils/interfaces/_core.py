@@ -8,7 +8,6 @@ import threading
 import json
 import re
 import time
-import warnings
 
 from utils.tools import logger
 from ._deserializer import deserialize
@@ -111,10 +110,6 @@ class InterfaceValidator:
 
         if not success_by_default:
             raise Exception("Test has not been validated by any data")
-
-    def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
-        warnings.warn("add_validation() is deprecated, please use validate()", DeprecationWarning)
-        self.validate(validator=validator, path_filters=path_filters, success_by_default=is_success_on_expiry)
 
     def wait_for(self, wait_for_function, timeout):
 

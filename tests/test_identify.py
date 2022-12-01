@@ -53,7 +53,7 @@ class Test_Basic:
     )
     @bug(library="ruby", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
     def test_identify_tags(self):
-        interfaces.library.add_span_validation(
+        interfaces.library.validate_spans(
             self.r, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
@@ -62,7 +62,7 @@ class Test_Basic:
         self.r_with_attack = weblog.get("/identify", headers={"User-Agent": "Arachni/v1"})
 
     def test_identify_tags_with_attack(self):
-        interfaces.library.add_span_validation(
+        interfaces.library.validate_spans(
             self.r_with_attack, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
@@ -79,7 +79,7 @@ class Test_Propagate:
 
     def test_identify_tags_outgoing(self):
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.add_span_validation(self.r_outgoing, validate_identify_tags(tagTable))
+        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -89,4 +89,4 @@ class Test_Propagate:
     def test_identify_tags_incoming(self):
         """ with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C """
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.add_span_validation(self.r_incoming, validate_identify_tags(tagTable))
+        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
