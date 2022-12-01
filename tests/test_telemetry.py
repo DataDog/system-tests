@@ -1,14 +1,7 @@
 import time
-from utils import (
-    context,
-    interfaces,
-    missing_feature,
-    bug,
-    released,
-    flaky,
-    irrelevant,
-    ValidationException,
-)
+
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant
+from utils.tools import logger
 
 
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
@@ -132,14 +125,13 @@ class Test_Telemetry:
 
                     pass
 
-                    # extra_info = {
+                    # logger.error(str({
                     #     "library_requests": [{"seq_id": s, "runtime_id": r} for s, r in self.library_requests],
                     #     "agent_requests": [{"seq_id": s, "runtime_id": r} for s, r in self.agent_requests],
-                    # }
+                    # }))
 
-                    # raise ValidationException(
+                    # raise Exception(
                     #     f"Agent proxy forwarded a message that was not sent by the library: {agent_log_file}",
-                    #     extra_info=extra_info,
                     # )
                 else:
                     lib_data = self.library_requests.pop(key)
@@ -153,10 +145,10 @@ class Test_Telemetry:
                         )
 
             if len(self.library_requests) != 0:
-                raise ValidationException(
-                    "The following telemetry messages were not forwarded by the agent",
-                    extra_info=[{"seq_id": s, "runtime_id": r} for s, r in self.library_requests],
-                )
+                for s, r in self.library_requests:
+                    logger.error(f"seq_id: {s}, runtime_id: {r}")
+
+                raise Exception("The following telemetry messages were not forwarded by the agent")
 
             return True  # all good!
 

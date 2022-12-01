@@ -14,7 +14,7 @@ services:
       - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_AGENT_PROXY_STATE:-}
     volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
+      - ./utils/proxy/:/system-tests/utils/proxy/:ro
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
     ports:
       - "127.0.0.1:8082:8082"
@@ -29,7 +29,7 @@ services:
       - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_LIBRARY_PROXY_STATE:-}
     volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
+      - ./utils/proxy/:/system-tests/utils/proxy/:ro
     command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
@@ -99,12 +99,12 @@ services:
       - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./conftest.py:/app/conftest.py
-      - ./tests/:/app/tests/
-      - ./utils/:/app/utils/
+      - ./scenarios/:/app/scenarios/:ro
+      - ./tests/:/app/tests/:ro
+      - ./utils/:/app/utils/:ro
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./conftest.py:/app/conftest.py:ro
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/:/app/logs/
-      - ./scenarios/:/app/scenarios/
       - /var/run/docker.sock:/var/run/docker.sock
     command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
 

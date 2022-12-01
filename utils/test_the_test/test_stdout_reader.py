@@ -18,14 +18,10 @@ class Test_Main:
 
         stdout = _LibraryStdout()
 
+        stdout.wait()
+
         stdout.assert_absence(r"System\.Exception")
         stdout.assert_presence(r"some.*file")
         stdout.assert_presence(r"AppSec initial \d+\.\d+\.\d+", level="INFO")
 
         stdout.assert_presence(r"some.*file", level="DEBUG")
-        stdout.append_log_validation(lambda data: data["level"])
-
-        stdout.wait(0)
-
-        for v in stdout._validations:
-            assert v.is_success, v

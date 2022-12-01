@@ -3,10 +3,10 @@ line-length = 120
 exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps|parametric/protos/)"
 
 [tool.pytest.ini_options]
-addopts = "--json-report --json-report-file=logs/report.json --json-report-indent=2 --color=yes --no-header --junitxml=logs/reportJunit.xml"
+addopts = "--json-report --json-report-file=logs/report.json --json-report-indent=2 --color=yes --no-header --junitxml=logs/reportJunit.xml -r X"
 # log_cli = True
 # log_cli_level = DEBUG
-log_level = "INFO"
+log_level = "DEBUG"
 log_format = "%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s"
 log_date_format = "%H:%M:%S"
 log_file = "logs/pytest.log"
@@ -19,7 +19,6 @@ junit_duration_report = "call"
 junit_suite_name = "system_tests_suite"
 
 markers =[
-    "expected_failure: This test or class is expected to fail",
     "scenario: run a test only for a specified scenario"
 ]
 

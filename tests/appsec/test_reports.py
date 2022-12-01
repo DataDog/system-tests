@@ -74,7 +74,10 @@ class Test_HttpClientIP:
     def setup_http_remote_ip(self):
         headers = {"User-Agent": "Arachni/v1"}
         self.r = weblog.get("/waf/", headers=headers, stream=True)
-        self.actual_remote_ip = self.r.raw._connection.sock.getsockname()[0]  # pylint: disable=protected-access
+        try:
+            self.actual_remote_ip = self.r.raw._connection.sock.getsockname()[0]  # pylint: disable=protected-access
+        except:
+            self.actual_remote_ip = None
         self.r.close()
 
     def test_http_remote_ip(self):

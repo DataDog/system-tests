@@ -12,9 +12,8 @@ import json
 import re
 import functools
 
-from jsonschema import Draft7Validator, RefResolver, exceptions as jsonschema_exceptions
+from jsonschema import Draft7Validator, RefResolver
 from jsonschema.validators import extend
-from utils.interfaces._core import BaseValidation
 
 
 def _is_bytes_or_string(_checker, instance):
@@ -62,8 +61,6 @@ def _get_schema_validator(schema_id):
     store = _get_schemas_store()
 
     if schema_id not in store:
-        for x in store:
-            print(x)
         raise FileNotFoundError(f"There is no schema file that describe {schema_id}")
 
     schema = store[schema_id]
@@ -71,75 +68,29 @@ def _get_schema_validator(schema_id):
     return _ApiObjectValidator(schema, resolver=resolver, format_checker=Draft7Validator.FORMAT_CHECKER)
 
 
-class SchemaValidator(BaseValidation):
-    is_success_on_expiry = True
-
+class SchemaValidator:
     def __init__(self, interface, allowed_errors=None):
-        super().__init__()
         self.interface = interface
         self.allowed_errors = []
 
         for pattern in allowed_errors or []:
             self.allowed_errors.append(re.compile(pattern))
 
-    def check(self, data):
+    def __call__(self, data):
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
-        try:
-            validator = _get_schema_validator(schema_id)
-            if not validator.is_valid(data["request"]["content"]):
-                messages = []
+        validator = _get_schema_validator(schema_id)
+        if not validator.is_valid(data["request"]["content"]):
+            messages = []
 
-                for error in validator.iter_errors(data["request"]["content"]):
-                    message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
-                    if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
-                        messages.append(message)
+            for error in validator.iter_errors(data["request"]["content"]):
+                message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
+                if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
+                    messages.append(message)
 
-                if len(messages) != 0:
-                    self.set_status(False)
-                    self.log_error(f"In message {data['log_filename']}:")
-                    for message in messages:
-                        self.log_error(f"* {message}")
+            if len(messages) != 0:
+                for message in messages:
+                    self.log_error(f"* {message}")
 
-        except FileNotFoundError as e:
-            self.set_failure(e)
-
-        except jsonschema_exceptions.ValidationError as e:
-            self.set_failure(e)
-
-
-class Test_Logs:
-    def test_main(self, interface):
-        """ Test current logs """
-
-        path = f"logs/interfaces/{interface}"
-
-        for f in sorted(os.listdir(path)):
-            data_path = os.path.join(path, f)
-            print(f"  * {data_path}")
-            if os.path.isfile(data_path):
-                with open(data_path, "r", encoding="utf-8") as f:
-                    systemtest_interface_log_data = json.load(f)
-
-                # We re-use BaseValidation sub class SchemaValidator to avoid logic duplication
-                # but we need to stick to in BaseValidation internals...
-
-                validator = SchemaValidator(interface)
-                if validator.system_test_error:
-                    raise validator.system_test_error
-
-                validator.check(systemtest_interface_log_data)
-                validator.set_expired()
-
-                if not validator.is_success:
-                    print("    ---> ERROR:")
-                    print("")
-                    for log in validator.logs:
-                        print(log)
-
-
-if __name__ == "__main__":
-    print("# Validate logs output from system tests")
-    Test_Logs().test_main("library")
-    Test_Logs().test_main("agent")
+                raise Exception(f"Schema is invalid in {data['log_filename']}")
