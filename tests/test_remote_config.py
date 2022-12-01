@@ -21,4 +21,4 @@ class Test_NoError:
                 if error is not None:
                     raise Exception(f"Error in remote config application: {error}")
 
-        interfaces.library.add_remote_configuration_validation(no_error, success_by_default=True)
+        interfaces.library.validate_remote_configuration(no_error, success_by_default=True)

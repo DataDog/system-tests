@@ -45,7 +45,7 @@ class Test_AppSecIPBlocking:
             rc_check_request(data, EXPECTED_REQUESTS[self.request_number], caching=True)
             self.request_number += 1
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)
 
     def setup_blocked_ips(self):
         NOT_BLOCKED_IP = "42.42.42.3"
