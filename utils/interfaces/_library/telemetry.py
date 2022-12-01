@@ -1,7 +1,7 @@
 from time import time
 from datetime import datetime, timedelta
 
-from utils import context
+from utils._context.core import context
 
 
 # TODO: movethis test logic in test class
@@ -60,7 +60,6 @@ class _AppHeartbeatValidation:
     """Verify telemetry messages are sent every heartbeat interval."""
 
     def __init__(self):
-        super().__init__()
         self.prev_message_time = -1
         self.TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
         self.ALLOWED_INTERVALS = 2

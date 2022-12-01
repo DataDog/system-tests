@@ -100,7 +100,6 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
-        """ test DD_APPSEC_ENABLED = false """
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
