@@ -1,9 +1,12 @@
 import os
 from utils._context.library_version import LibraryVersion
-from utils.interfaces._logs.core import _LibraryStdout
-from utils import context
+from utils.interfaces._logs import _LibraryStdout
+from utils import context, interfaces
 
 context.execute_warmups = lambda *args, **kwargs: None
+interfaces.agent.wait = lambda *args, **kwargs: None
+interfaces.library.wait = lambda *args, **kwargs: None
+interfaces.backend.wait = lambda *args, **kwargs: None
 
 
 class Test_Main:
