@@ -20,8 +20,8 @@ from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecisionValidator,
-    _AddSamplingDecisionValidation,
-    _DistributedTracesDeterministicSamplingDecisisonValidation,
+    _AddSamplingDecisionValidator,
+    _DistributedTracesDeterministicSamplingDecisisonValidator,
 )
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
@@ -202,7 +202,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
             paths.remove(path)
 
-        if len(paths) == 0:
+        if len(paths) != 0:
             for path in paths:
                 logger.error(f"A path has not been transmitted: {path}")
 
@@ -226,10 +226,14 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 trace_ids[trace_id] = log_filename
 
     def assert_sampling_decisions_added(self, traces):
-        self.append_validation(_AddSamplingDecisionValidation(traces))
+        validator = _AddSamplingDecisionValidator(traces)
+        self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+        validator.final_check()
 
     def assert_deterministic_sampling_decisions(self, traces):
-        self.append_validation(_DistributedTracesDeterministicSamplingDecisisonValidation(traces))
+        validator = _DistributedTracesDeterministicSamplingDecisisonValidator(traces)
+        self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+        validator.final_check()
 
     def assert_no_appsec_event(self, request):
         for data, _, _, appsec_data in self.get_appsec_events(request=request):

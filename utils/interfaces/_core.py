@@ -5,21 +5,18 @@
 """ This file contains base class used to validate interfaces """
 
 import threading
-import inspect
-import gc
 import json
 import re
 import time
 import warnings
 
-from utils.tools import logger, m, e as format_error
+from utils.tools import logger
 from ._deserializer import deserialize
 
 
 class InterfaceValidator:
     """Validate an interface
 
-    Main thread use append_validation() method to AsyncValidation objects
     data_collector use append_data() method to add data from interfaces
 
     One instance of this list handle only one interface
@@ -93,6 +90,16 @@ class InterfaceValidator:
 
             yield data
 
+    def get_spans(self):
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            if "tracerPayloads" not in data["request"]["content"]:
+                raise Exception("Trace property is missing in agent payload")
+
+            for payload in data["request"]["content"]["tracerPayloads"]:
+                for trace in payload["chunks"]:
+                    for span in trace["spans"]:
+                        yield data, span
+
     def validate(self, validator, path_filters=None, success_by_default=False):
         for data in self.get_data(path_filters=path_filters):
             try:
@@ -108,20 +115,6 @@ class InterfaceValidator:
     def add_validation(self, validator, is_success_on_expiry=False, path_filters=None):
         warnings.warn("add_validation() is deprecated, please use validate()", DeprecationWarning)
         self.validate(validator=validator, path_filters=path_filters, success_by_default=is_success_on_expiry)
-
-    def append_validation(self, validation):
-
-        validation.interface = self.name
-
-        for data in self.get_data(validation.path_filters):
-            if validation.check(data):
-                return
-
-        if not validation.closed:
-            validation.final_check()
-
-        if not validation.is_success_on_expiry and not validation.is_success:
-            raise Exception("???")
 
     def add_assertion(self, condition):
         warnings.warn("add_assertion() is deprecated, please use bare assert", DeprecationWarning)
@@ -157,143 +150,6 @@ class ObjectDumpEncoder(json.JSONEncoder):
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
-
-
-class BaseValidation:
-    """Base validation item"""
-
-    interface = None  # which interface will be validated
-    is_success_on_expiry = False  # if validation is still pending at end of procees, is it a success?
-    path_filters = None  # Can be a string, or a list of string. Will perfom validation only on path in it.
-
-    def __init__(self, request=None, is_success_on_expiry=None, path_filters=None):
-        # keep this two mumber on top, it's used in repr
-        self.message = ""
-        self.rid = None
-
-        self._is_success = None
-
-        if is_success_on_expiry is not None:
-            self.is_success_on_expiry = is_success_on_expiry
-
-        if path_filters is not None:
-            self.path_filters = path_filters
-
-        if isinstance(self.path_filters, str):
-            self.path_filters = [self.path_filters]
-
-        if self.path_filters is not None:
-            self.path_filters = [re.compile(path) for path in self.path_filters]
-
-        self.rid = get_rid_from_request(request)
-
-        self.frame = None
-        self.calling_method = None
-
-        # Get calling class and calling method
-        for frame_info in inspect.getouterframes(inspect.currentframe()):
-
-            if frame_info.function.startswith("test_"):
-                self.frame = frame_info
-                gc.collect()
-                self.calling_method = gc.get_referrers(frame_info.frame.f_code)[0]
-                self.calling_class = frame_info.frame.f_locals["self"].__class__
-                break
-
-        if self.calling_method is None:
-            raise Exception(f"Unexpected error, can't found the method for {self}")
-
-        # try to get the function docstring
-        self.message = self.calling_method.__doc__
-
-        # if the message is missing, try to get the parent class docstring
-        if self.message is None:
-            self.message = self.calling_class.__doc__
-
-        if self.message is None:
-            raise Exception(f"Please set a message for {self.frame.function}")
-
-        # remove new lines, duplicated spaces and tailing/heading spaces for logging
-        self.message = self.message.replace("\n", " ").strip()
-        self.message = re.sub(r" {2,}", " ", self.message)
-
-        self.message = self.message.strip()
-
-    def __str__(self):
-        return f"Interface: {self.interface} -> {self.__class__.__name__}: {m(self.message)}"
-
-    def __repr__(self):
-        if self.rid:
-            return f"{self.__class__.__name__}({repr(self.message)}, {self.rid})"
-
-        return f"{self.__class__.__name__}({repr(self.message)})"
-
-    def get_test_source_info(self):
-        klass = self.calling_class.__name__
-        return self.frame.filename.replace("/app/", ""), klass, self.frame.function
-
-    def log_debug(self, message):
-        logger.debug(message)
-
-    def log_info(self, message):
-        logger.info(message)
-
-    def log_error(self, message):
-        logger.error(message)
-
-    @property
-    def closed(self):
-        return self._is_success is not None
-
-    @property
-    def is_success(self):
-        return self._is_success
-
-    def set_status(self, is_success):
-        if not is_success:
-            raise Exception(self.message)
-
-        self._is_success = is_success
-
-    def set_failure(self, message="", exception="", data=None, extra_info=None):
-        if not message:
-
-            message = f"{m(self.message)} is not validated: {format_error(str(exception))}"
-
-            if data and isinstance(data, dict) and "log_filename" in data:
-                message += f"\n\t Failing payload is in {data['log_filename']}"
-
-            if not extra_info and hasattr(exception, "extra_info"):
-                extra_info = exception.extra_info
-
-            if extra_info:
-                if isinstance(extra_info, (dict, list)):
-                    extra_info = json.dumps(extra_info, indent=2)
-
-                extra_info = str(extra_info)
-
-                message += "\n" + "\n".join([f"\t{l}" for l in extra_info.split("\n")])
-
-        raise Exception(message)
-
-    def set_expired(self):
-        if not self.closed:
-            if not self.is_success_on_expiry:
-                raise Exception(self.message)
-
-    def check(self, data):
-        """Will be called every time a new data is seen threw the interface"""
-        raise NotImplementedError()
-
-    def final_check(self):
-        """Will be called once, at the very end of the process"""
-
-    def expect(self, condition: bool, err_msg):
-        """Sets result to failed and returns True if condition is False, returns False otherwise"""
-        if not condition:
-            self.set_failure(err_msg)
-
-        return not condition
 
 
 class ValidationError(Exception):

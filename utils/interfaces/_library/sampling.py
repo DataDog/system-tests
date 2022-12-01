@@ -5,8 +5,17 @@
 from collections import defaultdict
 
 from utils.tools import logger
-from utils.interfaces._core import BaseValidation
-from utils.interfaces._library._utils import _spans_with_parent
+
+
+def _spans_with_parent(traces, parent_ids):
+    if not isinstance(traces, list):
+        logger.error("Traces should be an array")
+        yield from []  # do notfail here, it's schema's job
+    else:
+        for trace in traces:
+            for span in trace:
+                if span.get("parent_id") in parent_ids:
+                    yield span
 
 
 class _TracesSamplingDecisionValidator:
@@ -47,34 +56,26 @@ class _TracesSamplingDecisionValidator:
         return (AUTO_REJECT, MANUAL_REJECT)
 
 
-class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation):
+class _DistributedTracesDeterministicSamplingDecisisonValidator:
     """Asserts that traces with the same id have the same sampling decisions"""
 
-    path_filters = ["/v0.4/traces", "/v0.5/traces"]
-    is_success_on_expiry = False
-
-    def __init__(self, traces, request=None):
-        super().__init__(request=request)
+    def __init__(self, traces):
         self.traces = {trace["parent_id"]: trace for trace in traces}
         self.sampling_decisions_per_trace_id = defaultdict(list)
 
-    def check(self, data):
+    def __call__(self, data):
         for span in _spans_with_parent(data["request"]["content"], self.traces.keys()):
-            self.is_success_on_expiry = True
             expected_trace_id = self.traces[(span["parent_id"])]["trace_id"]
-            if self.expect(
-                span["trace_id"] == expected_trace_id,
+            sampling_priority = span["metrics"].get("_sampling_priority_v1")
+            self.sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+
+            assert span["trace_id"] == expected_trace_id, (
                 f"Message: {data['log_filename']}: If parent_id matches, "
                 f"trace_id should match too expected trace_id {expected_trace_id} "
                 f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
-            ):
-                return
-            sampling_priority = span["metrics"].get("_sampling_priority_v1")
-            if self.expect(
-                sampling_priority is not None, f"Message: {data['log_filename']}: sampling priority should be set",
-            ):
-                return
-            self.sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+            )
+
+            assert sampling_priority is not None, f"Message: {data['log_filename']}: sampling priority should be set"
 
     def final_check(self):
         fail = False
@@ -89,36 +90,31 @@ class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation)
             raise Exception("Some trace does not respect the sampling decision")
 
 
-class _AddSamplingDecisionValidation(BaseValidation):
+class _AddSamplingDecisionValidator:
     """Asserts that a trace sampling decisions are taken for choosen traces and spans"""
 
-    path_filters = ["/v0.4/traces", "/v0.5/traces"]
-    is_success_on_expiry = False
-
-    def __init__(self, traces, request=None):
-        super().__init__(request=request)
+    def __init__(self, traces):
         self.traces = {trace["parent_id"]: trace for trace in traces}
         self.errors = set()
         self.count = 0
 
-    def check(self, data):
+    def __call__(self, data):
         for span in _spans_with_parent(data["request"]["content"], self.traces.keys()):
-            self.is_success_on_expiry = True
+
             expected_trace_id = self.traces[span["parent_id"]]["trace_id"]
-            if self.expect(
-                span["trace_id"] == expected_trace_id,
+            self.count += 1
+
+            assert span["trace_id"] == expected_trace_id, (
                 f"Message: {data['log_filename']}: If parent_id matches, "
                 f"trace_id should match too expected trace_id {expected_trace_id} "
                 f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
-            ):
-                return
+            )
+
             sampling_priority = span["metrics"].get("_sampling_priority_v1")
-            if self.expect(
-                sampling_priority is not None,
+
+            assert sampling_priority is not None, (
                 f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
-            ):
-                return
-            self.count += 1
+            )
 
     def final_check(self):
         if self.count != len(self.traces):

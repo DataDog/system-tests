@@ -49,7 +49,8 @@ class _NoSkippedSeqId:
                 raise Exception(
                     f"Detected 2 telemetry messages with same seq_id {self.seq_ids[i + 1][1]} and {self.seq_ids[i][1]}"
                 )
-            elif diff > 1:
+
+            if diff > 1:
                 raise Exception(
                     f"Detected non conscutive seq_ids between {self.seq_ids[i + 1][1]} and {self.seq_ids[i][1]}"
                 )
@@ -71,6 +72,7 @@ class _AppHeartbeatValidation:
             delta = curr_message_time - self.prev_message_time
             if delta > timedelta(seconds=self.ALLOWED_INTERVALS * self.TELEMETRY_HEARTBEAT_INTERVAL):
                 raise Exception(
-                    f"No heartbeat or message sent in {self.ALLOWED_INTERVALS} hearbeat intervals: {self.TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
+                    f"No heartbeat or message sent in {self.ALLOWED_INTERVALS} hearbeat intervals: "
+                    "{self.TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
                 )
         self.prev_message_time = curr_message_time

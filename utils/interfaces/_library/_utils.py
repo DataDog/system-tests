@@ -7,21 +7,6 @@ from utils.tools import logger
 from utils.interfaces._core import get_rid_from_span
 
 
-def _spans_with_parent(traces, parent_ids):
-    if not isinstance(traces, list):
-        logger.error("Traces should be an array")
-        yield from []  # do notfail here, it's schema's job
-    else:
-        for trace in traces:
-            for span in trace:
-                if span.get("parent_id") in parent_ids:
-                    yield span
-
-
-def get_root_spans(traces):
-    yield from _spans_with_parent(traces, (0, None))
-
-
 def get_spans_related_to_rid(traces, rid):
     if not isinstance(traces, list):
         logger.error("Traces should be an array")
