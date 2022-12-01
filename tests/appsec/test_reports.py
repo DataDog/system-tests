@@ -38,7 +38,7 @@ class Test_StatusCode:
         reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
     def test_basic(self):
-        interfaces.library.add_assertion(self.r.status_code == 404)
+        assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(self.r)
 
         def check_http_code_legacy(event):
@@ -53,9 +53,7 @@ class Test_StatusCode:
 
             return True
 
-        interfaces.library.add_appsec_validation(
-            self.r, validator=check_http_code, legacy_validator=check_http_code_legacy
-        )
+        interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
 @released(
@@ -95,7 +93,7 @@ class Test_HttpClientIP:
 
             return True
 
-        interfaces.library.add_appsec_validation(self.r, validator=validator, legacy_validator=legacy_validator)
+        interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
 
 
 @released(
@@ -134,9 +132,7 @@ class Test_Info:
 
             return True
 
-        interfaces.library.add_appsec_validation(
-            self.r, legacy_validator=_check_service_legacy, validator=_check_service
-        )
+        interfaces.library.validate_appsec(self.r, legacy_validator=_check_service_legacy, validator=_check_service)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -190,14 +186,12 @@ class Test_TagsFromRule:
     def test_basic(self):
         """ attack timestamp is given by start property of span """
 
-        def validator(span, appsec_data):
+        for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
             for trigger in appsec_data["triggers"]:
                 assert "rule" in trigger
                 assert "tags" in trigger["rule"]
                 assert "type" in trigger["rule"]["tags"]
                 assert "category" in trigger["rule"]["tags"]
-
-        interfaces.library.add_appsec_validation(self.r, validator=validator, is_success_on_expiry=True)
 
 
 @coverage.basic
@@ -210,8 +204,6 @@ class Test_AttackTimestamp:
     def test_basic(self):
         """ attack timestamp is given by start property of span """
 
-        def validator(span, appsec_data):
+        for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r):
             assert "start" in span, "span should contain start property"
             assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
-
-        interfaces.library.add_appsec_validation(self.r, validator=validator, is_success_on_expiry=True)

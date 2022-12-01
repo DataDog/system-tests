@@ -23,7 +23,6 @@ class Test_Main:
     # TODO: a scenario with DD_TRACE_SAMPLE_RATE set to something
     # as sampling mechnism is very different across agent, it won't be an easy task
 
-    trace_count = 0
     request_count = 0
 
     def setup_main(self):
@@ -40,22 +39,16 @@ class Test_Main:
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
         MANUAL_KEEP = 2
-
-        def count(span, appsec_data):  # pylint: disable=unused-argument
-            # the logic is to set MANUAL_KEEP not on all traces
-            # then the sampling mechism drop, or not the traces
-            if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
-                self.trace_count += 1
-
-        def validator():
-            message = f"sent {self.request_count} in 10 s. Expecting to see 10 events but saw {self.trace_count} events"
-
-            # very permissive test. We expect 10 traces, allow from 1 to 30.
-            assert 1 <= self.trace_count <= 30, message
-
-            return True
+        trace_count = 0
 
         for r in self.requests:
-            interfaces.library.add_appsec_validation(r, count, is_success_on_expiry=True)
+            for _, _, span, _ in interfaces.library.get_appsec_events(request=r):
+                # the logic is to set MANUAL_KEEP not on all traces
+                # then the sampling mechism drop, or not the traces
+                if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
+                    trace_count += 1
 
-        interfaces.library.add_final_validation(validator)
+        message = f"sent {self.request_count} in 10 s. Expecting to see 10 events but saw {trace_count} events"
+
+        # very permissive test. We expect 10 traces, allow from 1 to 30.
+        assert 1 <= trace_count <= 30, message

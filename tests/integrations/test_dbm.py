@@ -26,11 +26,11 @@ class Test_Dbm:
             return True
 
         # test psycopg execute()
-        interfaces.library.add_assertion(self.r_execute.status_code == 200)
+        assert self.r_execute.status_code == 200
         interfaces.library.add_span_validation(self.r_execute, validator=validator, is_success_on_expiry=True)
 
         # test psycopg executemany()
-        interfaces.library.add_assertion(self.r_many.status_code == 200)
+        assert self.r_many.status_code == 200
         interfaces.library.add_span_validation(self.r_many, validator=validator, is_success_on_expiry=True)
 
     def test_dbm_payload(self):

@@ -116,14 +116,6 @@ class InterfaceValidator:
         warnings.warn("add_validation() is deprecated, please use validate()", DeprecationWarning)
         self.validate(validator=validator, path_filters=path_filters, success_by_default=is_success_on_expiry)
 
-    def add_assertion(self, condition):
-        warnings.warn("add_assertion() is deprecated, please use bare assert", DeprecationWarning)
-        assert condition
-
-    def add_final_validation(self, validator):
-        warnings.warn("add_final_validation() is deprecated, simply call your validator", DeprecationWarning)
-        assert validator()
-
     def wait_for(self, wait_for_function, timeout):
 
         # first, try existing data

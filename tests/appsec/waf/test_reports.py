@@ -63,7 +63,7 @@ class Test_Monitoring:
             return True
 
         interfaces.library.assert_waf_attack(self.r)
-        interfaces.library.add_appsec_validation(self.r, validate_waf_monitoring_span_tags)
+        interfaces.library.validate_appsec(self.r, validate_waf_monitoring_span_tags)
 
     def setup_waf_monitoring_once(self):
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -167,7 +167,7 @@ class Test_Monitoring:
             return True
 
         interfaces.library.assert_waf_attack(self.r_optional)
-        interfaces.library.add_appsec_validation(self.r_optional, validate_waf_span_tags)
+        interfaces.library.validate_appsec(self.r_optional, validate_waf_span_tags)
 
     def setup_waf_monitoring_errors(self):
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})

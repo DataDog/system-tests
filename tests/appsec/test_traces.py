@@ -194,7 +194,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
-        interfaces.library.add_appsec_validation(self.r_key, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_cookies(self):
         cookies = {"Bearer": self.SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY}
@@ -219,7 +219,7 @@ class Test_AppSecObfuscator:
             return True
 
         interfaces.library.assert_waf_attack(self.r_cookies, address="server.request.cookies")
-        interfaces.library.add_appsec_validation(self.r_cookies, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
@@ -268,7 +268,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
-        interfaces.library.add_appsec_validation(self.r_value, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_key_with_custom_rules(self):
         self.r_custom = weblog.get(
@@ -291,7 +291,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
-        interfaces.library.add_appsec_validation(self.r_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
         cookies = {
@@ -318,7 +318,7 @@ class Test_AppSecObfuscator:
             return True
 
         interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
-        interfaces.library.add_appsec_validation(self.r_cookies_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")

@@ -76,9 +76,9 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.timeout = 160
         self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
-    def add_appsec_validation(self, request, validator):
-        for _, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
-            if validator(payload, chunk, span, appsec_data):
+    def validate_appsec(self, request, validator):
+        for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
+            if validator(data, payload, chunk, span, appsec_data):
                 return
 
         raise Exception("No data validate this test")

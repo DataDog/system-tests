@@ -20,7 +20,7 @@ USER_KEEP = 2
 class Test_SamplingRates:
     """Rate at which traces are sampled is the actual sample rate"""
 
-    TOTAL_REQUESTS = 100  # DO NOT COMMIT
+    TOTAL_REQUESTS = 10000
     REQ_PER_S = 25
 
     def test_sampling_rate_is_set(self):

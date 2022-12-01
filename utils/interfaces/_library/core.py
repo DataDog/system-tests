@@ -5,7 +5,6 @@
 from collections import namedtuple
 import json
 import threading
-import warnings
 
 from utils.tools import logger
 from utils._context.core import context
@@ -95,7 +94,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 appsec_data = json.loads(span["meta"]["_dd.appsec.json"])
                 yield data, trace, span, appsec_data
 
-    def get_legacy_appsec_events(self, request):
+    def get_legacy_appsec_events(self, request=None):
         paths_with_appsec_events = ["/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
         rid = get_rid_from_request(request)
@@ -150,10 +149,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
             validator, path_filters="/telemetry/proxy/api/v2/apmtelemetry", success_by_default=success_by_default
         )
 
-    def validate_appsec(self, request, validator, success_by_default=False, legacy_validator=None):
-        for _, _, span, appsec_data in self.get_appsec_events(request=request):
-            if validator(span, appsec_data):
-                return
+    def validate_appsec(self, request=None, validator=None, success_by_default=False, legacy_validator=None):
+
+        if validator:
+            for _, _, span, appsec_data in self.get_appsec_events(request=request):
+                if validator(span, appsec_data):
+                    return
 
         if legacy_validator:
             for _, event in self.get_legacy_appsec_events(request=request):
@@ -260,12 +261,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         self.validate_appsec(
             request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
-        )
-
-    def add_appsec_validation(self, request=None, validator=None, legacy_validator=None, is_success_on_expiry=False):
-        warnings.warn("add_appsec_validation() is deprecated, please use validate_appsec()", DeprecationWarning)
-        self.validate_appsec(
-            request, validator=validator, legacy_validator=legacy_validator, success_by_default=is_success_on_expiry
         )
 
     def add_traces_validation(self, validator, is_success_on_expiry=False):

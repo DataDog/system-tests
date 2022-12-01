@@ -16,10 +16,5 @@ class Test_Events:
     def test_appsec_in_traces(self):
         """ AppSec sends event in traces"""
 
-        def validator(event):
+        for _ in interfaces.library.get_legacy_appsec_events():
             raise Exception("You are using old AppSec communication")
-
-        def new_validator(span, event):
-            return True
-
-        interfaces.library.add_appsec_validation(legacy_validator=validator, validator=new_validator)

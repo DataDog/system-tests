@@ -73,7 +73,7 @@ class Test_BugClass:
 
     def test_xpassed_method(self):
         """This test will be reported as xpassed"""
-        interfaces.library_stdout.add_assertion(True)
+        assert True
 
 
 @released(java="?")
