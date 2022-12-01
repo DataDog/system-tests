@@ -63,6 +63,12 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
+    public void injectHeaders(ApmTestClient.InjectHeadersArgs request, StreamObserver<ApmTestClient.InjectHeadersReturn> responseObserver) {
+        // TODO IMPLEMENT. FALLBACK TO UNIMPLEMENTED MEANWHILE
+        super.injectHeaders(request, responseObserver);
+    }
+
+    @Override
     public void finishSpan(ApmTestClient.FinishSpanArgs request, StreamObserver<ApmTestClient.FinishSpanReturn> responseObserver) {
         LOGGER.info("Finishing span: " + request.toString());
         Span span = getSpan(request.getId(), responseObserver);
@@ -129,6 +135,13 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
         LOGGER.info("Flushing trace stats: " + request.toString());
         ((InternalTracer) this.tracer).flushMetrics();
         responseObserver.onNext(ApmTestClient.FlushTraceStatsReturn.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void stopTracer(ApmTestClient.StopTracerArgs request, StreamObserver<ApmTestClient.StopTracerReturn> responseObserver) {
+        this.tracer.close();
+        responseObserver.onNext(ApmTestClient.StopTracerReturn.newBuilder().build());
         responseObserver.onCompleted();
     }
 
