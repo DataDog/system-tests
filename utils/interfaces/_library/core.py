@@ -10,24 +10,19 @@ from utils.tools import logger
 from utils._context.core import context
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
 from utils.interfaces._library._utils import get_trace_request_path
-from utils.interfaces._schemas_validators import SchemaValidator
-
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.appsec_iast import _AppSecIastValidator
-
-from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecisionValidator,
     _AddSamplingDecisionValidator,
     _DistributedTracesDeterministicSamplingDecisisonValidator,
 )
-from utils.interfaces._library.telemetry import (
-    _SeqIdLatencyValidation,
-    _NoSkippedSeqId,
-    _AppHeartbeatValidation,
-)
+from utils.interfaces._library.telemetry import _SeqIdLatencyValidation, _NoSkippedSeqId
+
 from utils.interfaces._misc_validators import HeadersPresenceValidator
+from utils.interfaces._profiling import _ProfilingFieldValidator
+from utils.interfaces._schemas_validators import SchemaValidator
 
 
 class LibraryInterfaceValidator(InterfaceValidator):
@@ -141,6 +136,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
                 appsec_iast_data = json.loads(span["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
                 yield data, span, appsec_iast_data
+
+    def get_telemetry_data(self):
+        yield from self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry")
 
     ############################################################
 
@@ -313,25 +311,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
             logger.error(json.dumps(iast_data, indent=2))
             raise Exception(f"Found IAST event in {data['log_filename']}")
 
-    def add_telemetry_validation(self, validator, success_by_default=False):
-        self.validate(
-            validator=validator,
-            success_by_default=success_by_default,
-            path_filters="/telemetry/proxy/api/v2/apmtelemetry",
-        )
-
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
-        self.add_telemetry_validation(validator, success_by_default=True)
+        self.validate_telemetry(validator, success_by_default=True)
 
     def assert_no_skipped_seq_ids(self):
         validator = _NoSkippedSeqId()
-        self.add_telemetry_validation(validator, success_by_default=True)
+        self.validate_telemetry(validator, success_by_default=True)
 
         validator.final_check()
-
-    def assert_app_heartbeat_validation(self):
-        self.validate_telemetry(_AppHeartbeatValidation(), success_by_default=True)
 
     def add_profiling_validation(self, validator, success_by_default=True):
         self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
@@ -347,7 +335,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         raise Exception(f"No trace has been found for request {get_rid_from_request(request)}")
 
-    def add_remote_configuration_validation(self, validator, success_by_default=False):
+    def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
 

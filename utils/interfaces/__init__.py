@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from ._agent.core import AgentInterfaceValidator
+from ._agent import AgentInterfaceValidator
+from ._backend import _BackendInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
-from ._logs.core import _LibraryStdout, _LibraryDotnetManaged
-from ._backend.core import _BackendInterfaceValidator
+from ._logs import _LibraryStdout, _LibraryDotnetManaged
 
 
 # singletons
