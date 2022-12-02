@@ -62,6 +62,12 @@ app.get('/status', (req, res) => {
 
 require('./iast')(app, tracer);
 
+app.get('/load_dependency', (req, res) => {
+  console.log('Load dependency endpoint');
+  var glob = require("glob")
+  res.send("Loaded a dependency")
+ }); 
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');

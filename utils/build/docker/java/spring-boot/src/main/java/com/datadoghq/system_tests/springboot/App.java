@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -291,6 +293,12 @@ public class App {
         cassandra.setup();
         initMongo();
         System.out.println("Initialized");
+    }
+
+    @RequestMapping("/load_dependency")
+    public String loadDep() throws ClassNotFoundException {
+        Class<?> klass = this.getClass().getClassLoader().loadClass("org.apache.http.client.HttpClient");
+        return "Loaded Dependency\n".concat(klass.toString());
     }
 
     void initMongo() {
