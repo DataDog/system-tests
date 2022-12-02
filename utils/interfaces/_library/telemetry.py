@@ -1,7 +1,4 @@
 from time import time
-from datetime import datetime, timedelta
-
-from utils._context.core import context
 
 
 # TODO: movethis test logic in test class
@@ -54,24 +51,3 @@ class _NoSkippedSeqId:
                 raise Exception(
                     f"Detected non conscutive seq_ids between {self.seq_ids[i + 1][1]} and {self.seq_ids[i][1]}"
                 )
-
-
-class _AppHeartbeatValidation:
-    """Verify telemetry messages are sent every heartbeat interval."""
-
-    def __init__(self):
-        self.prev_message_time = -1
-        self.TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
-        self.ALLOWED_INTERVALS = 2
-        self.fmt = "%Y-%m-%dT%H:%M:%S.%f"
-
-    def __call__(self, data):
-        curr_message_time = datetime.strptime(data["request"]["timestamp_start"], self.fmt)
-        if self.prev_message_time != -1:
-            delta = curr_message_time - self.prev_message_time
-            if delta > timedelta(seconds=self.ALLOWED_INTERVALS * self.TELEMETRY_HEARTBEAT_INTERVAL):
-                raise Exception(
-                    f"No heartbeat or message sent in {self.ALLOWED_INTERVALS} hearbeat intervals: "
-                    "{self.TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
-                )
-        self.prev_message_time = curr_message_time

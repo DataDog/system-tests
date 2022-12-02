@@ -91,7 +91,7 @@ class AgentInterfaceValidator(InterfaceValidator):
         validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)
 
-    def add_telemetry_validation(self, validator=None, success_by_default=False):
+    def validate_telemetry(self, validator=None, success_by_default=False):
         self.validate(validator=validator, success_by_default=success_by_default, path_filters="/api/v2/apmtelemetry")
 
     def add_traces_validation(self, validator, success_by_default=False):
