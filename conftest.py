@@ -9,6 +9,7 @@ from pytest_jsonreport.plugin import JSONReport
 from utils import context, data_collector, interfaces
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
+from utils._context.library_version import LibraryVersion
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -228,6 +229,12 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
+
+    json.dump(
+        {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
+        open("logs/known_versions.json", "w", encoding="utf-8"),
+        indent=2,
+    )
 
     _pytest_junit_modifyreport()
 
