@@ -74,8 +74,8 @@ def get_component_name(weblog_variant, language, span_name):
 class Test_Meta(BaseTestCase):
     """meta object in spans respect all conventions"""
 
-    @bug(library="ruby", reason="Span.kind not implemented yet")
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
+    @bug(library="php", reason="Span.kind not implemented yet")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -167,25 +167,16 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
-    @bug(library="php", reason="language tag not implemented")
-    @bug(library="ruby", reason="language tag not implemented")
     @bug(library="cpp", reason="language tag not implemented")
-    @bug(library="java", reason="language tag being set on all spans including client and producer spans")
+    @bug(library="python", reason="language tag not implemented")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
         def validator(span):
             library = context.library.library
 
-            # if span.kind is client or producer we should not set language tag
-            if span["meta"].get("span.kind") in ["client", "producer"]:
-                if span["meta"].get("language") is not None:
-                    raise Exception(
-                        "Span should not have language tag set with span.kind of {}.".format(span["meta"]["span.kind"])
-                    )
-
             # else we should set the language tag
-            elif RUNTIME_LANGUAGE_MAP.get(library, library) != span["meta"]["language"]:
+            if RUNTIME_LANGUAGE_MAP.get(library, library) != span["meta"]["language"]:
                 raise Exception(
                     "Span actual language, {}, did not match expected language, {}.".format(
                         span["meta"]["language"], RUNTIME_LANGUAGE_MAP.get(library, library)
@@ -196,6 +187,7 @@ class Test_Meta(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
     @bug(library="php", reason="component tag not implemented")
+    @bug(library="python", reason="component tag not implemented")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -224,7 +216,7 @@ class Test_Meta(BaseTestCase):
 
         interfaces.library.add_span_validation(validator=validator)
 
-    @bug(library="cpp", reason="component tag not implemented")
+    @bug(library="cpp", reason="runtime-id tag not implemented")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
@@ -263,7 +255,7 @@ class Test_MetricsStandardTags(BaseTestCase):
 
     @bug(library="cpp", reason="Not implemented")
     @bug(library="java", reason="Not implemented")
-    @bug(library="ruby", reason="Currently system.pid")
+    @bug(library="php", reason="Currently a meta tag")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
 
