@@ -15,6 +15,7 @@ from utils import (
     released,
     rfc,
     bug,
+    irrelevant,
 )
 from utils.tools import logger
 
@@ -30,7 +31,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 class RemoteConfigurationFieldsBasicTests:
-    """ Misc tests on fields and values on remote configuration reauests """
+    """ Misc tests on fields and values on remote configuration requests """
 
     def test_schemas(self):
         """ Test all library schemas """
@@ -127,7 +128,9 @@ def rc_check_request(data, expected, caching):
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="1.7.0rc1.dev", ruby="?", nodejs="?")
+@released(
+    cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="1.7.0rc1.dev", ruby="?", nodejs="3.9.0"
+)
 @bug(library="dotnet")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
@@ -135,6 +138,12 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
+
+    def setup_tracer_update_sequence(self):
+        if context.library == "nodejs":
+            # time out for nodejs is very low (5 seconds)
+            # we need a longer timeout for this test
+            interfaces.library.timeout = 100
 
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library >= "java@1.1.0", reason="?")
@@ -217,10 +226,13 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="1.6.0rc1.dev", ruby="?", nodejs="?")
+@released(
+    cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="1.6.0rc1.dev", ruby="?", nodejs="3.9.0"
+)
 @bug(library="dotnet")
 @bug(weblog_variant="django-poc")
 @missing_feature(context.library > "python@1.7.0", reason="RC Cache is implemented in 1.7")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
