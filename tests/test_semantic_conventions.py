@@ -4,10 +4,10 @@
 
 from urllib.parse import urlparse
 
-from utils import context, BaseTestCase, interfaces, bug
+from utils import context, interfaces, bug
 
 
-class Test_Meta(BaseTestCase):
+class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(library="python", reason="span.kind not included, should be discussed of actually a bug or not")
@@ -33,7 +33,7 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
     @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
@@ -57,7 +57,7 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
@@ -76,7 +76,7 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
@@ -104,14 +104,14 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
 
 @bug(
     context.library in ("cpp", "python", "ruby"),
     reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
 )
-class Test_MetaDatadogTags(BaseTestCase):
+class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
     def test_meta_dd_tags(self):
@@ -124,4 +124,4 @@ class Test_MetaDatadogTags(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)

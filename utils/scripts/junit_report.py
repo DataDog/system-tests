@@ -6,12 +6,10 @@ import xml.etree.ElementTree as ET
 from operator import attrgetter
 
 from utils import context
-from utils.tools import logger, get_log_formatter
+from utils.tools import logger
 
 
-def junit_modifyreport(
-    json_report, junit_report_path, failed_nodeids, _skip_reasons, _docs, _rfcs, _coverages, _release_versions
-):
+def junit_modifyreport(json_report, junit_report_path, _skip_reasons, _docs, _rfcs, _coverages, _release_versions):
     """Add extra information to auto generated JUnit xml file"""
 
     # Open XML Junit report
@@ -32,7 +30,9 @@ def junit_modifyreport(
         search_class = words[0] + "::" + words[1]
 
         # Get doc/description for the test
-        test_doc = _docs[nodeid]
+        test_doc = None
+        if nodeid in _docs:
+            test_doc = _docs[nodeid]
 
         # Get rfc for the test
         test_rfc = None
@@ -51,20 +51,6 @@ def junit_modifyreport(
 
         skip_reason = _skip_reasons.get(nodeid)
         error_trace = ""
-
-        if nodeid in failed_nodeids:
-            outcome = "failed"
-            if len(failed_nodeids[nodeid].logs) != 0:
-                f = get_log_formatter()
-                # There is a some invalid ascill characters
-                error_trace = "\n".join(
-                    [f.format(elem).replace("\x1b", "") for i, elem in enumerate(failed_nodeids[nodeid].logs)]
-                )
-
-        elif outcome in ("xfail", "xfailed"):
-            # it means that the synchronous test is marked as expected failure
-            # but all asynchronous test are ok
-            outcome = "xpassed"
 
         _create_testcase_results(
             junit_report_root,

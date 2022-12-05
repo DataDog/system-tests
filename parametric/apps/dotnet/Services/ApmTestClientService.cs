@@ -12,16 +12,23 @@ namespace ApmTestClient.Services
         private static readonly Type TracerType = Type.GetType("Datadog.Trace.Tracer, Datadog.Trace", throwOnError: true)!;
         private static readonly Type TracerManagerType = Type.GetType("Datadog.Trace.TracerManager, Datadog.Trace", throwOnError: true)!;
 
+        // Propagator types
+        private static readonly Type SpanContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.SpanContextPropagator, Datadog.Trace", throwOnError: true)!;
+
         // Agent-related types
         private static readonly Type AgentWriterType = Type.GetType("Datadog.Trace.Agent.AgentWriter, Datadog.Trace", throwOnError: true)!;
         private static readonly Type StatsAggregatorType = Type.GetType("Datadog.Trace.Agent.StatsAggregator, Datadog.Trace", throwOnError: true)!;
 
         // Accessors for internal properties/fields accessors
         private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly PropertyInfo GetSpanContextPropagator = SpanContextPropagatorType.GetProperty("Instance", BindingFlags.Static | BindingFlags.Public)!;
         private static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
         private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly PropertyInfo SpanContext = SpanType.GetProperty("Context", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly PropertyInfo Origin = SpanContextType.GetProperty("Origin", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        // Propagator methods
+        private static readonly MethodInfo SpanContextPropagatorInject = GenerateInjectMethod()!;
 
         // StatsAggregator flush methods
         private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
@@ -30,6 +37,9 @@ namespace ApmTestClient.Services
         private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly Dictionary<ulong, ISpan> Spans = new();
         private readonly ILogger<ApmTestClientService> _logger;
+
+        private readonly SpanContextExtractor _spanContextExtractor = new SpanContextExtractor();
+
         public ApmTestClientService(ILogger<ApmTestClientService> logger)
         {
             _logger = logger;
@@ -42,7 +52,14 @@ namespace ApmTestClient.Services
                 FinishOnClose = false,
             };
 
-            if (request.HasParentId && request.ParentId > 0)
+            if (request.HttpHeaders?.HttpHeaders.Count > 0)
+            {
+                creationSettings.Parent = _spanContextExtractor.Extract(
+                    request.HttpHeaders.HttpHeaders,
+                    (headers, key) => headers.TryGetValue(key, out string value) ? new string[] { value } : new string[] {} );
+            }
+
+            if (creationSettings.Parent is null && request.HasParentId && request.ParentId > 0)
             {
                 var parentSpan = Spans[request.ParentId];
                 creationSettings.Parent = new SpanContext(parentSpan.TraceId, parentSpan.SpanId);
@@ -118,6 +135,38 @@ namespace ApmTestClient.Services
             return Task.FromResult(new SpanSetErrorReturn());
         }
 
+        public override Task<InjectHeadersReturn> InjectHeaders(InjectHeadersArgs request, ServerCallContext context)
+        {
+            if (GetSpanContextPropagator is null)
+            {
+                throw new NullReferenceException("GetSpanContextPropagator is null");
+            }
+
+            if (SpanContextPropagatorInject is null)
+            {
+                throw new NullReferenceException("SpanContextPropagatorInject is null");
+            }
+
+            var injectHeadersReturn = new InjectHeadersReturn();
+            var span = Spans[request.SpanId];
+            if (span is not null)
+            {
+                injectHeadersReturn.HttpHeaders = new();
+
+                // Use reflection to inject the headers
+                // SpanContextPropagator.Instance.Inject(SpanContext context, TCarrier carrier, Action<TCarrier, string, string> setter)
+                // => TCarrier=Google.Protobuf.Collections.MapField<string, string>
+                SpanContext? contextArg = span.Context as SpanContext;
+                Google.Protobuf.Collections.MapField<string, string> carrierArg = injectHeadersReturn.HttpHeaders.HttpHeaders;
+                Action<Google.Protobuf.Collections.MapField<string, string>, string, string> setterArg = (headers, key, value) => headers.TryAdd(key, value);
+
+                var spanContextPropagator = GetSpanContextPropagator.GetValue(null);
+                SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, carrierArg, setterArg });
+            }
+
+            return Task.FromResult(injectHeadersReturn);
+        }
+
         public override Task<FinishSpanReturn> FinishSpan(FinishSpanArgs request, ServerCallContext context)
         {
             var span = Spans[request.Id];
@@ -148,7 +197,7 @@ namespace ApmTestClient.Services
             var agentWriter = GetAgentWriter.Invoke(tracerManager, null);
             var statsAggregator = GetStatsAggregator.GetValue(agentWriter);
 
-            if (statsAggregator.GetType() == StatsAggregatorType)
+            if (statsAggregator?.GetType() == StatsAggregatorType)
             {
                 var disposeAsyncTask = StatsAggregatorDisposeAsync.Invoke(statsAggregator, null) as Task;
                 await disposeAsyncTask!;
@@ -163,6 +212,42 @@ namespace ApmTestClient.Services
             }
 
             return new FlushTraceStatsReturn();
+        }
+
+        public override Task<StopTracerReturn> StopTracer(StopTracerArgs request, ServerCallContext context)
+        {
+            // TODO: Finish
+            return Task.FromResult(new StopTracerReturn());
+        }
+
+        private static MethodInfo? GenerateInjectMethod()
+        {
+            if (SpanContextPropagatorType is null)
+            {
+                throw new NullReferenceException("SpanContextPropagatorType is null");
+            }
+
+            var methods = SpanContextPropagatorType.GetMethods();
+            foreach (var method in methods.Where(m => m.Name == "Inject"))
+            {
+                var parameters = method.GetParameters();
+                var genericArgs = method.GetGenericArguments();
+
+                if (parameters.Length == 3
+                    && genericArgs.Length == 1
+                    && parameters[0].ParameterType == typeof(SpanContext)
+                    && parameters[1].ParameterType == genericArgs[0]
+                    && parameters[2].ParameterType.Name == "Action`3")
+                {
+                    var carrierType = typeof(Google.Protobuf.Collections.MapField<string, string>);
+                    var actionType = typeof(Action<,,>);
+
+                    var closedActionType = actionType.MakeGenericType(carrierType, typeof(string), typeof(string));
+                    return method.MakeGenericMethod(carrierType);
+                }
+            }
+
+            return null;
         }
     }
 }

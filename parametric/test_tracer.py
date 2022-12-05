@@ -14,7 +14,7 @@ parametrize = pytest.mark.parametrize
 
 
 @pytest.mark.skip_library("nodejs", "nodejs overrides the manually set service name")
-def test_tracer_span_top_level_attributes(test_library: APMLibrary, test_agent: _TestAgentAPI) -> None:
+def test_tracer_span_top_level_attributes(test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
     """Do a simple trace to ensure that the test client is working properly."""
     with test_library:
         with test_library.start_span(
@@ -42,7 +42,7 @@ def test_tracer_span_top_level_attributes(test_library: APMLibrary, test_agent: 
 @pytest.mark.skip(reason="Libraries use empty string for service")
 @parametrize("library_env", [{"DD_SERVICE": "service1"}])
 def test_tracer_service_name_environment_variable(
-    library_env: Dict[str, str], test_library: APMLibrary, test_agent: _TestAgentAPI
+    library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
 ) -> None:
     """
     When DD_SERVICE is specified
@@ -63,7 +63,7 @@ def test_tracer_service_name_environment_variable(
 
 @parametrize("library_env", [{"DD_ENV": "prod"}])
 def test_tracer_env_environment_variable(
-    library_env: Dict[str, str], test_library: APMLibrary, test_agent: _TestAgentAPI
+    library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
 ) -> None:
     """
     When DD_ENV is specified

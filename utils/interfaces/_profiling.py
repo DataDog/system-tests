@@ -5,30 +5,26 @@
 """ Profiling validations """
 
 import re
-from utils.interfaces._core import BaseValidation
+from utils.tools import logger
 
 
-class _ProfilingFieldAssertion(BaseValidation):
+class _ProfilingFieldValidator:
     def __init__(self, field_name, content_pattern):
-        super().__init__(path_filters=["/profiling/v1/input", "/api/v2/profile"])
-        self.expected_timeout = 160
+
         self.field_name = field_name
         self.content_pattern = re.compile(content_pattern) if content_pattern else None
 
-    def check(self, data):
+    def __call__(self, data):
         for item in data["request"]["content"]:
             content_disposition = item["headers"].get("Content-Disposition", "")
             if content_disposition.startswith(f'form-data; name="{self.field_name}"'):
                 if self.content_pattern:
                     if not self.content_pattern.fullmatch(item["content"]):
-                        self.set_failure(
+                        raise Exception(
                             exception=f"Value {repr(item['content'])} does not match {self.content_pattern.pattern}",
-                            data=data,
                         )
-                        return
 
-                self.log_debug(f"{self} is ok on {data['log_filename']}")
-                self.is_success_on_expiry = True
+                logger.debug(f"{self} is ok on {data['log_filename']}")
                 return
 
-        self.set_failure(f"{self} is not validated on {data['log_filename']}")
+        raise Exception(f"{data['log_filename']} is not valid")

@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, irrelevant
+from utils import context, interfaces, irrelevant
 
 
-class Test_NoExceptions(BaseTestCase):
+class Test_NoExceptions:
     """There is not exception in dotnet-tracer-managed log files"""
 
     @irrelevant(context.library != "dotnet", reason="only for .NET")

@@ -10,8 +10,8 @@ import time
 import pytest
 import requests
 
-from utils.tools import logger, get_exception_traceback
 from utils._context.library_version import LibraryVersion, Version
+from utils.tools import logger
 
 
 class ImageInfo:
@@ -110,7 +110,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             try:
                 warmup()
             except Exception as e:
-                logger.error("\n".join(get_exception_traceback(e)))
+                logger.exception(f"Error while executing {warmup}")
                 pytest.exit(f"{warmup} failed: {e}", 1)
 
     def serialize(self):

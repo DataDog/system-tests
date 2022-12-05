@@ -17,7 +17,7 @@ jobs:
   lint_and_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v2
       with:
         python-version: '3.9'
@@ -426,7 +426,7 @@ jobs:
       WEBLOG_VARIANT: ${{ matrix.weblog-variant }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Load WAF rules
         if: ${{ matrix.version == 'dev' }}
@@ -454,7 +454,7 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Build
-        run: ./build.sh -a 3
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
 
       - name: Run default scenario
         run: ./run.sh
@@ -570,12 +570,17 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run APPSEC_RUNTIME_ACTIVATION scenario
+        run: ./run.sh APPSEC_RUNTIME_ACTIVATION
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}_${{ matrix.version }}
@@ -596,7 +601,7 @@ jobs:
     if: always() && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Update CI Dashboard
         run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
         env:
@@ -609,7 +614,7 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run
         run: ./scenarios/perfs/run.sh golang
       - name: Display
@@ -622,7 +627,7 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Build
         run: ./build.sh golang
       - name: Run

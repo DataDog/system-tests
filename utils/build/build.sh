@@ -125,7 +125,7 @@ do
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
             .
-        
+
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
