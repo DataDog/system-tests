@@ -169,7 +169,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True, success_by_default=True)
+        interfaces.library.validate_spans(validator=validator, success_by_default=True)
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
@@ -280,6 +280,7 @@ class Test_MetricsStandardTags:
                 return
 
             if "process_id" not in span["metrics"]:
+                print(span)
                 raise Exception("web span expect a process_id metrics tag")
 
             return True
