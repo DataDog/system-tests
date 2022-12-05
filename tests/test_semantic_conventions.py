@@ -67,7 +67,7 @@ def get_component_name(weblog_variant, language, span_name):
 
     # if type of component is a dictionary, get the component tag value by searching dict with current span name
     # try to get component name from name of span, otherwise use beginning of span as expected component, e.g: 'rack' for span name 'rack.request'
-    if isinstance(expected_component) == dict:
+    if isinstance(expected_component, dict):
         expected_component = expected_component.get(span_name, span_name.split(".")[0])
     return expected_component
 
@@ -119,7 +119,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
@@ -166,7 +166,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="python", reason="language tag not implemented")
@@ -186,7 +186,7 @@ class Test_Meta:
                 )
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
     @bug(library="php", reason="component tag not implemented")
     @bug(library="python", reason="component tag not implemented")
@@ -216,7 +216,7 @@ class Test_Meta:
                     )
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="java", reason="runtime-id tag not implemented")
@@ -230,7 +230,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
 
 @bug(
@@ -250,7 +250,7 @@ class Test_MetaDatadogTags:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
 
 class Test_MetricsStandardTags:
@@ -271,4 +271,4 @@ class Test_MetricsStandardTags:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)

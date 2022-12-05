@@ -271,7 +271,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         for _, _, span in self.get_spans(request=request):
             if validator(span) and not validate_all_spans:
                 return
-            successful = successful and validator(span)
+            successful = True if successful is None else successful and validator(span)
 
         if successful is None and not success_by_default:
             raise Exception("No spans validated this test.")
