@@ -141,7 +141,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
     def setup_tracer_update_sequence(self):
         if context.library == "nodejs":
-            # time out for ndoejs is very low (5 seconds)
+            # time out for nodejs is very low (5 seconds)
             # we need a longer timeout for this test
             interfaces.library.timeout = 60
 
