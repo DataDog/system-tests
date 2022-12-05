@@ -38,10 +38,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         elif context.library.library in ("golang",):
             self.timeout = 10
         elif context.library.library in ("nodejs",):
-            # if scenario is REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
-            # self.timeout = 60
-            # else self.timeout = 5
-            self.timeout = 60
+            self.timeout = 5
         elif context.library.library in ("php",):
             self.timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
         elif context.library.library in ("python",):

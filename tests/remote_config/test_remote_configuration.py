@@ -139,6 +139,12 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
     request_number = 0
 
+    def setup_tracer_update_sequence(self):
+        if context.library == "nodejs":
+            # time out for ndoejs is very low (5 seconds)
+            # we need a longer timeout for this test
+            interfaces.library.timeout = 60
+
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library >= "java@1.1.0", reason="?")
     def test_tracer_update_sequence(self):
