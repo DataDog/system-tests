@@ -1,3 +1,56 @@
 [tool.black]
 line-length = 120
-exclude = "(utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py)"
+exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps|parametric/protos/)"
+
+[tool.pytest.ini_options]
+addopts = "--json-report --json-report-file=logs/report.json --json-report-indent=2 --color=yes --no-header --junitxml=logs/reportJunit.xml -r X"
+# log_cli = True
+# log_cli_level = DEBUG
+log_level = "DEBUG"
+log_format = "%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s"
+log_date_format = "%H:%M:%S"
+log_file = "logs/pytest.log"
+log_file_format = "%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s"
+log_file_date_format = "%H:%M:%S"
+
+junit_family = "xunit2"
+junit_logging = "no"
+junit_duration_report = "call"
+junit_suite_name = "system_tests_suite"
+
+markers =[
+    "scenario: run a test only for a specified scenario"
+]
+
+[tool.pylint]
+init-hook='import sys; sys.path.append(".")'
+max-line-length = 120
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "fixme",
+    "raise-missing-from",
+    "invalid-name",
+    "import-outside-toplevel",
+    "logging-fstring-interpolation",
+    "broad-except",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-branches,",
+    "bare-except",
+    "too-many-instance-attributes",
+    "too-many-locals",
+    "too-many-public-methods",
+    "too-many-nested-blocks",
+    "too-many-return-statements",
+    "duplicate-code",
+    "abstract-method",
+    "inconsistent-return-statements", # because lot of validator function returns nothing
+    "unused-argument", # pain, as there are some function that MUST have a prototype. TODO...
+    "attribute-defined-outside-init",
+]
+ignore = "utils/test_the_test"
+generated-members = [
+    ".*(self|app)\\.logger\\..*"
+]

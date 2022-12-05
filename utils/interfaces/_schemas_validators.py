@@ -12,9 +12,8 @@ import json
 import re
 import functools
 
-from jsonschema import Draft7Validator, RefResolver, draft7_format_checker, exceptions as jsonschema_exceptions
+from jsonschema import Draft7Validator, RefResolver
 from jsonschema.validators import extend
-from utils.interfaces._core import BaseValidation
 
 
 def _is_bytes_or_string(_checker, instance):
@@ -26,12 +25,12 @@ _ApiObjectValidator = extend(Draft7Validator, type_checker=_type_checker)
 
 
 def _get_schemas_filenames():
-    for dir in (
+    for schema_dir in (
         "utils/interfaces/schemas/library/",
         "utils/interfaces/schemas/agent/",
         "utils/interfaces/schemas/miscs/",
     ):
-        for root, _, files in os.walk(dir):
+        for root, _, files in os.walk(schema_dir):
             for f in files:
                 if f.endswith(".json"):
                     yield os.path.join(root, f)
@@ -44,7 +43,8 @@ def _get_schemas_store():
     store = {}
 
     for filename in _get_schemas_filenames():
-        schema = json.load(open(filename))
+        with open(filename, encoding="utf-8") as f:
+            schema = json.load(f)
 
         assert "$id" in schema, filename
         assert schema["$id"] == filename[len("utils/interfaces/schemas") :], filename
@@ -65,72 +65,32 @@ def _get_schema_validator(schema_id):
 
     schema = store[schema_id]
     resolver = RefResolver(base_uri=schema["$id"], referrer=schema, store=store)
-    return _ApiObjectValidator(schema, resolver=resolver, format_checker=draft7_format_checker)
+    return _ApiObjectValidator(schema, resolver=resolver, format_checker=Draft7Validator.FORMAT_CHECKER)
 
 
-class SchemaValidator(BaseValidation):
-    is_success_on_expiry = True
-
-    def __init__(self, interface, allowed_errors):
-        super().__init__(message=f"Validate {interface} schemas")
+class SchemaValidator:
+    def __init__(self, interface, allowed_errors=None):
         self.interface = interface
         self.allowed_errors = []
 
         for pattern in allowed_errors or []:
             self.allowed_errors.append(re.compile(pattern))
 
-    def check(self, data):
+    def __call__(self, data):
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
-        try:
-            validator = _get_schema_validator(schema_id)
-            if not validator.is_valid(data["request"]["content"]):
-                messages = []
+        validator = _get_schema_validator(schema_id)
+        if not validator.is_valid(data["request"]["content"]):
+            messages = []
 
-                for error in validator.iter_errors(data["request"]["content"]):
-                    message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
-                    if not any([pattern.fullmatch(message) for pattern in self.allowed_errors]):
-                        messages.append(message)
+            for error in validator.iter_errors(data["request"]["content"]):
+                message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
+                if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
+                    messages.append(message)
 
-                if len(messages) != 0:
-                    self.set_status(False)
-                    self.log_error(f"In message {data['log_filename']}:")
-                    for message in messages:
-                        self.log_error(f"* {message}")
+            if len(messages) != 0:
+                for message in messages:
+                    self.log_error(f"* {message}")
 
-        except FileNotFoundError as e:
-            self.set_failure(e)
-
-        except jsonschema_exceptions.ValidationError as e:
-            self.set_failure(e)
-
-
-def _main(interface):
-
-    path = f"logs/interfaces/{interface}"
-
-    for f in os.listdir(path):
-        data_path = os.path.join(path, f)
-        print(f"  * {data_path}")
-        if os.path.isfile(data_path):
-            systemtest_interface_log_data = json.load(open(data_path, "r"))
-
-            # We re-use BaseValidation sub class SchemaValidator to avoid logic duplication
-            # but we need to stick to in BaseValidation internals...
-
-            validator = SchemaValidator(interface)
-            validator.check(systemtest_interface_log_data)
-            validator.set_expired()
-
-            if not validator.is_success:
-                print("    ---> ERROR:")
-                print("")
-                for log in validator.logs:
-                    print(log)
-
-
-if __name__ == "__main__":
-    print("# Validate logs output from system tests")
-    _main("library")
-    _main("agent")
+                raise Exception(f"Schema is invalid in {data['log_filename']}")

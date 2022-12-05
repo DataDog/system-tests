@@ -2,22 +2,20 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import traceback
+import json
 import ast
 import msgpack
-import json
 from requests_toolbelt.multipart.decoder import MultipartDecoder
-from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from google.protobuf.json_format import MessageToDict
-
-from utils.tools import logger, get_exception_traceback
+from utils.interfaces._decoders.protobuf_schemas import TracePayload
+from utils.tools import logger
 
 
 def get_header_value(name, headers):
     return next((h[1] for h in headers if h[0].lower() == name.lower()), None)
 
 
-def parse_as_unsigned_int(value, size_in_bits):
+def _parse_as_unsigned_int(value, size_in_bits):
     """This is necessary because some fields in spans are decribed as a 64 bits unsigned integers, but
     java, and other languages only supports signed integer. As such, they might send trace ids as negative
     number if >2**63 -1. The agent parses it signed and interpret the bytes as unsigned. See
@@ -32,6 +30,42 @@ def parse_as_unsigned_int(value, size_in_bits):
     return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
 
 
+def _decode_unsigned_int_traces(content):
+    for span in (span for trace in content for span in trace):
+        for sub_key in ("trace_id", "parent_id", "span_id"):
+            if sub_key in span:
+                span[sub_key] = _parse_as_unsigned_int(span[sub_key], 64)
+
+
+def _decode_v_0_5_traces(content):
+    # https://github.com/DataDog/architecture/blob/master/rfcs/apm/agent/v0.5-endpoint/rfc.md
+    strings, payload = content
+
+    result = []
+    for spans in payload:
+        decoded_spans = []
+        result.append(decoded_spans)
+        for span in spans:
+            decoded_span = {
+                "service": strings[int(span[0])],
+                "name": strings[int(span[1])],
+                "resource": strings[int(span[2])],
+                "trace_id": span[3],
+                "span_id": span[4],
+                "parent_id": span[5] if span[5] != 0 else None,
+                "start": span[6],
+                "duration": span[7] if span[7] != 0 else None,
+                "error": span[8],
+                "meta": {strings[int(key)]: strings[int(value)] for key, value in span[9].items()},
+                "metrics": {strings[int(key)]: value for key, value in span[10].items()},
+                "type": strings[int(span[11])],
+            }
+
+            decoded_spans.append(decoded_span)
+
+    return result
+
+
 def deserialize_http_message(path, message, data, interface, key):
     if not isinstance(data, (str, bytes)):
         return data
@@ -39,34 +73,37 @@ def deserialize_http_message(path, message, data, interface, key):
     content_type = get_header_value("content-type", message["headers"])
     content_type = None if content_type is None else content_type.lower()
 
-    logger.debug(f"Deserialize {content_type} for {path} {key}")
-
     if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
         return json.loads(data)
-    elif path == "/v0.7/config":  # Kyle, please add content-type header :)
-        return json.loads(data)
-    elif interface == "library" and key == "response" and path == "/info":
-        return json.loads(data)
-    elif content_type == "application/msgpack" or content_type == "application/msgpack, application/msgpack":
-        result = msgpack.unpackb(data, unicode_errors="replace")
 
-        if interface == "library" and path == "/v0.4/traces":
-            for span in (span for trace in result for span in trace):
-                for key in ("trace_id", "parent_id", "span_id"):
-                    if key in span.keys():
-                        span[key] = parse_as_unsigned_int(span[key], 64)
+    if path == "/v0.7/config":  # Kyle, please add content-type header :)
+        return json.loads(data)
+
+    if interface == "library" and key == "response" and path == "/info":
+        return json.loads(data)
+
+    if content_type in ("application/msgpack", "application/msgpack, application/msgpack"):
+        result = msgpack.unpackb(data, unicode_errors="replace", strict_map_key=False)
+
+        if interface == "library":
+            if path == "/v0.4/traces":
+                _decode_unsigned_int_traces(result)
+
+            elif path == "/v0.5/traces":
+                result = _decode_v_0_5_traces(result)
+                _decode_unsigned_int_traces(result)
 
         _convert_bytes_values(result)
 
         return result
 
-    elif content_type == "application/x-protobuf" and path == "/api/v0.2/traces":
+    if content_type == "application/x-protobuf" and path == "/api/v0.2/traces":
         return MessageToDict(TracePayload.FromString(data))
 
-    elif content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
+    if content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
         return []
 
-    elif content_type and content_type.startswith("multipart/form-data;"):
+    if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
         for part in MultipartDecoder(data, content_type).parts:
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
@@ -102,5 +139,10 @@ def deserialize(data, interface):
                 content = ast.literal_eval(data[key]["content"])
                 decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
                 data[key]["content"] = decoded
-            except Exception as e:
-                logger.critical("\n".join(get_exception_traceback(e)))
+            except Exception:
+                logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
+
+
+# if __name__ == "__main__":
+#     content = json.load(open("logs/interfaces/library/005__v0.5_traces.json"))["request"]["content"]
+#     print(json.dumps(_decode_v_0_5_traces(content), indent=2))

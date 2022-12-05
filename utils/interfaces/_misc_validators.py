@@ -2,49 +2,41 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils.interfaces._core import BaseValidation
-from utils import context
 import re
 
 
-class HeadersPresenceValidation(BaseValidation):
+class HeadersPresenceValidator:
     """Verify that some headers are present"""
 
-    is_success_on_expiry = True
-
-    def __init__(self, path_filters=None, request_headers=(), response_headers=(), check_condition=None):
-        super().__init__(path_filters=path_filters)
+    def __init__(self, request_headers=(), response_headers=(), check_condition=None):
         self.request_headers = set(request_headers)
         self.response_headers = set(response_headers)
         self.check_condition = check_condition
 
-    def check(self, data):
+    def __call__(self, data):
         if self.check_condition and not self.check_condition(data):
             return
 
         request_headers = {h[0].lower() for h in data["request"]["headers"]}
         missing_request_headers = self.request_headers - request_headers
         if missing_request_headers:
-            self.set_failure(f"Headers {missing_request_headers} are missing in request {data['log_filename']}")
+            raise Exception(f"Headers {missing_request_headers} are missing in request {data['log_filename']}")
 
         response_headers = {h[0].lower() for h in data["response"]["headers"]}
         missing_response_headers = self.response_headers - response_headers
         if missing_response_headers:
-            self.set_failure(f"Headers {missing_response_headers} are missing in request {data['log_filename']}")
+            raise Exception(f"Headers {missing_response_headers} are missing in request {data['log_filename']}")
 
 
-class HeadersMatchValidation(BaseValidation):
+class HeadersMatchValidator:
     """Verify that headers header mathes regexp"""
 
-    is_success_on_expiry = True
-
-    def __init__(self, path_filters=None, request_headers={}, response_headers={}, check_condition=None):
-        super().__init__(path_filters=path_filters)
-        self.request_headers = dict(request_headers)
-        self.response_headers = dict(response_headers)
+    def __init__(self, request_headers=None, response_headers=None, check_condition=None):
+        self.request_headers = dict(request_headers) if request_headers is not None else {}
+        self.response_headers = dict(response_headers) if response_headers is not None else {}
         self.check_condition = check_condition
 
-    def check(self, data):
+    def __call__(self, data):
         if self.check_condition and not self.check_condition(data):
             return
 
@@ -52,16 +44,16 @@ class HeadersMatchValidation(BaseValidation):
         for hdr_name, regexp in self.request_headers.items():
             header = request_headers[hdr_name.lower()]
             if header:
-                if re.match(regexp, header) == None:
-                    self.set_failure(f"Header {hdr_name} did not match {regexp} in request {data['log_filename']}")
+                if re.match(regexp, header) is None:
+                    raise Exception(f"Header {hdr_name} did not match {regexp} in request {data['log_filename']}")
             else:
-                self.set_failure(f"Request header {hdr_name} is missing in request {data['log_filename']}")
+                raise Exception(f"Request header {hdr_name} is missing in request {data['log_filename']}")
 
         response_headers = {h[0].lower(): h[1] for h in data["response"]["headers"]}
         for hdr_name, regexp in self.response_headers.items():
             header = response_headers[hdr_name.lower()]
             if header:
-                if re.match(regexp, header) == None:
-                    self.set_failure(f"header {hdr_name} did not match {regexp} in response {data['log_filename']}")
+                if re.match(regexp, header) is None:
+                    raise Exception(f"header {hdr_name} did not match {regexp} in response {data['log_filename']}")
             else:
-                self.set_failure(f"Response header {hdr_name} is missing in response {data['log_filename']}")
+                raise Exception(f"Response header {hdr_name} is missing in response {data['log_filename']}")

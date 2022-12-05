@@ -1,4 +1,4 @@
-FROM golang:1
+FROM golang:1.18
 
 # print versions
 RUN go version && curl --version
@@ -8,6 +8,7 @@ COPY utils/build/docker/golang/app /app
 
 WORKDIR /app
 
+RUN apt-get update && apt-get -y install jq
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 

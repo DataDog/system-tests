@@ -30,7 +30,7 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: 'DataDog/system-tests'
           token: ${{ secrets.GH_TOKEN }}
@@ -47,7 +47,7 @@ jobs:
         run: ./run.sh
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}

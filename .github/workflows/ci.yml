@@ -7,6 +7,9 @@ on:
   pull_request:
     branches:
       - "**"
+  push:
+    branches:
+      - main
 env:
   REGISTRY: ghcr.io
 
@@ -14,7 +17,7 @@ jobs:
   lint_and_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions/setup-python@v2
       with:
         python-version: '3.9'
@@ -26,6 +29,76 @@ jobs:
         exit 1
     - run: mkdir -p logs/docker/weblog/logs/
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
+
+  injection-tests-java:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib-injection-connection: ['uds', 'network']
+        lib-injection-use-admission-controller: ['', 'use-admission-controller']
+      fail-fast: false
+    env:
+      TEST_LIBRARY: java
+      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
+      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
+      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-java/dd-lib-java-init:34db2f76715dbbe9168806bac7c89c7ad4d51996
+      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-java/dd-lib-java-init-test-app:34db2f76715dbbe9168806bac7c89c7ad4d51996
+    steps:
+      - name: Checkout system tests
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: ./lib-injection/build.sh
+
+      - name: Run
+        run: ./lib-injection/run.sh
+
+  injection-tests-node:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # node does not support UDS
+        lib-injection-connection: ['network']
+        lib-injection-use-admission-controller: ['', 'use-admission-controller']
+      fail-fast: false
+    env:
+      TEST_LIBRARY: nodejs
+      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
+      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
+      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-js/dd-lib-js-init:e1043d06c7b25f5494a80d3c95e43029ac5cefff
+      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-js/sample-app:45cb74896b0b528d23b1458c9cacfa9b296658ba
+    steps:
+      - name: Checkout system tests
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: ./lib-injection/build.sh
+
+      - name: Run
+        run: ./lib-injection/run.sh
+
+  injection-tests-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib-injection-connection: ['uds', 'network']
+        lib-injection-use-admission-controller: ['', 'use-admission-controller']
+      fail-fast: false
+    env:
+      TEST_LIBRARY: python
+      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
+      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
+      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init:5f62ab0bbec26cef23f16f3165460e61c2c1eba5
+      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init-test-app:5f62ab0bbec26cef23f16f3165460e61c2c1eba5
+    steps:
+      - name: Checkout system tests
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: ./lib-injection/build.sh
+
+      - name: Run
+        run: ./lib-injection/run.sh
 
   test-the-tests:
     runs-on: ubuntu-latest
@@ -82,6 +155,9 @@ jobs:
             weblog-variant: spring-boot-jetty
             version: prod
           - library: java
+            weblog-variant: spring-boot-openliberty
+            version: prod
+          - library: java
             weblog-variant: jersey-grizzly2
             version: prod
           - library: java
@@ -131,24 +207,66 @@ jobs:
           - library: php
             weblog-variant: apache-mod-7.3
             version: dev
-#          - library: php
-#            weblog-variant: apache-mod-7.2
-#            version: prod
-#          - library: php
-#            weblog-variant: apache-mod-7.2
-#            version: dev
-#          - library: php
-#            weblog-variant: apache-mod-7.1
-#            version: prod
-#          - library: php
-#            weblog-variant: apache-mod-7.1
-#            version: dev
-#          - library: php
-#            weblog-variant: apache-mod-7.0
-#            version: prod
-#          - library: php
-#            weblog-variant: apache-mod-7.0
-#            version: dev
+          # - library: php
+          #   weblog-variant: apache-mod-7.2
+          #   version: prod
+          - library: php
+            weblog-variant: apache-mod-7.2
+            version: dev
+          # - library: php
+          #   weblog-variant: apache-mod-7.1
+          #   version: prod
+          - library: php
+            weblog-variant: apache-mod-7.1
+            version: dev
+          # - library: php
+          #   weblog-variant: apache-mod-7.0
+          #   version: prod
+          - library: php
+            weblog-variant: apache-mod-7.0
+            version: dev
+          - library: php
+            weblog-variant: apache-mod-8.1-zts
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-8.1-zts
+            version: dev
+          - library: php
+            weblog-variant: apache-mod-8.0-zts
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-8.0-zts
+            version: dev
+          - library: php
+            weblog-variant: apache-mod-7.4-zts
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-7.4-zts
+            version: dev
+          - library: php
+            weblog-variant: apache-mod-7.3-zts
+            version: prod
+          - library: php
+            weblog-variant: apache-mod-7.3-zts
+            version: dev
+          # - library: php
+          #   weblog-variant: apache-mod-7.2-zts
+          #   version: prod
+          - library: php
+            weblog-variant: apache-mod-7.2-zts
+            version: dev
+          # - library: php
+          #   weblog-variant: apache-mod-7.1-zts
+          #   version: prod
+          - library: php
+            weblog-variant: apache-mod-7.1-zts
+            version: dev
+          # - library: php
+          #   weblog-variant: apache-mod-7.0-zts
+          #   version: prod
+          - library: php
+            weblog-variant: apache-mod-7.0-zts
+            version: dev
           - library: php
             weblog-variant: php-fpm-8.1
             version: prod
@@ -173,24 +291,24 @@ jobs:
           - library: php
             weblog-variant: php-fpm-7.3
             version: dev
-#          - library: php
-#            weblog-variant: php-fpm-7.2
-#            version: prod
-#          - library: php
-#            weblog-variant: php-fpm-7.2
-#            version: dev
-#          - library: php
-#            weblog-variant: php-fpm-7.1
-#            version: prod
-#          - library: php
-#            weblog-variant: php-fpm-7.1
-#            version: dev
-#          - library: php
-#            weblog-variant: php-fpm-7.0
-#            version: prod
-#          - library: php
-#            weblog-variant: php-fpm-7.0
-#            version: dev
+          # - library: php
+          #   weblog-variant: php-fpm-7.2
+          #   version: prod
+          - library: php
+            weblog-variant: php-fpm-7.2
+            version: dev
+          # - library: php
+          #   weblog-variant: php-fpm-7.1
+          #   version: prod
+          - library: php
+            weblog-variant: php-fpm-7.1
+            version: dev
+          # - library: php
+          #   weblog-variant: php-fpm-7.0
+          #   version: prod
+          - library: php
+            weblog-variant: php-fpm-7.0
+            version: dev
           - library: python
             weblog-variant: flask-poc
             version: dev
@@ -209,6 +327,12 @@ jobs:
           - library: python
             weblog-variant: django-poc
             version: prod
+          # - library: python
+          #   weblog-variant: pylons
+          #   version: dev
+          # - library: python
+          #   weblog-variant: pylons
+          #   version: prod
 
           - library: ruby
             weblog-variant: rack
@@ -302,7 +426,7 @@ jobs:
       WEBLOG_VARIANT: ${{ matrix.weblog-variant }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Load WAF rules
         if: ${{ matrix.version == 'dev' }}
@@ -330,17 +454,54 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Build
-        run: ./build.sh
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
 
       - name: Run default scenario
         run: ./run.sh
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
-      # - name: Run REMOTE_CONFIG_MOCKED_BACKEND scenario
-      #   run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND
+      - name: Run INTEGRATIONS scenario
+        run: ./run.sh INTEGRATIONS
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      # not working as now
+      # - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+      #   if: ${{ matrix.version != 'prod' || matrix.library != 'python' }}
+      #   run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       #   env:
       #     DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Run APPSEC_CUSTOM_RULES scenario
         run: ./run.sh APPSEC_CUSTOM_RULES
@@ -404,21 +565,48 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
+      - name: Run APPSEC_IP_BLOCKING scenario
+        run: ./run.sh APPSEC_IP_BLOCKING
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Run APPSEC_RUNTIME_ACTIVATION scenario
+        run: ./run.sh APPSEC_RUNTIME_ACTIVATION
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
       - name: Compress logs
         if: ${{ always() }}
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}_${{ matrix.version }}
           path: artifact.tar.gz
 
+      - name: Upload results CI Visibility
+        if: ${{ always() }}
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+          
       - name: Print fancy log report
         if: ${{ always() }}
         run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
-
+  post_test-the-tests:
+    runs-on: ubuntu-latest
+    needs: [test-the-tests]
+    if: always() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Update CI Dashboard
+        run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+          DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
     runs-on: ubuntu-latest
     needs: lint_and_test
@@ -426,8 +614,46 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run
         run: ./scenarios/perfs/run.sh golang
       - name: Display
         run: python scenarios/perfs/process.py
+
+  fuzzer:
+    runs-on: ubuntu-latest
+    needs: lint_and_test
+    env:
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build
+        run: ./build.sh golang
+      - name: Run
+        run: ./run.sh scenarios/fuzzer/main.py -t 60
+        env:
+          RUNNER_CMD: python
+
+  parametric:
+    runs-on: ubuntu-latest
+    needs: lint_and_test
+    strategy:
+      matrix:
+        client: ['python', 'dotnet', 'golang', 'nodejs']
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          # FIXME: pytest==5.4.3 does not support Python 3.10
+          python-version: '3.9'
+      - name: Install
+        run: |
+          pip install wheel
+      - name: Run
+        run: |
+          cd parametric
+          pip install -r requirements.txt
+          CLIENTS_ENABLED=${{ matrix.client }} ./run.sh

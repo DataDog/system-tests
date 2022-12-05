@@ -44,10 +44,10 @@ else
     --php-bin all
 fi
 
-php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
+php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
   ./SYSTEM_TESTS_LIBRARY_VERSION
 
-php -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
+php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
   ./SYSTEM_TESTS_PHP_APPSEC_VERSION
 
 touch SYSTEM_TESTS_LIBDDWAF_VERSION

@@ -2,24 +2,26 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import threading
 from datetime import datetime, timedelta
 
 
 def get_readable_integer_value(value):
     if value == 0:
         return "-"
-    elif value <= 9999:
+
+    if value <= 9999:
         return f"{int(value)}"
-    elif value < 9999 * 1024:
+
+    if value < 9999 * 1024:
         return f"{int(value/1024)}k"
-    elif value < 9999 * 1024 * 1024:
+
+    if value < 9999 * 1024 * 1024:
         return f"{int(value/(1024*1024))}M"
-    else:
-        return f"{int(value/(1024*1024*1024))}G"
+
+    return f"{int(value/(1024*1024*1024))}G"
 
 
-class Metric(object):
+class Metric:
     def __init__(
         self, name, format_string=None, display_length=5, value=0, has_raw_value=True, raw_name=None,
     ):
@@ -40,7 +42,6 @@ class Metric(object):
         """
         Will be called before printing
         """
-        pass
 
     def observe_global_value(self):
         self.value = self.global_value
@@ -50,7 +51,6 @@ class Metric(object):
         """
         Will be called after printing
         """
-        pass
 
     @property
     def pretty(self):
@@ -143,7 +143,8 @@ class AccumulatedMetricWithPercent(AccumulatedMetric):
     def pretty(self):
         if self.total_metric.value == 0:
             return "N.A."
-        elif self.value == 0:
+
+        if self.value == 0:
             return "-"
 
         return f"{round(100*self.value/self.total_metric.value)}%"
@@ -181,7 +182,8 @@ class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
     def pretty(self):
         if self.total == 0:
             return "N.A."
-        elif self.value == 0:
+
+        if self.value == 0:
             return "-"
 
         return f"{round(100*self.value/self.total)}%"
@@ -231,8 +233,8 @@ class PerformanceMetric(Metric):
     def _format(self, values):
         return " ".join([f"{v: <4}" for v in values])
 
-    def update(self, ellapsed):
-        ellapsed = min(int(ellapsed * 1000), len(self.data) - 1)
+    def update(self, value=None):
+        ellapsed = min(int(value * 1000), len(self.data) - 1)
 
         self.data[ellapsed] += 1
         self.count += 1
@@ -241,7 +243,7 @@ class PerformanceMetric(Metric):
         self.global_count += 1
 
     def observe(self):
-        sum = 0
+        total = 0
 
         i_percentiles = iter(self.percentiles.values())
         next_percentile = next(i_percentiles)
@@ -249,11 +251,13 @@ class PerformanceMetric(Metric):
         self.value = []
 
         if count > 0:
-            for ellapsed in range(len(self.data)):
-                sum += self.data[ellapsed]
+            # for ellapsed in range(len(self.data)):
+            # i is ellapsed, value is self.data[ellpased]
+            for i, value in enumerate(self.data):
+                total += value
 
-                if sum / count > next_percentile:
-                    self.value.append(ellapsed)
+                if total / count > next_percentile:
+                    self.value.append(i)
                     try:
                         next_percentile = next(i_percentiles)
                     except StopIteration:
@@ -344,7 +348,7 @@ class Report:
         if self._is_report_time() or force:
             metrics = metrics_getter()
 
-            print_headers, pretties, raws = self.get_pulse_report(metrics)
+            print_headers, pretties, _ = self.get_pulse_report(metrics)
 
             if print_headers or self.metric_count != len(metrics):
                 self.logger.info("")
@@ -361,7 +365,7 @@ class Report:
         for metric in metrics:
             metric.observe_global_value()
 
-        _, pretties, raws = self.get_pulse_report(metrics)
+        _, pretties, _ = self.get_pulse_report(metrics)
 
         self.logger.info("")
         self.print_headers(metrics_getter)

@@ -3,12 +3,21 @@
 # Copyright 2021 Datadog, Inc.
 
 # Automatic generatiom from:
-#    python utils/scripts/extract_appsec_waf_rules.py nodejs
+#    python utils/scripts/extract_appsec_waf_rules.py
 
 
 class security_scanner:
-    crs_913_110 = "crs-913-110"  # Found request header associated with Acunetix security scanner
-    crs_913_120 = "crs-913-120"  # Found request filename/argument associated with security scanner
+    crs_913_110 = "crs-913-110"  # Acunetix
+    crs_913_120 = "crs-913-120"  # Known security scanner filename/argument
+    nfd_000_001 = "nfd-000-001"  # Detect common directory discovery scans
+    nfd_000_002 = "nfd-000-002"  # Detect failed attempt to fetch readme files
+    nfd_000_003 = "nfd-000-003"  # Detect failed attempt to fetch Java EE resource files
+    nfd_000_004 = "nfd-000-004"  # Detect failed attempt to fetch code files
+    nfd_000_005 = "nfd-000-005"  # Detect failed attempt to fetch source code archives
+    nfd_000_006 = "nfd-000-006"  # Detect failed attempt to fetch sensitive files
+    nfd_000_007 = "nfd-000-007"  # Detect failed attempt to fetch archives
+    nfd_000_008 = "nfd-000-008"  # Detect failed attempt to trigger incorrect application behavior
+    nfd_000_009 = "nfd-000-009"  # Detect failed attempt to leak the structure of the application
     ua0_600_0xx = "ua0-600-0xx"  # Joomla exploitation tool
     ua0_600_10x = "ua0-600-10x"  # Nessus
     ua0_600_12x = "ua0-600-12x"  # Arachni
@@ -39,7 +48,6 @@ class security_scanner:
     ua0_600_39x = "ua0-600-39x"  # Nessus Scripted
     ua0_600_3xx = "ua0-600-3xx"  # Evil Scanner
     ua0_600_40x = "ua0-600-40x"  # WebFuck
-    ua0_600_41x = "ua0-600-41x"  # Acunetix
     ua0_600_42x = "ua0-600-42x"  # OpenVAS
     ua0_600_43x = "ua0-600-43x"  # Spider-Pig
     ua0_600_44x = "ua0-600-44x"  # Zgrab
@@ -50,10 +58,11 @@ class security_scanner:
     ua0_600_49x = "ua0-600-49x"  # Gobuster
     ua0_600_4xx = "ua0-600-4xx"  # CGIchk
     ua0_600_51x = "ua0-600-51x"  # FFUF
-    ua0_600_52x = "ua0-600-52x"  # Nuclei is a fast tool for configurable targeted scanning based on templates offering massive extensibility and ease of use
-    ua0_600_53x = "ua0-600-53x"  # Tsunami is a general purpose network security scanner with an extensible plugin system for detecting high severity vulnerabilities with high confidence
-    ua0_600_54x = "ua0-600-54x"  # Nimbostratus is a vulnerability scanner that scan websites unprompted
-    ua0_600_5xx = "ua0-600-5xx"  # Blind Sql Injection Brute Forcer
+    ua0_600_52x = "ua0-600-52x"  # Nuclei
+    ua0_600_53x = "ua0-600-53x"  # Tsunami
+    ua0_600_54x = "ua0-600-54x"  # Nimbostratus
+    ua0_600_55x = "ua0-600-55x"  # Datadog test scanner: user-agent
+    ua0_600_5xx = "ua0-600-5xx"  # Blind SQL Injection Brute Forcer
     ua0_600_6xx = "ua0-600-6xx"  # Suspicious user agent
     ua0_600_7xx = "ua0-600-7xx"  # SQLmap
     ua0_600_9xx = "ua0-600-9xx"  # Skipfish
@@ -74,8 +83,8 @@ class lfi:
 
 
 class rfi:
-    crs_931_110 = "crs-931-110"  # Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name used w/URL Payload
-    crs_931_120 = "crs-931-120"  # Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question Mark Character (?)
+    crs_931_110 = "crs-931-110"  # RFI: Common RFI Vulnerable Parameter Name used w/ URL Payload
+    crs_931_120 = "crs-931-120"  # RFI: URL Payload Used w/Trailing Question Mark Character (?)
 
 
 class command_injection:
@@ -103,6 +112,8 @@ class php_code_injection:
 
 class js_code_injection:
     crs_934_100 = "crs-934-100"  # Node.js Injection Attack
+    dog_000_005 = "dog-000-005"  # Node.js: Prototype pollution through __proto__
+    dog_000_006 = "dog-000-006"  # Node.js: Prototype pollution through constructor.prototype
     sqr_000_002 = "sqr-000-002"  # Server-side Javascript injection: Try to detect obvious JS injection
 
 
@@ -127,22 +138,19 @@ class xss:
 
 class sql_injection:
     crs_942_100 = "crs-942-100"  # SQL Injection Attack Detected via libinjection
-    crs_942_140 = "crs-942-140"  # SQL Injection Attack: Common DB Names Detected
     crs_942_160 = "crs-942-160"  # Detects blind sqli tests using sleep() or benchmark()
     crs_942_190 = "crs-942-190"  # Detects MSSQL code execution and information gathering attempts
-    crs_942_220 = "crs-942-220"  # Looking for integer overflow attacks, these are taken from skipfish, except 2.2.2250738585072011e-308 is the \"magic number\" crash
     crs_942_240 = "crs-942-240"  # Detects MySQL charset switch and MSSQL DoS attempts
     crs_942_250 = "crs-942-250"  # Detects MATCH AGAINST, MERGE and EXECUTE IMMEDIATE injections
-    crs_942_270 = "crs-942-270"  # Looking for basic sql injection. Common attack string for mysql, oracle and others
-    crs_942_280 = (
-        "crs-942-280"  # Detects Postgres pg_sleep injection, waitfor delay attacks and database shutdown attempts
-    )
+    crs_942_270 = "crs-942-270"  # Basic SQL injection
+    crs_942_280 = "crs-942-280"  # SQL Injection with delay functions
     crs_942_360 = "crs-942-360"  # Detects concatenated basic SQL injection and SQLLFI attempts
     crs_942_500 = "crs-942-500"  # MySQL in-line comment detected
 
 
 class nosql_injection:
     crs_942_290 = "crs-942-290"  # Finds basic MongoDB SQL injection attempts
+    dog_000_001 = "dog-000-001"  # Look for Cassandra injections
     sqr_000_007 = "sqr-000-007"  # NoSQL: Detect common exploitation strategy
 
 
@@ -150,6 +158,13 @@ class java_code_injection:
     crs_944_100 = "crs-944-100"  # Remote Command Execution: Suspicious Java class detected
     crs_944_110 = "crs-944-110"  # Remote Command Execution: Java process spawn (CVE-2017-9805)
     crs_944_130 = "crs-944-130"  # Suspicious Java class detected
+    dog_000_002 = "dog-000-002"  # OGNL - Look for formatting injection patterns
+    dog_000_003 = "dog-000-003"  # OGNL - Detect OGNL exploitation primitives
+
+
+class exploit_detection:
+    dog_000_004 = "dog-000-004"  # Spring4Shell - Attempts to exploit the Spring4shell vulnerability
+    sqr_000_017 = "sqr-000-017"  # Log4shell: Attempt to exploit log4j CVE-2021-44228
 
 
 class ssrf:
@@ -159,15 +174,3 @@ class ssrf:
     sqr_000_013 = "sqr-000-013"  # SSRF: Detect SSRF attempts using IPv6 or octal/hexdecimal obfuscation
     sqr_000_014 = "sqr-000-014"  # SSRF: Detect SSRF domain redirection bypass
     sqr_000_015 = "sqr-000-015"  # SSRF: Detect SSRF attempt using non HTTP protocol
-
-
-class discovery_scan:
-    nfd_000_001 = "nfd-000-001"  # Detect common directory discovery scans
-    nfd_000_002 = "nfd-000-002"  # Detect failed attempt to fetch readme files
-    nfd_000_003 = "nfd-000-003"  # Detect failed attempt to fetch Java EE resource files
-    nfd_000_004 = "nfd-000-004"  # Detect failed attempt to fetch code files
-    nfd_000_005 = "nfd-000-005"  # Detect failed attempt to fetch source code archives
-    nfd_000_006 = "nfd-000-006"  # Detect failed attempt to fetch sensitive files
-    nfd_000_007 = "nfd-000-007"  # Detect failed attempt to fetch archives
-    nfd_000_008 = "nfd-000-008"  # Detect failed attempt to trigger incorrect application behavior
-    nfd_000_009 = "nfd-000-009"  # Detect failed attempt to leak the structure of the application
