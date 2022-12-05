@@ -109,7 +109,6 @@ jobs:
           - library: cpp
             weblog-variant: nginx
             version: prod
-
           - library: dotnet
             weblog-variant: poc
             version: dev
