@@ -188,7 +188,6 @@ class _AppDependenciesLoadedValidation(BaseValidation):
     def check(self, data):
         content = data["request"]["content"]
         if content.get("request_type") == "app-started":
-            print("Check load dependency not here")
             if content["payload"].get("dependencies"):
                 for dependency in content["payload"]["dependencies"]:
                     dependency_id = dependency["name"] #+dep["version"]
@@ -198,14 +197,13 @@ class _AppDependenciesLoadedValidation(BaseValidation):
                         print(dependency_id)
                     self.seen_dependencies[dependency_id] = True
         elif content.get("request_type") == "app-dependencies-loaded":
-            print("Check load dependency is present")
             for dependency in content["payload"]["dependencies"]:
                 dependency_id = dependency["name"] #+dependency["version"]
                 self.seen_dependencies[dependency_id] = True
                 self.seen_loaded_dependencies[dependency_id] = True
 
     def final_check(self):
-        for dependency, seen in self.seen_dependencies.items():
-            assert seen, dependency + " was not sent"
+        # for dependency, seen in self.seen_dependencies.items():
+        #     assert seen, dependency + " was not sent"
         for dependency, seen in self.seen_loaded_dependencies.items():
             assert seen, dependency + " was not sent"

@@ -199,5 +199,7 @@ class Test_Telemetry:
     @irrelevant(library="ruby")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
-        self.r = weblog.get("/loaded_dependency")
+        TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
+        self.r = weblog.get("/load_dependency")
+        time.sleep(TELEMETRY_HEARTBEAT_INTERVAL)
         interfaces.library.assert_app_dependencies_loaded_validation()
