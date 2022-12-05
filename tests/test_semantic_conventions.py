@@ -88,9 +88,11 @@ class Test_Meta:
                 return
 
             if "span.kind" not in span["meta"]:
+                print(span)
                 raise Exception("web span expect an span.kind meta tag")
 
             if span["meta"]["span.kind"] not in ("server", "client"):
+                print(span)
                 raise Exception("Meta http.kind should be client or server")
 
             return True
@@ -119,7 +121,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
@@ -169,6 +171,7 @@ class Test_Meta:
         interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
     @bug(library="cpp", reason="language tag not implemented")
+    @bug(library="php", reason="language tag not implemented")
     @bug(library="python", reason="language tag not implemented")
     @bug(library="java", reason="language tag implemented but not for all spans")
     def test_meta_language_tag(self):
@@ -178,12 +181,15 @@ class Test_Meta:
             library = context.library.library
 
             # else we should set the language tag
-            if RUNTIME_LANGUAGE_MAP.get(library, library) != span["meta"]["language"]:
-                raise Exception(
-                    "Span actual language, {}, did not match expected language, {}.".format(
-                        span["meta"]["language"], RUNTIME_LANGUAGE_MAP.get(library, library)
+            if "language" in span["meta"]:
+                if RUNTIME_LANGUAGE_MAP.get(library, library) != span["meta"]["language"]:
+                    raise Exception(
+                        "Span actual language, {}, did not match expected language, {}.".format(
+                            span["meta"]["language"], RUNTIME_LANGUAGE_MAP.get(library, library)
+                        )
                     )
-                )
+            else:
+                raise Exception("Span must have a language tag set.")
             return True
 
         interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
@@ -220,12 +226,15 @@ class Test_Meta:
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="java", reason="runtime-id tag not implemented")
+    @bug(library="dotnet", reason="runtime-id tag not implemented")
+    @bug(library="php", reason="runtime-id tag not implemented")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
         def validator(span):
 
             if "runtime-id" not in span.get("meta"):
+                print(span)
                 raise Exception("No runtime-id tag found. Expected tag to be present.")
 
             return True
@@ -258,7 +267,9 @@ class Test_MetricsStandardTags:
 
     @bug(library="cpp", reason="Not implemented")
     @bug(library="java", reason="Not implemented")
+    @bug(library="golang", reason="Not implemented")
     @bug(library="php", reason="Currently a meta tag")
+    @bug(library="ruby", reason="not implemented")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
 
