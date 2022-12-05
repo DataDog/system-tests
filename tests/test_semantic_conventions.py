@@ -10,6 +10,7 @@ from utils import context, BaseTestCase, interfaces, bug
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
     "golang": "go",
+    "java": "jvm",
 }
 VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
@@ -217,6 +218,7 @@ class Test_Meta(BaseTestCase):
         interfaces.library.add_span_validation(validator=validator)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
+    @bug(library="java", reason="runtime-id tag not implemented")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
