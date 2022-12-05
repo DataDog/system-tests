@@ -26,7 +26,7 @@ class Test_404:
     def test_404(self):
         """ AppSec WAF catches attacks, even on 404"""
 
-        interfaces.library.add_assertion(self.r.status_code == 404)
+        assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(
             self.r,
             rule=rules.security_scanner.ua0_600_12x,

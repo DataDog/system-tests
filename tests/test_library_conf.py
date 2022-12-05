@@ -15,11 +15,9 @@ class Test_HeaderTags:
     def test_trace_header_tags_basic(self):
         """ Test that http.request.headers.user-agent is in all web spans """
 
-        def validator(span):
+        for _, _, span in interfaces.library.get_spans():
             if span.get("type") == "web":
                 assert "http.request.headers.user-agent" in span.get("meta", {})
-
-        interfaces.library.add_span_validation(validator=validator, is_success_on_expiry=True)
 
 
 @irrelevant(library="cpp")

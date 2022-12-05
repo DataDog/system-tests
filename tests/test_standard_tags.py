@@ -192,8 +192,8 @@ class Test_StandardTagsClientIp:
 
             return True
 
-        interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)
-        interfaces.library.add_span_validation(request=self.request_without_attack, validator=validator)
+        interfaces.library.validate_spans(request=self.request_with_attack, validator=validator)
+        interfaces.library.validate_spans(request=self.request_without_attack, validator=validator)
 
     def setup_client_ip_with_appsec_event(self):
         self.setup()
@@ -213,4 +213,4 @@ class Test_StandardTagsClientIp:
 
             return True
 
-        interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)
+        interfaces.library.validate_spans(request=self.request_with_attack, validator=validator)

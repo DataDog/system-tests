@@ -42,7 +42,7 @@ flowchart TD
     AGENT[Agent Container] --> AGENTPROXY
     AGENTPROXY[Agent Proxy] -->|remote request| BACKEND
     AGENTPROXY -->|mitmdump| TESTS
-    BACKEND[Datadog]
+    BACKEND[Datadog] -->|trace API| TESTS
 ```
 
 The tests send requests directly to the application.
@@ -51,7 +51,7 @@ The tests then wait on the results, which are available as the logs are collecte
 
 ## What are system-tests bad for?
 
- - Combinatorial style tests (Permutations of runtimes, libraries, operating systems)
+ - Combinatorial-style tests (Permutations of frameowrk runtimes, 3rd libraries versions, operating systems)
  - Cloud deployments, kubernetes, distributed deployments
  - Immediately knowing the reason a feature fails
  - Problems or features which are not shared across tracers
@@ -68,6 +68,7 @@ The tests then wait on the results, which are available as the logs are collecte
  - Wide coverage in a short time frame
  - Shared test coverage across all tracer libraries
  - Ensuring requirements for shared features are met across tracer libraries
+ - testing a set of version of any datadog component
 
 *Examples of good candidates:*
   - `DD_TAGS` must be parsed correctly and carried as tags on all traces

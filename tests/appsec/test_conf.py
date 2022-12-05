@@ -43,7 +43,7 @@ class Test_RuleSet_1_2_4:
     """ AppSec uses rule set 1.2.4 or higher """
 
     def test_main(self):
-        interfaces.library.add_assertion(context.appsec_rules_version >= "1.2.4")
+        assert context.appsec_rules_version >= "1.2.4"
 
 
 @coverage.basic
@@ -51,7 +51,7 @@ class Test_RuleSet_1_2_5:
     """ AppSec uses rule set 1.2.5 or higher """
 
     def test_main(self):
-        interfaces.library.add_assertion(context.appsec_rules_version >= "1.2.5")
+        assert context.appsec_rules_version >= "1.2.5"
 
 
 @released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
@@ -62,7 +62,7 @@ class Test_RuleSet_1_3_1:
 
     def test_main(self):
         """ Test rule set version number"""
-        interfaces.library.add_assertion(context.appsec_rules_version >= "1.3.1")
+        assert context.appsec_rules_version >= "1.3.1"
 
     def setup_nosqli_keys(self):
         self.r_keys = weblog.get("/waf/", params={"$nin": "value"})
@@ -100,7 +100,6 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
-        """ test DD_APPSEC_ENABLED = false """
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
@@ -147,7 +146,7 @@ class Test_ConfigurationVariables:
             return True
 
         interfaces.library.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
-        interfaces.library.add_appsec_validation(self.r_op_key, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_op_key, validate_appsec_span_tags)
 
     def setup_obfuscation_parameter_value(self):
         headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
@@ -165,4 +164,4 @@ class Test_ConfigurationVariables:
             return True
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
-        interfaces.library.add_appsec_validation(self.r_op_value, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags)

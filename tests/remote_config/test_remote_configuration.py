@@ -48,7 +48,7 @@ class RemoteConfigurationFieldsBasicTests:
                     "error" in state
                 ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
 
-        interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
+        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
     def test_client_fields(self):
         """ Ensure that the Client field is appropriately filled out in update requests"""
@@ -63,7 +63,7 @@ class RemoteConfigurationFieldsBasicTests:
                 client["id"] != client_tracer["runtime_id"]
             ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
 
-        interfaces.library.add_remote_configuration_validation(validator=validator, is_success_on_expiry=True)
+        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
 
 def rc_check_request(data, expected, caching):
@@ -156,7 +156,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
             return False
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -186,7 +186,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
             return False
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -216,7 +216,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
             return False
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -250,7 +250,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
             return False
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -280,7 +280,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
             return False
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -309,4 +309,4 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
             return False
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)

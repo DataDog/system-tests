@@ -17,14 +17,16 @@ if context.library == "cpp":
 class TestIastCommandInjection:
     """Verify IAST features"""
 
-    EXPECTATIONS = {
-        "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"},
-        "nodejs": {"LOCATION": "/usr/app/iast.js"},
-    }
+    @property
+    def expected_location(self):
 
-    def __expected_location(self):
-        expected = self.EXPECTATIONS.get(context.library.library)
-        return expected.get("LOCATION") if expected else None
+        EXPECTATIONS = {
+            "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"},
+            "nodejs": {"LOCATION": "/usr/app/iast.js"},
+        }
+
+        expected = EXPECTATIONS.get(context.library.library, {})
+        return expected.get("LOCATION", None)
 
     def setup_insecure_command_injection(self):
         self.r = weblog.post("/iast/cmdi/test_insecure", data={"cmd": "ls"})
@@ -32,8 +34,5 @@ class TestIastCommandInjection:
     def test_insecure_command_injection(self):
         """Insecure command executions are reported as insecure"""
         interfaces.library.expect_iast_vulnerabilities(
-            self.r,
-            vulnerability_count=1,
-            vulnerability_type="COMMAND_INJECTION",
-            location_path=self.__expected_location(),
+            self.r, vulnerability_count=1, vulnerability_type="COMMAND_INJECTION", location_path=self.expected_location,
         )

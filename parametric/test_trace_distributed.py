@@ -2,11 +2,12 @@ import pytest
 
 from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from parametric.spec.trace import span_has_no_parent
 
 
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-def test_distributed_headers_extract_datadog(test_agent, test_library):
+def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
     """
@@ -31,10 +32,9 @@ def test_distributed_headers_extract_datadog(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
 
-@pytest.mark.skip_library("python", "Needs to be adapted to traces v0.5")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
+def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
     """
@@ -53,7 +53,7 @@ def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
 
     span = test_agent.wait_for_num_traces(num=1)[0][0]
     assert span.get("trace_id") != 0
-    assert span.get("parent_id") != 0
+    assert span_has_no_parent(span)
     # assert span["meta"].get(ORIGIN) is None # TODO: Determine if we keep x-datadog-origin for an invalid trace-id/parent-id
     assert span["meta"].get("_dd.p.dm") != "-4"
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
@@ -61,7 +61,7 @@ def test_distributed_headers_extract_datadog_invalid(test_agent, test_library):
 
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-def test_distributed_headers_inject_datadog(test_agent, test_library):
+def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are injected properly.
     """
     with test_library:
@@ -75,7 +75,7 @@ def test_distributed_headers_inject_datadog(test_agent, test_library):
 
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-def test_distributed_headers_extractandinject_datadog(test_agent, test_library):
+def test_distributed_headers_extractandinject_datadog_D004(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
     """
@@ -102,7 +102,7 @@ def test_distributed_headers_extractandinject_datadog(test_agent, test_library):
 
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-def test_distributed_headers_extractandinject_datadog_invalid(test_agent, test_library):
+def test_distributed_headers_extractandinject_datadog_invalid_D005(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
     """
@@ -129,7 +129,7 @@ def test_distributed_headers_extractandinject_datadog_invalid(test_agent, test_l
 
 @pytest.mark.skip("needs to be implemented by tracers and test needs to adhere to RFC")
 @pytest.mark.parametrize("apm_test_server_env", [{"DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C"}])
-def test_distributed_headers_extract_w3c001(apm_test_server_env, test_agent, test_library):
+def test_distributed_headers_extract_w3c001_D006(apm_test_server_env, test_agent, test_library):
     """Ensure that W3C distributed tracing headers are extracted
     and activated properly.
     """

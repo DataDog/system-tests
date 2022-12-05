@@ -2,100 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from threading import Lock
 import time
 from random import randint
 
-from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenario, context
-from utils.interfaces._core import BaseValidation
-from utils.interfaces._library._utils import get_root_spans
+from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenario
 
+USER_REJECT = -1
+AUTO_REJECT = 0
 AUTO_KEEP = 1
 USER_KEEP = 2
-
-
-class AgentSampledFwdValidation(BaseValidation):
-    is_success_on_expiry = True
-    path_filters = ["/api/v0.2/traces"]
-
-    def __init__(self, request=None):
-        super().__init__(request=request)
-        self.library_sampled = {}
-        self.agent_forwarded = {}
-        self.library_sampled_lock = Lock()
-
-    def add_library_sampled_trace(self, root_span):
-        with self.library_sampled_lock:
-            if root_span["trace_id"] in self.library_sampled:
-                raise Exception("A trace was added twice to the agent sampling validation")
-            self.library_sampled[root_span["trace_id"]] = root_span
-
-    def check(self, data):
-        if "tracerPayloads" not in data["request"]["content"]:
-            self.set_failure("Trace property is missing in agent payload")
-        else:
-            for payload in data["request"]["content"]["tracerPayloads"]:
-                for trace in payload["chunks"]:
-                    for span in trace["spans"]:
-                        self.agent_forwarded[int(span["traceID"])] = trace
-
-    def final_check(self):
-        with self.library_sampled_lock:
-            sampled_not_fwd = self.library_sampled.keys() - self.agent_forwarded.keys()
-        if len(sampled_not_fwd) > 0:
-            self.set_failure(
-                "Detected traces that were sampled by library, but not submitted to the backend:\n"
-                "\n".join(
-                    f"\ttraceid {t_id} in library message {self.library_sampled[t_id]['log_filename']}"
-                    for t_id in sampled_not_fwd
-                )
-            )
-            return
-        self.log_info(
-            f"Forwarded {len(self.agent_forwarded)} to the backend, from traces sampled {len(self.library_sampled)}"
-        )
-
-
-class LibrarySamplingRateValidation(BaseValidation):
-    is_success_on_expiry = True
-    path_filters = ["/v0.4/traces", "/v0.5/traces"]
-
-    def __init__(self, request=None):
-        super().__init__(request=request)
-        self.sampled_count = {True: 0, False: 0}
-
-    def check(self, data):
-        for root_span in get_root_spans(data["request"]["content"]):
-            sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
-            if sampling_priority is None:
-                self.set_failure(
-                    f"Message: {data['log_filename']}:"
-                    "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
-                )
-                return
-            self.sampled_count[sampling_priority in (USER_KEEP, AUTO_KEEP)] += 1
-
-    def final_check(self):
-        trace_count = sum(self.sampled_count.values())
-        # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
-        confidence_interval = 3 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
-        # E = n * p
-        expectation = context.sampling_rate * trace_count
-        if not expectation - confidence_interval <= self.sampled_count[True] <= expectation + confidence_interval:
-            self.set_failure(
-                f"Sampling rate is set to {context.sampling_rate}, "
-                f"expected count of sampled traces {expectation}/{trace_count}."
-                f"Actual {self.sampled_count[True]}/{trace_count}={self.sampled_count[True]/trace_count}, "
-                f"wich is outside of the confidence interval of +-{confidence_interval}\n"
-                "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
-            )
-        else:
-            self.log_info(
-                f"Sampling rate is set to {context.sampling_rate}, "
-                f"expected count of sampled traces {expectation}/{trace_count}."
-                f"Actual {self.sampled_count[True]}/{trace_count}={self.sampled_count[True]/trace_count}, "
-                f"wich is inside the confidence interval of +-{confidence_interval}"
-            )
 
 
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
@@ -128,8 +43,43 @@ class Test_SamplingRates:
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
-        interfaces.library.append_validation(LibrarySamplingRateValidation())
-        interfaces.agent.append_validation(AgentSampledFwdValidation())
+
+        # test sampling
+        sampled_count = {True: 0, False: 0}
+
+        for data, root_span in interfaces.library.get_root_spans():
+            metrics = root_span["metrics"]
+            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
+            sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
+
+        trace_count = sum(sampled_count.values())
+        # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
+        confidence_interval = 3 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
+        # E = n * p
+        expectation = context.sampling_rate * trace_count
+        if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
+            raise Exception(
+                f"Sampling rate is set to {context.sampling_rate}, "
+                f"expected count of sampled traces {expectation}/{trace_count}."
+                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
+                f"wich is outside of the confidence interval of +-{confidence_interval}\n"
+                "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
+            )
+
+        # Test that all traces sent by the tracer is sent to the agent"""
+        trace_ids = set()
+
+        for data, span in interfaces.library.get_root_spans():
+            metrics = span["metrics"]
+            if metrics["_sampling_priority_v1"] not in (USER_REJECT, AUTO_REJECT):
+                trace_ids.add(span["trace_id"])
+
+        for _, span in interfaces.agent.get_spans():
+            trace_id = int(span["traceID"])
+            if trace_id in trace_ids:
+                trace_ids.remove(trace_id)
+
+        assert len(trace_ids) == 0, f"Some traces has not been sent by the agent: {trace_ids}"
 
 
 @released(php="0.71.0")
@@ -150,13 +100,7 @@ class Test_SamplingDecisions:
         for _ in range(30):
             weblog.get(f"/sample_rate_route/{self.next_request_id()}")
 
-    @irrelevant(
-        context.library in ("nodejs", "php", "dotnet"),
-        reason=(
-            "sampling decision implemented differently in these tracers which isnt't problematic. "
-            "Cf https://datadoghq.atlassian.net/browse/AIT-374 for more info."
-        ),
-    )
+    @irrelevant(context.library in ("nodejs", "php", "dotnet"), reason="AIT-374")
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.92.0")
     @flaky(context.library < "python@0.57.0")
