@@ -15,5 +15,8 @@
     "express-xml-bodyparser": "^0.3.0",
     "pg": "^8.8.0",
     "glob": "^8.0.3"
+  }, 
+  "loaded-dependencies": {
+    "glob": "^8.0.3"
   }
 }
