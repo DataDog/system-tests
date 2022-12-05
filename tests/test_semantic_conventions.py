@@ -170,6 +170,7 @@ class Test_Meta(BaseTestCase):
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="python", reason="language tag not implemented")
+    @bug(library="java", reason="language tag implemented but not for all spans")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
