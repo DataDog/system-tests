@@ -275,9 +275,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         if successful is None and not success_by_default:
             raise Exception("No spans validated this test.")
-        
+
         if not successful:
-            raise Exception("Span validation was not successful.")            
+            raise Exception("Span validation was not successful.")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
