@@ -7,6 +7,7 @@ from utils import (
     released,
     flaky,
     irrelevant,
+    weblog,
     ValidationException,
 )
 
@@ -190,3 +191,13 @@ class Test_Telemetry:
         """Check for heartbeat or messages within interval and valid started and closing messages"""
         time.sleep(20)
         interfaces.library.assert_app_heartbeat_validation()
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="python")
+    @irrelevant(library="ruby")
+    def test_app_dependencies_loaded(self):
+        """test app-dependencies-loaded requests"""
+        self.r = weblog.get("/loaded_dependency")
+        interfaces.library.assert_app_dependencies_loaded_validation()
