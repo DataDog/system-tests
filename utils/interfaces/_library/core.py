@@ -29,7 +29,7 @@ from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
     _AppHeartbeatValidation,
-    _AppDependenciesLoadedValidation
+    _AppDependenciesLoadedValidation,
 )
 from utils.interfaces._misc_validators import HeadersPresenceValidation
 

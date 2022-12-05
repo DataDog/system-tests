@@ -89,8 +89,10 @@ class _AppHeartbeatValidation(BaseValidation):
                 )
         self.prev_message_time = curr_message_time
 
+
 class _AppDependenciesLoadedValidation(BaseValidation):
     """Verify that the dependency telemetry is correct."""
+
     is_success_on_expiry = True
     path_filters = TELEMETRY_AGENT_ENDPOINT
     is_success_on_expiry = True
@@ -98,9 +100,9 @@ class _AppDependenciesLoadedValidation(BaseValidation):
     def __init__(self):
         super().__init__()
 
-        def read_nodejs_dependencies(): 
+        def read_nodejs_dependencies():
             file_path = "./utils/build/docker/nodejs/express4/package.json"
-            package_file = open(file_path, encoding='UTF-8')
+            package_file = open(file_path, encoding="UTF-8")
             package_json = json.load(package_file)
             loaded_dependencies = package_json["loaded-dependencies"]
             defined_dependencies = package_json["dependencies"]
@@ -110,7 +112,7 @@ class _AppDependenciesLoadedValidation(BaseValidation):
             file_path = "./utils/build/docker/dotnet/app.csproj"
             document = ET.parse(file_path)
             root = document.getroot()
-        
+
             dependencies = {}
             loaded_dependencies = {}
             for child in root:
@@ -118,24 +120,24 @@ class _AppDependenciesLoadedValidation(BaseValidation):
                     dependencies = child
                 elif child.tag == "loadedDependency":
                     loaded_dependencies[child.text] = None
-        
+
             defined_dependencies = {}
             for dependency in dependencies:
                 attributes = dependency.attrib
                 dependency_name = attributes.get("Include")
                 dependency_version = attributes.get("Version")
                 if not dependency_name:
-                    pass # TODO: throw error for malformatted app.csproj
+                    pass  # TODO: throw error for malformatted app.csproj
                 if attributes.get("Loaded"):
                     loaded_dependencies[dependency_name] = dependency_version
                 defined_dependencies[dependency_name] = dependency_version
-            
+
             return loaded_dependencies, defined_dependencies
 
         def read_java_dependencies():
             file_path = "./utils/build/docker/java/spring-boot/pom.xml"
             document = ET.parse(file_path)
-            root =  document.getroot()
+            root = document.getroot()
 
             dependencies = {}
             properties = {}
@@ -163,18 +165,17 @@ class _AppDependenciesLoadedValidation(BaseValidation):
                 if dependency_name in loaded_dependencies:
                     loaded_dependencies[dependency_name] = dependency_version
                 defined_dependencies[dependency_name] = dependency_version
-    
+
             return loaded_dependencies, defined_dependencies
-        
+
         library_dependency_map = {
-            "nodejs" : read_nodejs_dependencies,
+            "nodejs": read_nodejs_dependencies,
             "dotnet": read_dotnet_dependencies,
-            "java" : read_java_dependencies
+            "java": read_java_dependencies,
         }
 
         library = context.library.library
         loaded_dependencies, defined_dependencies = library_dependency_map[library]()
-
 
         self.seen_dependencies = {}
         self.seen_loaded_dependencies = {}
@@ -190,15 +191,17 @@ class _AppDependenciesLoadedValidation(BaseValidation):
         if content.get("request_type") == "app-started":
             if content["payload"].get("dependencies"):
                 for dependency in content["payload"]["dependencies"]:
-                    dependency_id = dependency["name"] #+dep["version"]
-                    assert dependency_id not in self.seen_loaded_dependencies, "Loaded dependency should not be in app-started"
-                    if(dependency_id not in self.seen_dependencies):
+                    dependency_id = dependency["name"]  # +dep["version"]
+                    assert (
+                        dependency_id not in self.seen_loaded_dependencies
+                    ), "Loaded dependency should not be in app-started"
+                    if dependency_id not in self.seen_dependencies:
                         print("not in seen")
                         print(dependency_id)
                     self.seen_dependencies[dependency_id] = True
         elif content.get("request_type") == "app-dependencies-loaded":
             for dependency in content["payload"]["dependencies"]:
-                dependency_id = dependency["name"] #+dependency["version"]
+                dependency_id = dependency["name"]  # +dependency["version"]
                 self.seen_dependencies[dependency_id] = True
                 self.seen_loaded_dependencies[dependency_id] = True
 
