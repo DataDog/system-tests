@@ -91,7 +91,7 @@ def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
-FROM datadog/dd-trace-py:buster
+FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
 WORKDIR /client
 RUN pyenv global 3.9.11
 RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3
@@ -161,7 +161,7 @@ RUN go install
 def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
-    dotnet_reldir = os.path.join("parametric", dotnet_appdir)
+    dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
     env["ASPNETCORE_URLS"] = "http://localhost:50051"
     return APMLibraryTestServer(
         lang="dotnet",
@@ -194,10 +194,11 @@ def java_library_factory(env: Dict[str, str]):
 FROM maven:3-jdk-8
 WORKDIR /client
 COPY {java_reldir}/src src
+COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
 COPY {java_reldir}/run.sh .
-COPY binaries* /binaries/
-RUN mvn package
+COPY binaries /binaries
+RUN bash build.sh
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_dir,
@@ -675,8 +676,8 @@ class APMLibrary:
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
-    def inject_headers(self):
-        return self._client.InjectHeaders(pb.InjectHeadersArgs())
+    def inject_headers(self, span_id):
+        return self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())

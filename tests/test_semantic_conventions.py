@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, BaseTestCase, interfaces, bug
+from utils import context, interfaces, bug
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -67,12 +67,12 @@ def get_component_name(weblog_variant, language, span_name):
 
     # if type of component is a dictionary, get the component tag value by searching dict with current span name
     # try to get component name from name of span, otherwise use beginning of span as expected component, e.g: 'rack' for span name 'rack.request'
-    if type(expected_component) is dict:
+    if isinstance(expected_component) == dict:
         expected_component = expected_component.get(span_name, span_name.split(".")[0])
     return expected_component
 
 
-class Test_Meta(BaseTestCase):
+class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
@@ -95,7 +95,7 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
     @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
@@ -119,7 +119,7 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
@@ -138,7 +138,7 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
@@ -166,7 +166,7 @@ class Test_Meta(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="python", reason="language tag not implemented")
@@ -186,7 +186,7 @@ class Test_Meta(BaseTestCase):
                 )
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     @bug(library="php", reason="component tag not implemented")
     @bug(library="python", reason="component tag not implemented")
@@ -216,7 +216,7 @@ class Test_Meta(BaseTestCase):
                     )
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="java", reason="runtime-id tag not implemented")
@@ -226,18 +226,18 @@ class Test_Meta(BaseTestCase):
         def validator(span):
 
             if "runtime-id" not in span.get("meta"):
-                raise Exception(f"No runtime-id tag found. Expected tag to be present.")
+                raise Exception("No runtime-id tag found. Expected tag to be present.")
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
 
 @bug(
     context.library in ("cpp", "python", "ruby"),
     reason="Inconsistent implementation across tracers; will need a dedicated testing scenario",
 )
-class Test_MetaDatadogTags(BaseTestCase):
+class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
     def test_meta_dd_tags(self):
@@ -250,10 +250,10 @@ class Test_MetaDatadogTags(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
 
-class Test_MetricsStandardTags(BaseTestCase):
+class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
     @bug(library="cpp", reason="Not implemented")
@@ -271,4 +271,4 @@ class Test_MetricsStandardTags(BaseTestCase):
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator, success_by_default=True)
