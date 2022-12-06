@@ -360,7 +360,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             [
                 ["x-datadog-trace-id", "7890123456789012"],
                 ["x-datadog-parent-id", "1234567890123456"],
-                ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.new_key=val"],
+                ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"],
             ],
         )
 
@@ -378,7 +378,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64::"],
+                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"],
             ],
         )
 
@@ -387,7 +387,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64::;t.new_key=val"],
+                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost"],
             ],
         )
 
@@ -412,20 +412,20 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     assert "traceparent" in headers2
     assert "tracestate" in headers2
     assert "t.dm:-4" in dd_items2
-    assert "t.usr.id:baz64::" in dd_items2
+    assert "t.usr.id:baz64~~" in dd_items2
 
     # 3) x-datadog-tags is populated with both well-known tags and unrecognized tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
     #         and "=" is replaced with ":"
-    assert headers3["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.new_key=val"
+    assert headers3["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
 
     traceparent3, tracestate3 = get_tracecontext(headers3)
     dd_items3 = tracestate3["dd"].split(";")
     assert "traceparent" in headers3
     assert "tracestate" in headers3
     assert "t.dm:-4" in dd_items3
-    assert "t.usr.id:baz64::" in dd_items3
-    assert "t.new_key:val" in dd_items3
+    assert "t.usr.id:baz64~~" in dd_items3
+    assert "t.url:http://localhost" in dd_items3
 
     # 4) tracestate[dd] does not contain propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
@@ -457,12 +457,12 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     assert "traceparent" in headers5
     assert "tracestate" in headers5
     assert "t.dm:-4" in dd_items5
-    assert "t.usr.id:baz64::" in dd_items5
+    assert "t.usr.id:baz64~~" in dd_items5
 
     # 6) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
     #         and "=" is replaced with ":"
-    assert headers6["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.new_key=val"
+    assert headers6["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
 
     traceparent6, tracestate6 = get_tracecontext(headers6)
     dd_items6 = tracestate6["dd"].split(";")
@@ -470,4 +470,4 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     assert "tracestate" in headers6
     assert "t.dm:-4" in dd_items6
     assert "t.usr.id:baz64::" in dd_items6
-    assert "t.new_key:val" in dd_items6
+    assert "t.url:http://localhost" in dd_items6
