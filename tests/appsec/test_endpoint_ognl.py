@@ -17,5 +17,5 @@ class Test_Ognl:
         self.r = weblog.get("/trace/ognl")
 
     def test_main(self):
-        interfaces.library.add_assertion(self.r.status_code == 200)
+        assert self.r.status_code == 200
         interfaces.library.assert_trace_exists(self.r)

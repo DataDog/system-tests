@@ -148,8 +148,13 @@ else # Let user choose the target
     export SYSTEMTESTS_LOG_FOLDER=logs
     CONTAINERS+=(postgres)
 fi
+
 # Clean logs/ folder
 rm -rf $SYSTEMTESTS_LOG_FOLDER
+
+# clean any pycache folder
+find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
+
 for interface in ${interfaces[@]}
 do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/interfaces/$interface

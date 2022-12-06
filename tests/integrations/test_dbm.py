@@ -12,26 +12,21 @@ class Test_Dbm:
     """Verify behavior of DBM propagation"""
 
     def setup_trace_payload(self):
-        self.r_execute = weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "execute"})
-        self.r_many = weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "executemany"})
+        self.requests = [
+            weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "execute"}),
+            weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "executemany"}),
+        ]
 
     def test_trace_payload(self):
-        def validator(span):
-            if span.get("span_type") != "sql":
-                return
 
-            meta = span.get("meta", {})
-            assert "_dd.dbm_trace_injected" in meta
+        for r in self.requests:
+            assert r.status_code == 200
+            for _, _, span in interfaces.library.get_spans(request=r):
+                if span.get("span_type") != "sql":
+                    return
 
-            return True
-
-        # test psycopg execute()
-        interfaces.library.add_assertion(self.r_execute.status_code == 200)
-        interfaces.library.add_span_validation(self.r_execute, validator=validator, is_success_on_expiry=True)
-
-        # test psycopg executemany()
-        interfaces.library.add_assertion(self.r_many.status_code == 200)
-        interfaces.library.add_span_validation(self.r_many, validator=validator, is_success_on_expiry=True)
+                meta = span.get("meta", {})
+                assert "_dd.dbm_trace_injected" in meta
 
     def test_dbm_payload(self):
         # TODO: Add schema for validation of dbm payload agent/backend

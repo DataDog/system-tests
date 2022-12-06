@@ -35,4 +35,4 @@ class Test_Basic:
 
             return True
 
-        interfaces.library.add_span_validation(self.r, validate_identify_tags)
+        interfaces.library.validate_spans(self.r, validate_identify_tags)
