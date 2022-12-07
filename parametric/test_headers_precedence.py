@@ -8,14 +8,6 @@ from parametric.utils.headers import make_single_request_and_get_headers
 parametrize = pytest.mark.parametrize
 
 
-def temporary_enable_propagationstyle_default() -> Any:
-    env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
-    }
-    return parametrize("library_env", [env])
-
-
 def temporary_enable_propagationstyle_tracecontext() -> Any:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
@@ -32,7 +24,6 @@ def temporary_enable_propagationstyle_datadog() -> Any:
     return parametrize("library_env", [env])
 
 
-@temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
@@ -53,22 +44,22 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
             [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
         )
 
-        # 4) Only Datadog headers
-        headers4 = make_single_request_and_get_headers(
-            test_library,
-            [
-                ["x-datadog-trace-id", "123456789"],
-                ["x-datadog-parent-id", "987654321"],
-                ["x-datadog-sampling-priority", "-2"],
-            ],
-        )
-
         # 5) Both tracecontext and Datadog headers
         headers5 = make_single_request_and_get_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                 ["tracestate", "foo=1"],
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "-2"],
+            ],
+        )
+
+        # 4) Only Datadog headers
+        headers4 = make_single_request_and_get_headers(
+            test_library,
+            [
                 ["x-datadog-trace-id", "123456789"],
                 ["x-datadog-parent-id", "987654321"],
                 ["x-datadog-sampling-priority", "-2"],
@@ -120,21 +111,6 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     assert int(headers3["x-datadog-parent-id"]) == int(traceparent3.parent_id, base=16)
     assert "x-datadog-sampling-priority" in headers3
 
-    # 4) Only Datadog headers
-    # Result: Datadog used
-    assert headers4["x-datadog-trace-id"] == "123456789"
-    assert headers4["x-datadog-parent-id"] != "987654321"
-    assert headers4["x-datadog-sampling-priority"] == "-2"
-
-    # traceparent also injected, assert that they are equal to Datadog values
-    traceparent4, tracestate4 = get_tracecontext(headers4)
-    tracestate4Arr = str(tracestate4).split(",")
-    assert "traceparent" in headers4
-    assert int(traceparent4.trace_id, base=16) == int(headers4["x-datadog-trace-id"])
-    assert int(traceparent4.parent_id, base=16) == int(headers4["x-datadog-parent-id"])
-    assert "tracestate" in headers4
-    assert len(tracestate4Arr) == 1 and tracestate4Arr[0].startswith("dd=")
-
     # 5) Both tracecontext and Datadog headers
     # Result: traceparent used
     traceparent5, tracestate5 = get_tracecontext(headers5)
@@ -149,6 +125,21 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     assert int(headers5["x-datadog-trace-id"]) == int(traceparent5.trace_id[16:], base=16)
     assert int(headers5["x-datadog-parent-id"]) == int(traceparent5.parent_id, base=16)
     assert headers5["x-datadog-sampling-priority"] != -2
+
+    # 4) Only Datadog headers
+    # Result: Datadog used
+    assert headers4["x-datadog-trace-id"] == "123456789"
+    assert headers4["x-datadog-parent-id"] != "987654321"
+    assert headers4["x-datadog-sampling-priority"] == "-2"
+
+    # traceparent also injected, assert that they are equal to Datadog values
+    traceparent4, tracestate4 = get_tracecontext(headers4)
+    tracestate4Arr = str(tracestate4).split(",")
+    assert "traceparent" in headers4
+    assert int(traceparent4.trace_id, base=16) == int(headers4["x-datadog-trace-id"])
+    assert int(traceparent4.parent_id, base=16) == int(headers4["x-datadog-parent-id"])
+    assert "tracestate" in headers4
+    assert len(tracestate4Arr) == 1 and tracestate4Arr[0].startswith("dd=")
 
 
 @temporary_enable_propagationstyle_tracecontext()
@@ -172,22 +163,22 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
             [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
         )
 
-        # 4) Only Datadog headers
-        headers4 = make_single_request_and_get_headers(
-            test_library,
-            [
-                ["x-datadog-trace-id", "123456789"],
-                ["x-datadog-parent-id", "987654321"],
-                ["x-datadog-sampling-priority", "-2"],
-            ],
-        )
-
         # 5) Both tracecontext and Datadog headers
         headers5 = make_single_request_and_get_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                 ["tracestate", "foo=1"],
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "-2"],
+            ],
+        )
+
+        # 4) Only Datadog headers
+        headers4 = make_single_request_and_get_headers(
+            test_library,
+            [
                 ["x-datadog-trace-id", "123456789"],
                 ["x-datadog-parent-id", "987654321"],
                 ["x-datadog-sampling-priority", "-2"],
@@ -230,16 +221,6 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
     assert "x-datadog-parent-id" not in headers3
     assert "x-datadog-sampling-priority" not in headers3
 
-    # 4) Only Datadog headers
-    # Result: new Datadog span context, tracestate updated with `dd` key
-    tracestate4Arr = headers4["tracestate"].split(",")
-    assert "traceparent" in headers4
-    assert "tracestate" in headers4
-    assert len(tracestate4Arr) == 1 and tracestate4Arr[0].startswith("dd=")
-    assert "x-datadog-trace-id" not in headers4
-    assert "x-datadog-parent-id" not in headers4
-    assert "x-datadog-sampling-priority" not in headers4
-
     # 5) Both tracecontext and Datadog headers
     # Result: traceparent used, tracestate updated with `dd` key
     traceparent5, tracestate5 = get_tracecontext(headers5)
@@ -252,6 +233,16 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
     assert "x-datadog-trace-id" not in headers5
     assert "x-datadog-parent-id" not in headers5
     assert "x-datadog-sampling-priority" not in headers5
+
+    # 4) Only Datadog headers
+    # Result: new Datadog span context, tracestate updated with `dd` key
+    tracestate4Arr = headers4["tracestate"].split(",")
+    assert "traceparent" in headers4
+    assert "tracestate" in headers4
+    assert len(tracestate4Arr) == 1 and tracestate4Arr[0].startswith("dd=")
+    assert "x-datadog-trace-id" not in headers4
+    assert "x-datadog-parent-id" not in headers4
+    assert "x-datadog-sampling-priority" not in headers4
 
 
 @temporary_enable_propagationstyle_datadog()
@@ -272,22 +263,22 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
             [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
         )
 
-        # Only Datadog headers
-        headers4 = make_single_request_and_get_headers(
-            test_library,
-            [
-                ["x-datadog-trace-id", "123456789"],
-                ["x-datadog-parent-id", "987654321"],
-                ["x-datadog-sampling-priority", "-2"],
-            ],
-        )
-
         # Both tracecontext and Datadog headers
         headers5 = make_single_request_and_get_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                 ["tracestate", "foo=1"],
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "-2"],
+            ],
+        )
+
+        # Only Datadog headers
+        headers4 = make_single_request_and_get_headers(
+            test_library,
+            [
                 ["x-datadog-trace-id", "123456789"],
                 ["x-datadog-parent-id", "987654321"],
                 ["x-datadog-sampling-priority", "-2"],
@@ -312,16 +303,16 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     assert "x-datadog-parent-id" in headers3
     assert "x-datadog-sampling-priority" in headers3
 
-    assert "traceparent" not in headers4
-    assert "tracestate" not in headers4
-    assert headers4["x-datadog-trace-id"] == "123456789"
-    assert "x-datadog-parent-id" in headers4
-    assert headers4["x-datadog-parent-id"] != "123456789"
-    assert headers4["x-datadog-sampling-priority"] == "-2"
-
     assert "traceparent" not in headers5
     assert "tracestate" not in headers5
     assert headers5["x-datadog-trace-id"] == "123456789"
     assert "x-datadog-parent-id" in headers5
     assert headers5["x-datadog-parent-id"] != "123456789"
     assert headers5["x-datadog-sampling-priority"] == "-2"
+
+    assert "traceparent" not in headers4
+    assert "tracestate" not in headers4
+    assert headers4["x-datadog-trace-id"] == "123456789"
+    assert "x-datadog-parent-id" in headers4
+    assert headers4["x-datadog-parent-id"] != "123456789"
+    assert headers4["x-datadog-sampling-priority"] == "-2"
