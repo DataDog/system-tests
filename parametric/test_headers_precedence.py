@@ -66,6 +66,18 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
             ],
         )
 
+        # 6) Invalid tracecontext, valid Datadog headers
+        headers6 = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
+                ["tracestate", "foo=1"],
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "-2"],
+            ],
+        )
+
     # 1) No headers
     # Result: new Datadog span context
     assert "x-datadog-trace-id" in headers1
@@ -141,6 +153,21 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     assert "tracestate" in headers5
     assert len(tracestate5Arr) == 1 and tracestate5Arr[0].startswith("dd=")
 
+    # 6) Invalid tracecontext, valid Datadog headers
+    # Result: Datadog used
+    assert headers6["x-datadog-trace-id"] == "123456789"
+    assert headers6["x-datadog-parent-id"] != "987654321"
+    assert headers6["x-datadog-sampling-priority"] == "-2"
+
+    # traceparent also injected, assert that they are equal to Datadog values
+    traceparent6, tracestate6 = get_tracecontext(headers6)
+    tracestate6Arr = str(tracestate6).split(",")
+    assert "traceparent" in headers6
+    assert int(traceparent6.trace_id, base=16) == int(headers6["x-datadog-trace-id"])
+    assert int(traceparent6.parent_id, base=16) == int(headers6["x-datadog-parent-id"])
+    assert "tracestate" in headers6
+    assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
+
 
 @temporary_enable_propagationstyle_tracecontext()
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
@@ -179,6 +206,18 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
         headers5 = make_single_request_and_get_headers(
             test_library,
             [
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "-2"],
+            ],
+        )
+
+        # 6) Invalid tracecontext, valid Datadog headers
+        headers6 = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
+                ["tracestate", "foo=1"],
                 ["x-datadog-trace-id", "123456789"],
                 ["x-datadog-parent-id", "987654321"],
                 ["x-datadog-sampling-priority", "-2"],
@@ -244,6 +283,16 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
     assert "x-datadog-parent-id" not in headers5
     assert "x-datadog-sampling-priority" not in headers5
 
+    # 6) Invalid tracecontext, valid Datadog headers
+    # Result: new Datadog span context, tracestate updated with `dd` key
+    tracestate6Arr = headers6["tracestate"].split(",")
+    assert "traceparent" in headers6
+    assert "tracestate" in headers6
+    assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
+    assert "x-datadog-trace-id" not in headers6
+    assert "x-datadog-parent-id" not in headers6
+    assert "x-datadog-sampling-priority" not in headers6
+
 
 @temporary_enable_propagationstyle_datadog()
 @pytest.mark.skip_library("golang", "not implemented")
@@ -281,6 +330,18 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
         headers4 = make_single_request_and_get_headers(
             test_library,
             [
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "-2"],
+            ],
+        )
+
+        # 6) Invalid tracecontext, valid Datadog headers
+        headers6 = make_single_request_and_get_headers(
+            test_library,
+            [
+                ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
+                ["tracestate", "foo=1"],
                 ["x-datadog-trace-id", "123456789"],
                 ["x-datadog-parent-id", "987654321"],
                 ["x-datadog-sampling-priority", "-2"],
@@ -328,3 +389,12 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     assert "x-datadog-parent-id" in headers5
     assert headers5["x-datadog-parent-id"] != "987654321"
     assert headers5["x-datadog-sampling-priority"] == "-2"
+
+    # 6) Invalid tracecontext, valid Datadog headers
+    # Result: Datadog used
+    assert "traceparent" not in headers6
+    assert "tracestate" not in headers6
+    assert headers6["x-datadog-trace-id"] == "123456789"
+    assert "x-datadog-parent-id" in headers6
+    assert headers6["x-datadog-parent-id"] != "987654321"
+    assert headers6["x-datadog-sampling-priority"] == "-2"
