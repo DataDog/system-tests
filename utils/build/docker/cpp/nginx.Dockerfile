@@ -36,15 +36,17 @@ RUN echo '{}' > /etc/nginx/dd-config.json
 
 RUN mkdir /builds
 COPY utils/build/docker/cpp/fetch_ddprof.sh /builds/
-COPY utils/build/docker/cpp/install_ddtrace.sh /builds/
+COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /builds/
 RUN /builds/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
 # Profiling setup
-ARG DDPROF_ENABLE="no"
-ENV DDPROF_ENABLE=${DDPROF_ENABLE}
 RUN /builds/fetch_ddprof.sh /usr/local/bin
 
-COPY utils/build/docker/cpp/app.sh ./
+COPY utils/build/docker/cpp/nginx/app.sh ./
+
+# With or without the native profiler
+ARG DDPROF_ENABLE="yes"
+ENV DDPROF_ENABLE=${DDPROF_ENABLE}
 CMD ["./app.sh"]

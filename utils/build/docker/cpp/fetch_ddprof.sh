@@ -28,3 +28,6 @@ eval $cmd
 tar xvf ${ddprof_name} ddprof/bin/ddprof -O > ${ddprof_install_path}/ddprof
 rm -f ./${ddprof_name} && chmod +x ${ddprof_install_path}/ddprof
 popd
+
+PROFILER_VERSION=$(ddprof --version)
+echo "Profiler version: $(echo ${PROFILER_VERSION})"

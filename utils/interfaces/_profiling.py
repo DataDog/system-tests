@@ -28,3 +28,4 @@ class _ProfilingFieldValidator:
                 return
 
         raise Exception(f"{data['log_filename']} is not valid")
+

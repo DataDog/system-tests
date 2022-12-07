@@ -45,10 +45,12 @@ services:
       - SYSTEMTESTS_VARIATION=${SYSTEMTESTS_VARIATION:-DEFAULT}
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
-#    security_opt:
-#      - seccomp=unconfined # ddprof's perf event open is blocked by default
-    cap_add: # This is worse than the line above though prevents mmap bugs locally
-      - SYS_ADMIN
+    security_opt:
+      - seccomp=unconfined # ddprof's perf event open is blocked by default by docker's seccomp profile
+    # This is worse than the line above though prevents mmap bugs locally
+    # Just enable this if we are getting other failures with native (potential mmap failures)
+#    cap_add:
+#      - SYS_ADMIN
     ports:
       - "127.0.0.1:7777:7777"
       - "127.0.0.1:7778:7778"
