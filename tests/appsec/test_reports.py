@@ -55,46 +55,46 @@ class Test_StatusCode:
 
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
-#
-# @released(
-#     golang="1.37.0"
-#     if context.weblog_variant == "gin"
-#     else "1.36.0"
-#     if context.weblog_variant in ["echo", "chi"]
-#     else "1.34.0"
-# )
-# @released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
-# @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-# @coverage.good
-# class Test_HttpClientIP:
-#     """ AppSec reports good http client IP"""
-#
-#     def setup_http_remote_ip(self):
-#         headers = {"User-Agent": "Arachni/v1"}
-#         self.r = weblog.get("/waf/", headers=headers, stream=True)
-#         try:
-#             self.actual_remote_ip = self.r.raw._connection.sock.getsockname()[0]  # pylint: disable=protected-access
-#         except:
-#             self.actual_remote_ip = None
-#         self.r.close()
-#
-#     def test_http_remote_ip(self):
-#         """ AppSec reports the HTTP request peer IP. """
-#
-#         def legacy_validator(event):
-#             remote_ip = event["context"]["http"]["request"]["remote_ip"]
-#             assert remote_ip == self.actual_remote_ip, f"request remote ip should be {self.actual_remote_ip}"
-#
-#             return True
-#
-#         def validator(span, appsec_data):
-#             ip = span["meta"]["network.client.ip"]
-#             assert ip == self.actual_remote_ip, f"network.client.ip should be {self.actual_remote_ip}"
-#
-#             return True
-#
-#         interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
-#
+
+@released(
+    golang="1.37.0"
+    if context.weblog_variant == "gin"
+    else "1.36.0"
+    if context.weblog_variant in ["echo", "chi"]
+    else "1.34.0"
+)
+@released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
+@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@coverage.good
+class Test_HttpClientIP:
+    """ AppSec reports good http client IP"""
+
+    def setup_http_remote_ip(self):
+        headers = {"User-Agent": "Arachni/v1"}
+        self.r = weblog.get("/waf/", headers=headers, stream=True)
+        try:
+            self.actual_remote_ip = self.r.raw._connection.sock.getsockname()[0]  # pylint: disable=protected-access
+        except:
+            self.actual_remote_ip = None
+        self.r.close()
+
+    def test_http_remote_ip(self):
+        """ AppSec reports the HTTP request peer IP. """
+
+        def legacy_validator(event):
+            remote_ip = event["context"]["http"]["request"]["remote_ip"]
+            assert remote_ip == self.actual_remote_ip, f"request remote ip should be {self.actual_remote_ip}"
+
+            return True
+
+        def validator(span, appsec_data):
+            ip = span["meta"]["network.client.ip"]
+            assert ip == self.actual_remote_ip, f"network.client.ip should be {self.actual_remote_ip}"
+
+            return True
+
+        interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
+
 
 @released(
     golang="1.37.0"
