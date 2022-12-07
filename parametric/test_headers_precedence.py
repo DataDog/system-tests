@@ -8,25 +8,22 @@ from parametric.utils.headers import make_single_request_and_get_headers
 parametrize = pytest.mark.parametrize
 
 
-def temporary_enable_propagationstyle_tracecontext() -> Any:
+def enable_tracecontext() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
     }
     return parametrize("library_env", [env])
 
 
-def temporary_enable_propagationstyle_datadog() -> Any:
+def enable_datadog() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog",
+        "DD_TRACE_PROPAGATION_STYLE": "Datadog",
     }
     return parametrize("library_env", [env])
 
-def temporary_enable_propagationstyle_datadog_tracecontext() -> Any:
+def enable_datadog_tracecontext() -> Any:
     env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,tracecontext",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,tracecontext",
+        "DD_TRACE_PROPAGATION_STYLE": "Datadog,tracecontext",
     }
     return parametrize("library_env", [env])
 
@@ -175,7 +172,7 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
 
-@temporary_enable_propagationstyle_tracecontext()
+@enable_tracecontext()
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
@@ -300,7 +297,7 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
     assert "x-datadog-sampling-priority" not in headers6
 
 
-@temporary_enable_propagationstyle_datadog()
+@enable_datadog()
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
@@ -405,7 +402,7 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     assert headers6["x-datadog-parent-id"] != "987654321"
     assert headers6["x-datadog-sampling-priority"] == "-2"
 
-@temporary_enable_propagationstyle_datadog_tracecontext()
+@enable_datadog_tracecontext()
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
