@@ -56,119 +56,81 @@ class _NoSkippedSeqId:
                 )
 
 
-class _AppDependenciesLoadedValidation:
-    """Verify that the dependency telemetry is correct."""
+def read_dependencies():
+    def read_nodejs_dependencies():
+        file_path = "./utils/build/docker/nodejs/express4/package.json"
+        package_file = open(file_path, encoding="UTF-8")
+        package_json = json.load(package_file)
+        loaded_dependencies = package_json["loaded-dependencies"]
+        defined_dependencies = package_json["dependencies"]
+        return defined_dependencies, loaded_dependencies
 
-    def __init__(self):
-        super().__init__()
+    def read_dotnet_dependencies():
+        file_path = "./utils/build/docker/dotnet/app.csproj"
+        document = ET.parse(file_path)
+        root = document.getroot()
 
-        def read_nodejs_dependencies():
-            file_path = "./utils/build/docker/nodejs/express4/package.json"
-            package_file = open(file_path, encoding="UTF-8")
-            package_json = json.load(package_file)
-            loaded_dependencies = package_json["loaded-dependencies"]
-            defined_dependencies = package_json["dependencies"]
-            return defined_dependencies, loaded_dependencies
+        dependencies = {}
+        loaded_dependencies = {}
+        for child in root:
+            if child.tag == "ItemGroup":
+                dependencies = child
+            elif child.tag == "loadedDependency":
+                loaded_dependencies[child.text] = None
 
-        def read_dotnet_dependencies():
-            file_path = "./utils/build/docker/dotnet/app.csproj"
-            document = ET.parse(file_path)
-            root = document.getroot()
+        defined_dependencies = {}
+        for dependency in dependencies:
+            attributes = dependency.attrib
+            dependency_name = attributes.get("Include")
+            dependency_version = attributes.get("Version")
+            if not dependency_name:
+                pass  # TODO: throw error for malformatted app.csproj
+            if attributes.get("Loaded"):
+                loaded_dependencies[dependency_name] = dependency_version
+            defined_dependencies[dependency_name] = dependency_version
 
-            dependencies = {}
-            loaded_dependencies = {}
-            for child in root:
-                if child.tag == "ItemGroup":
-                    dependencies = child
-                elif child.tag == "loadedDependency":
-                    loaded_dependencies[child.text] = None
+        return loaded_dependencies, defined_dependencies
 
-            defined_dependencies = {}
-            for dependency in dependencies:
-                attributes = dependency.attrib
-                dependency_name = attributes.get("Include")
-                dependency_version = attributes.get("Version")
-                if not dependency_name:
-                    pass  # TODO: throw error for malformatted app.csproj
-                if attributes.get("Loaded"):
-                    loaded_dependencies[dependency_name] = dependency_version
-                defined_dependencies[dependency_name] = dependency_version
+    def read_java_dependencies():
+        file_path = "./utils/build/docker/java/spring-boot/pom.xml"
+        document = ET.parse(file_path)
+        root = document.getroot()
 
-            return loaded_dependencies, defined_dependencies
+        dependencies = {}
+        properties = {}
+        for child in root:
+            if "dependencies" in child.tag:
+                dependencies = child
+            if "properties" in child.tag:
+                properties = child
 
-        def read_java_dependencies():
-            file_path = "./utils/build/docker/java/spring-boot/pom.xml"
-            document = ET.parse(file_path)
-            root = document.getroot()
+        loaded_dependencies = {}
+        for element in properties:
+            if "loadedDependency" in element.tag:
+                loaded_dependencies[element.text] = None
+                break
 
-            dependencies = {}
-            properties = {}
-            for child in root:
-                if "dependencies" in child.tag:
-                    dependencies = child
-                if "properties" in child.tag:
-                    properties = child
+        defined_dependencies = {}
+        for dependency in dependencies:
+            dependency_name = None
+            dependency_version = None
+            for element in dependency:
+                if "artifactId" in element.tag:
+                    dependency_name = element.text
+                elif "version" in element.tag:
+                    dependency_version = element.text
+            if dependency_name in loaded_dependencies:
+                loaded_dependencies[dependency_name] = dependency_version
+            defined_dependencies[dependency_name] = dependency_version
 
-            loaded_dependencies = {}
-            for element in properties:
-                if "loadedDependency" in element.tag:
-                    loaded_dependencies[element.text] = None
-                    break
+        return loaded_dependencies, defined_dependencies
 
-            defined_dependencies = {}
-            for dependency in dependencies:
-                dependency_name = None
-                dependency_version = None
-                for element in dependency:
-                    if "artifactId" in element.tag:
-                        dependency_name = element.text
-                    elif "version" in element.tag:
-                        dependency_version = element.text
-                if dependency_name in loaded_dependencies:
-                    loaded_dependencies[dependency_name] = dependency_version
-                defined_dependencies[dependency_name] = dependency_version
+    library_dependency_map = {
+        "nodejs": read_nodejs_dependencies,
+        "dotnet": read_dotnet_dependencies,
+        "java": read_java_dependencies,
+    }
 
-            return loaded_dependencies, defined_dependencies
-
-        library_dependency_map = {
-            "nodejs": read_nodejs_dependencies,
-            "dotnet": read_dotnet_dependencies,
-            "java": read_java_dependencies,
-        }
-
-        library = context.library.library
-        loaded_dependencies, defined_dependencies = library_dependency_map[library]()
-
-        self.seen_dependencies = {}
-        self.seen_loaded_dependencies = {}
-
-        for dependency, version in defined_dependencies.items():
-            self.seen_dependencies[dependency] = False
-
-        for dependency, version in loaded_dependencies.items():
-            self.seen_loaded_dependencies[dependency] = False
-
-    def __call__(self, data):
-        content = data["request"]["content"]
-        if content.get("request_type") == "app-started":
-            if content["payload"].get("dependencies"):
-                for dependency in content["payload"]["dependencies"]:
-                    dependency_id = dependency["name"]  # +dep["version"]
-                    assert (
-                        dependency_id not in self.seen_loaded_dependencies
-                    ), "Loaded dependency should not be in app-started"
-                    if dependency_id not in self.seen_dependencies:
-                        print("not in seen")
-                        print(dependency_id)
-                    self.seen_dependencies[dependency_id] = True
-        elif content.get("request_type") == "app-dependencies-loaded":
-            for dependency in content["payload"]["dependencies"]:
-                dependency_id = dependency["name"]  # +dependency["version"]
-                self.seen_dependencies[dependency_id] = True
-                self.seen_loaded_dependencies[dependency_id] = True
-
-    def final_check(self):
-        # for dependency, seen in self.seen_dependencies.items():
-        #     assert seen, dependency + " was not sent"
-        for dependency, seen in self.seen_loaded_dependencies.items():
-            assert seen, dependency + " was not sent"
+    library = context.library.library
+    loaded_dependencies, defined_dependencies = library_dependency_map[library]()
+    return loaded_dependencies, defined_dependencies

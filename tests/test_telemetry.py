@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import time
 from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
 from utils.tools import logger
+from utils.interfaces._library.telemetry import read_dependencies
 
 
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
@@ -172,9 +173,11 @@ class Test_Telemetry:
 
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
+    def setup_app_heartbeat(self):
+        time.sleep(20)
+
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
-        time.sleep(20)
 
         prev_message_time = -1
         TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
@@ -197,9 +200,41 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="python")
     @irrelevant(library="ruby")
+    def setup_app_dependencies_loaded(self):
+        self.r = weblog.get("/load_dependency")
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="python")
+    @irrelevant(library="ruby")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
-        TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
-        self.r = weblog.get("/load_dependency")
-        time.sleep(TELEMETRY_HEARTBEAT_INTERVAL)
-        interfaces.library.assert_app_dependencies_loaded_validation()
+
+        self.seen_loaded_dependencies, self.seen_dependencies = read_dependencies()
+
+        print(self.seen_dependencies)
+        print(self.seen_loaded_dependencies)
+
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-started":
+                if content["payload"].get("dependencies"):
+                    for dependency in content["payload"]["dependencies"]:
+                        dependency_id = dependency["name"]  # +dep["version"]
+                        assert (
+                            dependency_id not in self.seen_loaded_dependencies
+                        ), "Loaded dependency should not be in app-started"
+                        if dependency_id not in self.seen_dependencies:
+                            print("not in seen")
+                            print(dependency_id)
+                        self.seen_dependencies[dependency_id] = True
+            elif content.get("request_type") == "app-dependencies-loaded":
+                for dependency in content["payload"]["dependencies"]:
+                    dependency_id = dependency["name"]  # +dependency["version"]
+                    self.seen_dependencies[dependency_id] = True
+                    self.seen_loaded_dependencies[dependency_id] = True
+
+        for dependency, seen in self.seen_loaded_dependencies.items():
+            assert seen, dependency + " was not sent"
+            logger.info("all dependencies are ok")
