@@ -1,34 +1,40 @@
+from copy import deepcopy
 import yaml
 
-
-scenarios = [
-    "DEFAULT",
-    "UDS",
-    "PROFILING",
-    "CGROUP",
-    "TRACE_PROPAGATION_STYLE_W3C",
-    "INTEGRATIONS",
-    "LIBRARY_CONF_CUSTOM_HEADERS_SHORT",
-    "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-    "SAMPLING",
-    "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
-    "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
-    "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-    "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-    "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
-    "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-    "APPSEC_MISSING_RULES",
-    "APPSEC_CORRUPTED_RULES",
-    "APPSEC_CUSTOM_RULES",
-    "APPSEC_RULES_MONITORING_WITH_ERRORS",
-    # "APPSEC_UNSUPPORTED",
-    "APPSEC_DISABLED",
-    "APPSEC_LOW_WAF_TIMEOUT",
-    "APPSEC_CUSTOM_OBFUSCATION",
-    "APPSEC_RATE_LIMITER",
-    "APPSEC_IP_BLOCKING",
-    "APPSEC_RUNTIME_ACTIVATION",
-]
+scenarios_sets = (
+    (
+        "DEFAULT",
+        "UDS",
+        "PROFILING",
+        "CGROUP",
+        "TRACE_PROPAGATION_STYLE_W3C",
+        "INTEGRATIONS",
+        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT",
+        "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
+    ),
+    (
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
+        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
+        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
+        "SAMPLING",
+    ),
+    (
+        "APPSEC_MISSING_RULES",
+        "APPSEC_CORRUPTED_RULES",
+        "APPSEC_CUSTOM_RULES",
+        "APPSEC_RULES_MONITORING_WITH_ERRORS",
+        "APPSEC_DISABLED",
+        "APPSEC_LOW_WAF_TIMEOUT",
+        "APPSEC_CUSTOM_OBFUSCATION",
+        "APPSEC_RATE_LIMITER",
+        "APPSEC_IP_BLOCKING",
+        "APPSEC_RUNTIME_ACTIVATION",
+        # "APPSEC_UNSUPPORTED",
+    ),
+)
 
 php_versions = ("7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1")
 rails_versions = ("32", "40", "41", "42", "50", "51", "52", "60", "61", "70")
@@ -151,11 +157,14 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(workflow, needs):
+def add_main_job(name, workflow, needs, scenarios):
 
-    job = Job("test-the-tests", needs=[job.name for job in needs])
+    job = Job(name, needs=[job.name for job in needs])
 
-    job.data["strategy"] = {"matrix": {"variant": variants, "version": ["prod", "dev"]}, "fail-fast": False}
+    job.data["strategy"] = {
+        "matrix": {"variant": deepcopy(variants), "version": ["prod", "dev"]},
+        "fail-fast": False,
+    }
 
     job.data["env"] = {
         "TEST_LIBRARY": "${{ matrix.variant.library }}",
@@ -263,8 +272,13 @@ def main():
     result["env"] = {"REGISTRY": "ghcr.io"}
 
     lint_job = add_lint_job(result)
-    main_job = add_main_job(result, needs=[lint_job])
-    add_ci_dashboard_job(result, [main_job])
+
+    main_jobs = []
+
+    for i, scenarios in enumerate(scenarios_sets):
+        main_jobs.append(add_main_job(f"test-the-tests-{i}", result, needs=[lint_job], scenarios=scenarios))
+
+    add_ci_dashboard_job(result, main_jobs)
 
     yaml.dump(result, open(".github/workflows/ci.yml", "w", encoding="utf-8"), sort_keys=False, width=160)
 
