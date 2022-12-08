@@ -175,7 +175,16 @@ docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
 echo "Starting containers in background"
-docker-compose up -d --force-recreate ${CONTAINERS[*]}
+
+if docker-compose up -d --force-recreate ${CONTAINERS[*]}; then
+    echo "Containers started"
+else
+    echo "Some container failed to started"
+    docker ps --filter "health=unhealthy"
+    docker ps --quiet --filter "health=unhealthy" | xargs -n1 docker logs
+
+    exit 1
+fi
 
 export container_log_folder="unset"
 # Save docker logs
@@ -183,13 +192,6 @@ for CONTAINER in ${CONTAINERS[@]}
 do
     container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${CONTAINER}"
     docker-compose logs --no-color --no-log-prefix -f $CONTAINER > $container_log_folder/stdout.log &
-
-    # checking container, if should not be stopped here
-    if [ -z `docker ps -q --no-trunc | grep $(docker-compose ps -q $CONTAINER)` ]; then
-        echo "ERROR: $CONTAINER container is unexpectably stopped. Here is the output:"
-        docker-compose logs $CONTAINER
-        exit 1
-    fi
 done
 
 echo "Outputting runner logs."
