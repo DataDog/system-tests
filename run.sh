@@ -179,7 +179,7 @@ echo "Starting containers in background"
 if docker-compose up -d --force-recreate ${CONTAINERS[*]}; then
     echo "Containers started"
 else
-    echo "Some container are unhealthy"
+    echo "Some container failed to started"
     docker ps --filter "health=unhealthy"
     docker ps --quiet --filter "health=unhealthy" | xargs -n1 docker logs
 
