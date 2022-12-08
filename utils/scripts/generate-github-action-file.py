@@ -72,12 +72,14 @@ variants = (
 
 
 class Job:
-    def __init__(self, name, needs=None):
+    def __init__(self, name, needs=None, env=None):
         self.name = name
         self.data = {}
         self.data["runs-on"] = "ubuntu-latest"
         if needs is not None:
             self.data["needs"] = needs
+        if env is not None:
+            self.data["env"] = env
 
     @property
     def steps(self) -> list:
@@ -259,6 +261,45 @@ def add_ci_dashboard_job(workflow, needs):
     return add_job(workflow, job)
 
 
+def add_perf_job(workflow, needs):
+    job = Job("peformances", needs=[job.name for job in needs], env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"})
+
+    job.add_checkout()
+    job.add_step("Run", "./scenarios/perfs/run.sh golang")
+    job.add_step("Display", "python scenarios/perfs/process.py")
+
+    add_job(workflow, job)
+
+    return job
+
+
+def add_fuzzer_job(workflow, needs):
+    job = Job("fuzzer", needs=[job.name for job in needs], env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"})
+
+    job.add_checkout()
+    job.add_step("Build", "./build.sh golang")
+    job.add_step("Run", "./run.sh scenarios/fuzzer/main.py -t 60", env={"RUNNER_CMD": "python"})
+
+    add_job(workflow, job)
+
+    return job
+
+
+def add_parametric_job(workflow, needs):
+    job = Job("parametric", needs=[job.name for job in needs])
+
+    job.data["strategy"] = {"matrix": {"client": ["python", "dotnet", "golang", "nodejs"]}, "fail-fast": False}
+
+    job.add_checkout()
+    job.add_step(uses="actions/setup-python@v4", with_statement={"python-version": "3.9"})
+    job.add_step("Install", "cd parametric && pip install wheel && pip install -r requirements.txt")
+    job.add_step("Run", "cd parametric && CLIENTS_ENABLED=${{ matrix.client }} ./run.sh")
+
+    add_job(workflow, job)
+
+    return job
+
+
 def main():
 
     result = {"name": "Testing the test"}
@@ -279,6 +320,10 @@ def main():
         main_jobs.append(add_main_job(f"test-the-tests-{i}", result, needs=[lint_job], scenarios=scenarios))
 
     add_ci_dashboard_job(result, main_jobs)
+
+    add_perf_job(result, needs=[lint_job])
+    add_fuzzer_job(result, needs=[lint_job])
+    add_parametric_job(result, needs=[lint_job])
 
     yaml.dump(result, open(".github/workflows/ci.yml", "w", encoding="utf-8"), sort_keys=False, width=160)
 
