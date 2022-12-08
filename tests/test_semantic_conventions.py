@@ -231,10 +231,11 @@ class Test_Meta:
                     )
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=False)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
-    @bug(library="php", reason="runtime-id tag not implemented for all span")
+    @bug(library="php", reason="runtime-id tag not implemented for all spans")
+    @bug(library="java", reason="runtime-id tag not implemented for all spans")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
@@ -274,7 +275,6 @@ class Test_MetricsStandardTags:
     @bug(library="cpp", reason="Not implemented")
     @bug(library="java", reason="Not implemented")
     @bug(library="golang", reason="Not implemented")
-    @bug(library="php", reason="Currently a meta tag")
     @bug(library="ruby", reason="not implemented")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
@@ -292,7 +292,7 @@ class Test_MetricsStandardTags:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=False)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
 
 def print_span(span):
