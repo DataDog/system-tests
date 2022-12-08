@@ -231,7 +231,7 @@ class Test_Meta:
                     )
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True, success_by_default=True)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="php", reason="runtime-id tag not implemented for all spans")
