@@ -296,8 +296,7 @@ class Test_MetricsStandardTags:
 
 
 def print_span(span):
-    span_json_object = json.loads(span)
 
-    json_formatted_str = json.dumps(span_json_object, indent=2)
+    json_formatted_str = json.dumps(span, indent=2)
 
     print(json_formatted_str)
