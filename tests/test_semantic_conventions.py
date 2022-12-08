@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
 import re
 from urllib.parse import urlparse
 
@@ -89,11 +90,11 @@ class Test_Meta:
                 return
 
             if "span.kind" not in span["meta"]:
-                print(span)
+                print_span(span)
                 raise Exception("web span expect an span.kind meta tag")
 
             if span["meta"]["span.kind"] not in ("server", "client"):
-                print(span)
+                print_span(span)
                 raise Exception("Meta http.kind should be client or server")
 
             return True
@@ -135,6 +136,7 @@ class Test_Meta:
                 return
 
             if "http.status_code" not in span["meta"]:
+                print_span(span)
                 raise Exception("web span expect an http.status_code meta tag")
 
             _ = int(span["meta"]["http.status_code"])
@@ -179,6 +181,9 @@ class Test_Meta:
         """Assert that all spans have required language tag."""
 
         def validator(span):
+            if span.get("parent_id") not in (0, None):  # do nothing if not root span
+                return
+
             library = context.library.library
 
             # else we should set the language tag
@@ -190,10 +195,11 @@ class Test_Meta:
                         )
                     )
             else:
+                print_span(span)
                 raise Exception("Span must have a language tag set.")
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=False)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
     @bug(library="php", reason="component tag not implemented")
     @bug(library="python", reason="component tag not implemented")
@@ -213,11 +219,13 @@ class Test_Meta:
 
             if isinstance(expected_component, list):
                 if actual_component not in expected_component:
+                    print_span(span)
                     raise Exception(
                         f"Expected span to have component meta tag equal to one of the following, [{expected_component}], got: {actual_component}."
                     )
             else:
                 if actual_component != expected_component:
+                    print_span(span)
                     raise Exception(
                         f"Expected span to have component meta tag, {expected_component}, got: {actual_component}."
                     )
@@ -226,22 +234,18 @@ class Test_Meta:
         interfaces.library.validate_spans(validator=validator, validate_all_spans=False)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
-    @bug(library="java", reason="runtime-id tag not implemented")
-    @bug(library="dotnet", reason="runtime-id tag not implemented")
-    @bug(library="php", reason="runtime-id tag not implemented")
-    @bug(library="python", reason="runtime-id tag not implemented")
+    @bug(library="php", reason="runtime-id tag not implemented for all span")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
         def validator(span):
-
             if "runtime-id" not in span.get("meta"):
-                print(span)
+                print_span(span)
                 raise Exception("No runtime-id tag found. Expected tag to be present.")
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=False)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
 
 @bug(
@@ -279,10 +283,21 @@ class Test_MetricsStandardTags:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            if "process_id" not in span["metrics"]:
-                print(span)
+            if span["resource"] == "init.service":
+                return
+
+            if "process_id" not in span["metrics"] and "process_id" not in span["meta"]:
+                print_span(span)
                 raise Exception("web span expect a process_id metrics tag")
 
             return True
 
         interfaces.library.validate_spans(validator=validator, validate_all_spans=False)
+
+
+def print_span(span):
+    span_json_object = json.loads(span)
+
+    json_formatted_str = json.dumps(span_json_object, indent=2)
+
+    print(json_formatted_str)
