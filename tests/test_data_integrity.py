@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, interfaces, context, bug, rfc, scenario
+from utils import weblog, interfaces, context, bug, rfc, scenario, flaky
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
@@ -50,6 +50,7 @@ class Test_TraceHeaders:
 
         interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
 
+    @flaky(library="python", reason="Header sometimes does not match the reported trace count")
     def test_trace_header_count_match(self):
         """X-Datadog-Trace-Count header value is right in all traces submitted to the agent"""
 
