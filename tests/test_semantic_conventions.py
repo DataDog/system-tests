@@ -41,6 +41,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
     },
+    "spring-boot-undertow": {"servlet.request": "undertow-http-server", "hsqldb.query": "java-jdbc-statement",},
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "rails": {
         "rails.action_controller": "action_pack",
@@ -237,6 +238,9 @@ class Test_Meta:
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="php", reason="runtime-id tag not implemented for all spans")
     @bug(library="java", reason="runtime-id tag not implemented for all spans")
+    @bug(library="dotnet", reason="runtime-id tag not implemented for all spans")
+    @bug(library="python", reason="runtime-id tag not implemented for all spans")
+    @bug(library="ruby", reason="runtime-id tag not implemented for all spans")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
