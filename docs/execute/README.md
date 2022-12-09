@@ -25,3 +25,7 @@ The summary in stdout contains a list of test, then a list of validations. Each 
 * A small red `x`: should not happen, sen a message to `#libraries-system-tests` slack channel
 
 If system tests fails, you'll need to dig into logs. Most of the time and with some experience, standard ouput will contains enough info to understand the issue. But sometimes, you'll need to have a look [inside logs/ folder](./logs.md).
+
+## Troubleshooting
+
+For troubleshooting check the troubleshooting [page](./troubleshooting.md)
