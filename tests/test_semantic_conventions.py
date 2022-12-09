@@ -239,7 +239,6 @@ class Test_Meta:
     @bug(library="php", reason="runtime-id tag not implemented for all spans")
     @bug(library="java", reason="runtime-id tag not implemented for all spans")
     @bug(library="dotnet", reason="runtime-id tag not implemented for all spans")
-    # @bug(library="python", reason="runtime-id tag not implemented for all spans")
     @bug(library="ruby", reason="runtime-id tag not implemented for all spans")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
@@ -285,12 +284,6 @@ class Test_MetricsStandardTags:
         """Validates that root spans from traces contain a process_id field"""
 
         def validator(span):
-            if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
-
-            if span["resource"] == "init.service":
-                return
-
             if "process_id" not in span["metrics"] and "process_id" not in span["meta"]:
                 print_span(span)
                 raise Exception("web span expect a process_id metrics tag")
