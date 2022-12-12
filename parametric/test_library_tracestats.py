@@ -322,6 +322,7 @@ def test_successes_errors_recorded_separately_TS006(library_env, test_agent, tes
 
 
 @pytest.mark.skip_library("dotnet", "FIXME: No traces should be emitted with the sample rate set to 0")
+@pytest.mark.skip_library("java", "FIXME: Undefined behavior according the java tracer core team")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats(sample_rate=0.0)
 def test_sample_rate_0_TS007(library_env, test_agent, test_library, test_server):

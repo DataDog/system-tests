@@ -10,8 +10,8 @@ import time
 import pytest
 import requests
 
-from utils.tools import logger, get_exception_traceback
 from utils._context.library_version import LibraryVersion, Version
+from utils.tools import logger
 
 
 class ImageInfo:

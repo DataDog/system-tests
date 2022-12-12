@@ -39,4 +39,4 @@ class Test_StandardTagsClientIp:
 
             return True
 
-        interfaces.library.add_span_validation(request=self.r, validator=validator)
+        interfaces.library.validate_spans(request=self.r, validator=validator)

@@ -4,13 +4,13 @@
 
 """Check data that are sent to logs file on weblog"""
 
+import json
 import re
 import os
-from typing import DefaultDict
 
 from utils._context.core import context
 from utils.tools import logger
-from utils.interfaces._core import BaseValidation, InterfaceValidator
+from utils.interfaces._core import InterfaceValidator
 
 
 class _LogsInterfaceValidator(InterfaceValidator):
@@ -22,6 +22,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         ]
         self._new_log_line_pattern = re.compile(r".")
         self._parsers = []
+        self.timeout = 0
 
     def _get_files(self):
         raise NotImplementedError()
@@ -71,7 +72,9 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self, timeout):
+    def wait(self):
+        super().wait()
+
         for log_line in self._read():
 
             parsed = {}
@@ -85,40 +88,15 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             parsed["raw"] = log_line
 
-            self.append_data(parsed)
-
-        super().wait(timeout)
-
-    def append_data(self, data):
-        if self.system_test_error is not None:
-            return
-
-        try:
-            for validation in self._validations:
-                if not validation.closed:
-                    validation.check(data)
-
-            self._check_closed_status()
-        except Exception as e:
-            self.system_test_error = e
-            raise
-
-    def __test__(self):
-        self.wait(0)
-        print(f"Interface result: {self.is_success}")
-        for v in self._validations:
-            if not v.is_success:
-                for l in v.logs:
-                    print(l)
+            self._data_list.append(parsed)
 
     def assert_presence(self, pattern, **extra_conditions):
-        self.append_validation(_LogPresence(pattern, **extra_conditions))
+        validator = _LogPresence(pattern, **extra_conditions)
+        self.validate(validator.check, success_by_default=False)
 
     def assert_absence(self, pattern, allowed_patterns=None):
-        self.append_validation(_LogAbsence(pattern, allowed_patterns))
-
-    def append_log_validation(self, validator):  # TODO rename
-        self.append_validation(_LogValidation(validator))
+        validator = _LogAbsence(pattern, allowed_patterns)
+        self.validate(validator.check, success_by_default=True)
 
 
 class _LibraryStdout(_LogsInterfaceValidator):
@@ -225,9 +203,8 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
 ########################################################
 
 
-class _LogPresence(BaseValidation):
+class _LogPresence:
     def __init__(self, pattern, **extra_conditions):
-        super().__init__()
         self.pattern = re.compile(pattern)
         self.extra_conditions = {k: re.compile(pattern) for k, pattern in extra_conditions.items()}
 
@@ -235,24 +212,23 @@ class _LogPresence(BaseValidation):
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
-                    self.log_info(f"For {self}, {repr(self.pattern.pattern)} was found, but [{key}] field is missing")
-                    self.log_info(f"-> Log line is {data['message']}")
+                    logger.info(f"For {self}, {repr(self.pattern.pattern)} was found, but [{key}] field is missing")
+                    logger.info(f"-> Log line is {data['message']}")
                     return
 
                 if not extra_pattern.search(data[key]):
-                    self.log_info(
+                    logger.info(
                         f"For {self}, {repr(self.pattern.pattern)} was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"
                     )
                     return
 
-            self.log_debug(f"For {self}, found {data['message']}")
-            self.set_status(True)
+            logger.debug(f"For {self}, found {data['message']}")
+            return True
 
 
-class _LogAbsence(BaseValidation):
+class _LogAbsence:
     def __init__(self, pattern, allowed_patterns=None):
-        super().__init__()
         self.pattern = re.compile(pattern)
         self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns] if allowed_patterns else []
         self.failed_logs = []
@@ -264,54 +240,16 @@ class _LogAbsence(BaseValidation):
                 if pattern.search(data["raw"]):
                     return
 
-            self.failed_logs.append(data["raw"])
-
-    def final_check(self):
-        if len(self.failed_logs) == 0:
-            self.set_status(True)
-            return
-
-        aggregated_logs = DefaultDict(int)
-        for l in self.failed_logs:
-            cleaned = re.sub(r"^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d \+\d\d:\d\d +", "", l)
-            aggregated_logs[cleaned] += 1
-
-        for log, count in aggregated_logs.items():
-            if count != 1:
-                self.log_error(f"I found {count} instances of this 😱:")
-
-            self.log_error(log)
-
-        self.set_status(False)
-
-
-class _LogValidation(BaseValidation):
-    """will run an arbitrary check on log
-
-    Validator function can :
-    * returns true => validation will be validated at the end (but trace will continue to be checked)
-    * returns False or None => nothing is done
-    * raise an exception => validation will fail
-    """
-
-    def __init__(self, validator):
-        super().__init__()
-        self.validator = validator
-
-    def check(self, data):
-        try:
-            if self.validator(data):
-                self.is_success_on_expiry = True
-        except Exception as e:
-            self.set_failure(f"{self.message} not validated: {e}\nLog is: {data['raw']}")
+            logger.error(json.dumps(data["raw"], indent=2))
+            raise Exception("Found unexpcted log")
 
 
 class Test:
     def test_main(self):
         """Test example"""
         i = _LibraryStdout()
+        i.wait()
         i.assert_presence(r".*", level="DEBUG")
-        i.__test__()
 
 
 if __name__ == "__main__":

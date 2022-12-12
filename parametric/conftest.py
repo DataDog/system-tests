@@ -91,7 +91,7 @@ def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
-FROM datadog/dd-trace-py:buster
+FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
 WORKDIR /client
 RUN pyenv global 3.9.11
 RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3
@@ -194,10 +194,11 @@ def java_library_factory(env: Dict[str, str]):
 FROM maven:3-jdk-8
 WORKDIR /client
 COPY {java_reldir}/src src
+COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
 COPY {java_reldir}/run.sh .
-COPY binaries* /binaries/
-RUN mvn package
+COPY binaries /binaries
+RUN bash build.sh
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_dir,

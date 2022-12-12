@@ -23,6 +23,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
     }
 )
 @irrelevant(context.appsec_rules_file == "")
+@bug(context.weblog_variant == "spring-boot-undertow" and context.appsec_rules_version == "1.4.2")
 @coverage.basic
 @scenario("APPSEC_IP_BLOCKING")
 class Test_AppSecIPBlocking:
@@ -45,7 +46,7 @@ class Test_AppSecIPBlocking:
             rc_check_request(data, EXPECTED_REQUESTS[self.request_number], caching=True)
             self.request_number += 1
 
-        interfaces.library.add_remote_configuration_validation(validator=validate)
+        interfaces.library.validate_remote_configuration(validator=validate)
 
     def setup_blocked_ips(self):
         NOT_BLOCKED_IP = "42.42.42.3"
@@ -84,8 +85,8 @@ class Test_AppSecIPBlocking:
         """test blocked ips are enforced"""
 
         for r in self.blocked_requests:
-            interfaces.library.add_assertion(r.status_code == 403)
+            assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-001")
 
-        interfaces.library.add_assertion(self.not_blocked_request.status_code == 200)
+        assert self.not_blocked_request.status_code == 200
         interfaces.library.assert_no_appsec_event(self.not_blocked_request)

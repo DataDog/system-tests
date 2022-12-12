@@ -64,7 +64,7 @@ class Test_RetainTraces:
 
             return True
 
-        interfaces.library.add_span_validation(self.r, validate_appsec_event_span_tags)
+        interfaces.library.validate_spans(self.r, validate_appsec_event_span_tags)
 
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
@@ -105,7 +105,7 @@ class Test_AppSecEventSpanTags:
 
             return True
 
-        interfaces.library.add_span_validation(validator=validate_custom_span_tags)
+        interfaces.library.validate_spans(validator=validate_custom_span_tags)
 
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
@@ -133,8 +133,8 @@ class Test_AppSecEventSpanTags:
                 assertHeaderInSpanMeta(span, f"http.response.headers.{header}")
             return True
 
-        interfaces.library.add_span_validation(self.r, validate_request_headers)
-        interfaces.library.add_span_validation(self.r, validate_response_headers)
+        interfaces.library.validate_spans(self.r, validate_request_headers)
+        interfaces.library.validate_spans(self.r, validate_response_headers)
 
     @bug(context.library < "java@0.93.0")
     def test_root_span_coherence(self):
@@ -157,7 +157,7 @@ class Test_AppSecEventSpanTags:
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
@@ -194,7 +194,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
-        interfaces.library.add_appsec_validation(self.r_key, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_cookies(self):
         cookies = {"Bearer": self.SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY}
@@ -219,7 +219,7 @@ class Test_AppSecObfuscator:
             return True
 
         interfaces.library.assert_waf_attack(self.r_cookies, address="server.request.cookies")
-        interfaces.library.add_appsec_validation(self.r_cookies, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
@@ -268,7 +268,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
-        interfaces.library.add_appsec_validation(self.r_value, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_key_with_custom_rules(self):
         self.r_custom = weblog.get(
@@ -291,7 +291,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
-        interfaces.library.add_appsec_validation(self.r_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
         cookies = {
@@ -318,7 +318,7 @@ class Test_AppSecObfuscator:
             return True
 
         interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
-        interfaces.library.add_appsec_validation(self.r_cookies_custom, validate_appsec_span_tags)
+        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -342,7 +342,7 @@ class Test_CollectRespondHeaders:
                 assertHeaderInSpanMeta(span, f"http.response.headers.{header}")
             return True
 
-        interfaces.library.add_span_validation(self.r, validate_response_headers)
+        interfaces.library.validate_spans(self.r, validate_response_headers)
 
 
 @coverage.not_implemented

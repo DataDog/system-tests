@@ -33,7 +33,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
     @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
@@ -57,7 +57,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
@@ -76,7 +76,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
@@ -104,7 +104,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
 
 
 @bug(
@@ -124,4 +124,4 @@ class Test_MetaDatadogTags:
 
             return True
 
-        interfaces.library.add_span_validation(validator=validator)
+        interfaces.library.validate_spans(validator=validator)
