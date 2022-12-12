@@ -288,12 +288,6 @@ public class App {
     @Trace
     public void init() {
         new AppReadyHandler(this).start();
-        /*
-        cassandra = new CassandraConnector();
-        cassandra.setup();
-        initMongo();
-        System.out.println("Initialized");
-        */
     }
 
 
