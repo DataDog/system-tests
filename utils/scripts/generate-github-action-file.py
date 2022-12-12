@@ -4,7 +4,6 @@ import yaml
 scenarios_sets = (
     (
         "DEFAULT",
-        "UDS",
         "PROFILING",
         "CGROUP",
         "TRACE_PROPAGATION_STYLE_W3C",
@@ -46,7 +45,7 @@ def build_variant_array(lang, weblogs):
 
 variants = (
     build_variant_array("cpp", ["nginx"])
-    + build_variant_array("dotnet", ["poc"])
+    + build_variant_array("dotnet", ["poc", "uds"])
     + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http"])
     + build_variant_array(
         "java",
@@ -213,9 +212,7 @@ def add_main_job(name, workflow, needs, scenarios):
             f"Run {scenario} scenario", f"./run.sh {scenario}", env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"}
         )
 
-        if scenario == "UDS":  # TODO: UDS is a variant, not a scenario
-            step["if"] = "${{ matrix.variant.library != 'php' && matrix.variant.library != 'cpp' }}"
-        elif scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
+        if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")

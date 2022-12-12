@@ -41,6 +41,8 @@ jobs:
           weblog: nginx
         - library: dotnet
           weblog: poc
+        - library: dotnet
+          weblog: uds
         - library: golang
           weblog: chi
         - library: golang
@@ -185,11 +187,6 @@ jobs:
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run UDS scenario
-      run: ./run.sh UDS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      if: ${{ matrix.variant.library != 'php' && matrix.variant.library != 'cpp' }}
     - name: Run PROFILING scenario
       run: ./run.sh PROFILING
       env:
@@ -243,6 +240,8 @@ jobs:
           weblog: nginx
         - library: dotnet
           weblog: poc
+        - library: dotnet
+          weblog: uds
         - library: golang
           weblog: chi
         - library: golang
@@ -439,6 +438,8 @@ jobs:
           weblog: nginx
         - library: dotnet
           weblog: poc
+        - library: dotnet
+          weblog: uds
         - library: golang
           weblog: chi
         - library: golang

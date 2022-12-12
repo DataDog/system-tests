@@ -41,6 +41,9 @@ def pytest_sessionstart(session):
         if context.appsec_rules_file:
             print_info(f"AppSec rules version: {context.appsec_rules_version}")
 
+        if context.uds_mode:
+            print_info(f"UDS socket: {context.uds_socket}")
+            
         print_info(f"Weblog variant: {context.weblog_variant}")
         print_info(f"Backend: {context.dd_site}")
         print_info(f"Scenario: {context.scenario}")
@@ -120,9 +123,6 @@ def pytest_collection_modifyitems(session, config, items):
     if scenario == "CUSTOM":
         # user has specifed which test to run, do nothing
         return
-
-    if scenario == "UDS":
-        scenario = "DEFAULT"  # TODO : it's a variant
 
     selected = []
     deselected = []

@@ -31,7 +31,10 @@ COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_
 COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 COPY utils/build/docker/dotnet/app.sh app.sh
+COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
+
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
+ENV UDS_WEBLOG=1
 
 CMD [ "./app.sh" ]
-
