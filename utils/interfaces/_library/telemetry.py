@@ -63,7 +63,7 @@ def read_dependencies():
         package_json = json.load(package_file)
         loaded_dependencies = package_json["loaded-dependencies"]
         defined_dependencies = package_json["dependencies"]
-        return defined_dependencies, loaded_dependencies
+        return loaded_dependencies, defined_dependencies
 
     def read_dotnet_dependencies():
         file_path = "./utils/build/docker/dotnet/app.csproj"

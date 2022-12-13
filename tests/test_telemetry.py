@@ -202,6 +202,8 @@ class Test_Telemetry:
     @irrelevant(library="ruby")
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
+        time.sleep(3)
+        self.r = weblog.get("/load_dependency") # call twice to make sure duplicates are not sent
 
     @irrelevant(library="php")
     @irrelevant(library="cpp")
@@ -213,28 +215,27 @@ class Test_Telemetry:
 
         self.seen_loaded_dependencies, self.seen_dependencies = read_dependencies()
 
-        print(self.seen_dependencies)
-        print(self.seen_loaded_dependencies)
-
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") == "app-started":
                 if content["payload"].get("dependencies"):
                     for dependency in content["payload"]["dependencies"]:
                         dependency_id = dependency["name"]  # +dep["version"]
-                        assert (
-                            dependency_id not in self.seen_loaded_dependencies
-                        ), "Loaded dependency should not be in app-started"
+                        if dependency_id in self.seen_loaded_dependencies:
+                            raise Exception("Loaded dependency should not be in app-started")
                         if dependency_id not in self.seen_dependencies:
-                            print("not in seen")
-                            print(dependency_id)
+                            continue
                         self.seen_dependencies[dependency_id] = True
             elif content.get("request_type") == "app-dependencies-loaded":
                 for dependency in content["payload"]["dependencies"]:
                     dependency_id = dependency["name"]  # +dependency["version"]
-                    self.seen_dependencies[dependency_id] = True
-                    self.seen_loaded_dependencies[dependency_id] = True
+                    if self.seen_loaded_dependencies.get(dependency_id) is True:
+                         raise Exception("Loaded dependency event sent multiple times for same dependency " + dependency_id)
+                    if self.seen_dependencies.get(dependency_id):
+                        self.seen_dependencies[dependency_id] = True
+                    if self.seen_loaded_dependencies.get(dependency_id):
+                        self.seen_loaded_dependencies[dependency_id] = True
 
         for dependency, seen in self.seen_loaded_dependencies.items():
-            assert seen, dependency + " was not sent"
-            logger.info("all dependencies are ok")
+            if not seen:
+                raise Exception(dependency + " not recieved in app-dependencies-loaded message")
