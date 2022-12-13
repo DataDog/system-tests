@@ -8,9 +8,11 @@ from utils import weblog, context, interfaces, bug, scenario, irrelevant
 
 TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"
 
+
 @irrelevant(context.library != "cpp", reason="This can probably be added to other profilers")
 class Test_Profile:
     """ Basic testing of profiling """
+
     def setup_start_end(self):
         # generate traffic
         for lp in range(100):
@@ -24,6 +26,7 @@ class Test_Profile:
     def test_native_library(self):
         """ Language is set to native (though this is relevant only for ddprof)"""
         interfaces.library.profiling_assert_field("language:native")
+
 
 @bug(library="cpp", reason="Need to understand how to activate profiling")
 @bug(library="dotnet", reason="Need to understand how to activate profiling")

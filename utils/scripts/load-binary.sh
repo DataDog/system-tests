@@ -171,8 +171,13 @@ elif [ "$TARGET" = "golang" ]; then
 
 elif [ "$TARGET" = "cpp" ]; then
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
-    x=1
-
+    
+    # PROFILER
+    # ddprof stores the main binary in the same place 
+    ddprof_name="ddprof-main-amd64-unknown-linux-gnu.tar.xz"
+    ddprof_path="https://binaries.ddbuild.io/ddprof-build/"
+    cmd="curl -L -o ${ddprof_name} --insecure ${ddprof_path}/${ddprof_name}"
+    eval $cmd
 elif [ "$TARGET" = "agent" ]; then
     echo "datadog/agent-dev:master-py3" > agent-image
     echo "Using $(cat agent-image) image"

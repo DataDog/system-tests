@@ -35,14 +35,17 @@ http {\n\
 RUN echo '{}' > /etc/nginx/dd-config.json
 
 RUN mkdir /builds
-COPY utils/build/docker/cpp/fetch_ddprof.sh /builds/
+
+# Copy needs a single valid source (ddprof tar can be missing)
+COPY utils/build/docker/cpp/install_ddprof.sh binaries/ddprof* /builds/
 COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /builds/
 RUN /builds/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
 # Profiling setup
-RUN /builds/fetch_ddprof.sh /usr/local/bin
+
+RUN cd /builds && ./install_ddprof.sh /usr/local/bin
 
 COPY utils/build/docker/cpp/nginx/app.sh ./
 
