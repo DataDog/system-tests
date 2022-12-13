@@ -1,4 +1,4 @@
-import time
+from datetime import datetime, timedelta
 
 from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant
 from utils.tools import logger
@@ -27,8 +27,8 @@ class Test_Telemetry:
             repsonse_code = data["response"]["status_code"]
             assert 200 <= repsonse_code < 300, f"Got response code {repsonse_code}"
 
-        interfaces.library.add_telemetry_validation(validator, success_by_default=True)
-        interfaces.agent.add_telemetry_validation(validator, success_by_default=True)
+        interfaces.library.validate_telemetry(validator, success_by_default=True)
+        interfaces.agent.validate_telemetry(validator, success_by_default=True)
 
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
@@ -63,7 +63,7 @@ class Test_Telemetry:
         def validator(data):
             return data["request"]["content"].get("request_type") == "app-started"
 
-        interfaces.library.add_telemetry_validation(validator=validator)
+        interfaces.library.validate_telemetry(validator=validator)
 
     @missing_feature(library="python")
     def test_app_started_sent_only_once(self):
@@ -74,7 +74,7 @@ class Test_Telemetry:
                 self.app_started_count += 1
                 assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
 
-        interfaces.library.add_telemetry_validation(validator=validator, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
     def test_telemetry_messages_valid(self):
         """Telemetry messages additional validation"""
@@ -89,8 +89,8 @@ class Test_Telemetry:
             if content["request_type"] == "app-dependencies-loaded":
                 assert content["payload"]["dependencies"], "dependencies changes must mot be empty"
 
-        interfaces.library.add_telemetry_validation(validator=validate_integration_changes, success_by_default=True)
-        interfaces.library.add_telemetry_validation(validator=validate_dependencies_changes, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validate_integration_changes, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validate_dependencies_changes, success_by_default=True)
 
     @bug(
         library="dotnet",
@@ -113,10 +113,10 @@ class Test_Telemetry:
             container[key] = data
 
         # save all data from lib to agent
-        interfaces.library.add_telemetry_validation(lambda data: save_data(data, self.library_requests), True)
+        interfaces.library.validate_telemetry(lambda data: save_data(data, self.library_requests), True)
 
         # save all data from agent to backend
-        interfaces.agent.add_telemetry_validation(lambda data: save_data(data, self.agent_requests), True)
+        interfaces.agent.validate_telemetry(lambda data: save_data(data, self.agent_requests), True)
 
         # At the end, check that all data are consistent
         for key, agent_data in self.agent_requests.items():
@@ -170,9 +170,23 @@ class Test_Telemetry:
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
-        interfaces.library.add_telemetry_validation(validator=validator, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
-        time.sleep(20)
-        interfaces.library.assert_app_heartbeat_validation()
+
+        prev_message_time = -1
+        TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
+        ALLOWED_INTERVALS = 2
+        fmt = "%Y-%m-%dT%H:%M:%S.%f"
+
+        for data in interfaces.library.get_telemetry_data():
+            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+            if prev_message_time != -1:
+                delta = curr_message_time - prev_message_time
+                if delta > timedelta(seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL):
+                    raise Exception(
+                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: "
+                        "{TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
+                    )
+            prev_message_time = curr_message_time

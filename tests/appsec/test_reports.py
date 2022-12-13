@@ -74,9 +74,9 @@ class Test_HttpClientIP:
         self.r = weblog.get("/waf/", headers=headers, stream=True)
         try:
             self.actual_remote_ip = self.r.raw._connection.sock.getsockname()[0]  # pylint: disable=protected-access
+            self.r.close()
         except:
             self.actual_remote_ip = None
-        self.r.close()
 
     def test_http_remote_ip(self):
         """ AppSec reports the HTTP request peer IP. """

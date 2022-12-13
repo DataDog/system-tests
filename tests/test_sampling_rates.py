@@ -20,7 +20,7 @@ USER_KEEP = 2
 class Test_SamplingRates:
     """Rate at which traces are sampled is the actual sample rate"""
 
-    TOTAL_REQUESTS = 10000
+    TOTAL_REQUESTS = 10_000
     REQ_PER_S = 25
 
     def test_sampling_rate_is_set(self):
@@ -69,8 +69,9 @@ class Test_SamplingRates:
         # Test that all traces sent by the tracer is sent to the agent"""
         trace_ids = set()
 
-        for _, _, span in interfaces.library.get_spans():
-            if span["metrics"]["_sampling_priority_v1"] not in (USER_REJECT, AUTO_REJECT):
+        for data, span in interfaces.library.get_root_spans():
+            metrics = span["metrics"]
+            if metrics["_sampling_priority_v1"] not in (USER_REJECT, AUTO_REJECT):
                 trace_ids.add(span["trace_id"])
 
         for _, span in interfaces.agent.get_spans():

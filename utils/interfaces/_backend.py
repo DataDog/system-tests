@@ -69,16 +69,10 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
             meta = span.get("meta", {})
 
-            if "_dd.appsec.source" not in meta:
-                raise Exception("'_dd.appsec.source' should be in span's meta tags")
+            assert "_dd.appsec.source" in meta, "'_dd.appsec.source' should be in span's meta tags"
+            assert "appsec" in meta, f"'appsec' should be in span's meta tags in {data['log_filename']}"
 
-            elif meta["_dd.appsec.source"] != "backendwaf":
-                raise Exception(
-                    f"'_dd.appsec.source' values should be 'backendwaf', not {meta['_dd.appsec.source']} in {data['log_filename']}"
-                )
-
-            elif "appsec" not in meta:
-                raise Exception(f"'appsec' should be in span's meta tags in {data['log_filename']}")
-
-            else:
-                return
+            assert meta["_dd.appsec.source"] == "backendwaf", (
+                f"'_dd.appsec.source' values should be 'backendwaf', "
+                f"not {meta['_dd.appsec.source']} in {data['log_filename']}"
+            )
