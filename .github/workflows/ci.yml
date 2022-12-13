@@ -53,6 +53,8 @@ jobs:
           weblog: gorilla
         - library: golang
           weblog: net-http
+        - library: golang
+          weblog: uds-echo
         - library: java
           weblog: jersey-grizzly2
         - library: java
@@ -65,6 +67,8 @@ jobs:
           weblog: spring-boot-jetty
         - library: java
           weblog: spring-boot
+        - library: java
+          weblog: uds-spring-boot
         - library: java
           weblog: spring-boot-openliberty
         - library: java
@@ -252,6 +256,8 @@ jobs:
           weblog: gorilla
         - library: golang
           weblog: net-http
+        - library: golang
+          weblog: uds-echo
         - library: java
           weblog: jersey-grizzly2
         - library: java
@@ -264,6 +270,8 @@ jobs:
           weblog: spring-boot-jetty
         - library: java
           weblog: spring-boot
+        - library: java
+          weblog: uds-spring-boot
         - library: java
           weblog: spring-boot-openliberty
         - library: java
@@ -450,6 +458,8 @@ jobs:
           weblog: gorilla
         - library: golang
           weblog: net-http
+        - library: golang
+          weblog: uds-echo
         - library: java
           weblog: jersey-grizzly2
         - library: java
@@ -462,6 +472,8 @@ jobs:
           weblog: spring-boot-jetty
         - library: java
           weblog: spring-boot
+        - library: java
+          weblog: uds-spring-boot
         - library: java
           weblog: spring-boot-openliberty
         - library: java

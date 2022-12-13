@@ -46,7 +46,7 @@ def build_variant_array(lang, weblogs):
 variants = (
     build_variant_array("cpp", ["nginx"])
     + build_variant_array("dotnet", ["poc", "uds"])
-    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http"])
+    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http", "uds-echo"])
     + build_variant_array(
         "java",
         [
@@ -56,6 +56,7 @@ variants = (
             "vertx3",
             "spring-boot-jetty",
             "spring-boot",
+            "uds-spring-boot",
             "spring-boot-openliberty",
             "spring-boot-undertow",
         ],
