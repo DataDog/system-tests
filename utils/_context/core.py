@@ -127,7 +127,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             "sampling_rate": self.sampling_rate,
             "libddwaf_version": str(self.libddwaf_version),
             "appsec_rules_file": self.appsec_rules_file or "*default*",
-            "uds_socket": self.uds_socket
+            "uds_socket": self.uds_socket,
         }
 
         if self.library == "php":

@@ -43,7 +43,7 @@ def pytest_sessionstart(session):
 
         if context.uds_mode:
             print_info(f"UDS socket: {context.uds_socket}")
-            
+
         print_info(f"Weblog variant: {context.weblog_variant}")
         print_info(f"Backend: {context.dd_site}")
         print_info(f"Scenario: {context.scenario}")
