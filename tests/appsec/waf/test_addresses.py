@@ -344,6 +344,7 @@ class Test_BodyJson:
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra21")
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="uds-sinatra")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
