@@ -38,6 +38,7 @@ class Test_StandardTagsMethod:
 @released(dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0")
 @released(php="0.76.0", python="1.6.0rc1.dev", ruby="?")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
+@bug(weblog_variant="spring-boot-undertow", reason="APMJAVA-877")
 @coverage.basic
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -192,8 +193,8 @@ class Test_StandardTagsClientIp:
 
             return True
 
-        interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)
-        interfaces.library.add_span_validation(request=self.request_without_attack, validator=validator)
+        interfaces.library.validate_spans(request=self.request_with_attack, validator=validator)
+        interfaces.library.validate_spans(request=self.request_without_attack, validator=validator)
 
     def setup_client_ip_with_appsec_event(self):
         self.setup()
@@ -213,4 +214,4 @@ class Test_StandardTagsClientIp:
 
             return True
 
-        interfaces.library.add_span_validation(request=self.request_with_attack, validator=validator)
+        interfaces.library.validate_spans(request=self.request_with_attack, validator=validator)

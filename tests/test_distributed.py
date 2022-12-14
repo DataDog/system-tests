@@ -16,17 +16,14 @@ class Test_DistributedHttp:
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
 
     def test_main(self):
-        def validator():
-            assert self.r.status_code == 200
-            assert self.r.json() is not None
-            data = self.r.json()
-            assert "traceparent" in data["request_headers"]
-            assert "x-datadog-parent-id" not in data["request_headers"]
-            assert "x-datadog-sampling-priority" not in data["request_headers"]
-            assert "x-datadog-tags" not in data["request_headers"]
-            assert "x-datadog-trace-id" not in data["request_headers"]
-
-            return True
 
         interfaces.library.assert_trace_exists(self.r)
-        interfaces.library.add_final_validation(validator)
+
+        assert self.r.status_code == 200
+        assert self.r.json() is not None
+        data = self.r.json()
+        assert "traceparent" in data["request_headers"]
+        assert "x-datadog-parent-id" not in data["request_headers"]
+        assert "x-datadog-sampling-priority" not in data["request_headers"]
+        assert "x-datadog-tags" not in data["request_headers"]
+        assert "x-datadog-trace-id" not in data["request_headers"]

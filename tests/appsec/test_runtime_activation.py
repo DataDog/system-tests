@@ -10,7 +10,7 @@ from utils import weblog, context, coverage, interfaces, released, irrelevant, s
 
 
 @scenario("APPSEC_RUNTIME_ACTIVATION")
-@released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="?")
+@released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="3.9.0", golang="?")
 @irrelevant(context.appsec_rules_file == "")
 @irrelevant(
     context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with cutom rule file"
