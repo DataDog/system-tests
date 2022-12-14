@@ -149,7 +149,7 @@ class Test_StandardTagsRoute:
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
         if context.library == "python":
-            if context.weblog_variant in ("flask-poc", "uwsgi-poc"):
+            if context.weblog_variant in ("flask-poc", "uwsgi-poc", "uds-flask"):
                 tags["http.route"] = "/sample_rate_route/<i>"
             elif context.weblog_variant == "django-poc":
                 tags["http.route"] = "sample_rate_route/<int:i>"

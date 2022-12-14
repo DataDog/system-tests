@@ -4,7 +4,6 @@ import yaml
 scenarios_sets = (
     (
         "DEFAULT",
-        "UDS",
         "PROFILING",
         "CGROUP",
         "TRACE_PROPAGATION_STYLE_W3C",
@@ -46,8 +45,8 @@ def build_variant_array(lang, weblogs):
 
 variants = (
     build_variant_array("cpp", ["nginx"])
-    + build_variant_array("dotnet", ["poc"])
-    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http"])
+    + build_variant_array("dotnet", ["poc", "uds"])
+    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http", "uds-echo"])
     + build_variant_array(
         "java",
         [
@@ -57,16 +56,17 @@ variants = (
             "vertx3",
             "spring-boot-jetty",
             "spring-boot",
+            "uds-spring-boot",
             "spring-boot-openliberty",
             "spring-boot-undertow",
         ],
     )
-    + build_variant_array("nodejs", ["express4", "express4-typescript"])
+    + build_variant_array("nodejs", ["express4", "uds-express4", "express4-typescript"])
     + build_variant_array("php", [f"apache-mod-{v}" for v in php_versions])
     + build_variant_array("php", [f"apache-mod-{v}-zts" for v in php_versions])
     + build_variant_array("php", [f"php-fpm-{v}" for v in php_versions])
-    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc"])  # TODO pylons
-    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21"])
+    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask"])  # TODO pylons
+    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"])
     + build_variant_array("ruby", [f"rails{v}" for v in rails_versions])
 )
 
@@ -213,9 +213,7 @@ def add_main_job(name, workflow, needs, scenarios):
             f"Run {scenario} scenario", f"./run.sh {scenario}", env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"}
         )
 
-        if scenario == "UDS":  # TODO: UDS is a variant, not a scenario
-            step["if"] = "${{ matrix.variant.library != 'php' && matrix.variant.library != 'cpp' }}"
-        elif scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
+        if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")

@@ -6,8 +6,9 @@ RUN python --version && curl --version
 # install hello world app
 RUN pip install flask uwsgi requests psycopg2
 
-COPY utils/build/docker/python/flask.py app.py
-COPY utils/build/docker/python/iast.py iast.py
+COPY utils/build/docker/python/flask /app
+COPY utils/build/docker/python/iast.py /app/iast.py
+WORKDIR /app
 ENV FLASK_APP=app.py
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
@@ -20,8 +21,8 @@ ENV DD_REMOTECONFIG_POLL_SECONDS=1
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
 RUN echo '#!/bin/bash \n\
-ddtrace-run uwsgi --http :7777 -w app:app --enable-threads\n' > /app.sh
-RUN chmod +x /app.sh
+ddtrace-run uwsgi --http :7777 -w app:app --enable-threads\n' > app.sh
+RUN chmod +x app.sh
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .

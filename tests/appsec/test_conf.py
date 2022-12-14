@@ -104,7 +104,7 @@ class Test_ConfigurationVariables:
 
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
     @missing_feature(
-        context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21"],
+        context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
         reason="Conf is done in weblog instead of library",
     )
     @scenario("APPSEC_DISABLED")

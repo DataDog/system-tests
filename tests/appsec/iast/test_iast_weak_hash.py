@@ -19,19 +19,24 @@ if context.library == "cpp":
 class TestIastWeakHash:
     """Verify IAST WEAK HASH detection feature"""
 
-    EXPECTATIONS = {
-        "python": {"LOCATION": "/iast.py" if context.weblog_variant != "uwsgi-poc" else "/./iast.py"},
-        "nodejs": {"LOCATION": "/usr/app/iast.js"},
-        "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"},
-    }
+    @property
+    def expected_location(self):
+        if context.library.library == "java":
+            return "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
 
-    def __expected_location(self):
-        expected = self.EXPECTATIONS.get(context.library.library)
-        return expected.get("LOCATION") if expected else None
+        if context.library.library == "nodejs":
+            return "/usr/app/iast.js"
 
-    # def __expected_weak_cipher_algorithm(self):
-    #     expected = self.EXPECTATIONS.get(context.library.library)
-    #     return expected.get("WEAK_CIPHER_ALGORITHM") if expected else None
+        if context.library.library == "python":
+            if context.weblog_variant == "django-poc":
+                return "/iast.py"
+
+            if context.weblog_variant == "uwsgi-poc":
+                return "/app/./iast.py"
+
+            return "/app/iast.py"
+
+        return None
 
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
@@ -46,7 +51,7 @@ class TestIastWeakHash:
             self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,
             vulnerability_type="WEAK_HASH",
-            location_path=self.__expected_location(),
+            location_path=self.expected_location,
         )
 
     def setup_insecure_hash_multiple(self):
@@ -60,7 +65,7 @@ class TestIastWeakHash:
             self.r_insecure_hash_multiple,
             vulnerability_count=2,
             vulnerability_type="WEAK_HASH",
-            location_path=self.__expected_location(),
+            location_path=self.expected_location,
         )
 
     def setup_secure_hash(self):
