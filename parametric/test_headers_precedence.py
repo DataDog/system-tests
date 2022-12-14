@@ -21,11 +21,13 @@ def enable_datadog() -> Any:
     }
     return parametrize("library_env", [env])
 
+
 def enable_datadog_tracecontext() -> Any:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "Datadog,tracecontext",
     }
     return parametrize("library_env", [env])
+
 
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
@@ -401,6 +403,7 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     assert "x-datadog-parent-id" in headers6
     assert headers6["x-datadog-parent-id"] != "987654321"
     assert headers6["x-datadog-sampling-priority"] == "-2"
+
 
 @enable_datadog_tracecontext()
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
