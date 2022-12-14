@@ -138,6 +138,8 @@ jobs:
         - library: ruby
           weblog: sinatra21
         - library: ruby
+          weblog: uds-sinatra
+        - library: ruby
           weblog: rails32
         - library: ruby
           weblog: rails40
@@ -345,6 +347,8 @@ jobs:
         - library: ruby
           weblog: sinatra21
         - library: ruby
+          weblog: uds-sinatra
+        - library: ruby
           weblog: rails32
         - library: ruby
           weblog: rails40
@@ -550,6 +554,8 @@ jobs:
           weblog: sinatra20
         - library: ruby
           weblog: sinatra21
+        - library: ruby
+          weblog: uds-sinatra
         - library: ruby
           weblog: rails32
         - library: ruby

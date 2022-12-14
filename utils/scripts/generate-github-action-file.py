@@ -66,7 +66,7 @@ variants = (
     + build_variant_array("php", [f"apache-mod-{v}-zts" for v in php_versions])
     + build_variant_array("php", [f"php-fpm-{v}" for v in php_versions])
     + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask"])  # TODO pylons
-    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21"])
+    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"])
     + build_variant_array("ruby", [f"rails{v}" for v in rails_versions])
 )
 
