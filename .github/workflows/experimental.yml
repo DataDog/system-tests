@@ -1,0 +1,71 @@
+name: Experimental tests
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron:  '00 02 * * 2-6'
+  pull_request:
+    branches:
+      - "**"
+  push:
+    branches:
+      - main
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+
+  lib-injection-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        variant:
+        - library: java
+          weblog-variant: dd-lib-java-init-test-app
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-gunicorn
+
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django-uvicorn
+
+        - library: nodejs
+          weblog-variant: sample-app
+
+        lib-injection-connection: 
+          - uds
+          - network
+
+        lib-injection-use-admission-controller: 
+          - use-admission-controller
+          - ''
+        
+        version: 
+          - latest #Production tag
+          - latest_snapshot
+
+      fail-fast: false
+    env:
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
+      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
+      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-use-admission-controller }}
+      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
+      DOCKER_IMAGE_TAG: ${{ matrix.version }}
+      DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
+      BUILDX_PLATFORMS: linux/amd64
+    steps:
+    
+      - name: lib-injection test runner
+        id: lib-injection-test-runner
+        uses: DataDog/system-tests/lib-injection/runner@robertomonteromiguel/lib_injection_integration
+        with:
+          docker-registry: ghcr.io
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
