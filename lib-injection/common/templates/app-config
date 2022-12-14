@@ -11,8 +11,9 @@ metadata:
     admission.datadoghq.com/{{ .Values.library }}-lib.custom-image: {{ .Values.init_image }}
   name: {{ .Values.app }}
 spec:
-  initContainers:
-    {{ if not .Values.use_admission_controller }}
+
+{{ if not .Values.use_admission_controller }}
+  initContainers:  
       - command:
           - sh
           - copy-lib.sh
@@ -68,16 +69,16 @@ spec:
       {{ end }}
       name: {{ .Values.app }}
       readinessProbe:
-        timeoutSeconds: 1
+        timeoutSeconds: 5
         successThreshold: 1
-        failureThreshold: 1
+        failureThreshold: 10
         httpGet:
           host:
           scheme: HTTP
           path: /
           port: 18080
-        initialDelaySeconds: 5
-        periodSeconds: 5
+        initialDelaySeconds: 15
+        periodSeconds: 15
       ports:
         - containerPort: 18080
           hostPort: 18080
@@ -91,10 +92,10 @@ spec:
           name: datadog
         {{ end }}
         {{ end }}
+  {{ if not .Values.use_admission_controller }}
   volumes:
     - emptyDir: {}
       name: datadog-auto-instrumentation
-    {{ if not .Values.use_admission_controller }}
     {{ if .Values.use_uds }}
     - hostPath:
         path: /var/run/datadog
