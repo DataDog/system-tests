@@ -105,6 +105,9 @@ class Test_Telemetry:
         weblog_variant="spring-boot-openliberty",
         reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
+    @bug(
+        library="java", weblog_variant="spring-boot-wildfly",
+    )
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 

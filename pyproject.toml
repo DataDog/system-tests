@@ -3,7 +3,7 @@ line-length = 120
 exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps|parametric/protos/)"
 
 [tool.pytest.ini_options]
-addopts = "--json-report --json-report-file=logs/report.json --json-report-indent=2 --color=yes --no-header --junitxml=logs/reportJunit.xml -r X"
+addopts = "--json-report --json-report-file=logs/report.json --json-report-indent=2 --color=yes --no-header --junitxml=logs/reportJunit.xml -r Xf"
 # log_cli = True
 # log_cli_level = DEBUG
 log_level = "DEBUG"

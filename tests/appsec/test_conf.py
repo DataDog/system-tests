@@ -126,6 +126,7 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenario("APPSEC_LOW_WAF_TIMEOUT")
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
