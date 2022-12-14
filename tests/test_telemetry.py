@@ -206,7 +206,7 @@ class Test_Telemetry:
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
         time.sleep(3)
-        self.r = weblog.get("/load_dependency") # call twice to make sure duplicates are not sent
+        self.r = weblog.get("/load_dependency")  # call twice to make sure duplicates are not sent
 
     @irrelevant(library="php")
     @irrelevant(library="cpp")
@@ -233,7 +233,9 @@ class Test_Telemetry:
                 for dependency in content["payload"]["dependencies"]:
                     dependency_id = dependency["name"]  # +dependency["version"]
                     if self.seen_loaded_dependencies.get(dependency_id) is True:
-                         raise Exception("Loaded dependency event sent multiple times for same dependency " + dependency_id)
+                        raise Exception(
+                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
+                        )
                     if self.seen_dependencies.get(dependency_id):
                         self.seen_dependencies[dependency_id] = True
                     if self.seen_loaded_dependencies.get(dependency_id):
