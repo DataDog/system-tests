@@ -20,7 +20,7 @@ class TestIastWeakHash:
     """Verify IAST WEAK HASH detection feature"""
 
     EXPECTATIONS = {
-        "python": {"LOCATION": "/iast.py" if context.weblog_variant != "uwsgi-poc" else "/./iast.py"},
+        "python": {"LOCATION": "/app/iast.py" if context.weblog_variant != "uwsgi-poc" else "/app/./iast.py"},
         "nodejs": {"LOCATION": "/usr/app/iast.js"},
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"},
     }

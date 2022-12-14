@@ -76,6 +76,8 @@ jobs:
         - library: nodejs
           weblog: express4
         - library: nodejs
+          weblog: uds-express4
+        - library: nodejs
           weblog: express4-typescript
         - library: php
           weblog: apache-mod-7.0
@@ -125,6 +127,8 @@ jobs:
           weblog: django-poc
         - library: python
           weblog: uwsgi-poc
+        - library: python
+          weblog: uds-flask
         - library: ruby
           weblog: rack
         - library: ruby
@@ -279,6 +283,8 @@ jobs:
         - library: nodejs
           weblog: express4
         - library: nodejs
+          weblog: uds-express4
+        - library: nodejs
           weblog: express4-typescript
         - library: php
           weblog: apache-mod-7.0
@@ -328,6 +334,8 @@ jobs:
           weblog: django-poc
         - library: python
           weblog: uwsgi-poc
+        - library: python
+          weblog: uds-flask
         - library: ruby
           weblog: rack
         - library: ruby
@@ -481,6 +489,8 @@ jobs:
         - library: nodejs
           weblog: express4
         - library: nodejs
+          weblog: uds-express4
+        - library: nodejs
           weblog: express4-typescript
         - library: php
           weblog: apache-mod-7.0
@@ -530,6 +540,8 @@ jobs:
           weblog: django-poc
         - library: python
           weblog: uwsgi-poc
+        - library: python
+          weblog: uds-flask
         - library: ruby
           weblog: rack
         - library: ruby

@@ -166,6 +166,7 @@ class Test_Headers:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "?",
         "pylons": "1.1.0rc2.dev",
     }
@@ -420,6 +421,7 @@ class Test_ResponseStatus:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "1.5.2",
         "pylons": "1.1.0rc2.dev",
     }

@@ -58,7 +58,7 @@ class Test_HttpProtocol:
 
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
-@released(python={"flask-poc": "1.5.2", "*": "?"})
+@released(python={"flask-poc": "1.5.2", "uds-flask": "1.5.2", "*": "?"})
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @coverage.good
 class Test_LFI:
