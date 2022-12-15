@@ -119,6 +119,10 @@ class Tracestate(object):
     def to_string(self):
         return ",".join(map(lambda key: key + "=" + self[key], self._traits))
 
+    def split(self, char=","):
+        ts = self.to_string()
+        return ts.split(char)
+
     # make this an optional choice instead of enforcement during put/update
     # if the tracestate value size is bigger than 512 characters, the tracer
     # CAN decide to forward the tracestate
