@@ -184,7 +184,7 @@ def test_traceparent_version_0xcc(test_agent, test_library):
         )
 
     assert traceparent1.trace_id == "12345678901234567890123456789012"
-    assert traceparent2.trace_id != "12345678901234567890123456789012"
+    assert traceparent2.trace_id == "12345678901234567890123456789012"
     assert traceparent3.trace_id != "12345678901234567890123456789012"
 
 
@@ -491,7 +491,7 @@ def test_traceparent_ows_handling(test_agent, test_library):
         )
 
         traceparent2, tracestate = make_single_request_and_get_tracecontext(
-            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+            test_library, [["traceparent", "\t00-12345678901234567890123456789012-1234567890123456-01",],],
         )
 
         traceparent3, tracestate = make_single_request_and_get_tracecontext(
@@ -499,11 +499,11 @@ def test_traceparent_ows_handling(test_agent, test_library):
         )
 
         traceparent4, tracestate = make_single_request_and_get_tracecontext(
-            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01\t",],],
         )
 
         traceparent5, tracestate = make_single_request_and_get_tracecontext(
-            test_library, [["traceparent", " 00-12345678901234567890123456789012-1234567890123456-01 ",],],
+            test_library, [["traceparent", "\t 00-12345678901234567890123456789012-1234567890123456-01 \t",],],
         )
 
     assert traceparent1.trace_id == "12345678901234567890123456789012"
