@@ -219,7 +219,7 @@ def add_main_job(i, workflow, needs, scenarios):
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
     job.add_upload_artifact(
-        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_i",
+        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
         path="artifact.tar.gz",
         if_condition="${{ always() }}",
     )
