@@ -159,8 +159,9 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(name, workflow, needs, scenarios):
+def add_main_job(i, workflow, needs, scenarios):
 
+    name = f"test-the-tests-{i}"
     job = Job(name, needs=[job.name for job in needs])
 
     job.data["strategy"] = {
@@ -218,7 +219,7 @@ def add_main_job(name, workflow, needs, scenarios):
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
     job.add_upload_artifact(
-        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}",
+        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_i",
         path="artifact.tar.gz",
         if_condition="${{ always() }}",
     )
@@ -315,7 +316,7 @@ def main():
     main_jobs = []
 
     for i, scenarios in enumerate(scenarios_sets):
-        main_jobs.append(add_main_job(f"test-the-tests-{i}", result, needs=[lint_job], scenarios=scenarios))
+        main_jobs.append(add_main_job(i, result, needs=[lint_job], scenarios=scenarios))
 
     add_ci_dashboard_job(result, main_jobs)
 
