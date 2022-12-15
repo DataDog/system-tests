@@ -42,6 +42,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules.json"
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_BLOCKING" ]; then
+    export RUNNER_ARGS="tests/appsec/waf/test_blocking.py"
+    export SYSTEMTESTS_LOG_FOLDER=logs_blocking
+    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_blocking_rule.json"
+
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
 

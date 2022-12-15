@@ -25,6 +25,7 @@ scenarios_sets = (
         "APPSEC_CORRUPTED_RULES",
         "APPSEC_CUSTOM_RULES",
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
+        "APPSEC_BLOCKING",
         "APPSEC_DISABLED",
         "APPSEC_LOW_WAF_TIMEOUT",
         "APPSEC_CUSTOM_OBFUSCATION",
@@ -216,6 +217,8 @@ def add_main_job(i, workflow, needs, scenarios):
 
         if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
+        elif scenario == "APPSEC_BLOCKING":
+            step["if"] = "${{ matrix.library == 'java' }}"
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
     job.add_upload_artifact(
