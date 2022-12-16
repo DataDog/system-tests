@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from parametric.utils.headers import make_single_request_and_get_headers
+from parametric.utils.headers import make_single_request_and_get_inject_headers
 from parametric.utils.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
@@ -36,7 +36,7 @@ def test_headers_b3multi_extract_valid(test_agent, test_library):
     and activated properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-b3-traceid", "000000000000000000000000075bcd15"],
@@ -59,7 +59,7 @@ def test_headers_b3multi_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
         )
 
@@ -77,7 +77,7 @@ def test_headers_b3multi_inject_valid(test_agent, test_library):
     """Ensure that b3multi distributed tracing headers are injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [])
+        headers = make_single_request_and_get_inject_headers(test_library, [])
 
     span = get_span(test_agent)
     b3_trace_id = headers["x-b3-traceid"]
@@ -100,7 +100,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
     and injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-b3-traceid", "000000000000000000000000075bcd15"],
@@ -130,7 +130,7 @@ def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     and the new span context is injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
         )
 

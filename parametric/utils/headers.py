@@ -1,7 +1,7 @@
 from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 
 
-def make_single_request_and_get_headers(test_library, headers_list):
+def make_single_request_and_get_inject_headers(test_library, headers_list):
     distributed_message = DistributedHTTPHeaders()
     for key, value in headers_list:
         distributed_message.http_headers[key] = value
