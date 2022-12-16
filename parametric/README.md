@@ -129,7 +129,17 @@ go mod tidy
 ```
 
 
-### Debugging 
+#### Python
+
+To run the Python tests "locally" push your code to a branch and then specify ``PYTHON_DDTRACE_PACKAGE``.
+
+
+```sh
+PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@1.x ./run.sh ...
+```
+
+
+### Debugging
 
 The stdout and stderr logs of the test run will include the output from the library server and the test agent container.
 These can be used to debug the test case.

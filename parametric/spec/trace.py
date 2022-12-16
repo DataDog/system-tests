@@ -225,3 +225,8 @@ def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
             max_similarity_span = similar_span
             max_similarity = similarity
     return max_similarity_span
+
+
+def span_has_no_parent(span: Span) -> bool:
+    """Return if a span has a parent by checking the presence and value of the `parent_id`."""
+    return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None

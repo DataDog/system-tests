@@ -1,9 +1,12 @@
 import os
 from utils._context.library_version import LibraryVersion
-from utils.interfaces._logs.core import _LibraryStdout
-from utils import context
+from utils.interfaces._logs import _LibraryStdout
+from utils import context, interfaces
 
 context.execute_warmups = lambda *args, **kwargs: None
+interfaces.agent.wait = lambda *args, **kwargs: None
+interfaces.library.wait = lambda *args, **kwargs: None
+interfaces.backend.wait = lambda *args, **kwargs: None
 
 
 class Test_Main:
@@ -18,14 +21,10 @@ class Test_Main:
 
         stdout = _LibraryStdout()
 
+        stdout.wait()
+
         stdout.assert_absence(r"System\.Exception")
         stdout.assert_presence(r"some.*file")
         stdout.assert_presence(r"AppSec initial \d+\.\d+\.\d+", level="INFO")
 
         stdout.assert_presence(r"some.*file", level="DEBUG")
-        stdout.append_log_validation(lambda data: data["level"])
-
-        stdout.wait(0)
-
-        for v in stdout._validations:
-            assert v.is_success, v

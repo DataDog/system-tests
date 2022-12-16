@@ -18,4 +18,4 @@ class Test_Sqli:
 
     def test_main(self):
         interfaces.library.assert_trace_exists(self.r)
-        interfaces.library.add_assertion(self.r.status_code == 200)
+        assert self.r.status_code == 200

@@ -5,11 +5,11 @@ is printed, it means that you have previously ran tests outside docker, and pyth
 
 => Remove any `__pycache__` folder
 
-## `run.sh` fails at the very begning, saying `runner` is unhealthy
+## `run.sh` fails at the very beginning, saying `runner` is unhealthy
 
 You may have python errors, try `docker-compose up runner` to directly see them
 
-## `run.sh` fails at the very begning, saying `agent` is unhealthy
+## `run.sh` fails at the very beginning, saying `agent` is unhealthy
 
 Internet connection issue?
 
