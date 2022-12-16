@@ -20,7 +20,6 @@ def temporary_enable_propagationstyle_default() -> Any:
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-@pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -58,7 +57,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1"],
+                ["tracestate", "foo=1,dd=s~-1"],
             ],
         )
 
@@ -67,7 +66,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:2"],
+                ["tracestate", "foo=1,dd=s~2"],
             ],
         )
 
@@ -81,7 +80,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
-                ["tracestate", "foo=1,dd=s:-1"],
+                ["tracestate", "foo=1,dd=s~-1"],
             ],
         )
 
@@ -90,7 +89,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
-                ["tracestate", "foo=1,dd=s:1"],
+                ["tracestate", "foo=1,dd=s~1"],
             ],
         )
 
@@ -104,7 +103,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers1
     assert sampled1 == "01"
     assert "tracestate" in headers1
-    assert "s:2" in dd_items1
+    assert "s~2" in dd_items1
 
     # 2) x-datadog-sampling-priority <= 0
     # Result: SamplingPriority = headers['x-datadog-sampling-priority'], Sampled = 0
@@ -116,7 +115,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers2
     assert sampled2 == "00"
     assert "tracestate" in headers2
-    assert "s:-1" in dd_items2
+    assert "s~-1" in dd_items2
 
     # 3) Sampled = 1, tracestate[dd][s] is not present
     # Result: SamplingPriority = 1
@@ -128,7 +127,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers3
     assert sampled3 == "01"
     assert "tracestate" in headers3
-    assert "s:1" in dd_items3
+    assert "s~1" in dd_items3
 
     # 4) Sampled = 1, tracestate[dd][s] <= 0
     # Result: SamplingPriority = 1
@@ -140,7 +139,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers4
     assert sampled4 == "01"
     assert "tracestate" in headers4
-    assert "s:1" in dd_items4
+    assert "s~1" in dd_items4
 
     # 5) Sampled = 1, tracestate[dd][s] > 0
     # Result: SamplingPriority = incoming sampling priority
@@ -152,7 +151,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers5
     assert sampled5 == "01"
     assert "tracestate" in headers5
-    assert "s:2" in dd_items5
+    assert "s~2" in dd_items5
 
     # 6) Sampled = 0, tracestate[dd][s] is not present
     # Result: SamplingPriority = 0
@@ -164,7 +163,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers6
     assert sampled6 == "00"
     assert "tracestate" in headers6
-    assert "s:0" in dd_items6
+    assert "s~0" in dd_items6
 
     # 7) Sampled = 0, tracestate[dd][s] <= 0
     # Result: SamplingPriority = incoming sampling priority
@@ -176,7 +175,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers7
     assert sampled7 == "00"
     assert "tracestate" in headers7
-    assert "s:-1" in dd_items7
+    assert "s~-1" in dd_items7
 
     # 8) Sampled = 0, tracestate[dd][s] > 0
     # Result: SamplingPriority = 0
@@ -188,14 +187,13 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     assert "traceparent" in headers8
     assert sampled8 == "00"
     assert "tracestate" in headers8
-    assert "s:0" in dd_items8
+    assert "s~0" in dd_items8
 
 
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-@pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -238,7 +236,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1"],
+                ["tracestate", "foo=1,dd=s~-1"],
             ],
         )
 
@@ -247,7 +245,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;o:synthetics-browser"],
+                ["tracestate", "foo=1,dd=s~-1;o~synthetics-browser"],
             ],
         )
 
@@ -256,7 +254,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;o:tracing2.0"],
+                ["tracestate", "foo=1,dd=s~-1;o~tracing2.0"],
             ],
         )
 
@@ -268,7 +266,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     dd_items1 = tracestate1["dd"].split(";")
     assert "traceparent" in headers1
     assert "tracestate" in headers1
-    assert "o:synthetics-browser" in dd_items1
+    assert "o~synthetics-browser" in dd_items1
 
     # 2) x-datadog-origin is NOT a well-known value
     # Result: Origin set to header value
@@ -278,7 +276,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     dd_items2 = tracestate2["dd"].split(";")
     assert "traceparent" in headers2
     assert "tracestate" in headers2
-    assert "o:tracing2.0" in dd_items2
+    assert "o~tracing2.0" in dd_items2
 
     # 3) x-datadog-origin has invalid characters
     # Result: Origin set to header value, where invalid characters replaced by '_'
@@ -288,7 +286,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     dd_items3 = tracestate3["dd"].split(";")
     assert "traceparent" in headers3
     assert "tracestate" in headers3
-    assert "o:synthetics___web" in dd_items3
+    assert "o~synthetics___web" in dd_items3
 
     # 4) tracestate[dd][o] is not present
     # Result: Origin is not set
@@ -298,7 +296,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     dd_items4 = tracestate4["dd"].split(";")
     assert "traceparent" in headers4
     assert "tracestate" in headers4
-    assert not any(item.startswith("o:") for item in dd_items4)
+    assert not any(item.startswith("o~") for item in dd_items4)
 
     # 5) tracestate[dd][o] is present and is a well-known value
     # Result: Origin set to header value
@@ -308,7 +306,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     dd_items5 = tracestate5["dd"].split(";")
     assert "traceparent" in headers5
     assert "tracestate" in headers5
-    assert "o:synthetics-browser" in dd_items5
+    assert "o~synthetics-browser" in dd_items5
 
     # 6) tracestate[dd][o] is present and is NOT a well-known value
     # Result: Origin set to header value
@@ -318,14 +316,14 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     dd_items6 = tracestate6["dd"].split(";")
     assert "traceparent" in headers6
     assert "tracestate" in headers6
-    assert "o:tracing2.0" in dd_items6
+    assert "o~tracing2.0" in dd_items6
 
 
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-@pytest.mark.skip_library("python", "not implemented")
+@pytest.mark.skip_library("python", "python tracer does not replace = with :")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -369,7 +367,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1"],
+                ["tracestate", "foo=1,dd=s~-1"],
             ],
         )
 
@@ -378,7 +376,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"],
+                ["tracestate", "foo=1,dd=s~-1;t.dm~-4;t.usr.id~baz64~~"],
             ],
         )
 
@@ -387,7 +385,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost"],
+                ["tracestate", "foo=1,dd=s~-1;t.dm~-4;t.usr.id~baz64~~;t.url~http://localhost"],
             ],
         )
 
@@ -399,7 +397,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     dd_items1 = tracestate1["dd"].split(";")
     assert "traceparent" in headers1
     assert "tracestate" in headers1
-    assert "t.dm:-4" in dd_items1
+    assert "t.dm~-4" in dd_items1
 
     # 2) x-datadog-tags is populated with well-known tags that require
     #    substituting "=" characters with ":" characters
@@ -411,8 +409,8 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     dd_items2 = tracestate2["dd"].split(";")
     assert "traceparent" in headers2
     assert "tracestate" in headers2
-    assert "t.dm:-4" in dd_items2
-    assert "t.usr.id:baz64~~" in dd_items2
+    assert "t.dm~-4" in dd_items2
+    assert "t.usr.id~baz64~~" in dd_items2
 
     # 3) x-datadog-tags is populated with both well-known tags and unrecognized tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
@@ -423,9 +421,9 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     dd_items3 = tracestate3["dd"].split(";")
     assert "traceparent" in headers3
     assert "tracestate" in headers3
-    assert "t.dm:-4" in dd_items3
-    assert "t.usr.id:baz64~~" in dd_items3
-    assert "t.url:http://localhost" in dd_items3
+    assert "t.dm~-4" in dd_items3
+    assert "t.usr.id~baz64~~" in dd_items3
+    assert "t.url~http://localhost" in dd_items3
 
     # 4) tracestate[dd] does not contain propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
@@ -436,7 +434,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     assert "traceparent" in headers4
 
     if headers4["x-datadog-tags"] is None:
-        assert not any(item.startswith("t:") for item in dd_items4)
+        assert not any(item.startswith("t~") for item in dd_items4)
     else:
         assert "tracestate" in headers4
         for tag in headers4["x-datadog-tags"].split(","):
@@ -456,8 +454,8 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     dd_items5 = tracestate5["dd"].split(";")
     assert "traceparent" in headers5
     assert "tracestate" in headers5
-    assert "t.dm:-4" in dd_items5
-    assert "t.usr.id:baz64~~" in dd_items5
+    assert "t.dm~-4" in dd_items5
+    assert "t.usr.id~baz64~~" in dd_items5
 
     # 6) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
@@ -468,6 +466,6 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     dd_items6 = tracestate6["dd"].split(";")
     assert "traceparent" in headers6
     assert "tracestate" in headers6
-    assert "t.dm:-4" in dd_items6
-    assert "t.usr.id:baz64::" in dd_items6
-    assert "t.url:http://localhost" in dd_items6
+    assert "t.dm~-4" in dd_items6
+    assert "t.usr.id~baz64~~" in dd_items6
+    assert "t.url~http://localhost" in dd_items6
