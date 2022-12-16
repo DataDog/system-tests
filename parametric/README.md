@@ -36,7 +36,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 The following dependencies are required to run the tests locally:
 
 - Docker
-- Python >= 3.7
+- Python >= 3.7 (for Windows users, Python 3.9 seems to run best without issues)
 
 then, create a Python virtual environment and install the Python dependencies:
 
