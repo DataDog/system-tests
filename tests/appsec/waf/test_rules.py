@@ -105,7 +105,7 @@ class Test_RFI:
 
     def setup_rfi(self):
         self.r_1 = weblog.get("/waf/", params={"attack": "mosConfig_absolute_path=file://"})
-        self.r_2 = weblog.get("/waf/", params={"attack": "file?"})
+        self.r_2 = weblog.get("/waf/", params={"attack": "file://rfi?"})
 
     def test_rfi(self):
         """ Appsec WAF detects remote file injection attacks """
