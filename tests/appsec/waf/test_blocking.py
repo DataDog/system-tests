@@ -125,14 +125,16 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule"""
 
+    def setup_no_accept(self):
+        self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
     def test_no_accept(self):
         """Blocking without an accept header"""
-        r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        assert r.status_code == 403
-        assert re.match("^application/json", r.headers.get("content-type", "")) is not None
+        assert self.r_na.status_code == 403
+        assert re.match("^application/json", self.r_na.headers.get("content-type", "")) is not None
         assert (
-            r.text == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
+            self.r_na.text == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
             'this page. Please contact the customer service team. Security provided by Datadog."}]}\n'
         )
 
@@ -161,49 +163,59 @@ class Test_Blocking:
 
         interfaces.library.validate_spans(self.r_abt, validator=validate_appsec_blocked)
 
+    def setup_accept_all(self):
+        self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
+
     def test_accept_all(self):
         """Blocking with Accept: */*"""
-        r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
-        assert r.status_code == 403
-        assert re.match("^application/json", r.headers.get("content-type", "")) is not None
+        assert self.r_aa.status_code == 403
+        assert re.match("^application/json", self.r_aa.headers.get("content-type", "")) is not None
+
+    def setup_accept_partial_json(self):
+        # */* should be ignored because there are more specific matches for text/html and application/json
+        self.r_apj = weblog.get(
+            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
+        )
 
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
-        # */* should be ignored because there are more specific matches for text/html and application/json
-        r = weblog.get(
-            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
+        assert self.r_apj.status_code == 403
+        assert re.match("^application/json", self.r_apj.headers.get("content-type", "")) is not None
+
+    def setup_accept_partial_html(self):
+        self.r_aph = weblog.get(
+            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.8, application/*;q=0.7, */*;q=0.9"}
         )
-        assert r.status_code == 403
-        assert re.match("^application/json", r.headers.get("content-type", "")) is not None
 
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
-        r = weblog.get(
-            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.8, application/*;q=0.7, */*;q=0.9"}
-        )
-        assert r.status_code == 403
-        assert r.text == HTML_DATA
+        assert self.r_aph.status_code == 403
+        assert self.r_aph.text == HTML_DATA
 
-    def test_accept_full_json(self):
-        """Blocking with Accept: application/json"""
-        r = weblog.get(
+    def setup_accept_full_json(self):
+        self.r_afj = weblog.get(
             "/waf/",
             headers={
                 "User-Agent": "Arachni/v1",
                 "Accept": "text/*;q=0.8, application/*;q=0.7, application/json;q=0.85, */*;q=0.9",
             },
         )
-        assert r.status_code == 403
-        assert re.match("^application/json", r.headers.get("content-type", "")) is not None
 
-    def test_accept_full_html(self):
-        """Blocking with Accept: text/html"""
-        r = weblog.get(
+    def test_accept_full_json(self):
+        """Blocking with Accept: application/json"""
+        assert self.r_afj.status_code == 403
+        assert re.match("^application/json", self.r_afj.headers.get("content-type", "")) is not None
+
+    def setup_accept_full_html(self):
+        self.r_afh = weblog.get(
             "/waf/",
             headers={
                 "User-Agent": "Arachni/v1",
                 "Accept": "text/html;q=0.9, text/*;q=0.8, application/json;q=0.85, */*;q=0.9",
             },
         )
-        assert r.status_code == 403
-        assert re.match("^text/html", r.headers.get("content-type", "")) is not None
+
+    def test_accept_full_html(self):
+        """Blocking with Accept: text/html"""
+        assert self.r_afh.status_code == 403
+        assert re.match("^text/html", self.r_afh.headers.get("content-type", "")) is not None
