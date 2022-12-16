@@ -12,7 +12,7 @@ from typing import Any
 import pytest
 
 from parametric.spec.tracecontext import get_tracecontext
-from parametric.utils.headers import make_single_request_and_get_headers
+from parametric.utils.headers import make_single_request_and_get_inject_headers
 
 parametrize = pytest.mark.parametrize
 
@@ -892,4 +892,4 @@ def test_tracestate_ows_handling(test_agent, test_library):
 
 
 def make_single_request_and_get_tracecontext(test_library, headers_list):
-    return get_tracecontext(make_single_request_and_get_headers(test_library, headers_list))
+    return get_tracecontext(make_single_request_and_get_inject_headers(test_library, headers_list))

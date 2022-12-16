@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from parametric.spec.tracecontext import get_tracecontext
-from parametric.utils.headers import make_single_request_and_get_headers
+from parametric.utils.headers import make_single_request_and_get_inject_headers
 
 parametrize = pytest.mark.parametrize
 
@@ -29,7 +29,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
     """
     with test_library:
         # 1) x-datadog-sampling-priority > 0
-        headers1 = make_single_request_and_get_headers(
+        headers1 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -39,7 +39,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
         )
 
         # 2) x-datadog-sampling-priority <= 0
-        headers2 = make_single_request_and_get_headers(
+        headers2 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -49,12 +49,12 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
         )
 
         # 3) Sampled = 1, tracestate[dd][s] is not present
-        headers3 = make_single_request_and_get_headers(
+        headers3 = make_single_request_and_get_inject_headers(
             test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
         )
 
         # 4) Sampled = 1, tracestate[dd][s] <= 0
-        headers4 = make_single_request_and_get_headers(
+        headers4 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -63,7 +63,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
         )
 
         # 5) Sampled = 1, tracestate[dd][s] > 0
-        headers5 = make_single_request_and_get_headers(
+        headers5 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -72,12 +72,12 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
         )
 
         # 6) Sampled = 0, tracestate[dd][s] is not present
-        headers6 = make_single_request_and_get_headers(
+        headers6 = make_single_request_and_get_inject_headers(
             test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],]
         )
 
         # 7) Sampled = 0, tracestate[dd][s] <= 0
-        headers7 = make_single_request_and_get_headers(
+        headers7 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
@@ -86,7 +86,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
         )
 
         # 8) Sampled = 0, tracestate[dd][s] > 0
-        headers8 = make_single_request_and_get_headers(
+        headers8 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
@@ -204,7 +204,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
     with test_library:
         # 1) x-datadog-origin is a well-known value
-        headers1 = make_single_request_and_get_headers(
+        headers1 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -214,7 +214,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
         )
 
         # 2) x-datadog-origin is NOT a well-known value
-        headers2 = make_single_request_and_get_headers(
+        headers2 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -224,7 +224,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
         )
 
         # 3) x-datadog-origin has invalid characters
-        headers3 = make_single_request_and_get_headers(
+        headers3 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -234,7 +234,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
         )
 
         # 4) tracestate[dd][o] is not present
-        headers4 = make_single_request_and_get_headers(
+        headers4 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -243,7 +243,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
         )
 
         # 5) tracestate[dd][o] is present and is a well-known value
-        headers5 = make_single_request_and_get_headers(
+        headers5 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -252,7 +252,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
         )
 
         # 6) tracestate[dd][o] is present and is NOT a well-known value
-        headers6 = make_single_request_and_get_headers(
+        headers6 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -334,7 +334,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     """
     with test_library:
         # 1) x-datadog-tags is populated with well-known tags
-        headers1 = make_single_request_and_get_headers(
+        headers1 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -345,7 +345,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
 
         # 2) x-datadog-tags is populated with well-known tags that require
         # substituting "=" characters with ":" characters
-        headers2 = make_single_request_and_get_headers(
+        headers2 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -355,7 +355,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
         )
 
         # 3) x-datadog-tags is populated with both well-known tags and unrecognized tags
-        headers3 = make_single_request_and_get_headers(
+        headers3 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "7890123456789012"],
@@ -365,7 +365,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
         )
 
         # 4) tracestate[dd] does not contain propagated tags
-        headers4 = make_single_request_and_get_headers(
+        headers4 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -374,7 +374,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
         )
 
         # 5) tracestate[dd] is populated with well-known propagated tags
-        headers5 = make_single_request_and_get_headers(
+        headers5 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -383,7 +383,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
         )
 
         # 6) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
-        headers6 = make_single_request_and_get_headers(
+        headers6 = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],

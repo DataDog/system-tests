@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from parametric.utils.headers import make_single_request_and_get_headers
+from parametric.utils.headers import make_single_request_and_get_inject_headers
 from parametric.utils.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
@@ -39,7 +39,7 @@ def test_headers_none_extract(test_agent, test_library):
     """Ensure that no distributed tracing headers are extracted.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "123456789"],
@@ -67,7 +67,7 @@ def test_headers_none_extract_with_other_propagators(test_agent, test_library):
     and activated properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "123456789"],
@@ -95,7 +95,7 @@ def test_headers_none_inject(test_agent, test_library):
     no Datadog distributed tracing headers are injected.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [])
+        headers = make_single_request_and_get_inject_headers(test_library, [])
 
     assert "traceparent" not in headers
     assert "tracestate" not in headers
@@ -114,7 +114,7 @@ def test_headers_none_inject_with_other_propagators(test_agent, test_library):
     In this case, ensure that the Datadog distributed tracing headers are injected properly.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(test_library, [])
+        headers = make_single_request_and_get_inject_headers(test_library, [])
 
     span = get_span(test_agent)
     assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
@@ -131,7 +131,7 @@ def test_headers_none_propagate(test_agent, test_library):
     no Datadog distributed tracing headers are extracted or injected.
     """
     with test_library:
-        headers = make_single_request_and_get_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "123456789"],
