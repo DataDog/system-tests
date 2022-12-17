@@ -51,9 +51,6 @@ class Traceparent(object):
         self.parent_id = parent_id
         self.trace_flags = trace_flags
 
-    def __str__(self):
-        return "{}-{}-{}-{}".format(self.version, self.trace_id, self.parent_id, self.trace_flags)
-
 
 # The tracestate class was obtained from https://github.com/w3c/trace-context/blob/84b583d86ecb7005a9eab8fed86ab7117b050b48/test/tracecontext/tracestate.py
 # All tests in this Repository are licensed by contributors to be distributed under the W3C 3-clause BSD License: https://www.w3.org/Consortium/Legal/2008/03-bsd-license.html
@@ -103,7 +100,7 @@ class Tracestate(object):
         self._traits.move_to_end(key, last=False)
 
     def __str__(self):
-        return ",".join(map(lambda key: key + "=" + self[key], self._traits))
+        return self.to_string()
 
     def from_string(self, string):
         for member in re.split(self._DELIMITER_FORMAT_RE, string):
@@ -119,6 +116,13 @@ class Tracestate(object):
                     # it. We opt for dropping it.
         return self
 
+    def to_string(self):
+        return ",".join(map(lambda key: key + "=" + self[key], self._traits))
+
+    def split(self, char=","):
+        ts = self.to_string()
+        return ts.split(char)
+
     # make this an optional choice instead of enforcement during put/update
     # if the tracestate value size is bigger than 512 characters, the tracer
     # CAN decide to forward the tracestate
@@ -126,7 +130,7 @@ class Tracestate(object):
         if len(self) == 0:
             return False
         # combined header length MUST be less than or equal to 512 bytes
-        if len(str(self)) > 512:
+        if len(self.to_string()) > 512:
             return False
         # there can be a maximum of 32 list-members in a list
         if len(self) > 32:
