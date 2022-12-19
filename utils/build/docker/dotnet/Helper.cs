@@ -20,17 +20,6 @@ namespace weblog
                 {
                     childScope.Span.SetTag("garbage" + i, RandomString(50));
                 }
-
-                // Send custom span tags
-                string customSpanTags = Environment.GetEnvironmentVariable("TEST_SPAN_CUSTOM_TAGS");
-                if (!String.IsNullOrEmpty(customSpanTags)) {
-                    string[] customSpanTagsArr = customSpanTags.Split(',');
-                    foreach (var tag in customSpanTagsArr)
-                    {
-                        string[] arr = tag.Split(':');
-                        childScope.Span.SetTag(arr[0], arr[1]);
-                    }                    
-                }
             }
         }
 

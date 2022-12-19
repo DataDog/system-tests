@@ -9,6 +9,7 @@ from pytest_jsonreport.plugin import JSONReport
 from utils import context, data_collector, interfaces
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
+from utils._context.library_version import LibraryVersion
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -39,6 +40,9 @@ def pytest_sessionstart(session):
 
         if context.appsec_rules_file:
             print_info(f"AppSec rules version: {context.appsec_rules_version}")
+
+        if context.uds_mode:
+            print_info(f"UDS socket: {context.uds_socket}")
 
         print_info(f"Weblog variant: {context.weblog_variant}")
         print_info(f"Backend: {context.dd_site}")
@@ -119,9 +123,6 @@ def pytest_collection_modifyitems(session, config, items):
     if scenario == "CUSTOM":
         # user has specifed which test to run, do nothing
         return
-
-    if scenario == "UDS":
-        scenario = "DEFAULT"  # TODO : it's a variant
 
     selected = []
     deselected = []
@@ -228,6 +229,12 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
+
+    json.dump(
+        {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
+        open("logs/known_versions.json", "w", encoding="utf-8"),
+        indent=2,
+    )
 
     _pytest_junit_modifyreport()
 
