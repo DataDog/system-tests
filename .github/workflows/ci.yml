@@ -626,6 +626,11 @@ jobs:
       run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_BLOCKING scenario
+      run: ./run.sh APPSEC_BLOCKING
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      if: ${{ matrix.library == 'java' }}
     - name: Run APPSEC_DISABLED scenario
       run: ./run.sh APPSEC_DISABLED
       env:
