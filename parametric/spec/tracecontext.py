@@ -51,6 +51,9 @@ class Traceparent(object):
         self.parent_id = parent_id
         self.trace_flags = trace_flags
 
+    def __str__(self) -> str:
+        return "{}-{}-{}-{}".format(self.version, self.trace_id, self.parent_id, self.trace_flags)
+
 
 # The tracestate class was obtained from https://github.com/w3c/trace-context/blob/84b583d86ecb7005a9eab8fed86ab7117b050b48/test/tracecontext/tracestate.py
 # All tests in this Repository are licensed by contributors to be distributed under the W3C 3-clause BSD License: https://www.w3.org/Consortium/Legal/2008/03-bsd-license.html

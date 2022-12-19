@@ -20,7 +20,6 @@ def temporary_enable_propagationstyle_default() -> Any:
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-@pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -195,7 +194,6 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-@pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
