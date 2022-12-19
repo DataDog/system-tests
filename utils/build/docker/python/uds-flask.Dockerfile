@@ -20,6 +20,11 @@ ENV DD_REMOTECONFIG_POLL_SECONDS=1
 # FIXME: Ensure gevent patching occurs before ddtrace
 
 ENV FLASK_APP=app.py
+
+ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
+ENV UDS_WEBLOG=1
+COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
+
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .

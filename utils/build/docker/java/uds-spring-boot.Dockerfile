@@ -6,9 +6,10 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Popenliberty package
+RUN mvn -Dmaven.repo.local=/maven package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -24,9 +25,7 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar -Ddd.jmxfetch.enabled=false'
-
-#ENV _JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=0.0.0.0:5005
-RUN echo "#!/bin/bash\njava -Xmx362m -jar /app/myproject-0.0.1-SNAPSHOT.jar" > app.sh
-RUN chmod +x app.sh
-CMD [ "./app.sh" ]
+COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
+ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
+ENV UDS_WEBLOG=1
+COPY utils/build/docker/java/spring-boot/app.sh app.sh
