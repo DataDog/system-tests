@@ -113,7 +113,7 @@ def _create_testcase_results(
                     tc_props,
                     "property",
                     name=f"dd_tags[systest.case.release.library.{library_name}]",
-                    value=test_release[library_name],
+                    value=str(test_release[library_name]),
                 )
         if outcome == "failed":
             if skip_reason:

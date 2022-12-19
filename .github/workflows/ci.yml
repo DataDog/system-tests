@@ -41,6 +41,8 @@ jobs:
           weblog: nginx
         - library: dotnet
           weblog: poc
+        - library: dotnet
+          weblog: uds
         - library: golang
           weblog: chi
         - library: golang
@@ -51,6 +53,8 @@ jobs:
           weblog: gorilla
         - library: golang
           weblog: net-http
+        - library: golang
+          weblog: uds-echo
         - library: java
           weblog: jersey-grizzly2
         - library: java
@@ -64,11 +68,15 @@ jobs:
         - library: java
           weblog: spring-boot
         - library: java
+          weblog: uds-spring-boot
+        - library: java
           weblog: spring-boot-openliberty
         - library: java
           weblog: spring-boot-undertow
         - library: nodejs
           weblog: express4
+        - library: nodejs
+          weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
         - library: php
@@ -119,6 +127,8 @@ jobs:
           weblog: django-poc
         - library: python
           weblog: uwsgi-poc
+        - library: python
+          weblog: uds-flask
         - library: ruby
           weblog: rack
         - library: ruby
@@ -127,6 +137,8 @@ jobs:
           weblog: sinatra20
         - library: ruby
           weblog: sinatra21
+        - library: ruby
+          weblog: uds-sinatra
         - library: ruby
           weblog: rails32
         - library: ruby
@@ -185,11 +197,6 @@ jobs:
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run UDS scenario
-      run: ./run.sh UDS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      if: ${{ matrix.variant.library != 'php' && matrix.variant.library != 'cpp' }}
     - name: Run PROFILING scenario
       run: ./run.sh PROFILING
       env:
@@ -222,7 +229,7 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_0
         path: artifact.tar.gz
     - name: Upload results CI Visibility
       if: ${{ always() }}
@@ -243,6 +250,8 @@ jobs:
           weblog: nginx
         - library: dotnet
           weblog: poc
+        - library: dotnet
+          weblog: uds
         - library: golang
           weblog: chi
         - library: golang
@@ -253,6 +262,8 @@ jobs:
           weblog: gorilla
         - library: golang
           weblog: net-http
+        - library: golang
+          weblog: uds-echo
         - library: java
           weblog: jersey-grizzly2
         - library: java
@@ -266,11 +277,15 @@ jobs:
         - library: java
           weblog: spring-boot
         - library: java
+          weblog: uds-spring-boot
+        - library: java
           weblog: spring-boot-openliberty
         - library: java
           weblog: spring-boot-undertow
         - library: nodejs
           weblog: express4
+        - library: nodejs
+          weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
         - library: php
@@ -321,6 +336,8 @@ jobs:
           weblog: django-poc
         - library: python
           weblog: uwsgi-poc
+        - library: python
+          weblog: uds-flask
         - library: ruby
           weblog: rack
         - library: ruby
@@ -329,6 +346,8 @@ jobs:
           weblog: sinatra20
         - library: ruby
           weblog: sinatra21
+        - library: ruby
+          weblog: uds-sinatra
         - library: ruby
           weblog: rails32
         - library: ruby
@@ -418,7 +437,7 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_1
         path: artifact.tar.gz
     - name: Upload results CI Visibility
       if: ${{ always() }}
@@ -439,6 +458,8 @@ jobs:
           weblog: nginx
         - library: dotnet
           weblog: poc
+        - library: dotnet
+          weblog: uds
         - library: golang
           weblog: chi
         - library: golang
@@ -449,6 +470,8 @@ jobs:
           weblog: gorilla
         - library: golang
           weblog: net-http
+        - library: golang
+          weblog: uds-echo
         - library: java
           weblog: jersey-grizzly2
         - library: java
@@ -462,11 +485,15 @@ jobs:
         - library: java
           weblog: spring-boot
         - library: java
+          weblog: uds-spring-boot
+        - library: java
           weblog: spring-boot-openliberty
         - library: java
           weblog: spring-boot-undertow
         - library: nodejs
           weblog: express4
+        - library: nodejs
+          weblog: uds-express4
         - library: nodejs
           weblog: express4-typescript
         - library: php
@@ -517,6 +544,8 @@ jobs:
           weblog: django-poc
         - library: python
           weblog: uwsgi-poc
+        - library: python
+          weblog: uds-flask
         - library: ruby
           weblog: rack
         - library: ruby
@@ -525,6 +554,8 @@ jobs:
           weblog: sinatra20
         - library: ruby
           weblog: sinatra21
+        - library: ruby
+          weblog: uds-sinatra
         - library: ruby
           weblog: rails32
         - library: ruby
@@ -626,7 +657,7 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_2
         path: artifact.tar.gz
     - name: Upload results CI Visibility
       if: ${{ always() }}
