@@ -132,6 +132,7 @@ def rc_check_request(data, expected, caching):
     cpp="?", dotnet="2.15.0", golang="?", java="0.115.0", php="?", python="1.7.0rc1.dev", ruby="?", nodejs="3.9.0"
 )
 @bug(library="dotnet")
+@bug(library="python")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
