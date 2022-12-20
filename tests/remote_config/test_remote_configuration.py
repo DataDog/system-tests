@@ -228,10 +228,9 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(
-    cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="1.6.0rc1.dev", ruby="?", nodejs="3.9.0"
+    cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="?", ruby="?", nodejs="3.9.0"
 )
 @bug(library="dotnet")
-@missing_feature(context.library >= "python@1.7.0", reason="RC Cache is implemented in 1.7")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
