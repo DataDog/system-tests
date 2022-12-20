@@ -28,9 +28,6 @@ class TestIastWeakHash:
             return "/usr/app/iast.js"
 
         if context.library.library == "python":
-            if context.weblog_variant == "django-poc":
-                return "/iast.py"
-
             if context.weblog_variant == "uwsgi-poc":
                 return "/app/./iast.py"
 
