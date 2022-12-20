@@ -231,8 +231,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="1.6.0rc1.dev", ruby="?", nodejs="3.9.0"
 )
 @bug(library="dotnet")
-@bug(weblog_variant="django-poc")
-@bug(library="python", reason="Error in python tracer version")
 @missing_feature(context.library > "python@1.7.0", reason="RC Cache is implemented in 1.7")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @coverage.basic
