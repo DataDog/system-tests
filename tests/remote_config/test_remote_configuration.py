@@ -227,9 +227,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(
-    cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="?", ruby="?", nodejs="3.9.0"
-)
+@released(cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="?", ruby="?", nodejs="3.9.0")
 @bug(library="dotnet")
 @irrelevant(library="nodejs", reason="cache is implemented")
 @coverage.basic
