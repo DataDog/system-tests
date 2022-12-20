@@ -14,7 +14,7 @@ if context.library == "cpp":
 @coverage.basic
 @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "*": "?"})
-@flaky(library="java")
+@flaky(library="java", reason="APPSEC-7111")
 class TestIastCommandInjection:
     """Verify IAST features"""
 
