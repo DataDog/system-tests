@@ -195,6 +195,7 @@ def add_main_job(i, workflow, needs, scenarios):
     job.add_step(
         "Load PHP prod library binary",
         "./utils/scripts/load-binary.sh php prod",
+        add_gh_token=True,
         if_condition="${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}",
     )
 
