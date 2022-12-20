@@ -191,6 +191,13 @@ def add_main_job(i, workflow, needs, scenarios):
         if_condition="${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}",
     )
 
+    # PHP script that loads prod tracer is very flaky
+    job.add_step(
+        "Load PHP prod library binary",
+        "./utils/scripts/load-binary.sh php prod",
+        if_condition="${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}",
+    )
+
     job.add_step(
         "Load library PHP appsec binary",
         "./utils/scripts/load-binary.sh php_appsec",
