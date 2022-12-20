@@ -181,7 +181,7 @@ jobs:
       if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
     - name: Load PHP prod library binary
-      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
+      if: ${{matrix.variant.library == 'php'}}
       run: ./utils/scripts/load-binary.sh php prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -395,7 +395,7 @@ jobs:
       if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
     - name: Load PHP prod library binary
-      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
+      if: ${{matrix.variant.library == 'php'}}
       run: ./utils/scripts/load-binary.sh php prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -608,7 +608,7 @@ jobs:
       if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
     - name: Load PHP prod library binary
-      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}
+      if: ${{matrix.variant.library == 'php'}}
       run: ./utils/scripts/load-binary.sh php prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

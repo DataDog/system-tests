@@ -192,11 +192,12 @@ def add_main_job(i, workflow, needs, scenarios):
     )
 
     # PHP script that loads prod tracer is very flaky
+    # we also use it for dev, as dev artifact is on circle CI, requiring a token.
     job.add_step(
         "Load PHP prod library binary",
         "./utils/scripts/load-binary.sh php prod",
         add_gh_token=True,
-        if_condition="${{ matrix.version == 'prod' && matrix.variant.library == 'php'}}",
+        if_condition="${{matrix.variant.library == 'php'}}",
     )
 
     job.add_step(
