@@ -8,10 +8,11 @@ function echoerr() {
 
 #TODO RMM Remove this after python PR be merged
 if [ "${TEST_LIBRARY}" == "python" ] ; then
-   WEBLOG_VARIANT="dd-lib-python-init-test-django"
-   DOCKER_REGISTRY_IMAGES_PATH="ghcr.io/datadog"
+    WEBLOG_VARIANT="dd-lib-python-init-test-django"
+    DOCKER_REGISTRY_IMAGES_PATH="ghcr.io/datadog"
    if [ -z "${DOCKER_IMAGE_TAG}" ] ; then
-    DOCKER_IMAGE_TAG=${github.sha}
+    echo "Setting DOCKER_IMAGE_TAG with value ${github.sha}"
+    export DOCKER_IMAGE_TAG="${github.sha}"
    fi
 fi
 
