@@ -242,8 +242,14 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 elif [ "$TARGET" = "php_appsec" ]; then
-    assert_version_is_dev
-    get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "dd-appsec-php-*-amd64.tar.gz"
+
+    if [ $VERSION = 'dev' ]; then
+        get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "dd-appsec-php-*-amd64.tar.gz"
+    elif [ $VERSION = 'prod' ]; then
+        get_github_release_asset "DataDog/dd-appsec-php" "dd-appsec-php-.*-amd64.tar.gz"
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi
 
 else
     echo "Unknown target: $1"

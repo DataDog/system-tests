@@ -197,14 +197,14 @@ def add_main_job(i, workflow, needs, scenarios):
         "Load PHP prod library binary",
         "./utils/scripts/load-binary.sh php prod",
         add_gh_token=True,
-        if_condition="${{matrix.variant.library == 'php'}}",
+        if_condition="${{ matrix.variant.library == 'php' }}",
     )
 
     job.add_step(
         "Load library PHP appsec binary",
-        "./utils/scripts/load-binary.sh php_appsec",
+        "./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}",
         add_gh_token=True,
-        if_condition="${{ matrix.version == 'dev' && matrix.variant.library == 'php' }}",
+        if_condition="${{ matrix.variant.library == 'php' }}",
     )
 
     job.add_step(
