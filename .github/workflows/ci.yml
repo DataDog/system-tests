@@ -499,6 +499,8 @@ jobs:
         - library: java
           weblog: spring-boot-openliberty
         - library: java
+          weblog: spring-boot-wildfly
+        - library: java
           weblog: spring-boot-undertow
         - library: nodejs
           weblog: express4
