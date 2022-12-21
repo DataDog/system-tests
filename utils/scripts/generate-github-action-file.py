@@ -59,6 +59,7 @@ variants = (
             "spring-boot",
             "uds-spring-boot",
             "spring-boot-openliberty",
+            "spring-boot-wildfly",
             "spring-boot-undertow",
         ],
     )
