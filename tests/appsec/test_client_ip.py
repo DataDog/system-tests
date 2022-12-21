@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import weblog, context, coverage, interfaces, released, scenario
+from utils import weblog, context, coverage, interfaces, released, scenario, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -12,6 +12,7 @@ if context.library == "cpp":
 
 @released(dotnet="?", golang="?", java="0.114.0")
 @released(nodejs="3.6.0", php="0.81.0", python="1.5.0", ruby="?")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @coverage.basic
 @scenario("APPSEC_DISABLED")
 class Test_StandardTagsClientIp:

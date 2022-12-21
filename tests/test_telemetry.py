@@ -10,6 +10,7 @@ from utils.tools import logger
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 

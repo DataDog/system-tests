@@ -9,6 +9,7 @@ from utils import weblog, interfaces, context, missing_feature
 @missing_feature(weblog_variant="jersey-grizzly2", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="resteasy-netty3", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="ratpack", reason="Need to build endpoint on weblog")
+@missing_feature(weblog_variant="spring-boot-native", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="vertx3", reason="Need to build endpoint on weblog")
 class Test_Sqli:
     """ Verify the /rasp/sqli endpoint is setup """

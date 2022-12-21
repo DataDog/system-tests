@@ -26,6 +26,7 @@ if context.library == "cpp":
 
 @released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
 @released(php_appsec="0.3.2", python="1.2.1", ruby="1.0.0")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @coverage.basic
 class Test_UrlQueryKey:
     """Appsec supports keys on server.request.query"""
@@ -41,6 +42,7 @@ class Test_UrlQueryKey:
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @coverage.good
 class Test_UrlQuery:
     """Appsec supports values on server.request.query"""
@@ -75,6 +77,7 @@ class Test_UrlQuery:
 @released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @coverage.basic
 class Test_UrlRaw:
@@ -92,6 +95,7 @@ class Test_UrlRaw:
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @released(python="1.1.0rc2.dev")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @flaky(context.library <= "php@0.68.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
 @coverage.good
@@ -286,6 +290,7 @@ class Test_BodyRaw:
 
 @released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="1.4.0rc1.dev", ruby="?")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "spring-boot-undertow": "0.98.0", "*": "0.95.1"})
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyUrlEncoded:
@@ -315,6 +320,7 @@ class Test_BodyUrlEncoded:
 
 @released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.4.0rc1.dev", ruby="?")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "*": "0.95.1"})
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyJson:
@@ -352,6 +358,7 @@ class Test_BodyJson:
 
 @released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @released(java={"vertx3": "?", "ratpack": "0.99.0", "*": "0.95.1"})
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 @coverage.basic
 class Test_BodyXml:
@@ -398,6 +405,7 @@ class Test_ClientIP:
 
 
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="2.3.0", java="0.88.0", nodejs="2.0.0", python="0.58.5")
 @coverage.good
@@ -429,6 +437,7 @@ class Test_ResponseStatus:
         "pylons": "1.1.0rc2.dev",
     }
 )
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )

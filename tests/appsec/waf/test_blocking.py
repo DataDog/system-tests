@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenario, weblog
+from utils import released, coverage, interfaces, bug, scenario, weblog, missing_feature
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -120,6 +120,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
         "*": "?",
     }
 )
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @coverage.basic
 @scenario("APPSEC_BLOCKING")
 class Test_Blocking:

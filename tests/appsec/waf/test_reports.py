@@ -7,7 +7,7 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import weblog, context, interfaces, released, irrelevant, coverage, scenario
+from utils import weblog, context, interfaces, released, irrelevant, coverage, scenario, missing_feature
 
 
 if context.library == "cpp":
@@ -16,6 +16,7 @@ if context.library == "cpp":
 
 @released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0")
 @released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 @coverage.good
 class Test_Monitoring:
     """Support In-App WAF monitoring tags and metrics"""

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, interfaces, context, coverage, released
+from utils import weblog, interfaces, context, coverage, released, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -12,6 +12,7 @@ if context.library == "cpp":
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@missing_feature(weblog_variant="spring-boot-native", reason="Tracing support only")
 class TestIastLDAPInjection:
     """Verify IAST LDAP Injection"""
 
