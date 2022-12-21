@@ -6,6 +6,12 @@ function echoerr() {
 }
 ## end HELPERS
 
+#TODO RMM Remove this after python PR be merged
+if [ "${TEST_LIBRARY}" == "python" ] ; then
+    WEBLOG_VARIANT="dd-lib-python-init-test-django"
+   DOCKER_REGISTRY_IMAGES_PATH="ghcr.io/datadog"
+fi
+
 if [ -z "${BASE_DIR}" ] ; then
     echoerr "MUST define BASE_DIR before sourcing this file"
     exit 1
