@@ -313,17 +313,21 @@ class _TestAgentAPI:
         """Wait for `num` to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
+
+        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
         for i in range(20):
             try:
-                traces = self.traces(clear=clear)
+                traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
                 pass
             else:
                 num_received = len(traces)
                 if num_received == num:
-                    return traces
+                    if clear:
+                        self.clear()
+                    return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
 
