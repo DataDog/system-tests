@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, interfaces, context, coverage, released, flaky
+from utils import weblog, interfaces, context, coverage, released
 
 
 if context.library == "cpp":
@@ -14,7 +14,6 @@ if context.library == "cpp":
 @coverage.basic
 @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "*": "?"})
-@flaky(library="java", reason="APPSEC-7111")
 class TestIastCommandInjection:
     """Verify IAST features"""
 
