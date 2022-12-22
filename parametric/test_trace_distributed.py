@@ -62,8 +62,7 @@ def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_libra
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
-    """Ensure that Datadog distributed tracing headers are injected properly.
-    """
+    """Ensure that Datadog distributed tracing headers are injected properly."""
     with test_library:
         with test_library.start_span(name="name") as span:
             headers = test_library.inject_headers(span.span_id).http_headers.http_headers

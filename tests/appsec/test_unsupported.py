@@ -12,7 +12,7 @@ class TestAppSecDeactivated:
         self.r2 = weblog.get("/waf", params={"attack": "<script>"})
 
     def test_no_attack_detected(self):
-        """ Appsec does not catch any attack """
+        """Appsec does not catch any attack"""
         interfaces.library.assert_no_appsec_event(self.r1)
         interfaces.library.assert_no_appsec_event(self.r2)
 

@@ -265,7 +265,10 @@ def add_ci_dashboard_job(workflow, needs):
             "./utils/scripts/update_dashboard_CI_visibility.sh system-tests "
             "${{ github.run_id }}-${{ github.run_attempt }}"
         ),
-        env={"DD_API_KEY": "${{ secrets.DD_CI_API_KEY }}", "DD_APP_KEY": "${{ secrets.DD_CI_APP_KEY }}",},
+        env={
+            "DD_API_KEY": "${{ secrets.DD_CI_API_KEY }}",
+            "DD_APP_KEY": "${{ secrets.DD_CI_APP_KEY }}",
+        },
     )
 
     return add_job(workflow, job)

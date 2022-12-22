@@ -20,7 +20,7 @@ class Test_Library:
         interfaces.library.assert_schemas()
 
     def test_non_regression(self):
-        """ Non-regression test on shemas """
+        """Non-regression test on shemas"""
 
         # Never skip this test. As a full respect of shemas may be hard, this test ensure that
         # at least the part that was ok stays ok.
@@ -55,7 +55,7 @@ class Test_Agent:
         interfaces.agent.assert_schemas()
 
     def test_non_regression(self):
-        """ Non-regression test on shemas """
+        """Non-regression test on shemas"""
 
         # Never skip this test. As a full respect of shemas may be hard, this test ensure that
         # at least the part that was ok stays ok.

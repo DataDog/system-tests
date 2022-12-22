@@ -61,7 +61,12 @@ class Runner:
                 for data in datas:
                     for _ in range(5):
                         self.add_request(
-                            {"method": "POST", "url": f"{WEBLOG_URL}{path}", "headers": header, "json": medium_nested,}
+                            {
+                                "method": "POST",
+                                "url": f"{WEBLOG_URL}{path}",
+                                "headers": header,
+                                "json": medium_nested,
+                            }
                         )
 
                     self.add_request(

@@ -34,5 +34,8 @@ class TestIastCommandInjection:
     def test_insecure_command_injection(self):
         """Insecure command executions are reported as insecure"""
         interfaces.library.expect_iast_vulnerabilities(
-            self.r, vulnerability_count=1, vulnerability_type="COMMAND_INJECTION", location_path=self.expected_location,
+            self.r,
+            vulnerability_count=1,
+            vulnerability_type="COMMAND_INJECTION",
+            location_path=self.expected_location,
         )

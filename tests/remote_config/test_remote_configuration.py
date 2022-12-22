@@ -31,14 +31,14 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 class RemoteConfigurationFieldsBasicTests:
-    """ Misc tests on fields and values on remote configuration requests """
+    """Misc tests on fields and values on remote configuration requests"""
 
     def test_schemas(self):
-        """ Test all library schemas """
+        """Test all library schemas"""
         interfaces.library.assert_schemas()
 
     def test_client_state_errors(self):
-        """ Ensure that the Client State error is consistent """
+        """Ensure that the Client State error is consistent"""
 
         def validator(data):
             state = data["request"]["content"]["client"]["state"]
@@ -51,7 +51,7 @@ class RemoteConfigurationFieldsBasicTests:
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
     def test_client_fields(self):
-        """ Ensure that the Client field is appropriately filled out in update requests"""
+        """Ensure that the Client field is appropriately filled out in update requests"""
 
         def validator(data):
             client = data["request"]["content"]["client"]
@@ -148,10 +148,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library >= "java@1.1.0", reason="?")
     def test_tracer_update_sequence(self):
-        """ test update sequence, based on a scenario mocked in the proxy """
+        """test update sequence, based on a scenario mocked in the proxy"""
 
         def validate(data):
-            """ Helper to validate config request content """
+            """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -177,10 +177,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     request_number = defaultdict(int)
 
     def test_tracer_update_sequence(self):
-        """ test update sequence, based on a scenario mocked in the proxy """
+        """test update sequence, based on a scenario mocked in the proxy"""
 
         def validate(data):
-            """ Helper to validate config request content """
+            """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {self.request_number[runtime_id]}")
             if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
@@ -208,10 +208,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     @bug(context.library >= "java@1.1.0", reason="?")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
-        """ test update sequence, based on a scenario mocked in the proxy """
+        """test update sequence, based on a scenario mocked in the proxy"""
 
         def validate(data):
-            """ Helper to validate config request content """
+            """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
@@ -238,10 +238,10 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
     @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
-        """ test update sequence, based on a scenario mocked in the proxy """
+        """test update sequence, based on a scenario mocked in the proxy"""
 
         def validate(data):
-            """ Helper to validate config request content """
+            """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -267,10 +267,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
     @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
-        """ test update sequence, based on a scenario mocked in the proxy """
+        """test update sequence, based on a scenario mocked in the proxy"""
 
         def validate(data):
-            """ Helper to validate config request content """
+            """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {self.request_number[runtime_id]}")
             if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
@@ -297,10 +297,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
     @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
-        """ test update sequence, based on a scenario mocked in the proxy """
+        """test update sequence, based on a scenario mocked in the proxy"""
 
         def validate(data):
-            """ Helper to validate config request content """
+            """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True

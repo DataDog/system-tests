@@ -18,14 +18,14 @@ TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"
 @bug(library="ruby", reason="Need to understand how to activate profiling")
 @scenario("PROFILING")
 class Test_Basic:
-    """ Basic testing of profiling """
+    """Basic testing of profiling"""
 
     def test_library(self):
-        """ All profiling libraries payload have recording-start and recording-end fields"""
+        """All profiling libraries payload have recording-start and recording-end fields"""
         interfaces.library.profiling_assert_field("recording-start", content_pattern=TIMESTAMP_PATTERN)
         interfaces.library.profiling_assert_field("recording-end", content_pattern=TIMESTAMP_PATTERN)
 
     def test_agent(self):
-        """ All profiling agent payload have recording-start and recording-end fields"""
+        """All profiling agent payload have recording-start and recording-end fields"""
         interfaces.agent.profiling_assert_field("recording-start", content_pattern=TIMESTAMP_PATTERN)
         interfaces.agent.profiling_assert_field("recording-end", content_pattern=TIMESTAMP_PATTERN)

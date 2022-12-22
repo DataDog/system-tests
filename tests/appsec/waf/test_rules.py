@@ -18,7 +18,7 @@ if context.library == "cpp":
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @coverage.good
 class Test_Scanners:
-    """ Appsec WAF tests on scanners rules """
+    """Appsec WAF tests on scanners rules"""
 
     def setup_scanners(self):
         self.r_1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -26,7 +26,7 @@ class Test_Scanners:
         self.r_3 = weblog.get("/waf/", params={"key": "appscan_fingerprint"})
 
     def test_scanners(self):
-        """ AppSec catches attacks from scanners"""
+        """AppSec catches attacks from scanners"""
         interfaces.library.assert_waf_attack(self.r_1, rules.security_scanner.ua0_600_12x)
         interfaces.library.assert_waf_attack(self.r_2, rules.security_scanner.crs_913_110)
         interfaces.library.assert_waf_attack(self.r_3, rules.security_scanner.crs_913_120)
@@ -36,7 +36,7 @@ class Test_Scanners:
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @coverage.good
 class Test_HttpProtocol:
-    """ Appsec WAF tests on HTTP protocol rules """
+    """Appsec WAF tests on HTTP protocol rules"""
 
     def setup_http_protocol(self):
         self.r_1 = weblog.get("/waf/", params={"key": ".cookie;domain="})
@@ -44,7 +44,7 @@ class Test_HttpProtocol:
     @bug(context.library < "dotnet@2.1.0")
     @bug(context.library < "java@0.98.1")
     def test_http_protocol(self):
-        """ AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
+        """AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         interfaces.library.assert_waf_attack(self.r_1, rules.http_protocol_violation.crs_943_100)
 
     def setup_http_protocol2(self):
@@ -52,7 +52,7 @@ class Test_HttpProtocol:
         self.r_2 = weblog.get("/waf/", params={"key": "\n :"})
 
     def test_http_protocol2(self):
-        """ AppSec catches attacks by violation of HTTP protocol"""
+        """AppSec catches attacks by violation of HTTP protocol"""
         interfaces.library.assert_waf_attack(self.r_1, rules.http_protocol_violation.crs_921_110)
         interfaces.library.assert_waf_attack(self.r_2, rules.http_protocol_violation.crs_921_160)
 
@@ -62,7 +62,7 @@ class Test_HttpProtocol:
 @released(nodejs="2.0.0", php_appsec="0.1.0")
 @coverage.good
 class Test_LFI:
-    """ Appsec WAF tests on LFI rules """
+    """Appsec WAF tests on LFI rules"""
 
     def setup_lfi(self):
         self.r_1 = weblog.get("/waf/", headers={"x-attack": "/../"})
@@ -70,7 +70,7 @@ class Test_LFI:
         self.r_3 = weblog.get("/waf/", params={"attack": "/.htaccess"})
 
     def test_lfi(self):
-        """ AppSec catches LFI attacks"""
+        """AppSec catches LFI attacks"""
         interfaces.library.assert_waf_attack(self.r_1, rules.lfi)
         interfaces.library.assert_waf_attack(self.r_2, rules.lfi.crs_930_100)
         interfaces.library.assert_waf_attack(self.r_3, rules.lfi.crs_930_120)
@@ -82,7 +82,7 @@ class Test_LFI:
     @irrelevant(library="php", weblog_variant="apache-mod-8.0")
     @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_percent_2f(self):
-        """ Appsec catches encoded LFI attacks"""
+        """Appsec catches encoded LFI attacks"""
         interfaces.library.assert_waf_attack(self.r_4, rules.lfi)
 
     def setup_lfi_in_path(self):
@@ -93,7 +93,7 @@ class Test_LFI:
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_in_path(self):
-        """ AppSec catches LFI attacks in URL path like /.."""
+        """AppSec catches LFI attacks in URL path like /.."""
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
 
 
@@ -101,14 +101,14 @@ class Test_LFI:
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @coverage.good
 class Test_RFI:
-    """ Appsec WAF tests on RFI rules """
+    """Appsec WAF tests on RFI rules"""
 
     def setup_rfi(self):
         self.r_1 = weblog.get("/waf/", params={"attack": "mosConfig_absolute_path=file://"})
         self.r_2 = weblog.get("/waf/", params={"attack": "file://rfi?"})
 
     def test_rfi(self):
-        """ Appsec WAF detects remote file injection attacks """
+        """Appsec WAF detects remote file injection attacks"""
         interfaces.library.assert_waf_attack(self.r_1, rules.rfi.crs_931_110)
         interfaces.library.assert_waf_attack(self.r_2, rules.rfi.crs_931_120)
 
@@ -118,7 +118,7 @@ class Test_RFI:
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_CommandInjection:
-    """ Appsec WAF tests on Command injection rules """
+    """Appsec WAF tests on Command injection rules"""
 
     def setup_command_injection(self):
         self.r_1 = weblog.get("/waf/", params={"x-attack": "$pwd"})
@@ -129,7 +129,7 @@ class Test_CommandInjection:
         self.r_6 = weblog.get("/waf/", headers={"x-attack": "|timeout /t 1|"})
 
     def test_command_injection(self):
-        """ Appsec WAF detects command injection attacks """
+        """Appsec WAF detects command injection attacks"""
         interfaces.library.assert_waf_attack(self.r_1, rules.command_injection.crs_932_160)
         interfaces.library.assert_waf_attack(self.r_2, rules.command_injection.crs_932_171)
         interfaces.library.assert_waf_attack(self.r_3, rules.command_injection.crs_932_180)
@@ -142,7 +142,7 @@ class Test_CommandInjection:
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @coverage.good
 class Test_PhpCodeInjection:
-    """ Appsec WAF tests on PHP injection rules """
+    """Appsec WAF tests on PHP injection rules"""
 
     def setup_php_code_injection(self):
         self.r_1 = weblog.get("/waf/", headers={"x-file-name": ".php."})
@@ -153,7 +153,7 @@ class Test_PhpCodeInjection:
         self.r_6 = weblog.get("/waf/", params={"x-attack": "rar://"})
 
     def test_php_code_injection(self):
-        """ Appsec WAF detects unrestricted file upload attacks """
+        """Appsec WAF detects unrestricted file upload attacks"""
         interfaces.library.assert_waf_attack(self.r_1, rules.unrestricted_file_upload.crs_933_111)
         interfaces.library.assert_waf_attack(self.r_2, rules.php_code_injection.crs_933_130)
         interfaces.library.assert_waf_attack(self.r_3, rules.php_code_injection.crs_933_131)
@@ -167,7 +167,7 @@ class Test_PhpCodeInjection:
 
     @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
     def test_php_code_injection_bug(self):
-        """ Appsec WAF detects other php injection rules """
+        """Appsec WAF detects other php injection rules"""
         interfaces.library.assert_waf_attack(self.r_7, rules.php_code_injection.crs_933_160)
         interfaces.library.assert_waf_attack(self.r_8, rules.php_code_injection.crs_933_170)
 
@@ -176,7 +176,7 @@ class Test_PhpCodeInjection:
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @coverage.good
 class Test_JsInjection:
-    """ Appsec WAF tests on Js Injection rules """
+    """Appsec WAF tests on Js Injection rules"""
 
     def setup_js_injection(self):
         self.r_1 = weblog.get("/waf/", params={"key": "this.constructor"})
@@ -192,7 +192,7 @@ class Test_JsInjection:
 @released(java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.3.0")
 @coverage.good
 class Test_XSS:
-    """ Appsec WAF tests on XSS rules """
+    """Appsec WAF tests on XSS rules"""
 
     def setup_xss(self):
         self.requests = [
@@ -229,7 +229,7 @@ class Test_XSS:
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_SQLI:
-    """ Appsec WAF tests on SQLI rules """
+    """Appsec WAF tests on SQLI rules"""
 
     def setup_sqli(self):
         self.r_1 = weblog.get("/waf/", params={"value": "sleep()"})
@@ -280,7 +280,7 @@ class Test_SQLI:
 @flaky(context.library <= "php@0.68.2")
 @coverage.good
 class Test_NoSqli:
-    """ Appsec WAF tests on NoSQLi rules """
+    """Appsec WAF tests on NoSQLi rules"""
 
     def setup_nosqli_value(self):
         self.r_1 = weblog.get("/waf/", params={"value": "[$ne]"})
@@ -310,7 +310,7 @@ class Test_NoSqli:
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @coverage.good
 class Test_JavaCodeInjection:
-    """ Appsec WAF tests on Java code injection rules """
+    """Appsec WAF tests on Java code injection rules"""
 
     def setup_java_code_injection(self):
         self.r_1 = weblog.get("/waf/", params={"value": "java.lang.runtime"})
@@ -328,7 +328,7 @@ class Test_JavaCodeInjection:
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
 @coverage.good
 class Test_SSRF:
-    """ Appsec WAF tests on SSRF rules """
+    """Appsec WAF tests on SSRF rules"""
 
     def setup_ssrf(self):
         self.r = weblog.get("/waf/", params={"value": "metadata.goog/"})

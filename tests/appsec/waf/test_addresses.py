@@ -229,7 +229,7 @@ class Test_Cookies:
 
     @scenario("APPSEC_CUSTOM_RULES")
     def test_cookies_custom_rules(self):
-        """ Appsec WAF detects attackes in cookies """
+        """Appsec WAF detects attackes in cookies"""
         interfaces.library.assert_waf_attack(self.r_ccr, pattern=".htaccess", address="server.request.cookies")
 
     def setup_cookies_with_semicolon_custom_rules(self):
@@ -244,7 +244,7 @@ class Test_Cookies:
     @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
     @scenario("APPSEC_CUSTOM_RULES")
     def test_cookies_with_semicolon_custom_rules(self):
-        """ Cookie with pattern containing a semicolon """
+        """Cookie with pattern containing a semicolon"""
         interfaces.library.assert_waf_attack(self.r_cwsccr, pattern=";shutdown--", address="server.request.cookies")
 
     def setup_cookies_with_spaces_custom_rules(self):
@@ -253,7 +253,7 @@ class Test_Cookies:
     @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     @scenario("APPSEC_CUSTOM_RULES")
     def test_cookies_with_spaces_custom_rules(self):
-        """ Cookie with pattern containing a space """
+        """Cookie with pattern containing a space"""
         interfaces.library.assert_waf_attack(self.r_cwscr_2, pattern="var_dump ()", address="server.request.cookies")
 
     def setup_cookies_with_special_chars2_custom_rules(self):

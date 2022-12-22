@@ -116,12 +116,15 @@ class Test_SamplingDecisions:
 
     def setup_sampling_decision_added(self):
 
-        self.traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
+        self.traces = [{"trace_id": randint(1, 2**64 - 1), "parent_id": randint(1, 2**64 - 1)} for _ in range(20)]
 
         for trace in self.traces:
             weblog.get(
                 f"/sample_rate_route/{self.next_request_id()}",
-                headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"]),},
+                headers={
+                    "x-datadog-trace-id": str(trace["trace_id"]),
+                    "x-datadog-parent-id": str(trace["parent_id"]),
+                },
             )
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
@@ -132,7 +135,7 @@ class Test_SamplingDecisions:
 
     def setup_sampling_determinism(self):
         self.traces_determinism = [
-            {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)
+            {"trace_id": randint(1, 2**64 - 1), "parent_id": randint(1, 2**64 - 1)} for _ in range(20)
         ]
 
         for t in self.traces_determinism:

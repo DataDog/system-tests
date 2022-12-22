@@ -41,7 +41,7 @@ class _TracesSamplingDecisionValidator:
     def get_sampling_decision(sampling_rate, trace_id, meta):
         """Algorithm described in the priority sampling RFC
         https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md"""
-        MAX_TRACE_ID = 2 ** 64
+        MAX_TRACE_ID = 2**64
         KNUTH_FACTOR = 1111111111111111111
         AUTO_REJECT = 0
         AUTO_KEEP = 1

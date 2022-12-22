@@ -23,7 +23,13 @@ def get_readable_integer_value(value):
 
 class Metric:
     def __init__(
-        self, name, format_string=None, display_length=5, value=0, has_raw_value=True, raw_name=None,
+        self,
+        name,
+        format_string=None,
+        display_length=5,
+        value=0,
+        has_raw_value=True,
+        raw_name=None,
     ):
         self.included_in_pulse = True
         self.name = name

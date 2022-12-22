@@ -14,16 +14,16 @@ if context.library == "cpp":
 @released(python="1.4.2")
 @coverage.not_testable
 class Test_InstallationInstructions:
-    """ Detailed installation instructions """
+    """Detailed installation instructions"""
 
 
 @released(python="1.4.2")
 @coverage.not_testable
 class Test_InstallationDebugProcedure:
-    """ Procedure to debug install """
+    """Procedure to debug install"""
 
 
 @released(python="1.4.2")
 @coverage.not_testable
 class Test_PublicDocumentation:
-    """ Public documentation is published """
+    """Public documentation is published"""
