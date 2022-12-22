@@ -72,7 +72,10 @@ if [ "$DOCKER_IMAGE_WEBLOG_TAG" == "local" ]; then
     #Docker hub doesn't allow multi level repo paths
     export APP_DOCKER_IMAGE_REPO=${DOCKER_REGISTRY_IMAGES_PATH}/${WEBLOG_VARIANT}
 fi
-
+#TODO RMM Remove this after python PR be merged
+if [ "${TEST_LIBRARY}" == "python" ] ; then
+    export APP_DOCKER_IMAGE_REPO=${DOCKER_REGISTRY_IMAGES_PATH}/dd-trace-py/${WEBLOG_VARIANT}
+fi
 export LIBRARY_INJECTION_INIT_IMAGE=${INIT_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
 export LIBRARY_INJECTION_TEST_APP_IMAGE=${APP_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_WEBLOG_TAG}
 export SRC_DIR=${BASE_DIR}/src
