@@ -64,9 +64,6 @@ jobs:
     strategy:
       matrix:
         variant: ${{fromJson(needs.matrix-generator.outputs.variant)}}
-        version:
-        - prod
-        - dev
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
