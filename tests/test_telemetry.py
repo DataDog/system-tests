@@ -83,6 +83,13 @@ class Test_Telemetry:
 
         interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
+
+    @bug(
+        library="nodejs",
+        reason="""
+            Has not implemented os related fields for telemetry.
+        """,
+    )
     def test_telemetry_messages_valid(self):
         """Telemetry messages additional validation"""
 
