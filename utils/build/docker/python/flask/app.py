@@ -2,7 +2,14 @@ import requests
 from ddtrace import tracer
 from flask import Flask, Response
 from flask import request as flask_request
-from iast import secure_algorithm, weak_hash
+from iast import (
+    weak_hash_secure_algorithm,
+    weak_hash,
+    weak_hash_multiple,
+    weak_hash_duplicates,
+    weak_cipher,
+    weak_cipher_secure_algorithm,
+)
 import psycopg2
 
 try:
@@ -128,18 +135,35 @@ def dbm():
 
 @app.route("/iast/insecure_hashing/multiple_hash")
 def view_weak_hash_multiple_hash():
-    result = weak_hash()
-    result = weak_hash()
+    weak_hash_multiple()
     return Response("OK")
 
 
 @app.route("/iast/insecure_hashing/test_secure_algorithm")
 def view_weak_hash_secure_algorithm():
-    result = secure_algorithm()
+    result = weak_hash_secure_algorithm()
     return Response("OK")
 
 
 @app.route("/iast/insecure_hashing/test_md5_algorithm")
 def view_weak_hash_md5_algorithm():
     result = weak_hash()
+    return Response("OK")
+
+
+@app.route("/iast/insecure_hashing/deduplicate")
+def view_weak_hash_deduplicate():
+    weak_hash_duplicates()
+    return Response("OK")
+
+
+@app.route("/iast/insecure_cipher/test_insecure_algorithm")
+def view_weak_cipher_insecure():
+    weak_cipher()
+    return Response("OK")
+
+
+@app.route("/iast/insecure_cipher/test_secure_algorithm")
+def view_weak_cipher_secure():
+    weak_cipher_secure_algorithm()
     return Response("OK")
