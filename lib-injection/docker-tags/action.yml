@@ -26,6 +26,9 @@ runs:
         if [ "$(echo ${GITHUB_HEAD_REF-${GITHUB_REF#refs/heads/}} | tr / -)" == "${{ inputs.main-branch-name}}" -o "$(echo ${GITHUB_REF#refs/heads/} | tr / -)" == "${{ inputs.main-branch-name}}" ]; then
           DOCKER_IMAGE_NAME_WITH_TAG=${DOCKER_IMAGE_NAME_WITH_TAG},$(echo ${DOCKER_IMAGE_NAME}:latest_snapshot)
         fi
+       
+        echo "Current branch: $(echo ${GITHUB_HEAD_REF-${GITHUB_REF#refs/heads/}} | tr / -)"
+        echo "or Current branch: $(echo ${GITHUB_REF#refs/heads/} | tr / -)"
 
         #If we have the CI_COMMIT_SHA we use it as tag (related with release)
         if [ -n "${{ env.CI_COMMIT_SHA }}" ] ; then
