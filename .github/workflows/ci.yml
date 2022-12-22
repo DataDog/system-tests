@@ -62,8 +62,7 @@ jobs:
     - lint_and_test
     - matrix-generator
     strategy:
-      matrix:
-        variant: ${{fromJson(needs.matrix-generator.outputs.variant)}}
+      matrix: ${{fromJson(needs.matrix-generator.outputs.variant)}}
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
