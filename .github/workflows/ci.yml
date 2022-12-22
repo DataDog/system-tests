@@ -180,9 +180,14 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    - name: Load PHP prod library binary
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library PHP appsec binary
-      if: ${{ matrix.version == 'dev' && matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
@@ -389,9 +394,14 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    - name: Load PHP prod library binary
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library PHP appsec binary
-      if: ${{ matrix.version == 'dev' && matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
@@ -488,6 +498,8 @@ jobs:
           weblog: uds-spring-boot
         - library: java
           weblog: spring-boot-openliberty
+        - library: java
+          weblog: spring-boot-wildfly
         - library: java
           weblog: spring-boot-undertow
         - library: nodejs
@@ -597,9 +609,14 @@ jobs:
     - name: Load library binary
       if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    - name: Load PHP prod library binary
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library PHP appsec binary
-      if: ${{ matrix.version == 'dev' && matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
@@ -624,6 +641,10 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
       run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_BLOCKING scenario
+      run: ./run.sh APPSEC_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_DISABLED scenario
