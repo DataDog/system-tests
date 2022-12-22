@@ -11,8 +11,8 @@ if [ "${TEST_LIBRARY}" == "python" ] ; then
     WEBLOG_VARIANT="dd-lib-python-init-test-django"
     DOCKER_REGISTRY_IMAGES_PATH="ghcr.io/datadog"
    if [ -z "${DOCKER_IMAGE_TAG}" ] ; then
-    echo "Setting DOCKER_IMAGE_TAG with value ${github.sha}"
-    export DOCKER_IMAGE_TAG="${github.sha}"
+    echo "Setting DOCKER_IMAGE_TAG with value ${GITHUB_SHA}"
+    export DOCKER_IMAGE_TAG=${GITHUB_SHA}
    fi
 fi
 
