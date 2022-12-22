@@ -37,20 +37,17 @@ class Test_Telemetry:
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry",
-            request_headers=["dd-agent-hostname", "dd-agent-env"],
+            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
         )
         interfaces.agent.assert_headers_match(
-            path_filter="/api/v2/apmtelemetry",
-            request_headers={"via": r"trace-agent 7\..+"},
+            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
         )
 
     @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry",
-            request_headers=["datadog-container-id"],
+            path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
         )
 
     def test_telemetry_message_required_headers(self):
@@ -181,8 +178,7 @@ class Test_Telemetry:
         reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
     @bug(
-        library="java",
-        weblog_variant="spring-boot-wildfly",
+        library="java", weblog_variant="spring-boot-wildfly",
     )
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""

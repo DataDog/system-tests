@@ -249,29 +249,18 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None
     ):
         validator = _WafAttack(
-            rule=rule,
-            pattern=pattern,
-            value=value,
-            address=address,
-            patterns=patterns,
-            key_path=key_path,
+            rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path,
         )
 
         self.validate_appsec(
-            request,
-            validator=validator.validate,
-            legacy_validator=validator.validate_legacy,
-            success_by_default=False,
+            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
         )
 
     def add_appsec_reported_header(self, request, header_name):
         validator = _ReportedHeader(header_name)
 
         self.validate_appsec(
-            request,
-            validator=validator.validate,
-            legacy_validator=validator.validate_legacy,
-            success_by_default=False,
+            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
         )
 
     def add_traces_validation(self, validator, success_by_default=False):

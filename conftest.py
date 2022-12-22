@@ -254,11 +254,5 @@ def _pytest_junit_modifyreport():
     with open(json_report_path, encoding="utf-8") as f:
         json_report = json.load(f)
         junit_modifyreport(
-            json_report,
-            junit_report_path,
-            _skip_reasons,
-            _docs,
-            _rfcs,
-            _coverages,
-            _release_versions,
+            json_report, junit_report_path, _skip_reasons, _docs, _rfcs, _coverages, _release_versions,
         )

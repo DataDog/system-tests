@@ -100,9 +100,7 @@ RUN python3.9 -m pip install %s
         % (python_package,),
         container_cmd="python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_dir,
-        volumes=[
-            (os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),
-        ],
+        volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
         env=env,
     )
 
@@ -155,9 +153,7 @@ RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=go_dir,
-        volumes=[
-            (os.path.join(go_dir), "/client"),
-        ],
+        volumes=[(os.path.join(go_dir), "/client"),],
         env=env,
     )
 
@@ -181,9 +177,7 @@ WORKDIR "/client/."
 """,
         container_cmd=["dotnet", "run"],
         container_build_dir=dotnet_dir,
-        volumes=[
-            (os.path.join(dotnet_dir), "/client"),
-        ],
+        volumes=[(os.path.join(dotnet_dir), "/client"),],
         env=env,
     )
 
@@ -390,10 +384,7 @@ def docker_run(
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
         log_file.flush()
         subprocess.run(
-            _cmd,
-            stdout=log_file,
-            stderr=log_file,
-            check=True,
+            _cmd, stdout=log_file, stderr=log_file, check=True,
         )
 
 
@@ -439,8 +430,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     r = subprocess.run(cmd, stderr=docker_network_log_file)
     if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
         pytest.fail(
-            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr),
-            pytrace=False,
+            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
         )
     elif r.returncode == 1:
         cmd = [
@@ -592,9 +582,7 @@ def test_server(
         input=apm_test_server.container_img,
         stdout=test_server_log_file,
         stderr=test_server_log_file,
-        env={
-            "DOCKER_SCAN_SUGGEST": "false",
-        },  # Docker outputs an annoying synk message on every build
+        env={"DOCKER_SCAN_SUGGEST": "false",},  # Docker outputs an annoying synk message on every build
     )
     if p.returncode != 0:
         test_server_log_file.seek(0)
@@ -630,39 +618,18 @@ class _TestSpan:
         self.span_id = span_id
 
     def set_meta(self, key: str, val: str):
-        self._client.SpanSetMeta(
-            pb.SpanSetMetaArgs(
-                span_id=self.span_id,
-                key=key,
-                value=val,
-            )
-        )
+        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=self.span_id, key=key, value=val,))
 
     def set_metric(self, key: str, val: float):
-        self._client.SpanSetMetric(
-            pb.SpanSetMetricArgs(
-                span_id=self.span_id,
-                key=key,
-                value=val,
-            )
-        )
+        self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=self.span_id, key=key, value=val,))
 
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(
-            pb.SpanSetErrorArgs(
-                span_id=self.span_id,
-                type=typestr,
-                message=message,
-                stack=stack,
-            )
+            pb.SpanSetErrorArgs(span_id=self.span_id, type=typestr, message=message, stack=stack,)
         )
 
     def finish(self):
-        self._client.FinishSpan(
-            pb.FinishSpanArgs(
-                id=self.span_id,
-            )
-        )
+        self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
 
 
 class APMLibrary:
@@ -710,11 +677,7 @@ class APMLibrary:
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
     def inject_headers(self, span_id):
-        return self._client.InjectHeaders(
-            pb.InjectHeadersArgs(
-                span_id=span_id,
-            )
-        )
+        return self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())

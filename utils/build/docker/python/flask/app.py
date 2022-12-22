@@ -18,11 +18,7 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres",
-    port="5433",
-    user="system_tests_user",
-    password="system_tests",
-    dbname="system_tests",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
 )
 
 app = Flask(__name__)

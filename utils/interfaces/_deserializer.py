@@ -24,10 +24,10 @@ def _parse_as_unsigned_int(value, size_in_bits):
         return value
 
     # Asserts that the unsigned is either a no bigger than the size in bits
-    assert -(2**size_in_bits - 1) <= value <= 2**size_in_bits - 1
+    assert -(2 ** size_in_bits - 1) <= value <= 2 ** size_in_bits - 1
 
     # Take two's complement of the number if negative
-    return value if value >= 0 else (-value ^ (2**size_in_bits - 1)) + 1
+    return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
 
 
 def _decode_unsigned_int_traces(content):

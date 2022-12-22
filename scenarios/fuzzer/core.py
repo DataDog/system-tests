@@ -178,13 +178,11 @@ class Fuzzer:
         while not self.finished:
             try:
                 session = aiohttp.ClientSession(
-                    loop=self.loop,
-                    connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
+                    loop=self.loop, connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
                 )
 
                 async with session.request(
-                    url="http://localhost/containers/system-tests_weblog_1/stats",
-                    method="GET",
+                    url="http://localhost/containers/system-tests_weblog_1/stats", method="GET",
                 ) as resp:
                     async for line in resp.content:
                         if self.finished:
@@ -292,10 +290,7 @@ class Fuzzer:
                 #     self.finished = True
 
                 await self.update_metrics(
-                    str(resp.status),
-                    request,
-                    request_timestamp,
-                    response=resp,
+                    str(resp.status), request, request_timestamp, response=resp,
                 )
 
                 try:

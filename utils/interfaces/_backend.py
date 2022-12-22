@@ -52,11 +52,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             "host": host,
             "path": path,
             "rid": rid,
-            "response": {
-                "status_code": r.status_code,
-                "content": r.text,
-                "headers": dict(r.headers),
-            },
+            "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
         }
 
     def assert_waf_attack(self, request):

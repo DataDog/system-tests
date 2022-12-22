@@ -9,12 +9,7 @@ class _AppSecIastValidator:
     """Base class for all IAST validations"""
 
     def __init__(
-        self,
-        vulnerability_type=None,
-        location_path=None,
-        location_line=None,
-        evidence=None,
-        vulnerability_count=None,
+        self, vulnerability_type=None, location_path=None, location_line=None, evidence=None, vulnerability_count=None,
     ):
 
         self.type = vulnerability_type
