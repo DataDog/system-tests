@@ -1,0 +1,19 @@
+name: Get System Test Matrix
+description: "Generates weblog matrix for each library"
+
+inputs:
+  library:
+    description: Library name
+    required: true
+outputs:
+  variant:
+    description: "Matrix language/library and weblogs"
+    value: ${{ steps.system-tests-matrix.outputs.variant }}
+runs:
+  using: composite
+  steps:
+    - name: Get matrix
+      id: system-tests-matrix
+      shell: bash
+      run: |
+        echo "::variant={\"variant\":[{\"library\":\"java\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"java\",\"weblog\":\"spring-boot\"}]}"
