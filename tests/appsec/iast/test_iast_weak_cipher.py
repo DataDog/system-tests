@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="1.7.0", ruby="?")
 @released(nodejs={"express4": "3.6.0", "*": "?"})
 @released(
     java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "spring-boot-openliberty": "0.108.0", "*": "?"},
