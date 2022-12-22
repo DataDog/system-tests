@@ -15,5 +15,7 @@ runs:
     - name: Get matrix
       id: system-tests-matrix
       shell: bash
+      #        echo "variant={\"variant\":[{\"library\":\"java\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"java\",\"weblog\":\"spring-boot\"}]}" >> $GITHUB_OUTPUT
+
       run: |
-        echo "variant={\"variant\":[{\"library\":\"java\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"java\",\"weblog\":\"spring-boot\"}]}" >> $GITHUB_OUTPUT
+        echo "variant={[{\"library\":\"java\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"java\",\"weblog\":\"spring-boot\"}]}" >> $GITHUB_OUTPUT
