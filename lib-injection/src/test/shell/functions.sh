@@ -8,12 +8,15 @@ function echoerr() {
 
 #TODO RMM Remove this after python PR be merged
 if [ "${TEST_LIBRARY}" == "python" ] ; then
-    WEBLOG_VARIANT="dd-lib-python-init-test-django"
-    DOCKER_REGISTRY_IMAGES_PATH="ghcr.io/datadog"
-   if [ -z "${DOCKER_IMAGE_TAG}" ] ; then
-    echo "Setting DOCKER_IMAGE_TAG with value ${GITHUB_SHA}"
-    export DOCKER_IMAGE_TAG=${GITHUB_SHA}
-   fi
+    if [ -z "${DOCKER_REGISTRY_IMAGES_PATH}" ] ; then
+        WEBLOG_VARIANT="dd-lib-python-init-test-django"
+        DOCKER_REGISTRY_IMAGES_PATH="ghcr.io/datadog"
+        PYTHON_PATCH="PYTHON_PATCH"
+        if [ -z "${DOCKER_IMAGE_TAG}" ] ; then
+            echo "Setting DOCKER_IMAGE_TAG with value ${GITHUB_SHA}"
+            export DOCKER_IMAGE_TAG=${GITHUB_SHA}
+        fi
+    fi
 fi
 
 if [ -z "${BASE_DIR}" ] ; then
@@ -73,7 +76,7 @@ if [ "$DOCKER_IMAGE_WEBLOG_TAG" == "local" ]; then
     export APP_DOCKER_IMAGE_REPO=${DOCKER_REGISTRY_IMAGES_PATH}/${WEBLOG_VARIANT}
 fi
 #TODO RMM Remove this after python PR be merged
-if [ "${TEST_LIBRARY}" == "python" ] ; then
+if [ "${PYTHON_PATCH}" == "PYTHON_PATCH" ] ; then
     export APP_DOCKER_IMAGE_REPO=${DOCKER_REGISTRY_IMAGES_PATH}/dd-trace-py/${WEBLOG_VARIANT}
 fi
 export LIBRARY_INJECTION_INIT_IMAGE=${INIT_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}
