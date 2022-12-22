@@ -41,6 +41,20 @@ jobs:
       with:
         library: 'java'
 
+  check-matrix:
+    runs-on: ubuntu-latest
+    needs: matrix-generator
+    steps:
+      - name: Install json2yaml
+        run: |
+          sudo npm install -g json2yaml
+
+      - name: Check matrix definition
+        run: |
+          matrix='${{ needs.matrix-generator.outputs.variant }}'
+          echo $matrix
+          echo $matrix | jq .
+          echo $matrix | json2yaml
 
   test-the-tests-9:
     runs-on: ubuntu-latest
