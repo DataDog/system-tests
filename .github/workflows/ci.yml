@@ -43,6 +43,10 @@ jobs:
         python: true
         ruby: true
         cpp: true
+        dotnet: true
+        golang: true
+        nodejs: true
+        php: true
 
   test-the-tests-9-0:
     runs-on: ubuntu-latest
