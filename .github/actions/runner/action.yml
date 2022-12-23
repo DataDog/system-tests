@@ -72,3 +72,128 @@ runs:
         shell: bash
         if: contains(fromJson(inputs.scenarios), 'LIBRARY_CONF_CUSTOM_HEADERS_LONG')
 
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES')
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING')
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD')
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE')
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE')
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE')
+
+      - name: Run SAMPLING scenario
+        run: ./run.sh SAMPLING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'SAMPLING')
+
+      - name: Run APPSEC_MISSING_RULES scenario
+        run: ./run.sh APPSEC_MISSING_RULES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_MISSING_RULES')
+
+      - name: Run APPSEC_CORRUPTED_RULES scenario
+        run: ./run.sh APPSEC_CORRUPTED_RULES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_CORRUPTED_RULES')
+
+      - name: Run APPSEC_CUSTOM_RULES scenario
+        run: ./run.sh APPSEC_CUSTOM_RULES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_CUSTOM_RULES')
+
+      - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
+        run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_RULES_MONITORING_WITH_ERRORS')
+
+      - name: Run APPSEC_BLOCKING scenario
+        run: ./run.sh APPSEC_BLOCKING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_BLOCKING')
+
+      - name: Run APPSEC_DISABLED scenario
+        run: ./run.sh APPSEC_DISABLED
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_DISABLED')
+
+      - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
+        run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_LOW_WAF_TIMEOUT')
+
+      - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
+        run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_CUSTOM_OBFUSCATION')
+
+      - name: Run APPSEC_RATE_LIMITER scenario
+        run: ./run.sh APPSEC_RATE_LIMITER
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_RATE_LIMITER')
+
+      - name: Run APPSEC_IP_BLOCKING scenario
+        run: ./run.sh APPSEC_IP_BLOCKING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_IP_BLOCKING')
+
+      - name: Run APPSEC_RUNTIME_ACTIVATION scenario
+        run: ./run.sh APPSEC_RUNTIME_ACTIVATION
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_RUNTIME_ACTIVATION')
