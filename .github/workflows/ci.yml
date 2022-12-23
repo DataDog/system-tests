@@ -83,7 +83,7 @@ jobs:
       with:
           version: ${{ matrix.version }}
           library: ${{ matrix.variant.library }} 
-          scenarios: "['uno', 'dos']" 
+          scenarios: "['DEFAULT', 'PROFILING','TRACE_PROPAGATION_STYLE_W3C', 'CGROUP', 'INTEGRATIONS', 'LIBRARY_CONF_CUSTOM_HEADERS_SHORT', 'LIBRARY_CONF_CUSTOM_HEADERS_LONG']" 
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
 
