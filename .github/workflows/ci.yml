@@ -39,7 +39,8 @@ jobs:
     - id: set-matrix
       uses: DataDog/system-tests/.github/actions/matrix@robertomonteromiguel/simplify_ci_workflow
       with:
-        library: 'java'
+        java: true
+        python: true
 
   check-matrix:
     runs-on: ubuntu-latest

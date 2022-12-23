@@ -1,0 +1,24 @@
+{
+    "variant": [
+      {
+        "library": "python",
+        "weblog": "flask-poc"
+      },
+      {
+        "library": "python",
+        "weblog": "django-poc"
+      },
+      {
+        "library": "python",
+        "weblog": "uwsgi-poc"
+      },
+      {
+        "library": "python",
+        "weblog": "uds-flask"
+      }
+    ],
+    "version": [
+      "prod",
+      "dev"
+    ]
+  }

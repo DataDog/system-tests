@@ -2,9 +2,12 @@ name: Get System Test Matrix
 description: "Generates weblog matrix for each library"
 
 inputs:
-  library:
-    description: Library name
-    required: true
+  java:
+    description: "true to enable java matrix"
+    required: false
+  python:
+    description: "true to enable python matrix"
+    required: false
 outputs:
   variant:
     description: "Matrix language/library and weblogs"
@@ -18,7 +21,21 @@ runs:
       #        echo "variant={\"variant\":[{\"library\":\"java\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"java\",\"weblog\":\"spring-boot\"}]}" >> $GITHUB_OUTPUT
 
       run: |
-        echo "$(ls)"
-        jsonJava="$(cat ${{ github.action_path }}/java.json)"
-        echo "variant=$(echo $jsonJava| jq -r tostring)" >> $GITHUB_OUTPUT
-       
+        if [ "${{ inputs.java}} " = true ] ; then
+          jsonJava="$(cat ${{ github.action_path }}/java.json)"
+        fi
+        if [ "${{ inputs.python}} " = true ] ; then
+          jsonJava="$(cat ${{ github.action_path }}/python.json)"
+        fi
+        jsonVersion="$(cat ${{ github.action_path }}/version.json)"
+
+        #echo "$(ls)"
+        #jsonJava="$(cat ${{ github.action_path }}/java.json)"
+        #echo "variant=$(echo $jsonJava| jq -r tostring)" >> $GITHUB_OUTPUT
+
+        #echo "$(echo $jsonJava|jq '.variant[]'),$(echo $jsonPython|jq '.variant[]')"
+        #echo "$(echo $jsonJava|jq '.variant') $(echo $jsonPython|jq '.variant')"
+   
+        outputJson=$(echo "$(echo $jsonJava|jq '.variant') $(echo $jsonPython|jq '.variant')"| jq -s 'reduce .[] as $x ([]; . + $x)')
+        outputJson={\"variant\":$outputJson,\"version\":$(echo $jsonVersion|jq '.version')}
+        echo "variant=$(echo $outputJson| jq -r tostring)" >> $GITHUB_OUTPUT
