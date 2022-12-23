@@ -24,7 +24,7 @@ runs:
         shell: bash
         env:
           DD_API_KEY: ${{ inputs.DD_API_KEY }}
-        if: contains(inputs.scenarios, "CGROUP")
+        if: contains(fromJson(inputs.scenarios), 'CGROUP')
       - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
         run: echo "el otro"
         shell: bash

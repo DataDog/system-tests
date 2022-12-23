@@ -83,7 +83,7 @@ jobs:
       with:
           version: ${{ matrix.version }}
           library: ${{ matrix.variant.library }} 
-          scenarios: ("uno" "CGROUP") 
+          scenarios: ("uno", "CGROUP") 
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
 
