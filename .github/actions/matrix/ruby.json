@@ -1,0 +1,87 @@
+{
+    "variant": [
+      {
+        "library": "ruby",
+        "weblog": "rack"
+      },
+      {
+        "library": "ruby",
+        "weblog": "sinatra14"
+      },
+      {
+        "library": "ruby",
+        "weblog": "sinatra20"
+      },
+      {
+        "library": "ruby",
+        "weblog": "sinatra21"
+      },
+      {
+        "library": "ruby",
+        "weblog": "uds-sinatra"
+      },      
+      {
+        "library": "ruby",
+        "weblog": "rails32"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails40"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails41"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails42"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails50"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails51"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails52"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails60"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails61"
+      },
+      {
+        "library": "ruby",
+        "weblog": "rails70"
+      }
+    ]
+  }
+
+
+  weblog: uds-sinatra
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
+- library: ruby
+  weblog: 
