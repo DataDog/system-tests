@@ -1,0 +1,33 @@
+name: Lib injection test runner
+description: "Lib injection tests runner"
+
+inputs:
+  version:
+    description: Version dev or prod
+    required: true
+  library:
+    description: Library language java,python...
+    required: true
+  scenarios:
+    description: scenarios will be run
+    required: true
+  DD_API_KEY:
+    description: DD API key
+    required: true
+runs:
+  using: composite
+
+  steps:
+
+      - name: Run CGROUP scenario
+        run: echo "SI ESTA"
+        shell: bash
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        if: ${{  inputs.scenarios[*] =~ "CGROUP" }}
+      - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+        run: echo "el otro"
+        shell: bash
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        if: ${{ inputs.library != 'python'  }}

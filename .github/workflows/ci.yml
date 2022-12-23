@@ -79,55 +79,13 @@ jobs:
           library: ${{ matrix.variant.library }} 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
-      
-    - name: Run DEFAULT scenario
-      run: ./run.sh DEFAULT
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run PROFILING scenario
-      run: ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run CGROUP scenario
-      run: ./run.sh CGROUP
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-      run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      if: ${{ matrix.variant.library != 'python' }}
-    - name: Run INTEGRATIONS scenario
-      run: ./run.sh INTEGRATIONS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Compress logs
-      if: ${{ always() }}
-      run: tar -czvf artifact.tar.gz $(ls | grep logs)
-    - name: Upload artifact
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v3
+    - uses: ./.github/actions/runner
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_0
-        path: artifact.tar.gz
-    - name: Upload results CI Visibility
-      if: ${{ always() }}
-      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-      env:
-        DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
-    - name: Print fancy log report
-      if: ${{ always() }}
-      run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
+          version: ${{ matrix.version }}
+          library: ${{ matrix.variant.library }} 
+          scenarios: ("uno" "CGROUP") 
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
 
 
 
