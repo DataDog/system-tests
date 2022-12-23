@@ -7,6 +7,34 @@
       {
         "library": "java",
         "weblog": "spring-boot"
+      },
+      {
+        "library": "java",
+        "weblog": "ratpack"
+      },
+      {
+        "library": "java",
+        "weblog": "resteasy-netty3"
+      },
+      {
+        "library": "java",
+        "weblog": "vertx3"
+      },
+      {
+        "library": "java",
+        "weblog": "spring-boot-jetty"
+      },
+      {
+        "library": "java",
+        "weblog": "uds-spring-boot"
+      },
+      {
+        "library": "java",
+        "weblog": "spring-boot-openliberty"
+      },
+      {
+        "library": "java",
+        "weblog": "spring-boot-undertow"
       }
     ]
   }

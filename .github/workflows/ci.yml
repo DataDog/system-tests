@@ -41,6 +41,8 @@ jobs:
       with:
         java: true
         python: true
+        ruby: true
+        cpp: true
 
   test-the-tests-9-0:
     runs-on: ubuntu-latest

@@ -8,6 +8,12 @@ inputs:
   python:
     description: "true to enable python matrix"
     required: false
+  ruby:
+    description: "true to enable ruby matrix"
+    required: false
+  cpp:
+    description: "true to enable cpp matrix"
+    required: false
 outputs:
   variant:
     description: "Matrix language/library and weblogs"
@@ -25,12 +31,20 @@ runs:
         if [ "${{ inputs.python}}" = true ] ; then
           jsonPython="$(cat ${{ github.action_path }}/python.json)"
         fi
+        if [ "${{ inputs.ruby}}" = true ] ; then
+          jsonRuby="$(cat ${{ github.action_path }}/ruby.json)"
+        fi
+        if [ "${{ inputs.cpp}}" = true ] ; then
+          jsonCpp="$(cat ${{ github.action_path }}/cpp.json)"
+        fi
         jsonVersion="$(cat ${{ github.action_path }}/version.json)"
 
         javaVariant=$(echo $jsonJava|jq '.variant')
         pythonVariant=$(echo $jsonPython|jq '.variant')
+        rubyVariant=$(echo $jsonRuby|jq '.variant')
+        cppVariant=$(echo $jsonCpp|jq '.variant')
 
-        outputJson=$(echo "$javaVariant $pythonVariant"| jq -s 'reduce .[] as $x ([]; . + $x)')
+        outputJson=$(echo "$javaVariant $pythonVariant $rubyVariant $cppVariant"| jq -s 'reduce .[] as $x ([]; . + $x)')
         outputJson={\"variant\":$outputJson,\"version\":$(echo $jsonVersion|jq '.version')}
 
         echo "variant=$(echo $outputJson| jq -r tostring)" >> $GITHUB_OUTPUT
