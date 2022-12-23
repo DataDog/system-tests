@@ -21,10 +21,10 @@ runs:
       #        echo "variant={\"variant\":[{\"library\":\"java\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"java\",\"weblog\":\"spring-boot\"}]}" >> $GITHUB_OUTPUT
 
       run: |
-        if [ "${{ inputs.java}} " = true ] ; then
+        if [ "${{ inputs.java}}" = true ] ; then
           jsonJava="$(cat ${{ github.action_path }}/java.json)"
         fi
-        if [ "${{ inputs.python}} " = true ] ; then
+        if [ "${{ inputs.python}}" = true ] ; then
           jsonJava="$(cat ${{ github.action_path }}/python.json)"
         fi
         jsonVersion="$(cat ${{ github.action_path }}/version.json)"
