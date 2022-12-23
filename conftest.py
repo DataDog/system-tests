@@ -49,8 +49,8 @@ def pytest_sessionstart(session):
         print_info(f"Scenario: {context.scenario}")
 
         # connect interface validators to data collector
-        data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
-        data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
+        data_collector.proxy_callbacks["agent"].append(interfaces.agent.new_data_file)
+        data_collector.proxy_callbacks["library"].append(interfaces.library.new_data_file)
         data_collector.start()
 
 

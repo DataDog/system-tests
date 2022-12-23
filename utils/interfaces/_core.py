@@ -24,8 +24,6 @@ class InterfaceValidator:
     def __init__(self, name):
         self.name = name
 
-        self.message_counter = 0
-
         self._wait_for_event = threading.Event()
         self._wait_for_function = None
 
@@ -47,24 +45,25 @@ class InterfaceValidator:
         self.accept_data = False
 
     # data collector thread domain
-    def append_data(self, data):
+    def new_data_file(self, file):
         if not self.accept_data:
             return
 
-        with self._lock:
-            count = self.message_counter
-            self.message_counter += 1
-
-        log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
-        data["log_filename"] = log_filename
-        logger.debug(f"{self.name}'s interface receive data on {data['host']}{data['path']}: {log_filename}")
+        with open(file, "r", encoding="utf-8") as f:
+            data = json.load(f)
 
         deserialize(data, self.name)
 
-        with open(log_filename, "w", encoding="utf-8") as f:
+        with open(file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
-        self._data_list.append(data)
+        self.append_data(data)
+
+    # data collector thread domain
+    def append_data(self, data):
+
+        with self._lock:
+            self._data_list.append(data)
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()

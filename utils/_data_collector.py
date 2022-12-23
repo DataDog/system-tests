@@ -2,77 +2,62 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import threading
-import logging
 import collections
-import traceback
+from os import listdir
+from os.path import isfile, join
+import threading
+import time
 
-from werkzeug.serving import make_server
-from flask import Flask, request
 from utils.tools import logger
+
+
+def get_files(path):
+    return [join(path, f) for f in listdir(path) if isfile(join(path, f))]
 
 
 class _DataCollector(threading.Thread):
     """
-    The purpose of this class is to expose an HTTP entry point that collects
-    data from components, and route them to corresponding interface validators
+    The purpose of this class is spy logs/interfaces folder and call a callback when
+    a new file is available
     """
 
     def __init__(self):
         threading.Thread.__init__(self)
 
-        self.server = None
-        self.validated_rule_names = set()
+        self.running = False
         self.proxy_callbacks = collections.defaultdict(list)
+        self.known_files = {
+            "agent": set(),
+            "library": set(),
+        }
 
-        # monkey patch click (clean output)
-        import click
-
-        click.echo = lambda *args, **kwargs: None
-        click.secho = lambda *args, **kwargs: None
-
-        app = Flask(__name__)
-        self.app = app
-
-        logging.getLogger("werkzeug").setLevel(logging.ERROR)
-        app.logger.setLevel(logging.ERROR)
-
-        @app.route("/health", methods=["GET"])
-        def health():
-            return "Ok"
-
-        @app.route("/proxy/<interface>", methods=["POST", "GET"])
-        def messages_from_proxy(interface):
-            assert interface in ("agent", "library")
-
-            data = request.get_json()
-
-            for callback in self.proxy_callbacks[interface]:
-                try:
-                    callback(data)
-                except Exception as e:
-                    msg = traceback.format_exception_only(type(e), e)[0]
-                    logger.critical(msg)
-
-            return "Ok"
-
-    def __str__(self):
-        return f"{self.__class__.__name__}()"
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}()"
+    def new_file(self, interface, file):
+        for callback in self.proxy_callbacks[interface]:
+            try:
+                callback(file)
+            except Exception:
+                logger.exception("Fail to ...")
 
     def run(self):
-        logger.info("runner is listening to port 8081")
-        self.server = make_server("0.0.0.0", 8081, self.app)
-        context = self.app.app_context()
-        context.push()
+        self.running = True
+        logger.info("Data collector is running")
 
-        self.server.serve_forever()
+        while self.running:
+            for interface, known_files in self.known_files.items():
+                files = get_files(f"logs/interfaces/{interface}")
+                for file in files:
+                    if file not in known_files:
+                        known_files.add(file)
+                        self.new_file(interface, file)
+
+            time.sleep(0.25)
+
+        logger.info("Data collector is stopped")
 
     # Main thread domain
     def shutdown(self):
-        self.server.shutdown()
+        logger.info("Send stop signal to data collector")
+        self.running = False
 
 
 # singleton

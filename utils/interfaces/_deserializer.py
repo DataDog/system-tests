@@ -136,11 +136,12 @@ def deserialize(data, interface):
     for key in ("request", "response"):
         if key in data:
             try:
-                content = ast.literal_eval(data[key]["content"])
+                content = ast.literal_eval(data[key]["raw_content"])
                 decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
-                data[key]["content"] = decoded
+                data[key] = {"content": decoded, "headers": data[key].pop("headers", None),} | data[key]
+
             except Exception:
-                logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
+                logger.exception(f"Error while deserializing {data['log_filename']}")
 
 
 # if __name__ == "__main__":

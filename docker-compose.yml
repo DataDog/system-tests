@@ -10,11 +10,10 @@ services:
     environment:
       - DD_API_KEY
       - INTERFACE_NAME=agent
-      - FORWARD_TO_HOST=runner
-      - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_AGENT_PROXY_STATE:-}
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/:ro
+      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/interfaces/agent:/logs/interfaces/agent
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
     ports:
       - "127.0.0.1:8082:8082"
@@ -25,11 +24,10 @@ services:
     environment:
       - DD_API_KEY
       - INTERFACE_NAME=library
-      - FORWARD_TO_HOST=runner
-      - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_LIBRARY_PROXY_STATE:-}
     volumes:
       - ./utils/proxy/:/system-tests/utils/proxy/:ro
+      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/interfaces/library:/logs/interfaces/library
     command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
@@ -48,7 +46,7 @@ services:
       - "127.0.0.1:7778:7778"
     depends_on:
       runner:
-        condition: service_healthy
+        condition: service_started
       agent:
         condition: service_healthy
       postgres:
@@ -72,7 +70,7 @@ services:
       - DD_DOGSTATSD_PORT=${HIDDEN_DSD_PORT_OVERRIDE:-8125}
     depends_on:
       runner:
-        condition: service_healthy
+        condition: service_started
       agent_proxy:
         condition: service_started
       library_proxy:
@@ -81,11 +79,11 @@ services:
   runner:
     container_name: runner
     image: system_tests/runner
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://runner:8081/health"]
-      interval: 1s
-      start_period: 5s
-      retries: 25
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://runner:8081/health"]
+    #   interval: 1s
+    #   start_period: 5s
+    #   retries: 25
     environment:
       - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY

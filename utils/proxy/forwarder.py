@@ -4,10 +4,8 @@
 
 import os
 import json
-import socket
 from collections import defaultdict
 from datetime import datetime
-from http.client import HTTPConnection
 import logging
 from mitmproxy import http  # pylint: disable=import-error
 from mitmproxy.flow import Error as FlowError  # pylint: disable=import-error
@@ -49,8 +47,6 @@ with open("system-tests/utils/proxy/rc_mocked_responses_asm_dd_nocache.json", en
 
 class Forwarder:
     def __init__(self):
-        self.forward_ip = os.environ.get("FORWARD_TO_HOST", "runner")
-        self.forward_port = os.environ.get("FORWARD_TO_PORT", "8081")
         self.interface_name = os.environ.get("INTERFACE_NAME", "")
 
         self.dd_api_key = os.environ["DD_API_KEY"]
@@ -61,9 +57,9 @@ class Forwarder:
 
         # for config backend mock
         self.config_request_count = defaultdict(int)
+        self.count = 0
 
         logger.info(f"Initial state: {self.state}")
-        logger.info(f"Forward flows to {self.forward_ip}:{self.forward_port}")
 
     def _scrub(self, content):
         if isinstance(content, str):
@@ -138,13 +134,13 @@ class Forwarder:
             "port": flow.request.port,
             "request": {
                 "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
-                "content": request_content,
+                "raw_content": request_content,
                 "headers": list(flow.request.headers.items()),
                 "length": len(flow.request.content) if flow.request.content else 0,
             },
             "response": {
                 "status_code": flow.response.status_code,
-                "content": response_content,
+                "raw_content": response_content,
                 "headers": list(flow.response.headers.items()),
                 "length": len(flow.response.content) if flow.response.content else 0,
             },
@@ -153,27 +149,15 @@ class Forwarder:
         if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
             payload["response"] = None
 
-        conn = HTTPConnection(self.forward_ip, self.forward_port)
+        payload = self._scrub(payload)
+        self.count += 1
+        log_filename = (
+            f"logs/interfaces/{self.interface_name}/{self.count:04d}_{payload['path'].replace('/', '_')}.json"
+        )
+        payload["log_filename"] = log_filename
 
-        try:
-            conn.request(
-                "POST",
-                f"/proxy/{self.interface_name}",
-                body=json.dumps(self._scrub(payload)),
-                headers={"Content-type": "application/json"},
-            )
-        except socket.gaierror:
-            logger.error(f"Can't resolve to forward {self.forward_ip}:{self.forward_port}")
-        except ConnectionRefusedError:
-            logger.error("Can't forward, connection refused")
-        except BrokenPipeError:
-            logger.error("Can't forward, broken pipe")
-        except TimeoutError:
-            logger.error("Can't forward, time out")
-        except Exception as e:
-            logger.error(f"Can't forward: {e}")
-        finally:
-            conn.close()
+        with open(log_filename, mode="w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
 
     def _modify_response(self, flow):
         if self.state.get("mock_remote_config_backend") == "ASM_FEATURES":

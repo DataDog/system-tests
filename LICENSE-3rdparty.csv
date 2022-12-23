@@ -1,6 +1,4 @@
 Component,Origin,License,Copyright
-Flask,PyPI,BSD-3-Clause,Armin Ronacher
-click,PyPI,BSD-3-Clause,Armin Ronacher
 requests,PyPI,Apache-2.0,Kenneth Reitz
 Werkzeug,PyPI,BSD-3-Clause,Armin Ronacher
 pytest,PyPI,MIT,"Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Florian Bruhin and others"
