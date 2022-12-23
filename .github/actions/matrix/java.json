@@ -1,1 +1,16 @@
-{ "variant": [{"library": "java", "weblog": "jersey-grizzly2"},{"library": "java", "weblog": "spring-boot"} ], "version": [ "prod", "dev" ] }
+{
+    "variant": [
+      {
+        "library": "java",
+        "weblog": "jersey-grizzly2"
+      },
+      {
+        "library": "java",
+        "weblog": "spring-boot"
+      }
+    ],
+    "version": [
+      "prod",
+      "dev"
+    ]
+  }
