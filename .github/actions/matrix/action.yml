@@ -21,5 +21,5 @@ runs:
         echo "$(ls)"
         # jsonJava="$(cat ./.github/actions/matrix/java.json)"
         # echo "variant=$jsonJava" >> $GITHUB_OUTPUT
-        echo "variant={\"variant\":[{\"library\":\"$(pwd)\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"$(ls)\",\"weblog\":\"spring-boot\"}],\"version\":[\"prod\",\"dev\"]}" >> $GITHUB_OUTPUT
+        echo "variant={\"variant\":[{\"library\":\"${{ github.action_path }}\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"$(ls)\",\"weblog\":\"spring-boot\"}],\"version\":[\"prod\",\"dev\"]}" >> $GITHUB_OUTPUT
         
