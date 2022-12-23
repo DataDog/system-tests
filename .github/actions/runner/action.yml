@@ -14,6 +14,15 @@ inputs:
   DD_API_KEY:
     description: DD API key
     required: true
+  DD_CI_API_KEY:
+    description: DD API key to upload results to CI Visibility
+    required: false
+  archive_logs:
+    description: Enable download logs
+    required: false
+  ci_visibility:
+    description: Upload results to CI Visibility
+    required: false
 runs:
   using: composite
 
@@ -197,3 +206,25 @@ runs:
           DD_API_KEY: ${{ inputs.DD_API_KEY }}
         shell: bash
         if: contains(fromJson(inputs.scenarios), 'APPSEC_RUNTIME_ACTIVATION')
+
+      - name: Compress logs
+        shell: bash
+        if: ${{  inputs.archive_logs == 'true' && always() }}
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+      - name: Upload artifact
+        shell: bash
+        if: ${{ inputs.archive_logs == 'true' && always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs_${{ inputs.library }}_${{ WEBLOG_VARIANT }}_${{ inputs.version }}_1
+          path: artifact.tar.gz
+      - name: Upload results CI Visibility
+        shell: bash
+        if: ${{ inputs.ci_visibility == 'true' && always() }}
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ inputs.DD_CI_API_KEY }}
+      - name: Print fancy log report
+        shell: bash
+        if: ${{ always() }}
+        run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
