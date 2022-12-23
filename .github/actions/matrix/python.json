@@ -16,9 +16,5 @@
         "library": "python",
         "weblog": "uds-flask"
       }
-    ],
-    "version": [
-      "prod",
-      "dev"
     ]
   }

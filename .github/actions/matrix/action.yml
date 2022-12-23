@@ -18,8 +18,6 @@ runs:
     - name: Get matrix
       id: system-tests-matrix
       shell: bash
-      #        echo "variant={\"variant\":[{\"library\":\"java\",\"weblog\":\"jersey-grizzly2\"},{\"library\":\"java\",\"weblog\":\"spring-boot\"}]}" >> $GITHUB_OUTPUT
-
       run: |
         if [ "${{ inputs.java}}" = true ] ; then
           jsonJava="$(cat ${{ github.action_path }}/java.json)"
@@ -29,15 +27,10 @@ runs:
         fi
         jsonVersion="$(cat ${{ github.action_path }}/version.json)"
 
-        #echo "$(ls)"
-        #jsonJava="$(cat ${{ github.action_path }}/java.json)"
-        #echo "variant=$(echo $jsonJava| jq -r tostring)" >> $GITHUB_OUTPUT
-
-        #echo "$(echo $jsonJava|jq '.variant[]'),$(echo $jsonPython|jq '.variant[]')"
-        #echo "$(echo $jsonJava|jq '.variant') $(echo $jsonPython|jq '.variant')"
         javaVariant=$(echo $jsonJava|jq '.variant')
         pythonVariant=$(echo $jsonPython|jq '.variant')
+
         outputJson=$(echo "$javaVariant $pythonVariant"| jq -s 'reduce .[] as $x ([]; . + $x)')
-        #outputJson=$(echo "$(echo $jsonJava|jq '.variant') $(echo $jsonPython|jq '.variant')"| jq -s 'reduce .[] as $x ([]; . + $x)')
         outputJson={\"variant\":$outputJson,\"version\":$(echo $jsonVersion|jq '.version')}
+
         echo "variant=$(echo $outputJson| jq -r tostring)" >> $GITHUB_OUTPUT

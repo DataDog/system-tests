@@ -72,35 +72,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - run: mkdir logs && touch logs/.weblog.env
-    - name: Pull images
-      run: docker-compose pull library_proxy cassandra_db mongodb postgres
-    - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh waf_rule_set
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh agent
-    - name: Log in to the Container registry
-      if: ${{ matrix.variant.library == 'ruby' }}
-      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-    - name: Build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+
+    - uses: ./.github/actions/prepare-agent
+      with:
+          version: ${{ matrix.version }}
+          library: ${{ matrix.variant.library }} 
+
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:

@@ -1,0 +1,48 @@
+name: Lib injection test runner
+description: "Lib injection tests runner"
+
+inputs:
+  version:
+    description: Version dev or prod
+    required: true
+  library:
+    description: Library language java,python...
+    required: true
+runs:
+  using: composite
+  steps:
+      - run: mkdir logs && touch logs/.weblog.env
+        shell: bash
+      - name: Pull images
+        run: docker-compose pull library_proxy cassandra_db mongodb postgres
+        shell: bash
+      - name: Load WAF rules
+        if: ${{ inputs.version == 'dev' }}
+        run: ./utils/scripts/load-binary.sh waf_rule_set
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load library binary
+        if: ${{ inputs.version == 'dev' && (inputs.library != 'php' && inputs.library != 'java')}}
+        run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
+        shell: bash
+      - name: Load PHP prod library binary
+        if: ${{ inputs.library == 'php' }}
+        run: ./utils/scripts/load-binary.sh php prod
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load library PHP appsec binary
+        if: ${{ inputs.library == 'php' }}
+        run: ./utils/scripts/load-binary.sh php_appsec ${{inputs.version}}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load agent binary
+        if: ${{ inputs.version == 'dev' }}
+        run: ./utils/scripts/load-binary.sh agent
+        shell: bash
+      - name: Log in to the Container registry
+        if: ${{ inputs.library == 'ruby' }}
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        shell: bash

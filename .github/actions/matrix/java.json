@@ -8,9 +8,5 @@
         "library": "java",
         "weblog": "spring-boot"
       }
-    ],
-    "version": [
-      "prod",
-      "dev"
     ]
   }
