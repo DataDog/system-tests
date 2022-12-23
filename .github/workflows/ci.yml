@@ -79,6 +79,9 @@ jobs:
           library: ${{ matrix.variant.library }} 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Build
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
