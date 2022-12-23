@@ -25,7 +25,7 @@ runs:
           jsonJava="$(cat ${{ github.action_path }}/java.json)"
         fi
         if [ "${{ inputs.python}}" = true ] ; then
-          jsonJava="$(cat ${{ github.action_path }}/python.json)"
+          jsonPython="$(cat ${{ github.action_path }}/python.json)"
         fi
         jsonVersion="$(cat ${{ github.action_path }}/version.json)"
 
