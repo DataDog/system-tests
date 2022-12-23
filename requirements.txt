@@ -1,3 +1,4 @@
+click==7.1.2  # TODO move once black is moved
 requests==2.28.1
 requests-toolbelt==0.9.1
 pytest==7.1.3
