@@ -35,7 +35,9 @@ runs:
 
         #echo "$(echo $jsonJava|jq '.variant[]'),$(echo $jsonPython|jq '.variant[]')"
         #echo "$(echo $jsonJava|jq '.variant') $(echo $jsonPython|jq '.variant')"
-   
-        outputJson=$(echo "$(echo $jsonJava|jq '.variant') $(echo $jsonPython|jq '.variant')"| jq -s 'reduce .[] as $x ([]; . + $x)')
+        javaVariant=$(echo $jsonJava|jq '.variant')
+        pythonVariant=$(echo $jsonPython|jq '.variant')
+        outputJson=$(echo "$javaVariant $pythonVariant"| jq -s 'reduce .[] as $x ([]; . + $x)')
+        #outputJson=$(echo "$(echo $jsonJava|jq '.variant') $(echo $jsonPython|jq '.variant')"| jq -s 'reduce .[] as $x ([]; . + $x)')
         outputJson={\"variant\":$outputJson,\"version\":$(echo $jsonVersion|jq '.version')}
         echo "variant=$(echo $outputJson| jq -r tostring)" >> $GITHUB_OUTPUT
