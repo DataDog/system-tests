@@ -8,6 +8,9 @@ inputs:
   library:
     description: Library language java,python...
     required: true
+  GITHUB_TOKEN:
+    description: Github Token
+    required: true
 runs:
   using: composite
   steps:
@@ -21,7 +24,7 @@ runs:
         run: ./utils/scripts/load-binary.sh waf_rule_set
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       - name: Load library binary
         if: ${{ inputs.version == 'dev' && (inputs.library != 'php' && inputs.library != 'java')}}
         run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
@@ -31,18 +34,18 @@ runs:
         run: ./utils/scripts/load-binary.sh php prod
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       - name: Load library PHP appsec binary
         if: ${{ inputs.library == 'php' }}
         run: ./utils/scripts/load-binary.sh php_appsec ${{inputs.version}}
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       - name: Load agent binary
         if: ${{ inputs.version == 'dev' }}
         run: ./utils/scripts/load-binary.sh agent
         shell: bash
       - name: Log in to the Container registry
         if: ${{ inputs.library == 'ruby' }}
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        run: echo ${{ inputs.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
         shell: bash

@@ -77,6 +77,7 @@ jobs:
       with:
           version: ${{ matrix.version }}
           library: ${{ matrix.variant.library }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
