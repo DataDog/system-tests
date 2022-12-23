@@ -1,0 +1,28 @@
+{
+    "variant": [
+      {
+        "library": "golang",
+        "weblog": "chi"
+      },
+      {
+        "library": "golang",
+        "weblog": "echo"
+      },
+      {
+        "library": "golang",
+        "weblog": "gin"
+      },
+      {
+        "library": "golang",
+        "weblog": "gorilla"
+      },
+      {
+        "library": "golang",
+        "weblog": "net-http"
+      },
+      {
+        "library": "golang",
+        "weblog": "uds-echo"
+      }
+    ]
+  }

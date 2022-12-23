@@ -1,0 +1,16 @@
+{
+    "variant": [
+      {
+        "library": "nodejs",
+        "weblog": "express4"
+      },
+      {
+        "library": "nodejs",
+        "weblog": "uds-express4"
+      },
+      {
+        "library": "nodejs",
+        "weblog": "express4-typescript"
+      }
+    ]
+  }

@@ -14,6 +14,18 @@ inputs:
   cpp:
     description: "true to enable cpp matrix"
     required: false
+  dotnet:
+    description: "true to enable dotnet matrix"
+    required: false
+  golang:
+    description: "true to enable golang matrix"
+    required: false
+  nodejs:
+    description: "true to enable nodejs matrix"
+    required: false
+  php:
+    description: "true to enable php matrix"
+    required: false
 outputs:
   variant:
     description: "Matrix language/library and weblogs"
@@ -37,14 +49,31 @@ runs:
         if [ "${{ inputs.cpp }}" = true ] ; then
           jsonCpp="$(cat ${{ github.action_path }}/cpp.json)"
         fi
+        if [ "${{ inputs.dotnet }}" = true ] ; then
+          jsonDotnet="$(cat ${{ github.action_path }}/dotnet.json)"
+        fi
+        if [ "${{ inputs.golang }}" = true ] ; then
+          jsonGolang="$(cat ${{ github.action_path }}/golang.json)"
+        fi
+        if [ "${{ inputs.nodejs }}" = true ] ; then
+          jsonNodejs="$(cat ${{ github.action_path }}/nodejs.json)"
+        fi
+        if [ "${{ inputs.php }}" = true ] ; then
+          jsonPhp="$(cat ${{ github.action_path }}/php.json)"
+        fi
+        
         jsonVersion="$(cat ${{ github.action_path }}/version.json)"
 
         javaVariant=$(echo $jsonJava|jq '.variant')
         pythonVariant=$(echo $jsonPython|jq '.variant')
         rubyVariant=$(echo $jsonRuby|jq '.variant')
         cppVariant=$(echo $jsonCpp|jq '.variant')
+        dotnetVariant=$(echo $jsonDotnet|jq '.variant')
+        golangVariant=$(echo $jsonGolang|jq '.variant')
+        nodejsVariant=$(echo $jsonNodejs|jq '.variant')
+        phpVariant=$(echo $jsonPhp|jq '.variant')
 
-        outputJson=$(echo "$javaVariant $pythonVariant $rubyVariant $cppVariant"| jq -s 'reduce .[] as $x ([]; . + $x)')
+        outputJson=$(echo "$javaVariant $pythonVariant $rubyVariant $cppVariant $dotnetVariant $golangVariant $nodejsVariant $phpVariant"| jq -s 'reduce .[] as $x ([]; . + $x)')
         outputJson={\"variant\":$outputJson,\"version\":$(echo $jsonVersion|jq '.version')}
 
         echo "variant=$(echo $outputJson| jq -r tostring)" >> $GITHUB_OUTPUT

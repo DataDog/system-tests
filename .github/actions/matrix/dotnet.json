@@ -1,0 +1,12 @@
+{
+    "variant": [
+      {
+        "library": "dotnet",
+        "weblog": "poc"
+      },
+      {
+        "library": "dotnet",
+        "weblog": "uds"
+      }
+    ]
+  }
