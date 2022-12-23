@@ -25,16 +25,16 @@ runs:
       id: system-tests-matrix
       shell: bash
       run: |
-        if [ "${{ inputs.java}}" = true ] ; then
+        if [ "${{ inputs.java }}" = true ] ; then
           jsonJava="$(cat ${{ github.action_path }}/java.json)"
         fi
-        if [ "${{ inputs.python}}" = true ] ; then
+        if [ "${{ inputs.python }}" = true ] ; then
           jsonPython="$(cat ${{ github.action_path }}/python.json)"
         fi
-        if [ "${{ inputs.ruby}}" = true ] ; then
+        if [ "${{ inputs.ruby }}" = true ] ; then
           jsonRuby="$(cat ${{ github.action_path }}/ruby.json)"
         fi
-        if [ "${{ inputs.cpp}}" = true ] ; then
+        if [ "${{ inputs.cpp }}" = true ] ; then
           jsonCpp="$(cat ${{ github.action_path }}/cpp.json)"
         fi
         jsonVersion="$(cat ${{ github.action_path }}/version.json)"
