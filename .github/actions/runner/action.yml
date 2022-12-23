@@ -215,7 +215,7 @@ runs:
         uses: actions/upload-artifact@v3
         if: ${{ inputs.archive_logs == 'true' && always() }}      
         with:
-          name: logs_${{ inputs.library }}_${{ WEBLOG_VARIANT }}_${{ inputs.version }}_1
+          name: logs_${{ inputs.library }}_$WEBLOG_VARIANT_${{ inputs.version }}_1
           path: artifact.tar.gz
 
       - name: Upload results CI Visibility
@@ -224,7 +224,7 @@ runs:
         run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
         env:
           DD_API_KEY: ${{ inputs.DD_CI_API_KEY }}
-          
+
       - name: Print fancy log report
         shell: bash
         if: ${{ always() }}
