@@ -58,31 +58,31 @@
       },
       {
         "library": "php",
-        "weblog": "weblog: php-fpm-7.0"
+        "weblog": "php-fpm-7.0"
       },
       {
         "library": "php",
-        "weblog": "weblog: php-fpm-7.1"
+        "weblog": "php-fpm-7.1"
       },
       {
         "library": "php",
-        "weblog": "weblog: php-fpm-7.2"
+        "weblog": "php-fpm-7.2"
       },
       {
         "library": "php",
-        "weblog": "weblog: php-fpm-7.3"
+        "weblog": "php-fpm-7.3"
       },
       {
         "library": "php",
-        "weblog": "weblog: php-fpm-7.4"
+        "weblog": "php-fpm-7.4"
       },
       {
         "library": "php",
-        "weblog": "weblog: php-fpm-8.0"
+        "weblog": "php-fpm-8.0"
       },
       {
         "library": "php",
-        "weblog": "weblog: php-fpm-8.1"
+        "weblog": "php-fpm-8.1"
       }
       
     ]
