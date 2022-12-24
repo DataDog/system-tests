@@ -54,7 +54,7 @@ jobs:
     - lint_and_test
     - matrix-generator
     strategy:
-      max-parallel: 2
+      #max-parallel: 2
       matrix: ${{fromJson(needs.matrix-generator.outputs.variant)}}
       fail-fast: false
     env:
@@ -86,7 +86,7 @@ jobs:
     - lint_and_test
     - matrix-generator
     strategy:
-      max-parallel: 2
+      #max-parallel: 2
       matrix: ${{fromJson(needs.matrix-generator.outputs.variant)}}
       fail-fast: false
     env:
@@ -118,7 +118,7 @@ jobs:
     - lint_and_test
     - matrix-generator
     strategy:
-      max-parallel: 2
+     # max-parallel: 2
       matrix: ${{fromJson(needs.matrix-generator.outputs.variant)}}
       fail-fast: false
     env:
