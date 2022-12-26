@@ -10,7 +10,7 @@ NGINX_VERSION=1.17.3
 
 attempts=0
 OPENTRACING_NGINX_VERSION=""
-while $OPENTRACING_NGINX_VERSION==""  && (( attempts++ < 5 )); do
+while [$OPENTRACING_NGINX_VERSION==""] && (( attempts++ < 5 )); do
     OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)" 
     echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION"
    
