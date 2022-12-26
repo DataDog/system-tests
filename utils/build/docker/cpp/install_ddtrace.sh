@@ -3,7 +3,7 @@
 set -eu
 
 get_latest_release() {
-    wget --waitretry=5 --tries=15 -q -S -O - "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
+    wget --debug --waitretry=5 --tries=15 -q -S -O - "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
 }
 
 NGINX_VERSION=1.17.3
