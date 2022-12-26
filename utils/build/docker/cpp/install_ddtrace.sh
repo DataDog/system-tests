@@ -8,7 +8,7 @@ get_latest_release() {
 
 NGINX_VERSION=1.17.3
 
-until OPENTRACING_NGINX_VERSION || (( count++ >= 5 )); 
+until $OPENTRACING_NGINX_VERSION || (( count++ >= 5 )); 
 do 
 
     OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
