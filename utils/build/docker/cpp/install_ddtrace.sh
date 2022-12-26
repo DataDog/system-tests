@@ -8,10 +8,15 @@ get_latest_release() {
 
 NGINX_VERSION=1.17.3
 
-OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
-DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
-echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION"
-echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
+until OPENTRACING_NGINX_VERSION || (( count++ >= 5 )); 
+do 
+
+    OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)"
+    DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
+    echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION"
+    echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
+
+done
 echo $DD_OPENTRACING_CPP_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
