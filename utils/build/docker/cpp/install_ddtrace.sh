@@ -12,9 +12,9 @@ attempts=0
 OPENTRACING_NGINX_VERSION=""
 while [ -z "$OPENTRACING_NGINX_VERSION" ] && (( attempts++ < 5 )); do
     OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)" 
-    echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION"
-   
+    echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION" 
 done
+
  DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
  echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
 echo $DD_OPENTRACING_CPP_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
