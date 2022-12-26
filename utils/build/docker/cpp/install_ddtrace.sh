@@ -3,13 +3,15 @@
 set -eu
 
 get_latest_release() {
-    wget --debug --waitretry=5 --tries=15 -q -S -O - "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
+    wget --save-headers --waitretry=5 --tries=15 -q -S -O - "https://api.github.com/repos/$1/releases/latest" 2>headers.out | jq -r '.tag_name'
 }
 
 NGINX_VERSION=1.17.3
 
 OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)" 
 echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION" 
+echo "headers :::"
+cat headers.out
 DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
 echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
 echo $DD_OPENTRACING_CPP_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
