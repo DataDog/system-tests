@@ -4,7 +4,7 @@ set -eu
 
 get_latest_release() {
    # wget --save-headers --waitretry=5 --tries=15 -q -S -O - "https://api.github.com/repos/$1/releases/latest" 2>headers.out | jq -r '.tag_name'
-   wget --save-headers -qO - "https://api.github.com/repos/$1/releases/latest" 2>headers.out | jq -r '.tag_name'
+   wget --save-headers -qO - "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name' 2>headers.out 
 
 }
 
