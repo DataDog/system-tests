@@ -150,9 +150,9 @@ jobs:
   post_test-the-tests:
     runs-on: ubuntu-latest
     needs:
-    - test-the-tests-9-0
-    - test-the-tests-9-1
-    - test-the-tests-9-2
+    - test-the-tests-0
+    - test-the-tests-1
+    - test-the-tests-2
     if: always() && github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
