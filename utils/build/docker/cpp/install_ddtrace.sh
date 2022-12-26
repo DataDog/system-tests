@@ -3,21 +3,15 @@
 set -eu
 
 get_latest_release() {
-    wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
+    wget --waitretry=5 --tries=15 -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
 }
 
 NGINX_VERSION=1.17.3
 
-attempts=0
-OPENTRACING_NGINX_VERSION=""
-while [ -z "$OPENTRACING_NGINX_VERSION" ] && (( attempts++ < 15 )); do
-    OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)" 
-    echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION" 
-    sleep 5
-done
-
- DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
- echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
+OPENTRACING_NGINX_VERSION="$(get_latest_release opentracing-contrib/nginx-opentracing)" 
+echo "opentracing-contrib/nginx-opentracing version: $OPENTRACING_NGINX_VERSION" 
+DD_OPENTRACING_CPP_VERSION="$(get_latest_release DataDog/dd-opentracing-cpp)"
+echo "DataDog/dd-opentracing-cpp version: $DD_OPENTRACING_CPP_VERSION"
 echo $DD_OPENTRACING_CPP_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
