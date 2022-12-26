@@ -8,6 +8,9 @@ inputs:
   library:
     description: Library language java,python...
     required: true
+  weblog:
+    description: weblog app
+    required: true
   scenarios:
     description: scenarios will be run
     required: true
@@ -215,7 +218,7 @@ runs:
         uses: actions/upload-artifact@v3
         if: ${{ inputs.archive_logs == 'true' && always() }}      
         with:
-          name: logs_${{ inputs.library }}_$WEBLOG_VARIANT_${{ inputs.version }}_1
+          name: logs_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.version }}_1
           path: artifact.tar.gz
 
       - name: Upload results CI Visibility
