@@ -112,10 +112,6 @@ get_github_action_artifact() {
     BRANCH=$3
     PATTERN=$4
 
-    echo "-------------- get_github_action_artifact SH -----------------"
-    echo $GH_TOKEN
-    echo "-------------- FIN get_github_action_artifact SH -----------------"
-
     # query filter seems not to be working ??
     WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
@@ -141,10 +137,6 @@ get_github_action_artifact() {
 get_github_release_asset() {
     SLUG=$1
     PATTERN=$2
-
-    echo "-------------- get_github_release_asset SH -----------------"
-    echo $GH_TOKEN
-    echo "-------------- FIN get_github_release_asset SH -----------------"
 
     release=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
 

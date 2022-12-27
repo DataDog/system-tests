@@ -7,9 +7,7 @@ get_latest_release() {
       wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name' 
    else 
       wget --header="Authorization: token ${GH_TOKEN}" -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
-   fi
-
-    
+   fi   
 }
 
 NGINX_VERSION=1.17.3

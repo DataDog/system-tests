@@ -5,7 +5,11 @@ set -eu
 cd /binaries
 
 get_latest_release() {
-    curl "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
+   if [ -z "$GH_TOKEN" ]; then 
+      wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name' | sed -E 's/.*"v([^"]+)".*/\1/';
+   else 
+      wget --header="Authorization: token ${GH_TOKEN}" -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name' | sed -E 's/.*"v([^"]+)".*/\1/';
+   fi   
 }
 
 if [ $(ls datadog-dotnet-apm-*.tar.gz | wc -l) = 1 ]; then
