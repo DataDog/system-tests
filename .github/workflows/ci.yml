@@ -48,7 +48,9 @@ jobs:
         - library: cpp
           weblog: nginx
         - library: cpp
-          weblog: nginx      
+          weblog: nginx
+        - library: php
+          weblog: apache-mod-7.0
         version:
         - prod
         - dev
@@ -88,6 +90,8 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      env: 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
