@@ -3,6 +3,8 @@
 set -eu
 
 get_latest_release() {
+   echo "GET LATEST RELEASE"
+   echo "TOKEN: ${GH_TOKEN}"
     wget --header="Authorization: Bearer ${GH_TOKEN}" -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
 }
 
