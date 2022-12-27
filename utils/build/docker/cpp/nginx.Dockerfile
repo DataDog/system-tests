@@ -35,6 +35,7 @@ RUN echo '{}' > /etc/nginx/dd-config.json
 
 RUN mkdir /builds
 COPY utils/build/docker/cpp/install_ddtrace.sh builds* /builds/
+ARG GH_TOKEN
 ENV GH_TOKEN $GH_TOKEN
 RUN /builds/install_ddtrace.sh
 
