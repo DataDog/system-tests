@@ -6,9 +6,9 @@ cd /binaries
 
 get_latest_release() {
    if [ -z "$GH_TOKEN" ]; then 
-      wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name' | sed -E 's/.*"v([^"]+)".*/\1/';
+      curl "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
    else 
-      wget --header="Authorization: token ${GH_TOKEN}" -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name' | sed -E 's/.*"v([^"]+)".*/\1/';
+      curl -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
    fi   
 }
 
