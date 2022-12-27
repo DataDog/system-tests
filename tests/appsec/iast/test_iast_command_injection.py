@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, interfaces, context, coverage, released, flaky
+from utils import weblog, interfaces, context, coverage, released
 
 
 if context.library == "cpp":
@@ -14,7 +14,6 @@ if context.library == "cpp":
 @coverage.basic
 @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "*": "?"})
-@flaky(library="java")
 class TestIastCommandInjection:
     """Verify IAST features"""
 
@@ -23,7 +22,7 @@ class TestIastCommandInjection:
 
         EXPECTATIONS = {
             "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"},
-            "nodejs": {"LOCATION": "/usr/app/iast.js"},
+            "nodejs": {"LOCATION": "iast.js"},
         }
 
         expected = EXPECTATIONS.get(context.library.library, {})

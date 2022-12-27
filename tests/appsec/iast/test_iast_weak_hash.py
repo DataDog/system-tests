@@ -25,12 +25,9 @@ class TestIastWeakHash:
             return "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
 
         if context.library.library == "nodejs":
-            return "/usr/app/iast.js"
+            return "iast.js"
 
         if context.library.library == "python":
-            if context.weblog_variant == "django-poc":
-                return "/iast.py"
-
             if context.weblog_variant == "uwsgi-poc":
                 return "/app/./iast.py"
 
@@ -41,8 +38,9 @@ class TestIastWeakHash:
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
 
+    @missing_feature(context.weblog_variant == "spring-boot-openliberty")
     @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
-    @bug(context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(library="nodejs", reason="Changing from absolute path to relative path")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -58,6 +56,7 @@ class TestIastWeakHash:
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
     @bug(context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(library="nodejs", reason="Changing from absolute path to relative path")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
 
