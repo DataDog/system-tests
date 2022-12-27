@@ -14,9 +14,7 @@ fi
 CURRENT_PWD=$(pwd)
 
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK}}
-echo "-------------- BUILD SH -----------------"
-echo $GITHUB_TOKEN
-echo "-------------- FIN BUILD SH -----------------"
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         cpp|dotnet|golang|java|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
