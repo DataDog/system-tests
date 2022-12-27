@@ -22,7 +22,7 @@ class TestIastCommandInjection:
 
         EXPECTATIONS = {
             "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"},
-            "nodejs": {"LOCATION": "/usr/app/iast.js"},
+            "nodejs": {"LOCATION": "iast.js"},
         }
 
         expected = EXPECTATIONS.get(context.library.library, {})
