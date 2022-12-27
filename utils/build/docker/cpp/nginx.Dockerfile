@@ -35,6 +35,7 @@ RUN echo '{}' > /etc/nginx/dd-config.json
 
 RUN mkdir /builds
 COPY utils/build/docker/cpp/install_ddtrace.sh builds* /builds/
+ENV GH_TOKEN $GH_TOKEN
 RUN /builds/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
