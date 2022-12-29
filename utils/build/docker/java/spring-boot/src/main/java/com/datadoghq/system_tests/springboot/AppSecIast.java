@@ -29,13 +29,15 @@ public class AppSecIast {
     private final SqlExamples sqlExamples;
     private final CmdExamples cmdExamples;
     private final PathExamples pathExamples;
-    private final LDAPExamples ldapExamples;
+   // private final LDAPExamples ldapExamples;
 
-    public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples, final LDAPExamples ldapExamples) {
+   // public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples, final LDAPExamples ldapExamples) {
+        public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples) {
+
         this.sqlExamples = sqlExamples;
         this.cmdExamples = cmdExamples;
         this.pathExamples = pathExamples;
-        this.ldapExamples = ldapExamples;
+        ///this.ldapExamples = ldapExamples;
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -126,7 +128,7 @@ public class AppSecIast {
         }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
-        return ldapExamples.injection(username, password);
+        return  "test";//ldapExamples.injection(username, password);
     }
 
     @PostMapping("/ldapi/test_secure")
@@ -135,7 +137,7 @@ public class AppSecIast {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return ldapExamples.secure();
+        return "secure";//ldapExamples.secure();
     }
 
 

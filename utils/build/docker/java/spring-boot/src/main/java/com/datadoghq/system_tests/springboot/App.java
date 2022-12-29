@@ -292,15 +292,15 @@ public class App {
 
 
 
-    @Bean
-    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
-        return new SynchronousWebLogGrpc(localInterface.getPort());
-    }
+ //   @Bean
+ //   SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
+ //       return new SynchronousWebLogGrpc(localInterface.getPort());
+  //  }
 
-    @Bean
-    WebLogInterface localInterface() throws IOException {
-        return new WebLogInterface();
-    }
+  //  @Bean
+  //  WebLogInterface localInterface() throws IOException {
+  //      return new WebLogInterface();
+  //  }
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);

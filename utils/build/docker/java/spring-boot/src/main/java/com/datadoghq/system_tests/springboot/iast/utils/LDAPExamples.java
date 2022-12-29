@@ -11,7 +11,7 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchResult;
 import java.util.Hashtable;
 
-@Component
+//@Component
 public class LDAPExamples {
 
     InitialDirContext initialDirContext;
