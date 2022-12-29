@@ -1,7 +1,7 @@
 FROM maven:3.8-jdk-11 as build
 
 RUN apt-get update && \
-	apt-get install -y libarchive-tools build-essential 
+	apt-get install -y libarchive-tools build-essential zlib1g-dev
 
 WORKDIR /app
 
