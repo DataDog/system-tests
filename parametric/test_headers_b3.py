@@ -51,8 +51,9 @@ def test_headers_b3_extract_invalid(test_agent, test_library):
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 0
-    assert span.get("parent_id") != 0
-    assert span["meta"].get(ORIGIN) is None
+    assert span.get("span_id") != 0
+    assert span.get("parent_id") == 0
+    assert span["meta"].get(ORIGIN)
 
 
 @enable_b3()

@@ -35,8 +35,17 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	if args.Type != nil {
 		opts = append(opts, tracer.SpanType(*args.Type))
 	}
-	span := tracer.StartSpan(args.Name, opts...)
 
+	if len(args.HttpHeaders.HttpHeaders) != 0 {
+		sctx, err := tracer.Extract(tracer.TextMapCarrier(args.HttpHeaders.HttpHeaders))
+		if err != nil {
+			fmt.Println("failed in StartSpan")
+		} else {
+			opts = append(opts, tracer.ChildOf(sctx))
+		}
+	}
+
+	span := tracer.StartSpan(args.Name, opts...)
 	if args.Origin != nil {
 		span.SetTag("_dd.origin", *args.Origin)
 	}
@@ -51,6 +60,16 @@ func (s *apmClientServer) SpanSetMeta(ctx context.Context, args *SpanSetMetaArgs
 	span := s.spans[args.SpanId]
 	span.SetTag(args.Key, args.Value)
 	return &SpanSetMetaReturn{}, nil
+}
+func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {
+	span := s.spans[args.SpanId]
+	headers := tracer.TextMapCarrier(map[string]string{})
+	tracer.Inject(span.Context(), headers)
+	distr := map[string]string{}
+	for k, v := range headers {
+		distr[k] = v
+	}
+	return &InjectHeadersReturn{HttpHeaders: &DistributedHTTPHeaders{HttpHeaders: distr}}, nil
 }
 
 func (s *apmClientServer) SpanSetMetric(ctx context.Context, args *SpanSetMetricArgs) (*SpanSetMetricReturn, error) {
