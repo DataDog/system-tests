@@ -82,18 +82,18 @@ jobs:
 #      run: ./run.sh DEFAULT
 #      env:
 #        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run test_smoke scenario
-      run: ./run.sh tests/test_smoke.py
+    - name: Run test_library_conf scenario
+      run: ./run.sh tests/test_library_conf.py
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 #tests/test_miscs.py
 #tests/test_semantic_conventions.py
 
-#tests/test_standard_tags.py
+#tests/test_standard_tags.py 1
 
-#tests/test_smoke.py
+#tests/test_smoke.py 2
 
-#tests/test_library_conf.py:
+#tests/test_library_conf.py 3
 
     - name: Compress logs
       if: ${{ always() }}
