@@ -28,7 +28,7 @@ if context.library == "cpp":
 @missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_StatusCode:
-    """ Appsec reports good status code """
+    """Appsec reports good status code"""
 
     def setup_basic(self):
         self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
@@ -69,7 +69,7 @@ class Test_StatusCode:
 @missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_HttpClientIP:
-    """ AppSec reports good http client IP"""
+    """AppSec reports good http client IP"""
 
     def setup_http_remote_ip(self):
         headers = {"User-Agent": "Arachni/v1"}
@@ -81,7 +81,7 @@ class Test_HttpClientIP:
             self.actual_remote_ip = None
 
     def test_http_remote_ip(self):
-        """ AppSec reports the HTTP request peer IP. """
+        """AppSec reports the HTTP request peer IP."""
 
         def legacy_validator(event):
             remote_ip = event["context"]["http"]["request"]["remote_ip"]
@@ -111,13 +111,13 @@ class Test_HttpClientIP:
 @missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_Info:
-    """ Environment (production, staging) from DD_ENV variable """
+    """Environment (production, staging) from DD_ENV variable"""
 
     def setup_service(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_service(self):
-        """ Appsec reports the service information """
+        """Appsec reports the service information"""
 
         def _check_service_legacy(event):
             name = event["context"]["service"]["name"]
@@ -146,7 +146,7 @@ class Test_Info:
 @missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_RequestHeaders:
-    """ Request Headers for IP resolution """
+    """Request Headers for IP resolution"""
 
     def setup_http_request_headers(self):
         self.r = weblog.get(
@@ -167,7 +167,7 @@ class Test_RequestHeaders:
 
     @bug(context.library < "dotnet@2.1.0")
     def test_http_request_headers(self):
-        """ AppSec reports the HTTP headers used for actor IP detection."""
+        """AppSec reports the HTTP headers used for actor IP detection."""
 
         interfaces.library.add_appsec_reported_header(self.r, "x-forwarded-for")
         interfaces.library.add_appsec_reported_header(self.r, "x-client-ip")
@@ -182,13 +182,14 @@ class Test_RequestHeaders:
 
 @coverage.basic
 class Test_TagsFromRule:
-    """ Tags (Category & event type) from the rule """
+    """Tags (Category & event type) from the rule"""
 
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
     @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_basic(self):
-        """ attack timestamp is given by start property of span """
+        """attack timestamp is given by start property of span"""
 
         for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=self.r):
             for trigger in appsec_data["triggers"]:
@@ -200,14 +201,14 @@ class Test_TagsFromRule:
 
 @coverage.basic
 class Test_AttackTimestamp:
-    """ Attack timestamp """
+    """Attack timestamp"""
 
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        
+
     @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_basic(self):
-        """ attack timestamp is given by start property of span """
+        """attack timestamp is given by start property of span"""
 
         for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r):
             assert "start" in span, "span should contain start property"
