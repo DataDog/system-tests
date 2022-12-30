@@ -4,7 +4,7 @@
 
 import pytest
 from tests.constants import PYTHON_RELEASE_GA_1_1, PYTHON_RELEASE_PUBLIC_BETA
-from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog
+from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -159,6 +159,7 @@ class Test_StandardTagsRoute:
 
 @released(dotnet="?", golang="?", java="0.114.0")
 @released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="?")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
