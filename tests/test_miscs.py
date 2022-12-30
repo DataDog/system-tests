@@ -7,7 +7,6 @@ from utils import weblog, interfaces, released, irrelevant, bug
 
 @released(golang="1.43.0", java="0.97.0", nodejs="3.1.0", php="0.74.0", python="0.59.1", ruby="?")
 @irrelevant(library="cpp")
-@bug(weblog_variant="spring-boot-native", reason="APMJAVA-885")
 class Test_Basic:
     """ Make sure the spans endpoint is successful """
 
