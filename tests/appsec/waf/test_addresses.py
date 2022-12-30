@@ -26,6 +26,7 @@ if context.library == "cpp":
 
 @released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
 @released(php_appsec="0.3.2", python="1.2.1", ruby="1.0.0")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_UrlQueryKey:
     """Appsec supports keys on server.request.query"""
@@ -41,6 +42,7 @@ class Test_UrlQueryKey:
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_UrlQuery:
     """Appsec supports values on server.request.query"""
@@ -76,6 +78,7 @@ class Test_UrlQuery:
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_UrlRaw:
     """Appsec supports server.request.uri.raw"""
@@ -94,6 +97,7 @@ class Test_UrlRaw:
 @released(python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_Headers:
     """Appsec supports server.request.headers.no_cookies"""
@@ -133,6 +137,7 @@ class Test_Headers:
     @missing_feature(library="python")
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
+    @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_specific_key2(self):
         """attacks on specific header X_Filename, and report it"""
 
@@ -171,6 +176,7 @@ class Test_Headers:
         "pylons": "1.1.0rc2.dev",
     }
 )
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_Cookies:
     """Appsec supports server.request.cookies"""
@@ -271,6 +277,7 @@ class Test_Cookies:
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", ruby="?")
 @released(python={"django-poc": "1.5.2", "*": "?"})
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_BodyRaw:
     """Appsec supports <body>"""
@@ -288,6 +295,7 @@ class Test_BodyRaw:
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "spring-boot-undertow": "0.98.0", "*": "0.95.1"})
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
 
@@ -315,6 +323,7 @@ class Test_BodyUrlEncoded:
 
 @released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.4.0rc1.dev", ruby="?")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "*": "0.95.1"})
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyJson:
@@ -353,6 +362,7 @@ class Test_BodyJson:
 @released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @released(java={"vertx3": "?", "ratpack": "0.99.0", "*": "0.95.1"})
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
@@ -400,6 +410,7 @@ class Test_ClientIP:
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="2.3.0", java="0.88.0", nodejs="2.0.0", python="0.58.5")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_ResponseStatus:
     """Appsec supports values on server.response.status"""
@@ -432,6 +443,7 @@ class Test_ResponseStatus:
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""
@@ -449,6 +461,7 @@ class Test_PathParams:
 @released(golang="1.36.0", dotnet="?", java="0.96.0", nodejs="?", php_appsec="?", python="?", ruby="?")
 @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
 @bug(context.library < "java@0.109.0", weblog_variant="spring-boot", reason="APPSEC-5426")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""

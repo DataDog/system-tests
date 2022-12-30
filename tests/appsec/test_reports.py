@@ -25,6 +25,7 @@ if context.library == "cpp":
 @released(dotnet="1.28.6", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 @released(golang={"gin": "1.37.0", "echo": "1.36.0", "*": "1.34.0"})
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_StatusCode:
     """ Appsec reports good status code """
@@ -65,6 +66,7 @@ class Test_StatusCode:
 )
 @released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_HttpClientIP:
     """ AppSec reports good http client IP"""
@@ -106,6 +108,7 @@ class Test_HttpClientIP:
 @released(dotnet="2.0.0", java="0.87.0", nodejs="2.0.0", php="0.68.2", python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_Info:
     """ Environment (production, staging) from DD_ENV variable """
@@ -140,6 +143,7 @@ class Test_Info:
 @released(dotnet="1.30.0", nodejs="2.0.0", php_appsec="0.2.0", python="1.1.0rc2.dev")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.good
 class Test_RequestHeaders:
     """ Request Headers for IP resolution """
@@ -177,6 +181,7 @@ class Test_RequestHeaders:
 
 
 @coverage.basic
+@missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_TagsFromRule:
     """ Tags (Category & event type) from the rule """
 
@@ -195,6 +200,7 @@ class Test_TagsFromRule:
 
 
 @coverage.basic
+@missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_AttackTimestamp:
     """ Attack timestamp """
 

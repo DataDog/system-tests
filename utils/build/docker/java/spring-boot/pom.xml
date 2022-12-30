@@ -314,7 +314,7 @@
 								<buildArg>--initialize-at-build-time=com.squareup.moshi</buildArg>
 								<buildArg>--initialize-at-build-time=com.sun.proxy</buildArg>
 								<buildArg>--initialize-at-build-time=okio</buildArg>
-								<buildArg>-J-javaagent:/dd-tracer/dd-java-agent.jar</buildArg> -->
+								 <buildArg>-J-javaagent:/dd-tracer/dd-java-agent.jar</buildArg> 
 
 								<!-- <buildArg>-J-javaagent:/Users/roberto.montero/Documents/development/system-tests/binaries/dd-java-agent.jar</buildArg> -->
 								
@@ -489,7 +489,7 @@
 		<protobuf.version>3.16.3</protobuf.version>
 		<grpc.version>1.31.0</grpc.version>
 		<packaging.type>jar</packaging.type>
-		<!-- <os.detected.classifier>osx-x86_64</os.detected.classifier>  -->
+	<!--	<os.detected.classifier>osx-x86_64</os.detected.classifier>   -->
 	</properties>
 	<repositories>
 		<repository>
