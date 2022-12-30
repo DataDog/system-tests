@@ -15,18 +15,18 @@ if context.library == "cpp":
 @missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.not_testable
 class Test_InstallationInstructions:
-    """ Detailed installation instructions """
+    """Detailed installation instructions"""
 
 
 @released(python="1.4.2")
 @coverage.not_testable
 @missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_InstallationDebugProcedure:
-    """ Procedure to debug install """
+    """Procedure to debug install"""
 
 
 @released(python="1.4.2")
 @coverage.not_testable
 @missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_PublicDocumentation:
-    """ Public documentation is published """
+    """Public documentation is published"""

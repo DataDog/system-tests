@@ -40,6 +40,7 @@ class TestIastSqlInjection:
         self.r_insecure_sql = weblog.post(
             "/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"}
         )
+
     @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_insecure_sql(self):
         """Insecure SQL queries are reported as insecure"""

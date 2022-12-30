@@ -18,14 +18,14 @@ if context.library == "cpp":
 @missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_404:
-    """ Appsec WAF misc tests """
+    """Appsec WAF misc tests"""
 
     def setup_404(self):
         self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
 
     @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_404(self):
-        """ AppSec WAF catches attacks, even on 404"""
+        """AppSec WAF catches attacks, even on 404"""
 
         assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(
@@ -43,7 +43,7 @@ class Test_404:
 @missing_feature(context.weblog_variant == "spring-boot-native")
 @coverage.basic
 class Test_MultipleHighlight:
-    """ Appsec reports multiple attacks on same request """
+    """Appsec reports multiple attacks on same request"""
 
     def setup_multiple_hightlight(self):
         self.r = weblog.get("/waf", params={"value": "processbuilder unmarshaller"})
@@ -92,7 +92,8 @@ class Test_MultipleAttacks:
 @missing_feature(library="php")
 @coverage.basic
 class Test_NoWafTimeout:
-    """ With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
+    """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
+
     @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")

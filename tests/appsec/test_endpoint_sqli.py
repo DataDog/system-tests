@@ -12,7 +12,7 @@ from utils import weblog, interfaces, context, missing_feature
 @missing_feature(weblog_variant="vertx3", reason="Need to build endpoint on weblog")
 @missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_Sqli:
-    """ Verify the /rasp/sqli endpoint is setup """
+    """Verify the /rasp/sqli endpoint is setup"""
 
     def setup_main(self):
         self.r = weblog.get("/rasp/sqli")

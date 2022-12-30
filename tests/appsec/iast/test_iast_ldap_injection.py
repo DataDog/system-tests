@@ -23,7 +23,7 @@ class TestIastLDAPInjection:
 
     def setup_insecure(self):
         self.r_insecure = weblog.post("/iast/ldapi/test_insecure", data={"username": "ssam", "password": "sammy"})
-    
+
     @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_insecure(self):
         """Insecure LDAP queries are reported as insecure"""
