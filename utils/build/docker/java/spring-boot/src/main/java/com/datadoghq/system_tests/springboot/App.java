@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -292,15 +293,23 @@ public class App {
 
 
 
- //   @Bean
- //   SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
- //       return new SynchronousWebLogGrpc(localInterface.getPort());
-  //  }
+    @Bean
+    @ConditionalOnProperty(
+        value="spring.native", 
+        havingValue = "false", 
+        matchIfMissing = true)
+    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) { 
+        return new SynchronousWebLogGrpc(localInterface.getPort());
+   }
 
-  //  @Bean
-  //  WebLogInterface localInterface() throws IOException {
-  //      return new WebLogInterface();
-  //  }
+    @Bean
+    @ConditionalOnProperty(
+        value="spring.native", 
+        havingValue = "false", 
+        matchIfMissing = true)
+    WebLogInterface localInterface() throws IOException {
+        return new WebLogInterface();
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);

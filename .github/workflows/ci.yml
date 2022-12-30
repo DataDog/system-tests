@@ -82,31 +82,6 @@ jobs:
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run PROFILING scenario
-      run: ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run CGROUP scenario
-      run: ./run.sh CGROUP
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-      run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      if: ${{ matrix.variant.library != 'python' }}
-    - name: Run INTEGRATIONS scenario
-      run: ./run.sh INTEGRATIONS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
-      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
       if: ${{ always() }}
       run: tar -czvf artifact.tar.gz $(ls | grep logs)

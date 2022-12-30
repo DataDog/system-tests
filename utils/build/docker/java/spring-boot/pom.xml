@@ -107,7 +107,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-		<!--   <dependency>
+		<dependency>
             <groupId>org.springframework.ldap</groupId>
             <artifactId>spring-ldap-core</artifactId>
         </dependency>
@@ -118,7 +118,7 @@
         <dependency>
             <groupId>com.unboundid</groupId>
             <artifactId>unboundid-ldapsdk</artifactId>
-        </dependency> -->
+        </dependency> 
 	</dependencies>
 
 	<dependencyManagement>
@@ -304,7 +304,6 @@
 						<configuration>
 							<buildArgs>
 								<buildArg>-H:+ReportExceptionStackTraces</buildArg>
-								<buildArg>-H:IncludeResources='.*/test-server.ldif'</buildArg>
 								<buildArg>--initialize-at-build-time=org.apache.logging</buildArg>
 								<buildArg>--initialize-at-build-time=org.slf4j.LoggerFactory</buildArg>
 								<buildArg>--initialize-at-build-time=com.datastax.oss.driver.internal.core.util.Dependency</buildArg>
@@ -315,9 +314,9 @@
 								<buildArg>--initialize-at-build-time=com.squareup.moshi</buildArg>
 								<buildArg>--initialize-at-build-time=com.sun.proxy</buildArg>
 								<buildArg>--initialize-at-build-time=okio</buildArg>
-								<buildArg>-J-javaagent:/dd-tracer/dd-java-agent.jar</buildArg> 
+							<!--	<buildArg>-J-javaagent:/dd-tracer/dd-java-agent.jar</buildArg> -->
 
-								<!-- <buildArg>-J-javaagent:/Users/roberto.montero/Documents/development/system-tests/binaries/dd-java-agent.jar</buildArg> -->
+								<buildArg>-J-javaagent:/Users/roberto.montero/Documents/development/system-tests/binaries/dd-java-agent.jar</buildArg>
 								
 								<buildArg>-J-Ddd.jmxfetch.enabled=false</buildArg>
 								<buildArg>-J-Ddd.writer.type=LoggingWriter</buildArg>
@@ -329,7 +328,6 @@
 								<buildArg>--initialize-at-build-time=com.google.re2j.UnicodeTables</buildArg>
 								<buildArg>--initialize-at-build-time=org.bson.BsonType</buildArg>
 								<buildArg>--initialize-at-build-time=com.oracle.svm.core.util.UserError$UserException</buildArg>
-
 							</buildArgs>
 						</configuration>
 					</plugin>
@@ -491,7 +489,7 @@
 		<protobuf.version>3.16.3</protobuf.version>
 		<grpc.version>1.31.0</grpc.version>
 		<packaging.type>jar</packaging.type>
-	<!--	<os.detected.classifier>osx-x86_64</os.detected.classifier> -->
+		<os.detected.classifier>osx-x86_64</os.detected.classifier> 
 	</properties>
 	<repositories>
 		<repository>

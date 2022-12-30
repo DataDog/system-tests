@@ -18,6 +18,7 @@ COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline -P spring-native
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
+RUN mv ./src/main/resources/application-native.properties application.properties
 RUN mvn -Dmaven.repo.local=/maven package -P spring-native
 
 FROM adoptopenjdk:11-jre-hotspot
