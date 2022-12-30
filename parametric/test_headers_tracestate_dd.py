@@ -18,7 +18,6 @@ def temporary_enable_propagationstyle_default() -> Any:
 
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Issue: We need to prefer the traceparent sampled flag to fix headers4 test case")
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
     """
@@ -49,7 +48,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
         # 3) Sampled = 1, tracestate[dd][s] is not present
         headers3 = make_single_request_and_get_inject_headers(
-            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ]
         )
 
         # 4) Sampled = 1, tracestate[dd][s] <= 0
@@ -72,7 +71,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
         # 6) Sampled = 0, tracestate[dd][s] is not present
         headers6 = make_single_request_and_get_inject_headers(
-            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],]
+            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"], ]
         )
 
         # 7) Sampled = 0, tracestate[dd][s] <= 0
@@ -192,7 +191,6 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "The origin transformation has changed slightly")
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
@@ -321,8 +319,12 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
 
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Issue: headers5 is not capturing t.dm")
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library(
+    "golang",
+    "False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map"
+    "BUG: header[4,5]: w3cTraceID shouldn't be present",
+)
 @pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
