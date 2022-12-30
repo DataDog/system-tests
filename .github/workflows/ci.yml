@@ -82,11 +82,14 @@ jobs:
 #      run: ./run.sh DEFAULT
 #      env:
 #        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run test_miscs scenario
-      run: ./run.sh tests/test_miscs.py
+    - name: Run test_semantic_conventions scenario
+      run: ./run.sh tests/test_semantic_conventions.py
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
- 
+#tests/test_standard_tags.py
+#tests/test_smoke.py
+#tests/test_library_conf.py:
+
     - name: Compress logs
       if: ${{ always() }}
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
