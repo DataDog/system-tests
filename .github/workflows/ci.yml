@@ -78,14 +78,14 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
-#    - name: Run DEFAULT scenario
-#      run: ./run.sh DEFAULT
-#      env:
-#        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run test_library_conf scenario
-      run: ./run.sh tests/test_library_conf.py
+    - name: Run DEFAULT scenario
+      run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+#    - name: Run test_library_conf scenario
+#      run: ./run.sh tests/test_library_conf.py
+#      env:
+#        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 #tests/test_miscs.py
 #tests/test_semantic_conventions.py
 
