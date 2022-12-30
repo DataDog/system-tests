@@ -41,6 +41,7 @@ class TestIastWeakCipher:
     def setup_secure_cipher(self):
         self.r_secure_cipher = weblog.get("/iast/insecure_cipher/test_secure_algorithm")
 
+    @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_secure_cipher(self):
         """Test strong cipher algorithm is not reported as insecure"""
 
