@@ -91,9 +91,8 @@ class Test_MultipleAttacks:
 
 @missing_feature(library="php")
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_NoWafTimeout:
     """ With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
-
+    @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")

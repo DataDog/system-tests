@@ -181,13 +181,12 @@ class Test_RequestHeaders:
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_TagsFromRule:
     """ Tags (Category & event type) from the rule """
 
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
-
+    @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_basic(self):
         """ attack timestamp is given by start property of span """
 
@@ -200,13 +199,13 @@ class Test_TagsFromRule:
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native")
 class Test_AttackTimestamp:
     """ Attack timestamp """
 
     def setup_basic(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
-
+        
+    @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_basic(self):
         """ attack timestamp is given by start property of span """
 

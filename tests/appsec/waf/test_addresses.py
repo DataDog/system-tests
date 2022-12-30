@@ -158,7 +158,8 @@ class Test_Headers:
     def setup_specific_wrong_key(self):
         self.r_wk_1 = weblog.get("/waf/", headers={"xfilename": "routing.yml"})
         self.r_wk_2 = weblog.get("/waf/", headers={"not-referer": "<script >"})
-
+    
+    @missing_feature(context.weblog_variant == "spring-boot-native")
     def test_specific_wrong_key(self):
         """When a specific header key is specified in rules, other key are ignored"""
         interfaces.library.assert_no_appsec_event(self.r_wk_1)
