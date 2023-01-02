@@ -73,6 +73,8 @@ jobs:
           weblog: spring-boot-undertow
         - library: java
           weblog: spring-boot-native
+        - library: java
+          weblog: spring-boot-3-native
         - library: nodejs
           weblog: express4
         - library: nodejs
@@ -289,6 +291,8 @@ jobs:
           weblog: spring-boot-undertow
         - library: java
           weblog: spring-boot-native
+        - library: java
+          weblog: spring-boot-3-native
         - library: nodejs
           weblog: express4
         - library: nodejs
@@ -506,6 +510,8 @@ jobs:
           weblog: spring-boot-undertow
         - library: java
           weblog: spring-boot-native
+        - library: java
+          weblog: spring-boot-3-native
         - library: nodejs
           weblog: express4
         - library: nodejs
