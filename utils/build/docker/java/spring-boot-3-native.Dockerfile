@@ -28,7 +28,7 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn package -P native
 
-FROM ubuntu
+FROM ghcr.io/graalvm/graalvm-ce:ol7-java17-22.3.0-b2 
 
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION

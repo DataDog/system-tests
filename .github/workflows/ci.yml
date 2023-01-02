@@ -36,10 +36,6 @@ jobs:
       matrix:
         variant:
         - library: java
-          weblog: spring-boot
-        - library: java
-          weblog: spring-boot-native
-        - library: java
           weblog: spring-boot-3-native
         version:
         - dev
@@ -133,10 +129,6 @@ jobs:
       matrix:
         variant:
         - library: java
-          weblog: spring-boot
-        - library: java
-          weblog: spring-boot-native
-        - library: java
           weblog: spring-boot-3-native
         version:
         - dev
@@ -228,10 +220,6 @@ jobs:
     strategy:
       matrix:
         variant:
-        - library: java
-          weblog: spring-boot
-        - library: java
-          weblog: spring-boot-native
         - library: java
           weblog: spring-boot-3-native
         version:
