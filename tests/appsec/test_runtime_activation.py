@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, irrelevant, scenario
+from utils import weblog, context, coverage, interfaces, released, irrelevant, scenario, missing_feature
 
 # dd.rc.targets.key.id=TEST_KEY_ID
 # dd.rc.targets.key=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c
@@ -15,6 +15,7 @@ from utils import weblog, context, coverage, interfaces, released, irrelevant, s
 @irrelevant(
     context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with cutom rule file"
 )
+@missing_feature(weblog_variant="spring-boot-native")
 @coverage.basic
 class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""
