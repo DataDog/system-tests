@@ -4,7 +4,7 @@
 
 import datetime
 import pytest
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenario
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenario, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -17,6 +17,7 @@ if context.library == "cpp":
 )
 @coverage.basic
 @scenario("APPSEC_RATE_LIMITER")
+@missing_feature(weblog_variant="spring-boot-native")
 class Test_Main:
     """Basic tests for rate limiter"""
 
