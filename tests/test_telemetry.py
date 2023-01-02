@@ -57,7 +57,8 @@ class Test_Telemetry:
         interfaces.library.assert_no_skipped_seq_ids()
 
     @bug(library="python", reason="To be explained")
-    @missing_feature(context.weblog_variant == "spring-boot-native")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_app_started(self):
         """Request type app-started is sent on startup at least once"""
 

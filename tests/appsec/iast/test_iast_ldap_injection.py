@@ -24,7 +24,8 @@ class TestIastLDAPInjection:
     def setup_insecure(self):
         self.r_insecure = weblog.post("/iast/ldapi/test_insecure", data={"username": "ssam", "password": "sammy"})
 
-    @missing_feature(context.weblog_variant == "spring-boot-native")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_insecure(self):
         """Insecure LDAP queries are reported as insecure"""
         interfaces.library.expect_iast_vulnerabilities(
@@ -37,7 +38,8 @@ class TestIastLDAPInjection:
     def setup_secure(self):
         self.r_secure = weblog.post("/iast/ldapi/test_secure", data={"username": "ssam", "password": "sammy"})
 
-    @missing_feature(context.weblog_variant == "spring-boot-native")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_secure(self):
         """Secure LDAP queries are not reported as insecure"""
         interfaces.library.expect_no_vulnerabilities(self.r_secure)

@@ -17,7 +17,8 @@ if context.library == "cpp":
 )
 @coverage.basic
 @scenario("APPSEC_RATE_LIMITER")
-@missing_feature(weblog_variant="spring-boot-native")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Main:
     """Basic tests for rate limiter"""
 

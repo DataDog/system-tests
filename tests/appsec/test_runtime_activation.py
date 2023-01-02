@@ -15,7 +15,8 @@ from utils import weblog, context, coverage, interfaces, released, irrelevant, s
 @irrelevant(
     context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with cutom rule file"
 )
-@missing_feature(weblog_variant="spring-boot-native")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""
