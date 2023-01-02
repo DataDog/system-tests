@@ -145,7 +145,7 @@ def rc_check_request(data, expected, caching):
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
-@released(php="?", python="1.7.4", ruby="?", nodejs="3.9.0")
+@released(php_appsec="0.7.0", python="1.7.4", ruby="?", nodejs="3.9.0")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -245,7 +245,9 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php="?", python="1.6.0rc1", ruby="?", nodejs="3.9.0")
+@released(
+    cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1", ruby="?", nodejs="3.9.0"
+)
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
