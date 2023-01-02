@@ -27,7 +27,7 @@ RUN mv ./src/main/resources/application-native.properties ./src/main/resources/a
 COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
-RUN --mount=type=cache,target=/root/.m2 /opt/apache-maven-3.8.6/bin/mvn package -P spring-native
+RUN /opt/apache-maven-3.8.6/bin/mvn package -P spring-native
 
 FROM adoptopenjdk:11-jre-hotspot
 
