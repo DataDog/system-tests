@@ -16,6 +16,7 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 @released(java="0.93.0", php_appsec="0.3.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_CORRUPTED_RULES")
+@missing_feature(weblog_variant="spring-boot-native")
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
 
@@ -41,6 +42,7 @@ class Test_CorruptedRules:
 @released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_MISSING_RULES")
+@missing_feature(weblog_variant="spring-boot-native")
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
 
@@ -71,6 +73,7 @@ class Test_MissingRules:
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
 @released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
+@missing_feature(weblog_variant="spring-boot-native")
 @coverage.good
 @scenario("APPSEC_CUSTOM_RULES")
 class Test_ConfRuleSet:
@@ -94,6 +97,7 @@ class Test_ConfRuleSet:
 
 @released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
+@missing_feature(weblog_variant="spring-boot-native")
 @coverage.basic
 @scenario("APPSEC_CUSTOM_RULES")
 class Test_NoLimitOnWafRules:
