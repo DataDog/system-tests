@@ -7,27 +7,23 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import BaseTestCase, context, interfaces, released, irrelevant, coverage, scenario
+from utils import weblog, context, interfaces, released, irrelevant, coverage, scenario
 
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(
-    golang="1.38.0",
-    dotnet="2.9.0",
-    java="0.100.0",
-    nodejs="2.8.0",
-    php_appsec="0.3.0",
-    python=PYTHON_RELEASE_GA_1_1,
-    ruby="?",
-)
+@released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0")
+@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.good
-class Test_Monitoring(BaseTestCase):
+class Test_Monitoring:
     """Support In-App WAF monitoring tags and metrics"""
 
     expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
+
+    def setup_waf_monitoring(self):
+        self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_waf_monitoring(self):
         """WAF monitoring span tags and metrics are expected to be sent on each request"""
@@ -66,9 +62,11 @@ class Test_Monitoring(BaseTestCase):
 
             return True
 
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.assert_waf_attack(r)
-        interfaces.library.add_appsec_validation(r, validate_waf_monitoring_span_tags)
+        interfaces.library.assert_waf_attack(self.r)
+        interfaces.library.validate_appsec(self.r, validate_waf_monitoring_span_tags)
+
+    def setup_waf_monitoring_once(self):
+        self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_waf_monitoring_once(self):
         """
@@ -139,9 +137,11 @@ class Test_Monitoring(BaseTestCase):
         # Perform an attack for the sake of having a request and an event in
         # order to be able to run this test alone. But the validation function
         # is not associated with the attack request.
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.assert_waf_attack(r)
-        interfaces.library.add_span_validation(validator=validate_rules_monitoring_span_tags)
+        interfaces.library.assert_waf_attack(self.r_once)
+        interfaces.library.validate_spans(validator=validate_rules_monitoring_span_tags)
+
+    def setup_waf_monitoring_optional(self):
+        self.r_optional = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(condition=context.library not in ["python", "golang", "dotnet", "nodejs"], reason="optional tags")
     def test_waf_monitoring_optional(self):
@@ -166,9 +166,11 @@ class Test_Monitoring(BaseTestCase):
 
             return True
 
-        r = self.weblog_get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        interfaces.library.assert_waf_attack(r)
-        interfaces.library.add_appsec_validation(r, validate_waf_span_tags)
+        interfaces.library.assert_waf_attack(self.r_optional)
+        interfaces.library.validate_appsec(self.r_optional, validate_waf_span_tags)
+
+    def setup_waf_monitoring_errors(self):
+        self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
     @scenario("APPSEC_RULES_MONITORING_WITH_ERRORS")
     def test_waf_monitoring_errors(self):
@@ -234,6 +236,5 @@ class Test_Monitoring(BaseTestCase):
         # Perform an attack for the sake of having a request and an event in
         # order to be able to run this test alone. But the validation function
         # is not associated with the attack request.
-        r = self.weblog_get("/waf/", params={"v": ".htaccess"})
-        interfaces.library.assert_waf_attack(r)
-        interfaces.library.add_span_validation(validator=validate_rules_monitoring_span_tags)
+        interfaces.library.assert_waf_attack(self.r_errors)
+        interfaces.library.validate_spans(validator=validate_rules_monitoring_span_tags)

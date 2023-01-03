@@ -4,7 +4,7 @@
 
 import pytest
 
-from utils import BaseTestCase, context, released, coverage
+from utils import context, released, coverage
 
 
 if context.library == "cpp":
@@ -13,5 +13,5 @@ if context.library == "cpp":
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.not_implemented
-class Test_Scrubbing(BaseTestCase):
+class Test_Scrubbing:
     """Appsec scrubs all sensitive data"""

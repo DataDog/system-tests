@@ -5,7 +5,7 @@ async-timeout==4.0.2
 attrs==22.1.0
 black==19.10b0
 bytecode==0.13.0
-certifi==2022.9.14
+certifi==2022.12.7
 charset-normalizer==2.1.1
 click==7.1.2
 ddapm-test-agent==1.6.0

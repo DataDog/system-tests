@@ -8,11 +8,11 @@ SCRIPT_PATH=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
 export BASE_DIR=$(dirname "${SCRIPT_PATH}")
 
-echo "Running library injection test cases"
-echo "Deploying test agent"
-${BASE_DIR}/run.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents
-echo "Deploying pre-modified pod"
-${BASE_DIR}/run.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents deploy-app
-${BASE_DIR}/run.sh test-for-traces
-kubectl logs pod/my-app
-kubectl logs daemonset/datadog
+echo "[run-lib-injection] Running library injection test cases"
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents
+echo "[run-lib-injection] Deploying pre-modified pod "
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-app
+echo "[run-lib-injection] Running tests"
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER test-for-traces
+
+echo "[run-lib-injection] Completed successfully"

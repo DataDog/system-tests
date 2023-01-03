@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, rfc, coverage, interfaces
+from utils import rfc, coverage, interfaces
 
 
 @rfc("https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc")
 @coverage.basic
-class Test_NoError(BaseTestCase):
+class Test_NoError:
     """A library should apply with no error all remote config payload."""
 
     def test_no_error(self):
@@ -21,4 +21,4 @@ class Test_NoError(BaseTestCase):
                 if error is not None:
                     raise Exception(f"Error in remote config application: {error}")
 
-        interfaces.library.add_remote_configuration_validation(no_error, is_success_on_expiry=True)
+        interfaces.library.validate_remote_configuration(no_error, success_by_default=True)

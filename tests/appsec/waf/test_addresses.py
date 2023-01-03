@@ -166,6 +166,7 @@ class Test_Headers:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "?",
         "pylons": "1.1.0rc2.dev",
     }
@@ -303,7 +304,7 @@ class Test_BodyUrlEncoded:
         self.r_value = weblog.post("/waf", data={"value": '<vmlframe src="xss">'})
 
     @bug(
-        library="java",
+        context.library < "java@1.2.0",
         weblog_variant="spring-boot-openliberty",
         reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
@@ -343,6 +344,7 @@ class Test_BodyJson:
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra21")
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="uds-sinatra")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
@@ -368,6 +370,7 @@ class Test_BodyXml:
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')
         self.r_attr_2 = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
 
+    @bug(context.weblog_variant == "spring-boot-wildfly")
     def test_xml_attr_value(self):
         interfaces.library.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
@@ -376,6 +379,7 @@ class Test_BodyXml:
         self.r_content_1 = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         self.r_content_2 = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
 
+    @bug(context.weblog_variant == "spring-boot-wildfly")
     def test_xml_content(self):
         interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
@@ -420,6 +424,7 @@ class Test_ResponseStatus:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "1.5.2",
         "pylons": "1.1.0rc2.dev",
     }
