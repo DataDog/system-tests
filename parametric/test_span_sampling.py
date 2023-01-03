@@ -191,6 +191,7 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Fixed in v1.7.0")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -376,6 +377,7 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Fixed in v1.7.0")
 @pytest.mark.parametrize(
     "library_env",
     [
