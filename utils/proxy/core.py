@@ -65,7 +65,7 @@ class _RequestLogger:
         return content
 
     def request(self, flow):
-        if flow.request.host == "runner":
+        if flow.request.host in ("runner", "localhost"):  # localhost because on UDS mode, UDS socket is redirected
             flow.request.host, flow.request.port = "agent", 8126
             flow.request.scheme = "http"
 
@@ -170,7 +170,7 @@ def start_proxy() -> None:
     opts = options.Options(listen_host="0.0.0.0", listen_port=8126, confdir="utils/proxy/.mitmproxy")
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
-    proxy.addons.add(keepserving.KeepServing())
+    # proxy.addons.add(keepserving.KeepServing())
     proxy.addons.add(errorcheck.ErrorCheck())
     proxy.addons.add(_RequestLogger())
 
