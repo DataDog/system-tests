@@ -74,10 +74,9 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library dotNet prod binary  
       if: ${{ matrix.version == 'prod' && matrix.variant.library == 'dotNet'}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -176,6 +175,11 @@ jobs:
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library dotNet prod binary  
+      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'dotNet'}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -271,6 +275,11 @@ jobs:
     - name: Load library PHP appsec binary
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library dotNet prod binary  
+      if: ${{ matrix.version == 'prod' && matrix.variant.library == 'dotNet'}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
