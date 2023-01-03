@@ -20,7 +20,6 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <agent.path>/app/dd-java-agent.jar</agent.path>
-        <!--  /Users/roberto.montero/Documents/development/system-tests/binaries/dd-java-agent.jar -->   
     </properties>
 
     <dependencies>

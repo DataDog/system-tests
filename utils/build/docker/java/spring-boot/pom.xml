@@ -411,7 +411,6 @@
         <grpc.version>1.31.0</grpc.version>
         <packaging.type>jar</packaging.type>
 		<agent.path>/app/dd-java-agent.jar</agent.path>
-        <!--  /Users/roberto.montero/Documents/development/system-tests/binaries/dd-java-agent.jar -->   
 		<!-- Enable for Mac M1 workaround-->
 		<!-- <os.detected.classifier>osx-x86_64</os.detected.classifier> --> 
     </properties>
