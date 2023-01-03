@@ -236,6 +236,7 @@ class Test_Meta:
         interfaces.library.validate_spans(validator=validator, validate_all_spans=True, success_by_default=True)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
+    @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
