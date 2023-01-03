@@ -258,6 +258,7 @@
                             <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#26.1.0.Final</feature-pack-location>
                             <layers>
                                 <layer>jaxrs</layer>
+                                <layer>web-server</layer>
                             </layers>
                             <excluded-layers>
                                 <layer>deployment-scanner</layer>

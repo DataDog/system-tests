@@ -25,6 +25,7 @@ scenarios_sets = (
         "APPSEC_CORRUPTED_RULES",
         "APPSEC_CUSTOM_RULES",
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
+        "APPSEC_BLOCKING",
         "APPSEC_DISABLED",
         "APPSEC_LOW_WAF_TIMEOUT",
         "APPSEC_CUSTOM_OBFUSCATION",
@@ -58,6 +59,7 @@ variants = (
             "spring-boot",
             "uds-spring-boot",
             "spring-boot-openliberty",
+            "spring-boot-wildfly",
             "spring-boot-undertow",
         ],
     )
@@ -190,11 +192,20 @@ def add_main_job(i, workflow, needs, scenarios):
         if_condition="${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}",
     )
 
+    # PHP script that loads prod tracer is very flaky
+    # we also use it for dev, as dev artifact is on circle CI, requiring a token.
+    job.add_step(
+        "Load PHP prod library binary",
+        "./utils/scripts/load-binary.sh php prod",
+        add_gh_token=True,
+        if_condition="${{ matrix.variant.library == 'php' }}",
+    )
+
     job.add_step(
         "Load library PHP appsec binary",
-        "./utils/scripts/load-binary.sh php_appsec",
+        "./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}",
         add_gh_token=True,
-        if_condition="${{ matrix.version == 'dev' && matrix.variant.library == 'php' }}",
+        if_condition="${{ matrix.variant.library == 'php' }}",
     )
 
     job.add_step(

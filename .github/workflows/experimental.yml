@@ -15,72 +15,58 @@ env:
 
 jobs:
 
-  injection-tests-java:
+  lib-injection-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
-        lib-injection-connection: ['uds', 'network']
-        lib-injection-use-admission-controller: ['', 'use-admission-controller']
+        variant:
+        - library: java
+          weblog-variant: dd-lib-java-init-test-app
+
+        - library: nodejs
+          weblog-variant: sample-app
+
+       #TODO RMM Remove this after python PR be merged
+       # - library: python
+       #   weblog-variant: dd-lib-python-init-test-django
+
+       # - library: python
+       #   weblog-variant: dd-lib-python-init-test-django-gunicorn
+
+       # - library: python
+       #   weblog-variant: dd-lib-python-init-test-django-uvicorn
+
+        lib-injection-connection: 
+          - uds
+          - network
+
+        lib-injection-use-admission-controller: 
+          - use-admission-controller
+          - ''
+        
+        version: 
+          - latest #Production tag
+          - latest_snapshot
+
       fail-fast: false
     env:
-      TEST_LIBRARY: java
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
       LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
-      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
-      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-java/dd-lib-java-init:34db2f76715dbbe9168806bac7c89c7ad4d51996
-      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-java/dd-lib-java-init-test-app:34db2f76715dbbe9168806bac7c89c7ad4d51996
+      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-use-admission-controller }}
+      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
+      DOCKER_IMAGE_TAG: ${{ matrix.version }}
+      DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
+      BUILDX_PLATFORMS: linux/amd64
     steps:
-      - name: Checkout system tests
-        uses: actions/checkout@v3
-
-      - name: Build
-        run: ./lib-injection/build.sh
-
-      - name: Run
-        run: ./lib-injection/run.sh
-
-  injection-tests-node:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # node does not support UDS
-        lib-injection-connection: ['network']
-        lib-injection-use-admission-controller: ['', 'use-admission-controller']
-      fail-fast: false
-    env:
-      TEST_LIBRARY: nodejs
-      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
-      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
-      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-js/dd-lib-js-init:e1043d06c7b25f5494a80d3c95e43029ac5cefff
-      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-js/sample-app:45cb74896b0b528d23b1458c9cacfa9b296658ba
-    steps:
-      - name: Checkout system tests
-        uses: actions/checkout@v3
-
-      - name: Build
-        run: ./lib-injection/build.sh
-
-      - name: Run
-        run: ./lib-injection/run.sh
-
-  injection-tests-python:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lib-injection-connection: ['uds', 'network']
-        lib-injection-use-admission-controller: ['', 'use-admission-controller']
-      fail-fast: false
-    env:
-      TEST_LIBRARY: python
-      LIBRARY_INJECTION_CONNECTION: ${{ matrix.lib-injection-connection }}
-      LIBRARY_INJECTION_ADMISSION_CONTROLLER: ${{ matrix.lib-injection-admission-controller }}
-      LIBRARY_INJECTION_INIT_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init:5f62ab0bbec26cef23f16f3165460e61c2c1eba5
-      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/dd-trace-py/dd-lib-python-init-test-app:5f62ab0bbec26cef23f16f3165460e61c2c1eba5
-    steps:
-      - name: Checkout system tests
-        uses: actions/checkout@v3
-
-      - name: Build
-        run: ./lib-injection/build.sh
-
-      - name: Run
-        run: ./lib-injection/run.sh
+    
+      - name: lib-injection test runner
+        id: lib-injection-test-runner
+        uses: DataDog/system-tests/lib-injection/runner@main
+        with:
+          docker-registry: ghcr.io
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
