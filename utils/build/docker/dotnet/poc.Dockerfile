@@ -14,8 +14,6 @@ COPY utils/build/docker/dotnet/Models/*.cs ./Models/
 
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
-ARG GH_TOKEN
-ENV GH_TOKEN $GH_TOKEN
 RUN /binaries/install_ddtrace.sh
 
 RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") dotnet publish -c Release -o out

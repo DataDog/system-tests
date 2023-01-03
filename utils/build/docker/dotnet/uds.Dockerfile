@@ -13,8 +13,6 @@ COPY utils/build/docker/dotnet/Controllers/*.cs ./Controllers/
 COPY utils/build/docker/dotnet/Models/*.cs ./Models/
 
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
-ARG GH_TOKEN
-ENV GH_TOKEN $GH_TOKEN
 RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 

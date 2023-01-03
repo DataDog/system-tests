@@ -168,15 +168,20 @@ if [ "$TARGET" = "java" ]; then
     get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
-    assert_version_is_dev
     rm -rf *.tar.gz
 
-    SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
-    ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
-    URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
+    if [ $VERSION = 'dev' ]; then
+       SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
+       ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
+       URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
 
-    echo "Load $URL"
-    curl -L --silent $URL --output $ARCHIVE
+        echo "Load $URL"
+        curl -L --silent $URL --output $ARCHIVE
+    elif [ $VERSION = 'prod' ]; then
+        get_github_release_asset "DataDog/dd-trace-dotnet" "datadog-dotnet-apm-*.tar.gz"
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
