@@ -3,11 +3,7 @@
 set -eu
 
 get_latest_release() {
-   if [ -z "$GH_TOKEN" ]; then 
-      wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name' 
-   else 
-      wget --header="Authorization: token ${GH_TOKEN}" -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
-   fi   
+    wget -qO- "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
 }
 
 NGINX_VERSION=1.17.3

@@ -123,7 +123,6 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --build-arg GH_TOKEN=${GH_TOKEN} \
             $EXTRA_DOCKER_ARGS \
             .
 
