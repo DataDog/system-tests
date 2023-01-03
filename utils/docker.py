@@ -1,12 +1,35 @@
-from pathlib import Path, PurePath
-import inspect, os, json, tempfile, subprocess
+from pathlib import Path
+import inspect, os, tempfile, subprocess
 import shutil
+from utils import project_root
+
+import docker
 
 class Image(object):
     iid = str
 
     def __init__(self, iid):
         self.iid = iid
+
+    def modify_image(self, paths = [], env = {}):
+        dockerfile_contents = """
+ARG base_image
+FROM $base_image
+COPY / /
+"""
+        for k,v in env.items():
+            dockerfile_contents += f"ENV {k} = {v}\n"        
+        with tempfile.NamedTemporaryFile() as dockerfile:
+            dockerfile.write(dockerfile_contents.encode())
+            dockerfile.seek(0)
+            d = Dockerfile(Path(dockerfile.name))
+            d.isolated_paths(*paths)
+            new_iid = d.build(args = {
+                "base_image": self.iid
+            })
+            return Image(new_iid)
+    def __str__(self):
+        return f"Image: {self.iid}"
 
 class Dockerfile(object):
     dockerfile = Path
@@ -17,7 +40,7 @@ class Dockerfile(object):
         if root_dir:
             self.root_dir = root_dir
         else:
-            self.root_dir = dockerfile.parent
+            self.root_dir = project_root
         self.fs_dependencies = {}
         self.isolated_build = False
 
@@ -47,7 +70,7 @@ class Dockerfile(object):
         return self
 
 
-    def _isolated_build(self, workdir_path):
+    def _isolated_build(self, workdir_path, args):
         context_path = workdir_path / "context"
         os.makedirs(context_path) 
 
@@ -60,24 +83,27 @@ class Dockerfile(object):
             os.makedirs(path, exist_ok=True)
 
         for target, src in files_to_copy.items():
-            shutil.copyfile(src, target, follow_symlinks=True)
-        print(os.listdir(context_path))
+            if src.is_file():
+                shutil.copyfile(src, target, follow_symlinks=True)
+                shutil.copymode(src, target, follow_symlinks=True)
+            else:
+                shutil.copytree(src, target)
 
         builder = _CLIBuilder(None)
-        res = builder.build(context_path,dockerfile=self.dockerfile)
+        res = builder.build(context_path,dockerfile=self.dockerfile, buildargs=args)
 
         return res
     
-    def build(self):
+    def build(self, args = None):
         if self.isolated_build:
             temp_dir = tempfile.TemporaryDirectory()
-            return self._isolated_build(Path(temp_dir.name))
+            return self._isolated_build(Path(temp_dir.name), args)
         else:
             builder = _CLIBuilder(None)
-            return builder.build(self.root, dockerfile=self.dockerfile)
+            return builder.build(self.root_dir, dockerfile=self.dockerfile, buildargs=args)
 
     def image(self):
-        return self.build()
+        return Image(self.build())
 
     def __str__(self):
         return f"Image. Dockerfile: {self.dockerfile}"
@@ -89,8 +115,6 @@ def dockerfile(dockerfile, *args, **kwargs):
         parent = Path(inspect.stack()[1].filename).parent
         dockerfile = parent / dockerfile
     return Dockerfile(dockerfile, *args, **kwargs)
-
-import selectors
 
 class _CLIBuilder(object):
     def __init__(self, progress):
@@ -119,7 +143,6 @@ class _CLIBuilder(object):
         args = command_builder.build([path])
 
         with subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True) as p:
-            # out_lines, err_lines = self._read_lines(p)
             stdout, stderr = p.communicate()
             if p.wait() != 0:
                 # TODO: add better error handling
@@ -171,5 +194,8 @@ if __name__ == '__main__':
 
     arg = sys.argv[1]
     dockerfile = locate(arg)
-    dockerfile.build()
+    image = dockerfile.image()
+    print(image)
+    n_image = image.modify_image(env = {"DD_APPSEC_RULESET": "/waf_rule_set.json"})
+    print(n_image)
     
