@@ -172,7 +172,6 @@ def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library, t
         assert s["Duration"] > 0
 
 
-@pytest.mark.skip_library("dotnet", "FIXME: test_agent.v06_stats_requests should return 3 stats NOT 4")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats()
 def test_measured_spans_TS004(library_env, test_agent, test_library, test_server):
@@ -203,7 +202,6 @@ def test_measured_spans_TS004(library_env, test_agent, test_library, test_server
     assert len(requests) > 0
     stats = requests[0]["body"]["Stats"][0]["Stats"]
     pprint.pprint([_human_stats(s) for s in stats])
-    # FIXME: dotnet AssertionError: assert 4 == 3
     assert len(stats) == 3
 
     web_stats = [s for s in stats if s["Name"] == "web.request"][0]
@@ -321,7 +319,6 @@ def test_successes_errors_recorded_separately_TS006(library_env, test_agent, tes
     assert stat["ErrorSummary"] is not None
 
 
-@pytest.mark.skip_library("dotnet", "FIXME: No traces should be emitted with the sample rate set to 0")
 @pytest.mark.skip_library("java", "FIXME: Undefined behavior according the java tracer core team")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @enable_tracestats(sample_rate=0.0)
@@ -340,7 +337,6 @@ def test_sample_rate_0_TS007(library_env, test_agent, test_library, test_server)
         test_library.stop()
 
     traces = test_agent.traces()
-    # FIXME: dotnet AssertionError: len(traces) == 1
     assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
 
     requests = test_agent.v06_stats_requests()
