@@ -21,36 +21,14 @@ interfaces=(agent library backend)
 WEBLOG_ENV="DD_APPSEC_ENABLED=true\n"
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
-export SYSTEMTESTS_VARIATION=${2:-DEFAULT}
 
-if [ $SYSTEMTESTS_SCENARIO != "UDS" ]; then
-    export DD_AGENT_HOST=library_proxy
-    export HIDDEN_APM_PORT_OVERRIDE=8126
-fi
-
+export DD_AGENT_HOST=library_proxy
 export RUNNER_ARGS="tests/"
 export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export SYSTEMTESTS_LOG_FOLDER=logs
     CONTAINERS+=(postgres)
-
-elif [ $SYSTEMTESTS_SCENARIO = "UDS" ]; then  # Typical features but with UDS as transport
-    echo "Running all tests in UDS mode."
-    CONTAINERS+=(postgres)
-    unset DD_TRACE_AGENT_PORT
-    unset DD_AGENT_HOST
-    export HIDDEN_APM_PORT_OVERRIDE=7126 # Break normal communication
-
-    if [ $SYSTEMTESTS_VARIATION = "DEFAULT" ]; then
-        # Test implicit config
-        echo "Testing default UDS configuration path."
-        unset DD_APM_RECEIVER_SOCKET
-    else
-       # Test explicit config
-        echo "Testing explicit UDS configuration path."
-        export DD_APM_RECEIVER_SOCKET=/tmp/apm.sock
-    fi
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     WEBLOG_ENV+="DD_TRACE_SAMPLE_RATE=0.5"
@@ -63,6 +41,9 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules.json"
+
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_BLOCKING" ]; then
+    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_blocking_rule.json"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
     WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"

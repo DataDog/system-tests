@@ -166,6 +166,7 @@ class Test_Headers:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "?",
         "pylons": "1.1.0rc2.dev",
     }
@@ -343,6 +344,7 @@ class Test_BodyJson:
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra21")
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="uds-sinatra")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
@@ -422,6 +424,7 @@ class Test_ResponseStatus:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "1.5.2",
         "pylons": "1.1.0rc2.dev",
     }

@@ -4,7 +4,6 @@ import yaml
 scenarios_sets = (
     (
         "DEFAULT",
-        "UDS",
         "PROFILING",
         "CGROUP",
         "TRACE_PROPAGATION_STYLE_W3C",
@@ -26,6 +25,7 @@ scenarios_sets = (
         "APPSEC_CORRUPTED_RULES",
         "APPSEC_CUSTOM_RULES",
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
+        "APPSEC_BLOCKING",
         "APPSEC_DISABLED",
         "APPSEC_LOW_WAF_TIMEOUT",
         "APPSEC_CUSTOM_OBFUSCATION",
@@ -46,8 +46,8 @@ def build_variant_array(lang, weblogs):
 
 variants = (
     build_variant_array("cpp", ["nginx"])
-    + build_variant_array("dotnet", ["poc"])
-    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http"])
+    + build_variant_array("dotnet", ["poc", "uds"])
+    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http", "uds-echo"])
     + build_variant_array(
         "java",
         [
@@ -57,16 +57,18 @@ variants = (
             "vertx3",
             "spring-boot-jetty",
             "spring-boot",
+            "uds-spring-boot",
             "spring-boot-openliberty",
+            "spring-boot-wildfly",
             "spring-boot-undertow",
         ],
     )
-    + build_variant_array("nodejs", ["express4", "express4-typescript"])
+    + build_variant_array("nodejs", ["express4", "uds-express4", "express4-typescript"])
     + build_variant_array("php", [f"apache-mod-{v}" for v in php_versions])
     + build_variant_array("php", [f"apache-mod-{v}-zts" for v in php_versions])
     + build_variant_array("php", [f"php-fpm-{v}" for v in php_versions])
-    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc"])  # TODO pylons
-    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21"])
+    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask"])  # TODO pylons
+    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"])
     + build_variant_array("ruby", [f"rails{v}" for v in rails_versions])
 )
 
@@ -159,8 +161,9 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(name, workflow, needs, scenarios):
+def add_main_job(i, workflow, needs, scenarios):
 
+    name = f"test-the-tests-{i}"
     job = Job(name, needs=[job.name for job in needs])
 
     job.data["strategy"] = {
@@ -189,11 +192,20 @@ def add_main_job(name, workflow, needs, scenarios):
         if_condition="${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}",
     )
 
+    # PHP script that loads prod tracer is very flaky
+    # we also use it for dev, as dev artifact is on circle CI, requiring a token.
+    job.add_step(
+        "Load PHP prod library binary",
+        "./utils/scripts/load-binary.sh php prod",
+        add_gh_token=True,
+        if_condition="${{ matrix.variant.library == 'php' }}",
+    )
+
     job.add_step(
         "Load library PHP appsec binary",
-        "./utils/scripts/load-binary.sh php_appsec",
+        "./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}",
         add_gh_token=True,
-        if_condition="${{ matrix.version == 'dev' && matrix.variant.library == 'php' }}",
+        if_condition="${{ matrix.variant.library == 'php' }}",
     )
 
     job.add_step(
@@ -213,14 +225,12 @@ def add_main_job(name, workflow, needs, scenarios):
             f"Run {scenario} scenario", f"./run.sh {scenario}", env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"}
         )
 
-        if scenario == "UDS":  # TODO: UDS is a variant, not a scenario
-            step["if"] = "${{ matrix.variant.library != 'php' && matrix.variant.library != 'cpp' }}"
-        elif scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
+        if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
     job.add_upload_artifact(
-        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}",
+        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
         path="artifact.tar.gz",
         if_condition="${{ always() }}",
     )
@@ -317,7 +327,7 @@ def main():
     main_jobs = []
 
     for i, scenarios in enumerate(scenarios_sets):
-        main_jobs.append(add_main_job(f"test-the-tests-{i}", result, needs=[lint_job], scenarios=scenarios))
+        main_jobs.append(add_main_job(i, result, needs=[lint_job], scenarios=scenarios))
 
     add_ci_dashboard_job(result, main_jobs)
 
