@@ -57,13 +57,13 @@ jobs:
     # Step that does that actual cache save and restore
     - uses: actions/cache@v3
       with:
-        path: /root/.m2/repository
+        path:  ~/.m2/repository/
         key: ${{ runner.os }}-maven
         restore-keys: |
           ${{ runner.os }}-maven-
       env:
         cache-name: maven-cache
-    - run: sudo mkdir -p /root/.m2/repository/yo && sudo touch /root/.m2/repository/yo/pom.xml  
+    - run: mkdir -p ~/.m2/repository/yo && touch ~/.m2/repository/yo/pom.xml  
 
   test-the-tests-0:
     if: ${{ false }}  # disable for now
