@@ -192,8 +192,11 @@ service APMClient {
   rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
+  rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
+  rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
+  rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 ```
 
