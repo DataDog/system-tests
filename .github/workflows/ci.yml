@@ -762,6 +762,7 @@ jobs:
         - dotnet
         - golang
         - nodejs
+        - java
       fail-fast: false
     steps:
     - name: Checkout
