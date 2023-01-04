@@ -61,7 +61,7 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
-          
+    - run: mkdir /root/.m2/yo && touch /root/.m2/yo/pom.xml  
     - run: mkdir logs && touch logs/.weblog.env
     - name: Pull images
       run: docker-compose pull library_proxy cassandra_db mongodb postgres
