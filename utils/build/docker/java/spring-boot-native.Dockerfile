@@ -29,7 +29,7 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn package -P spring-native
 
-FROM adoptopenjdk:11-jre-hotspot
+FROM ubuntu
 
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION

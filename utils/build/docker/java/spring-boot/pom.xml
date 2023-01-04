@@ -286,6 +286,7 @@
             <id>spring-native</id>
             <properties>
                 <start-class>com.datadoghq.system_tests.springboot.App</start-class>
+				<agent.path>/app/dd-java-agent.jar</agent.path>
             </properties>
             <build>
                 <plugins>
@@ -304,7 +305,6 @@
                         </executions>
                         <configuration>
                             <buildArgs>
-                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
                                 <buildArg>--initialize-at-build-time=com.datastax.oss.driver.internal.core.util.Dependency</buildArg>
                                 <buildArg>-J-javaagent:${agent.path}</buildArg>
                             </buildArgs>
@@ -367,6 +367,14 @@
 
             </dependencies>
         </profile>
+		<profile>
+            <id>spring-native-local</id>
+            <properties>
+                <!-- Enable for Mac M1 workaround-->
+				<os.detected.classifier>osx-x86_64</os.detected.classifier>
+				<agent.path>/localpath/dd-java-agent.jar</agent.path>
+            </properties>
+		</profile>
     </profiles>
 
     <build>
@@ -410,10 +418,7 @@
         <protobuf.version>3.16.3</protobuf.version>
         <grpc.version>1.31.0</grpc.version>
         <packaging.type>jar</packaging.type>
-		<agent.path>/app/dd-java-agent.jar</agent.path>
-		<!-- Enable for Mac M1 workaround-->
-		<!-- <os.detected.classifier>osx-x86_64</os.detected.classifier> --> 
-    </properties>
+	</properties>
     <repositories>
         <repository>
             <id>spring-release</id>

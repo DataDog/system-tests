@@ -79,7 +79,6 @@
                 </executions>
                 <configuration>
                      <buildArgs>
-                        <buildArg>-H:+ReportExceptionStackTraces</buildArg>
                         <buildArg>-J-javaagent:${agent.path}</buildArg> 
                      </buildArgs>
                 </configuration>

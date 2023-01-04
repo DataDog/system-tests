@@ -61,6 +61,8 @@ variants = (
             "spring-boot-openliberty",
             "spring-boot-wildfly",
             "spring-boot-undertow",
+            "spring-boot-native",
+            "spring-boot-3-native"
         ],
     )
     + build_variant_array("nodejs", ["express4", "uds-express4", "express4-typescript"])
