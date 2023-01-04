@@ -8,7 +8,7 @@ import pytest
 def not_testable(klass):
     assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
 
-    def test(self):
+    def test(self):  # pylint: disable=unused-argument
         pass
 
     setattr(klass, "__coverage__", "not-testable")
@@ -21,7 +21,7 @@ def not_implemented(klass):
     assert not hasattr(klass, "__coverage__"), f"coverage has been declared twice for {klass}"
 
     @pytest.mark.skip(reason="missing feature: test is not implemented")
-    def test(self):
+    def test(self):  # pylint: disable=unused-argument
         pass
 
     setattr(klass, "__coverage__", "not-implemented")

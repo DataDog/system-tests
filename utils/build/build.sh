@@ -72,6 +72,14 @@ echo "BUILD_IMAGES:      $BUILD_IMAGES"
 echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
 echo ""
 
+#Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
+ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+DOCKER_PLATFORM_ARGS=""
+
+if [ "$ARCH" = "arm64" ]; then
+    DOCKER_PLATFORM_ARGS="--platform linux/amd64"
+fi
+
 # Build images
 for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
 do
@@ -112,6 +120,7 @@ do
 
         docker build \
             --progress=plain \
+            ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
@@ -119,13 +128,13 @@ do
 
         ##### POC equivalent: python -m utils.docker build utils.build.docker.golang.net-http
         # returns image id <image_id> e.g. 08cf60744719ea4c237c01c0fbc5137765b06efc0713286efa032c2defe5b222
-
         
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
             docker build \
                 --progress=plain \
+                ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                 -t system_tests/weblog \
@@ -160,6 +169,7 @@ do
 
         docker build \
             --progress=plain \
+            ${DOCKER_PLATFORM_ARGS} \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
             --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
             --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \
@@ -176,3 +186,4 @@ do
         exit 1
     fi
 done
+

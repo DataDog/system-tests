@@ -14,7 +14,7 @@ services:
       - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_AGENT_PROXY_STATE:-}
     volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
+      - ./utils/proxy/:/system-tests/utils/proxy/:ro
     command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
     ports:
       - "127.0.0.1:8082:8082"
@@ -29,8 +29,8 @@ services:
       - FORWARD_TO_PORT=8081
       - INITIAL_PROXY_STATE=${SYSTEMTESTS_LIBRARY_PROXY_STATE:-}
     volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/
-    command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
+      - ./utils/proxy/:/system-tests/utils/proxy/:ro
+    command: mitmdump -v -p 8126 --mode reverse:http://agent:8126/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
     container_name: weblog
@@ -40,9 +40,7 @@ services:
     environment:
       - DD_AGENT_HOST
       - DD_TRACE_AGENT_PORT
-      - DD_APM_RECEIVER_SOCKET
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
-      - SYSTEMTESTS_VARIATION=${SYSTEMTESTS_VARIATION:-DEFAULT}
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
     ports:
@@ -53,39 +51,24 @@ services:
         condition: service_healthy
       agent:
         condition: service_healthy
-      cassandra_db:
-        condition: service_started
-      mongodb:
-        condition: service_started
+      postgres:
+        condition: service_healthy
 
-  cassandra_db:
-    container_name: cassandra
-    image: cassandra:latest
-    restart: always
-    ports:
-      - "127.0.0.1:9042:9042"
-
-  mongodb:
-    container_name: mongodb
-    image: mongo:latest
-    restart: always
-    ports:
-      - "127.0.0.1:27017:27017"
-  
   agent:
     container_name: agent
     image: system_tests/agent
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/info"]
+      test: ["CMD", "curl", "-f", "http://agent:8126/info"]
       interval: 1s
       start_period: 5s
       retries: 60
     environment:
       - DD_API_KEY
       - DD_ENV=system-tests
+      - DD_HOSTNAME=test
       - DD_SITE=${DD_SITE:-datad0g.com}
       # - DD_URL=https://app.datad0g.com
-      - DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126}
+      - DD_APM_RECEIVER_PORT=8126
       - DD_DOGSTATSD_PORT=${HIDDEN_DSD_PORT_OVERRIDE:-8125}
     depends_on:
       runner:
@@ -104,20 +87,55 @@ services:
       start_period: 5s
       retries: 25
     environment:
+      - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY
       - DD_APPLICATION_KEY=${DD_APPLICATION_KEY:-}
       - COLUMNS=${COLUMNS:-120}
       - PYTHONPATH=/app
       - DD_SITE=${DD_SITE:-datad0g.com}
       # - DD_URL=https://app.datad0g.com
-      - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
+      - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=8126 # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
-      - ./pytest.ini:/app/pytest.ini
-      - ./conftest.py:/app/conftest.py
-      - ./tests/:/app/tests/
-      - ./utils/:/app/utils/
+      - ./scenarios/:/app/scenarios/:ro
+      - ./tests/:/app/tests/:ro
+      - ./utils/:/app/utils/:ro
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./conftest.py:/app/conftest.py:ro
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/:/app/logs/
-      - ./scenarios/:/app/scenarios/
       - /var/run/docker.sock:/var/run/docker.sock
     command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
+
+  cassandra_db:
+    container_name: cassandra
+    image: cassandra:latest
+    restart: always
+    ports:
+      - "127.0.0.1:9042:9042"
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    restart: always
+    ports:
+      - "127.0.0.1:27017:27017"
+
+  postgres:
+    container_name: postgres
+    image: postgres
+    user: postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=password
+      - PGPORT=5433
+    volumes:
+      - ./utils/build/docker/postgres-init-db.sh:/docker-entrypoint-initdb.d/init_db.sh
+    expose:
+      - 5433
+    ports:
+      - 5433:5433
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

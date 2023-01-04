@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, interfaces, context, irrelevant
+from utils import weblog, interfaces, context, irrelevant
 
 # *ATTENTION*: Copy this file to the tests folder, modify, and rename with a prefix of `test_` to enable your new tests
 
@@ -16,23 +16,12 @@ from utils import BaseTestCase, interfaces, context, irrelevant
 #       @irrelevant(context.library = "dotnet", reason="only for .NET")
 
 # To run an individual test: ./run.sh tests/test_traces.py::Test_Misc::test_main
-class Test_Misc(BaseTestCase):
-    """ *ATTENTION*: This is where you summarize the test """
+class Test_Misc:
+    """*ATTENTION*: This is where you summarize the test"""
+
+    def setup_main(self):
+        self.r = weblog.get("/")
 
     def test_main(self):
         # This is where you make your requests and assertions
-        request = self.weblog_get("/")
-        interfaces.library.assert_trace_exists(request)
-
-        # You can make several requests and assertions to fulfill the needs of a test
-        request = self.weblog_get("/trace/http")
-        interfaces.library.assert_trace_exists(request, span_type="web")
-
-        request = self.weblog_get("/trace/mongo")
-        interfaces.library.assert_trace_exists(request, span_type="mongo")
-
-        # The interfaces.library namespace is used to expose valuable assertions
-
-        # If you want to create custom validations:
-        #   - Follow the assert_trace_exists method down to examine how assertions and validations are structured.
-        #   - Create your own assertions and methods for use in tests.
+        interfaces.library.assert_trace_exists(self.r)

@@ -11,7 +11,7 @@ def to_camel_case(input):
     return "".join(ele.title() for ele in input.split("_"))
 
 
-URL = "https://github.com/DataDog/appsec-event-rules/blob/main/build/recommended.json"
+URL = "https://raw.githubusercontent.com/DataDog/appsec-event-rules/main/build/recommended.json"
 
 data = requests.get(URL).json()
 

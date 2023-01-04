@@ -4,59 +4,38 @@
 
 from collections import defaultdict
 
-from urllib.parse import urlparse
-from utils.interfaces._core import BaseValidation
-from utils.interfaces._library._utils import get_root_spans, _spans_with_parent
+from utils.tools import logger
 
 
-class _AllRequestsTransmitted(BaseValidation):
-    is_success_on_expiry = False
-    path_filters = ["/v0.4/traces"]
-
-    def __init__(self, paths):
-        super().__init__()
-        self.paths = set(paths)
-        self.trace_count = len(paths)
-
-    def check(self, data):
-        for root_span in get_root_spans(data["request"]["content"]):
-            path = _trace_request_path(root_span)
-            if path is None or path not in self.paths:
-                continue
-            self.paths.remove(path)
-
-            if len(self.paths) == 0:
-                self.set_status(True)
-
-    def final_check(self):
-        self.log_error(f"Only {self.trace_count - len(self.paths)} on {self.trace_count} have been sent by the tracer")
+def _spans_with_parent(traces, parent_ids):
+    if not isinstance(traces, list):
+        logger.error("Traces should be an array")
+        yield from []  # do notfail here, it's schema's job
+    else:
+        for trace in traces:
+            for span in trace:
+                if span.get("parent_id") in parent_ids:
+                    yield span
 
 
-class _TracesSamplingDecision(BaseValidation):
-    is_success_on_expiry = True
-    path_filters = ["/v0.4/traces"]
-
+class _TracesSamplingDecisionValidator:
     def __init__(self, sample_rate):
         super().__init__()
         self.sample_rate = sample_rate
 
-    def check(self, data):
-        for root_span in get_root_spans(data["request"]["content"]):
-            sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
-            if sampling_priority is None:
-                self.set_failure(
-                    f"Message: {data['log_filename']}:"
-                    "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
-                )
-                return
-            if sampling_priority not in (
-                expected := self.get_sampling_decision(self.sample_rate, root_span["trace_id"], root_span["meta"])
-            ):
-                self.set_failure(
-                    f"Trace id {root_span['trace_id']} "
-                    f"sampling priority is {sampling_priority}, should be {expected}"
-                )
-                return
+    def __call__(self, data, root_span):
+        sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
+        if sampling_priority is None:
+            raise Exception(
+                f"Message: {data['log_filename']}:"
+                "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
+            )
+        if sampling_priority not in (
+            expected := self.get_sampling_decision(self.sample_rate, root_span["trace_id"], root_span["meta"])
+        ):
+            raise Exception(
+                f"Trace id {root_span['trace_id']} " f"sampling priority is {sampling_priority}, should be {expected}"
+            )
 
     @staticmethod
     def get_sampling_decision(sampling_rate, trace_id, meta):
@@ -77,89 +56,66 @@ class _TracesSamplingDecision(BaseValidation):
         return (AUTO_REJECT, MANUAL_REJECT)
 
 
-class _DistributedTracesDeterministicSamplingDecisisonValidation(BaseValidation):
+class _DistributedTracesDeterministicSamplingDecisisonValidator:
     """Asserts that traces with the same id have the same sampling decisions"""
 
-    path_filters = ["/v0.4/traces"]
-    is_success_on_expiry = False
-
-    def __init__(self, traces, request=None):
-        super().__init__(request=request)
+    def __init__(self, traces):
         self.traces = {trace["parent_id"]: trace for trace in traces}
         self.sampling_decisions_per_trace_id = defaultdict(list)
 
-    def check(self, data):
+    def __call__(self, data):
         for span in _spans_with_parent(data["request"]["content"], self.traces.keys()):
-            self.is_success_on_expiry = True
             expected_trace_id = self.traces[(span["parent_id"])]["trace_id"]
-            if self.expect(
-                span["trace_id"] == expected_trace_id,
+            sampling_priority = span["metrics"].get("_sampling_priority_v1")
+            self.sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+
+            assert span["trace_id"] == expected_trace_id, (
                 f"Message: {data['log_filename']}: If parent_id matches, "
                 f"trace_id should match too expected trace_id {expected_trace_id} "
                 f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
-            ):
-                return
-            sampling_priority = span["metrics"].get("_sampling_priority_v1")
-            if self.expect(
-                sampling_priority is not None, f"Message: {data['log_filename']}: sampling priority should be set",
-            ):
-                return
-            self.sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+            )
+
+            assert sampling_priority is not None, f"Message: {data['log_filename']}: sampling priority should be set"
 
     def final_check(self):
-        errors = []
+        fail = False
         for trace_id, decisions in self.sampling_decisions_per_trace_id.items():
             if len(decisions) < 2:
                 continue
             if not all((d == decisions[0] for d in decisions)):
-                errors.append(f"Sampling decisions are not deterministic for trace_id {trace_id}")
-        if len(errors) > 0:
-            for err in errors:
-                self.log_error(err)
-            return self.set_status(False)
+                logger.error(f"Sampling decisions are not deterministic for trace_id {trace_id}")
+                fail = True
+
+        if fail:
+            raise Exception("Some trace does not respect the sampling decision")
 
 
-class _AddSamplingDecisionValidation(BaseValidation):
+class _AddSamplingDecisionValidator:
     """Asserts that a trace sampling decisions are taken for choosen traces and spans"""
 
-    path_filters = ["/v0.4/traces"]
-    is_success_on_expiry = False
-
-    def __init__(self, traces, request=None):
-        super().__init__(request=request)
+    def __init__(self, traces):
         self.traces = {trace["parent_id"]: trace for trace in traces}
         self.errors = set()
         self.count = 0
 
-    def check(self, data):
+    def __call__(self, data):
         for span in _spans_with_parent(data["request"]["content"], self.traces.keys()):
-            self.is_success_on_expiry = True
+
             expected_trace_id = self.traces[span["parent_id"]]["trace_id"]
-            if self.expect(
-                span["trace_id"] == expected_trace_id,
+            self.count += 1
+
+            assert span["trace_id"] == expected_trace_id, (
                 f"Message: {data['log_filename']}: If parent_id matches, "
                 f"trace_id should match too expected trace_id {expected_trace_id} "
                 f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
-            ):
-                return
+            )
+
             sampling_priority = span["metrics"].get("_sampling_priority_v1")
-            if self.expect(
-                sampling_priority is not None,
+
+            assert sampling_priority is not None, (
                 f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
-            ):
-                return
-            self.count += 1
+            )
 
     def final_check(self):
         if self.count != len(self.traces):
-            self.set_failure("Didn't see all requests")
-
-
-def _trace_request_path(root_span):
-    if root_span.get("type") != "web":
-        return None
-    url = root_span["meta"].get("http.url")
-    if url is None:
-        return None
-    path = urlparse(url).path
-    return path
+            raise Exception("Didn't see all requests")

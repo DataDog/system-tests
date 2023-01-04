@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, BaseTestCase, interfaces, irrelevant
+from utils import context, weblog, interfaces
 
 
-class Test_Backend(BaseTestCase):
+class Test_Backend:
     """Misc test around agent/backend communication"""
 
     def test_good_backend(self):
@@ -13,11 +13,12 @@ class Test_Backend(BaseTestCase):
         interfaces.agent.assert_use_domain(context.dd_site)
 
 
-class Test_Library(BaseTestCase):
+class Test_Library:
     """Misc test around library/agent communication"""
+
+    def setup_receive_request_trace(self):
+        self.r = weblog.get("/")
 
     def test_receive_request_trace(self):
         """Basic test to verify that libraries sent traces to the agent"""
-        r = self.weblog_get("/")
-
         interfaces.library.assert_receive_request_root_trace()

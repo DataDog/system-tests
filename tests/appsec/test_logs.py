@@ -2,8 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import BaseTestCase, context, interfaces, released, irrelevant, missing_feature, bug, coverage
 import pytest
+
+from utils import weblog, context, interfaces, released, irrelevant, missing_feature, bug, coverage
 
 
 if context.library == "cpp":
@@ -15,16 +16,14 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 
 @released(golang="?", nodejs="?", php_appsec="0.1.0", python="?", ruby="?")
 @coverage.good
-class Test_Standardization(BaseTestCase):
+class Test_Standardization:
     """AppSec logs should be standardized"""
 
     @classmethod
     def setup_class(cls):
         """Send a bunch of attack, to be sure that something is done on AppSec side"""
-        get = cls().weblog_get
-
-        get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
-        get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
+        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     @irrelevant(library="java", reason="Cannot be implemented with cooperation from libddwaf")
     @missing_feature(library="php")
@@ -93,16 +92,15 @@ class Test_Standardization(BaseTestCase):
 
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-class Test_StandardizationBlockMode(BaseTestCase):
+class Test_StandardizationBlockMode:
     """AppSec blocking logs should be standardized"""
 
     @classmethod
     def setup_class(cls):
         """Send a bunch of attack, to be sure that something is done on AppSec side"""
-        get = cls().weblog_get
 
-        get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
-        get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
+        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     def test_i06(self):
         """Log I6: AppSec blocked a request"""

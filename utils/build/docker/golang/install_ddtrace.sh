@@ -25,7 +25,10 @@ echo $version > SYSTEM_TESTS_LIBRARY_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 # Read the rule file version
-if [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
+if [[ -f $mod_dir/internal/appsec/rules.json ]]; then
+    # Parse the appsec rules version string out of the inlined rules json
+    rules_version=$(jq -r .metadata.rules_version $mod_dir/internal/appsec/rules.json)
+elif [[ $(cat $mod_dir/internal/appsec/rule.go) =~ rules_version\\\":\\\"([[:digit:].-]+)\\\" ]]; then
     # Parse the appsec rules version string out of the inlined rules json
     rules_version="${BASH_REMATCH[1]}"
 else

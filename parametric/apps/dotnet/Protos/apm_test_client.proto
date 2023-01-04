@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+// Interface of APM clients to be used for shared testing.
+service APMClient {
+  rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
+  rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
+  rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
+  rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
+  rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
+  rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
+  rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
+  rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
+  rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
+}
+
+message StartSpanArgs {
+  string name = 1;
+  optional string service = 2;
+  optional uint64 parent_id = 3;
+  optional string resource = 4;
+  optional string type = 5;
+  optional string origin = 6;
+  optional DistributedHTTPHeaders http_headers = 7;
+}
+
+message DistributedHTTPHeaders {
+    map<string, string> http_headers = 9;
+}
+
+message StartSpanReturn {
+  uint64 span_id = 1;
+  uint64 trace_id = 2;
+}
+
+message InjectHeadersArgs {
+  uint64 span_id = 1;
+}
+
+message InjectHeadersReturn {
+    optional DistributedHTTPHeaders http_headers = 1;
+}
+
+message FinishSpanArgs {
+  uint64 id = 1;
+}
+message FinishSpanReturn {}
+
+
+message SpanSetMetaArgs {
+  uint64 span_id = 1;
+  string key = 2;
+  string value = 3;
+}
+message SpanSetMetaReturn {}
+
+
+message SpanSetMetricArgs {
+  uint64 span_id = 1;
+  string key = 2;
+  float value = 3;
+}
+message SpanSetMetricReturn {}
+
+
+message SpanSetErrorArgs {
+  uint64 span_id = 1;
+  optional string type = 2;
+  optional string message = 3;
+  optional string stack = 4;
+}
+message SpanSetErrorReturn {}
+
+message FlushSpansArgs {}
+message FlushSpansReturn {}
+
+message FlushTraceStatsArgs {}
+message FlushTraceStatsReturn {}
+
+message StopTracerArgs {}
+message StopTracerReturn {}

@@ -2,8 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from packaging import version as version_module
+from collections import defaultdict
 import re
+from packaging import version as version_module
 
 # some monkey patching
 def _parse_letter_version(letter, number):
@@ -21,7 +22,7 @@ def _parse_letter_version(letter, number):
     return None
 
 
-version_module._parse_letter_version = _parse_letter_version
+version_module._parse_letter_version = _parse_letter_version  # pylint: disable=protected-access
 
 RUBY_VERSION_PATTERN = r"""
     v?
@@ -97,10 +98,11 @@ class Version(version_module.Version):
     def build(cls, version, component):
         if isinstance(version, str):
             return cls(version, component)
-        elif isinstance(version, cls):
+
+        if isinstance(version, cls):
             return version
-        else:
-            raise TypeError(version)
+
+        raise TypeError(version)
 
     def __init__(self, version, component):
 
@@ -123,6 +125,8 @@ class Version(version_module.Version):
             version = re.sub(r"(.*) - Commit.*", r"\1", version)
             version = re.sub(r"(.*) - Meta.*", r"\1", version)
             version = re.sub(r"Agent (.*)", r"\1", version)
+            version = re.sub("\x1b\\[\\d+m", "", version)  # remove color pattern from terminal
+
             pattern = AGENT_VERSION_PATTERN
 
         elif component == "java":
@@ -156,6 +160,12 @@ class Version(version_module.Version):
 
 
 class LibraryVersion:
+    known_versions = defaultdict(set)
+
+    def add_known_version(self, version, library=None):
+        library = self.library if library is None else library
+        LibraryVersion.known_versions[library].add(str(version))
+
     def __init__(self, library, version=None):
         self.library = None
         self.version = None
@@ -168,6 +178,7 @@ class LibraryVersion:
 
         self.library = library
         self.version = Version(version, component=library) if version else None
+        self.add_known_version(self.version)
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.library}", "{self.version}")'
@@ -185,6 +196,7 @@ class LibraryVersion:
         if "@" in other:
 
             library, version = other.split("@", 1)
+            self.add_known_version(library=library, version=version)
 
             if self.library != library:
                 return False
@@ -193,9 +205,9 @@ class LibraryVersion:
                 raise ValueError("Weblog does not provide an library version number")
 
             return self.library == library and self.version == version
-        else:
-            library = other
-            return self.library == library
+
+        library = other
+        return self.library == library
 
     def _extract_members(self, other):
         if not isinstance(other, str):
@@ -213,6 +225,7 @@ class LibraryVersion:
             # on other weblogs
             raise ValueError("Weblog does not provide an library version number")
 
+        self.add_known_version(library=library, version=version)
         return library, version
 
     def __lt__(self, other):

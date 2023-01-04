@@ -1,5 +1,4 @@
 import requests
-from utils.tools import logger
 
 
 class _ProxyState:
@@ -10,10 +9,10 @@ class _ProxyState:
     def set_state(self, key, value):
         assert value in (True, False)
 
-        r = requests.get(f"http://{self.host}:{self.port}/_system_tests_state")
+        r = requests.get(f"http://{self.host}:{self.port}/_system_tests_state", timeout=10)
         state = r.json()
         state[key] = value
-        state = requests.post(f"http://{self.host}:{self.port}/_system_tests_state", json=state)
+        state = requests.post(f"http://{self.host}:{self.port}/_system_tests_state", json=state, timeout=10)
 
         return state
 

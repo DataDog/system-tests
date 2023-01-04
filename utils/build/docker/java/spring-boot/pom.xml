@@ -12,11 +12,21 @@
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.6.0</version>
     </parent>
-
+    <packaging>${packaging.type}</packaging>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-json</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -40,7 +50,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.3.3</version>
+            <version>42.4.3</version>
         </dependency>
         <dependency>
             <groupId>com.datastax.oss</groupId>
@@ -89,7 +99,27 @@
 		    <artifactId>bcprov-jdk15on</artifactId>
 		    <version>1.70</version>
 		</dependency>
-
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ldap</groupId>
+            <artifactId>spring-ldap-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-ldap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.unboundid</groupId>
+            <artifactId>unboundid-ldapsdk</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -155,6 +185,103 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>openliberty</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.openliberty.tools</groupId>
+                        <artifactId>liberty-maven-plugin</artifactId>
+                        <version>3.5.1</version>
+                        <configuration>
+                            <appsDirectory>apps</appsDirectory>
+                            <installAppPackages>spring-boot-project</installAppPackages>
+                            <include>minify,runnable</include>
+                            <packageName>myproject-0.0.1-SNAPSHOT</packageName>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>package-server</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>create</goal>
+                                    <goal>install-feature</goal>
+                                    <goal>deploy</goal>
+                                    <goal>package</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>wildfly</id>
+            <properties>
+                <packaging.type>war</packaging.type>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>ch.qos.logback</groupId>
+                            <artifactId>logback-classic</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-tomcat</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+                <dependency>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>javax.servlet-api</artifactId>
+                    <version>4.0.1</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>
+                        <configuration>
+                            <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#26.1.0.Final</feature-pack-location>
+                            <layers>
+                                <layer>jaxrs</layer>
+                                <layer>web-server</layer>
+                            </layers>
+                            <excluded-layers>
+                                <layer>deployment-scanner</layer>
+                            </excluded-layers>
+                            <plugin-options>
+                                <jboss-fork-embedded>true</jboss-fork-embedded>
+                            </plugin-options>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>package</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
@@ -195,8 +322,9 @@
         </plugins>
     </build>
     <properties>
-        <protobuf.version>3.16.1</protobuf.version>
+        <protobuf.version>3.16.3</protobuf.version>
         <grpc.version>1.31.0</grpc.version>
+        <packaging.type>jar</packaging.type>
     </properties>
 </project>
 

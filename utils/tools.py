@@ -4,7 +4,6 @@
 
 import logging
 import sys
-import traceback
 
 
 class bcolors:
@@ -25,24 +24,18 @@ def get_log_formatter():
     return logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S")
 
 
-def get_logger(name="tests", use_dedicated_file=False, use_stdout=False):
-    logger = logging.getLogger(name)
+def get_logger(name="tests", use_stdout=False):
+    result = logging.getLogger(name)
 
     if use_stdout:
         stdout_handler = logging.StreamHandler(sys.stdout)
         stdout_handler.setLevel(logging.DEBUG)
         stdout_handler.setFormatter(get_log_formatter())
-        logger.addHandler(stdout_handler)
+        result.addHandler(stdout_handler)
 
-    if use_dedicated_file:
-        file_handler = logging.FileHandler(f"logs/{name}.log")
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(get_log_formatter())
-        logger.addHandler(file_handler)
+    result.setLevel(logging.DEBUG)
 
-    logger.setLevel(logging.DEBUG)
-
-    return logger
+    return result
 
 
 def o(message):
@@ -59,13 +52,6 @@ def m(message):
 
 def e(message):
     return f"{bcolors.RED}{message}{bcolors.ENDC}"
-
-
-def get_exception_traceback(exception):
-
-    for line in traceback.format_exception(type(Exception), exception, exception.__traceback__):
-        for subline in line.split("\n"):
-            yield subline.replace('File "/app/', 'File "')
 
 
 logger = get_logger()
