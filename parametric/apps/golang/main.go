@@ -37,7 +37,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	if len(args.HttpHeaders.HttpHeaders) != 0 {
 		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(args.HttpHeaders.HttpHeaders))
 		if err != nil {
-			fmt.Println("failed in StartSpan")
+			fmt.Println("failed in StartSpan", err, args.HttpHeaders.HttpHeaders)
 		} else {
 			opts = append(opts, tracer.ChildOf(sctx))
 		}
