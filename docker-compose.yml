@@ -43,6 +43,7 @@ services:
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
+      - ~/.m2/repository/:/root/.m2/repository 
     ports:
       - "127.0.0.1:7777:7777"
       - "127.0.0.1:7778:7778"
