@@ -116,6 +116,10 @@ do
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
             .
+
+        ##### POC equivalent: python -m utils.docker build utils.build.docker.golang.net-http
+        # returns image id <image_id> e.g. 08cf60744719ea4c237c01c0fbc5137765b06efc0713286efa032c2defe5b222
+
         
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
@@ -127,6 +131,16 @@ do
                 -t system_tests/weblog \
                 $EXTRA_DOCKER_ARGS \
                 .
+
+            ##### POC equivalent: python -m utils.docker waf_mutate <image_id>
+            #### actual implementation:
+                # paths = {"SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION": version_file.name,
+                #          "waf_rule_set.json": "binaries/waf_rule_set.json"}
+                # new_image = image.modify_image(append_paths_mapped=paths, env={
+                #     "DD_APPSEC_RULES": "/waf_rule_set.json",
+                #     "DD_APPSEC_RULESET": "/waf_rule_set.json",
+                #     "DD_APPSEC_RULES_PATH": "/waf_rule_set.json"
+                # })
         fi
 
         # The library version is needed as an env var, and as the runner is executed before the weblog
@@ -136,6 +150,9 @@ do
         # If anybody has an idea to achieve this in a cleanest way ...
 
         echo "Getting system test context and saving it in weblog image"
+
+        ##### POC equivalent: python -m utils.docker cat_file <image_id> SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION 
+
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
@@ -153,6 +170,7 @@ do
             -t system_tests/weblog \
             .
 
+        #### 
     else
         echo "Don't know how to build $IMAGE_NAME"
         exit 1

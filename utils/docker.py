@@ -8,6 +8,7 @@ import subprocess
 import shutil
 from utils import project_root
 from pydoc import locate
+import tarfile
 
 import docker
 
@@ -54,7 +55,7 @@ FROM {self.iid} as source_image
 FROM scratch as target_image
 """
         for path in paths:
-            dockerfile_contents.append(f"COPY --from=source_image {path} /\n")
+            dockerfile_contents += f"COPY --from=source_image {path} /\n"
         with tempfile.NamedTemporaryFile() as dockerfile:
             dockerfile.write(dockerfile_contents.encode())
             dockerfile.seek(0)
@@ -68,6 +69,17 @@ FROM scratch as target_image
                 for chunk in image.save():
                     output.write(chunk)
 
+    def cat_file(self, path):
+        with tempfile.NamedTemporaryFile() as tar:
+            self.extract_files(tar.name, paths = [path])
+            t = tarfile.TarFile(tar.name)
+            for fname in t.getnames():
+                if fname.endswith("/layer.tar"):
+                    reader = t.extractfile(fname)
+                    inner = tarfile.TarFile(fileobj=reader)
+                    output = inner.extractfile(path)
+                    return output
+                    
     def __str__(self):
         return f"Image: {self.iid}"
 
@@ -271,18 +283,19 @@ def waf_mutator(image: Image, appsec_rule_version: str):
 def _cli_build_image(args):
     dockerfile: Dockerfile = locate(args.python_path)
     image = dockerfile.image()
-    print(image)
+    print(image.iid)
 
 
 def _cli_waf_mutator(args):
     image = Image(args.image)
-    mutated_image_id = waf_mutator(image, args.waf_rule_version)
-    print(mutated_image_id)
+    mutated_image = waf_mutator(image, args.waf_rule_version)
+    print(mutated_image.iid)
 
 
-def _cli_extract_file(args):
+def _cli_cat_file(args):
     image = Image(args.image)
-
+    for line in image.cat_file(args.path).readlines():
+        print(line.decode("utf-8"))
 
 if __name__ == '__main__':
     import sys
@@ -304,10 +317,13 @@ if __name__ == '__main__':
     waf_mutator_parser.add_argument(
         "waf_rule_version", help="waf rule version")
 
-    extract_files_parser = subparsers.add_parser("extract_file")
-    extract_files_parser.set_defaults(func=_cli_extract_file)
+    extract_files_parser = subparsers.add_parser("cat_file")
+    extract_files_parser.set_defaults(func=_cli_cat_file)
     extract_files_parser.add_argument(
         "image", help="docker image identifier e.g. busybox or 18fa1f67c0a3b52e50d9845262a4226a6e4474b80354c5ef71ef27e438c6650b")
+    extract_files_parser.add_argument(
+        "path")
+
 
     args = parser.parse_args()
 
