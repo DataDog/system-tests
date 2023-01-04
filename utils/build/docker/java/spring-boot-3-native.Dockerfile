@@ -35,7 +35,7 @@ COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VE
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=agent /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 COPY --from=build /app/target/myproject .
-COPY --from=build /opt/graalvm-ce-java17-22.3.0/ /opt/graalvm-ce-java17-22.3.0/
+#COPY --from=build /opt/graalvm-ce-java17-22.3.0/ /opt/graalvm-ce-java17-22.3.0/
 
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
