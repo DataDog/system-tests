@@ -1,6 +1,7 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
+tracer.use('dns', false)
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context');
 
 class Servicer {
