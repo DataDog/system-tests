@@ -7,7 +7,7 @@ from parametric.utils.test_agent import get_span
 
 
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.
@@ -33,7 +33,7 @@ def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
 
 
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_library):
     """Ensure that invalid Datadog distributed tracing headers are not extracted.
     """
@@ -58,7 +58,7 @@ def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_libra
 
 
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are injected properly.
     """
@@ -72,7 +72,7 @@ def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
 
 
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_propagate_datadog_D004(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and injected properly.
@@ -98,7 +98,7 @@ def test_distributed_headers_propagate_datadog_D004(test_agent, test_library):
 
 
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_extractandinject_datadog_invalid_D005(test_agent, test_library):
     """Ensure that invalid Datadog distributed tracing headers are not extracted
     and the new span context is injected properly.
