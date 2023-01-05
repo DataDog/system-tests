@@ -26,10 +26,13 @@ COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
 COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
+#RUN /opt/apache-maven-3.8.6/bin/mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
+
+
+RUN --mount=type=cache,target=/root/.m2 /opt/apache-maven-3.8.6/bin/mvn package -P native
 
 # go-offline using the pom.xml
-RUN --mount=type=bind,source=/root/.m2,target=/root/.m2,rw /opt/apache-maven-3.8.6/bin/mvn package -P native
+#RUN --mount=type=bind,source=/root/.m2,target=/root/.m2,rw /opt/apache-maven-3.8.6/bin/mvn package -P native
 
 # Build native application
 #RUN /opt/apache-maven-3.8.6/bin/mvn package -P native
