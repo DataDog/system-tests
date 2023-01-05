@@ -141,9 +141,12 @@ PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@1.x ./run.sh .
 #### NodeJS
 
 There is two ways for running the NodeJS tests with a custom tracer:
-- Place an NPM package in the folder ``apps/nodejs/npm`` and then set the enviornment variable ``NODEJS_DDTRACE_MODULE``
-with the filename placed in the aforementioned folder, e.g., ``NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz"``
-- Set the environment variable to hold a commit in a remote branch, e.g., ``NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143``
+- Place the ddtrace NPM package in the folder ``apps/nodejs/npm`` and then set the enviornment variable ``NODEJS_DDTRACE_MODULE``
+with the filename placed in the aforementioned folder. So after you've proceed with the installation and the ddtrace package
+properly placed you can run the tests with the following command:
+``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh``
+- Set the environment variable ``NODEJS_DDTRACE_MODULE`` to hold a commit in a remote branch. The following example will run
+the tests with a specific commit: ``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh``
 
 
 ### Debugging
