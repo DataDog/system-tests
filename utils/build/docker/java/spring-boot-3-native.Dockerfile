@@ -29,7 +29,7 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 #RUN /opt/apache-maven-3.8.6/bin/mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
 RUN --mount=type=cache,target=/root/.m2 /opt/apache-maven-3.8.6/bin/mvn -P native -B dependency:go-offline
 
-RUN --mount=type=cache,target=/root/.m2 /opt/apache-maven-3.8.6/bin/mvn package -P native
+RUN --mount=type=cache,target=/root/.m2 /opt/apache-maven-3.8.6/bin/mvn -Pnative native:compile
 
 # go-offline using the pom.xml
 #RUN --mount=type=bind,source=/root/.m2,target=/root/.m2,rw /opt/apache-maven-3.8.6/bin/mvn package -P native
