@@ -27,7 +27,7 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
 #RUN /opt/apache-maven-3.8.6/bin/mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
-
+RUN --mount=type=cache,target=/root/.m2 /opt/apache-maven-3.8.6/bin/mvn -P native -B dependency:go-offline
 
 RUN --mount=type=cache,target=/root/.m2 /opt/apache-maven-3.8.6/bin/mvn package -P native
 
