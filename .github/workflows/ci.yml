@@ -58,7 +58,7 @@ jobs:
           ${{ runner.os }}-maven-
       env:
         cache-name: maven-cache
-
+    - run: mkdir -p ~/.m2/repository/
     - run: mkdir logs && touch logs/.weblog.env
     - name: Pull images
       run: docker-compose pull library_proxy cassandra_db mongodb postgres
