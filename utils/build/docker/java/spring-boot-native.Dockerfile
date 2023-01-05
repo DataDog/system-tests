@@ -20,7 +20,6 @@ WORKDIR /app
 
 # Copy application sources
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN /opt/apache-maven-3.8.6/bin/mvn -P spring-native -B dependency:go-offline 
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
 
