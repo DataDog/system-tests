@@ -10,7 +10,7 @@ set -e
 if test -f ".env"; then
     source .env
 fi
-
+export DOCKER_BUILDKIT=1
 CURRENT_PWD=$(pwd)
 
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK}}
