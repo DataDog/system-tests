@@ -168,15 +168,21 @@ if [ "$TARGET" = "java" ]; then
     get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
-    assert_version_is_dev
     rm -rf *.tar.gz
 
-    SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
-    ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
-    URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
+    if [ $VERSION = 'dev' ]; then
+       SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
+       ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
+       URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
 
-    echo "Load $URL"
-    curl -L --silent $URL --output $ARCHIVE
+        echo "Load $URL"
+        curl -L --silent $URL --output $ARCHIVE
+    elif [ $VERSION = 'prod' ]; then
+       DDTRACE_VERSION=$(curl -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/DataDog/dd-trace-dotnet/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+       curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz --output datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev

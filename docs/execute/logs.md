@@ -3,8 +3,6 @@ System tests export a lot of data in `logs/` folder, and this folder is usually 
 * `logs/docker/` raw log of docker containers. They are quite hard to read as they contain coloring chars. `cat` is your friend.
   * `logs/docker/weblog.log`: **Agent's log level is set to DEBUG during system tests, so you'll find plenty of info in it**
   * `logs/docker/runner.log`: Test runner, you'll have exactly the same data in standart output.
-  * `logs/docker/agent_proxy.log`: proxy between agent and backend, probably nothing intresting here
-  * `logs/docker/library_proxy.log`: proxy between library and agent, probably nothing intresting here
 * `logs/interfaces/`: raw data seen in interfaces. File a re prefixed with an index, so you'll know what was the timeline
   * `logs/interfaces/library`: **library -> agent communication, key folder if you own a library**
   * `logs/interfaces/agent`: **agent -> bakcend communication, key folder if you own an agent**

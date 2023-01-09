@@ -62,7 +62,7 @@ namespace ApmTestClient.Services
             if (creationSettings.Parent is null && request.HasParentId && request.ParentId > 0)
             {
                 var parentSpan = Spans[request.ParentId];
-                creationSettings.Parent = new SpanContext(parentSpan.TraceId, parentSpan.SpanId);
+                creationSettings.Parent = new SpanContext(parentSpan.TraceId, parentSpan.SpanId, serviceName: parentSpan.ServiceName);
             }
 
             using var scope = Tracer.Instance.StartActive(operationName: request.Name, creationSettings);

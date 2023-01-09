@@ -102,7 +102,6 @@ class _Context:  # pylint: disable=too-many-instance-attributes
 
         warmups = [
             _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=15),
-            _HealthCheck(f"http://library_proxy:{agent_port}/info", 60),
             _HealthCheck("http://weblog:7777", 120),
             _wait_for_app_readiness,
         ]
