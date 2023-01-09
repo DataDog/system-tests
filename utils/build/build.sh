@@ -120,6 +120,7 @@ do
 
         docker build \
             --progress=plain \
+            --cpus="3"
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
