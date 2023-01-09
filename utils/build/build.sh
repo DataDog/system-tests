@@ -120,7 +120,6 @@ do
 
         docker buildx build \
             --progress=plain \
-            --cpuset-cpus=0-1  \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
