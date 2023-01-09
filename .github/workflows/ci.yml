@@ -32,7 +32,7 @@ jobs:
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
   test-the-tests-0:
 
-    runs-on: macos-12
+    runs-on: macos-latest
    # needs:
    # - lint_and_test
     strategy:
