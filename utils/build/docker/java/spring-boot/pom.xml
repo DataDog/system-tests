@@ -307,6 +307,7 @@
                             <buildArgs>
                                 <buildArg>--initialize-at-build-time=com.datastax.oss.driver.internal.core.util.Dependency</buildArg>
                                 <buildArg>-J-javaagent:${agent.path}</buildArg>
+                                <buildArg>-O0</buildArg>
                             </buildArgs>
                         </configuration>
                     </plugin>
