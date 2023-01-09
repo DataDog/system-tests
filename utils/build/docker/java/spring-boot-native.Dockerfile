@@ -1,12 +1,20 @@
 
 FROM eclipse-temurin:8 as agent
 
+# Install required bsdtar
+RUN apt-get update && \
+	apt-get install -y libarchive-tools
 # Install tracer
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 
-FROM ghcr.io/datadog/system-tests/spring_native_build:latest as build
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-22 as build
+
+# Install maven
+RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz --output /opt/maven.tar.gz && \
+	tar xzvf /opt/maven.tar.gz --directory /opt && \
+	rm /opt/maven.tar.gz
 
 WORKDIR /app
 
