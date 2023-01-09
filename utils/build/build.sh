@@ -120,8 +120,7 @@ do
 
         docker build \
             --progress=plain \
-            --cpus="3"  \
-            ${DOCKER_PLATFORM_ARGS} \
+            --cpuset-cpus=0-3  \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
