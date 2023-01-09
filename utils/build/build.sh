@@ -118,9 +118,9 @@ do
 
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
-        docker build \
+        docker buildx build \
             --progress=plain \
-            --cpuset-cpus=0-3  \
+            --cpuset-cpus=0-1  \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
