@@ -13,7 +13,7 @@ COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
 
 # Copy tracer
-COPY ./utils/build/docker/java/spring-native_build/dd-java-agent.jar .
+COPY dd-java-agent.jar .
 
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn package -P spring-native
