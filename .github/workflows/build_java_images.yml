@@ -39,4 +39,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build java build image
-        run: ./system-tests/utils/build/docker/java/spring-native_build/build.sh 
+        run: |
+            cd ./system-tests/utils/build/docker/java/spring-native_build/
+            ./build.sh 
