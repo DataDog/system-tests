@@ -70,7 +70,7 @@ class APMLibraryTestServer:
     container_img: str
     container_cmd: List[str]
     container_build_dir: str
-    port: str = "50051"
+    port: str = os.getenv("APM_GRPC_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
@@ -162,8 +162,7 @@ def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
     dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
-    env["ASPNETCORE_URLS"] = "http://localhost:50051"
-    return APMLibraryTestServer(
+    server = APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
@@ -180,6 +179,8 @@ WORKDIR "/client/."
         volumes=[(os.path.join(dotnet_dir), "/client"),],
         env=env,
     )
+    server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
+    return server
 
 
 def java_library_factory(env: Dict[str, str]):
@@ -597,6 +598,7 @@ def test_server(
         "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
+        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
     }
     env.update(apm_test_server.env)
 
