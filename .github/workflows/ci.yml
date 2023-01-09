@@ -81,6 +81,8 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+    - name: Build 2
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
