@@ -8,8 +8,8 @@ RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-mav
 WORKDIR /app
 
 # Copy application sources
-COPY ../spring-boot/pom.xml .
-COPY ../spring-boot/src ./src
+COPY ./system-tests/utils/build/docker/java/spring-boot/pom.xml .
+COPY ./system-tests/utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
 
 # Copy tracer
