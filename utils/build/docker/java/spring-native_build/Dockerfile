@@ -1,4 +1,4 @@
-FROM maven:3.8-jdk-11 as build
+FROM maven:3.8-jdk-11
 
 RUN apt-get update && \
 	apt-get install -y libarchive-tools build-essential zlib1g-dev
@@ -11,5 +11,5 @@ ENV PATH="/app/graalvm-ce-java11-22.3.0/bin:$PATH"
 ENV GRAALVM_HOME="/app/graalvm-ce-java11-22.3.0"
 
 COPY pom.xml .
-RUN mvn -B dependency:go-offline -P spring-native
+RUN mvn -B dependency:go-offline -P spring-native,undertow,wildfly,openliberty,jetty
 RUN rm -rf pom.xml

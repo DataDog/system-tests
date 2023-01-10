@@ -6,7 +6,7 @@ COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 
-FROM ghcr.io/datadog/system-tests/spring_native_build:latest as build
+FROM ghcr.io/datadog/system-tests/java11_mvn_build:latest as build
 
 WORKDIR /app
 
