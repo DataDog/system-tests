@@ -12,7 +12,6 @@ env:
   REGISTRY: ghcr.io
 jobs:
   build_java_image:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     steps:
       - name: Checkout system tests

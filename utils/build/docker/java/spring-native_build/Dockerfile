@@ -12,4 +12,5 @@ ENV GRAALVM_HOME="/app/graalvm-ce-java11-22.3.0"
 
 COPY pom.xml .
 RUN mvn -B dependency:go-offline -P spring-native,undertow,wildfly,openliberty,jetty
+RUN mvn dependency:resolve -P spring-native,undertow,wildfly,openliberty,jetty
 RUN rm -rf pom.xml
