@@ -19,7 +19,7 @@ RUN mv ./src/main/resources/application-native.properties ./src/main/resources/a
 COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn package -P spring-native
+RUN mvn package -P spring-native
 
 FROM ubuntu
 
