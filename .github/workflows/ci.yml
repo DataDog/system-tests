@@ -723,6 +723,7 @@ jobs:
         - prod
         - dev
       fail-fast: false
+      max-parallel: 4
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
