@@ -1,18 +1,16 @@
-FROM maven:3.8-jdk-8 as build
+FROM eclipse-temurin:8 as agent
 
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
+# Install tracer
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
+FROM ghcr.io/datadog/system-tests/java11_mvn_build:latest as build
 
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
-
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
-
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN mvn package
 
 FROM adoptopenjdk:11-jre-hotspot
 
@@ -21,7 +19,7 @@ COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VE
 COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar .
-COPY --from=build /dd-tracer/dd-java-agent.jar .
+COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 

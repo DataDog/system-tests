@@ -14,7 +14,6 @@ env:
   REGISTRY: ghcr.io
 jobs:
   lint_and_test:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -31,7 +30,6 @@ jobs:
     - run: mkdir -p logs/docker/weblog/logs/
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
   test-the-tests-0:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -257,7 +255,6 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-1:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -482,7 +479,6 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-2:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -738,7 +734,6 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -752,7 +747,6 @@ jobs:
     - name: Display
       run: python scenarios/perfs/process.py
   fuzzer:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -768,7 +762,6 @@ jobs:
       env:
         RUNNER_CMD: python
   parametric:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
