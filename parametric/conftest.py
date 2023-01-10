@@ -70,7 +70,7 @@ class APMLibraryTestServer:
     container_img: str
     container_cmd: List[str]
     container_build_dir: str
-    port: str = "50051"
+    port: str = os.getenv("APM_GRPC_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
@@ -162,8 +162,7 @@ def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
     dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
-    env["ASPNETCORE_URLS"] = "http://localhost:50051"
-    return APMLibraryTestServer(
+    server = APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
@@ -180,6 +179,8 @@ WORKDIR "/client/."
         volumes=[(os.path.join(dotnet_dir), "/client"),],
         env=env,
     )
+    server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
+    return server
 
 
 def java_library_factory(env: Dict[str, str]):
@@ -313,17 +314,21 @@ class _TestAgentAPI:
         """Wait for `num` to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
+
+        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
         for i in range(20):
             try:
-                traces = self.traces(clear=clear)
+                traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
                 pass
             else:
                 num_received = len(traces)
                 if num_received == num:
-                    return traces
+                    if clear:
+                        self.clear()
+                    return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
 
@@ -593,6 +598,7 @@ def test_server(
         "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
+        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
     }
     env.update(apm_test_server.env)
 

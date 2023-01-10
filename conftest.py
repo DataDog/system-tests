@@ -6,7 +6,8 @@ import json
 
 from pytest_jsonreport.plugin import JSONReport
 
-from utils import context, data_collector, interfaces
+from utils import context, interfaces
+from utils.proxy.core import start_proxy
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
@@ -29,6 +30,10 @@ def pytest_sessionstart(session):
         terminal.write_line(info)
 
     if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
+
+        if not session.config.option.collectonly:
+            start_proxy()
+
         terminal.write_sep("=", "Tested components", bold=True)
         print_info(f"Library: {context.library}")
         print_info(f"Agent: {context.agent_version}")
@@ -47,11 +52,6 @@ def pytest_sessionstart(session):
         print_info(f"Weblog variant: {context.weblog_variant}")
         print_info(f"Backend: {context.dd_site}")
         print_info(f"Scenario: {context.scenario}")
-
-        # connect interface validators to data collector
-        data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
-        data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
-        data_collector.start()
 
 
 # called when each test item is collected
@@ -239,12 +239,9 @@ def pytest_sessionfinish(session, exitstatus):
     _pytest_junit_modifyreport()
 
     if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
-        data_collector.shutdown()
-        data_collector.join(timeout=10)
-
-        # Is it really a test ?
-        if data_collector.is_alive():
-            logger.error("Can't terminate data collector")
+        # TODO : shutdown proxy
+        # data_collector.join(timeout=10)
+        ...
 
 
 def _pytest_junit_modifyreport():

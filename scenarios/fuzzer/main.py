@@ -5,7 +5,7 @@
 import random
 import argparse
 
-from utils import data_collector
+from utils.proxy.core import start_proxy
 from utils.tools import get_logger
 
 from scenarios.fuzzer.core import Fuzzer
@@ -46,7 +46,7 @@ def main():
 
     logger = get_logger(use_stdout=True)
 
-    data_collector.start()
+    start_proxy()
 
     Fuzzer(
         corpus=args.corpus,
@@ -62,13 +62,6 @@ def main():
         request_count=args.request_count,
         logger=logger,
     ).run_forever()
-
-    data_collector.shutdown()
-    data_collector.join(timeout=10)
-
-    # Is it really a test ?
-    if data_collector.is_alive():
-        print("Can't terminate data collector")
 
 
 main()
