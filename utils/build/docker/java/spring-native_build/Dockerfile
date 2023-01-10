@@ -1,23 +1,15 @@
-FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-22
+FROM maven:3.8-jdk-11 as build
 
-# Install maven
-RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz --output /opt/maven.tar.gz && \
-	tar xzvf /opt/maven.tar.gz --directory /opt && \
-	rm /opt/maven.tar.gz
+RUN apt-get update && \
+	apt-get install -y libarchive-tools build-essential zlib1g-dev
 
 WORKDIR /app
 
-# Copy application sources
+RUN curl -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java11-linux-amd64-22.3.0.tar.gz --output graalvm-ce-java11-linux-amd64-22.3.0.tar.gz 
+RUN tar -xzf graalvm-ce-java11-linux-amd64-22.3.0.tar.gz 
+ENV PATH="/app/graalvm-ce-java11-22.3.0/bin:$PATH"
+ENV GRAALVM_HOME="/app/graalvm-ce-java11-22.3.0"
+
 COPY pom.xml .
-COPY src/ ./src
-RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
-
-# Copy tracer
-COPY dd-java-agent.jar .
-
-# Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn package -P spring-native
-
-RUN rm -rf dd-java-agent.jar
+RUN mvn -B dependency:go-offline -P spring-native
 RUN rm -rf pom.xml
-RUN rm -rf src/
