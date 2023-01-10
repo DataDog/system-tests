@@ -16,19 +16,19 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
-CONTAINERS=(weblog agent runner agent_proxy library_proxy)
+CONTAINERS=(weblog agent runner)
 interfaces=(agent library backend)
 WEBLOG_ENV="DD_APPSEC_ENABLED=true\n"
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
 
-export DD_AGENT_HOST=library_proxy
+export DD_AGENT_HOST=runner
 export RUNNER_ARGS="tests/"
 export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export SYSTEMTESTS_LOG_FOLDER=logs
-    CONTAINERS+=(postgres)
+    # CONTAINERS+=(postgres)
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     WEBLOG_ENV+="DD_TRACE_SAMPLE_RATE=0.5"
@@ -85,35 +85,35 @@ elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
     WEBLOG_ENV+="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RUNTIME_ACTIVATION" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
     # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
     WEBLOG_ENV="DD_RC_TARGETS_KEY_ID=TEST_KEY_ID\nDD_RC_TARGETS_KEY=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c\nDD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES"}'
     # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
     WEBLOG_ENV="DD_REMOTE_CONFIGURATION_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
     WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true\nDD_INTERNAL_RCM_POLL_INTERVAL=1000"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"}'
     WEBLOG_ENV="DD_REMOTE_CONFIGURATION_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
     WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; then
-    export SYSTEMTESTS_LIBRARY_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
+    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
 
 elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
     WEBLOG_ENV+="DD_TRACE_PROPAGATION_STYLE_INJECT=W3C\nDD_TRACE_PROPAGATION_STYLE_EXTRACT=W3C"
