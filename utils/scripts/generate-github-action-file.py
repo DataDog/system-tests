@@ -346,11 +346,7 @@ def main():
 
     main_jobs.append(
         add_main_job(
-            "graalvm",
-            result,
-            needs=[lint_job],
-            scenarios=enumerate(scenarios_sets[0]),
-            variants=deepcopy(variants_graalvm),
+            "graalvm", result, needs=[lint_job], scenarios=scenarios_sets[0], variants=deepcopy(variants_graalvm),
         )
     )
     add_ci_dashboard_job(result, main_jobs)

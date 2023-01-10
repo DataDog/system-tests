@@ -763,32 +763,33 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
-    - name: Run (0, 'DEFAULT') scenario
-      run: ./run.sh (0, 'DEFAULT')
+    - name: Run DEFAULT scenario
+      run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run (1, 'PROFILING') scenario
-      run: ./run.sh (1, 'PROFILING')
+    - name: Run PROFILING scenario
+      run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run (2, 'CGROUP') scenario
-      run: ./run.sh (2, 'CGROUP')
+    - name: Run CGROUP scenario
+      run: ./run.sh CGROUP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run (3, 'TRACE_PROPAGATION_STYLE_W3C') scenario
-      run: ./run.sh (3, 'TRACE_PROPAGATION_STYLE_W3C')
+    - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+      run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run (4, 'INTEGRATIONS') scenario
-      run: ./run.sh (4, 'INTEGRATIONS')
+      if: ${{ matrix.variant.library != 'python' }}
+    - name: Run INTEGRATIONS scenario
+      run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run (5, 'LIBRARY_CONF_CUSTOM_HEADERS_SHORT') scenario
-      run: ./run.sh (5, 'LIBRARY_CONF_CUSTOM_HEADERS_SHORT')
+    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run (6, 'LIBRARY_CONF_CUSTOM_HEADERS_LONG') scenario
-      run: ./run.sh (6, 'LIBRARY_CONF_CUSTOM_HEADERS_LONG')
+    - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+      run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
