@@ -117,12 +117,11 @@ do
     elif [[ $IMAGE_NAME == weblog ]]; then
 
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-        
+        docker buildx use default
         DOCKER_BUILDKIT=1 docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
@@ -130,7 +129,10 @@ do
             .
             #--cache-to type=local,dest=/Users/roberto.montero/Documents/temp/20230111/cache \
             #--cache-from type=local,src=/Users/roberto.montero/Documents/temp/20230111/cache \
+        #    --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
 
+          #  --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
+          #  --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
@@ -142,7 +144,7 @@ echo "RMM: BEFORE ******************************"
                 -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                 -t system_tests/weblog \
                 $EXTRA_DOCKER_ARGS \
-                --load
+                --load \
                 .
 echo "RMM: AFTER *****************************"
 
@@ -153,13 +155,12 @@ echo "RMM: AFTER *****************************"
         # ENV command in a Dockerfile can be the result of a command, it must either an hardcoded value
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
-
         echo "Getting system test context and saving it in weblog image"
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
-
+echo "RMM: HERRRRRREEEEEEEEEEEEE *****************************"
         DOCKER_BUILDKIT=1 docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
