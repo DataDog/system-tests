@@ -11,6 +11,8 @@ from utils.proxy.core import start_proxy
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
+from utils._context.containers import agent_container, weblog_container
+
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -185,10 +187,17 @@ def pytest_collection_finish(session):
     terminal.write("\n\n")
 
     _wait_interface(interfaces.library, session)
-    _wait_interface(interfaces.library_stdout, session)
-    _wait_interface(interfaces.library_dotnet_managed, session)
     _wait_interface(interfaces.agent, session)
     _wait_interface(interfaces.backend, session)
+
+    agent_container.save_logs()
+    weblog_container.save_logs()
+
+    _wait_interface(interfaces.library_stdout, session)
+    _wait_interface(interfaces.library_dotnet_managed, session)
+
+    agent_container.remove()
+    weblog_container.remove()
 
 
 def _wait_interface(interface, session):

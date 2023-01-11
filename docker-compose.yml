@@ -5,52 +5,11 @@
 version: "2.4"
 services:
 
-  weblog:
-    container_name: weblog
-    image: system_tests/weblog
-    env_file:
-      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/.weblog.env
-    environment:
-      - DD_AGENT_HOST
-      - DD_TRACE_AGENT_PORT
-      - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
-    volumes:
-      - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
-    ports:
-      - "127.0.0.1:7777:7777"
-      - "127.0.0.1:7778:7778"
-    depends_on:
-      runner:
-        condition: service_started
-      agent:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-
-  agent:
-    container_name: agent
-    image: system_tests/agent
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://agent:8126/info"]
-      interval: 1s
-      start_period: 5s
-      retries: 60
-    environment:
-      - DD_API_KEY
-      - DD_ENV=system-tests
-      - DD_HOSTNAME=test
-      - DD_SITE=${DD_SITE:-datad0g.com}
-      # - DD_URL=https://app.datad0g.com
-      - DD_APM_RECEIVER_PORT=8126
-      - DD_DOGSTATSD_PORT=${HIDDEN_DSD_PORT_OVERRIDE:-8125}
-    depends_on:
-      runner:
-        condition: service_started
-
   runner:
     container_name: runner
     image: system_tests/runner
     environment:
+      - HOST_PWD
       - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY
       - DD_APPLICATION_KEY=${DD_APPLICATION_KEY:-}
@@ -61,6 +20,8 @@ services:
       - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=8126 # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
       - SYSTEMTESTS_PROXY_STATE=${SYSTEMTESTS_PROXY_STATE:-}
+      - DD_AGENT_HOST
+      - DD_TRACE_AGENT_PORT=8126
     volumes:
       - ./scenarios/:/app/scenarios/:ro
       - ./tests/:/app/tests/:ro

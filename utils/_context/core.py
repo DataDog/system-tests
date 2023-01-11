@@ -10,6 +10,7 @@ import time
 import pytest
 import requests
 
+from utils._context.containers import agent_container, weblog_container
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
@@ -101,7 +102,9 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
 
         warmups = [
-            _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=15),
+            agent_container.start,
+            _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=1),
+            weblog_container.start,
             _HealthCheck("http://weblog:7777", 120),
             _wait_for_app_readiness,
         ]

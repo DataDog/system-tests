@@ -16,11 +16,12 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
-CONTAINERS=(weblog agent runner)
+CONTAINERS=(runner)
 interfaces=(agent library backend)
 WEBLOG_ENV="DD_APPSEC_ENABLED=true\n"
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
+export HOST_PWD=$(pwd)
 
 export DD_AGENT_HOST=runner
 export RUNNER_ARGS="tests/"
@@ -169,7 +170,7 @@ fi
 
 export container_log_folder="unset"
 # Save docker logs
-for CONTAINER in ${CONTAINERS[@]}
+for CONTAINER in runner
 do
     container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${CONTAINER}"
     docker-compose logs --no-color --no-log-prefix -f $CONTAINER > $container_log_folder/stdout.log &
