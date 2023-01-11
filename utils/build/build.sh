@@ -117,8 +117,8 @@ do
     elif [[ $IMAGE_NAME == weblog ]]; then
 
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-        DOCKER_BUILDKIT=1 
-        docker buildx build \
+        
+        DOCKER_BUILDKIT=1 docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
