@@ -12,7 +12,7 @@ if test -f ".env"; then
 fi
 
 CURRENT_PWD=$(pwd)
-
+DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK}}
 
 while [[ "$#" -gt 0 ]]; do
@@ -77,7 +77,7 @@ ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 DOCKER_PLATFORM_ARGS=""
 
 if [ "$ARCH" = "arm64" ]; then
-    DOCKER_PLATFORM_ARGS="--platform linux/amd64"
+    DOCKER_PLATFORM_ARGS="--platform linux/arm64/v8"
 fi
 
 # Build images
@@ -117,14 +117,20 @@ do
     elif [[ $IMAGE_NAME == weblog ]]; then
 
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-
-        docker build \
+        DOCKER_BUILDKIT=1 
+        docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
+            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
             $EXTRA_DOCKER_ARGS \
+            --load \
             .
+            #--cache-to type=local,dest=/Users/roberto.montero/Documents/temp/20230111/cache \
+            #--cache-from type=local,src=/Users/roberto.montero/Documents/temp/20230111/cache \
+
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
