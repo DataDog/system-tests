@@ -117,7 +117,7 @@ do
     elif [[ $IMAGE_NAME == weblog ]]; then
 
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-        docker buildx use default
+       # docker buildx use default
         DOCKER_BUILDKIT=1 docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
