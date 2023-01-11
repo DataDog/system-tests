@@ -191,7 +191,7 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         for f in files:
             filename = os.path.join("logs/docker/weblog/logs/", f)
 
-            if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+.log", filename):
+            if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
                 result.append(filename)
 
         return result
