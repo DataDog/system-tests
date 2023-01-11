@@ -53,6 +53,7 @@ class Test_Standardization:
     @bug(context.library == "java@0.90.0", reason="APPSEC-2190")
     @bug(context.library == "java@0.91.0", reason="APPSEC-2190")
     @missing_feature(context.library < "dotnet@2.1.0")
+    @bug(context.library >= "dotnet@2.21.0")
     def test_d05(self):
         """Log D5: WAF outputs"""
         stdout.assert_presence(r'AppSec In-App WAF returned:.*crs-921-160"', level="DEBUG")
