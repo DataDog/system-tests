@@ -135,13 +135,14 @@ do
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 echo "RMM: BEFORE ******************************"
-           DOCKER_BUILDKIT=0 docker build \
+           DOCKER_BUILDKIT=1 docker buildx build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                 -t system_tests/weblog \
                 $EXTRA_DOCKER_ARGS \
+                --load
                 .
 echo "RMM: AFTER *****************************"
 
@@ -159,7 +160,7 @@ echo "RMM: AFTER *****************************"
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
 
-        DOCKER_BUILDKIT=0 docker build \
+        DOCKER_BUILDKIT=1 docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
@@ -170,6 +171,7 @@ echo "RMM: AFTER *****************************"
             --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
             -t system_tests/weblog \
+            --load \
             .
 
     else
