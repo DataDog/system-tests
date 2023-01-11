@@ -135,7 +135,7 @@ do
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 echo "RMM: BEFORE ******************************"
-            docker build \
+           DOCKER_BUILDKIT=0 docker build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
@@ -159,7 +159,7 @@ echo "RMM: AFTER *****************************"
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
 
-        docker build \
+        DOCKER_BUILDKIT=0 docker build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
