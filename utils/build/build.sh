@@ -134,7 +134,7 @@ do
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
-
+echo "RMM: BEFORE ******************************"
             docker build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
@@ -143,6 +143,8 @@ do
                 -t system_tests/weblog \
                 $EXTRA_DOCKER_ARGS \
                 .
+echo "RMM: AFTER *****************************"
+
         fi
 
         # The library version is needed as an env var, and as the runner is executed before the weblog
