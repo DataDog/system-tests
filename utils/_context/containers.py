@@ -76,7 +76,7 @@ agent_container = TestedContainer(
     image_name="system_tests/agent",
     name="agent",
     environment={
-        "DD_API_KEY": os.environ["DD_API_KEY"],
+        "DD_API_KEY": os.environ.get("DD_API_KEY", "please-set-DD_API_KEY"),
         "DD_ENV": "system-tests",
         "DD_HOSTNAME": "test",
         "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
@@ -104,9 +104,25 @@ def get_weblog_env():
     return result
 
 
+host_pwd = os.environ["HOST_PWD"]
 weblog_container = TestedContainer(
     image_name="system_tests/weblog",
     name="weblog",
     environment=get_weblog_env(),
-    volumes={f"{os.environ['HOST_PWD']}/logs/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+    volumes={f"{host_pwd}/logs/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+)
+
+cassandra_db = TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
+mongo_db = TestedContainer(image_name="mongo:latest", name="mongodb", allow_old_container=True)
+postgres_db = TestedContainer(
+    image_name="postgres:latest",
+    name="postgres",
+    user="postgres",
+    environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
+    volumes={
+        f"{host_pwd}/utils/build/docker/postgres-init-db.sh": {
+            "bind": "/docker-entrypoint-initdb.d/init_db.sh",
+            "mode": "ro",
+        }
+    },
 )

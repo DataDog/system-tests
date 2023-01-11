@@ -10,7 +10,7 @@ import time
 import pytest
 import requests
 
-from utils._context.containers import agent_container, weblog_container
+from utils._context.containers import agent_container, weblog_container, postgres_db, cassandra_db, mongo_db
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
@@ -100,8 +100,14 @@ class _Context:  # pylint: disable=too-many-instance-attributes
     def execute_warmups(self):
 
         agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
+        warmups = []
 
-        warmups = [
+        if self.scenario == ("INTEGRATIONS",):
+            warmups.append(mongo_db.start)
+            warmups.append(cassandra_db.start)
+            warmups.append(postgres_db.start)
+
+        warmups += [
             agent_container.start,
             _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=1),
             weblog_container.start,
