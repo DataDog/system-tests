@@ -98,7 +98,7 @@ do
 
         echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
-        docker build \
+       DOCKER_BUILDKIT=0 docker build \
             --progress=plain \
             -f utils/build/docker/agent.Dockerfile \
             -t system_tests/agent \
@@ -108,7 +108,7 @@ do
 
         SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
 
-        docker build \
+       DOCKER_BUILDKIT=0 docker build \
             --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
             -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
             -t system_tests/agent \
@@ -171,7 +171,7 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
             $EXTRA_DOCKER_ARGS \
             --load \
