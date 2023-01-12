@@ -166,7 +166,7 @@ do
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch /app/SYSTEM_TESTS_PHP_APPSEC_VERSION && cat /app/SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
-
+       echo "RM LAST BUILD"
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
