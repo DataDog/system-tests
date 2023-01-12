@@ -56,6 +56,6 @@ ENV DD_RC_TUF_ROOT='{"signed":{"_type":"root","spec_version":"1.0","version":1,"
 
 RUN apt-get install socat -y
 COPY ./utils/build/docker/weblog-cmd.sh ./weblog-cmd.sh
-RUN chmod +x app.sh
+RUN chmod +x /app/app.sh
 RUN chmod +x weblog-cmd.sh
 CMD [ "./weblog-cmd.sh" ]
