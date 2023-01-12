@@ -128,9 +128,10 @@ do
             -t system_tests/weblog \
             --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
+            --load  \
             $EXTRA_DOCKER_ARGS \
             .
+                    #    --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
  #--output type=oci,dest=/Users/roberto.montero/Documents/temp/20230111/oci \
           #   --output type=local,dest=/Users/roberto.montero/Documents/temp/20230111/images \
           #  --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
@@ -162,6 +163,7 @@ do
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
         echo "Getting system test context and saving it in weblog image"
+
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch /app/SYSTEM_TESTS_PHP_APPSEC_VERSION && cat /app/SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)

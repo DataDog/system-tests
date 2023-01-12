@@ -721,8 +721,6 @@ jobs:
         variant:
         - library: java
           weblog: spring-boot-native
-        - library: java
-          weblog: spring-boot-3-native
         version:
         - prod
         - dev
