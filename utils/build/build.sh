@@ -115,45 +115,31 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
-
+        BUILD_DIR=$(echo $RANDOM | md5sum | head -c 20; echo;)
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
-    #  docker buildx use default
-     # docker buildx create --name mybuilder7 --use 
-
 
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
+            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             $EXTRA_DOCKER_ARGS \
             .
-            #--output="type=docker,push=false,name=system-tests/weblog,dest=/tmp/img.tar" \
-                    #    --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
- #--output type=oci,dest=/Users/roberto.montero/Documents/temp/20230111/oci \
-          #   --output type=local,dest=/Users/roberto.montero/Documents/temp/20230111/images \
-          #  --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
-          #  --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
-            #--cache-to type=local,dest=/Users/roberto.montero/Documents/temp/20230111/cache \
-            #--cache-from type=local,src=/Users/roberto.montero/Documents/temp/20230111/cache \
-        #    --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-
-          #  --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-          #  --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
+            DOCKERFILE=utils/build/docker/overwrite_waf_rules.Dockerfile 
             docker buildx build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
-                -f utils/build/docker/overwrite_waf_rules.Dockerfile \
+                -f ${DOCKERFILE} \
                 -t system_tests/weblog \
                 --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
-                --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
+                --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
                 $EXTRA_DOCKER_ARGS \
                 .
         fi
@@ -164,27 +150,24 @@ do
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
         echo "Getting system test context and saving it in weblog image"
-      #  docker import /tmp/img.tar
 
+        #If we are building weblog images with buildkit we need to load images before trying to run
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             $EXTRA_DOCKER_ARGS \
             --load \
             .
 
-        echo "RM 000000"
-        #docker load --input /tmp/img.tar
-#docker load --input localregistry/images/${WEBLOG_VARIANT}
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch /app/SYSTEM_TESTS_PHP_APPSEC_VERSION && cat /app/SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
-       echo "RM LAST BUILD"
+
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
@@ -195,7 +178,7 @@ do
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
             --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
-            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
+            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             -t system_tests/weblog \
             --load \
             .
