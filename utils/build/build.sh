@@ -74,7 +74,7 @@ echo ""
 
 #Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
-DOCKER_PLATFORM_ARGS=""
+DOCKER_PLATFORM_ARGS="--platform linux/amd64"
 
 if [ "$ARCH" = "arm64" ]; then
     DOCKER_PLATFORM_ARGS="--platform linux/arm64/v8"
