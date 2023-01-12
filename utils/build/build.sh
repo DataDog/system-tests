@@ -178,12 +178,11 @@ do
             --build-arg SYSTEM_TESTS_PHP_APPSEC_VERSION="$SYSTEM_TESTS_PHP_APPSEC_VERSION" \
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
             --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
-            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
             -t system_tests/weblog \
             --load \
             .
-
+           # --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
     else
         echo "Don't know how to build $IMAGE_NAME"
         exit 1
