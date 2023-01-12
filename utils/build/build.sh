@@ -126,9 +126,9 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --output type=local,dest=binaries/images/${WEBLOG_VARIANT} \
+            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
             $EXTRA_DOCKER_ARGS \
             .
  #--output type=oci,dest=/Users/roberto.montero/Documents/temp/20230111/oci \
@@ -150,8 +150,8 @@ do
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                 -t system_tests/weblog \
-                --build-context system_tests/weblog=binaries/images/${WEBLOG_VARIANT} \
-                --output type=local,dest=binaries/images/${WEBLOG_VARIANT} \
+                --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
+                --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
                 $EXTRA_DOCKER_ARGS \
                 .
         fi
@@ -176,7 +176,7 @@ do
             --build-arg SYSTEM_TESTS_PHP_APPSEC_VERSION="$SYSTEM_TESTS_PHP_APPSEC_VERSION" \
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
             --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
-            --build-context system_tests/weblog=binaries/images/${WEBLOG_VARIANT} \
+            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
             -t system_tests/weblog \
             --load \
