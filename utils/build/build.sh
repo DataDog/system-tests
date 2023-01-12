@@ -123,8 +123,8 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             $EXTRA_DOCKER_ARGS \
             .
@@ -157,7 +157,7 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             $EXTRA_DOCKER_ARGS \
             --load \
