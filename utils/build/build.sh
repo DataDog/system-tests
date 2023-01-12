@@ -98,7 +98,7 @@ do
 
         echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
-       DOCKER_BUILDKIT=0 docker build \
+        docker build \
             --progress=plain \
             -f utils/build/docker/agent.Dockerfile \
             -t system_tests/agent \
@@ -108,7 +108,7 @@ do
 
         SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
 
-       DOCKER_BUILDKIT=0 docker build \
+        docker build \
             --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
             -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
             -t system_tests/agent \
