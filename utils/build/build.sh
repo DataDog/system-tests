@@ -128,9 +128,10 @@ do
             -t system_tests/weblog \
             --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            -o type=docker \
+            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
             $EXTRA_DOCKER_ARGS \
             .
+            #--output="type=docker,push=false,name=system-tests/weblog,dest=/tmp/img.tar" \
                     #    --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
  #--output type=oci,dest=/Users/roberto.montero/Documents/temp/20230111/oci \
           #   --output type=local,dest=/Users/roberto.montero/Documents/temp/20230111/images \
@@ -163,7 +164,22 @@ do
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
         echo "Getting system test context and saving it in weblog image"
+      #  docker import /tmp/img.tar
 
+        docker buildx build \
+            --progress=plain \
+            ${DOCKER_PLATFORM_ARGS} \
+            -f ${DOCKERFILE} \
+            -t system_tests/weblog \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
+            $EXTRA_DOCKER_ARGS \
+            --load \
+            .
+
+        echo "RM 000000"
+        #docker load --input /tmp/img.tar
+#docker load --input localregistry/images/${WEBLOG_VARIANT}
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch /app/SYSTEM_TESTS_PHP_APPSEC_VERSION && cat /app/SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)
@@ -179,6 +195,7 @@ do
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
             --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
+            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
             -t system_tests/weblog \
             --load \
             .
