@@ -123,8 +123,8 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
+            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
             --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             $EXTRA_DOCKER_ARGS \
             .
@@ -138,7 +138,7 @@ do
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
-                --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
+                --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
                 --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
                 $EXTRA_DOCKER_ARGS \
                 .
@@ -157,7 +157,7 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
+            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache3 \
             --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             $EXTRA_DOCKER_ARGS \
             --load \
