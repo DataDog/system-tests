@@ -128,7 +128,7 @@ do
             -t system_tests/weblog \
             --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --load  \
+            -o type=docker \
             $EXTRA_DOCKER_ARGS \
             .
                     #    --output type=local,dest=localregistry/images/${WEBLOG_VARIANT} \
