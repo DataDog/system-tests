@@ -12,8 +12,11 @@ if test -f ".env"; then
 fi
 
 CURRENT_PWD=$(pwd)
-DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK}}
+
+DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
+ALIAS_CACHE_FROM="R" #read cache
+ALIAS_CACHE_TO="W" #write cache
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -22,6 +25,7 @@ while [[ "$#" -gt 0 ]]; do
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
+        -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         *) cat utils/build/README.md; exit 1 ;;
     esac
     shift
@@ -61,6 +65,15 @@ else
     echo "Unknown library: ${TEST_LIBRARY}"
     cat utils/build/README.md
     exit 1
+fi
+
+if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
+  echo "Setting remote cache for read"
+  CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+fi
+if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
+  echo "Setting remote cache for write"
+  CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
 fi
 
 echo "=================================="
@@ -115,7 +128,6 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
-        BUILD_DIR=$(echo $RANDOM | md5sum | head -c 20; echo;)
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
         docker buildx build \
@@ -123,12 +135,11 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
-            --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
+            $CACHE_TO \
+            $CACHE_FROM \
             $EXTRA_DOCKER_ARGS \
             --load \
             .
-#            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
@@ -141,8 +152,6 @@ do
                 -t system_tests/weblog \
                 $EXTRA_DOCKER_ARGS \
                 .
-            #--build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
-            #--output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
         fi
 
         # The library version is needed as an env var, and as the runner is executed before the weblog
@@ -169,7 +178,6 @@ do
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
             -t system_tests/weblog \
             .
-           # --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
     else
         echo "Don't know how to build $IMAGE_NAME"
         exit 1

@@ -748,6 +748,10 @@ jobs:
     - run: mkdir logs && touch logs/.weblog.env
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
+
+    - name: DONDE ESTAMOS
+      run: echo "${{ github.ref }}"
+      
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -778,7 +782,7 @@ jobs:
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
