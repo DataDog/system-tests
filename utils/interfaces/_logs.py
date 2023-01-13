@@ -146,7 +146,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
             self._parsers.append(re.compile(p("message", r".*")))
 
     def _get_files(self):
-        return ["logs/docker/weblog/stdout.log"]
+        return ["logs/docker/weblog/stdout.log", "logs/docker/weblog/stderr.log"]
 
     def _clean_line(self, line):
         if line.startswith("weblog_1         | "):
