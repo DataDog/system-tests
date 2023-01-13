@@ -721,8 +721,6 @@ jobs:
         variant:
         - library: java
           weblog: spring-boot-native
-        - library: java
-          weblog: spring-boot-3-native
         version:
         - prod
         - dev
@@ -750,9 +748,6 @@ jobs:
     - run: mkdir logs && touch logs/.weblog.env
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
-
-    - name: DONDE ESTAMOS
-      run: echo "${{ github.ref }}"
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -782,8 +777,14 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-    - name: Build
+    #TODO RMM CHANGEME
+    - name: Building with cache read-write mode
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
+      if: github.ref != 'refs/heads/main'
+    - name: Building with cache read only mode
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
+      if: github.ref == 'refs/heads/main'
+
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
