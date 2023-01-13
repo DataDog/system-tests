@@ -14,7 +14,6 @@ env:
   REGISTRY: ghcr.io
 jobs:
   lint_and_test:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -33,7 +32,6 @@ jobs:
     - run: mkdir -p logs/docker/weblog/logs/
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
   test-the-tests-0:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -255,7 +253,6 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-1:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -476,7 +473,6 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-2:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -714,13 +710,15 @@ jobs:
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-graalvm:
     runs-on: ubuntu-latest
-   # needs:
-   # - lint_and_test
+    needs:
+    - lint_and_test
     strategy:
       matrix:
         variant:
         - library: java
           weblog: spring-boot-native
+        - library: java
+          weblog: spring-boot-3-native
         version:
         - prod
         - dev
@@ -730,19 +728,15 @@ jobs:
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
     steps:
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6 # 2.0.0
-      with: 
-          install: false
-          config-inline: |
-            [worker.oci]
-              max-parallelism = 1
-    - name: Log in to the Container registry
-      uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b # 2.0.0
+      uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
+        install: 'false'
+    - name: Log in to the Container registry
+      uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
@@ -777,14 +771,12 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-    #TODO RMM CHANGEME
     - name: Building with cache read-write mode
+      if: ${{ github.ref != 'refs/heads/main'}}
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
-      if: github.ref != 'refs/heads/main'
     - name: Building with cache read only mode
+      if: ${{ github.ref == 'refs/heads/main'}}
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
-      if: github.ref == 'refs/heads/main'
-
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
@@ -834,9 +826,9 @@ jobs:
   post_test-the-tests:
     runs-on: ubuntu-latest
     needs:
-   # - test-the-tests-0
-   # - test-the-tests-1
-   # - test-the-tests-2
+    - test-the-tests-0
+    - test-the-tests-1
+    - test-the-tests-2
     - test-the-tests-graalvm
     if: always() && github.ref == 'refs/heads/main'
     steps:
@@ -848,7 +840,6 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -862,7 +853,6 @@ jobs:
     - name: Display
       run: python scenarios/perfs/process.py
   fuzzer:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -878,7 +868,6 @@ jobs:
       env:
         RUNNER_CMD: python
   parametric:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
