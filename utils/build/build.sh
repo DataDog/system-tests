@@ -125,23 +125,24 @@ do
             -t system_tests/weblog \
             --cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
             --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             $EXTRA_DOCKER_ARGS \
+            --load \
             .
+#            --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
             DOCKERFILE=utils/build/docker/overwrite_waf_rules.Dockerfile 
-            docker buildx build \
+            docker build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
-                --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
-                --output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
                 $EXTRA_DOCKER_ARGS \
                 .
+            #--build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
+            #--output type=local,dest=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
         fi
 
         # The library version is needed as an env var, and as the runner is executed before the weblog
@@ -151,24 +152,12 @@ do
         # If anybody has an idea to achieve this in a cleanest way ...
         echo "Getting system test context and saving it in weblog image"
 
-        #If we are building weblog images with buildkit we need to load images before trying to run
-        docker buildx build \
-            --progress=plain \
-            ${DOCKER_PLATFORM_ARGS} \
-            -f ${DOCKERFILE} \
-            -t system_tests/weblog \
-            --cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache \
-            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
-            $EXTRA_DOCKER_ARGS \
-            --load \
-            .
-
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch /app/SYSTEM_TESTS_PHP_APPSEC_VERSION && cat /app/SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)
         SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
 
-        docker buildx build \
+        docker build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
@@ -178,9 +167,7 @@ do
             --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
             --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
-            --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT}/${BUILD_DIR} \
             -t system_tests/weblog \
-            --load \
             .
            # --build-context system_tests/weblog=localregistry/images/${WEBLOG_VARIANT} \
     else
