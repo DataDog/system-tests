@@ -71,6 +71,7 @@ variants = (
     + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"])
     + build_variant_array("ruby", [f"rails{v}" for v in rails_versions])
 )
+variants_graalvm = build_variant_array("java", ["spring-boot-native", "spring-boot-3-native"])
 
 
 class Job:
@@ -161,13 +162,13 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(i, workflow, needs, scenarios):
+def add_main_job(i, workflow, needs, scenarios, variants):
 
     name = f"test-the-tests-{i}"
     job = Job(name, needs=[job.name for job in needs])
 
     job.data["strategy"] = {
-        "matrix": {"variant": deepcopy(variants), "version": ["prod", "dev"]},
+        "matrix": {"variant": variants, "version": ["prod", "dev"]},
         "fail-fast": False,
     }
 
@@ -341,8 +342,13 @@ def main():
     main_jobs = []
 
     for i, scenarios in enumerate(scenarios_sets):
-        main_jobs.append(add_main_job(i, result, needs=[lint_job], scenarios=scenarios))
+        main_jobs.append(add_main_job(i, result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))
 
+    main_jobs.append(
+        add_main_job(
+            "graalvm", result, needs=[lint_job], scenarios=scenarios_sets[0], variants=deepcopy(variants_graalvm),
+        )
+    )
     add_ci_dashboard_job(result, main_jobs)
 
     add_perf_job(result, needs=[lint_job])
