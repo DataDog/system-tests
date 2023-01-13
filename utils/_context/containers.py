@@ -32,6 +32,8 @@ class TestedContainer:
                 return container
 
     def start(self) -> Container:
+        Path(self.log_folder_path).mkdir(exist_ok=True)
+
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -41,7 +43,7 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.kill()
 
-        Path(self.log_folder_path).mkdir(exist_ok=True)
+        self._fix_host_pwd_in_volumes()
 
         logger.info(f"Start container {self.container_name}")
 
@@ -54,6 +56,23 @@ class TestedContainer:
             network="system-tests_default",
             **self.kwargs,
         )
+
+    def _fix_host_pwd_in_volumes(self):
+        # on docker compose, volume host path can starts with a "."
+        # it means the current path on host machine. It's not supported in bare docker
+        # replicate this behavior here
+        if "volumes" not in self.kwargs:
+            return
+
+        host_pwd = os.environ["HOST_PWD"]
+
+        result = {}
+        for k, v in self.kwargs["volumes"].items():
+            if k.startswith("./"):
+                k = f"{host_pwd}{k[1:]}"
+            result[k] = v
+
+        self.kwargs["volumes"] = result
 
     def save_logs(self):
         if not self._container:
@@ -89,8 +108,8 @@ agent_container = TestedContainer(
 def get_weblog_env():
 
     result = {
-        "DD_AGENT_HOST": os.environ["DD_AGENT_HOST"],
-        "DD_TRACE_AGENT_PORT": os.environ["DD_TRACE_AGENT_PORT"],
+        "DD_AGENT_HOST": os.environ.get("DD_AGENT_HOST", "runner"),
+        "DD_TRACE_AGENT_PORT": os.environ.get("DD_TRACE_AGENT_PORT", "8126"),
         "SYSTEMTESTS_SCENARIO": os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT"),
     }
 
@@ -104,12 +123,11 @@ def get_weblog_env():
     return result
 
 
-host_pwd = os.environ["HOST_PWD"]
 weblog_container = TestedContainer(
     image_name="system_tests/weblog",
     name="weblog",
     environment=get_weblog_env(),
-    volumes={f"{host_pwd}/logs/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+    volumes={"./logs/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
 )
 
 cassandra_db = TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
@@ -120,9 +138,6 @@ postgres_db = TestedContainer(
     user="postgres",
     environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
     volumes={
-        f"{host_pwd}/utils/build/docker/postgres-init-db.sh": {
-            "bind": "/docker-entrypoint-initdb.d/init_db.sh",
-            "mode": "ro",
-        }
+        "./utils/build/docker/postgres-init-db.sh": {"bind": "/docker-entrypoint-initdb.d/init_db.sh", "mode": "ro",}
     },
 )
