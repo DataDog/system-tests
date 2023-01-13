@@ -143,12 +143,12 @@ do
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
-            DOCKERFILE=utils/build/docker/overwrite_waf_rules.Dockerfile 
+            
             docker build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
-                -f ${DOCKERFILE} \
+                -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                 -t system_tests/weblog \
                 $EXTRA_DOCKER_ARGS \
                 .
@@ -159,8 +159,8 @@ do
         # ENV command in a Dockerfile can be the result of a command, it must either an hardcoded value
         # or an arg. So we use this 2-step trick to get it.
         # If anybody has an idea to achieve this in a cleanest way ...
-        echo "Getting system test context and saving it in weblog image"
 
+        echo "Getting system test context and saving it in weblog image"
         SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBRARY_VERSION)
         SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch /app/SYSTEM_TESTS_PHP_APPSEC_VERSION && cat /app/SYSTEM_TESTS_PHP_APPSEC_VERSION")
         SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)
@@ -178,6 +178,7 @@ do
             -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
             -t system_tests/weblog \
             .
+
     else
         echo "Don't know how to build $IMAGE_NAME"
         exit 1
