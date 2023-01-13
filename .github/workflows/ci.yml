@@ -721,6 +721,8 @@ jobs:
         variant:
         - library: java
           weblog: spring-boot-native
+        - library: java
+          weblog: spring-boot-3-native
         version:
         - prod
         - dev
@@ -751,7 +753,6 @@ jobs:
 
     - name: DONDE ESTAMOS
       run: echo "${{ github.ref }}"
-      
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
