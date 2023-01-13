@@ -20,4 +20,4 @@ if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "CGROUP" ]; then
     cat /proc/self/cgroup > /var/log/system-tests/weblog.cgroup
 fi
 
-./app/app.sh
+./app.sh
