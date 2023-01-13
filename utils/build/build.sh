@@ -143,7 +143,7 @@ do
 
         if test -f "binaries/waf_rule_set.json"; then
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
-            
+
             docker build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
@@ -161,10 +161,10 @@ do
         # If anybody has an idea to achieve this in a cleanest way ...
 
         echo "Getting system test context and saving it in weblog image"
-        SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBRARY_VERSION)
-        SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch /app/SYSTEM_TESTS_PHP_APPSEC_VERSION && cat /app/SYSTEM_TESTS_PHP_APPSEC_VERSION")
-        SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)
-        SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
+        SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
+        SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
+        SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
+        SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION) 
 
         docker build \
             --progress=plain \
