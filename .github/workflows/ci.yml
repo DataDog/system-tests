@@ -14,7 +14,7 @@ env:
   REGISTRY: ghcr.io
 jobs:
   lint_and_test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
     - run: mkdir -p logs/docker/weblog/logs/
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
   test-the-tests-0:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - lint_and_test
     strategy:
@@ -253,7 +253,7 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-1:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - lint_and_test
     strategy:
@@ -473,7 +473,7 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-2:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - lint_and_test
     strategy:
@@ -709,7 +709,7 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-graalvm:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - lint_and_test
     strategy:
@@ -811,7 +811,7 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   post_test-the-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - test-the-tests-0
     - test-the-tests-1
@@ -827,7 +827,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - lint_and_test
     env:
@@ -840,7 +840,7 @@ jobs:
     - name: Display
       run: python scenarios/perfs/process.py
   fuzzer:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - lint_and_test
     env:
@@ -855,7 +855,7 @@ jobs:
       env:
         RUNNER_CMD: python
   parametric:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     needs:
     - lint_and_test
     strategy:
