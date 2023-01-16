@@ -1,0 +1,319 @@
+name: system-tests runner
+description: "Lib injection tests runner"
+
+inputs:
+  tracer_version:
+    description: Version of the tracer to download (allowed values provided, dev or prod)
+    required: false
+    default: 'dev'
+  agent_version:
+    description: Version of agent to download (allowed values dev or prod)
+    required: false
+    default: 'prod'
+  binaries_path:
+    description: Path where we can found the tracer binaries. If this path is empty we will try to download artefact from CI (see tracer_version dev or prod)
+    required: false
+    default: 'binaries'
+  library:
+    description: Library language java,python...
+    required: true
+  weblog:
+    description: weblog app
+    required: true
+  scenarios:
+    description: scenarios will be run
+    required: true
+  DD_API_KEY:
+    description: DD API key
+    required: true
+  DD_CI_API_KEY:
+    description: DD API key to upload results to CI Visibility
+    required: false
+  GH_TOKEN:
+    description: Github token used to download artifact from CI
+    required: false
+    default: ''
+  CIRCLECI_TOKEN:
+    description: CircleCI token used to download artifact from CI
+    required: false
+    default: ''
+  archive_logs:
+    description: Enable download logs
+    required: false
+    default: 'true'
+  ci_visibility:
+    description: Upload results to CI Visibility
+    required: false
+runs:
+  using: composite
+
+  steps:
+      - run: mkdir logs && touch logs/.weblog.env
+        shell: bash
+
+      - name: Pull images
+        run: docker-compose pull cassandra_db mongodb postgres
+        shell: bash
+
+      - name: Check if we can run tests with tracer_version
+        id: check-tracer
+        shell: bash
+        run: |
+           if [[ ${{ inputs.tracer_version }} == 'dev' ]]; then
+              if [[ (${{ inputs.library }} == 'php' or ${{ inputs.library }} == 'java') and ${{ inputs.CIRCLECI_TOKEN }} == '' ]]; then
+                echo "We can't download last snapshot tracer from CircleCI. You should add CIRCLECI TOKEN to your workflow"
+                SHOULD_DOWNLOAD_TRACER=false
+                SHOULD_EXECUTE_TESTS=false
+              elif [[ ${{ inputs.library }} != 'php' and ${{ inputs.library }} != 'java' and ${{ inputs.GH_TOKEN }} == '' ]]; then
+                echo "We can't download last snapshot tracer from GitHub. You should add GH TOKEN to your workflow"
+                SHOULD_DOWNLOAD_TRACER=false
+                SHOULD_EXECUTE_TESTS=false
+              else
+                SHOULD_DOWNLOAD_TRACER=true
+                SHOULD_EXECUTE_TESTS=true
+              fi
+           elif if [[ ${{ inputs.tracer_version }} == 'prod' ]]; then
+              SHOULD_DOWNLOAD_TRACER=true
+              SHOULD_EXECUTE_TESTS=true
+           elif if [[ ${{ inputs.tracer_version }} == 'provided' ]]; then   
+              SHOULD_DOWNLOAD_TRACER=false
+              SHOULD_EXECUTE_TESTS=true
+           fi
+
+           echo "should-download-tracer=$SHOULD_DOWNLOAD_TRACER" >> $GITHUB_OUTPUT
+           echo "should-execute-tests=$SHOULD_EXECUTE_TESTS" >> $GITHUB_OUTPUT
+
+      - name: Load WAF rules
+        if: ${{ inputs.tracer_version == 'dev'}}
+        run: ./utils/scripts/load-binary.sh waf_rule_set
+        shell: bash
+        env:
+          GH_TOKEN: ${{ inputs.GH_TOKEN }}
+
+      - name: Load library binary
+        if: ${{ steps.check-tracer.outputs.should-download-tracer }}
+        run: ./utils/scripts/load-binary.sh ${{ inputs.library }} ${{ inputs.tracer_version }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ inputs.GH_TOKEN}}
+
+      - name: Load library PHP appsec binary
+        if: ${{ inputs.library == 'php' && steps.check-tracer.outputs.should-execute-tests }}
+        run: ./utils/scripts/load-binary.sh php_appsec ${{ inputs.library_version }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ inputs.GH_TOKEN }}
+          CIRCLECI_TOKEN: ${{ inputs.CIRCLECI_TOKEN }}
+
+      - name: Load agent binary
+        if: ${{ inputs.agent_version == 'dev' }}
+        run: ./utils/scripts/load-binary.sh agent
+        shell: bash
+
+      - name: Log in to the Container registry
+        if: ${{ inputs.library == 'ruby' }}
+        run: echo ${{ inputs.GH_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        shell: bash
+
+      - name: Build
+        if: ${{ steps.check-tracer.outputs.should-execute-tests }}
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+        shell: bash
+
+      - name: Run DEFAULT scenario
+        run: ./run.sh DEFAULT
+        shell: bash
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        if: contains(fromJson(inputs.scenarios), 'DEFAULT') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run PROFILING scenario
+        run: ./run.sh PROFILING
+        shell: bash
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        if: contains(fromJson(inputs.scenarios), 'PROFILING') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run CGROUP scenario
+        run: ./run.sh CGROUP
+        shell: bash
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        if: contains(fromJson(inputs.scenarios), 'CGROUP') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+        run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+        shell: bash
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        if: ${{ inputs.library != 'python' && contains(fromJson(inputs.scenarios), 'TRACE_PROPAGATION_STYLE_W3C') && steps.check-tracer.outputs.should-execute-tests }}
+
+      - name: Run INTEGRATIONS scenario
+        run: ./run.sh INTEGRATIONS
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'INTEGRATIONS') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+        run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'LIBRARY_CONF_CUSTOM_HEADERS_SHORT') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+        run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'LIBRARY_CONF_CUSTOM_HEADERS_LONG') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+        run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run SAMPLING scenario
+        run: ./run.sh SAMPLING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'SAMPLING') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_MISSING_RULES scenario
+        run: ./run.sh APPSEC_MISSING_RULES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_MISSING_RULES') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_CORRUPTED_RULES scenario
+        run: ./run.sh APPSEC_CORRUPTED_RULES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_CORRUPTED_RULES') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_CUSTOM_RULES scenario
+        run: ./run.sh APPSEC_CUSTOM_RULES
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_CUSTOM_RULES') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
+        run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_RULES_MONITORING_WITH_ERRORS') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_BLOCKING scenario
+        run: ./run.sh APPSEC_BLOCKING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_BLOCKING') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_DISABLED scenario
+        run: ./run.sh APPSEC_DISABLED
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_DISABLED') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
+        run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_LOW_WAF_TIMEOUT') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
+        run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_CUSTOM_OBFUSCATION') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_RATE_LIMITER scenario
+        run: ./run.sh APPSEC_RATE_LIMITER
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_RATE_LIMITER') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_IP_BLOCKING scenario
+        run: ./run.sh APPSEC_IP_BLOCKING
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_IP_BLOCKING') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Run APPSEC_RUNTIME_ACTIVATION scenario
+        run: ./run.sh APPSEC_RUNTIME_ACTIVATION
+        env:
+          DD_API_KEY: ${{ inputs.DD_API_KEY }}
+        shell: bash
+        if: contains(fromJson(inputs.scenarios), 'APPSEC_RUNTIME_ACTIVATION') && steps.check-tracer.outputs.should-execute-tests 
+
+      - name: Compress logs
+        shell: bash
+        if: ${{  inputs.archive_logs == 'true' && always() && steps.check-tracer.outputs.should-execute-tests }}
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        if: ${{ inputs.archive_logs == 'true' && always() && steps.check-tracer.outputs.should-execute-tests }}      
+        with:
+          name: logs_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.version }}_1
+          path: artifact.tar.gz
+
+      - name: Upload results CI Visibility
+        shell: bash
+        if: ${{ inputs.ci_visibility == 'true' && always() && steps.check-tracer.outputs.should-execute-tests }}
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ inputs.DD_CI_API_KEY }}
+
+      - name: Print fancy log report
+        shell: bash
+        if: ${{ always() && steps.check-tracer.outputs.should-execute-tests }}
+        run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
