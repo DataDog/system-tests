@@ -178,7 +178,9 @@ def add_main_job(i, workflow, needs, scenarios):
 
     job.add_checkout()
     job.add_step(run="mkdir logs && touch logs/.weblog.env")
-    job.add_step("Pull images", run="docker-compose pull cassandra_db mongodb postgres")
+    job.add_step("Pull mongo image", run="docker pull mongo:latest")
+    job.add_step("Pull cassandra image", run="docker pull cassandra:latest")
+    job.add_step("Pull postgres image", run="docker pull postgres:latest")
     job.add_step(
         "Load WAF rules",
         "./utils/scripts/load-binary.sh waf_rule_set",
