@@ -15,6 +15,8 @@ import functools
 from jsonschema import Draft7Validator, RefResolver
 from jsonschema.validators import extend
 
+from utils.tools import logger
+
 
 def _is_bytes_or_string(_checker, instance):
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
@@ -91,6 +93,6 @@ class SchemaValidator:
 
             if len(messages) != 0:
                 for message in messages:
-                    self.log_error(f"* {message}")
+                    logger.error(f"* {message}")
 
                 raise Exception(f"Schema is invalid in {data['log_filename']}")
