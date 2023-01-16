@@ -216,6 +216,7 @@ def pytest_collection_finish(session):
 
     except:
         context.collect_logs()
+        raise
     finally:
         context.close_targets()
 
