@@ -170,9 +170,6 @@ jobs:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - run: mkdir logs && touch logs/.weblog.env
 
     - uses: DataDog/system-tests/.github/actions/runner@main
       with:
