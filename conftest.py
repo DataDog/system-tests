@@ -164,57 +164,60 @@ def pytest_collection_finish(session):
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     terminal.write_line("Executing weblog warmup...")
-    context.execute_warmups()
 
-    last_file = ""
-    for item in session.items:
+    try:
+        context.execute_warmups()
 
-        if _item_is_skipped(item):
-            continue
+        last_file = ""
+        for item in session.items:
 
-        if not item.instance:  # item is a method bounded to a class
-            continue
+            if _item_is_skipped(item):
+                continue
 
-        # the test metohd name is like test_xxxx
-        # we replace the test_ by setup_, and call it if it exists
+            if not item.instance:  # item is a method bounded to a class
+                continue
 
-        setup_method_name = f"setup_{item.name[5:]}"
+            # the test metohd name is like test_xxxx
+            # we replace the test_ by setup_, and call it if it exists
 
-        if not hasattr(item.instance, setup_method_name):
-            continue
+            setup_method_name = f"setup_{item.name[5:]}"
 
-        if last_file != item.location[0]:
-            if len(last_file) == 0:
-                terminal.write_sep("-", "Tests setup", bold=True)
+            if not hasattr(item.instance, setup_method_name):
+                continue
 
-            terminal.write(f"\n{item.location[0]} ")
-            last_file = item.location[0]
+            if last_file != item.location[0]:
+                if len(last_file) == 0:
+                    terminal.write_sep("-", "Tests setup", bold=True)
 
-        setup_method = getattr(item.instance, setup_method_name)
-        logger.debug(f"Call {setup_method} for {item}")
-        try:
-            setup_method()
-        except Exception:
-            logger.exception("Unexpected failure during setup method call")
-            terminal.write("x", bold=True, red=True)
-            raise
-        else:
-            terminal.write(".", bold=True, green=True)
+                terminal.write(f"\n{item.location[0]} ")
+                last_file = item.location[0]
 
-    terminal.write("\n\n")
+            setup_method = getattr(item.instance, setup_method_name)
+            logger.debug(f"Call {setup_method} for {item}")
+            try:
+                setup_method()
+            except Exception:
+                logger.exception("Unexpected failure during setup method call")
+                terminal.write("x", bold=True, red=True)
+                raise
+            else:
+                terminal.write(".", bold=True, green=True)
 
-    _wait_interface(interfaces.library, session)
-    _wait_interface(interfaces.agent, session)
-    _wait_interface(interfaces.backend, session)
+        terminal.write("\n\n")
 
-    agent_container.save_logs()
-    weblog_container.save_logs()
+        _wait_interface(interfaces.library, session)
+        _wait_interface(interfaces.agent, session)
+        _wait_interface(interfaces.backend, session)
 
-    _wait_interface(interfaces.library_stdout, session)
-    _wait_interface(interfaces.library_dotnet_managed, session)
+        context.collect_logs()
 
-    agent_container.remove()
-    weblog_container.remove()
+        _wait_interface(interfaces.library_stdout, session)
+        _wait_interface(interfaces.library_dotnet_managed, session)
+
+    except:
+        context.collect_logs()
+    finally:
+        context.close_targets()
 
 
 def _wait_interface(interface, session):

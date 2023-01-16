@@ -41,7 +41,7 @@ class TestedContainer:
                 return
 
             logger.debug(f"Kill old container {self.container_name}")
-            old_container.kill()
+            old_container.remove(force=True)
 
         self._fix_host_pwd_in_volumes()
 
@@ -125,11 +125,15 @@ def get_weblog_env():
     return result
 
 
+host_log_folder = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT").lower()
+host_log_folder = f"logs_{host_log_folder}" if host_log_folder != "default" else "logs"
+
+
 weblog_container = TestedContainer(
     image_name="system_tests/weblog",
     name="weblog",
     environment=get_weblog_env(),
-    volumes={"./logs/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+    volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
 )
 
 cassandra_db = TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)

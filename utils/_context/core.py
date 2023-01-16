@@ -120,11 +120,15 @@ class _Context:  # pylint: disable=too-many-instance-attributes
 
         for warmup in warmups:
             logger.info(f"Executing warmup {warmup}")
-            try:
-                warmup()
-            except Exception as e:
-                logger.exception(f"Error while executing {warmup}")
-                pytest.exit(f"{warmup} failed: {e}", 1)
+            warmup()
+
+    def collect_logs(self):
+        agent_container.save_logs()
+        weblog_container.save_logs()
+
+    def close_targets(self):
+        agent_container.remove()
+        weblog_container.remove()
 
     def serialize(self):
         result = {
