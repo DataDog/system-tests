@@ -26,7 +26,7 @@ class Test_UserLoginSuccessEvent:
                 "usr.id": "system_tests_user",
                 "appsec.events.users.login.success.track": "true",
                 "appsec.events.users.login.success.metadata0": "value0",
-                "appsec.events.users.login.success.metadata1": "value1"
+                "appsec.events.users.login.success.metadata1": "value1",
             }
 
             for tag, expected_value in expected_tags.items():
@@ -57,7 +57,7 @@ class Test_UserLoginFailureEvent:
                 "appsec.events.users.login.failure.track": "true",
                 "appsec.events.users.login.failure.usr.exists": "true",
                 "appsec.events.users.login.failure.metadata0": "value0",
-                "appsec.events.users.login.failure.metadata1": "value1"
+                "appsec.events.users.login.failure.metadata1": "value1",
             }
 
             for tag, expected_value in expected_tags.items():
@@ -86,7 +86,7 @@ class Test_CustomEvent:
             expected_tags = {
                 "appsec.events.system_tests_event.track": "true",
                 "appsec.events.system_tests_event.metadata0": "value0",
-                "appsec.events.system_tests_event.metadata1": "value1"
+                "appsec.events.system_tests_event.metadata1": "value1",
             }
 
             for tag, expected_value in expected_tags.items():
