@@ -63,11 +63,11 @@ runs:
         shell: bash
         run: |
            if [[ '${{ inputs.tracer_version }}' == 'dev' ]]; then
-              if [[ ['${{ inputs.library }}' == 'php' OR '${{ inputs.library }}' == 'java'] and '${{ inputs.CIRCLECI_TOKEN }}' == '' ]]; then
+              if [[ ('${{ inputs.library }}' == 'php' || '${{ inputs.library }}' == 'java') && '${{ inputs.CIRCLECI_TOKEN }}' == '' ]]; then
                 echo "We can't download last snapshot tracer from CircleCI. You should add CIRCLECI TOKEN to your workflow"
                 SHOULD_DOWNLOAD_TRACER=false
                 SHOULD_EXECUTE_TESTS=false
-              elif [[ ${{ inputs.library }} != 'php' and ${{ inputs.library }} != 'java' and ${{ inputs.GH_TOKEN }} == '' ]]; then
+              elif [[ '${{ inputs.library }}' != 'php' && '${{ inputs.library }}' != 'java' && '${{ inputs.GH_TOKEN }}' == '' ]]; then
                 echo "We can't download last snapshot tracer from GitHub. You should add GH TOKEN to your workflow"
                 SHOULD_DOWNLOAD_TRACER=false
                 SHOULD_EXECUTE_TESTS=false
