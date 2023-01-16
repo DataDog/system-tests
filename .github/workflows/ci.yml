@@ -171,7 +171,7 @@ jobs:
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
     steps:
 
-    - uses: DataDog/system-tests/.github/actions/runner@main
+    - uses: DataDog/system-tests/.github/actions/runner@robertomonteromiguel/simplify_ci_workflow_v2
       with:
           tracer_version: ${{ matrix.version }}
           library: ${{ matrix.variant.library }} 
