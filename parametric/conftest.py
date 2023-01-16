@@ -120,6 +120,7 @@ WORKDIR /client
 COPY {nodejs_reldir}/package.json /client/
 COPY {nodejs_reldir}/package-lock.json /client/
 COPY {nodejs_reldir}/*.js /client/
+COPY {nodejs_reldir}/npm/* /client/
 RUN npm install
 RUN npm install {node_module}
 """,
