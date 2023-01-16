@@ -62,8 +62,8 @@ runs:
         id: check-tracer
         shell: bash
         run: |
-           if [[ ${{ inputs.tracer_version }} == 'dev' ]]; then
-              if [[ (${{ inputs.library }} == 'php' or ${{ inputs.library }} == 'java') and ${{ inputs.CIRCLECI_TOKEN }} == '' ]]; then
+           if [[ '${{ inputs.tracer_version }}' == 'dev' ]]; then
+              if [[ ['${{ inputs.library }}' == 'php' OR '${{ inputs.library }}' == 'java'] and '${{ inputs.CIRCLECI_TOKEN }}' == '' ]]; then
                 echo "We can't download last snapshot tracer from CircleCI. You should add CIRCLECI TOKEN to your workflow"
                 SHOULD_DOWNLOAD_TRACER=false
                 SHOULD_EXECUTE_TESTS=false
