@@ -772,10 +772,10 @@ jobs:
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Building with cache read-write mode
-      if: ${{ github.ref != 'refs/heads/main'}}
+      if: ${{ github.ref == 'refs/heads/main'}}
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
     - name: Building with cache read only mode
-      if: ${{ github.ref == 'refs/heads/main'}}
+      if: ${{ github.ref != 'refs/heads/main'}}
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
@@ -830,7 +830,7 @@ jobs:
     - test-the-tests-1
     - test-the-tests-2
     - test-the-tests-graalvm
-    if: always() && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
       uses: actions/checkout@v3
