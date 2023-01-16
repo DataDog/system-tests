@@ -97,15 +97,24 @@ class _Context:  # pylint: disable=too-many-instance-attributes
     def uds_mode(self):
         return self.uds_socket is not None
 
+    @property
+    def required_containers(self):
+        result = []
+
+        if self.scenario in ("INTEGRATIONS",):
+            result.append(mongo_db)
+            result.append(cassandra_db)
+            result.append(postgres_db)
+
+        return result
+
     def execute_warmups(self):
 
         agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
         warmups = []
 
-        if self.scenario == ("INTEGRATIONS",):
-            warmups.append(mongo_db.start)
-            warmups.append(cassandra_db.start)
-            warmups.append(postgres_db.start)
+        for container in self.required_containers:
+            warmups.append(container.start)
 
         warmups += [
             agent_container.start,
@@ -129,6 +138,9 @@ class _Context:  # pylint: disable=too-many-instance-attributes
     def close_targets(self):
         agent_container.remove()
         weblog_container.remove()
+
+        for container in self.required_containers:
+            container.remove()
 
     def serialize(self):
         result = {
