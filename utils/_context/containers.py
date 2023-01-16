@@ -113,12 +113,14 @@ def get_weblog_env():
         "SYSTEMTESTS_SCENARIO": os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT"),
     }
 
-    with open("logs/.weblog.env", "r", encoding="utf-8") as f:
-        for line in f.readlines():
-            line = line.strip()
-            if len(line):
-                name, value = line.split("=")
-                result[name] = value
+    env = os.environ.get("WEBLOG_ENV", "").replace("\\n", "\n")
+
+    for line in env.split("\n"):
+        line = line.strip(" \n")
+        if len(line):
+            name, value = line.split("=")
+            logger.info(f"Weblog env: {name}={value}")
+            result[name] = value
 
     return result
 

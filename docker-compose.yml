@@ -10,6 +10,7 @@ services:
     image: system_tests/runner
     environment:
       - HOST_PWD
+      - WEBLOG_ENV
       - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY
       - DD_APPLICATION_KEY=${DD_APPLICATION_KEY:-}

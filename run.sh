@@ -150,6 +150,7 @@ echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
+export WEBLOG_ENV
 docker-compose up --force-recreate runner
 docker-compose logs runner > $SYSTEMTESTS_LOG_FOLDER/docker/runner/stdout.log
 
