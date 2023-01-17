@@ -146,6 +146,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
             # time out for nodejs is very low (5 seconds)
             # we need a longer timeout for this test
             interfaces.library.timeout = 100
+        elif context.library == "golang":
+            # same for go. Though, we should find a wait function here, rather than
+            # this ugly speed condition
+            interfaces.library.timeout = 30
 
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library >= "java@1.1.0", reason="?")
