@@ -51,13 +51,6 @@ runs:
       - name: Checkout system-tests
         uses: actions/checkout@v3
 
-      - run: mkdir logs && touch logs/.weblog.env
-        shell: bash
-
-      - name: Pull images
-        run: docker-compose pull cassandra_db mongodb postgres
-        shell: bash
-
       - name: Check if we can run tests with tracer_version
         id: check-tracer
         shell: bash
@@ -91,9 +84,18 @@ runs:
 
            echo "should-download-tracer=$SHOULD_DOWNLOAD_TRACER" >> $GITHUB_OUTPUT
            echo "should-execute-tests=$SHOULD_EXECUTE_TESTS" >> $GITHUB_OUTPUT
+ 
+      - run: mkdir logs && touch logs/.weblog.env
+        shell: bash
+        if: ${{ steps.check-tracer.outputs.should-execute-tests == 'true'}}
+
+      - name: Pull images
+        run: docker-compose pull cassandra_db mongodb postgres
+        shell: bash
+        if: ${{ steps.check-tracer.outputs.should-execute-tests == 'true'}}
 
       - name: Load WAF rules
-        if: ${{ inputs.tracer_version == 'dev'}}
+        if: ${{ inputs.tracer_version == 'dev' && steps.check-tracer.outputs.should-download-tracer == 'true'}}
         run: ./utils/scripts/load-binary.sh waf_rule_set
         shell: bash
         env:
@@ -101,9 +103,7 @@ runs:
 
       - name: Load library binary
         if: ${{ steps.check-tracer.outputs.should-download-tracer == 'true'}}
-        run: |
-          echo "LO TENGO QUE DESACARGAR?:::::::> ${{ steps.check-tracer.outputs.should-download-tracer }}"
-          ./utils/scripts/load-binary.sh ${{ inputs.library }} ${{ inputs.tracer_version }}
+        run: ./utils/scripts/load-binary.sh ${{ inputs.library }} ${{ inputs.tracer_version }}
         shell: bash
         env:
           GH_TOKEN: ${{ inputs.GH_TOKEN }}
@@ -314,13 +314,13 @@ runs:
         uses: actions/upload-artifact@v3
         if: ${{ inputs.archive_logs == 'true' && always() && steps.check-tracer.outputs.should-execute-tests == 'true' }}      
         with:
-          name: logs_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.version }}_1
+          name: logs_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.tracer_version }}_1
           path: artifact.tar.gz
 
       - name: Upload results CI Visibility
         shell: bash
         if: ${{ inputs.ci_visibility == 'true' && always() && steps.check-tracer.outputs.should-execute-tests == 'true' }}
-        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.tracer_version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
         env:
           DD_API_KEY: ${{ inputs.DD_CI_API_KEY }}
 
