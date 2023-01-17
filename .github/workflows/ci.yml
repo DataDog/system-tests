@@ -723,11 +723,20 @@ jobs:
         - prod
         - dev
       fail-fast: false
-      max-parallel: 4
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
     steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
+      with:
+        install: 'false'
+    - name: Log in to the Container registry
+      uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
@@ -762,8 +771,12 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-    - name: Build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+    - name: Building with cache read-write mode
+      if: ${{ github.ref == 'refs/heads/main'}}
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
+    - name: Building with cache read only mode
+      if: ${{ github.ref != 'refs/heads/main'}}
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
@@ -817,7 +830,7 @@ jobs:
     - test-the-tests-1
     - test-the-tests-2
     - test-the-tests-graalvm
-    if: always() && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
       uses: actions/checkout@v3
