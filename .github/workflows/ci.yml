@@ -735,7 +735,6 @@ jobs:
         - prod
         - dev
       fail-fast: false
-      max-parallel: 4
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
@@ -743,8 +742,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
-    - name: Pull images
-      run: docker-compose pull cassandra_db mongodb postgres
+    - name: Pull mongo image
+      run: docker pull mongo:latest
+    - name: Pull cassandra image
+      run: docker pull cassandra:latest
+    - name: Pull postgres image
+      run: docker pull postgres:latest
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
