@@ -215,6 +215,12 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
     request_number = 0
 
+    def setup_tracer_update_sequence(self):
+        if context.library == "golang":
+            # same for go. Though, we should find a wait function here, rather than
+            # this ugly speed condition
+            interfaces.library.timeout = 30
+
     @bug(context.library >= "java@1.1.0", reason="?")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
