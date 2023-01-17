@@ -38,10 +38,11 @@ jobs:
     strategy:
       matrix:
         exclude:
-            - library: java
-              version: dev
-            - library: php
-              version: dev
+          - variant:
+              - library: java
+                version: dev
+              - library: php
+                version: dev
         variant:
         - library: cpp
           weblog: nginx
