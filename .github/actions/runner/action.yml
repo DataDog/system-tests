@@ -75,10 +75,10 @@ runs:
                 SHOULD_DOWNLOAD_TRACER=true
                 SHOULD_EXECUTE_TESTS=true
               fi
-           elif if [[ ${{ inputs.tracer_version }} == 'prod' ]]; then
+           elif [[ ${{ inputs.tracer_version }} == 'prod' ]]; then
               SHOULD_DOWNLOAD_TRACER=true
               SHOULD_EXECUTE_TESTS=true
-           elif if [[ ${{ inputs.tracer_version }} == 'provided' ]]; then   
+           elif [[ ${{ inputs.tracer_version }} == 'provided' ]]; then   
               SHOULD_DOWNLOAD_TRACER=false
               SHOULD_EXECUTE_TESTS=true
            fi
