@@ -23,6 +23,17 @@
 
 set -eu
 
+assert_version_is_dev() {
+
+  if [ $VERSION = 'dev' ]; then
+    return 0
+  fi
+
+  echo "Don't know how to load version $VERSION for $TARGET"
+
+  exit 1
+}
+
 get_circleci_artifact() {
 
     SLUG=$1
@@ -93,7 +104,6 @@ get_circleci_artifact() {
     curl --silent -L $ARTIFACT_URL --output $ARTIFACT_NAME
 }
 
-
 get_github_action_artifact() {
     rm -rf artifacts artifacts.zip
 
@@ -124,16 +134,33 @@ get_github_action_artifact() {
     rm -rf artifacts artifacts.zip
 }
 
+get_github_release_asset() {
+    SLUG=$1
+    PATTERN=$2
+
+    release=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
+
+    name=$(echo $release | jq -r ".assets[].name | select(test(\"$PATTERN\"))")
+    url=$(echo $release | jq -r ".assets[].browser_download_url | select(test(\"$PATTERN\"))")
+
+    echo "Load $url"
+
+    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url 
+}
+
 if test -f ".env"; then
     source .env
 fi
 
 TARGET=$1
-echo "Load binary for $TARGET"
+VERSION=${2:-'dev'}
+
+echo "Load $VERSION binary for $TARGET"
 
 cd binaries/
 
 if [ "$TARGET" = "java" ]; then
+    assert_version_is_dev
     rm -rf *.jar
     OWNER=DataDog
     REPO=dd-trace-java
@@ -143,25 +170,42 @@ if [ "$TARGET" = "java" ]; then
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
 
-    SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
-    ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
-    URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
+    if [ $VERSION = 'dev' ]; then
+       SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
+       ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
+       URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
 
-    echo "Load $URL"
-    curl -L --silent $URL --output $ARCHIVE
+        echo "Load $URL"
+        curl -L --silent $URL --output $ARCHIVE
+    elif [ $VERSION = 'prod' ]; then
+       DDTRACE_VERSION=$(curl -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/DataDog/dd-trace-dotnet/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+       curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz --output datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi
 
 elif [ "$TARGET" = "python" ]; then
+    assert_version_is_dev
+
     echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
+    assert_version_is_dev
     echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
-    get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
+    if [ $VERSION = 'dev' ]; then
+        get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
+    elif [ $VERSION = 'prod' ]; then
+        get_github_release_asset "DataDog/dd-trace-php" "datadog-php-tracer-.*.x86_64.tar.gz"
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi
 
 elif [ "$TARGET" = "golang" ]; then
+    assert_version_is_dev
     rm -rf golang-load-from-go-get
 
     # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
@@ -170,14 +214,17 @@ elif [ "$TARGET" = "golang" ]; then
     echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
+    assert_version_is_dev
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     x=1
 
 elif [ "$TARGET" = "agent" ]; then
+    assert_version_is_dev
     echo "datadog/agent-dev:master-py3" > agent-image
     echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
+    assert_version_is_dev
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
     echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
 
@@ -185,6 +232,7 @@ elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
 
 elif [ "$TARGET" = "waf_rule_set_v2" ]; then
+    assert_version_is_dev
     curl --silent \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
@@ -192,6 +240,7 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 elif [ "$TARGET" = "waf_rule_set" ]; then
+    assert_version_is_dev
     curl --silent \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
@@ -199,7 +248,14 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 elif [ "$TARGET" = "php_appsec" ]; then
-    get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "dd-appsec-php-*-amd64.tar.gz"
+
+    if [ $VERSION = 'dev' ]; then
+        get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "dd-appsec-php-*-amd64.tar.gz"
+    elif [ $VERSION = 'prod' ]; then
+        get_github_release_asset "DataDog/dd-appsec-php" "dd-appsec-php-.*-amd64.tar.gz"
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi
 
 else
     echo "Unknown target: $1"

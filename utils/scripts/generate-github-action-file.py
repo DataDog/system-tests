@@ -4,7 +4,6 @@ import yaml
 scenarios_sets = (
     (
         "DEFAULT",
-        "UDS",
         "PROFILING",
         "CGROUP",
         "TRACE_PROPAGATION_STYLE_W3C",
@@ -26,6 +25,7 @@ scenarios_sets = (
         "APPSEC_CORRUPTED_RULES",
         "APPSEC_CUSTOM_RULES",
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
+        "APPSEC_BLOCKING",
         "APPSEC_DISABLED",
         "APPSEC_LOW_WAF_TIMEOUT",
         "APPSEC_CUSTOM_OBFUSCATION",
@@ -46,8 +46,8 @@ def build_variant_array(lang, weblogs):
 
 variants = (
     build_variant_array("cpp", ["nginx"])
-    + build_variant_array("dotnet", ["poc"])
-    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http"])
+    + build_variant_array("dotnet", ["poc", "uds"])
+    + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http", "uds-echo"])
     + build_variant_array(
         "java",
         [
@@ -57,18 +57,21 @@ variants = (
             "vertx3",
             "spring-boot-jetty",
             "spring-boot",
+            "uds-spring-boot",
             "spring-boot-openliberty",
+            "spring-boot-wildfly",
             "spring-boot-undertow",
         ],
     )
-    + build_variant_array("nodejs", ["express4", "express4-typescript"])
+    + build_variant_array("nodejs", ["express4", "uds-express4", "express4-typescript"])
     + build_variant_array("php", [f"apache-mod-{v}" for v in php_versions])
     + build_variant_array("php", [f"apache-mod-{v}-zts" for v in php_versions])
     + build_variant_array("php", [f"php-fpm-{v}" for v in php_versions])
-    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc"])  # TODO pylons
-    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21"])
+    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask"])  # TODO pylons
+    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"])
     + build_variant_array("ruby", [f"rails{v}" for v in rails_versions])
 )
+variants_graalvm = build_variant_array("java", ["spring-boot-native", "spring-boot-3-native"])
 
 
 class Job:
@@ -89,6 +92,28 @@ class Job:
 
     def add_checkout(self):
         self.steps.append({"name": "Checkout", "uses": "actions/checkout@v3"})
+
+    def add_setup_buildx(self):
+        self.steps.append(
+            {
+                "name": "Set up Docker Buildx",
+                "uses": "docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6",
+                "with": {"install": "false"},
+            }
+        )  # 2.0.0
+
+    def add_docker_login(self):
+        self.steps.append(
+            {
+                "name": "Log in to the Container registry",
+                "uses": "docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b",
+                "with": {
+                    "registry": "ghcr.io",
+                    "username": "${{ github.actor }}",
+                    "password": "${{ secrets.GITHUB_TOKEN }}",
+                },
+            }
+        )  # 2.0.0
 
     def add_upload_artifact(self, name, path, if_condition=None):
         step = self.add_step(
@@ -159,12 +184,13 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(name, workflow, needs, scenarios):
+def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False):
 
+    name = f"test-the-tests-{i}"
     job = Job(name, needs=[job.name for job in needs])
 
     job.data["strategy"] = {
-        "matrix": {"variant": deepcopy(variants), "version": ["prod", "dev"]},
+        "matrix": {"variant": variants, "version": ["prod", "dev"]},
         "fail-fast": False,
     }
 
@@ -173,9 +199,13 @@ def add_main_job(name, workflow, needs, scenarios):
         "WEBLOG_VARIANT": "${{ matrix.variant.weblog }}",
     }
 
+    if use_cache:
+        job.add_setup_buildx()
+        job.add_docker_login()
+
     job.add_checkout()
     job.add_step(run="mkdir logs && touch logs/.weblog.env")
-    job.add_step("Pull images", run="docker-compose pull library_proxy cassandra_db mongodb postgres")
+    job.add_step("Pull images", run="docker-compose pull cassandra_db mongodb postgres")
     job.add_step(
         "Load WAF rules",
         "./utils/scripts/load-binary.sh waf_rule_set",
@@ -189,11 +219,27 @@ def add_main_job(name, workflow, needs, scenarios):
         if_condition="${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}",
     )
 
+    # PHP script that loads prod tracer is very flaky
+    # we also use it for dev, as dev artifact is on circle CI, requiring a token.
+    job.add_step(
+        "Load PHP prod library binary",
+        "./utils/scripts/load-binary.sh php prod",
+        add_gh_token=True,
+        if_condition="${{ matrix.variant.library == 'php' }}",
+    )
+
     job.add_step(
         "Load library PHP appsec binary",
-        "./utils/scripts/load-binary.sh php_appsec",
+        "./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}",
         add_gh_token=True,
-        if_condition="${{ matrix.version == 'dev' && matrix.variant.library == 'php' }}",
+        if_condition="${{ matrix.variant.library == 'php' }}",
+    )
+
+    job.add_step(
+        "Load library dotNet prod binary",
+        "./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod",
+        add_gh_token=True,
+        if_condition="${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}",
     )
 
     job.add_step(
@@ -206,21 +252,33 @@ def add_main_job(name, workflow, needs, scenarios):
         if_condition="${{ matrix.variant.library == 'ruby' }}",
     )
 
-    job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh")
+    if use_cache:
+        # TODO RMM Reverse these conditions before merge!!!
+        job.add_step(
+            "Building with cache read-write mode",
+            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW",
+            if_condition="${{ github.ref != 'refs/heads/main'}}",
+        )
+        job.add_step(
+            "Building with cache read only mode",
+            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R",
+            if_condition="${{ github.ref == 'refs/heads/main'}}",
+        )
+
+    else:
+        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh")
 
     for scenario in scenarios:
         step = job.add_step(
             f"Run {scenario} scenario", f"./run.sh {scenario}", env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"}
         )
 
-        if scenario == "UDS":  # TODO: UDS is a variant, not a scenario
-            step["if"] = "${{ matrix.variant.library != 'php' && matrix.variant.library != 'cpp' }}"
-        elif scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
+        if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
     job.add_upload_artifact(
-        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}",
+        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
         path="artifact.tar.gz",
         if_condition="${{ always() }}",
     )
@@ -300,6 +358,13 @@ def add_parametric_job(workflow, needs):
     return job
 
 
+def line_prepender(filename, line):
+    with open(filename, "r+") as f:
+        content = f.read()
+        f.seek(0, 0)
+        f.write(line.rstrip("\r\n") + "\n" + content)
+
+
 def main():
 
     result = {"name": "Testing the test"}
@@ -317,15 +382,26 @@ def main():
     main_jobs = []
 
     for i, scenarios in enumerate(scenarios_sets):
-        main_jobs.append(add_main_job(f"test-the-tests-{i}", result, needs=[lint_job], scenarios=scenarios))
+        main_jobs.append(add_main_job(i, result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))
 
+    main_jobs.append(
+        add_main_job(
+            "graalvm",
+            result,
+            needs=[lint_job],
+            scenarios=scenarios_sets[0],
+            variants=deepcopy(variants_graalvm),
+            use_cache=True,
+        )
+    )
     add_ci_dashboard_job(result, main_jobs)
 
     add_perf_job(result, needs=[lint_job])
     add_fuzzer_job(result, needs=[lint_job])
     add_parametric_job(result, needs=[lint_job])
-
-    yaml.dump(result, open(".github/workflows/ci.yml", "w", encoding="utf-8"), sort_keys=False, width=160)
+    YML_FILE = ".github/workflows/ci.yml"
+    yaml.dump(result, open(YML_FILE, "w", encoding="utf-8"), sort_keys=False, width=160)
+    line_prepender(YML_FILE, "#DON'T EDIT THIS FILE. Autogenerated by utils/scripts/generate-github-action-file.py")
 
 
 if __name__ == "__main__":

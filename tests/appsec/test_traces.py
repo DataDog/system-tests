@@ -27,6 +27,8 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @released(dotnet="1.29.0", java="0.92.0", python="1.1.0rc2.dev")
 @released(nodejs="2.0.0", php_appsec="0.1.0", ruby="0.54.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -70,6 +72,8 @@ class Test_RetainTraces:
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="1.29.0", java="0.104.0", nodejs="2.0.0")
 @released(php_appsec="0.1.0", python="0.58.5", ruby="0.54.2")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
@@ -163,6 +167,8 @@ class Test_AppSecEventSpanTags:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @released(golang="1.38.0", dotnet="2.7.0", java="0.113.0", nodejs="2.6.0")
 @released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
@@ -325,6 +331,8 @@ class Test_AppSecObfuscator:
 @released(dotnet="2.5.1", php_appsec="0.2.2", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.0.0.beta1")
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.2")
 @released(nodejs="2.0.0", java="0.102.0")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""

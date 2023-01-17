@@ -32,6 +32,7 @@ public class AppSecIast {
     private final LDAPExamples ldapExamples;
 
     public AppSecIast(final SqlExamples sqlExamples, final CmdExamples cmdExamples, final PathExamples pathExamples, final LDAPExamples ldapExamples) {
+
         this.sqlExamples = sqlExamples;
         this.cmdExamples = cmdExamples;
         this.pathExamples = pathExamples;
@@ -126,7 +127,7 @@ public class AppSecIast {
         }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
-        return ldapExamples.injection(username, password);
+        return  ldapExamples.injection(username, password);
     }
 
     @PostMapping("/ldapi/test_secure")

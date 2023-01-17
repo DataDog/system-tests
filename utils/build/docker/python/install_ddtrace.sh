@@ -2,7 +2,7 @@
 
 set -eu
 
-cd binaries
+cd /binaries
 
 if [ -e "dd-trace-py" ]; then
     echo "Install from local folder /binaries/dd-trace-py"
@@ -25,7 +25,7 @@ fi
 cd -
 
 python -c "import ddtrace; print(ddtrace.__version__)" > SYSTEM_TESTS_LIBRARY_VERSION
-python binaries/get_appsec_rules_version.py > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+python /binaries/get_appsec_rules_version.py > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 
 echo "dd-trace version is $(cat SYSTEM_TESTS_LIBRARY_VERSION)"

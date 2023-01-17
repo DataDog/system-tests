@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
 
 	"google.golang.org/grpc"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-)
-
-var (
-	port = flag.Int("port", 50051, "The server port")
 )
 
 type apmClientServer struct {
@@ -102,7 +100,11 @@ func main() {
 	tracer.Start()
 	defer tracer.Stop()
 	flag.Parse()
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", *port))
+	port, err := strconv.Atoi(os.Getenv("APM_TEST_CLIENT_SERVER_PORT"))
+	if err != nil {
+		log.Fatalf("failed to convert port to integer: %v", err)
+	}
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

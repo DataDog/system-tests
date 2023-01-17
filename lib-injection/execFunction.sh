@@ -9,6 +9,8 @@ source ${BASE_DIR}/src/test/shell/functions.sh
 
 for func in "${@}"
 do
-    echo "*** Running ${func} ***"
+    echo "**************************"
+    echo "* Running ${func} *"
+    echo "**************************"
     $func
 done

@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="?", golang="?", java="0.114.0")
+@released(dotnet="2.20.0", golang="1.44.1", java="0.114.0")
 @released(nodejs="3.6.0", php="0.81.0", python="1.5.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_DISABLED")

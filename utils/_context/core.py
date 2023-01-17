@@ -50,6 +50,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         else:
             self.appsec_rules_file = None
 
+        self.uds_socket = self.weblog_image.env.get("DD_APM_RECEIVER_SOCKET", None)
         self.dd_site = os.environ.get("DD_SITE")
 
         self.scenario = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
@@ -91,13 +92,16 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         else:
             self.agent_version = Version(agent_version, "agent")
 
+    @property
+    def uds_mode(self):
+        return self.uds_socket is not None
+
     def execute_warmups(self):
 
         agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
 
         warmups = [
             _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=15),
-            _HealthCheck(f"http://library_proxy:{agent_port}/info", 60),
             _HealthCheck("http://weblog:7777", 120),
             _wait_for_app_readiness,
         ]
@@ -122,6 +126,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             "sampling_rate": self.sampling_rate,
             "libddwaf_version": str(self.libddwaf_version),
             "appsec_rules_file": self.appsec_rules_file or "*default*",
+            "uds_socket": self.uds_socket,
         }
 
         if self.library == "php":

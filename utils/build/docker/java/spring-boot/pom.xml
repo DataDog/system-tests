@@ -263,6 +263,7 @@
                             <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#26.1.0.Final</feature-pack-location>
                             <layers>
                                 <layer>jaxrs</layer>
+                                <layer>web-server</layer>
                             </layers>
                             <excluded-layers>
                                 <layer>deployment-scanner</layer>
@@ -286,6 +287,99 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>spring-native</id>
+            <properties>
+                <start-class>com.datadoghq.system_tests.springboot.App</start-class>
+				<agent.path>/app/dd-java-agent.jar</agent.path>
+            </properties>
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <executions>
+                             <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <buildArgs>
+                                <buildArg>--initialize-at-build-time=com.datastax.oss.driver.internal.core.util.Dependency</buildArg>
+                                <buildArg>-J-javaagent:${agent.path}</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.experimental</groupId>
+                        <artifactId>spring-aot-maven-plugin</artifactId>
+                        <version>0.12.1</version>
+                        <executions>
+                            <execution>
+                                <id>generate</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-logging</artifactId>
+                        </exclusion>
+                    </exclusions> 
+                </dependency> 
+
+                <dependency>
+                    <groupId>org.springframework.experimental</groupId>
+                    <artifactId>spring-native</artifactId>
+                    <version>0.12.1</version>
+                </dependency>
+                
+                <dependency>
+                    <groupId>net.jpountz.lz4</groupId>
+                    <artifactId>lz4</artifactId>
+                    <version>1.3.0</version>
+                </dependency>
+
+
+                <dependency>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-to-slf4j</artifactId>
+                    <version>2.14.1</version>
+                    <scope>provided</scope>
+                </dependency>
+
+            </dependencies>
+        </profile>
+		<profile>
+            <id>spring-native-local</id>
+            <properties>
+                <!-- Enable for Mac M1 workaround-->
+				<os.detected.classifier>osx-x86_64</os.detected.classifier>
+				<agent.path>/localpath/dd-java-agent.jar</agent.path>
+            </properties>
+		</profile>
     </profiles>
 
     <build>
@@ -330,6 +424,19 @@
         <grpc.version>1.31.0</grpc.version>
         <loadedDependency>httpclient</loadedDependency>
         <packaging.type>jar</packaging.type>
-    </properties>
+	</properties>
+    <repositories>
+        <repository>
+            <id>spring-release</id>
+            <name>Spring release</name>
+            <url>https://repo.spring.io/release</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-release</id>
+            <name>Spring release</name>
+            <url>https://repo.spring.io/release</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
-

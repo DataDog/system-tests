@@ -6,7 +6,7 @@ from utils.interfaces._library.telemetry import read_dependencies
 
 
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
-@bug(context.scenario == "UDS" and context.library < "nodejs@3.7.0")
+@bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="ruby")
 @missing_feature(library="php")
@@ -58,6 +58,8 @@ class Test_Telemetry:
         interfaces.library.assert_no_skipped_seq_ids()
 
     @bug(library="python", reason="To be explained")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_app_started(self):
         """Request type app-started is sent on startup at least once"""
 

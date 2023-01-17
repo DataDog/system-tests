@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, interfaces, context, coverage, released
+from utils import weblog, interfaces, context, coverage, released, missing_feature
 
 
 if context.library == "cpp":
@@ -19,7 +19,7 @@ class TestIastSqlInjection:
 
     EXPECTATIONS = {
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.SqlExamples"},
-        "nodejs": {"LOCATION": "/usr/app/iast.js"},
+        "nodejs": {"LOCATION": "iast.js"},
     }
 
     def __expected_location(self):
@@ -31,6 +31,8 @@ class TestIastSqlInjection:
             "/iast/sqli/test_secure", data={"username": "shaquille_oatmeal", "password": "123456"}
         )
 
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_secure_sql(self):
         """Secure SQL queries are not reported as insecure"""
         interfaces.library.expect_no_vulnerabilities(self.r_secure_sql)
@@ -40,6 +42,8 @@ class TestIastSqlInjection:
             "/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"}
         )
 
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_insecure_sql(self):
         """Insecure SQL queries are reported as insecure"""
         interfaces.library.expect_iast_vulnerabilities(

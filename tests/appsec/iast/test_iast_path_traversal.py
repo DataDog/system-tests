@@ -18,7 +18,7 @@ class TestIastPathTraversal:
 
     EXPECTATIONS = {
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.PathExamples"},
-        "nodejs": {"LOCATION": "/usr/app/iast.js"},
+        "nodejs": {"LOCATION": "iast.js"},
     }
 
     def __expected_location(self):
