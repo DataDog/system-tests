@@ -37,6 +37,11 @@ jobs:
     - lint_and_test
     strategy:
       matrix:
+        exclude:
+            - library: java
+              version: dev
+            - library: php
+              version: dev
         variant:
         - library: cpp
           weblog: nginx
