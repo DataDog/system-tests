@@ -76,8 +76,14 @@ runs:
                 SHOULD_EXECUTE_TESTS=true
               fi
            elif [[ ${{ inputs.tracer_version }} == 'prod' ]]; then
-              SHOULD_DOWNLOAD_TRACER=true
-              SHOULD_EXECUTE_TESTS=true
+              if [[ '${{ inputs.library }}' == 'dotnet' || '${{ inputs.library }}' == 'php' ]]; then
+                SHOULD_DOWNLOAD_TRACER=true
+                SHOULD_EXECUTE_TESTS=true
+              else
+                SHOULD_DOWNLOAD_TRACER=false
+                SHOULD_EXECUTE_TESTS=true
+              fi
+
            elif [[ ${{ inputs.tracer_version }} == 'provided' ]]; then   
               SHOULD_DOWNLOAD_TRACER=false
               SHOULD_EXECUTE_TESTS=true
@@ -95,10 +101,12 @@ runs:
 
       - name: Load library binary
         if: ${{ steps.check-tracer.outputs.should-download-tracer }}
-        run: ./utils/scripts/load-binary.sh ${{ inputs.library }} ${{ inputs.tracer_version }}
+        run: |
+          echo "LO TENGO QUE DESACARGAR?:::::::> ${{ steps.check-tracer.outputs.should-download-tracer }}"
+          ./utils/scripts/load-binary.sh ${{ inputs.library }} ${{ inputs.tracer_version }}
         shell: bash
         env:
-          GH_TOKEN: ${{ inputs.GH_TOKEN}}
+          GH_TOKEN: ${{ inputs.GH_TOKEN }}
 
       - name: Load library PHP appsec binary
         if: ${{ inputs.library == 'php' && steps.check-tracer.outputs.should-execute-tests }}
