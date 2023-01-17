@@ -16,7 +16,7 @@ from ._deserializer import deserialize
 class InterfaceValidator:
     """Validate an interface
 
-    data_collector use append_data() method to add data from interfaces
+    proxy uses append_data() method to add data from interfaces
 
     One instance of this list handle only one interface
     """

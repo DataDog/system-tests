@@ -15,6 +15,8 @@ if context.library == "cpp":
 @released(golang={"gin": "1.37.0", "echo": "1.36.0", "chi": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0rc2.dev")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_404:
     """Appsec WAF misc tests"""
@@ -39,6 +41,8 @@ class Test_404:
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="2.3.0", java="0.95.0", nodejs="2.0.0")
 @released(php_appsec="0.2.0", python="1.2.1", ruby="1.0.0.beta1")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""
@@ -55,6 +59,8 @@ class Test_MultipleHighlight:
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="2.1.0", java="0.92.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_MultipleAttacks:
     """If several attacks are sent threw one requests, all of them are reported"""
@@ -91,5 +97,7 @@ class Test_MultipleAttacks:
 class Test_NoWafTimeout:
     """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
 
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")

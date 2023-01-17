@@ -15,7 +15,7 @@ import time
 import aiohttp
 from yarl import URL
 
-from utils import context, data_collector
+from utils import context
 
 from scenarios.fuzzer.corpus import get_corpus
 from scenarios.fuzzer.request_mutator import get_mutator
@@ -29,6 +29,7 @@ from scenarios.fuzzer.tools.metrics import (
     AccumulatedMetricWithPercent,
     Report,
 )
+from utils.proxy import core
 
 
 class Semaphore(asyncio.Semaphore):
@@ -160,9 +161,6 @@ class Fuzzer:
             await session.close()
 
     def run_forever(self):
-        # not the best place ...
-        data_collector.proxy_callbacks["agent"].append(self.backend_requests_stack.append)
-
         self.logger.info("")
         self.logger.info("=" * 80)
 
