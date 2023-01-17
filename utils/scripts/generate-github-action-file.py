@@ -93,6 +93,28 @@ class Job:
     def add_checkout(self):
         self.steps.append({"name": "Checkout", "uses": "actions/checkout@v3"})
 
+    def add_setup_buildx(self):
+        self.steps.append(
+            {
+                "name": "Set up Docker Buildx",
+                "uses": "docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6",
+                "with": {"install": "false"},
+            }
+        )  # 2.0.0
+
+    def add_docker_login(self):
+        self.steps.append(
+            {
+                "name": "Log in to the Container registry",
+                "uses": "docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b",
+                "with": {
+                    "registry": "ghcr.io",
+                    "username": "${{ github.actor }}",
+                    "password": "${{ secrets.GITHUB_TOKEN }}",
+                },
+            }
+        )  # 2.0.0
+
     def add_upload_artifact(self, name, path, if_condition=None):
         step = self.add_step(
             "Upload artifact",
@@ -162,7 +184,7 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(i, workflow, needs, scenarios, variants):
+def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False):
 
     name = f"test-the-tests-{i}"
     job = Job(name, needs=[job.name for job in needs])
@@ -176,6 +198,10 @@ def add_main_job(i, workflow, needs, scenarios, variants):
         "TEST_LIBRARY": "${{ matrix.variant.library }}",
         "WEBLOG_VARIANT": "${{ matrix.variant.weblog }}",
     }
+
+    if use_cache:
+        job.add_setup_buildx()
+        job.add_docker_login()
 
     job.add_checkout()
     job.add_step(run="mkdir logs && touch logs/.weblog.env")
@@ -228,7 +254,21 @@ def add_main_job(i, workflow, needs, scenarios, variants):
         if_condition="${{ matrix.variant.library == 'ruby' }}",
     )
 
-    job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh")
+    if use_cache:
+        # TODO RMM Reverse these conditions before merge!!!
+        job.add_step(
+            "Building with cache read-write mode",
+            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW",
+            if_condition="${{ github.ref != 'refs/heads/main'}}",
+        )
+        job.add_step(
+            "Building with cache read only mode",
+            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R",
+            if_condition="${{ github.ref == 'refs/heads/main'}}",
+        )
+
+    else:
+        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh")
 
     for scenario in scenarios:
         step = job.add_step(
@@ -348,7 +388,12 @@ def main():
 
     main_jobs.append(
         add_main_job(
-            "graalvm", result, needs=[lint_job], scenarios=scenarios_sets[0], variants=deepcopy(variants_graalvm),
+            "graalvm",
+            result,
+            needs=[lint_job],
+            scenarios=scenarios_sets[0],
+            variants=deepcopy(variants_graalvm),
+            use_cache=True,
         )
     )
     add_ci_dashboard_job(result, main_jobs)
