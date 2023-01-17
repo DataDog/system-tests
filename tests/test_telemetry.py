@@ -205,6 +205,13 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="python")
     @irrelevant(library="ruby")
+    @bug(
+        library="java",
+        reason="""
+        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
+        """,
+    )
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
         time.sleep(3)
@@ -215,6 +222,13 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="python")
     @irrelevant(library="ruby")
+    @bug(
+        library="java",
+        reason="""
+        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
+        """,
+    )
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
