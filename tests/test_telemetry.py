@@ -91,7 +91,7 @@ class Test_Telemetry:
             Has not implemented os related fields for telemetry.
         """,
     )
-    def test_telemetry_messages_valid(self):
+    def test_telemetry_v1_messages_valid(self):
         """Telemetry messages additional validation"""
 
         integrations_with_version = set()
@@ -116,8 +116,7 @@ class Test_Telemetry:
                 assert dependency_id not in seen_dependencies, "Dependency payload must not contain duplicates"
                 seen_dependencies.add(dependency_id)
 
-        def validate_top_level_keys(data):
-            content = data["request"]["content"]
+        def validate_top_level_keys(content):
             if content.get("request_type") == "app-heartbeat" or content.get("request_type") == "app-closing":
                 return
             required_top_level_keys = ["api_version", "request_type", "runtime_id", "payload", "host", "tracer_time"]
@@ -155,8 +154,7 @@ class Test_Telemetry:
             assert content["payload"]["dependencies"], "Dependencies loaded must not be empty"
             validate_dependencies(content["payload"]["dependencies"])
 
-        def validate_event_payloads(data):
-            content = data["request"]["content"]
+        def validate_event_payloads(content):
             if content.get("request_type") == "app-started":
                 validate_app_started(content)
             elif content.get("request_type") == "app-dependencies-loaded":
@@ -164,8 +162,14 @@ class Test_Telemetry:
             elif content.get("request_type") == "app-integrations-change":
                 validate_integrations_change(content)
 
-        interfaces.library.validate_telemetry(validator=validate_top_level_keys, success_by_default=True)
-        interfaces.library.validate_telemetry(validator=validate_event_payloads, success_by_default=True)
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            api_version = content.get("api_version")
+            if api_version != "v1":
+                continue
+            else:
+                validate_top_level_keys(content)
+                validate_event_payloads(content)
 
     @bug(
         library="dotnet",
