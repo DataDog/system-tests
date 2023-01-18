@@ -152,7 +152,7 @@ def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library, t
 
     if test_server.lang == "golang":
         # https://github.com/DataDog/system-tests/issues/596
-        test_library.stop()
+        test_library.flush()
 
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Exactly one stats request is expected"
@@ -196,7 +196,7 @@ def test_measured_spans_TS004(library_env, test_agent, test_library, test_server
 
     if test_server.lang == "golang":
         # https://github.com/DataDog/system-tests/issues/596
-        test_library.stop()
+        test_library.flush()
 
     requests = test_agent.v06_stats_requests()
     assert len(requests) > 0
@@ -232,7 +232,7 @@ def test_top_level_TS005(library_env, test_agent, test_library, test_server):
 
     if test_server.lang == "golang":
         # https://github.com/DataDog/system-tests/issues/596
-        test_library.stop()
+        test_library.flush()
 
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Only one stats request is expected"
@@ -289,7 +289,7 @@ def test_successes_errors_recorded_separately_TS006(library_env, test_agent, tes
 
     if test_server.lang == "golang":
         # https://github.com/DataDog/system-tests/issues/596
-        test_library.stop()
+        test_library.flush()
 
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Only one stats request is expected"
@@ -334,7 +334,7 @@ def test_sample_rate_0_TS007(library_env, test_agent, test_library, test_server)
 
     if test_server.lang == "golang":
         # https://github.com/DataDog/system-tests/issues/596
-        test_library.stop()
+        test_library.flush()
 
     traces = test_agent.traces()
     assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
@@ -424,7 +424,7 @@ def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_l
 
     if test_server.lang == "golang":
         # https://github.com/DataDog/system-tests/issues/596
-        test_library.stop()
+        test_library.flush()
 
     requests = test_agent.v06_stats_requests()
 
