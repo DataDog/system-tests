@@ -8,6 +8,8 @@ services:
   runner:
     container_name: runner
     image: system_tests/runner
+    networks:
+      - system-tests_default
     environment:
       - HOST_PWD
       - WEBLOG_ENV
@@ -32,3 +34,7 @@ services:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/:/app/logs/
       - /var/run/docker.sock:/var/run/docker.sock
     command: ${RUNNER_CMD:-pytest} ${RUNNER_ARGS:-}
+
+networks:
+  system-tests_default:
+    name: system-tests_default
