@@ -216,8 +216,8 @@ elif [ "$TARGET" = "golang" ]; then
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
-    x=1
-
+    # PROFILER: The main version is stored in s3, though we can not access this in CI
+    # Not handled for now
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
     echo "datadog/agent-dev:master-py3" > agent-image
