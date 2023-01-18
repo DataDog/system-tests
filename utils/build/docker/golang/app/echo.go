@@ -70,6 +70,21 @@ func main() {
 		return c.String(http.StatusOK, "Hello, identify-propagate!")
 	})
 
+	r.GET("/user_login_success_event", func(ctx echo.Context) error {
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), "system_tests_user", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
+	r.GET("/user_login_failure_event", func(ctx echo.Context) error {
+		appsec.TrackUserLoginFailureEvent(ctx.Request().Context(), "system_tests_user", true, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
+	r.GET("/custom_event", func(ctx echo.Context) error {
+		appsec.TrackCustomEvent(ctx.Request().Context(), "system_tests_event", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
 	initDatadog()
 	go listenAndServeGRPC()
 	r.Start(":7777")

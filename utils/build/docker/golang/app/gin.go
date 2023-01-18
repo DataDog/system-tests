@@ -69,6 +69,18 @@ func main() {
 		ctx.Writer.Write([]byte("Hello, identify-propagate!"))
 	})
 
+	r.GET("/user_login_success_event", func(ctx *gin.Context) {
+		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), "system_tests_user", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	r.GET("/user_login_failure_event", func(ctx *gin.Context) {
+		appsec.TrackUserLoginFailureEvent(ctx.Request.Context(), "system_tests_user", true, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	r.GET("/custom_event", func(ctx *gin.Context) {
+		appsec.TrackCustomEvent(ctx.Request.Context(), "system_tests_event", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
 	initDatadog()
 	go listenAndServeGRPC()
 	http.ListenAndServe(":7777", r)
