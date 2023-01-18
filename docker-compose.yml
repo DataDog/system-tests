@@ -3,8 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 version: "2.4"
-services:
 
+services:
   runner:
     container_name: runner
     image: system_tests/runner
