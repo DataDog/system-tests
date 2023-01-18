@@ -757,7 +757,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Load agent binary
-      if: ${{ matrix.tracer_version == 'dev' }}
+      if: ${{ matrix.agent_version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh agent
    
     - name: Building with cache read-write mode
