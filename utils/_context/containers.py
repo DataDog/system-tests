@@ -134,6 +134,9 @@ weblog_container = TestedContainer(
     name="weblog",
     environment=get_weblog_env(),
     volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+    # ddprof's perf event open is blocked by default by docker's seccomp profile
+    # This is worse than the line above though prevents mmap bugs locally
+    security_opt=["seccomp=unconfined"],
 )
 
 cassandra_db = TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
