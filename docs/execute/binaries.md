@@ -9,7 +9,8 @@ But, obviously, testing validated versions of components is not really interesti
 
 ## C++ library
 
-TODO
+* Tracer: TODO
+* Profiling: add a ddprof release tar to the binaries folder. Call the `install_ddprof`.
 
 ## .Net library
 

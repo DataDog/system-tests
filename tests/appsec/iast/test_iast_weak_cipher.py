@@ -30,6 +30,8 @@ class TestIastWeakCipher:
         self.r_insecure_cipher = weblog.get("/iast/insecure_cipher/test_insecure_algorithm")
 
     @missing_feature(context.library < "nodejs@3.3.1", reason="Need to be implement global vulnerability deduplication")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_insecure_cipher(self):
         """Test weak cipher algorithm is reported as insecure"""
 
@@ -40,6 +42,8 @@ class TestIastWeakCipher:
     def setup_secure_cipher(self):
         self.r_secure_cipher = weblog.get("/iast/insecure_cipher/test_secure_algorithm")
 
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_secure_cipher(self):
         """Test strong cipher algorithm is not reported as insecure"""
 
