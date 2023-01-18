@@ -78,7 +78,6 @@ class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
-    @bug(library="php", reason="Span.kind not implemented yet")
     @bug(library="python", reason="Span.kind not implemented yet")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
@@ -202,8 +201,6 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
-    @bug(library="php", reason="component tag not implemented")
-    @bug(library="python", reason="component tag not implemented")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -284,7 +281,7 @@ class Test_MetricsStandardTags:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            if "process_id" not in span["metrics"] and "process_id" not in span["meta"]:
+            if "process_id" not in span["metrics"]:
                 print_span(span)
                 raise Exception("web span expect a process_id metrics tag")
 
