@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="1.7.0", ruby="?")
 @released(nodejs={"express4": "3.6.0", "*": "?"})
 @released(
     java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "spring-boot-openliberty": "0.108.0", "*": "?"},
@@ -30,6 +30,8 @@ class TestIastWeakCipher:
         self.r_insecure_cipher = weblog.get("/iast/insecure_cipher/test_insecure_algorithm")
 
     @missing_feature(context.library < "nodejs@3.3.1", reason="Need to be implement global vulnerability deduplication")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_insecure_cipher(self):
         """Test weak cipher algorithm is reported as insecure"""
 
@@ -40,6 +42,8 @@ class TestIastWeakCipher:
     def setup_secure_cipher(self):
         self.r_secure_cipher = weblog.get("/iast/insecure_cipher/test_secure_algorithm")
 
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_secure_cipher(self):
         """Test strong cipher algorithm is not reported as insecure"""
 

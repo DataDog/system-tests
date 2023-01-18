@@ -106,7 +106,7 @@ class Test_SamplingDecisions:
     @flaky(context.library < "python@0.57.0")
     @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
     @flaky(
-        context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21"),
+        context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
         reason="fails randomly for Sinatra on JSON body that dutifully keeps",
     )
     def test_sampling_decision(self):

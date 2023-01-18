@@ -4,33 +4,6 @@
 
 version: "2.4"
 services:
-  agent_proxy:
-    container_name: agent_proxy
-    image: mitmproxy/mitmproxy
-    environment:
-      - DD_API_KEY
-      - INTERFACE_NAME=agent
-      - FORWARD_TO_HOST=runner
-      - FORWARD_TO_PORT=8081
-      - INITIAL_PROXY_STATE=${SYSTEMTESTS_AGENT_PROXY_STATE:-}
-    volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/:ro
-    command:  mitmdump -p 8082 --set confdir=/system-tests/utils/proxy/.mitmproxy -s /system-tests/utils/proxy/forwarder.py
-    ports:
-      - "127.0.0.1:8082:8082"
-
-  library_proxy:
-    container_name: library_proxy
-    image: mitmproxy/mitmproxy
-    environment:
-      - DD_API_KEY
-      - INTERFACE_NAME=library
-      - FORWARD_TO_HOST=runner
-      - FORWARD_TO_PORT=8081
-      - INITIAL_PROXY_STATE=${SYSTEMTESTS_LIBRARY_PROXY_STATE:-}
-    volumes:
-      - ./utils/proxy/:/system-tests/utils/proxy/:ro
-    command: mitmdump -v -p ${HIDDEN_APM_PORT_OVERRIDE:-8126} --mode reverse:http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/  -s /system-tests/utils/proxy/forwarder.py
 
   weblog:
     container_name: weblog
@@ -40,17 +13,21 @@ services:
     environment:
       - DD_AGENT_HOST
       - DD_TRACE_AGENT_PORT
-      - DD_APM_RECEIVER_SOCKET
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
-      - SYSTEMTESTS_VARIATION=${SYSTEMTESTS_VARIATION:-DEFAULT}
     volumes:
       - ./${SYSTEMTESTS_LOG_FOLDER:-logs}/docker/weblog/logs/:/var/log/system-tests
+    security_opt:
+      - seccomp=unconfined # ddprof's perf event open is blocked by default by docker's seccomp profile
+    # This is worse than the line above though prevents mmap bugs locally
+    # Just enable this if we are getting other failures with native (potential mmap failures)
+#    cap_add:
+#      - SYS_ADMIN
     ports:
       - "127.0.0.1:7777:7777"
       - "127.0.0.1:7778:7778"
     depends_on:
       runner:
-        condition: service_healthy
+        condition: service_started
       agent:
         condition: service_healthy
       postgres:
@@ -60,7 +37,7 @@ services:
     container_name: agent
     image: system_tests/agent
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://agent:${HIDDEN_APM_PORT_OVERRIDE:-8126}/info"]
+      test: ["CMD", "curl", "-f", "http://agent:8126/info"]
       interval: 1s
       start_period: 5s
       retries: 60
@@ -70,24 +47,15 @@ services:
       - DD_HOSTNAME=test
       - DD_SITE=${DD_SITE:-datad0g.com}
       # - DD_URL=https://app.datad0g.com
-      - DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126}
+      - DD_APM_RECEIVER_PORT=8126
       - DD_DOGSTATSD_PORT=${HIDDEN_DSD_PORT_OVERRIDE:-8125}
     depends_on:
       runner:
-        condition: service_healthy
-      agent_proxy:
-        condition: service_started
-      library_proxy:
         condition: service_started
 
   runner:
     container_name: runner
     image: system_tests/runner
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://runner:8081/health"]
-      interval: 1s
-      start_period: 5s
-      retries: 25
     environment:
       - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY
@@ -96,8 +64,9 @@ services:
       - PYTHONPATH=/app
       - DD_SITE=${DD_SITE:-datad0g.com}
       # - DD_URL=https://app.datad0g.com
-      - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=${HIDDEN_APM_PORT_OVERRIDE:-8126} # need to know where is the agent
+      - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=8126 # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
+      - SYSTEMTESTS_PROXY_STATE=${SYSTEMTESTS_PROXY_STATE:-}
     volumes:
       - ./scenarios/:/app/scenarios/:ro
       - ./tests/:/app/tests/:ro

@@ -18,6 +18,8 @@ class Test_OneVariableInstallation:
 
 
 @released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="?")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
@@ -39,6 +41,8 @@ class Test_FleetManagement:
 
 
 @coverage.basic
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_4:
     """ AppSec uses rule set 1.2.4 or higher """
 
@@ -47,6 +51,8 @@ class Test_RuleSet_1_2_4:
 
 
 @coverage.basic
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_5:
     """ AppSec uses rule set 1.2.5 or higher """
 
@@ -56,6 +62,8 @@ class Test_RuleSet_1_2_5:
 
 @released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
 @released(php_appsec="0.3.0", python="1.2.1", ruby="1.0.0")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RuleSet_1_3_1:
     """ AppSec uses rule set 1.3.1 or higher """
@@ -84,6 +92,8 @@ class Test_RuleSet_1_3_1:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
 @released(java="0.100.0", nodejs="2.7.0", python="1.1.2")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ConfigurationVariables:
     """ Configuration environment variables """
 
@@ -104,7 +114,7 @@ class Test_ConfigurationVariables:
 
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
     @missing_feature(
-        context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21"],
+        context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
         reason="Conf is done in weblog instead of library",
     )
     @scenario("APPSEC_DISABLED")
@@ -126,6 +136,7 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenario("APPSEC_LOW_WAF_TIMEOUT")
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """

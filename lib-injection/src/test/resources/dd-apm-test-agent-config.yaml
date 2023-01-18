@@ -29,13 +29,21 @@ spec:
         image: ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest
         imagePullPolicy: Always
         livenessProbe:
-          failureThreshold: 3
+          failureThreshold: 12
           initialDelaySeconds: 15
           periodSeconds: 15
           successThreshold: 1
           tcpSocket:
-            port: 18126
-          timeoutSeconds: 5
+            port: 8126
+          timeoutSeconds: 10
+        readinessProbe:
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          timeoutSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 8126
+          failureThreshold: 12
         name: trace-agent
         ports:
         - containerPort: 8126

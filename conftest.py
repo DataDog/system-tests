@@ -6,9 +6,11 @@ import json
 
 from pytest_jsonreport.plugin import JSONReport
 
-from utils import context, data_collector, interfaces
+from utils import context, interfaces
+from utils.proxy.core import start_proxy
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
+from utils._context.library_version import LibraryVersion
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -28,6 +30,10 @@ def pytest_sessionstart(session):
         terminal.write_line(info)
 
     if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
+
+        if not session.config.option.collectonly:
+            start_proxy()
+
         terminal.write_sep("=", "Tested components", bold=True)
         print_info(f"Library: {context.library}")
         print_info(f"Agent: {context.agent_version}")
@@ -40,14 +46,12 @@ def pytest_sessionstart(session):
         if context.appsec_rules_file:
             print_info(f"AppSec rules version: {context.appsec_rules_version}")
 
+        if context.uds_mode:
+            print_info(f"UDS socket: {context.uds_socket}")
+
         print_info(f"Weblog variant: {context.weblog_variant}")
         print_info(f"Backend: {context.dd_site}")
         print_info(f"Scenario: {context.scenario}")
-
-        # connect interface validators to data collector
-        data_collector.proxy_callbacks["agent"].append(interfaces.agent.append_data)
-        data_collector.proxy_callbacks["library"].append(interfaces.library.append_data)
-        data_collector.start()
 
 
 # called when each test item is collected
@@ -120,9 +124,6 @@ def pytest_collection_modifyitems(session, config, items):
         # user has specifed which test to run, do nothing
         return
 
-    if scenario == "UDS":
-        scenario = "DEFAULT"  # TODO : it's a variant
-
     selected = []
     deselected = []
 
@@ -141,6 +142,18 @@ def pytest_collection_modifyitems(session, config, items):
     config.hook.pytest_deselected(items=deselected)
 
 
+def _item_is_skipped(item):
+    for marker in item.own_markers:
+        if marker.name in ("skip",):
+            return True
+
+    for marker in item.parent.own_markers:
+        if marker.name in ("skip",):
+            return True
+
+    return False
+
+
 def pytest_collection_finish(session):
 
     if session.config.option.collectonly:
@@ -154,32 +167,37 @@ def pytest_collection_finish(session):
     last_file = ""
     for item in session.items:
 
-        if item.instance:  # item is a method bounded to a class
+        if _item_is_skipped(item):
+            continue
 
-            # the test metohd name is like test_xxxx
-            # we replace the test_ by setup_, and call it if it exists
+        if not item.instance:  # item is a method bounded to a class
+            continue
 
-            setup_method_name = f"setup_{item.name[5:]}"
+        # the test metohd name is like test_xxxx
+        # we replace the test_ by setup_, and call it if it exists
 
-            if hasattr(item.instance, setup_method_name):
+        setup_method_name = f"setup_{item.name[5:]}"
 
-                if last_file != item.location[0]:
-                    if len(last_file) == 0:
-                        terminal.write_sep("-", "Tests setup", bold=True)
+        if not hasattr(item.instance, setup_method_name):
+            continue
 
-                    terminal.write(f"\n{item.location[0]} ")
-                    last_file = item.location[0]
+        if last_file != item.location[0]:
+            if len(last_file) == 0:
+                terminal.write_sep("-", "Tests setup", bold=True)
 
-                setup_method = getattr(item.instance, setup_method_name)
-                logger.debug(f"Call {setup_method} for {item}")
-                try:
-                    setup_method()
-                except Exception:
-                    logger.exception("Unexpected failure during setup method call")
-                    terminal.write("x", bold=True, red=True)
-                    raise
-                else:
-                    terminal.write(".", bold=True, green=True)
+            terminal.write(f"\n{item.location[0]} ")
+            last_file = item.location[0]
+
+        setup_method = getattr(item.instance, setup_method_name)
+        logger.debug(f"Call {setup_method} for {item}")
+        try:
+            setup_method()
+        except Exception:
+            logger.exception("Unexpected failure during setup method call")
+            terminal.write("x", bold=True, red=True)
+            raise
+        else:
+            terminal.write(".", bold=True, green=True)
 
     terminal.write("\n\n")
 
@@ -229,15 +247,18 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
+    json.dump(
+        {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
+        open("logs/known_versions.json", "w", encoding="utf-8"),
+        indent=2,
+    )
+
     _pytest_junit_modifyreport()
 
     if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
-        data_collector.shutdown()
-        data_collector.join(timeout=10)
-
-        # Is it really a test ?
-        if data_collector.is_alive():
-            logger.error("Can't terminate data collector")
+        # TODO : shutdown proxy
+        # data_collector.join(timeout=10)
+        ...
 
 
 def _pytest_junit_modifyreport():

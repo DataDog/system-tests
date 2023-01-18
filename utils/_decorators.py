@@ -130,6 +130,9 @@ def released(
 
             test_class.__released__[component_name] = released_version
 
+            if released_version is None:
+                return None
+
             if released_version == "?":
                 return "missing feature: release not yet planned"
 

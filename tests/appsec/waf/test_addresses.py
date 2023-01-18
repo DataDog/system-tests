@@ -26,6 +26,8 @@ if context.library == "cpp":
 
 @released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
 @released(php_appsec="0.3.2", python="1.2.1", ruby="1.0.0")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UrlQueryKey:
     """Appsec supports keys on server.request.query"""
@@ -41,6 +43,8 @@ class Test_UrlQueryKey:
 
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.35.0")
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="0.54.2")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_UrlQuery:
     """Appsec supports values on server.request.query"""
@@ -76,6 +80,8 @@ class Test_UrlQuery:
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0", python="0.58.5")
 @flaky(context.library <= "php@0.68.2")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UrlRaw:
     """Appsec supports server.request.uri.raw"""
@@ -94,6 +100,8 @@ class Test_UrlRaw:
 @released(python="1.1.0rc2.dev")
 @flaky(context.library <= "php@0.68.2")
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Headers:
     """Appsec supports server.request.headers.no_cookies"""
@@ -133,6 +141,8 @@ class Test_Headers:
     @missing_feature(library="python")
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
         """attacks on specific header X_Filename, and report it"""
 
@@ -154,6 +164,8 @@ class Test_Headers:
         self.r_wk_1 = weblog.get("/waf/", headers={"xfilename": "routing.yml"})
         self.r_wk_2 = weblog.get("/waf/", headers={"not-referer": "<script >"})
 
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_wrong_key(self):
         """When a specific header key is specified in rules, other key are ignored"""
         interfaces.library.assert_no_appsec_event(self.r_wk_1)
@@ -166,10 +178,13 @@ class Test_Headers:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "?",
         "pylons": "1.1.0rc2.dev",
     }
 )
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Cookies:
     """Appsec supports server.request.cookies"""
@@ -228,7 +243,7 @@ class Test_Cookies:
 
     @scenario("APPSEC_CUSTOM_RULES")
     def test_cookies_custom_rules(self):
-        """ Appsec WAF detects attackes in cookies """
+        """Appsec WAF detects attackes in cookies"""
         interfaces.library.assert_waf_attack(self.r_ccr, pattern=".htaccess", address="server.request.cookies")
 
     def setup_cookies_with_semicolon_custom_rules(self):
@@ -243,7 +258,7 @@ class Test_Cookies:
     @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
     @scenario("APPSEC_CUSTOM_RULES")
     def test_cookies_with_semicolon_custom_rules(self):
-        """ Cookie with pattern containing a semicolon """
+        """Cookie with pattern containing a semicolon"""
         interfaces.library.assert_waf_attack(self.r_cwsccr, pattern=";shutdown--", address="server.request.cookies")
 
     def setup_cookies_with_spaces_custom_rules(self):
@@ -252,7 +267,7 @@ class Test_Cookies:
     @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     @scenario("APPSEC_CUSTOM_RULES")
     def test_cookies_with_spaces_custom_rules(self):
-        """ Cookie with pattern containing a space """
+        """Cookie with pattern containing a space"""
         interfaces.library.assert_waf_attack(self.r_cwscr_2, pattern="var_dump ()", address="server.request.cookies")
 
     def setup_cookies_with_special_chars2_custom_rules(self):
@@ -270,6 +285,8 @@ class Test_Cookies:
 
 @released(golang="?", dotnet="?", java="?", nodejs="?", php_appsec="0.1.0", ruby="?")
 @released(python={"django-poc": "1.5.2", "*": "?"})
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_BodyRaw:
     """Appsec supports <body>"""
@@ -287,6 +304,8 @@ class Test_BodyRaw:
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "spring-boot-undertow": "0.98.0", "*": "0.95.1"})
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
 
@@ -303,7 +322,7 @@ class Test_BodyUrlEncoded:
         self.r_value = weblog.post("/waf", data={"value": '<vmlframe src="xss">'})
 
     @bug(
-        library="java",
+        context.library < "java@1.2.0",
         weblog_variant="spring-boot-openliberty",
         reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
@@ -314,6 +333,8 @@ class Test_BodyUrlEncoded:
 
 @released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.4.0rc1.dev", ruby="?")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "*": "0.95.1"})
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 class Test_BodyJson:
@@ -343,6 +364,7 @@ class Test_BodyJson:
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
     @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra21")
+    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="uds-sinatra")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
@@ -351,6 +373,8 @@ class Test_BodyJson:
 @released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @released(java={"vertx3": "?", "ratpack": "0.99.0", "*": "0.95.1"})
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
@@ -368,6 +392,7 @@ class Test_BodyXml:
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')
         self.r_attr_2 = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
 
+    @bug(context.weblog_variant == "spring-boot-wildfly")
     def test_xml_attr_value(self):
         interfaces.library.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
@@ -376,6 +401,7 @@ class Test_BodyXml:
         self.r_content_1 = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         self.r_content_2 = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
 
+    @bug(context.weblog_variant == "spring-boot-wildfly")
     def test_xml_content(self):
         interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
@@ -396,6 +422,8 @@ class Test_ClientIP:
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @released(golang="1.37.0" if context.weblog_variant == "gin" else "1.36.0")
 @released(dotnet="2.3.0", java="0.88.0", nodejs="2.0.0", python="0.58.5")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_ResponseStatus:
     """Appsec supports values on server.response.status"""
@@ -420,6 +448,7 @@ class Test_ResponseStatus:
     python={
         "django-poc": "1.1.0rc2.dev",
         "flask-poc": PYTHON_RELEASE_PUBLIC_BETA,
+        "uds-flask": PYTHON_RELEASE_PUBLIC_BETA,
         "uwsgi-poc": "1.5.2",
         "pylons": "1.1.0rc2.dev",
     }
@@ -427,6 +456,8 @@ class Test_ResponseStatus:
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""
@@ -444,6 +475,8 @@ class Test_PathParams:
 @released(golang="1.36.0", dotnet="?", java="0.96.0", nodejs="?", php_appsec="?", python="?", ruby="?")
 @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
 @bug(context.library < "java@0.109.0", weblog_variant="spring-boot", reason="APPSEC-5426")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""

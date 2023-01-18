@@ -1,7 +1,8 @@
 FROM nginx:1.17.3
 
 RUN apt-get update && \
-  apt-get install -y wget tar jq
+  apt-get install -y wget tar jq curl xz-utils \
+    stress-ng
 
 RUN echo '\n\
 env DD_AGENT_HOST;\n\
@@ -34,11 +35,21 @@ http {\n\
 RUN echo '{}' > /etc/nginx/dd-config.json
 
 RUN mkdir /builds
-COPY utils/build/docker/cpp/install_ddtrace.sh builds* /builds/
+
+# Copy needs a single valid source (ddprof tar can be missing)
+COPY utils/build/docker/cpp/install_ddprof.sh binaries/ddprof* /builds/
+COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /builds/
 RUN /builds/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-RUN echo "#!/bin/bash\nnginx -g 'daemon off;'" > app.sh
-RUN chmod +x app.sh
+# Profiling setup
+
+RUN cd /builds && ./install_ddprof.sh /usr/local/bin
+
+COPY utils/build/docker/cpp/nginx/app.sh ./
+
+# With or without the native profiler
+ARG DDPROF_ENABLE="yes"
+ENV DDPROF_ENABLE=${DDPROF_ENABLE}
 CMD ["./app.sh"]
