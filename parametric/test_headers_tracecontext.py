@@ -159,7 +159,6 @@ def test_traceparent_version_0x00(test_agent, test_library):
     "golang",
     "Bug: See https://www.w3.org/TR/trace-context/#versioning-of-traceparent for corrections . 1) We currently assert that version must be two valid hex digits, except for 'ff' 2) We assert the length of the traceparent is exactly equal to 55",
 )
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_version_0xcc(test_agent, test_library):
     """
     harness sends an valid traceparent with future version 204 (0xcc)
