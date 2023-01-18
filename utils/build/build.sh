@@ -17,6 +17,7 @@ WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK}}
 DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 ALIAS_CACHE_FROM="R" #read cache
 ALIAS_CACHE_TO="W" #write cache
+TRACER_IMAGE="local"
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -26,6 +27,8 @@ while [[ "$#" -gt 0 ]]; do
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
+        -t|--tracer) TRACER_IMAGE="$2"; shift ;;
+        -tp|--tracer-path) TRACER_LIBRARY_PATH="$2"; shift ;;
         *) cat utils/build/README.md; exit 1 ;;
     esac
     shift
@@ -128,6 +131,9 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
+        if [ -n "$TRACER_LIBRARY_PATH" ]; then
+            cp -R $TRACER_LIBRARY_PATH/*.* ./binaries 
+        fi
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
         docker buildx build \
@@ -135,6 +141,7 @@ do
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
+            --build-arg TRACER_IMAGE="agent_$TRACER_IMAGE" \
             $CACHE_TO \
             $CACHE_FROM \
             $EXTRA_DOCKER_ARGS \

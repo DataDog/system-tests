@@ -1,16 +1,21 @@
+ARG TRACER_IMAGE=agent_local
 
-FROM eclipse-temurin:8 as agent
+#TODO RMM: The images will be in dd-trace-java repository. Now for tests purposes we are using system-tests repository
+FROM ghcr.io/datadog/system-tests/dd-java-agent:LATEST_SNAPSHOT as agent_latest_snapshot
 
-# Install required bsdtar
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
+FROM ghcr.io/datadog/system-tests/dd-java-agent:LATEST as agent_latest
 
-# Install tracer
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+FROM ghcr.io/datadog/system-tests/dd-java-agent:LATEST_SNAPSHOT as agent_local
+
+COPY ./binaries/dd-java-agent.jar /dd-tracer/
+RUN sh library_version.sh 
+
+FROM $TRACER_IMAGE as agent
 
 
 FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-22 as build
+
+ARG TRACER_LIBRARY_ORIGIN=agent
 
 RUN gu install native-image && native-image
 

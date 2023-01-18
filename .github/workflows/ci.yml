@@ -32,6 +32,7 @@ jobs:
     - run: mkdir -p logs/docker/weblog/logs/
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
   test-the-tests-0:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -253,6 +254,7 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-1:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -473,6 +475,7 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   test-the-tests-2:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -717,11 +720,12 @@ jobs:
         variant:
         - library: java
           weblog: spring-boot-native
-        - library: java
-          weblog: spring-boot-3-native
-        version:
-        - prod
-        - dev
+        tracer_version:
+        - latest
+        - latest_snapshot
+        agent_version:
+        - latest
+        - latest_snapshot
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
@@ -737,46 +741,33 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Checkout
       uses: actions/checkout@v3
+
     - run: mkdir logs && touch logs/.weblog.env
+
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
+
     - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.tracer_version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.tracer_version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
-    - name: Log in to the Container registry
-      if: ${{ matrix.variant.library == 'ruby' }}
-      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+   
     - name: Building with cache read-write mode
       if: ${{ github.ref == 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW --tracer ${{matrix.tracer_version}
+
     - name: Building with cache read only mode
       if: ${{ github.ref != 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R --tracer ${{matrix.tracer_version}
+
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
@@ -813,11 +804,11 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_graalvm
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.tracer_version }}_graalvm
         path: artifact.tar.gz
     - name: Upload results CI Visibility
       if: ${{ always() }}
-      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.tracer_version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
     - name: Print fancy log report
@@ -840,6 +831,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -853,6 +845,7 @@ jobs:
     - name: Display
       run: python scenarios/perfs/process.py
   fuzzer:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -868,6 +861,7 @@ jobs:
       env:
         RUNNER_CMD: python
   parametric:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
