@@ -762,11 +762,11 @@ jobs:
    
     - name: Building with cache read-write mode
       if: ${{ github.ref == 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW --tracer ${{matrix.tracer_version}
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW --tracer ${{ matrix.tracer_version }}
 
     - name: Building with cache read only mode
       if: ${{ github.ref != 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R --tracer ${{matrix.tracer_version}
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R --tracer ${{ matrix.tracer_version }}
 
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
