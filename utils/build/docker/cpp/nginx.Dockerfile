@@ -37,7 +37,7 @@ RUN echo '{}' > /etc/nginx/dd-config.json
 RUN mkdir /builds
 
 # Copy needs a single valid source (ddprof tar can be missing)
-COPY utils/build/docker/cpp/install_ddprof.sh binaries/ddprof* /builds/
+COPY utils/build/docker/cpp/install_ddprof.sh binaries* /builds/
 COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /builds/
 RUN /builds/install_ddtrace.sh
 

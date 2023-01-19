@@ -255,16 +255,15 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False):
     )
 
     if use_cache:
-        # TODO RMM Reverse these conditions before merge!!!
         job.add_step(
             "Building with cache read-write mode",
             "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW",
-            if_condition="${{ github.ref != 'refs/heads/main'}}",
+            if_condition="${{ github.ref == 'refs/heads/main'}}",
         )
         job.add_step(
             "Building with cache read only mode",
             "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R",
-            if_condition="${{ github.ref == 'refs/heads/main'}}",
+            if_condition="${{ github.ref != 'refs/heads/main'}}",
         )
 
     else:
