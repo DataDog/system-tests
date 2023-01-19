@@ -12,7 +12,7 @@ if context.library == "cpp":
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="1.6.0", ruby="?")
-@released(nodejs={"express4": "3.6.0", "*": "?"})
+@released(nodejs={"express4": "3.11.0", "*": "?"})
 @released(
     java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "spring-boot-openliberty": "0.108.0", "*": "?"}
 )
@@ -40,7 +40,6 @@ class TestIastWeakHash:
 
     @missing_feature(context.weblog_variant == "spring-boot-openliberty")
     @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
-    @missing_feature(library="nodejs", reason="Changing from absolute path to relative path")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -56,7 +55,6 @@ class TestIastWeakHash:
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
     @bug(context.weblog_variant == "spring-boot-openliberty")
-    @missing_feature(library="nodejs", reason="Changing from absolute path to relative path")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
 
@@ -70,7 +68,6 @@ class TestIastWeakHash:
     def setup_secure_hash(self):
         self.r_secure_hash = weblog.get("/iast/insecure_hashing/test_secure_algorithm")
 
-    @missing_feature(context.library < "nodejs@3.3.1", reason="Need to be implement global vulnerability deduplication")
     def test_secure_hash(self):
         """Strong hash algorithm is not reported as insecure"""
         interfaces.library.expect_no_vulnerabilities(self.r_secure_hash)
