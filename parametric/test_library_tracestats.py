@@ -193,9 +193,6 @@ def test_measured_spans_TS004(library_env, test_agent, test_library, test_server
             with test_library.start_span(name="child.op3", resource="", service="webserver", parent_id=span.span_id):
                 pass
 
-    if test_server.lang == "golang":
-        test_library.flush()
-
     requests = test_agent.v06_stats_requests()
     assert len(requests) > 0
     stats = requests[0]["body"]["Stats"][0]["Stats"]
@@ -227,9 +224,6 @@ def test_top_level_TS005(library_env, test_agent, test_library, test_server):
                 name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
             ):
                 pass
-
-    if test_server.lang == "golang":
-        test_library.flush()
 
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Only one stats request is expected"
@@ -284,9 +278,6 @@ def test_successes_errors_recorded_separately_TS006(library_env, test_agent, tes
         ) as span:
             span.set_error(message="Unable to load resources")
 
-    if test_server.lang == "golang":
-        test_library.flush()
-
     requests = test_agent.v06_stats_requests()
     assert len(requests) == 1, "Only one stats request is expected"
     request = requests[0]["body"]
@@ -327,9 +318,6 @@ def test_sample_rate_0_TS007(library_env, test_agent, test_library, test_server)
     with test_library:
         with test_library.start_span(name="web.request", resource="/users", service="webserver"):
             pass
-
-    if test_server.lang == "golang":
-        test_library.flush()
 
     traces = test_agent.traces()
     assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
@@ -416,9 +404,6 @@ def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_l
         span.set_meta(key="http.status_code", val="202")
         span2.set_meta(key="_dd.origin", val="not_synthetics")
         span2.set_meta(key="http.status_code", val="202")
-
-    if test_server.lang == "golang":
-        test_library.flush()
 
     requests = test_agent.v06_stats_requests()
 
