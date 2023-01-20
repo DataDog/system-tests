@@ -36,6 +36,7 @@ jobs:
   test-the-tests-0:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     strategy:
@@ -258,6 +259,7 @@ jobs:
   test-the-tests-1:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     strategy:
@@ -479,6 +481,7 @@ jobs:
   test-the-tests-2:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     strategy:
@@ -716,6 +719,7 @@ jobs:
   test-the-tests-graalvm:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     strategy:
@@ -832,6 +836,7 @@ jobs:
   post_test-the-tests:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - test-the-tests-0
     - test-the-tests-1
@@ -849,6 +854,7 @@ jobs:
   peformances:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     env:
@@ -863,6 +869,7 @@ jobs:
   fuzzer:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     env:
@@ -879,6 +886,7 @@ jobs:
   parametric:
     runs-on: 
       labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     strategy:
