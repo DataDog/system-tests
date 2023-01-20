@@ -16,8 +16,9 @@ env:
 jobs:
 
   lib-injection-tests:
-    if: ${{ false }}  # disable for now
-    runs-on: ubuntu-latest
+    runs-on: 
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     permissions:
       contents: read
       packages: write
