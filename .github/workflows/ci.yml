@@ -15,7 +15,8 @@ env:
 jobs:
   lint_and_test:
     runs-on: 
-      labels: ubuntu-latest-16-cores
+      #labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     steps:
     - name: Checkout
       uses: actions/checkout@v3
