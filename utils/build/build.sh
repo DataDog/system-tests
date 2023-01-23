@@ -132,6 +132,7 @@ do
 
     elif [[ $IMAGE_NAME == weblog ]]; then
         if [ -n "$TRACER_LIBRARY_PATH" ]; then
+            echo "Copy tracer from folder ${TRACER_LIBRARY_PATH}"
             cp -R $TRACER_LIBRARY_PATH/*.* ./binaries 
         fi
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
