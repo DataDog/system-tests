@@ -37,7 +37,11 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
     },
     "spring-boot-3-native": {"servlet.request": "tomcat-server", "hsqldb.query": "java-jdbc-statement",},
-    "spring-boot-native": {"servlet.request": "tomcat-server", "hsqldb.query": "java-jdbc-statement",},
+    "spring-boot-native": {
+        "servlet.request": "tomcat-server",
+        "hsqldb.query": "java-jdbc-statement",
+        "spring.handler": "spring-web-controller",
+    },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
         "spring.handler": "spring-web-controller",
@@ -47,11 +51,13 @@ VARIANT_COMPONENT_MAP = {
         "servlet.request": "undertow-http-server",
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
+        "undertow-http.request": "undertow-http-server",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",
         "hsqldb.query": "java-jdbc-statement",
         "undertow-http.request": "undertow-http-server",
+        "servlet.forward": "java-web-servlet-dispatcher",
     },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "rails": {
@@ -69,6 +75,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.request": "tomcat-server",
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
+        "servlet.forward": "java-web-servlet-dispatcher",
     },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
 }
