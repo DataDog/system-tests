@@ -9,5 +9,5 @@ USAGE
 
 <library_name> can be one of cpp, dotnet, golang, java, nodejs, php, python or ruby.
 
-More info on https://github.com/DataDog/system-tests/blob/master/docs/CLI/build.md
+More info on https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md
 
