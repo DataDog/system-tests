@@ -9,10 +9,11 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-def validate_no_leak(needle):
+def validate_no_leak(needle, whitelist=None):
     def crawler(data):
         if isinstance(data, str):
-            assert needle not in data
+            if whitelist is not None and data != whitelist:
+                assert needle not in data
         elif isinstance(data, (list, tuple)):
             for value in data:
                 crawler(value)
@@ -62,16 +63,22 @@ class Test_UrlQuery:
         interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
 
 
+@released(python="1.7.1")
 @coverage.basic
 class Test_UrlField:
     """ PII in url field are removed"""
 
     def setup_main(self):
-        r = weblog.get(domain="name:leak-password-url@weblog", params={"hello": "1234567"})
-        assert r.status_code == 200
+        self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@weblog:7777"})
 
     def test_main(self):
-        interfaces.library.validate(validate_no_leak("leak-password-url"), success_by_default=True)
+        assert self.r.status_code == 200
+
+        # the initial request contains leak-password-url, and is reported, but it's not the issue
+        # we whitelist this value
+        whitelist = "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40weblog%3A7777"
+
+        interfaces.library.validate(validate_no_leak("leak-password-url", whitelist), success_by_default=True)
 
 
 @coverage.good
