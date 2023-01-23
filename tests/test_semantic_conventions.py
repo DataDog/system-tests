@@ -41,7 +41,12 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
     },
-    "spring-boot-undertow": {"servlet.request": "undertow-http-server", "hsqldb.query": "java-jdbc-statement",},
+    "spring-boot-undertow": {
+        "servlet.request": "undertow-http-server",
+        "hsqldb.query": "java-jdbc-statement",
+        "spring.handler": "spring-web-controller",
+    },
+    "spring-boot-wildfly": {"undertow-http.request": "undertow-http-server",},
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "rails": {
         "rails.action_controller": "action_pack",
@@ -50,6 +55,10 @@ VARIANT_COMPONENT_MAP = {
         "sinatra.request": "sinatra",
     },
     "ratpack": {"ratpack.handler": "ratpack", "netty.request": "netty"},
+    "uds-echo": "labstack/echo.v4",
+    "uds-express4": "express",
+    "uds-sinatra": "sinatra",
+    "uds-spring-boot": "tomcat-server",
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
 }
 
@@ -87,6 +96,9 @@ class Test_Meta:
                 return
 
             if span.get("type") != "web":  # do nothing if is not web related
+                return
+
+            if span.get("name") == "web.request" and span["meta"].get("_dd.runtime_family") == "php":
                 return
 
             if "span.kind" not in span["meta"]:
@@ -207,6 +219,9 @@ class Test_Meta:
         def validator(span):
             print_span(span)
             if span.get("type") != "web":  # do nothing if is not web related
+                return
+
+            if span.get("name") == "web.request" and span["meta"].get("_dd.runtime_family") == "php":
                 return
 
             expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
