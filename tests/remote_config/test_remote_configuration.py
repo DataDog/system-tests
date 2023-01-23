@@ -142,7 +142,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
 
     def setup_tracer_update_sequence(self):
-        if context.library == "nodejs":
+        if context.library == "nodejs" or context.library == "golang":
             # time out for nodejs is very low (5 seconds)
             # we need a longer timeout for this test
             interfaces.library.timeout = 100
