@@ -36,6 +36,8 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
     },
+    "spring-boot-3-native": {"servlet.request": "tomcat-server", "hsqldb.query": "java-jdbc-statement",},
+    "spring-boot-native": {"servlet.request": "tomcat-server", "hsqldb.query": "java-jdbc-statement",},
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
         "spring.handler": "spring-web-controller",
@@ -46,7 +48,11 @@ VARIANT_COMPONENT_MAP = {
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
     },
-    "spring-boot-wildfly": {"undertow-http.request": "undertow-http-server",},
+    "spring-boot-wildfly": {
+        "servlet.request": "undertow-http-server",
+        "hsqldb.query": "java-jdbc-statement",
+        "undertow-http.request": "undertow-http-server",
+    },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "rails": {
         "rails.action_controller": "action_pack",
@@ -57,8 +63,13 @@ VARIANT_COMPONENT_MAP = {
     "ratpack": {"ratpack.handler": "ratpack", "netty.request": "netty"},
     "uds-echo": "labstack/echo.v4",
     "uds-express4": "express",
-    "uds-sinatra": "sinatra",
-    "uds-spring-boot": "tomcat-server",
+    "uds-flask": {"flask.request": "flask",},
+    "uds-sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra",},
+    "uds-spring-boot": {
+        "servlet.request": "tomcat-server",
+        "hsqldb.query": "java-jdbc-statement",
+        "spring.handler": "spring-web-controller",
+    },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
 }
 
@@ -227,7 +238,9 @@ class Test_Meta:
             expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
 
             if "component" not in span.get("meta"):
-                raise Exception(f"No component tag found. Expected span component to be: {expected_component}.")
+                raise Exception(
+                    f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
+                )
 
             actual_component = span.get("meta")["component"]
 
@@ -235,13 +248,13 @@ class Test_Meta:
                 if actual_component not in expected_component:
                     print_span(span)
                     raise Exception(
-                        f"Expected span to have component meta tag equal to one of the following, [{expected_component}], got: {actual_component}."
+                        f"Expected span {span['name']} to have component meta tag equal to one of the following, [{expected_component}], got: {actual_component}."
                     )
             else:
                 if actual_component != expected_component:
                     print_span(span)
                     raise Exception(
-                        f"Expected span to have component meta tag, {expected_component}, got: {actual_component}."
+                        f"Expected span {span['name']} to have component meta tag, {expected_component}, got: {actual_component}."
                     )
             return True
 
