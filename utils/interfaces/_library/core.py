@@ -269,9 +269,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def validate_spans(self, request=None, validator=None, success_by_default=False, validate_all_spans=False):
         successful = None
         for _, _, span in self.get_spans(request=request):
-            if validator(span) and not validate_all_spans:
+            validation = validator(span)
+            if validation and not validate_all_spans:
                 return
-            successful = True if successful is None else successful and validator(span)
+            if validation is not None:
+                successful = validation if successful is None else successful and validation
 
         if successful is None and not success_by_default:
             raise Exception("No spans validated this test.")

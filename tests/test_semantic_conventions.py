@@ -58,6 +58,7 @@ VARIANT_COMPONENT_MAP = {
         "hsqldb.query": "java-jdbc-statement",
         "undertow-http.request": "undertow-http-server",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "spring.handler": "spring-web-controller",
     },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "rails": {
