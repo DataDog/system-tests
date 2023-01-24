@@ -41,6 +41,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.request": "tomcat-server",
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
+        "servlet.forward": "java-web-servlet-dispatcher",
     },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
@@ -107,6 +108,7 @@ class Test_Meta:
 
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
     @bug(library="python", reason="Span.kind not implemented yet")
+    @bug(library="php", reason="All PHP current weblog variants trace with C++ tracers that do not have Span.Kind")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -115,9 +117,6 @@ class Test_Meta:
                 return
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
-
-            if span.get("name") == "web.request" and span["meta"].get("_dd.runtime_family") == "php":
                 return
 
             if "span.kind" not in span["meta"]:
