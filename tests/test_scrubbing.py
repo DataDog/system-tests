@@ -74,14 +74,14 @@ class Test_UrlField:
     """ PII in url field are removed"""
 
     def setup_main(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@weblog:7777"})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@runner:8126"})
 
     def test_main(self):
         assert self.r.status_code == 200
 
         # the initial request contains leak-password-url, and is reported, but it's not the issue
         # we whitelist this value
-        whitelist = "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40weblog%3A7777"
+        whitelist = "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126"
 
         interfaces.library.validate(validate_no_leak("leak-password-url", whitelist), success_by_default=True)
 
