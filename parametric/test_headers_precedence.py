@@ -31,7 +31,7 @@ def enable_datadog_tracecontext() -> Any:
 
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("python", "BUG: w3c propagation is disabled by default")
 def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     with test_library:
@@ -177,7 +177,7 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
 @enable_tracecontext()
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_library):
     with test_library:
         # 1) No headers
@@ -300,7 +300,7 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
 
 @enable_datadog()
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     with test_library:
         # 1) No headers
@@ -406,7 +406,7 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
 @enable_datadog_tracecontext()
 @pytest.mark.skip_library("dotnet", "tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library):
     with test_library:
         # 1) No headers

@@ -28,7 +28,7 @@ def temporary_enable_optin_tracecontext() -> Any:
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_both_traceparent_and_tracestate_missing(test_agent, test_library):
     """
     harness sends a request without traceparent or tracestate
@@ -41,7 +41,7 @@ def test_both_traceparent_and_tracestate_missing(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_included_tracestate_missing(test_agent, test_library):
     """
     harness sends a request with traceparent but without tracestate
@@ -61,7 +61,10 @@ def test_traceparent_included_tracestate_missing(test_agent, test_library):
     "dotnet", "Bug: The .NET Tracer accepts one of the traceparent headers instead of discarding the headers",
 )
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library(
+    "nodejs",
+    "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
+)
 @pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -87,7 +90,7 @@ def test_traceparent_duplicated(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_header_name(test_agent, test_library):
     """
     harness sends an invalid traceparent using wrong names
@@ -109,7 +112,7 @@ def test_traceparent_header_name(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Bug: Header search is currently case-sensitive")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_header_name_valid_casing(test_agent, test_library):
     """
     harness sends a valid traceparent using different combination of casing
@@ -136,7 +139,7 @@ def test_traceparent_header_name_valid_casing(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_version_0x00(test_agent, test_library):
     """
     harness sends an invalid traceparent with extra trailing characters
@@ -162,7 +165,7 @@ def test_traceparent_version_0x00(test_agent, test_library):
     "Bug: See https://www.w3.org/TR/trace-context/#versioning-of-traceparent for corrections . 1) We currently assert that version must be 00 2) We assert the length of the traceparent is exactly equal to 55",
 )
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_version_0xcc(test_agent, test_library):
     """
     harness sends an valid traceparent with future version 204 (0xcc)
@@ -191,7 +194,7 @@ def test_traceparent_version_0xcc(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Bug: Version string ff should be considered invalid")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_version_0xff(test_agent, test_library):
     """
     harness sends an invalid traceparent with version 255 (0xff)
@@ -210,7 +213,7 @@ def test_traceparent_version_0xff(test_agent, test_library):
     "dotnet", "Bug: Version string has invalid characters and should be considered invalid",
 )
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_version_illegal_characters(test_agent, test_library):
     """
     harness sends an invalid traceparent with illegal characters in version
@@ -232,7 +235,7 @@ def test_traceparent_version_illegal_characters(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_version_too_long(test_agent, test_library):
     """
     harness sends an invalid traceparent with version more than 2 HEXDIG
@@ -254,7 +257,7 @@ def test_traceparent_version_too_long(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_version_too_short(test_agent, test_library):
     """
     harness sends an invalid traceparent with version less than 2 HEXDIG
@@ -271,7 +274,7 @@ def test_traceparent_version_too_short(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_id_all_zero(test_agent, test_library):
     """
     harness sends an invalid traceparent with trace_id = 00000000000000000000000000000000
@@ -290,7 +293,7 @@ def test_traceparent_trace_id_all_zero(test_agent, test_library):
     "dotnet", "Bug: trace-id string has invalid characters and should be considered invalid",
 )
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_id_illegal_characters(test_agent, test_library):
     """
     harness sends an invalid traceparent with illegal characters in trace_id
@@ -312,7 +315,7 @@ def test_traceparent_trace_id_illegal_characters(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_id_too_long(test_agent, test_library):
     """
     harness sends an invalid traceparent with trace_id more than 32 HEXDIG
@@ -331,7 +334,7 @@ def test_traceparent_trace_id_too_long(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_id_too_short(test_agent, test_library):
     """
     harness sends an invalid traceparent with trace_id less than 32 HEXDIG
@@ -348,7 +351,7 @@ def test_traceparent_trace_id_too_short(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Bug: Parent-id of all zeroes should be considered invalid")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_parent_id_all_zero(test_agent, test_library):
     """
     harness sends an invalid traceparent with parent_id = 0000000000000000
@@ -367,7 +370,7 @@ def test_traceparent_parent_id_all_zero(test_agent, test_library):
     "dotnet", "Bug: trace-id string has invalid characters and should be considered invalid",
 )
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_parent_id_illegal_characters(test_agent, test_library):
     """
     harness sends an invalid traceparent with illegal characters in parent_id
@@ -389,7 +392,7 @@ def test_traceparent_parent_id_illegal_characters(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_parent_id_too_long(test_agent, test_library):
     """
     harness sends an invalid traceparent with parent_id more than 16 HEXDIG
@@ -406,7 +409,7 @@ def test_traceparent_parent_id_too_long(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_parent_id_too_short(test_agent, test_library):
     """
     harness sends an invalid traceparent with parent_id less than 16 HEXDIG
@@ -423,7 +426,7 @@ def test_traceparent_parent_id_too_short(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_flags_illegal_characters(test_agent, test_library):
     """
     harness sends an invalid traceparent with illegal characters in trace_flags
@@ -445,7 +448,7 @@ def test_traceparent_trace_flags_illegal_characters(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_flags_too_long(test_agent, test_library):
     """
     harness sends an invalid traceparent with trace_flags more than 2 HEXDIG
@@ -462,7 +465,7 @@ def test_traceparent_trace_flags_too_long(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_flags_too_short(test_agent, test_library):
     """
     harness sends an invalid traceparent with trace_flags less than 2 HEXDIG
@@ -479,7 +482,7 @@ def test_traceparent_trace_flags_too_short(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_ows_handling(test_agent, test_library):
     """
     harness sends an valid traceparent with heading and trailing OWS
@@ -516,7 +519,7 @@ def test_traceparent_ows_handling(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_tracestate_included_traceparent_missing(test_agent, test_library):
     """
     harness sends a request with tracestate but without traceparent
@@ -535,7 +538,7 @@ def test_tracestate_included_traceparent_missing(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_tracestate_included_traceparent_included(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -559,7 +562,7 @@ def test_tracestate_included_traceparent_included(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_tracestate_header_name(test_agent, test_library):
     """
     harness sends an invalid tracestate using wrong names
@@ -583,7 +586,7 @@ def test_tracestate_header_name(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_tracestate_header_name_valid_casing(test_agent, test_library):
     """
     harness sends a valid tracestate using different combination of casing
@@ -613,7 +616,10 @@ def test_tracestate_header_name_valid_casing(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library(
+    "nodejs",
+    "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
+)
 @pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -660,7 +666,10 @@ def test_tracestate_empty_header(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library(
+    "nodejs",
+    "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
+)
 @pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -696,7 +705,7 @@ def test_tracestate_multiple_headers_different_keys(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_tracestate_duplicated_keys(test_agent, test_library):
     """
     harness sends a request with an invalid tracestate header with duplicated keys
@@ -754,7 +763,7 @@ def test_tracestate_duplicated_keys(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_tracestate_all_allowed_characters(test_agent, test_library):
     """
     harness sends a request with a valid tracestate header with all legal characters
@@ -799,7 +808,7 @@ def test_tracestate_all_allowed_characters(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library(
     "python",
     "\t is an invalid character and is not supported in tracestate. We should update this test use spaces instead",

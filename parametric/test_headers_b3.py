@@ -3,6 +3,7 @@ from typing import Any
 import pytest
 
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from parametric.spec.trace import span_has_no_parent
 from parametric.utils.headers import make_single_request_and_get_inject_headers
 from parametric.utils.test_agent import get_span
 
@@ -23,7 +24,7 @@ def enable_b3() -> Any:
 @enable_b3()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3_extract_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are extracted
     and activated properly.
@@ -42,7 +43,7 @@ def test_headers_b3_extract_valid(test_agent, test_library):
 
 @enable_b3()
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3 distributed tracing headers are not extracted.
     """
@@ -51,14 +52,14 @@ def test_headers_b3_extract_invalid(test_agent, test_library):
 
     span = get_span(test_agent)
     assert span.get("trace_id") != 0
-    assert span.get("parent_id") != 0
+    assert span_has_no_parent(span)
     assert span["meta"].get(ORIGIN) is None
 
 
 @enable_b3()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not impemented")
-@pytest.mark.skip_library("nodejs", "not impemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3_inject_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are injected properly.
     """
@@ -81,7 +82,7 @@ def test_headers_b3_inject_valid(test_agent, test_library):
 @enable_b3()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3multi_propagate_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are extracted
     and injected properly.
@@ -107,7 +108,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
 @enable_b3()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     """Ensure that invalid b3 distributed tracing headers are not extracted
     and the new span context is injected properly.

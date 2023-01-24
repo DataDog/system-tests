@@ -19,7 +19,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -193,7 +193,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -322,7 +322,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
@@ -433,7 +433,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     dd_items4 = tracestate4["dd"].split(";")
     assert "traceparent" in headers4
 
-    if headers4["x-datadog-tags"] is None:
+    if headers4["x-datadog-tags"] is None or headers4["x-datadog-tags"] == "":
         assert not any(item.startswith("t:") for item in dd_items4)
     else:
         assert "tracestate" in headers4
@@ -448,7 +448,9 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     # 5) tracestate[dd] is populated with well-known propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
     #         and "=" is replaced with ":"
-    assert headers5["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64=="
+    dd_tags5 = headers5["x-datadog-tags"].split(",")
+    assert "_dd.p.dm=-4" in dd_tags5
+    assert "_dd.p.usr.id=baz64==" in dd_tags5
 
     traceparent5, tracestate5 = get_tracecontext(headers5)
     dd_items5 = tracestate5["dd"].split(";")
@@ -460,12 +462,15 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     # 6) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
     #         and "=" is replaced with ":"
-    assert headers6["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
+    dd_tags6 = headers6["x-datadog-tags"].split(",")
+    assert "_dd.p.dm=-4" in dd_tags6
+    assert "_dd.p.usr.id=baz64==" in dd_tags6
+    assert "_dd.p.url=http://localhost" in dd_tags6
 
     traceparent6, tracestate6 = get_tracecontext(headers6)
     dd_items6 = tracestate6["dd"].split(";")
     assert "traceparent" in headers6
     assert "tracestate" in headers6
     assert "t.dm:-4" in dd_items6
-    assert "t.usr.id:baz64::" in dd_items6
+    assert "t.usr.id:baz64~~" in dd_items6
     assert "t.url:http://localhost" in dd_items6
