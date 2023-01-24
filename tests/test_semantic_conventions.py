@@ -220,10 +220,10 @@ class Test_Meta:
             # else we should set the language tag
             if "language" in span["meta"]:
                 if RUNTIME_LANGUAGE_MAP.get(library, library) != span["meta"]["language"]:
+                    actual_language = span["meta"]["language"]
+                    expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
                     raise Exception(
-                        "Span actual language, {}, did not match expected language, {}.".format(
-                            span["meta"]["language"], RUNTIME_LANGUAGE_MAP.get(library, library)
-                        )
+                        f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
                     )
             else:
                 print_span(span)
@@ -266,7 +266,7 @@ class Test_Meta:
                     )
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True, success_by_default=True)
+        interfaces.library.validate_spans(validator=validator, validate_all_spans=True, success_by_default=False)
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
