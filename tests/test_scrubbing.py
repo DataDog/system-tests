@@ -68,7 +68,6 @@ class Test_UrlQuery:
 @missing_feature(library="java", reason="Needs weblog endpoint")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @missing_feature(library="php", reason="Needs weblog endpoint")
-@missing_feature(library="golang", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
     """ PII in url field are removed"""

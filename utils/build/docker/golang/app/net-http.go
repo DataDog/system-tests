@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
-
+	"log"
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -49,6 +49,17 @@ func main() {
 		if c := r.URL.Query().Get("code"); c != "" {
 			if code, err := strconv.Atoi(c); err == nil {
 				w.WriteHeader(code)
+			}
+		}
+		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
+		if url := r.URL.Query().Get("url"); url != "" {
+			_, err := http.Get(url)
+			if err != nil {
+				log.Fatalln(err)
+				w.WriteHeader(500)
 			}
 		}
 		w.Write([]byte("OK"))
