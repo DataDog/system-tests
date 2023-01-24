@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/gin-gonic/gin"
 
@@ -42,6 +43,17 @@ func main() {
 		if c := ctx.Request.URL.Query().Get("code"); c != "" {
 			if code, err := strconv.Atoi(c); err == nil {
 				ctx.Writer.WriteHeader(code)
+			}
+		}
+		ctx.Writer.Write([]byte("OK"))
+	})
+
+	r.Any("/make_distant_call", func(ctx *gin.Context) {
+		if url := ctx.Request.URL.Query().Get("url"); url != "" {
+			_, err := http.Get(url)
+			if err != nil {
+				log.Fatalln(err)
+				ctx.Writer.WriteHeader(500)
 			}
 		}
 		ctx.Writer.Write([]byte("OK"))

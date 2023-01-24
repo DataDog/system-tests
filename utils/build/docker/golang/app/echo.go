@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/labstack/echo/v4"
 
@@ -46,6 +47,17 @@ func main() {
 			}
 		}
 		return c.String(rCode, "OK")
+	})
+
+	r.Any("/make_distant_call", func(c echo.Context) error {
+		if url := c.Request().URL.Query().Get("url"); url != "" {
+			_, err := http.Get(url)
+			if err != nil {
+				log.Fatalln(err)
+				return c.String(500, "KO")
+			}
+		}
+		return c.String(200, "OK")
 	})
 
 	r.Any("/headers/", headers)

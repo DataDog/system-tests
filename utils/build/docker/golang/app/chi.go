@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/go-chi/chi/v5"
 
@@ -45,6 +46,17 @@ func main() {
 		if c := r.URL.Query().Get("code"); c != "" {
 			if code, err := strconv.Atoi(c); err == nil {
 				w.WriteHeader(code)
+			}
+		}
+		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
+		if url := r.URL.Query().Get("url"); url != "" {
+			_, err := http.Get(url)
+			if err != nil {
+				log.Fatalln(err)
+				w.WriteHeader(500)
 			}
 		}
 		w.Write([]byte("OK"))
