@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
 from utils.tools import logger
 
 
@@ -195,3 +195,49 @@ class Test_Telemetry:
                         "{TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
                     )
             prev_message_time = curr_message_time
+
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="ruby")
+    def setup_app_integrations_change(self):
+        self.r = weblog.get("/enable_integration")
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="ruby")
+    def test_app_integrations_change(self):
+        """test app-integrations-change requests"""
+
+        # Must match integration loaded in /enable_integration endpoint
+        library_integration_map = {
+            # TODO: "nodejs" : {},
+            "dotnet" : {"NLog" : False},
+            "java" : {"log4j": False},
+            "python" : {"httplib": False}
+        }
+
+        library = context.library.library
+        self.seen_enabled_integrations = library_integration_map[library]
+
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-started":
+                if content["payload"].get("integrations"):
+                    for integration in content["payload"]["integrations"]:
+                        integration_id = integration["name"]
+                        if integration_id in self.seen_enabled_integrations:
+                            raise Exception("Integration should not be in app-started")
+            elif content.get("request_type") == "app-integrations-change":
+                if content["payload"].get("integrations"):
+                    for integration in content["payload"]["integrations"]:
+                        integration_id = integration["name"]
+                        print(self.seen_enabled_integrations)
+                        if integration_id in self.seen_enabled_integrations:
+                           self.seen_enabled_integrations[integration_id] = True
+
+        for integration, seen in self.seen_enabled_integrations.items():
+            if not seen:
+                raise Exception(integration + " not reported in app-integrations-enabled message")

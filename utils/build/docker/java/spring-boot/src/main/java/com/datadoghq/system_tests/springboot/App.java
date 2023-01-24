@@ -31,6 +31,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.apache.log4j.BasicConfigurator;  
+import org.apache.log4j.LogManager;  
+import org.apache.log4j.Logger;  
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import javax.servlet.http.HttpServletResponse;
@@ -59,6 +62,8 @@ import static com.mongodb.client.model.Filters.eq;
 @EnableAutoConfiguration
 @ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
+
+    private static final Logger logger = LogManager.getLogger(App.class);  
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
@@ -283,6 +288,13 @@ public class App {
             e.printStackTrace(System.err);
             return "ssrf exception :(";
         }
+    }
+
+    @RequestMapping("/enable_integration")
+    public String enableIntegration() throws ClassNotFoundException {
+        BasicConfigurator.configure();  
+        logger.info("Hello world");  
+        return "Enabled Integration\n";
     }
 
     @EventListener(ApplicationReadyEvent.class)

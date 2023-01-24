@@ -19,6 +19,7 @@ fi
 CONTAINERS=(weblog agent runner)
 interfaces=(agent library backend)
 WEBLOG_ENV="DD_APPSEC_ENABLED=true\n"
+WEBLOG_ENV+="DD_TELEMETRY_HEARTBEAT_INTERVAL=5\n"
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
 

@@ -1,5 +1,6 @@
 import requests
-from ddtrace import tracer
+from ddtrace import tracer, patch_all, patch
+from ddtrace.internal.telemetry import telemetry_writer
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import (
@@ -167,3 +168,10 @@ def view_weak_cipher_insecure():
 def view_weak_cipher_secure():
     weak_cipher_secure_algorithm()
     return Response("OK")
+
+@app.route("/enable_integration")
+def enable_integration():
+    patch(httplib=True)
+    import http.client
+    telemetry_writer.periodic()
+    return Response("Enabled Integration!")
