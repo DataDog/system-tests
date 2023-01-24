@@ -31,14 +31,14 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 class RemoteConfigurationFieldsBasicTests:
-    """Misc tests on fields and values on remote configuration requests"""
+    """ Misc tests on fields and values on remote configuration requests """
 
     def test_schemas(self):
-        """Test all library schemas"""
+        """ Test all library schemas """
         interfaces.library.assert_schemas()
 
     def test_client_state_errors(self):
-        """Ensure that the Client State error is consistent"""
+        """ Ensure that the Client State error is consistent """
 
         def validator(data):
             state = data["request"]["content"]["client"]["state"]
@@ -51,7 +51,7 @@ class RemoteConfigurationFieldsBasicTests:
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
     def test_client_fields(self):
-        """Ensure that the Client field is appropriately filled out in update requests"""
+        """ Ensure that the Client field is appropriately filled out in update requests"""
 
         def validator(data):
             client = data["request"]["content"]["client"]
@@ -134,8 +134,6 @@ def rc_check_request(data, expected, caching):
 @bug(library="python")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -150,10 +148,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library >= "java@1.1.0", reason="?")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
-            """Helper to validate config request content"""
+            """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -171,8 +169,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 @released(cpp="?", dotnet="2.15.0", golang="?", java="0.113.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -181,10 +177,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     request_number = defaultdict(int)
 
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
-            """Helper to validate config request content"""
+            """ Helper to validate config request content """
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {self.request_number[runtime_id]}")
             if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
@@ -204,8 +200,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @bug(library="dotnet")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -214,10 +208,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     @bug(context.library >= "java@1.1.0", reason="?")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
-            """Helper to validate config request content"""
+            """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
@@ -232,25 +226,22 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="1.6.0rc1", ruby="?", nodejs="3.9.0")
+@released(cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="?", ruby="?", nodejs="3.9.0")
+@bug(library="dotnet")
 @irrelevant(library="nodejs", reason="cache is implemented")
-@irrelevant(library="python", reason="cache is implemented")
-@irrelevant(library="dotnet", reason="cache is implemented")
-@irrelevant(library="java", reason="cache is implemented (APPSEC-6720)")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
 
+    @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
-            """Helper to validate config request content"""
+            """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -269,8 +260,6 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 @bug(library="dotnet")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -278,10 +267,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
     @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
-            """Helper to validate config request content"""
+            """ Helper to validate config request content """
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {self.request_number[runtime_id]}")
             if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
@@ -301,8 +290,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 @bug(library="dotnet")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -310,10 +297,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
     @bug(library="java", reason="APPSEC-6720")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """ test update sequence, based on a scenario mocked in the proxy """
 
         def validate(data):
-            """Helper to validate config request content"""
+            """ Helper to validate config request content """
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True

@@ -41,7 +41,7 @@ class Test_TraceHeaders:
         )
 
     def test_trace_header_diagnostic_check(self):
-        """x-datadog-diagnostic-check header is present iif content is empty"""
+        """ x-datadog-diagnostic-check header is present iif content is empty """
 
         def validator(data):
             request_headers = {h[0].lower() for h in data["request"]["headers"]}

@@ -3,29 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, context, interfaces, bug, scenario, irrelevant
+from utils import interfaces, bug, scenario
 
 
 TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"
-
-
-@irrelevant(context.library != "cpp", reason="This can probably be added to other profilers")
-class Test_Profile:
-    """ Basic testing of profiling """
-
-    def setup_start_end(self):
-        # generate traffic
-        for lp in range(100):
-            self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
-
-    def test_start_end(self):
-        """ All profiling libraries payload have recording-start and recording-end fields"""
-        interfaces.library.profiling_assert_field("start", content_pattern=TIMESTAMP_PATTERN)
-        interfaces.library.profiling_assert_field("end", content_pattern=TIMESTAMP_PATTERN)
-
-    def test_native_library(self):
-        """ Language is set to native (though this is relevant only for ddprof)"""
-        interfaces.library.profiling_assert_field("language:native")
 
 
 @bug(library="cpp", reason="Need to understand how to activate profiling")
@@ -37,14 +18,14 @@ class Test_Profile:
 @bug(library="ruby", reason="Need to understand how to activate profiling")
 @scenario("PROFILING")
 class Test_Basic:
-    """Basic testing of profiling"""
+    """ Basic testing of profiling """
 
     def test_library(self):
-        """All profiling libraries payload have recording-start and recording-end fields"""
+        """ All profiling libraries payload have recording-start and recording-end fields"""
         interfaces.library.profiling_assert_field("recording-start", content_pattern=TIMESTAMP_PATTERN)
         interfaces.library.profiling_assert_field("recording-end", content_pattern=TIMESTAMP_PATTERN)
 
     def test_agent(self):
-        """All profiling agent payload have recording-start and recording-end fields"""
+        """ All profiling agent payload have recording-start and recording-end fields"""
         interfaces.agent.profiling_assert_field("recording-start", content_pattern=TIMESTAMP_PATTERN)
         interfaces.agent.profiling_assert_field("recording-end", content_pattern=TIMESTAMP_PATTERN)

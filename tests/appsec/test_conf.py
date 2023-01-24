@@ -18,8 +18,6 @@ class Test_OneVariableInstallation:
 
 
 @released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="?")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
@@ -29,7 +27,7 @@ class Test_StaticRuleSet:
     @missing_feature(library="php", reason="Rules file is not parsed")
     @missing_feature(library="nodejs", reason="Rules file is not parsed")
     def test_basic_hardcoded_ruleset(self):
-        """Library has loaded a hardcoded AppSec ruleset"""
+        """ Library has loaded a hardcoded AppSec ruleset"""
         stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
@@ -41,20 +39,16 @@ class Test_FleetManagement:
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_4:
-    """AppSec uses rule set 1.2.4 or higher"""
+    """ AppSec uses rule set 1.2.4 or higher """
 
     def test_main(self):
         assert context.appsec_rules_version >= "1.2.4"
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_5:
-    """AppSec uses rule set 1.2.5 or higher"""
+    """ AppSec uses rule set 1.2.5 or higher """
 
     def test_main(self):
         assert context.appsec_rules_version >= "1.2.5"
@@ -62,14 +56,12 @@ class Test_RuleSet_1_2_5:
 
 @released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
 @released(php_appsec="0.3.0", python="1.2.1", ruby="1.0.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RuleSet_1_3_1:
-    """AppSec uses rule set 1.3.1 or higher"""
+    """ AppSec uses rule set 1.3.1 or higher """
 
     def test_main(self):
-        """Test rule set version number"""
+        """ Test rule set version number"""
         assert context.appsec_rules_version >= "1.3.1"
 
     def setup_nosqli_keys(self):
@@ -92,10 +84,8 @@ class Test_RuleSet_1_3_1:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
 @released(java="0.100.0", nodejs="2.7.0", python="1.1.2")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ConfigurationVariables:
-    """Configuration environment variables"""
+    """ Configuration environment variables """
 
     SECRET = "This-value-is-secret"
 
@@ -106,7 +96,7 @@ class Test_ConfigurationVariables:
         self.r_enabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_enabled(self):
-        """test DD_APPSEC_ENABLED = true"""
+        """ test DD_APPSEC_ENABLED = true """
         interfaces.library.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
@@ -119,7 +109,7 @@ class Test_ConfigurationVariables:
     )
     @scenario("APPSEC_DISABLED")
     def test_disabled(self):
-        """test DD_APPSEC_ENABLED = false"""
+        """ test DD_APPSEC_ENABLED = false """
         interfaces.library.assert_no_appsec_event(self.r_disabled)
 
     def setup_appsec_rules(self):
@@ -127,7 +117,7 @@ class Test_ConfigurationVariables:
 
     @scenario("APPSEC_CUSTOM_RULES")
     def test_appsec_rules(self):
-        """test DD_APPSEC_RULES = custom rules file"""
+        """ test DD_APPSEC_RULES = custom rules file """
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
@@ -139,7 +129,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenario("APPSEC_LOW_WAF_TIMEOUT")
     def test_waf_timeout(self):
-        """test DD_APPSEC_WAF_TIMEOUT = low value"""
+        """ test DD_APPSEC_WAF_TIMEOUT = low value """
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
@@ -149,7 +139,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenario("APPSEC_CUSTOM_OBFUSCATION")
     def test_obfuscation_parameter_key(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
+        """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if self.SECRET in span["meta"]["_dd.appsec.json"]:
@@ -167,7 +157,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenario("APPSEC_CUSTOM_OBFUSCATION")
     def test_obfuscation_parameter_value(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
+        """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             if self.SECRET_WITH_HIDDEN_VALUE in span["meta"]["_dd.appsec.json"]:

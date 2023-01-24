@@ -7,7 +7,7 @@ from utils import weblog, interfaces, missing_feature
 
 @missing_feature(True, reason="Need to build endpoint on weblog")
 class Test_Ssrf:
-    """Verify the /trace/ssrf endpoint is setup"""
+    """ Verify the /trace/ssrf endpoint is setup """
 
     def setup_main(self):
         self.r = weblog.get("/trace/ssrf")

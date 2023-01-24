@@ -10,10 +10,8 @@ from utils import weblog, interfaces, context, missing_feature
 @missing_feature(weblog_variant="resteasy-netty3", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="ratpack", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="vertx3", reason="Need to build endpoint on weblog")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Ognl:
-    """Verify the /trace/ognl endpoint is setup"""
+    """ Verify the /trace/ognl endpoint is setup """
 
     def setup_main(self):
         self.r = weblog.get("/trace/ognl")

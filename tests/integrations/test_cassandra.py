@@ -9,7 +9,7 @@ from utils import weblog, interfaces, context, bug, missing_feature, scenario
 @missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
 @scenario("INTEGRATIONS")
 class Test_Cassandra:
-    """Verify that a cassandra span is created"""
+    """ Verify that a cassandra span is created """
 
     def setup_main(self):
         self.r = weblog.get("/trace/cassandra")

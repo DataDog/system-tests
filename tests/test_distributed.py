@@ -10,7 +10,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 @missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
 @scenario("TRACE_PROPAGATION_STYLE_W3C")
 class Test_DistributedHttp:
-    """Verify behavior of http clients and distributed traces"""
+    """ Verify behavior of http clients and distributed traces """
 
     def setup_main(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})

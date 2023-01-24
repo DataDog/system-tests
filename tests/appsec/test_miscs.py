@@ -12,18 +12,18 @@ if context.library == "cpp":
 
 @coverage.not_testable
 class Test_MostCommonFramworkSupport:
-    """Detect attacks on the most common frameworks"""
+    """ Detect attacks on the most common frameworks """
 
 
 @coverage.not_testable
 class Test_AppSecInMaster:
-    """AppSec code is merged into master/main branches"""
+    """ AppSec code is merged into master/main branches """
 
 
 @coverage.not_implemented
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_PerformanceControl:
-    """Performance controls (WAF time spent < 20ms)"""
+    """ Performance controls (WAF time spent < 20ms) """
 
     # Is that necessary as we have a 5ms per callback?
 
@@ -31,16 +31,16 @@ class Test_PerformanceControl:
 @coverage.not_implemented
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_Telemetry:
-    """Telemetry"""
+    """ Telemetry """
 
 
 @coverage.not_implemented
 @released(dotnet="?", golang="?", java="?", nodejs="?", python="?")
 class Test_Blocking:
-    """Blocking"""
+    """ Blocking """
 
 
 @coverage.not_implemented
 @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 class Test_AppsecWithoutApm:
-    """AppSec without APM"""
+    """ AppSec without APM """

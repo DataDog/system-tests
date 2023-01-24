@@ -16,8 +16,6 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 @released(java="0.93.0", php_appsec="0.3.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_CORRUPTED_RULES")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
 
@@ -35,7 +33,7 @@ class Test_CorruptedRules:
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
     def test_no_attack_detected(self):
-        """Appsec does not catch any attack"""
+        """ Appsec does not catch any attack """
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)
 
@@ -43,8 +41,6 @@ class Test_CorruptedRules:
 @released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
 @coverage.basic
 @scenario("APPSEC_MISSING_RULES")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
 
@@ -67,7 +63,7 @@ class Test_MissingRules:
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
     def test_no_attack_detected(self):
-        """Appsec does not catch any attack"""
+        """ Appsec does not catch any attack """
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)
 
@@ -75,8 +71,6 @@ class Test_MissingRules:
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
 @released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 @scenario("APPSEC_CUSTOM_RULES")
 class Test_ConfRuleSet:
@@ -87,12 +81,12 @@ class Test_ConfRuleSet:
         self.r_2 = weblog.get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
 
     def test_requests(self):
-        """Appsec does not catch any attack"""
+        """ Appsec does not catch any attack """
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_waf_attack(self.r_2, pattern="dedicated-value-for-testing-purpose")
 
     def test_log(self):
-        """Check there is no error reported in logs"""
+        """ Check there is no error reported in logs """
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")
         stdout.assert_absence("WAF initialization failed")
@@ -100,12 +94,10 @@ class Test_ConfRuleSet:
 
 @released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
 @missing_feature(context.library <= "ruby@1.0.0.beta1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenario("APPSEC_CUSTOM_RULES")
 class Test_NoLimitOnWafRules:
-    """Serialize WAF rules without limiting their sizes"""
+    """ Serialize WAF rules without limiting their sizes """
 
     def setup_main(self):
         self.r_1 = weblog.get("/waf", headers={"attack": "first_pattern_of_a_very_long_list"})

@@ -13,7 +13,7 @@ class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
 
     def test_trace_header_tags_basic(self):
-        """Test that http.request.headers.user-agent is in all web spans"""
+        """ Test that http.request.headers.user-agent is in all web spans """
 
         for _, _, span in interfaces.library.get_spans():
             if span.get("type") == "web":
