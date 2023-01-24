@@ -42,6 +42,7 @@ VARIANT_COMPONENT_MAP = {
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "servlet.include": "java-web-servlet-dispatcher",
     },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
