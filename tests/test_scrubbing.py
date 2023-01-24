@@ -64,6 +64,7 @@ class Test_UrlQuery:
 
 
 @released(python="1.7.1")
+@missing_feature(library="dotnet", reason="Needs weblog endpoint")
 @missing_feature(library="java", reason="Needs weblog endpoint")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @missing_feature(library="php", reason="Needs weblog endpoint")
