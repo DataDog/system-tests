@@ -16,9 +16,7 @@ env:
 jobs:
 
   lib-injection-tests:
-    runs-on: 
-      labels: ubuntu-latest-16-cores
-      group: APM Larger Runners
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
