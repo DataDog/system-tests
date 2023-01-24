@@ -196,7 +196,6 @@ class Test_Telemetry:
                     )
             prev_message_time = curr_message_time
 
-
     @irrelevant(library="php")
     @irrelevant(library="cpp")
     @irrelevant(library="golang")
@@ -214,9 +213,9 @@ class Test_Telemetry:
         # Must match integration loaded in /enable_integration endpoint
         library_integration_map = {
             # TODO: "nodejs" : {},
-            "dotnet" : {"NLog" : False},
-            "java" : {"log4j": False},
-            "python" : {"httplib": False}
+            "dotnet": {"NLog": False},
+            "java": {"log4j": False},
+            "python": {"httplib": False},
         }
 
         library = context.library.library
@@ -236,7 +235,7 @@ class Test_Telemetry:
                         integration_id = integration["name"]
                         print(self.seen_enabled_integrations)
                         if integration_id in self.seen_enabled_integrations:
-                           self.seen_enabled_integrations[integration_id] = True
+                            self.seen_enabled_integrations[integration_id] = True
 
         for integration, seen in self.seen_enabled_integrations.items():
             if not seen:
