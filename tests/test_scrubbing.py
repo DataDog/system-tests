@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import pytest
-from utils import bug, context, coverage, interfaces, released, rfc, weblog
+from utils import bug, context, coverage, interfaces, released, rfc, weblog, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -64,6 +64,10 @@ class Test_UrlQuery:
 
 
 @released(python="1.7.1")
+@missing_feature(library="java", reason="Needs weblog endpoint")
+@missing_feature(library="ruby", reason="Needs weblog endpoint")
+@missing_feature(library="php", reason="Needs weblog endpoint")
+@missing_feature(library="golang", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
     """ PII in url field are removed"""
