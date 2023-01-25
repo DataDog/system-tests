@@ -48,7 +48,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
         # 3) Sampled = 1, tracestate[dd][s] is not present
         headers3 = make_single_request_and_get_inject_headers(
-            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ]
+            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
         )
 
         # 4) Sampled = 1, tracestate[dd][s] <= 0
@@ -71,7 +71,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
         # 6) Sampled = 0, tracestate[dd][s] is not present
         headers6 = make_single_request_and_get_inject_headers(
-            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"], ]
+            test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],]
         )
 
         # 7) Sampled = 0, tracestate[dd][s] <= 0

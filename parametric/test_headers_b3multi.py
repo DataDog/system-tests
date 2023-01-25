@@ -52,7 +52,11 @@ def test_headers_b3multi_extract_valid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("golang", "BUG: the parent_id will be 0 in any span that didn't have a parent context ; if extract fails - the parent context is nil")
+@pytest.mark.skip_library(
+    "golang",
+    "BUG: the parent_id will be 0 in any span that didn't have a parent context ; "
+    "if extract fails - the parent context is nil",
+)
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3multi_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted.
