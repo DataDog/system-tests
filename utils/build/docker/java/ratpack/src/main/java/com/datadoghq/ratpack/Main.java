@@ -126,5 +126,12 @@ public class Main {
         }
         server.stop();
     }
+
+    public static final class DistantCallResponse {
+        public String url;
+        public int status_code;
+        public HashMap<String, String> request_headers;
+        public HashMap<String, String> response_headers;
+    }
 }
 
