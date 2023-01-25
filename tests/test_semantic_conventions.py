@@ -232,6 +232,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
 
+    @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
