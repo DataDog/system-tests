@@ -32,7 +32,6 @@ def enable_none_invalid() -> Any:
 
 
 @enable_none()
-@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_none_extract(test_agent, test_library):
@@ -87,7 +86,6 @@ def test_headers_none_extract_with_other_propagators(test_agent, test_library):
 
 
 @enable_none()
-@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not impemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_none_inject(test_agent, test_library):
@@ -123,7 +121,6 @@ def test_headers_none_inject_with_other_propagators(test_agent, test_library):
 
 
 @enable_none()
-@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_none_propagate(test_agent, test_library):

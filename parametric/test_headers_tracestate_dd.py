@@ -17,7 +17,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Tracestate not implemented")
+@pytest.mark.skip_library("dotnet", "Issue: We need to prefer the traceparent sampled flag to fix headers4 test case")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
@@ -191,7 +191,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Tracestate not implemented")
+@pytest.mark.skip_library("dotnet", "The origin transformation has changed slightly")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
@@ -320,7 +320,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Tracestate not implemented")
+@pytest.mark.skip_library("dotnet", "Issue: headers5 is not capturing t.dm")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("python", "not implemented")
