@@ -46,6 +46,23 @@ def skip_library(request, apm_test_server):
         if apm_test_server.lang == skip_library and request.node.originalname not in overrides:
             pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, reason))
 
+    file = os.getenv("%s_SKIP_FILE" % apm_test_server.lang.upper(), "%s.skip" % apm_test_server.lang)
+    with open(file, "r") as f:
+        lines = [l.strip() for l in f.readlines()]
+        skips = {}
+        for line in lines:
+            if line.startswith("#"):
+                continue
+            entry, reason = line.split("#") if "#" in line else (line, "")
+            entry = entry.strip()
+            skips[entry] = reason
+
+        rel_path = os.path.relpath(os.path.dirname(request.path), os.path.dirname(__file__))
+        rel_file = os.path.join(rel_path, os.path.basename(request.path))
+        entry = "{}:{}".format(rel_file, request.function.__name__)
+        if entry in skips:
+            pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, skips[entry]))
+
 
 def pytest_configure(config):
     config.addinivalue_line(

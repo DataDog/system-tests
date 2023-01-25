@@ -100,12 +100,14 @@ $env:CLIENTS_ENABLED="dotnet,golang"
 .\run.ps1 test_span_sampling.py
 ```
 
+Skipped tests are defined in <lang>.skip files which by default are read from the `parametric` directory.
 
-Override skipped tests using `OVERRIDE_SKIPS`. This is useful when developing a feature
-and the test has not been updated in this repo yet (but you want the test to run in the library CI).
+A custom <lang>.skip file can be defined using the environment variable `<LANG>_SKIP_FILE=/path/to/skipfile`.
+
+The skip file can be combined with the rest of the file specification options.
 
 ```sh
-CLIENTS_ENABLED=nodejs OVERRIDE_SKIPS=test_single_rule_match_span_sampling_sss001 ./run.sh test_span_sampling.py
+CLIENTS_ENABLED=nodejs NODEJS_SKIP_FILE=./custom.nodejs.skip ./run.sh test_span_sampling.py
 ```
 
 ```powershell

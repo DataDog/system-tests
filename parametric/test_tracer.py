@@ -13,7 +13,6 @@ from .conftest import APMLibrary
 parametrize = pytest.mark.parametrize
 
 
-@pytest.mark.skip_library("nodejs", "nodejs overrides the manually set service name")
 def test_tracer_span_top_level_attributes(test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
     """Do a simple trace to ensure that the test client is working properly."""
     with test_library:

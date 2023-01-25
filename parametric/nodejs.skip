@@ -1,0 +1,1 @@
+./test_tracer.py:test_tracer_span_top_level_attributes # nodejs overrides the manually set service name
