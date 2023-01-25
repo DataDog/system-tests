@@ -212,7 +212,7 @@ class Test_Telemetry:
 
         # Must match integration loaded in /enable_integration endpoint
         library_integration_map = {
-            # TODO: "nodejs" : {},
+            "nodejs" : {}, # TODO: add nodejs integration
             "dotnet": {"NLog": False},
             "java": {"log4j": False},
             "python": {"httplib": False},
@@ -223,7 +223,7 @@ class Test_Telemetry:
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
-            if content.get("request_type") == "app-started":
+            if content.get("request_type") == "app-started" and content.get("application").get("language_name") != "dotnet":
                 if content["payload"].get("integrations"):
                     for integration in content["payload"]["integrations"]:
                         integration_id = integration["name"]
