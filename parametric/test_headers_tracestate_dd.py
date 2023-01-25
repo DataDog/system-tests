@@ -284,7 +284,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     dd_items3 = tracestate3["dd"].split(";")
     assert "traceparent" in headers3
     assert "tracestate" in headers3
-    assert "o:synthetics___web" in dd_items3
+    assert "o:synthetics__~web" in dd_items3
 
     # 4) tracestate[dd][o] is not present
     # Result: Origin is not set
