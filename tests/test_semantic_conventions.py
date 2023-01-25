@@ -120,13 +120,8 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            if "span.kind" not in span["meta"]:
-                print_span(span)
-                raise Exception("web span expect an span.kind meta tag")
-
-            if span["meta"]["span.kind"] not in ("server", "client"):
-                print_span(span)
-                raise Exception("Meta http.kind should be client or server")
+            assert "span.kind" in span["meta"], "Web span expects a span.kind meta tag"
+            assert span["meta"]["span.kind"] in ["server", "client"], "Meta tag span.kind should be client or server"
 
             return True
 
@@ -145,12 +140,10 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            if "http.url" not in span["meta"]:
-                raise Exception("web span expect an http.url meta tag")
+            assert "http.url" in span["meta"], "web span expect an http.url meta tag"
 
             scheme = urlparse(span["meta"]["http.url"]).scheme
-            if scheme not in ("http", "https"):
-                raise Exception(f"Meta http.url's scheme should be http or https, not {scheme}")
+            assert scheme in ["http", "https"], f"Meta http.url's scheme should be http or https, not {scheme}"
 
             return True
 
@@ -166,15 +159,13 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            if "http.status_code" not in span["meta"]:
-                print_span(span)
-                raise Exception("web span expect an http.status_code meta tag")
+            assert "http.status_code" in span["meta"], "web span expect an http.status_code meta tag"
 
             _ = int(span["meta"]["http.status_code"])
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        interfaces.library.validate_spans(validator=validator)
 
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
@@ -186,23 +177,29 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            if "http.method" not in span["meta"]:
-                raise Exception("web span expect an http.method meta tag")
+            assert "http.method" in span["meta"], "web span expect an http.method meta tag"
 
             value = span["meta"]["http.method"]
 
-            if not isinstance(value, (str, bytes)):
-                raise Exception("Method should always be a string")
+            assert isinstance(value, (str, bytes)) is False, "Method should always be a string"
 
             if isinstance(value, bytes):
                 value = value.decode("ascii")
 
-            if value not in ("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"):
-                raise Exception(f"Unexpcted value '{value}' for tag http.method")
+            assert value not in [
+                "GET",
+                "HEAD",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS",
+                "TRACE",
+                "PATCH",
+            ], f"Unexpcted value '{value}' for tag http.method"
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        interfaces.library.validate_spans(validator=validator)
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
@@ -215,59 +212,42 @@ class Test_Meta:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
+            assert "language" in span["meta"].keys(), "Span must have a language tag set."
+
             library = context.library.library
+            expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
 
-            # else we should set the language tag
-            if "language" in span["meta"]:
-                if RUNTIME_LANGUAGE_MAP.get(library, library) != span["meta"]["language"]:
-                    actual_language = span["meta"]["language"]
-                    expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
-                    raise Exception(
-                        f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
-                    )
-            else:
-                print_span(span)
-                raise Exception("Span must have a language tag set.")
-            return True
+            actual_language = span["meta"]["language"]
+            assert (
+                actual_language == expected_language
+            ), f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
+        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
         def validator(span):
-            print_span(span)
-            if span.get("type") != "web":  # do nothing if is not web related
-                return
-
-            if span.get("name") == "web.request" and span["meta"].get("_dd.runtime_family") == "php":
-                return
-
             expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
-
-            if "component" not in span.get("meta"):
-                raise Exception(
-                    f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
-                )
-
+            assert "component" in span.get(
+                "meta"
+            ), f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
             actual_component = span.get("meta")["component"]
 
             if isinstance(expected_component, list):
-                if actual_component not in expected_component:
-                    print_span(span)
-                    raise Exception(
-                        f"Expected span {span['name']} to have component meta tag equal to one of the following, [{expected_component}], got: {actual_component}."
-                    )
-            else:
-                if actual_component != expected_component:
-                    print_span(span)
-                    raise Exception(
-                        f"Expected span {span['name']} to have component meta tag, {expected_component}, got: {actual_component}."
-                    )
-            return True
+                exception_message = f"""Expected span {span['name']} to have component meta tag equal
+                 to one of the following, [{expected_component}], got: {actual_component}."""
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True, success_by_default=False)
+                assert actual_component in expected_component, exception_message
+            else:
+                exception_message = f"Expected span {span['name']} to have component meta tag, {expected_component}, got: {actual_component}."
+
+                assert actual_component == expected_component, exception_message
+
+        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
@@ -278,13 +258,10 @@ class Test_Meta:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            if "runtime-id" not in span.get("meta"):
-                print_span(span)
-                raise Exception("No runtime-id tag found. Expected tag to be present.")
+            assert "runtime-id" in span.get("meta").keys(), "No runtime-id tag found. Expected tag to be present."
 
-            return True
-
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
+        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span
 
 
 @bug(
@@ -296,15 +273,16 @@ class Test_MetaDatadogTags:
 
     def test_meta_dd_tags(self):
         def validator(span):
-            if span["meta"]["key1"] != "val1":
-                raise Exception(f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}')
-
-            if span["meta"]["key2"] != "val2":
-                raise Exception(f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}')
+            assert (
+                span["meta"]["key1"] == "val1"
+            ), f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
+            assert (
+                span["meta"]["key2"] == "val2"
+            ), f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}'
 
             return True
 
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
+        interfaces.library.validate_spans(validator=validator)
 
 
 class Test_MetricsStandardTags:
@@ -318,17 +296,7 @@ class Test_MetricsStandardTags:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            if "process_id" not in span["metrics"]:
-                print_span(span)
-                raise Exception("web span expect a process_id metrics tag")
+            assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"
 
-            return True
-
-        interfaces.library.validate_spans(validator=validator, validate_all_spans=True)
-
-
-def print_span(span):
-
-    json_formatted_str = json.dumps(span, indent=2)
-
-    print(json_formatted_str)
+        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span

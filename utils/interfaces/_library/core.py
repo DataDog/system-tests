@@ -266,23 +266,17 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_traces_validation(self, validator, success_by_default=False):
         self.validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
 
-    def validate_spans(self, request=None, validator=None, success_by_default=False, validate_all_spans=False):
-        successful = None
+    def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
-            validation = validator(span)
-            if validation and not validate_all_spans:
-                return
-            if validation is not None:
-                successful = validation if successful is None else successful and validation
+            try:
+                if validator(span):
+                    return
+            except:
+                logger.error(f"This span is failing validation: {json.dumps(span, indent=2)}")
+                raise
 
-        if successful is None and not success_by_default:
-            raise Exception("No spans validated this test. Raising test exception by default.")
-
-        if successful is False:
-            raise Exception("Span validation was not successful.")
-
-        if successful is None:
-            logger.warning("No span validation occurred during test run, but returning successful by default.")
+        if not success_by_default:
+            raise Exception("No span validates this test")
 
     def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
         validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
