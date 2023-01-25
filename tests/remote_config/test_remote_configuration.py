@@ -70,61 +70,65 @@ def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
 
-    # verify that the tracer properly updated the TUF targets version,
-    # if it's not included we assume it to be 0 in the agent.
-    # Our test suite will always emit SOMETHING for this
-    expected_targets_version = expected["client"]["state"]["targets_version"]
-    targets_version = client_state.get("targets_version", 0)
-    assert (
-        targets_version == expected_targets_version
-    ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
+    try:
+        # verify that the tracer properly updated the TUF targets version,
+        # if it's not included we assume it to be 0 in the agent.
+        # Our test suite will always emit SOMETHING for this
+        expected_targets_version = expected["client"]["state"]["targets_version"]
+        targets_version = client_state.get("targets_version", 0)
+        assert (
+            targets_version == expected_targets_version
+        ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
 
-    # verify that the tracer is properly storing and reporting on its config state
-    expected_config_states = client_state.get("config_states")
-    config_states = client_state.get("config_states")
-    if expected_config_states is None and config_states is not None:
-        raise Exception("client is not expected to have stored config but is reporting stored configs")
+        # verify that the tracer is properly storing and reporting on its config state
+        expected_config_states = client_state.get("config_states")
+        config_states = client_state.get("config_states")
+        if expected_config_states is None and config_states is not None:
+            raise Exception("client is not expected to have stored config but is reporting stored configs")
 
-    if expected_config_states is not None and config_states is None:
-        raise Exception("client is expected to have stored confis but isn't reporting any")
+        if expected_config_states is not None and config_states is None:
+            raise Exception("client is expected to have stored confis but isn't reporting any")
 
-    if config_states is not None:
-        assert len(config_states) == len(expected_config_states), "client reporting more or less configs than expected"
-        for state in expected_config_states:
-            if state not in config_states:
-                raise ValidationError(f"Config {state} should be in config_states property", extra_info=content)
+        if config_states is not None:
+            assert len(config_states) == len(expected_config_states), "client reporting more or less configs than expected"
+            for state in expected_config_states:
+                if state not in config_states:
+                    raise ValidationError(f"Config {state} should be in config_states property", extra_info=content)
 
-    if not caching:
-        # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
-        assert not content.get(
-            "cached_target_files", []
-        ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
-    else:
-        expected_cached_target_files = expected.get("cached_target_files")
-        cached_target_files = content.get("cached_target_files")
+        if not caching:
+            # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
+            assert not content.get(
+                "cached_target_files", []
+            ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+        else:
+            expected_cached_target_files = expected.get("cached_target_files")
+            cached_target_files = content.get("cached_target_files")
 
-        if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
-            raise Exception(
-                f"client is not expected to have cached config but is reporting cached config: {cached_target_files}"
-            )
+            if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
+                raise Exception(
+                    f"client is not expected to have cached config but is reporting cached config: {cached_target_files}"
+                )
 
-        if expected_cached_target_files is not None and cached_target_files is None:
-            raise Exception(
-                "client is expected to have cached config but did not include the cached_target_files field"
-            )
+            if expected_cached_target_files is not None and cached_target_files is None:
+                raise Exception(
+                    "client is expected to have cached config but did not include the cached_target_files field"
+                )
 
-        if expected_cached_target_files is not None:
-            # Make sure the client reported all of the expected files
-            for file in expected_cached_target_files:
-                if file not in cached_target_files:
-                    raise ValidationError(
-                        f"{file} should be in cached_target_files property: {cached_target_files}", extra_info=content
-                    )
+            if expected_cached_target_files is not None:
+                # Make sure the client reported all of the expected files
+                for file in expected_cached_target_files:
+                    if file not in cached_target_files:
+                        raise ValidationError(
+                            f"{file} should be in cached_target_files property: {cached_target_files}", extra_info=content
+                        )
 
-            # Make sure the client isn't reporting any extra cached files
-            for file in cached_target_files:
-                if file not in expected_cached_target_files:
-                    raise ValidationError(f"{file} should not be in cached_target_files", extra_info=content)
+                # Make sure the client isn't reporting any extra cached files
+                for file in cached_target_files:
+                    if file not in expected_cached_target_files:
+                        raise ValidationError(f"{file} should not be in cached_target_files", extra_info=content)
+    except Exception as e:
+        e.args += (expected.get("test_description", "No description"),)
+        raise e
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
