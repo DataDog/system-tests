@@ -6,11 +6,19 @@ import ratpack.http.HttpMethod;
 import ratpack.http.Response;
 import ratpack.server.RatpackServer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.InetAddress;
 import java.util.logging.LogManager;
+
+import java.util.HashMap;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Map;
+import java.util.List;
 
 /**
  * Main class.
@@ -49,6 +57,44 @@ public class Main {
                             response.getHeaders()
                                     .add("content-language", "en-US");
                             response.send("text/plain", "012345678901234567890123456789012345678901");
+                        })
+                        .get("make_distant_call", ctx -> {
+                            String url = ctx.getRequest().getQueryParams().get("url");
+
+                            URL urlObject = new URL(url);
+
+                            HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
+                            con.setRequestMethod("GET");
+
+                            // Save request headers
+                            HashMap<String, String> request_headers = new HashMap<String, String>();
+                            for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
+                                if (header.getKey() == null) {
+                                    continue;
+                                }
+
+                                request_headers.put(header.getKey(), header.getValue().get(0));
+                            }
+
+                            // Save response headers and status code
+                            int status_code = con.getResponseCode();
+                            HashMap<String, String> response_headers = new HashMap<String, String>();
+                            for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
+                                if (header.getKey() == null) {
+                                    continue;
+                                }
+
+                                response_headers.put(header.getKey(), header.getValue().get(0));
+                            }
+
+                            DistantCallResponse result = new DistantCallResponse();
+                            result.url = url;
+                            result.status_code = status_code;
+                            result.request_headers = request_headers;
+                            result.response_headers = response_headers;
+
+                            Response response = ctx.getResponse();
+                            response.send("application/json", (new ObjectMapper()).writeValueAsString(result));
                         })
                         .path("waf", ctx -> {
                             HttpMethod method = ctx.getRequest().getMethod();
