@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-{{ .Values.library }}-app-deployment
+  labels:
+    app: test-{{ .Values.library }}-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-{{ .Values.library }}-app
+  template:
+    metadata:
+      labels:
+        app: test-{{ .Values.library }}-app
+    spec:
+      containers:
+      - name: test-{{ .Values.library }}-app
+        image: {{ .Values.test_app_image }}
+        env:
+          - name: SERVER_PORT
+            value: "18080"
+        readinessProbe:
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 1
+          httpGet:
+            host:
+            scheme: HTTP
+            path: /
+            port: 18080
+          initialDelaySeconds: 20
+          periodSeconds: 5
+        ports:
+          - containerPort: 18080
+            protocol: TCP

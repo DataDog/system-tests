@@ -1,0 +1,48 @@
+targetSystem: "linux"
+
+agents:
+  enabled: false
+datadog:
+  clusterName: lib-injection-testing
+  tags: []
+  logLevel: DEBUG
+  kubelet:
+    tlsVerify: "false"
+clusterAgent:
+  enabled: true
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 12
+  readinessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 12
+  image:
+    tag: fileprovider
+    repository: ddkverhoog/injecttest
+    pullPolicy: Always
+    doNotCheckTag: true
+  admissionController:
+    configMode: hostip
+  env:
+    - name: DD_REMOTE_CONFIGURATION_ENABLED
+      value: "false"
+    - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PATCHER_ENABLED
+      value: "true"
+    - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PATCHER_FALLBACK_TO_FILE_PROVIDER
+      value: "true"
+  volumes:
+    - name: auto-instru
+      configMap:
+        name: auto-instru
+        items:
+        - key: auto-instru.json
+          path: auto-instru.json
+  volumeMounts:
+    - name: auto-instru
+      mountPath: /etc/datadog-agent/patch
