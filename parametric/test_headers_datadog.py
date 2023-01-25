@@ -1,24 +1,13 @@
-from typing import Any
-
 import pytest
 
 from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from parametric.spec.trace import span_has_no_parent
 from parametric.utils.headers import make_single_request_and_get_inject_headers
 from parametric.utils.test_agent import get_span
+
 parametrize = pytest.mark.parametrize
 
 
-def enable_datadog_propagator() -> Any:
-    env = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "datadog",
-    }
-    return parametrize("library_env", [env])
-
-
-
-@enable_datadog_propagator()
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
@@ -44,7 +33,6 @@ def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
 
-@enable_datadog_propagator()
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_library):
     """Ensure that invalid Datadog distributed tracing headers are not extracted.
@@ -69,7 +57,6 @@ def test_distributed_headers_extract_datadog_invalid_D002(test_agent, test_libra
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
 
 
-@enable_datadog_propagator()
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are injected properly.
@@ -83,7 +70,6 @@ def test_distributed_headers_inject_datadog_D003(test_agent, test_library):
     assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
 
 
-@enable_datadog_propagator()
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_propagate_datadog_D004(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
@@ -109,7 +95,6 @@ def test_distributed_headers_propagate_datadog_D004(test_agent, test_library):
     assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
 
 
-@enable_datadog_propagator()
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_extractandinject_datadog_invalid_D005(test_agent, test_library):
     """Ensure that invalid Datadog distributed tracing headers are not extracted
