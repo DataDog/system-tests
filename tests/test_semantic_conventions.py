@@ -28,11 +28,13 @@ VARIANT_COMPONENT_MAP = {
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
+        "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
     },
     "spring-boot-jetty": {
         "servlet.request": "jetty-server",
+        "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
     },
@@ -181,12 +183,12 @@ class Test_Meta:
 
             value = span["meta"]["http.method"]
 
-            assert isinstance(value, (str, bytes)) is False, "Method should always be a string"
+            assert isinstance(value, (str, bytes)), "Method should always be a string"
 
             if isinstance(value, bytes):
                 value = value.decode("ascii")
 
-            assert value not in [
+            assert value in [
                 "GET",
                 "HEAD",
                 "POST",
@@ -212,7 +214,7 @@ class Test_Meta:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            assert "language" in span["meta"].keys(), "Span must have a language tag set."
+            assert "language" in span["meta"], "Span must have a language tag set."
 
             library = context.library.library
             expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
