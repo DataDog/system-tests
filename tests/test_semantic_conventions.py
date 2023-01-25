@@ -13,6 +13,12 @@ RUNTIME_LANGUAGE_MAP = {
     "golang": "go",
     "java": "jvm",
 }
+
+"""
+map of weblog_variant_name to expected integration (component) name
+if value type is list, then multiple component names are possible, ie two versions of one integration, see chi
+if value is dict, the weblog variant has multiple spans each with a different expected component name
+"""
 VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
@@ -28,34 +34,45 @@ VARIANT_COMPONENT_MAP = {
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
-        "hsqldb.query": "java-jdbc-statement",
+        "hsqldb.query": ["java-jdbc-prepared_statement", "java-jdbc-statement"],
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "servlet.response": "java-web-servlet-response",
+        "grpc.server": "grpc-server",
     },
     "spring-boot-jetty": {
         "servlet.request": "jetty-server",
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "servlet.response": "java-web-servlet-response",
     },
-    "spring-boot-3-native": {"servlet.request": "tomcat-server", "hsqldb.query": "java-jdbc-statement",},
+    "spring-boot-3-native": {
+        "servlet.request": "tomcat-server",
+        "hsqldb.query": "java-jdbc-statement",
+        "servlet.response": "java-web-servlet-response",
+    },
     "spring-boot-native": {
         "servlet.request": "tomcat-server",
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.include": "java-web-servlet-dispatcher",
+        "servlet.response": "java-web-servlet-response",
     },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
+        "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "servlet.response": "java-web-servlet-response",
     },
     "spring-boot-undertow": {
         "servlet.request": "undertow-http-server",
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "undertow-http.request": "undertow-http-server",
+        "servlet.response": "java-web-servlet-response",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",
@@ -63,6 +80,7 @@ VARIANT_COMPONENT_MAP = {
         "undertow-http.request": "undertow-http-server",
         "servlet.forward": "java-web-servlet-dispatcher",
         "spring.handler": "spring-web-controller",
+        "servlet.response": "java-web-servlet-response",
     },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "rails": {
@@ -233,7 +251,11 @@ class Test_Meta:
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
         def validator(span):
+            if span.get("type") != "web":  # do nothing if is not web related
+                return
+
             expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
+
             assert "component" in span.get(
                 "meta"
             ), f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
@@ -246,7 +268,6 @@ class Test_Meta:
                 assert actual_component in expected_component, exception_message
             else:
                 exception_message = f"Expected span {span['name']} to have component meta tag, {expected_component}, got: {actual_component}."
-
                 assert actual_component == expected_component, exception_message
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
@@ -262,7 +283,7 @@ class Test_Meta:
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            assert "runtime-id" in span.get("meta").keys(), "No runtime-id tag found. Expected tag to be present."
+            assert "runtime-id" in span.get("meta"), "No runtime-id tag found. Expected tag to be present."
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
         # checking that we have at least one root span
