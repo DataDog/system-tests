@@ -76,12 +76,6 @@ jobs:
           weblog: spring-boot-wildfly
         - library: java
           weblog: spring-boot-undertow
-        - library: nodejs
-          weblog: express4
-        - library: nodejs
-          weblog: uds-express4
-        - library: nodejs
-          weblog: express4-typescript
         - library: php
           weblog: apache-mod-7.0
         - library: php
@@ -516,7 +510,7 @@ jobs:
     - name: Print fancy log report
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
-  test-the-tests-graalvm:
+  test-the-tests-large:
     runs-on: 
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
@@ -529,6 +523,12 @@ jobs:
           weblog: spring-boot-native
         - library: java
           weblog: spring-boot-3-native
+        - library: nodejs
+          weblog: express4
+        - library: nodejs
+          weblog: uds-express4
+        - library: nodejs
+          weblog: express4-typescript
         version:
         - prod
         - dev
@@ -585,10 +585,10 @@ jobs:
       run: docker system info
     - name: Building with cache read-write mode
       if: ${{ github.ref == 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh 
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
     - name: Building with cache read only mode
       if: ${{ github.ref != 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh 
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
@@ -664,8 +664,8 @@ jobs:
     needs:
     - test-the-tests-0
     - test-the-tests-1
-    - test-the-tests-graalvm
-    if: github.ref == 'refs/heads/main'
+    - test-the-tests-large
+    if:  always() && github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
       uses: actions/checkout@v3
