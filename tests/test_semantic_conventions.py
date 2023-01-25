@@ -223,7 +223,8 @@ class Test_Meta:
             ), f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
-        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span
+        # checking that we have at least one root span
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
     def test_meta_component_tag(self):
@@ -247,7 +248,8 @@ class Test_Meta:
                 assert actual_component == expected_component, exception_message
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
-        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span
+        # checking that we have at least one root span
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
@@ -261,7 +263,8 @@ class Test_Meta:
             assert "runtime-id" in span.get("meta").keys(), "No runtime-id tag found. Expected tag to be present."
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
-        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span
+        # checking that we have at least one root span
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
 @bug(
@@ -299,4 +302,5 @@ class Test_MetricsStandardTags:
             assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"
 
         interfaces.library.validate_spans(validator=validator, success_by_default=True)
-        assert len(list(interfaces.library.get_root_spans())) == 0  # checking that we have at least one root span
+        # checking that we have at least one root span
+        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
