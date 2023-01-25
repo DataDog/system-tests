@@ -80,7 +80,7 @@ echo "------------------------------------------------------------------------"
 
 export USE_ADMISSION_CONTROLLER=0
 export USE_UDS=0
-export USE_RC=1
+export USE_RC=0
 
 ## MODIFIERS
 function uds() {
@@ -144,7 +144,7 @@ function deploy-operator() {
       operator_file=${BASE_DIR}/common/operator-helm-values-uds.yaml
     fi
     if [ ${USE_RC} -eq 1 ] ; then
-      echo "[Deploy operator] Using RemoteConfig"
+      echo "[Deploy operator] Using Patcher"
       operator_file=${BASE_DIR}/common/operator-helm-values-rc.yaml
       kubectl apply -f ${BASE_DIR}/common/auto-instru.yaml
     fi
@@ -185,7 +185,8 @@ function deploy-agents() {
         deploy-operator
     fi
     if [ ${USE_RC} -eq 1 ] ;  then
-        echo "[Deploy] Using admission controller"
+        echo "[Deploy] Cluster Agent with patcher enabled"
+        deploy-operator
     fi
 
     deploy-test-agent   
