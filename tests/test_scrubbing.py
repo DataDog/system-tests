@@ -91,6 +91,8 @@ class Test_UrlField:
     def setup_distant_call_is_reported(self):
         self._setup()
 
+    @missing_feature(library="golang", reason="Need to wrap the http client")
+    @missing_feature(library="php", reason="Not reported")
     def test_distant_call_is_reported(self):
         """ check that the distant call is reported"""
 
@@ -116,4 +118,4 @@ class Test_EnvVar:
     def test_logs(self):
         interfaces.library_stdout.assert_absence(".*leaked-env-var.*")
         interfaces.library_dotnet_managed.assert_absence(".*leaked-env-var.*")
-        # interfaces.agent_stdout.assert_absence(".*leaked-env-var.*")  # TODO
+        interfaces.agent_stdout.assert_absence(".*leaked-env-var.*")  # TODO
