@@ -45,6 +45,9 @@ jobs:
         lib-injection-use-admission-controller: 
           - use-admission-controller
           - ''
+
+        remote-config:
+          - remote-config
         
         version: 
           - latest #Production tag

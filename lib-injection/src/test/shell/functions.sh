@@ -80,6 +80,7 @@ echo "------------------------------------------------------------------------"
 
 export USE_ADMISSION_CONTROLLER=0
 export USE_UDS=0
+export USE_RC=1
 
 ## MODIFIERS
 function uds() {
@@ -88,6 +89,9 @@ function uds() {
 
 function network() {
     export USE_UDS=0
+}
+function remote-config() {
+    export USE_RC=1
 }
 
 function use-admission-controller() {
@@ -139,6 +143,12 @@ function deploy-operator() {
       echo "[Deploy operator] Using UDS"  
       operator_file=${BASE_DIR}/common/operator-helm-values-uds.yaml
     fi
+    if [ ${USE_RC} -eq 1 ] ; then
+      echo "[Deploy operator] Using RemoteConfig"
+      operator_file=${BASE_DIR}/common/operator-helm-values-rc.yaml
+      kubectl apply -f ${BASE_DIR}/common/auto-instru.yaml
+    fi
+    # TODO need to use the helm chart with patching permissions
     echo "[Deploy operator] Configuring helm repository"
     helm repo add datadog https://helm.datadoghq.com
     helm repo update
@@ -174,6 +184,10 @@ function deploy-agents() {
         echo "[Deploy] Using admission controller"
         deploy-operator
     fi
+    if [ ${USE_RC} -eq 1 ] ;  then
+        echo "[Deploy] Using admission controller"
+    fi
+
     deploy-test-agent   
 }
 
@@ -182,23 +196,36 @@ function reset-app() {
 }
 
 function deploy-app() {
-    app_name=my-app
-    echo "[Deploy] deploy-app: ${app_name} . Using UDS: ${USE_UDS}. Using adm.controller: ${USE_ADMISSION_CONTROLLER}"
-    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
-    echo "[Deploy] Using library alias: ${library}"
+    if [ ${USE_RC} -eq 1 ] ; then
+        helm template lib-injection/common \
+          -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
+          --set library="${library}" \
+          --set app=${app_name} \
+          --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
+           | kubectl apply -f -
+        # TODO
+        # echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
+        # kubectl wait pod/${app_name} --for condition=ready --timeout=5m
+        # sleep 5 && kubectl get pods
+    else
+        app_name=my-app
+        echo "[Deploy] deploy-app: ${app_name} . Using UDS: ${USE_UDS}. Using adm.controller: ${USE_ADMISSION_CONTROLLER}"
+        [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+        echo "[Deploy] Using library alias: ${library}"
 
-    helm template lib-injection/common \
-      -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
-      --set library="${library}" \
-      --set app=${app_name} \
-      --set use_uds=${USE_UDS} \
-      --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \
-      --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
-      --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" \
-       | kubectl apply -f -
-    echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
-    kubectl wait pod/${app_name} --for condition=ready --timeout=5m
-    sleep 5 && kubectl get pods
+        helm template lib-injection/common \
+          -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
+          --set library="${library}" \
+          --set app=${app_name} \
+          --set use_uds=${USE_UDS} \
+          --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \
+          --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
+          --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" \
+           | kubectl apply -f -
+        echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
+        kubectl wait pod/${app_name} --for condition=ready --timeout=5m
+        sleep 5 && kubectl get pods
+    fi
     echo "[Deploy] deploy-app done"
 }
 
