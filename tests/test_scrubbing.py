@@ -69,12 +69,17 @@ class Test_UrlQuery:
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
-    """ PII in url field are removed"""
+    """ PII in url field are removed on distant calls """
+
+    def _setup(self):
+        if not hasattr(self, "r"):
+            self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@runner:8126"})
 
     def setup_main(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@runner:8126"})
+        self._setup()
 
     def test_main(self):
+        """ check that not data is leaked"""
         assert self.r.status_code == 200
 
         # the initial request contains leak-password-url, and is reported, but it's not the issue
@@ -82,6 +87,20 @@ class Test_UrlField:
         whitelist = "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126"
 
         interfaces.library.validate(validate_no_leak("leak-password-url", whitelist), success_by_default=True)
+
+    def setup_distant_call_is_reported(self):
+        self._setup()
+
+    def test_distant_call_is_reported(self):
+        """ check that the distant call is reported"""
+
+        def validator(trace):
+            for span in trace:
+                if span.get("type") == "http":
+                    assert span["meta"]["http.url"] == "http://runner:8126/"
+                    return True
+
+        interfaces.library.validate_traces(self.r, validator)
 
 
 @coverage.good
