@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import json
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug
+from utils import context, interfaces, bug, released
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -223,7 +222,7 @@ class Test_Meta:
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
-    @bug(library="python", reason="language tag not implemented")
+    @released(python="1.80.0")
     @bug(library="java", reason="language tag implemented but not for all spans")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
@@ -247,6 +246,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
+    @released(python="1.80.0")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
