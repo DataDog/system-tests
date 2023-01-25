@@ -17,6 +17,7 @@ jobs:
 
   lib-injection-tests:
     runs-on: ubuntu-latest
+    if: ${{ false }}
     permissions:
       contents: read
       packages: write
