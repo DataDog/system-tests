@@ -348,6 +348,7 @@ def test_single_rule_always_keep_span_sampling_sss011(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
 
+@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
