@@ -323,7 +323,6 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
 @pytest.mark.skip_library("dotnet", "Issue: headers5 is not capturing t.dm")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
-@pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
