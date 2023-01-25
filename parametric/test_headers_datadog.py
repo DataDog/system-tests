@@ -5,8 +5,6 @@ from parametric.spec.trace import span_has_no_parent
 from parametric.utils.headers import make_single_request_and_get_inject_headers
 from parametric.utils.test_agent import get_span
 
-parametrize = pytest.mark.parametrize
-
 
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
