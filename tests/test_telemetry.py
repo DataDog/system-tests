@@ -212,7 +212,7 @@ class Test_Telemetry:
 
         # Must match integration loaded in /enable_integration endpoint
         library_integration_map = {
-            "nodejs" : {}, # TODO: add nodejs integration
+            "nodejs": {},  # TODO: add nodejs integration
             "dotnet": {"NLog": False},
             "java": {"log4j": False},
             "python": {"httplib": False},
@@ -223,7 +223,11 @@ class Test_Telemetry:
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
-            if content.get("request_type") == "app-started" and content.get("application").get("language_name") != "dotnet":
+            if (
+                content.get("request_type") == "app-started"
+                and content.get("application").get("language_name")
+                != "dotnet"  # DOTNET sends all integrations in app-started
+            ):
                 if content["payload"].get("integrations"):
                     for integration in content["payload"]["integrations"]:
                         integration_id = integration["name"]
@@ -233,9 +237,15 @@ class Test_Telemetry:
                 if content["payload"].get("integrations"):
                     for integration in content["payload"]["integrations"]:
                         integration_id = integration["name"]
-                        print(self.seen_enabled_integrations)
                         if integration_id in self.seen_enabled_integrations:
-                            self.seen_enabled_integrations[integration_id] = True
+                            # DOTNET sets auto_enabled true when an integration runs
+                            if (
+                                content.get("application").get("language_name") != "dotnet"
+                                and integration["auto_enabled"]
+                            ):
+                                self.seen_enabled_integrations[integration_id] = True
+                            else:
+                                self.seen_enabled_integrations[integration_id] = True
 
         for integration, seen in self.seen_enabled_integrations.items():
             if not seen:
