@@ -206,7 +206,7 @@ function trigger-config-rc() {
     echo "[RC Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
     echo "[RC Config] trigger-config-rc: waiting for deployments/my-java-deployment available"
-    kubectl wait deployments/$my-java-deployment --for condition=Available=True --timeout=5m # TODO support any deployment
+    kubectl wait deployments/my-java-deployment --for condition=Available=True --timeout=5m # TODO support any deployment
     kubectl get pods
     echo "[RC Config] trigger-config-rc: done"
 }
