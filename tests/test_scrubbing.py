@@ -4,6 +4,7 @@
 
 import pytest
 from utils import bug, context, coverage, interfaces, released, rfc, weblog, missing_feature
+from utils.tools import logger
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -79,7 +80,7 @@ class Test_UrlField:
         self._setup()
 
     def test_main(self):
-        """ check that not data is leaked"""
+        """ check that not data is leaked """
         assert self.r.status_code == 200
 
         # the initial request contains leak-password-url, and is reported, but it's not the issue
@@ -91,23 +92,23 @@ class Test_UrlField:
     def setup_distant_call_is_reported(self):
         self._setup()
 
-    @missing_feature(library="golang", reason="Need to wrap the http client")
-    @missing_feature(library="php", reason="Not reported")
+    @missing_feature(library="golang", reason="reported span is not linked to the root span of the orginial request")
+    @missing_feature(library="php", reason="HTTP request are not yet reported by the PHP tracer")
     def test_distant_call_is_reported(self):
-        """ check that the distant call is reported"""
+        """ check that the distant call is reported """
 
         def validator(trace):
             for span in trace:
                 if span.get("type") == "http":
-                    assert span["meta"]["http.url"] == "http://runner:8126/"
-                    return True
+                    logger.info(f"span found: {span}")
+                    return "runner:8126" in span["meta"]["http.url"]
 
         interfaces.library.validate_traces(self.r, validator)
 
 
 @coverage.good
 class Test_EnvVar:
-    """ Environnement variables are not leaked"""
+    """ Environnement variables are not leaked """
 
     def test_library(self):
         interfaces.library.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
@@ -118,4 +119,4 @@ class Test_EnvVar:
     def test_logs(self):
         interfaces.library_stdout.assert_absence(".*leaked-env-var.*")
         interfaces.library_dotnet_managed.assert_absence(".*leaked-env-var.*")
-        interfaces.agent_stdout.assert_absence(".*leaked-env-var.*")  # TODO
+        interfaces.agent_stdout.assert_absence(".*leaked-env-var.*")

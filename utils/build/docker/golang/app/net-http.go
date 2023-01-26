@@ -56,7 +56,9 @@ func main() {
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		if url := r.URL.Query().Get("url"); url != "" {
-			_, err := http.Get(url)
+
+			client := httptrace.WrapClient(&http.Client{})
+			_, err := client.Get(url)
 			if err != nil {
 				log.Fatalln(err)
 				w.WriteHeader(500)

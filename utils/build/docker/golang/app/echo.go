@@ -51,7 +51,8 @@ func main() {
 
 	r.Any("/make_distant_call", func(c echo.Context) error {
 		if url := c.Request().URL.Query().Get("url"); url != "" {
-			_, err := http.Get(url)
+			client := httptrace.WrapClient(&http.Client{})
+			_, err := client.Get(url)
 			if err != nil {
 				log.Fatalln(err)
 				return c.String(500, "KO")

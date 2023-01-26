@@ -50,7 +50,8 @@ func main() {
 
 	r.Any("/make_distant_call", func(ctx *gin.Context) {
 		if url := ctx.Request.URL.Query().Get("url"); url != "" {
-			_, err := http.Get(url)
+			client := httptrace.WrapClient(&http.Client{})
+			_, err := client.Get(url)
 			if err != nil {
 				log.Fatalln(err)
 				ctx.Writer.WriteHeader(500)
