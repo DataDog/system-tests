@@ -2,3 +2,4 @@
 * @DataDog/system-tests-core
 /utils/build/docker/golang/* @DataDog/appsec-go
 /parametric/* @Kyle-Verhoog 
+/tests/remote_config/* @DataDog/system-tests-core @DataDog/remote-config
