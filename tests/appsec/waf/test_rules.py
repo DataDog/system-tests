@@ -294,7 +294,7 @@ class Test_SQLI:
 
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
-@released(dotnet="2.12.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
+@released(dotnet="2.12.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1", ruby="1.8.0")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library <= "php@0.68.2")
@@ -316,7 +316,7 @@ class Test_NoSqli:
         self.r_3 = weblog.get("/waf/", params={"[$ne]": "value"})
         self.r_4 = weblog.get("/waf/", params={"$nin": "value"})
 
-    @missing_feature(context.library in ["golang", "php", "ruby"], reason="Need to use last WAF version")
+    @missing_feature(context.library in ["golang", "php"], reason="Need to use last WAF version")
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
     @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     @irrelevant(library="nodejs", reason="brackets are interpreted as arrays and thus truncated")
