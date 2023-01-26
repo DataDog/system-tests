@@ -64,7 +64,7 @@ jobs:
       - name: lib-injection test runner
         id: lib-injection-test-runner
         # TODO: change this back to `main`
-        uses: DataDog/system-tests/lib-injection/runner@ahmed/patch
+        uses: DataDog/system-tests/lib-injection/runner@onboarding-rc-injection
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
@@ -89,7 +89,6 @@ jobs:
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
-      REMOTE_CONFIG: true
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: latest
       DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
@@ -98,7 +97,7 @@ jobs:
       - name: lib-injection test runner
         id: lib-injection-test-runner
         # TODO: change this back to `main`
-        uses: DataDog/system-tests/lib-injection/runner@ahmed/patch
+        uses: DataDog/system-tests/lib-injection/runner@onboarding-rc-injection
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
