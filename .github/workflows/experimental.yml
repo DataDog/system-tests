@@ -63,7 +63,8 @@ jobs:
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@main
+        # TODO: change this back to `main`
+        uses: DataDog/system-tests/lib-injection/runner@onboarding-rc-injection
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
@@ -85,22 +86,20 @@ jobs:
         - library: python
           weblog-variant: dd-lib-python-init-test-django
         - library: python
-        version:
-          - latest #Production tag
-          - latest_snapshot
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       VARIANT: ${{ matrix.variant.variant }}
       REMOTE_CONFIG: true
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
-      DOCKER_IMAGE_TAG: ${{ matrix.version }}
+      DOCKER_IMAGE_TAG: latest
       DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
       BUILDX_PLATFORMS: linux/amd64
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@main
+        # TODO: change this back to `main`
+        uses: DataDog/system-tests/lib-injection/runner@onboarding-rc-injection
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
