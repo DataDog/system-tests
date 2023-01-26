@@ -225,7 +225,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
             [
                 ["x-datadog-trace-id", "7890123456789012"],
                 ["x-datadog-parent-id", "1234567890123456"],
-                ["x-datadog-origin", "synthetics;,=web"],
+                ["x-datadog-origin", "synthetics~,=web"],
             ],
         )
 
@@ -276,9 +276,11 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     assert "tracestate" in headers2
     assert "o:tracing2.0" in dd_items2
 
-    # 3) x-datadog-origin has invalid characters
+    # 3) x-datadog-origin has invalid characters. Since tilde must be unescaped during extraction,
+    # all invalid characters including '~', must be replaced with '_',
+    # and after that '=' must be replaced with `~`
     # Result: Origin set to header value, where invalid characters replaced by '_'
-    assert headers3["x-datadog-origin"] == "synthetics;,=web"
+    assert headers3["x-datadog-origin"] == "synthetics~,=web"
 
     traceparent3, tracestate3 = get_tracecontext(headers3)
     dd_items3 = tracestate3["dd"].split(";")
