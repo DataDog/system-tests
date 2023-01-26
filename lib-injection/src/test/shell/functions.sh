@@ -147,15 +147,20 @@ function deploy-operator() {
       echo "[Deploy operator] Using Patcher"
       operator_file=${BASE_DIR}/common/operator-helm-values-rc.yaml
       kubectl apply -f ${BASE_DIR}/common/auto-instru.yaml
+
     fi
-    # TODO need to use the helm chart with patching permissions
-    echo "[Deploy operator] Configuring helm repository"
-    helm repo add datadog https://helm.datadoghq.com
-    helm repo update
-    
+    # echo "[Deploy operator] Configuring helm repository"
+    # helm repo add datadog https://helm.datadoghq.com
+    # helm repo update
+
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
-    helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
+    git clone https://github.com/Kyle-Verhoog/helm-charts
+    helm repo add prometheus https://prometheus-community.github.io/helm-charts
+    helm dependency build
+    helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" helm-charts/charts/datadog 
     sleep 15 && kubectl get pods
+    # helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
+    # sleep 15 && kubectl get pods
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
     kubectl wait "${pod_name}" --for condition=ready --timeout=5m
@@ -198,16 +203,16 @@ function reset-app() {
 
 function deploy-app() {
     if [ ${USE_RC} -eq 1 ] ; then
+        deployment_name=my-deployment
         helm template lib-injection/common \
           -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
           --set library="${library}" \
-          --set app=${app_name} \
+          --set deployment=${deployment_name} \
           --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
            | kubectl apply -f -
-        # TODO
-        # echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
-        # kubectl wait pod/${app_name} --for condition=ready --timeout=5m
-        # sleep 5 && kubectl get pods
+        echo "[Deploy] deploy-app: waiting for deployments/${deployment_name} ready"
+        kubectl wait deployments/${deployment_name} --for condition=ready --timeout=5m
+        sleep 5 && kubectl get pods
     else
         app_name=my-app
         echo "[Deploy] deploy-app: ${app_name} . Using UDS: ${USE_UDS}. Using adm.controller: ${USE_ADMISSION_CONTROLLER}"
