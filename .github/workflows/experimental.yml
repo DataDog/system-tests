@@ -85,7 +85,6 @@ jobs:
           weblog-variant: sample-app
         - library: python
           weblog-variant: dd-lib-python-init-test-django
-        - library: python
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
