@@ -327,7 +327,6 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     "False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map"
     "BUG: header[4,5]: w3cTraceID shouldn't be present",
 )
-@pytest.mark.skip_library("python", "not implemented")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
