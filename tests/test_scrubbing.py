@@ -94,7 +94,7 @@ class Test_UrlField:
     def setup_distant_call_is_reported(self):
         self._setup()
 
-    @missing_feature(library="golang", reason="reported span is not linked to the root span of the orginial request")
+    # @missing_feature(library="golang", reason="reported span is not linked to the root span of the orginial request")
     @missing_feature(library="php", reason="HTTP request are not yet reported by the PHP tracer")
     def test_distant_call_is_reported(self):
         """ check that the distant call is reported """

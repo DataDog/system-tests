@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -51,8 +52,11 @@ func main() {
 
 	r.Any("/make_distant_call", func(c echo.Context) error {
 		if url := c.Request().URL.Query().Get("url"); url != "" {
-			client := httptrace.WrapClient(&http.Client{})
-			_, err := client.Get(url)
+
+			client := httptrace.WrapClient(http.DefaultClient)
+			req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
+			_, err := client.Do(req)
+
 			if err != nil {
 				log.Fatalln(err)
 				return c.String(500, "KO")
