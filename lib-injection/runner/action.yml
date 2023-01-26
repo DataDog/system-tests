@@ -11,6 +11,9 @@ inputs:
   docker-registry-password:
     description: password for Docker registry
     required: true
+  test-script:
+    description: test script to run
+    required: true
 runs:
   using: composite
   steps:
@@ -25,7 +28,7 @@ runs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # 2.2.1
-        with: 
+        with:
           install: true
           config-inline: |
             [worker.oci]
@@ -37,19 +40,19 @@ runs:
           registry: ${{ inputs.docker-registry }}
           username: ${{ inputs.docker-registry-username }}
           password: ${{ inputs.docker-registry-password}}
-      
+
       - name: Build injection image
         shell: bash
         run: |
-          cd system-tests   
-          ./lib-injection/execFunction.sh build-and-push-test-app-image 
+          cd system-tests
+          ./lib-injection/execFunction.sh build-and-push-test-app-image
           ./lib-injection/build.sh
- 
+
       - name: Run lib injection tests
         shell: bash
         run: |
-          cd system-tests   
-          ./lib-injection/run-lib-injection.sh
+          cd system-tests
+          ${{ inputs.test-script }}
 
       - name: Compress lib injection logs
         shell: bash
