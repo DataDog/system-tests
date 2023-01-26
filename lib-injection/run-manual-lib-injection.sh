@@ -9,10 +9,10 @@ SCRIPT_PATH=$(readlink -f "$0")
 export BASE_DIR=$(dirname "${SCRIPT_PATH}")
 
 echo "[run-lib-injection] Running library injection test cases"
-${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER $REMOTE_CONFIG deploy-agents
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-agents
 echo "[run-lib-injection] Deploying pre-modified pod "
-${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER $REMOTE_CONFIG deploy-app
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER deploy-app
 echo "[run-lib-injection] Running tests"
-${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER $REMOTE_CONFIG test-for-traces
+${BASE_DIR}/execFunction.sh $LIBRARY_INJECTION_CONNECTION $LIBRARY_INJECTION_ADMISSION_CONTROLLER test-for-traces
 
 echo "[run-lib-injection] Completed successfully"

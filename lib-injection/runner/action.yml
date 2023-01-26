@@ -11,6 +11,9 @@ inputs:
   docker-registry-password:
     description: password for Docker registry
     required: true
+  test-script:
+    description: test script to run
+    required: true
 runs:
   using: composite
   steps:
@@ -49,7 +52,7 @@ runs:
         shell: bash
         run: |
           cd system-tests   
-          ./lib-injection/run-lib-injection.sh
+          ${{ inputs.test-script }}
 
       - name: Compress lib injection logs
         shell: bash
