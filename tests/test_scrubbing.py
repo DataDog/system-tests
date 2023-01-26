@@ -13,7 +13,7 @@ if context.library == "cpp":
 def validate_no_leak(needle, whitelist=None):
     def crawler(data):
         if isinstance(data, str):
-            if whitelist is not None and data != whitelist:
+            if whitelist is not None and data not in whitelist:
                 assert needle not in data
         elif isinstance(data, (list, tuple)):
             for value in data:
@@ -66,7 +66,6 @@ class Test_UrlQuery:
 
 @released(python="1.7.1")
 @missing_feature(library="dotnet", reason="Needs weblog endpoint")
-@missing_feature(library="java", reason="Needs weblog endpoint")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
@@ -83,9 +82,12 @@ class Test_UrlField:
         """ check that not data is leaked """
         assert self.r.status_code == 200
 
-        # the initial request contains leak-password-url, and is reported, but it's not the issue
+        # the initial request contains leak-password-url is reported, but it's not the issue
         # we whitelist this value
-        whitelist = "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126"
+        whitelist = [
+            "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126",
+            "url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126",
+        ]
 
         interfaces.library.validate(validate_no_leak("leak-password-url", whitelist), success_by_default=True)
 
