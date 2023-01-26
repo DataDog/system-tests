@@ -237,6 +237,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="java", reason="cache is implemented (APPSEC-6720)")
+@irrelevant(library="golang", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -268,6 +269,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @irrelevant(library="java", reason="cache is implemented")
+@irrelevant(library="golang", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -300,6 +302,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @irrelevant(library="java", reason="cache is implemented")
+@irrelevant(library="golang", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
