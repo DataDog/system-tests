@@ -2,14 +2,29 @@
 
 ## What is the lib-injection feature?
 
-The lib-injection project is a tool to allow injection of the tracer into a customer's application container without
-requiring them to modify their application images.
+The lib-injection project is a feature to allow injection of the Datadog library
+into a customer's application container without requiring them to modify their
+application images.
 
-This feature enables applications written in Java, Node or Python running Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries.
+This feature enables applications written in Java, Node or Python running
+in Kubernetes to be automatically instrumented with the corresponding Datadog
+APM libraries.
+
+Currently, there are two different ways to have the Datadog library injected
+into the application container:
+
+1) Manually via Kubernetes annotations as described here: https://docs.datadoghq.com/tracing/trace_collection/admission_controller/.
+2) Automatically with Remote Config via the Datadog UI.
+
+References to "manual" and "auto" in the tests refer to these different features, respectively.
+
 
 ## How does it work?
 
-It works via the Kubernetes Admission Controller which adds special APM library Docker containers to the deployment. These containers contain everything necessary to install and instrument the application with the APM library.
+The feature works via the Kubernetes Admission Controller which adds special APM
+library Docker containers to the deployment. These containers, combined with
+environment variables and volume mounts contain everything necessary to install
+and instrument the application with the APM library.
 
 ## What’s the Datadog Cluster Agent and why?
 
@@ -26,7 +41,7 @@ The Datadog admission controller is a component of the Datadog Cluster Agent. It
 
 Lib injection testing is part of the "system-tests" test suite. Although we run it in isolation from the system-tests, they share certain similarities
 
-To test lib-injection/autoinstrumentation feature, we run kubernetes cluster with datadog cluster agent and we check that the instrumentation run smoothly using different sample application (weblog) in different languages (currently Java, Python and node).
+To test lib-injection/autoinstrumentation feature, we run a Kubernetes cluster with the Datadog Cluster Agent and we check that the instrumentation runs smoothly using different sample applications (weblog) in different languages (currently Java, Python and Node).
 
 The following image represents, in general terms, the necessary and dependent architecture to be able to run lib-injection tests:
 
@@ -106,10 +121,9 @@ To run lib-injection tests in your CI you need:
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: ${{ github.sha }}
     steps:    
-    
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@robertomonteromiguel/lib_injection_integration_v2
+        uses: DataDog/system-tests/lib-injection/runner@main
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.repository_owner }}
@@ -203,7 +217,7 @@ jobs:
 
     - name: lib-injection-tags
       id: lib-injection-tags
-      uses: DataDog/system-tests/lib-injection/docker-tags@robertomonteromiguel/lib_injection_integration_v2
+      uses: DataDog/system-tests/lib-injection/docker-tags@main
       with:
         init-image-name: 'dd-lib-java-init'
         main-branch-name: 'robertomonteromiguel-lib_injection_system_tests_integration'

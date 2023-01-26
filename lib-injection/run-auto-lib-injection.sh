@@ -9,12 +9,12 @@ SCRIPT_PATH=$(readlink -f "$0")
 export BASE_DIR=$(dirname "${SCRIPT_PATH}")
 
 echo "[run-lib-injection] Deploying deployment"
-${BASE_DIR}/execFunction.sh remote-config deploy-app-rc
+${BASE_DIR}/execFunction.sh deploy-app-auto
 echo "[run-lib-injection] Deploying agents"
-${BASE_DIR}/execFunction.sh remote-config deploy-agents
+${BASE_DIR}/execFunction.sh deploy-agents-auto
 echo "[run-lib-injection] Trigger config"
-${BASE_DIR}/execFunction.sh remote-config trigger-config-rc
+${BASE_DIR}/execFunction.sh trigger-config-auto
 echo "[run-lib-injection] Running tests"
-${BASE_DIR}/execFunction.sh remote-config test-for-traces
+${BASE_DIR}/execFunction.sh test-for-traces-auto
 
 echo "[run-lib-injection] Completed successfully"

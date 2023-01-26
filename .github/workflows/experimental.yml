@@ -102,4 +102,4 @@ jobs:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          test-script: ./lib-injection/run-rc-lib-injection.sh
+          test-script: ./lib-injection/run-auto-lib-injection.sh

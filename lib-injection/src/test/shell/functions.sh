@@ -80,7 +80,6 @@ echo "------------------------------------------------------------------------"
 
 export USE_ADMISSION_CONTROLLER=0
 export USE_UDS=0
-export USE_RC=0
 
 ## MODIFIERS
 function uds() {
@@ -89,9 +88,6 @@ function uds() {
 
 function network() {
     export USE_UDS=0
-}
-function remote-config() {
-    export USE_RC=1
 }
 
 function use-admission-controller() {
@@ -143,10 +139,23 @@ function deploy-operator() {
       echo "[Deploy operator] Using UDS"  
       operator_file=${BASE_DIR}/common/operator-helm-values-uds.yaml
     fi
-    if [ ${USE_RC} -eq 1 ] ; then
-      echo "[Deploy operator] Using Patcher"
-      operator_file=${BASE_DIR}/common/operator-helm-values-rc.yaml
-    fi
+    echo "[Deploy operator] Configuring helm repository"
+    helm repo add datadog https://helm.datadoghq.com
+    helm repo update
+
+    echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
+    helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog
+    
+    sleep 15 && kubectl get pods
+
+    pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
+    kubectl wait "${pod_name}" --for condition=ready --timeout=5m
+    sleep 15 && kubectl get pods
+}
+
+function deploy-operator-auto() {
+    echo "[Deploy operator] Using Patcher"
+    operator_file=${BASE_DIR}/common/operator-helm-values-auto.yaml
 
     echo "[Deploy operator] Configuring helm repository"
     helm repo add datadog https://helm.datadoghq.com
@@ -155,7 +164,7 @@ function deploy-operator() {
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
     helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog
     
-    # TODO: This is a hack until we support RC in the official helm chart.
+    # TODO: This is a hack until the patching permission is added in the official helm chart.
     echo "[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole"
     kubectl patch clusterrole datadog-cluster-agent --type='json' -p '[{"op": "add", "path": "/rules/0", "value":{ "apiGroups": ["apps"], "resources": ["deployments"], "verbs": ["patch"]}}]'
    
@@ -182,36 +191,39 @@ function deploy-test-agent() {
     echo "[Deploy] deploy-test-agent done"
 }
 
-function deploy-agents() {
+function deploy-agents-manual() {
     echo "[Deploy] deploy-agents"
     deploy-test-agent
     if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then
         echo "[Deploy] Using admission controller"
         deploy-operator
     fi
-    if [ ${USE_RC} -eq 1 ] ;  then
-        echo "[Deploy] Cluster Agent with patcher enabled"
-        deploy-operator
-        sleep 30
-    fi   
+}
+
+function deploy-agents-auto() {
+    echo "[Deploy] deploy-agents"
+    deploy-test-agent
+    echo "[Deploy] Cluster Agent with patcher enabled"
+    deploy-operator-auto
+    sleep 30
 }
 
 function reset-app() {
     kubectl delete pods my-app
 }
 
-function trigger-config-rc() {
+function trigger-config-auto() {
     echo "[RC Config] Triggering config change"
     kubectl apply -f ${BASE_DIR}/common/auto-instru.yaml # TODO support any language
     echo "[RC Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
-    echo "[RC Config] trigger-config-rc: waiting for deployments/my-java-deployment available"
+    echo "[RC Config] trigger-config-auto: waiting for deployments/my-java-deployment available"
     kubectl wait deployments/my-java-deployment --for condition=Available=True --timeout=5m # TODO support any deployment
     kubectl get pods
-    echo "[RC Config] trigger-config-rc: done"
+    echo "[RC Config] trigger-config-auto: done"
 }
 
-function deploy-app() {
+function deploy-app-manual() {
     app_name=my-app
     echo "[Deploy] deploy-app: ${app_name} . Using UDS: ${USE_UDS}. Using adm.controller: ${USE_ADMISSION_CONTROLLER}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
@@ -233,11 +245,11 @@ function deploy-app() {
     echo "[Deploy] deploy-app done"
 }
 
-function deploy-app-rc() {
-    echo "[Deploy] deploy-app-rc: starting deployment"
+function deploy-app-auto() {
+    echo "[Deploy] deploy-app-auto: starting deployment"
 
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
-    echo "[Deploy] deploy-app-rc: using library alias: ${library}"
+    echo "[Deploy] deploy-app-auto: using library alias: ${library}"
 
     deployment_name=my-${library}-deployment
     helm template lib-injection/common \
@@ -247,10 +259,10 @@ function deploy-app-rc() {
       --set deployment=${deployment_name} \
       --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
        | kubectl apply -f -
-    echo "[Deploy] deploy-app-rc: waiting for deployments/${deployment_name} available"
+    echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     sleep 5 && kubectl get pods
-    echo "[Deploy] deploy-app-rc: done"
+    echo "[Deploy] deploy-app-auto: done"
 }
 
 function test-for-traces() {
@@ -271,31 +283,64 @@ function test-for-traces() {
         count=`jq '. | length' <<< "${traces}"`
         echo "Received ${count} traces so far"
     fi
-    
-    print-debug-info
+}
+
+function test-for-traces-manual() {
+    test-for-traces
+    print-debug-info-manual
     echo "[Test] test-for traces completed successfully"
     reset-all
 }
 
-function print-debug-info(){
+function test-for-traces-auto() {
+    test-for-traces
+    print-debug-info-auto
+    echo "[Test] test-for traces completed successfully"
+    reset-all
+}
+
+function print-debug-info-auto() {
     log_dir=${BASE_DIR}/../logs_lib-injection/
     mkdir -p ${log_dir}/pod
     echo "[debug] Generating debug log files... (${log_dir})"
     echo "[debug] Export: Current cluster status"
     kubectl get pods > ${log_dir}/cluster_pods.log
     kubectl get deployments datadog-cluster-agent > ${log_dir}/cluster_deployments.log
- 
-    if [ ${USE_RC} -eq 0 ] ; then
-        echo "[debug] Export: Describe my-app status"
-        kubectl describe pod my-app > ${log_dir}/my-app_describe.log
-        kubectl logs pod/my-app > ${log_dir}/my-app.log
-    fi
+
+    echo "[debug] Export: Daemonset logs"
+    kubectl logs daemonset/datadog > ${log_dir}/daemonset_datadog.log
+
+    echo "[debug] Java deployment yaml and pod logs"
+    kubectl get deploy my-java-deployment -oyaml
+    kubectl get pods -l app=java-app
+    pod_java=$(kubectl get pods -l app=java-app -o name)
+    kubectl get po ${pod_java} -oyaml
+    kubectl logs ${pod_java}
+
+    echo "[debug] Cluster agent logs"
+    pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
+    kubectl logs ${pod_cluster_name}
+
+    echo "[debug] Print clusterrole"
+    kubectl get clusterrole datadog-cluster-agent -oyaml
+}
+
+function print-debug-info-manual(){
+    log_dir=${BASE_DIR}/../logs_lib-injection/
+    mkdir -p ${log_dir}/pod
+    echo "[debug] Generating debug log files... (${log_dir})"
+    echo "[debug] Export: Current cluster status"
+    kubectl get pods > ${log_dir}/cluster_pods.log
+    kubectl get deployments datadog-cluster-agent > ${log_dir}/cluster_deployments.log
+
+    echo "[debug] Export: Describe my-app status"
+    kubectl describe pod my-app > ${log_dir}/my-app_describe.log
+    kubectl logs pod/my-app > ${log_dir}/my-app.log
 
     echo "[debug] Export: Daemonset logs"
     kubectl logs daemonset/datadog > ${log_dir}/daemonset_datadog.log
 
     if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then 
-
         pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
 
         echo "[debug] Export: Describe datadog-cluster-agent"
@@ -309,23 +354,6 @@ function print-debug-info(){
         #Sometimes this command fails.Ignoring this error
         kubectl exec -it ${pod_cluster_name} -- agent status > ${log_dir}/${pod_cluster_name}_status.log || true
     fi
-
-    if [ ${USE_RC} -eq 1 ] ; then
-        echo "[debug] Java deployment yaml and pod logs"
-        kubectl get deploy my-java-deployment -oyaml
-        kubectl get pods -l app=java-app
-        pod_java=$(kubectl get pods -l app=java-app -o name)
-        kubectl get po ${pod_java} -oyaml
-        kubectl logs ${pod_java}
-
-        echo "[debug] Cluster agent logs"
-        pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
-        kubectl logs ${pod_cluster_name}
-
-        echo "[debug] Print clusterrole"
-        kubectl get clusterrole datadog-cluster-agent -oyaml
-    fi
-
 }
 
 function build-and-push-test-app-image() { 
