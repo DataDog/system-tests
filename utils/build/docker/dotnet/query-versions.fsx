@@ -1,5 +1,12 @@
 #r "nuget: Newtonsoft.Json, 13.0.1"
 
+open System
+open System.Runtime.InteropServices
+
+module Native =
+    [<DllImport("ddwaf.so")>]
+    extern IntPtr ddwaf_get_version()
+
 module QueryVersions =
     open System
     open System.IO
@@ -28,20 +35,9 @@ module QueryVersions =
         File.WriteAllText("/app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", ruleVersion)
 
     let writeWafVersion () =
-        Environment.SetEnvironmentVariable("DD_DOTNET_TRACER_HOME", "/binaries")
-        let wafType = assem.GetType("Datadog.Trace.AppSec.Waf.Waf")
-        let versionProp = wafType.GetProperty("Version")
-        let createMethod = wafType.GetMethod("Create", BindingFlags.NonPublic ||| BindingFlags.Static)
-        let createMethodParameters = createMethod.GetParameters()
-        let waf =
-            match createMethodParameters.Length with
-            | 1 ->  createMethod.Invoke(null, [| null |])
-            | 3 ->  createMethod.Invoke(null, [| String.Empty; String.Empty; null |])
-            | 4 ->  createMethod.Invoke(null, [| String.Empty; String.Empty; null; null |]) // from tracer 2.15 PR #3251
-            | 5 ->  createMethod.Invoke(null, [| String.Empty; String.Empty; null; null; null |]) // from tracer 2.15 PR #3120
-            | _ -> failwith "Unknown number of parameters"
-        let version = versionProp.GetValue(waf)
-        File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", (version.ToString()))
+        let buffer = Native.ddwaf_get_version()
+        let version = Marshal.PtrToStringAnsi(buffer)
+        File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", version)
 
     writeRulesVersion ()
     writeWafVersion ()
