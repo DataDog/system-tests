@@ -154,13 +154,12 @@ function deploy-operator() {
     # helm repo update
 
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
-    git clone https://github.com/Kyle-Verhoog/helm-charts
-    helm repo add prometheus https://prometheus-community.github.io/helm-charts
-    helm dependency build
-    helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" helm-charts/charts/datadog 
+    helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog
     sleep 15 && kubectl get pods
-    # helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
-    # sleep 15 && kubectl get pods
+
+    # TODO: This is a hack until we support RC in the official helm chart.
+    echo "[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole"
+    kubectl patch clusterrole datadog-cluster-agent --type='json' -p '[{"op": "add", "path": "/rules/0", "value":{ "apiGroups": ["apps"], "resources": ["deployments"], "verbs": ["patch"]}}]'
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
     kubectl wait "${pod_name}" --for condition=ready --timeout=5m
