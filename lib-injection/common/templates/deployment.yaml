@@ -1,21 +1,22 @@
+{{ if .Values.as_deployment }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-{{ .Values.library }}-app-deployment
+  name: {{ .Values.deployment }}
   labels:
-    app: test-{{ .Values.library }}-app
+    app: {{ .Values.library }}-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: test-{{ .Values.library }}-app
+      app: {{ .Values.library }}-app
   template:
     metadata:
       labels:
-        app: test-{{ .Values.library }}-app
+        app: {{ .Values.library }}-app
     spec:
       containers:
-      - name: test-{{ .Values.library }}-app
+      - name: {{ .Values.library }}-app
         image: {{ .Values.test_app_image }}
         env:
           - name: SERVER_PORT
@@ -34,3 +35,4 @@ spec:
         ports:
           - containerPort: 18080
             protocol: TCP
+{{ end }}

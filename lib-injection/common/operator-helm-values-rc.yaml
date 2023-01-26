@@ -1,3 +1,5 @@
+agents:
+  enabled: false
 datadog:
   clusterName: lib-injection-testing
   logLevel: DEBUG
