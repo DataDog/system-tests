@@ -147,8 +147,8 @@ function deploy-operator() {
       echo "[Deploy operator] Using Patcher"
       operator_file=${BASE_DIR}/common/operator-helm-values-rc.yaml
       kubectl apply -f ${BASE_DIR}/common/auto-instru.yaml
-
     fi
+
     # echo "[Deploy operator] Configuring helm repository"
     # helm repo add datadog https://helm.datadoghq.com
     # helm repo update
