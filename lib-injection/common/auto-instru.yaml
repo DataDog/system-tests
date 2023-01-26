@@ -20,7 +20,7 @@ data:
       "k8s_target": {
         "cluster": "lib-injection-testing",
         "kind": "deployment",
-        "name": "test-java-app-deployment",
+        "name": "my-java-deployment",
         "namespace": "default"
       }
     }]
