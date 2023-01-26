@@ -11,7 +11,7 @@ export BASE_DIR=$(dirname "${SCRIPT_PATH}")
 echo "[run-lib-injection] Running library injection test cases"
 ${BASE_DIR}/execFunction.sh $REMOTE_CONFIG deploy-agents
 echo "[run-lib-injection] Deploying deployment"
-${BASE_DIR}/execFunction.sh $REMOTE_CONFIG deploy-app
+${BASE_DIR}/execFunction.sh $REMOTE_CONFIG deploy-app-rc
 echo "[run-lib-injection] Running tests"
 ${BASE_DIR}/execFunction.sh $REMOTE_CONFIG test-for-traces
 

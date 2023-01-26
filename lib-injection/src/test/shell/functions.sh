@@ -202,36 +202,37 @@ function reset-app() {
 }
 
 function deploy-app() {
-    if [ ${USE_RC} -eq 1 ] ; then
-        deployment_name=my-deployment
-        helm template lib-injection/common \
-          -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
-          --set library="${library}" \
-          --set deployment=${deployment_name} \
-          --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
-           | kubectl apply -f -
-        echo "[Deploy] deploy-app: waiting for deployments/${deployment_name} ready"
-        kubectl wait deployments/${deployment_name} --for condition=ready --timeout=5m
-        sleep 5 && kubectl get pods
-    else
-        app_name=my-app
-        echo "[Deploy] deploy-app: ${app_name} . Using UDS: ${USE_UDS}. Using adm.controller: ${USE_ADMISSION_CONTROLLER}"
-        [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
-        echo "[Deploy] Using library alias: ${library}"
+    app_name=my-app
+    echo "[Deploy] deploy-app: ${app_name} . Using UDS: ${USE_UDS}. Using adm.controller: ${USE_ADMISSION_CONTROLLER}"
+    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+    echo "[Deploy] Using library alias: ${library}"
 
-        helm template lib-injection/common \
-          -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
-          --set library="${library}" \
-          --set app=${app_name} \
-          --set use_uds=${USE_UDS} \
-          --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \
-          --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
-          --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" \
-           | kubectl apply -f -
-        echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
-        kubectl wait pod/${app_name} --for condition=ready --timeout=5m
-        sleep 5 && kubectl get pods
-    fi
+    helm template lib-injection/common \
+      -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
+      --set library="${library}" \
+      --set app=${app_name} \
+      --set use_uds=${USE_UDS} \
+      --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \
+      --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
+      --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" \
+       | kubectl apply -f -
+    echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
+    kubectl wait pod/${app_name} --for condition=ready --timeout=5m
+    sleep 5 && kubectl get pods
+    echo "[Deploy] deploy-app done"
+}
+
+function deploy-app-rc() {
+    deployment_name=my-deployment
+    helm template lib-injection/common/deployment \
+      -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
+      --set library="${library}" \
+      --set deployment=${deployment_name} \
+      --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
+       | kubectl apply -f -
+    echo "[Deploy] deploy-app: waiting for deployments/${deployment_name} ready"
+    kubectl wait deployments/${deployment_name} --for condition=ready --timeout=5m
+    sleep 5 && kubectl get pods
     echo "[Deploy] deploy-app done"
 }
 
