@@ -1,15 +1,10 @@
-targetSystem: "linux"
-
-agents:
-  enabled: false
 datadog:
   clusterName: lib-injection-testing
-  tags: []
   logLevel: DEBUG
-  kubelet:
-    tlsVerify: "false"
+  apm:
+    enabled: true
+    portEnabled: true
 clusterAgent:
-  enabled: true
   livenessProbe:
     initialDelaySeconds: 15
     periodSeconds: 15
@@ -27,8 +22,6 @@ clusterAgent:
     repository: ddkverhoog/injecttest
     pullPolicy: Always
     doNotCheckTag: true
-  admissionController:
-    configMode: hostip
   env:
     - name: DD_REMOTE_CONFIGURATION_ENABLED
       value: "false"
