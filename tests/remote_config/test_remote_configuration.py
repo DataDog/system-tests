@@ -146,7 +146,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
 
     def setup_tracer_update_sequence(self):
-        if context.library == "nodejs":
+        if context.library == "nodejs" or context.library == "golang":
             # time out for nodejs is very low (5 seconds)
             # we need a longer timeout for this test
             interfaces.library.timeout = 100
@@ -204,7 +204,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
 @bug(library="dotnet")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD")

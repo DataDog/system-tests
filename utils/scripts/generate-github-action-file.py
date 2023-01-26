@@ -10,15 +10,12 @@ scenarios_sets = (
         "INTEGRATIONS",
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT",
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-    ),
-    (
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        "SAMPLING",
     ),
     (
         "APPSEC_MISSING_RULES",
@@ -32,11 +29,12 @@ scenarios_sets = (
         "APPSEC_RATE_LIMITER",
         "APPSEC_IP_BLOCKING",
         "APPSEC_RUNTIME_ACTIVATION",
+        "SAMPLING",
         # "APPSEC_UNSUPPORTED",
     ),
 )
 
-php_versions = ("7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1")
+php_versions = ("7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2")
 rails_versions = ("32", "40", "41", "42", "50", "51", "52", "60", "61", "70")
 
 
