@@ -88,7 +88,7 @@ jobs:
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
-      VARIANT: ${{ matrix.variant.variant }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
       REMOTE_CONFIG: true
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: latest
