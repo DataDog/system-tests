@@ -157,7 +157,7 @@ class Test_StandardTagsRoute:
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
-@released(dotnet="?", golang="?", java="0.114.0")
+@released(dotnet="?", golang="1.46.0", java="0.114.0")
 @released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="?")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
