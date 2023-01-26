@@ -90,7 +90,9 @@ def rc_check_request(data, expected, caching):
             raise Exception("client is expected to have stored confis but isn't reporting any")
 
         if config_states is not None:
-            assert len(config_states) == len(expected_config_states), "client reporting more or less configs than expected"
+            assert len(config_states) == len(
+                expected_config_states
+            ), "client reporting more or less configs than expected"
             for state in expected_config_states:
                 if state not in config_states:
                     raise ValidationError(f"Config {state} should be in config_states property", extra_info=content)
@@ -104,7 +106,11 @@ def rc_check_request(data, expected, caching):
             expected_cached_target_files = expected.get("cached_target_files")
             cached_target_files = content.get("cached_target_files")
 
-            if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
+            if (
+                expected_cached_target_files is None
+                and cached_target_files is not None
+                and len(cached_target_files) != 0
+            ):
                 raise Exception(
                     f"client is not expected to have cached config but is reporting cached config: {cached_target_files}"
                 )
@@ -119,7 +125,8 @@ def rc_check_request(data, expected, caching):
                 for file in expected_cached_target_files:
                     if file not in cached_target_files:
                         raise ValidationError(
-                            f"{file} should be in cached_target_files property: {cached_target_files}", extra_info=content
+                            f"{file} should be in cached_target_files property: {cached_target_files}",
+                            extra_info=content,
                         )
 
                 # Make sure the client isn't reporting any extra cached files
