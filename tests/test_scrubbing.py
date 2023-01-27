@@ -71,40 +71,33 @@ class Test_UrlQuery:
 class Test_UrlField:
     """ PII in url field are removed on distant calls """
 
-    def _setup(self):
-        if not hasattr(self, "r"):
-            self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@runner:8126"})
-
     def setup_main(self):
-        self._setup()
+        self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@runner:8126"})
 
+    # @missing_feature("php-fpm" in context.weblog_variant, reason="How to activate php-fpm curl integration?")
+    @missing_feature(context.weblog_variant in ("vertx3", "resteasy-netty3",), reason="Need weblog endpoint")
     def test_main(self):
         """ check that not data is leaked """
         assert self.r.status_code == 200
+
+        def validate_report(trace):
+            for span in trace:
+                if span.get("type") == "http":
+                    logger.info(f"span found: {span}")
+                    return "runner:8126" in span["meta"]["http.url"]
+
+        # check that the distant call is reported
+        interfaces.library.validate_traces(self.r, validate_report)
 
         # the initial request contains leak-password-url is reported, but it's not the issue
         # we whitelist this value
         whitelist = [
             "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126",
             "url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126",
+            # TODO test java/ratpack
         ]
 
         interfaces.library.validate(validate_no_leak("leak-password-url", whitelist), success_by_default=True)
-
-    def setup_distant_call_is_reported(self):
-        self._setup()
-
-    @missing_feature("php-fpm" in context.weblog_variant, reason="How to activate php-fpm curl integration?")
-    def test_distant_call_is_reported(self):
-        """ check that the distant call is reported """
-
-        def validator(trace):
-            for span in trace:
-                if span.get("type") == "http":
-                    logger.info(f"span found: {span}")
-                    return "runner:8126" in span["meta"]["http.url"]
-
-        interfaces.library.validate_traces(self.r, validator)
 
 
 @coverage.good

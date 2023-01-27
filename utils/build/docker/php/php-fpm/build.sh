@@ -18,7 +18,7 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm
+apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl
 
 find /var/www/html -mindepth 1 -delete
 
