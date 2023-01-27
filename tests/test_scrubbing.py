@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+import re
 import pytest
 from utils import bug, context, coverage, interfaces, released, rfc, weblog, missing_feature
 from utils.tools import logger
@@ -10,10 +11,13 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-def validate_no_leak(needle, whitelist=None):
+def validate_no_leak(needle, whitelist_pattern=None):
+
+    whitelist = re.compile(whitelist_pattern) if whitelist_pattern is not None else None
+
     def crawler(data):
         if isinstance(data, str):
-            if whitelist is not None and data not in whitelist:
+            if whitelist is not None and not whitelist.match(data):
                 assert needle not in data
         elif isinstance(data, (list, tuple)):
             for value in data:
@@ -74,8 +78,9 @@ class Test_UrlField:
     def setup_main(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@runner:8126"})
 
-    # @missing_feature("php-fpm" in context.weblog_variant, reason="How to activate php-fpm curl integration?")
-    @missing_feature(context.weblog_variant in ("vertx3", "resteasy-netty3",), reason="Need weblog endpoint")
+    @missing_feature(
+        context.weblog_variant in ("vertx3", "resteasy-netty3", "jersey-grizzly2"), reason="Need weblog endpoint"
+    )
     def test_main(self):
         """ check that not data is leaked """
         assert self.r.status_code == 200
@@ -91,13 +96,12 @@ class Test_UrlField:
 
         # the initial request contains leak-password-url is reported, but it's not the issue
         # we whitelist this value
-        whitelist = [
-            "http://weblog:7777/make_distant_call?url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126",
-            "url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126",
-            # TODO test java/ratpack
-        ]
+        whitelist_pattern = (
+            r"(http://(weblog|[a-z0-9]+):7777/make_distant_call\?)?"
+            r"url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126"
+        )
 
-        interfaces.library.validate(validate_no_leak("leak-password-url", whitelist), success_by_default=True)
+        interfaces.library.validate(validate_no_leak("leak-password-url", whitelist_pattern), success_by_default=True)
 
 
 @coverage.good
