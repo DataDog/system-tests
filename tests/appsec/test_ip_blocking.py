@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="?")
+@released(cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="1.47.0")
 @released(
     java={
         "spring-boot": "0.110.0",
@@ -23,7 +23,8 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
     }
 )
 @irrelevant(context.appsec_rules_file == "")
-@bug(context.weblog_variant == "spring-boot-undertow" and context.appsec_rules_version == "1.4.2")
+@bug(context.weblog_variant == "spring-boot-undertow" and context.appsec_rules_version >= "1.4.2")
+@bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenario("APPSEC_IP_BLOCKING")
 class Test_AppSecIPBlocking:

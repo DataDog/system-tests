@@ -23,5 +23,9 @@ export DD_SITE=datadoghq.com
 #Download tool
 curl -L --fail "https://github.com/DataDog/datadog-ci/releases/latest/download/datadog-ci_linux-x64" --output "$(pwd)/datadog-ci" && chmod +x $(pwd)/datadog-ci
 for folder in $(find . -name "logs*" -type d -maxdepth 1); do 
-    ./datadog-ci junit upload --service ci-$SYS_ORIGIN_REPO --env env-system-test-$SYS_TEST_ENV --tags "ci.pipeline.run_id:$SYS_ORIGIN_REPO-$SYS_TEST_RUN_ID" $folder/reportJunit.xml 
+  if [[ -f "datadog-ci" ]]; then
+      ./datadog-ci junit upload --service ci-$SYS_ORIGIN_REPO --env env-system-test-$SYS_TEST_ENV --tags "ci.pipeline.run_id:$SYS_ORIGIN_REPO-$SYS_TEST_RUN_ID" $folder/reportJunit.xml 
+  else
+    echo "Skipping CI upload: datadog-ci not found"
+  fi
 done

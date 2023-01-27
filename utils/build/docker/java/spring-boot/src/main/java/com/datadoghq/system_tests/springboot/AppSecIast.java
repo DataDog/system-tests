@@ -137,7 +137,7 @@ public class AppSecIast {
         }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
-        return ldapExamples.injection(username, password);
+        return  ldapExamples.injection(username, password);
     }
 
     @PostMapping("/ldapi/test_secure")

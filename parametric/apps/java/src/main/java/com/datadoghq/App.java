@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class App {
     static final Logger LOGGER = Logger.getLogger(App.class.getName());
-    private static final int CLIENT_SERVER_PORT = 50051;
+    private static final int CLIENT_SERVER_PORT = Integer.parseInt(System.getenv("APM_TEST_CLIENT_SERVER_PORT"));
     private final DDTracer tracer;
 
     public App() throws ReflectiveOperationException, IOException {

@@ -11,7 +11,7 @@ class Test_AwesomeFeature:
 It means that the test will be executed starting version `1.2.3`. Arguments are components names, e.g. `java`, `golang`, etc... You can mix them on a single line.
 Also, if a feature is not yet implemented, you can set the version as `?`. The test class will be be flagged as missing feature (see below). Note that it will be executed, and a warning will be reported if it succeed.
 
-Sometimes, a version is working on a framework, and not one another one. You can provide a key-value object, where the key is your [weblog name]("./weblog.md) and the value is the version number. You can use `*` as a wildcard for the key.
+Sometimes, a version is working on a framework, and not one another one. You can provide a key-value object, where the key is your [weblog name](weblog.md) and the value is the version number. You can use `*` as a wildcard for the key.
 
 ```python
 from utils import released

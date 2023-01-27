@@ -12,8 +12,11 @@ if test -f ".env"; then
 fi
 
 CURRENT_PWD=$(pwd)
-
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK}}
+
+DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
+ALIAS_CACHE_FROM="R" #read cache
+ALIAS_CACHE_TO="W" #write cache
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -22,6 +25,8 @@ while [[ "$#" -gt 0 ]]; do
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
+        -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
+        -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
         *) cat utils/build/README.md; exit 1 ;;
     esac
     shift
@@ -63,6 +68,15 @@ else
     exit 1
 fi
 
+if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
+  echo "Setting remote cache for read"
+  CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+fi
+if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
+  echo "Setting remote cache for write"
+  CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+fi
+
 echo "=================================="
 echo "build images for system tests"
 echo ""
@@ -74,10 +88,10 @@ echo ""
 
 #Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
-DOCKER_PLATFORM_ARGS=""
+DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}" 
 
 if [ "$ARCH" = "arm64" ]; then
-    DOCKER_PLATFORM_ARGS="--platform linux/amd64"
+    DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}" 
 fi
 
 # Build images
@@ -115,15 +129,17 @@ do
             .
 
     elif [[ $IMAGE_NAME == weblog ]]; then
-
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
-        docker build \
+        docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
             -f ${DOCKERFILE} \
             -t system_tests/weblog \
+            $CACHE_TO \
+            $CACHE_FROM \
             $EXTRA_DOCKER_ARGS \
+            --load \
             .
 
         if test -f "binaries/waf_rule_set.json"; then

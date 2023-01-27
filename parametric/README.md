@@ -138,6 +138,15 @@ To run the Python tests "locally" push your code to a branch and then specify ``
 PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@1.x ./run.sh ...
 ```
 
+#### NodeJS
+
+There is two ways for running the NodeJS tests with a custom tracer:
+- Place the ddtrace NPM package in the folder ``apps/nodejs/npm`` and then set the environment variable ``NODEJS_DDTRACE_MODULE``
+with the filename placed in the aforementioned folder. For example: 
+``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE="dd-trace-2.22.3.tgz" ./run.sh``
+- Set the environment variable ``NODEJS_DDTRACE_MODULE`` to hold a commit in a remote branch. The following example will run
+the tests with a specific commit: ``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh``
+
 
 ### Debugging
 
@@ -153,6 +162,31 @@ further.
 - Ensure docker is running.
 - Exiting the tests abruptly maybe leave some docker containers running. Use `docker ps` to find and `docker kill` any
   containers that may still be running.
+
+
+### Port conflict on 50052
+
+If there is a port conflict with an existing process on the local machine then the default port `50052` can be
+overridden using `APM_GRPC_SERVER_PORT=... ./run.sh`.
+
+
+### Disable build kit
+
+If logs like
+
+```
+Failed to fire hook: while creating logrus local file hook: user: Current requires cgo or $USER, $HOME set in environment
+[2023-01-04T21:44:49.583965000Z][docker-credential-desktop][F] get system info: exec: "sw_vers": executable file not found in $PATH
+[goroutine 1 [running, locked to thread]:
+[common/pkg/system.init.0()
+[	common/pkg/system/os_info.go:32 +0x1bc
+#3 ERROR: rpc error: code = Unknown desc = error getting credentials - err: exit status 1, out: ``
+```
+
+are being produced then likely build kit has to be disabled.
+
+To do that open the Docker UI > Docker Engine. Change `buildkit: true` to `buildkit: false` and restart Docker.
+
 
 
 ## Implementation
