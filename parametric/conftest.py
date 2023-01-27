@@ -674,7 +674,7 @@ class _TestOtelSpan:
         self.span_id = span_id
 
     def finish(self):
-        self._client.FinishOtelSpan(pb_otel.FinishOtelSpanArgs(id=self.span_id, ))
+        self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id, ))
 
 
 class APMLibrary:
@@ -729,8 +729,11 @@ class APMLibrary:
 
 
 class APMOtelLibrary:
-    def __init__(self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub, ):
+    def __init__(
+            self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub,
+    ):
         self._client = client
+        self._client.StartOtelTracer(pb_otel.StartOtelTracerArgs())
 
     def __enter__(self):
         pass
@@ -743,25 +746,18 @@ class APMOtelLibrary:
     DistributedHTTPHeaders = {}
 
     @contextlib.contextmanager
-    def start_otel_span(
-            self,
-            name: str,
-    ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.StartOtelSpan(
-            pb_otel.StartOtelSpanArgs(
-                name=name,
-            )
-        )
+    def start_otel_span(self, name: str, ) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.StartOtelSpan(pb_otel.StartOtelSpanArgs(name=name, ))
         span = _TestOtelSpan(self._client, resp.span_id)
         yield span
         span.finish()
 
     def flush(self):
-        self._client.FlushSpans(pb.FlushSpansArgs())
-        self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
+        self._client.FlushOtelSpans(pb_otel.FlushOtelSpansArgs())
+        self._client.FlushOtelTraceStats(pb_otel.FlushOtelTraceStatsArgs())
 
     def stop(self):
-        return self._client.StopTracer(pb.StopTracerArgs())
+        return self._client.StopOtelTracer(pb_otel.StopOtelTracerArgs())
 
 
 @pytest.fixture
@@ -779,7 +775,9 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
 
 
 @pytest.fixture
-def test_otel_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMOtelLibrary, None, None]:
+def test_otel_library(
+        test_server: APMLibraryTestServer, test_server_timeout: int
+) -> Generator[APMOtelLibrary, None, None]:
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_otel_client_pb2_grpc.APMOtelClientStub(channel)

@@ -22,15 +22,17 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type APMOtelClientClient interface {
+	StartOtelTracer(ctx context.Context, in *StartOtelTracerArgs, opts ...grpc.CallOption) (*StartOtelTracerReturn, error)
 	StartOtelSpan(ctx context.Context, in *StartOtelSpanArgs, opts ...grpc.CallOption) (*StartOtelSpanReturn, error)
-	FinishOtelSpan(ctx context.Context, in *FinishOtelSpanArgs, opts ...grpc.CallOption) (*FinishOtelSpanReturn, error)
-	// rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
-	// rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
-	// rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
-	// rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
-	FlushSpans(ctx context.Context, in *FlushOtelSpansArgs, opts ...grpc.CallOption) (*FlushOtelSpansReturn, error)
-	FlushTraceStats(ctx context.Context, in *FlushOtelTraceStatsArgs, opts ...grpc.CallOption) (*FlushOtelTraceStatsReturn, error)
-	StopTracer(ctx context.Context, in *StopOtelTracerArgs, opts ...grpc.CallOption) (*StopOtelTracerReturn, error)
+	EndOtelSpan(ctx context.Context, in *EndOtelSpanArgs, opts ...grpc.CallOption) (*EndOtelSpanReturn, error)
+	IsRecording(ctx context.Context, in *IsRecordingArgs, opts ...grpc.CallOption) (*IsRecordingReturn, error)
+	SpanContext(ctx context.Context, in *SpanContextArgs, opts ...grpc.CallOption) (*SpanContextReturn, error)
+	SetStatus(ctx context.Context, in *SetStatusArgs, opts ...grpc.CallOption) (*SetStatusReturn, error)
+	SetName(ctx context.Context, in *SetNameArgs, opts ...grpc.CallOption) (*SetNameReturn, error)
+	SetAttributes(ctx context.Context, in *SetAttributesArgs, opts ...grpc.CallOption) (*SetAttributesReturn, error)
+	FlushOtelSpans(ctx context.Context, in *FlushOtelSpansArgs, opts ...grpc.CallOption) (*FlushOtelSpansReturn, error)
+	FlushOtelTraceStats(ctx context.Context, in *FlushOtelTraceStatsArgs, opts ...grpc.CallOption) (*FlushOtelTraceStatsReturn, error)
+	StopOtelTracer(ctx context.Context, in *StopOtelTracerArgs, opts ...grpc.CallOption) (*StopOtelTracerReturn, error)
 }
 
 type aPMOtelClientClient struct {
@@ -39,6 +41,15 @@ type aPMOtelClientClient struct {
 
 func NewAPMOtelClientClient(cc grpc.ClientConnInterface) APMOtelClientClient {
 	return &aPMOtelClientClient{cc}
+}
+
+func (c *aPMOtelClientClient) StartOtelTracer(ctx context.Context, in *StartOtelTracerArgs, opts ...grpc.CallOption) (*StartOtelTracerReturn, error) {
+	out := new(StartOtelTracerReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/StartOtelTracer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *aPMOtelClientClient) StartOtelSpan(ctx context.Context, in *StartOtelSpanArgs, opts ...grpc.CallOption) (*StartOtelSpanReturn, error) {
@@ -50,36 +61,81 @@ func (c *aPMOtelClientClient) StartOtelSpan(ctx context.Context, in *StartOtelSp
 	return out, nil
 }
 
-func (c *aPMOtelClientClient) FinishOtelSpan(ctx context.Context, in *FinishOtelSpanArgs, opts ...grpc.CallOption) (*FinishOtelSpanReturn, error) {
-	out := new(FinishOtelSpanReturn)
-	err := c.cc.Invoke(ctx, "/APMOtelClient/FinishOtelSpan", in, out, opts...)
+func (c *aPMOtelClientClient) EndOtelSpan(ctx context.Context, in *EndOtelSpanArgs, opts ...grpc.CallOption) (*EndOtelSpanReturn, error) {
+	out := new(EndOtelSpanReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/EndOtelSpan", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPMOtelClientClient) FlushSpans(ctx context.Context, in *FlushOtelSpansArgs, opts ...grpc.CallOption) (*FlushOtelSpansReturn, error) {
+func (c *aPMOtelClientClient) IsRecording(ctx context.Context, in *IsRecordingArgs, opts ...grpc.CallOption) (*IsRecordingReturn, error) {
+	out := new(IsRecordingReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/IsRecording", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aPMOtelClientClient) SpanContext(ctx context.Context, in *SpanContextArgs, opts ...grpc.CallOption) (*SpanContextReturn, error) {
+	out := new(SpanContextReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/SpanContext", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aPMOtelClientClient) SetStatus(ctx context.Context, in *SetStatusArgs, opts ...grpc.CallOption) (*SetStatusReturn, error) {
+	out := new(SetStatusReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/SetStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aPMOtelClientClient) SetName(ctx context.Context, in *SetNameArgs, opts ...grpc.CallOption) (*SetNameReturn, error) {
+	out := new(SetNameReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/SetName", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aPMOtelClientClient) SetAttributes(ctx context.Context, in *SetAttributesArgs, opts ...grpc.CallOption) (*SetAttributesReturn, error) {
+	out := new(SetAttributesReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/SetAttributes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aPMOtelClientClient) FlushOtelSpans(ctx context.Context, in *FlushOtelSpansArgs, opts ...grpc.CallOption) (*FlushOtelSpansReturn, error) {
 	out := new(FlushOtelSpansReturn)
-	err := c.cc.Invoke(ctx, "/APMOtelClient/FlushSpans", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/FlushOtelSpans", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPMOtelClientClient) FlushTraceStats(ctx context.Context, in *FlushOtelTraceStatsArgs, opts ...grpc.CallOption) (*FlushOtelTraceStatsReturn, error) {
+func (c *aPMOtelClientClient) FlushOtelTraceStats(ctx context.Context, in *FlushOtelTraceStatsArgs, opts ...grpc.CallOption) (*FlushOtelTraceStatsReturn, error) {
 	out := new(FlushOtelTraceStatsReturn)
-	err := c.cc.Invoke(ctx, "/APMOtelClient/FlushTraceStats", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/FlushOtelTraceStats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPMOtelClientClient) StopTracer(ctx context.Context, in *StopOtelTracerArgs, opts ...grpc.CallOption) (*StopOtelTracerReturn, error) {
+func (c *aPMOtelClientClient) StopOtelTracer(ctx context.Context, in *StopOtelTracerArgs, opts ...grpc.CallOption) (*StopOtelTracerReturn, error) {
 	out := new(StopOtelTracerReturn)
-	err := c.cc.Invoke(ctx, "/APMOtelClient/StopTracer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/StopOtelTracer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,15 +146,17 @@ func (c *aPMOtelClientClient) StopTracer(ctx context.Context, in *StopOtelTracer
 // All implementations must embed UnimplementedAPMOtelClientServer
 // for forward compatibility
 type APMOtelClientServer interface {
+	StartOtelTracer(context.Context, *StartOtelTracerArgs) (*StartOtelTracerReturn, error)
 	StartOtelSpan(context.Context, *StartOtelSpanArgs) (*StartOtelSpanReturn, error)
-	FinishOtelSpan(context.Context, *FinishOtelSpanArgs) (*FinishOtelSpanReturn, error)
-	// rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
-	// rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
-	// rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
-	// rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
-	FlushSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error)
-	FlushTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error)
-	StopTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error)
+	EndOtelSpan(context.Context, *EndOtelSpanArgs) (*EndOtelSpanReturn, error)
+	IsRecording(context.Context, *IsRecordingArgs) (*IsRecordingReturn, error)
+	SpanContext(context.Context, *SpanContextArgs) (*SpanContextReturn, error)
+	SetStatus(context.Context, *SetStatusArgs) (*SetStatusReturn, error)
+	SetName(context.Context, *SetNameArgs) (*SetNameReturn, error)
+	SetAttributes(context.Context, *SetAttributesArgs) (*SetAttributesReturn, error)
+	FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error)
+	FlushOtelTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error)
+	StopOtelTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error)
 	mustEmbedUnimplementedAPMOtelClientServer()
 }
 
@@ -106,20 +164,38 @@ type APMOtelClientServer interface {
 type UnimplementedAPMOtelClientServer struct {
 }
 
+func (UnimplementedAPMOtelClientServer) StartOtelTracer(context.Context, *StartOtelTracerArgs) (*StartOtelTracerReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartOtelTracer not implemented")
+}
 func (UnimplementedAPMOtelClientServer) StartOtelSpan(context.Context, *StartOtelSpanArgs) (*StartOtelSpanReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartOtelSpan not implemented")
 }
-func (UnimplementedAPMOtelClientServer) FinishOtelSpan(context.Context, *FinishOtelSpanArgs) (*FinishOtelSpanReturn, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FinishOtelSpan not implemented")
+func (UnimplementedAPMOtelClientServer) EndOtelSpan(context.Context, *EndOtelSpanArgs) (*EndOtelSpanReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EndOtelSpan not implemented")
 }
-func (UnimplementedAPMOtelClientServer) FlushSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FlushSpans not implemented")
+func (UnimplementedAPMOtelClientServer) IsRecording(context.Context, *IsRecordingArgs) (*IsRecordingReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsRecording not implemented")
 }
-func (UnimplementedAPMOtelClientServer) FlushTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FlushTraceStats not implemented")
+func (UnimplementedAPMOtelClientServer) SpanContext(context.Context, *SpanContextArgs) (*SpanContextReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SpanContext not implemented")
 }
-func (UnimplementedAPMOtelClientServer) StopTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StopTracer not implemented")
+func (UnimplementedAPMOtelClientServer) SetStatus(context.Context, *SetStatusArgs) (*SetStatusReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetStatus not implemented")
+}
+func (UnimplementedAPMOtelClientServer) SetName(context.Context, *SetNameArgs) (*SetNameReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetName not implemented")
+}
+func (UnimplementedAPMOtelClientServer) SetAttributes(context.Context, *SetAttributesArgs) (*SetAttributesReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAttributes not implemented")
+}
+func (UnimplementedAPMOtelClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FlushOtelSpans not implemented")
+}
+func (UnimplementedAPMOtelClientServer) FlushOtelTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FlushOtelTraceStats not implemented")
+}
+func (UnimplementedAPMOtelClientServer) StopOtelTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopOtelTracer not implemented")
 }
 func (UnimplementedAPMOtelClientServer) mustEmbedUnimplementedAPMOtelClientServer() {}
 
@@ -132,6 +208,24 @@ type UnsafeAPMOtelClientServer interface {
 
 func RegisterAPMOtelClientServer(s grpc.ServiceRegistrar, srv APMOtelClientServer) {
 	s.RegisterService(&APMOtelClient_ServiceDesc, srv)
+}
+
+func _APMOtelClient_StartOtelTracer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartOtelTracerArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMOtelClientServer).StartOtelTracer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMOtelClient/StartOtelTracer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMOtelClientServer).StartOtelTracer(ctx, req.(*StartOtelTracerArgs))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _APMOtelClient_StartOtelSpan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -152,74 +246,164 @@ func _APMOtelClient_StartOtelSpan_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APMOtelClient_FinishOtelSpan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FinishOtelSpanArgs)
+func _APMOtelClient_EndOtelSpan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EndOtelSpanArgs)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APMOtelClientServer).FinishOtelSpan(ctx, in)
+		return srv.(APMOtelClientServer).EndOtelSpan(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/APMOtelClient/FinishOtelSpan",
+		FullMethod: "/APMOtelClient/EndOtelSpan",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APMOtelClientServer).FinishOtelSpan(ctx, req.(*FinishOtelSpanArgs))
+		return srv.(APMOtelClientServer).EndOtelSpan(ctx, req.(*EndOtelSpanArgs))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APMOtelClient_FlushSpans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _APMOtelClient_IsRecording_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsRecordingArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMOtelClientServer).IsRecording(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMOtelClient/IsRecording",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMOtelClientServer).IsRecording(ctx, req.(*IsRecordingArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _APMOtelClient_SpanContext_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpanContextArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMOtelClientServer).SpanContext(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMOtelClient/SpanContext",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMOtelClientServer).SpanContext(ctx, req.(*SpanContextArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _APMOtelClient_SetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetStatusArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMOtelClientServer).SetStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMOtelClient/SetStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMOtelClientServer).SetStatus(ctx, req.(*SetStatusArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _APMOtelClient_SetName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetNameArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMOtelClientServer).SetName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMOtelClient/SetName",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMOtelClientServer).SetName(ctx, req.(*SetNameArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _APMOtelClient_SetAttributes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAttributesArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMOtelClientServer).SetAttributes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMOtelClient/SetAttributes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMOtelClientServer).SetAttributes(ctx, req.(*SetAttributesArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _APMOtelClient_FlushOtelSpans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FlushOtelSpansArgs)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APMOtelClientServer).FlushSpans(ctx, in)
+		return srv.(APMOtelClientServer).FlushOtelSpans(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/APMOtelClient/FlushSpans",
+		FullMethod: "/APMOtelClient/FlushOtelSpans",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APMOtelClientServer).FlushSpans(ctx, req.(*FlushOtelSpansArgs))
+		return srv.(APMOtelClientServer).FlushOtelSpans(ctx, req.(*FlushOtelSpansArgs))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APMOtelClient_FlushTraceStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _APMOtelClient_FlushOtelTraceStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FlushOtelTraceStatsArgs)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APMOtelClientServer).FlushTraceStats(ctx, in)
+		return srv.(APMOtelClientServer).FlushOtelTraceStats(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/APMOtelClient/FlushTraceStats",
+		FullMethod: "/APMOtelClient/FlushOtelTraceStats",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APMOtelClientServer).FlushTraceStats(ctx, req.(*FlushOtelTraceStatsArgs))
+		return srv.(APMOtelClientServer).FlushOtelTraceStats(ctx, req.(*FlushOtelTraceStatsArgs))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APMOtelClient_StopTracer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _APMOtelClient_StopOtelTracer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StopOtelTracerArgs)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APMOtelClientServer).StopTracer(ctx, in)
+		return srv.(APMOtelClientServer).StopOtelTracer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/APMOtelClient/StopTracer",
+		FullMethod: "/APMOtelClient/StopOtelTracer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APMOtelClientServer).StopTracer(ctx, req.(*StopOtelTracerArgs))
+		return srv.(APMOtelClientServer).StopOtelTracer(ctx, req.(*StopOtelTracerArgs))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -232,24 +416,48 @@ var APMOtelClient_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*APMOtelClientServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "StartOtelTracer",
+			Handler:    _APMOtelClient_StartOtelTracer_Handler,
+		},
+		{
 			MethodName: "StartOtelSpan",
 			Handler:    _APMOtelClient_StartOtelSpan_Handler,
 		},
 		{
-			MethodName: "FinishOtelSpan",
-			Handler:    _APMOtelClient_FinishOtelSpan_Handler,
+			MethodName: "EndOtelSpan",
+			Handler:    _APMOtelClient_EndOtelSpan_Handler,
 		},
 		{
-			MethodName: "FlushSpans",
-			Handler:    _APMOtelClient_FlushSpans_Handler,
+			MethodName: "IsRecording",
+			Handler:    _APMOtelClient_IsRecording_Handler,
 		},
 		{
-			MethodName: "FlushTraceStats",
-			Handler:    _APMOtelClient_FlushTraceStats_Handler,
+			MethodName: "SpanContext",
+			Handler:    _APMOtelClient_SpanContext_Handler,
 		},
 		{
-			MethodName: "StopTracer",
-			Handler:    _APMOtelClient_StopTracer_Handler,
+			MethodName: "SetStatus",
+			Handler:    _APMOtelClient_SetStatus_Handler,
+		},
+		{
+			MethodName: "SetName",
+			Handler:    _APMOtelClient_SetName_Handler,
+		},
+		{
+			MethodName: "SetAttributes",
+			Handler:    _APMOtelClient_SetAttributes_Handler,
+		},
+		{
+			MethodName: "FlushOtelSpans",
+			Handler:    _APMOtelClient_FlushOtelSpans_Handler,
+		},
+		{
+			MethodName: "FlushOtelTraceStats",
+			Handler:    _APMOtelClient_FlushOtelTraceStats_Handler,
+		},
+		{
+			MethodName: "StopOtelTracer",
+			Handler:    _APMOtelClient_StopOtelTracer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

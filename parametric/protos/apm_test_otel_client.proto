@@ -2,12 +2,14 @@ syntax = "proto3";
 
 // Interface of APM clients to be used for shared testing.
 service APMOtelClient {
+  rpc StartOtelTracer(StartOtelTracerArgs) returns (StartOtelTracerReturn) {}
   rpc StartOtelSpan(StartOtelSpanArgs) returns (StartOtelSpanReturn) {}
-  rpc FinishOtelSpan(FinishOtelSpanArgs) returns (FinishOtelSpanReturn) {}
-  //  rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
-  //  rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
-  //  rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
-  //  rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
+  rpc EndOtelSpan(EndOtelSpanArgs) returns (EndOtelSpanReturn) {}
+  rpc IsRecording(IsRecordingArgs) returns (IsRecordingReturn) {}
+  rpc SpanContext(SpanContextArgs) returns (SpanContextReturn) {}
+  rpc SetStatus(SetStatusArgs) returns (SetStatusReturn) {}
+  rpc SetName(SetNameArgs) returns (SetNameReturn) {}
+  rpc SetAttributes(SetAttributesArgs) returns (SetAttributesReturn) {}
   rpc FlushOtelSpans(FlushOtelSpansArgs) returns (FlushOtelSpansReturn) {}
   rpc FlushOtelTraceStats(FlushOtelTraceStatsArgs) returns (FlushOtelTraceStatsReturn) {}
   rpc StopOtelTracer(StopOtelTracerArgs) returns (StopOtelTracerReturn) {}
@@ -15,14 +17,17 @@ service APMOtelClient {
 
 message StartOtelSpanArgs {
   string name = 1;
-  //  optional string service = 2;
-  //  optional uint64 parent_id = 3;
-  //  optional string resource = 4;
-  //  optional string type = 5;
-  //  optional string origin = 6;
-  //  optional DistributedHTTPHeaders http_headers = 7;
+  optional bool new_root = 2;
+  optional uint64 span_kind = 3;
+  optional string service = 4;
+  optional string resource = 5;
+  optional string type = 6;
+  optional string timestamp = 7;
+  optional span_tags tags = 8;
 }
-
+message span_tags {
+  map<string, string> tags = 9;
+}
 //message DistributedHTTPHeaders {
 //    map<string, string> http_headers = 9;
 //}
@@ -31,45 +36,11 @@ message StartOtelSpanReturn {
   bytes span_id = 1;
   bytes trace_id = 2;
 }
-//
-//message InjectHeadersArgs {
-//  uint64 span_id = 1;
-//}
-//
-//message InjectHeadersReturn {
-//    optional DistributedHTTPHeaders http_headers = 1;
-//}
-//
-message FinishOtelSpanArgs {
+message EndOtelSpanArgs {
   bytes id = 1;
 }
-message FinishOtelSpanReturn {}
+message EndOtelSpanReturn {}
 
-
-//message SpanSetMetaArgs {
-//  uint64 span_id = 1;
-//  string key = 2;
-//  string value = 3;
-//}
-//message SpanSetMetaReturn {}
-//
-//
-//message SpanSetMetricArgs {
-//  uint64 span_id = 1;
-//  string key = 2;
-//  float value = 3;
-//}
-//message SpanSetMetricReturn {}
-//
-//
-//message SpanSetErrorArgs {
-//  uint64 span_id = 1;
-//  optional string type = 2;
-//  optional string message = 3;
-//  optional string stack = 4;
-//}
-//message SpanSetErrorReturn {}
-//
 message FlushOtelSpansArgs {}
 message FlushOtelSpansReturn {}
 
@@ -78,3 +49,21 @@ message FlushOtelTraceStatsReturn {}
 
 message StopOtelTracerArgs {}
 message StopOtelTracerReturn {}
+
+message StartOtelTracerArgs {}
+message StartOtelTracerReturn {}
+
+message IsRecordingArgs {}
+message IsRecordingReturn {}
+
+message SpanContextArgs {}
+message SpanContextReturn {}
+
+message SetStatusArgs {}
+message SetStatusReturn {}
+
+message SetNameArgs {}
+message SetNameReturn {}
+
+message SetAttributesArgs {}
+message SetAttributesReturn {}

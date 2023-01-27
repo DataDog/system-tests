@@ -20,16 +20,12 @@ import (
 
 type apmClientServer struct {
 	UnimplementedAPMOtelClientServer
-	spans map[ot_api.SpanID]ot_api.Span
+	tracer ot_api.Tracer
+	spans  map[ot_api.SpanID]ot_api.Span
 }
 
 func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpanArgs) (*StartOtelSpanReturn, error) {
-	// todo : move this to StartTracer method
-	tp := ot.NewTracerProvider()
-	otel.SetTracerProvider(tp)
-	tr := otel.Tracer("")
-
-	ctx, span := tr.Start(context.Background(), args.Name)
+	ctx, span := s.tracer.Start(context.Background(), args.Name)
 	spanId := span.SpanContext().SpanID()
 	traceId := span.SpanContext().TraceID()
 	s.spans[spanId] = span
@@ -40,30 +36,37 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 	}, nil
 }
 
-func (s *apmClientServer) FinishOtelSpan(ctx context.Context, args *FinishOtelSpanArgs) (*FinishOtelSpanReturn, error) {
+func (s *apmClientServer) EndOtelSpan(ctx context.Context, args *EndOtelSpanArgs) (*EndOtelSpanReturn, error) {
 	var sId *[8]byte
 	sId = (*[8]byte)(args.Id)
 	span := s.spans[ot_api.SpanID(*sId)]
 	span.End()
 
-	return &FinishOtelSpanReturn{}, nil
+	return &EndOtelSpanReturn{}, nil
 }
 
-func (s *apmClientServer) FlushSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
+func (s *apmClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
 	tracer.Flush()
 	s.spans = make(map[ot_api.SpanID]ot_api.Span)
 	return &FlushOtelSpansReturn{}, nil
 }
 
-func (s *apmClientServer) FlushTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error) {
+func (s *apmClientServer) FlushOtelTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error) {
 	tracer.Flush()
 	s.spans = make(map[ot_api.SpanID]ot_api.Span)
 	return &FlushOtelTraceStatsReturn{}, nil
 }
 
-func (s *apmClientServer) StopTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error) {
+func (s *apmClientServer) StopOtelTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error) {
 	tracer.Stop()
 	return &StopOtelTracerReturn{}, nil
+}
+
+func (s *apmClientServer) StartOtelTracer(context.Context, *StartOtelTracerArgs) (*StartOtelTracerReturn, error) {
+	tp := ot.NewTracerProvider()
+	otel.SetTracerProvider(tp)
+	s.tracer = otel.Tracer("")
+	return &StartOtelTracerReturn{}, nil
 }
 
 func newServer() *apmClientServer {
