@@ -1,9 +1,9 @@
 ARG TRACER_IMAGE=agent_local
 
 #TODO RMM: The images will be in dd-trace-java repository. Now for tests purposes we are using system-tests repository
-FROM ghcr.io/datadog/dd-trace-java/dd-java-agent:test_latest_snapshot as agent_latest_snapshot
+FROM ghcr.io/datadog/system-tests/dd-trace-java:latest_snapshot as agent_latest_snapshot
 
-FROM ghcr.io/datadog/dd-trace-java/dd-java-agent:test_latest as agent_latest
+FROM ghcr.io/datadog/system-tests/dd-trace-java:latest as agent_latest
 
 FROM eclipse-temurin:8 as agent_local
 
@@ -42,7 +42,7 @@ COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
 
 # Copy tracer
-COPY --from=agent /binaries/dd-java-agent.jar .
+COPY --from=agent /dd-java-agent.jar .
 
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -P spring-native
@@ -50,9 +50,9 @@ RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -P spring-
 FROM ubuntu
 
 WORKDIR /app
-COPY --from=agent /binaries/LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=agent /binaries/LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
-COPY --from=agent /binaries/APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+COPY --from=agent /LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=agent /LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=agent /APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 COPY --from=build /app/target/myproject .
 
 
