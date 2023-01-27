@@ -94,6 +94,7 @@ class Test_UrlField:
     def setup_distant_call_is_reported(self):
         self._setup()
 
+    @missing_feature("php-fpm" in context.weblog_variant, reason="How to activate php-fpm curl integration?")
     def test_distant_call_is_reported(self):
         """ check that the distant call is reported """
 
