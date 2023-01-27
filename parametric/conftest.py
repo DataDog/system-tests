@@ -161,7 +161,6 @@ RUN go install
     )
 
 
-
 def golang_otel_library_factory(env: Dict[str, str]):
     go_appdir = os.path.join("otel_apps", "golang")
     go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
@@ -181,7 +180,7 @@ RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=go_dir,
-        volumes=[(os.path.join(go_dir), "/client"), ],
+        volumes=[(os.path.join(go_dir), "/client"),],
         env=env,
     )
 
@@ -667,14 +666,13 @@ class _TestSpan:
         self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
 
 
-
 class _TestOtelSpan:
     def __init__(self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub, span_id: int):
         self._client = client
         self.span_id = span_id
 
     def finish(self):
-        self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id, ))
+        self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id,))
 
 
 class APMLibrary:
@@ -730,7 +728,7 @@ class APMLibrary:
 
 class APMOtelLibrary:
     def __init__(
-            self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub,
+        self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub,
     ):
         self._client = client
         self._client.StartOtelTracer(pb_otel.StartOtelTracerArgs())
@@ -746,8 +744,8 @@ class APMOtelLibrary:
     DistributedHTTPHeaders = {}
 
     @contextlib.contextmanager
-    def start_otel_span(self, name: str, ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.StartOtelSpan(pb_otel.StartOtelSpanArgs(name=name, ))
+    def start_otel_span(self, name: str,) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.StartOtelSpan(pb_otel.StartOtelSpanArgs(name=name,))
         span = _TestOtelSpan(self._client, resp.span_id)
         yield span
         span.finish()
@@ -776,7 +774,7 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
 
 @pytest.fixture
 def test_otel_library(
-        test_server: APMLibraryTestServer, test_server_timeout: int
+    test_server: APMLibraryTestServer, test_server_timeout: int
 ) -> Generator[APMOtelLibrary, None, None]:
     channel = grpc.insecure_channel("localhost:%s" % test_server.port)
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
