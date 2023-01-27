@@ -214,11 +214,11 @@ function reset-app() {
 
 function trigger-config-auto() {
     echo "[RC Config] Triggering config change"
-    kubectl apply -f ${BASE_DIR}/common/auto-instru.yaml # TODO support any language
+    kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/config.yaml
     echo "[RC Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
-    echo "[RC Config] trigger-config-auto: waiting for deployments/my-java-deployment available"
-    kubectl wait deployments/my-java-deployment --for condition=Available=True --timeout=5m # TODO support any deployment
+    echo "[RC Config] trigger-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
+    kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m # TODO support any deployment
     kubectl get pods
     echo "[RC Config] trigger-config-auto: done"
 }
@@ -246,15 +246,14 @@ function deploy-app-manual() {
 }
 
 function deploy-app-auto() {
-    echo "[Deploy] deploy-app-auto: starting deployment"
+    echo "[Deploy] deploy-app-auto: starting app deployment"
 
-    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
-    echo "[Deploy] deploy-app-auto: using library alias: ${library}"
+    echo "[Deploy] deploy-app-auto: deploying app for library ${TEST_LIBRARY}"
 
-    deployment_name=my-${library}-deployment
+    deployment_name=test-${TEST_LIBRARY}-deployment
     helm template lib-injection/common \
       -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
-      --set library="${library}" \
+      --set library="${TEST_LIBRARY}" \
       --set as_deployment="true" \
       --set deployment=${deployment_name} \
       --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
@@ -265,7 +264,7 @@ function deploy-app-auto() {
     echo "[Deploy] deploy-app-auto: done"
 }
 
-function test-for-traces() {
+function test-for-traces-manual() {
     echo "[Test] test for traces"
 
     tmpfile=$(mktemp -t traces.XXXXXX)
@@ -276,24 +275,36 @@ function test-for-traces() {
     echo "[Test] ${traces}"
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
-        print-debug-info
+        print-debug-info-manual
         reset-all
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
         echo "Received ${count} traces so far"
     fi
-}
-
-function test-for-traces-manual() {
-    test-for-traces
     print-debug-info-manual
     echo "[Test] test-for traces completed successfully"
     reset-all
 }
 
 function test-for-traces-auto() {
-    test-for-traces
+    echo "[Test] test for traces"
+
+    tmpfile=$(mktemp -t traces.XXXXXX)
+    echo "tmp file in ${tmpfile}"
+
+    wget -O $(readlink -f "${tmpfile}") http://localhost:18126/test/traces || true
+    traces=`cat ${tmpfile}`
+    echo "[Test] ${traces}"
+    if [[ ${#traces} -lt 3 ]] ; then
+        echoerr "No traces reported - ${traces}"
+        print-debug-info-auto
+        reset-all
+        exit 1
+    else
+        count=`jq '. | length' <<< "${traces}"`
+        echo "Received ${count} traces so far"
+    fi
     print-debug-info-auto
     echo "[Test] test-for traces completed successfully"
     reset-all
@@ -311,11 +322,11 @@ function print-debug-info-auto() {
     kubectl logs daemonset/datadog > ${log_dir}/daemonset_datadog.log
 
     echo "[debug] Java deployment yaml and pod logs"
-    kubectl get deploy my-java-deployment -oyaml
-    kubectl get pods -l app=java-app
-    pod_java=$(kubectl get pods -l app=java-app -o name)
-    kubectl get po ${pod_java} -oyaml
-    kubectl logs ${pod_java}
+    kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml
+    kubectl get pods -l app=${TEST_LIBRARY}-app
+    pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
+    kubectl get po ${pod} -oyaml
+    kubectl logs ${pod}
 
     echo "[debug] Cluster agent logs"
     pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)

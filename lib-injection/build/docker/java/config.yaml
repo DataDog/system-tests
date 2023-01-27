@@ -12,7 +12,7 @@ data:
       "lib_config": {
         "library_language": "java",
         "library_version": "v1.4.0",
-        "service_name": "my-java-service",
+        "service_name": "test-java-service",
         "env": "dev",
         "tracing_enabled": true,
         "tracing_sampling_rate": 0.90
@@ -20,7 +20,7 @@ data:
       "k8s_target": {
         "cluster": "lib-injection-testing",
         "kind": "deployment",
-        "name": "my-java-deployment",
+        "name": "test-java-deployment",
         "namespace": "default"
       }
     }]
