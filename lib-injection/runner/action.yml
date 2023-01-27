@@ -63,5 +63,5 @@ runs:
         uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # 2.3.1
         if: ${{ always() }}
         with:
-          name: library-injection_${{ env.TEST_LIBRARY }}_${{ matrix.weblog-variant }}_${{ matrix.lib-injection-connection }}_${{ matrix.lib-injection-use-admission-controller }}_${{ env.DOCKER_IMAGE_TAG}}
+          name: ${{ env.MODE }}-lib-injection_${{ env.TEST_LIBRARY }}_${{ matrix.weblog-variant }}_${{ matrix.lib-injection-connection }}_${{ matrix.lib-injection-use-admission-controller }}_${{ env.DOCKER_IMAGE_TAG}}
           path: artifact.tar.gz

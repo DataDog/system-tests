@@ -213,14 +213,14 @@ function reset-app() {
 }
 
 function trigger-config-auto() {
-    echo "[RC Config] Triggering config change"
+    echo "[Auto Config] Triggering config change"
     kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/config.yaml
-    echo "[RC Config] Waiting on the cluster agent to pick up the changes"
+    echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
-    echo "[RC Config] trigger-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
-    kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m # TODO support any deployment
+    echo "[Auto Config] trigger-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
+    kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m
     kubectl get pods
-    echo "[RC Config] trigger-config-auto: done"
+    echo "[Auto Config] trigger-config-auto: done"
 }
 
 function deploy-app-manual() {
@@ -321,19 +321,16 @@ function print-debug-info-auto() {
     echo "[debug] Export: Daemonset logs"
     kubectl logs daemonset/datadog > ${log_dir}/daemonset_datadog.log
 
-    echo "[debug] Java deployment yaml and pod logs"
-    kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml
+    echo "[debug] Library deployment yaml and pod logs"
+    kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml > ${log_dir}/test-${TEST_LIBRARY}-deployment.yaml
     kubectl get pods -l app=${TEST_LIBRARY}-app
     pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
-    kubectl get po ${pod} -oyaml
-    kubectl logs ${pod}
+    kubectl get po ${pod} -oyaml > ${log_dir}/${pod}.yaml
+    kubectl logs ${pod} > ${log_dir}/${pod}.log
 
     echo "[debug] Cluster agent logs"
     pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
-    kubectl logs ${pod_cluster_name}
-
-    echo "[debug] Print clusterrole"
-    kubectl get clusterrole datadog-cluster-agent -oyaml
+    kubectl logs ${pod_cluster_name} > ${log_dir}/${pod_cluster_name}.log
 }
 
 function print-debug-info-manual(){

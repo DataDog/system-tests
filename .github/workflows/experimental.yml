@@ -60,6 +60,7 @@ jobs:
       DOCKER_IMAGE_TAG: ${{ matrix.version }}
       DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
       BUILDX_PLATFORMS: linux/amd64
+      MODE: manual
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
@@ -71,7 +72,7 @@ jobs:
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
           test-script: ./lib-injection/run-manual-lib-injection.sh
 
-  config-lib-injection-tests:
+  auto-lib-injection-tests:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -93,6 +94,7 @@ jobs:
       DOCKER_IMAGE_TAG: latest
       DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
       BUILDX_PLATFORMS: linux/amd64
+      MODE: auto
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
