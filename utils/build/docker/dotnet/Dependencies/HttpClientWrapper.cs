@@ -15,5 +15,11 @@ namespace weblog
             var simpleResponse = await HttpClient.GetStringAsync($"{url}{path}");
             return simpleResponse;
         }
+
+        public static async Task<HttpResponseMessage> LocalGetRequest(string url)
+        {
+            var simpleResponse = await HttpClient.GetAsync($"{url}");
+            return simpleResponse;
+        }
     }
 }
