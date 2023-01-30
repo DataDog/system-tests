@@ -1,8 +1,6 @@
 #if !DDTRACE_2_7_0_OR_GREATER
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Datadog.Trace;
-
 
 namespace weblog
 {
