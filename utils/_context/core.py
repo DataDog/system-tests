@@ -105,6 +105,8 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             result.append(mongo_db)
             result.append(cassandra_db)
             result.append(postgres_db)
+        elif self.scenario in ("DEFAULT",):
+            result.append(postgres_db)
 
         return result
 
