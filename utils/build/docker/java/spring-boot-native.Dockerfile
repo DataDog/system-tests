@@ -12,8 +12,8 @@ RUN apt-get update && \
 	apt-get install -y libarchive-tools
 
 # Install tracer
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /
+RUN /install_ddtrace.sh
 
 
 FROM $TRACER_IMAGE as agent
