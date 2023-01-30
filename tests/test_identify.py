@@ -70,6 +70,31 @@ class Test_Basic:
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
 @released(dotnet="?", golang="1.41.0", java="?", nodejs="?", php="0.76.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
 @coverage.basic
+class Test_Propagate_Legacy:
+    """Propagation tests for Identify SDK"""
+
+    def setup_identify_tags_outgoing(self):
+        # Send a request to the identify-propagate endpoint
+        self.r_outgoing = weblog.get("/identify-propagate")
+
+    def test_identify_tags_outgoing(self):
+        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
+
+    def setup_identify_tags_incoming(self):
+        # Send a request to a generic endpoint, since any endpoint should propagate
+        headers = {"x-datadog-trace-id": "1", "x-datadog-parent-id": "1", "x-datadog-tags": "_dd.p.usr.id=dXNyLmlk"}
+        self.r_incoming = weblog.get("/waf", headers=headers)
+
+    def test_identify_tags_incoming(self):
+        """ with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C """
+        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
+
+
+@rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
+@released(dotnet="?", golang="1.48.0-rc.1", java="?", nodejs="?", php="0.76.0", python="?", ruby="?")
+@coverage.basic
 class Test_Propagate:
     """Propagation tests for Identify SDK"""
 
@@ -88,10 +113,12 @@ class Test_Propagate:
 
     def test_identify_tags_incoming(self):
         """ with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C """
+
         def usr_id_not_present(span):
             if "usr.id" in span["meta"]:
                 raise Exception(f"usr.id must not be present in this span")
             return True
+
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
         interfaces.library.validate_spans(self.r_incoming, usr_id_not_present)
