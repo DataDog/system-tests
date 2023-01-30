@@ -78,7 +78,7 @@ class Test_Propagate:
         self.r_outgoing = weblog.get("/identify-propagate")
 
     def test_identify_tags_outgoing(self):
-        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
+        tagTable = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
 
     def setup_identify_tags_incoming(self):
