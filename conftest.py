@@ -205,6 +205,7 @@ def pytest_collection_finish(session):
     _wait_interface(interfaces.library_stdout, session)
     _wait_interface(interfaces.library_dotnet_managed, session)
     _wait_interface(interfaces.agent, session)
+    _wait_interface(interfaces.agent_stdout, session)
     _wait_interface(interfaces.backend, session)
 
 
