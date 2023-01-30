@@ -13,7 +13,7 @@ ADD binaries* /binaries/
 RUN touch /LIBRARY_VERSION
 RUN touch /LIBDDWAF_VERSION
 RUN touch /APPSEC_EVENT_RULES_VERSION
-
+RUN touch /PHP_APPSEC_VERSION
 
 FROM $TRACER_IMAGE as agent
 
@@ -30,6 +30,8 @@ EXPOSE 7777/tcp
 COPY --from=agent /LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=agent /LIBDDWAF_VERSION /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=agent /APPSEC_EVENT_RULES_VERSION /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+COPY --from=agent /PHP_APPSEC_VERSION /binaries/SYSTEM_TESTS_PHP_APPSEC_VERSION
+
 COPY --from=agent /*.tar.gz /binaries/
 
 ADD utils/build/docker/php /tmp/php

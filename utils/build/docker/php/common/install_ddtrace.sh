@@ -47,6 +47,7 @@ fi
 FILE_LIBRARY_VERSION=/binaries/SYSTEM_TESTS_LIBRARY_VERSION
 if  [ -s "$FILE_LIBRARY_VERSION" ]; then
     echo "$FILE_LIBRARY_VERSION exists."
+    appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)
 else
 
     php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
