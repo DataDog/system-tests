@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenario, weblog
+from utils import released, coverage, interfaces, bug, scenario, weblog, rfc
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -221,7 +221,9 @@ class Test_Blocking:
         assert re.match("^text/html", self.r_afh.headers.get("content-type", "")) is not None
 
 
-@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config")
+@rfc(
+    "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
+)
 @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @coverage.basic
 @scenario("APPSEC_BLOCKING")
