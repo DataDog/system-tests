@@ -1,4 +1,5 @@
 * @cbeauchesne
 * @DataDog/system-tests-core
-/utils/build/docker/golang/* @DataDog/appsec-go
+/utils/build/docker/golang/* @DataDog/tracing-go
 /parametric/* @Kyle-Verhoog 
+/tests/remote_config/* @DataDog/system-tests-core @DataDog/remote-config
