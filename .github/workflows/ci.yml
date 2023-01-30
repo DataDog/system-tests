@@ -544,6 +544,8 @@ jobs:
           weblog: spring-boot-native
         - library: java
           weblog: jersey-grizzly2
+        - library: php
+          weblog: apache-mod-7.0-zts        
         tracer_version:
         - latest
         - latest_snapshot
