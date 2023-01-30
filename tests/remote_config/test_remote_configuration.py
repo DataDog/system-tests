@@ -65,6 +65,11 @@ class RemoteConfigurationFieldsBasicTests:
 
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
+    def setup_tracer_update_sequence(self):
+        # default polling interval for tracers is very low (5 seconds)
+        # TODO configure the polling interval to a lower value instead of increasing the timeout
+        interfaces.library.timeout = 100
+
 
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
@@ -141,7 +146,6 @@ def rc_check_request(data, expected, caching):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
 @released(php="?", python="1.7.0rc1.dev", ruby="?", nodejs="3.9.0")
-@bug(library="dotnet")
 @bug(library="python")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
@@ -152,14 +156,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
     request_number = 0
 
-    def setup_tracer_update_sequence(self):
-        if context.library == "nodejs" or context.library == "golang":
-            # time out for nodejs is very low (5 seconds)
-            # we need a longer timeout for this test
-            interfaces.library.timeout = 100
-
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
-    @bug(context.library >= "java@1.1.0", reason="?")
+    @bug(context.library >= "java@1.4.0" and context.appsec_rules_file is not None, reason="APPSEC-7877")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -212,7 +210,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
-@bug(library="dotnet")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -222,7 +219,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
     request_number = 0
 
-    @bug(context.library >= "java@1.1.0", reason="?")
+    @bug(context.library >= "java@1.4.0" and context.appsec_rules_file is not None, reason="APPSEC-7877")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
@@ -247,12 +244,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
-@irrelevant(library="java", reason="cache is implemented (APPSEC-6720)")
+@irrelevant(library="java", reason="cache is implemented")
 @irrelevant(library="golang", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -278,13 +273,9 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
-@bug(library="dotnet")
-@irrelevant(library="java", reason="cache is implemented")
-@irrelevant(library="golang", reason="cache is implemented")
+@irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -311,13 +302,9 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
-@bug(library="dotnet")
-@irrelevant(library="java", reason="cache is implemented")
-@irrelevant(library="golang", reason="cache is implemented")
+@irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
