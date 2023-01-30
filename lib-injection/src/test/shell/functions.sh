@@ -214,7 +214,8 @@ function reset-app() {
 
 function trigger-config-auto() {
     echo "[Auto Config] Triggering config change"
-    kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/config.yaml
+    config_name="${CONFIG_NAME:-config}"
+    kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/${config_name}.yaml
     echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
     echo "[Auto Config] trigger-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
@@ -264,6 +265,29 @@ function deploy-app-auto() {
     echo "[Deploy] deploy-app-auto: done"
 }
 
+function cleanup-auto() {
+    echo "[Cleanup] delete deployments/${deployment_name}"
+    deployment_name=test-${TEST_LIBRARY}-deployment
+    kubectl delete deployments/${deployment_name}
+
+    echo "[Cleanup] uninstall datadog helm chart"
+    helm uninstall datadog
+
+    echo "[Cleanup] delete test agent"
+    kubectl delete daemonset datadog
+}
+
+function check-for-env-vars() {
+    pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
+    echo "[Test] test for env vars ${pod}"
+    trace_sample_rate="0.90"
+    if [ ${CONFIG_NAME} == "config-1" ] ;  then
+        trace_sample_rate="0.50"
+    fi
+    # TODO: extend the list of tested env vars
+    kubectl get ${pod} -oyaml | grep -A1 DD_TRACE_SAMPLE_RATE | grep ${trace_sample_rate}
+}
+
 function test-for-traces-manual() {
     echo "[Test] test for traces"
 
@@ -306,8 +330,7 @@ function test-for-traces-auto() {
         echo "Received ${count} traces so far"
     fi
     print-debug-info-auto
-    echo "[Test] test-for traces completed successfully"
-    reset-all
+    echo "[Test] test-for-traces completed successfully"
 }
 
 function print-debug-info-auto() {
