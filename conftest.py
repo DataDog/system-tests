@@ -11,7 +11,6 @@ from utils.proxy.core import start_proxy
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from utils._context.containers import agent_container, weblog_container
 
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -213,6 +212,7 @@ def pytest_collection_finish(session):
 
         _wait_interface(interfaces.library_stdout, session)
         _wait_interface(interfaces.library_dotnet_managed, session)
+        _wait_interface(interfaces.agent_stdout, session)
 
     except:
         context.collect_logs()

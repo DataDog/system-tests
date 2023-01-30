@@ -90,6 +90,18 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
             self._data_list.append(parsed)
 
+    def validate(self, validator, success_by_default=False):
+        for data in self.get_data():
+            try:
+                if validator(data) is True:
+                    return
+            except Exception:
+                logger.error(f"{data} did not validate this test")
+                raise
+
+        if not success_by_default:
+            raise Exception("Test has not been validated by any data")
+
     def assert_presence(self, pattern, **extra_conditions):
         validator = _LogPresence(pattern, **extra_conditions)
         self.validate(validator.check, success_by_default=False)
@@ -200,6 +212,21 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         return {"DBG": "DEBUG", "INF": "INFO", "ERR": "ERROR"}.get(level, level)
 
 
+class _AgentStdout(_LogsInterfaceValidator):
+    def __init__(self):
+        super().__init__("Agent stdout")
+
+        p = "(?P<{}>{})".format
+        timestamp = p("timestamp", r"[^|]*")
+        level = p("level", r"[A-Z]*")
+        message = p("message", r".*")
+        self._parsers.append(re.compile(rf"^{timestamp} *\| *[A-Z]* *\| *{level} *\| *{message}"))
+        self._parsers.append(re.compile(message))  # fall back
+
+    def _get_files(self):
+        return ["logs/docker/agent/stdout.log"]
+
+
 ########################################################
 
 
@@ -247,9 +274,13 @@ class _LogAbsence:
 class Test:
     def test_main(self):
         """Test example"""
-        i = _LibraryStdout()
+        # i = _LibraryStdout()
+        # i.wait()
+        # i.assert_presence(r".*")
+
+        i = _AgentStdout()
         i.wait()
-        i.assert_presence(r".*", level="DEBUG")
+        i.assert_presence(r"FIPS mode is disabled")
 
 
 if __name__ == "__main__":
