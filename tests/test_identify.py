@@ -88,5 +88,10 @@ class Test_Propagate:
 
     def test_identify_tags_incoming(self):
         """ with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C """
+        def usr_id_not_present(span):
+            if "usr.id" in span["meta"]:
+                raise Exception(f"usr.id must not be present in this span")
+            return True
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
+        interfaces.library.validate_spans(self.r_incoming, usr_id_not_present)
