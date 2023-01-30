@@ -9,51 +9,99 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
+	"go.opentelemetry.io/otel/attribute"
 	ot_api "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	ot "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
-	_ "sync/atomic"
 )
 
 type apmClientServer struct {
 	UnimplementedAPMOtelClientServer
+	tp     *ot.TracerProvider
 	tracer ot_api.Tracer
-	spans  map[ot_api.SpanID]ot_api.Span
+	spans  map[uint64]ot_api.Span
 }
 
 func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpanArgs) (*StartOtelSpanReturn, error) {
-	ctx, span := s.tracer.Start(context.Background(), args.Name)
-	spanId := span.SpanContext().SpanID()
-	traceId := span.SpanContext().TraceID()
-	s.spans[spanId] = span
-
+	fmt.Println("started_StartOtelSpan")
+	//todo tracer options/ span parent context not passed
+	//var pCtx = context.Background()
+	//if args.ParentId != nil && *args.ParentId > 0 {
+	//	parent := s.spans[*args.ParentId]
+	//	ddP, ok := parent.(ddtrace.Span)
+	//	pCtx = tracer.ContextWithSpan(ctx, ddP)
+	//}
+	var otelOpts = []ot_api.SpanStartOption{
+		ot_api.WithSpanKind(ot_api.SpanKind(args.GetSpanKind())),
+	}
+	if args.GetNewRoot() {
+		otelOpts = append(otelOpts, ot_api.WithNewRoot())
+	}
+	if t := args.GetTimestamp(); t != 0 {
+		tm := time.Unix(t, 0)
+		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
+	}
+	if attrs := args.GetAttributes(); attrs != nil {
+		for k, v := range attrs.Tags {
+			otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
+		}
+	}
+	ctx, span := s.tp.Tracer("").Start(context.Background(), args.Name, otelOpts...)
+	ddSpan, ok := span.(ddtrace.Span)
+	if !ok {
+		fmt.Println("span must be of ddtrace.Span type")
+	}
+	s.spans[ddSpan.Context().SpanID()] = span
 	return &StartOtelSpanReturn{
-		SpanId:  spanId[:],
-		TraceId: traceId[:],
+		SpanId:  ddSpan.Context().SpanID(),
+		TraceId: ddSpan.Context().SpanID(),
 	}, nil
 }
 
 func (s *apmClientServer) EndOtelSpan(ctx context.Context, args *EndOtelSpanArgs) (*EndOtelSpanReturn, error) {
-	var sId *[8]byte
-	sId = (*[8]byte)(args.Id)
-	span := s.spans[ot_api.SpanID(*sId)]
+	span, ok := s.spans[args.Id]
+	if !ok {
+		fmt.Sprintf("EndOtelSpan call failed, span with id=%d not found", args.Id)
+	}
+	// todo pass end span options
 	span.End()
 
 	return &EndOtelSpanReturn{}, nil
 }
 
+func (s *apmClientServer) SetAttributes(ctx context.Context, args *SetAttributesArgs) (*SetAttributesReturn, error) {
+	span, ok := s.spans[args.SpanId]
+	if !ok {
+		fmt.Sprintf("EndOtelSpan call failed, span with id=%d not found", args.SpanId)
+	}
+
+	for k, v := range args.Attributes {
+		span.SetAttributes(attribute.String(k, v))
+
+	}
+	return &SetAttributesReturn{}, nil
+}
+
+func (s *apmClientServer) SetName(ctx context.Context, args *SetNameArgs) (*SetNameReturn, error) {
+	span, ok := s.spans[args.SpanId]
+	if !ok {
+		fmt.Sprintf("EndOtelSpan call failed, span with id=%d not found", args.SpanId)
+	}
+	span.SetName(args.Name)
+	return &SetNameReturn{}, nil
+}
+
 func (s *apmClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
-	tracer.Flush()
-	s.spans = make(map[ot_api.SpanID]ot_api.Span)
+	s.spans = make(map[uint64]ot_api.Span)
 	return &FlushOtelSpansReturn{}, nil
 }
 
 func (s *apmClientServer) FlushOtelTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error) {
-	tracer.Flush()
-	s.spans = make(map[ot_api.SpanID]ot_api.Span)
+	s.spans = make(map[uint64]ot_api.Span)
 	return &FlushOtelTraceStatsReturn{}, nil
 }
 
@@ -63,15 +111,16 @@ func (s *apmClientServer) StopOtelTracer(context.Context, *StopOtelTracerArgs) (
 }
 
 func (s *apmClientServer) StartOtelTracer(context.Context, *StartOtelTracerArgs) (*StartOtelTracerReturn, error) {
-	tp := ot.NewTracerProvider()
-	otel.SetTracerProvider(tp)
-	s.tracer = otel.Tracer("")
+	s.tp = ot.NewTracerProvider()
+	otel.SetTracerProvider(s.tp)
+	//todo tracer options go here
+	s.tracer = s.tp.Tracer("")
 	return &StartOtelTracerReturn{}, nil
 }
 
 func newServer() *apmClientServer {
 	s := &apmClientServer{
-		spans: make(map[ot_api.SpanID]ot_api.Span),
+		spans: make(map[uint64]ot_api.Span),
 	}
 	return s
 }

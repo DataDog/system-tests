@@ -5,8 +5,6 @@ import grpc
 from parametric.protos import apm_test_otel_client_pb2 as protos_dot_apm__test__otel__client__pb2
 
 
-
-
 class APMOtelClientStub(object):
     """Interface of APM clients to be used for shared testing.
     """

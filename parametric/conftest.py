@@ -671,8 +671,22 @@ class _TestOtelSpan:
         self._client = client
         self.span_id = span_id
 
+    def set_attributes(self, attributes):
+        self._client.SetAttributes(pb_otel.SetAttributesArgs(span_id=self.span_id, attributes=attributes))
+
+    def set_name(self, name):
+        self._client.SetName(pb_otel.SetNameArgs(span_id=self.span_id, name=name))
+
     def finish(self):
-        self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id,))
+        self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id))
+
+    def is_recording(self):
+        self._client.IsRecording(pb_otel.IsRecordingArgs(id=self.span_id))
+
+    def span_context(self):
+        self._client.SpanContext(pb_otel.SpanContextArgs(id=self.span_id))
+
+#     TODO: leaving span_context to be done later with Evan
 
 
 class APMLibrary:
@@ -744,11 +758,32 @@ class APMOtelLibrary:
     DistributedHTTPHeaders = {}
 
     @contextlib.contextmanager
-    def start_otel_span(self, name: str,) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.StartOtelSpan(pb_otel.StartOtelSpanArgs(name=name,))
+    def start_otel_span(self,
+                        name: str,
+                        service: str = "",
+                        resource: str = "",
+                        new_root: bool = True,
+                        parent_id: int = 0,
+                        ) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.StartOtelSpan(pb_otel.StartOtelSpanArgs(
+            name=name,
+            new_root=new_root,
+            parent_id=parent_id
+        # NewRoot
+            # ParentId
+            # SpanKind
+            # Service
+            # Resource
+            # Type
+            # Timestamp
+
+        ))
         span = _TestOtelSpan(self._client, resp.span_id)
         yield span
         span.finish()
+
+    # def get_span_context(self, span_id, attributes):
+    #     return self._client.SpanContext(pb_otel.SpanContextArgs(span_id=span_id, attributes=attributes))
 
     def flush(self):
         self._client.FlushOtelSpans(pb_otel.FlushOtelSpansArgs())
