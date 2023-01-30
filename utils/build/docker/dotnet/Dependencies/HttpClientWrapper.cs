@@ -12,14 +12,12 @@ namespace weblog
         {
             var baseUrl = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") ?? "weblog:7777";
             var url = $"http://{baseUrl}";
-            var simpleResponse = await HttpClient.GetStringAsync($"{url}{path}");
-            return simpleResponse;
+            return await HttpClient.GetStringAsync($"{url}{path}");
         }
 
         public static async Task<HttpResponseMessage> LocalGetRequest(string url)
         {
-            var simpleResponse = await HttpClient.GetAsync($"{url}");
-            return simpleResponse;
+            return await HttpClient.GetAsync($"{url}");
         }
     }
 }

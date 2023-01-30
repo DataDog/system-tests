@@ -1,15 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using System.Web;
 
 namespace weblog
 {
     public class MakeDistantCallEndpoint : ISystemTestEndpoint
     {
-        class EndpointParameters
+        private class EndpointParameters
         {
             public string Url { get; set; }
             public static EndpointParameters Bind(HttpContext context)
@@ -22,12 +20,9 @@ namespace weblog
                 return result;
             }
         }
-        class EndpointResponse
+
+        private class EndpointResponse
         {
-            // "url": url,
-            // "status_code": response.status_code,
-            // "request_headers": dict(response.request.headers),
-            // "response_headers": dict(response.headers),
             [JsonPropertyName("url")]
             public string Url { get; set; }
             [JsonPropertyName("status_code")]
@@ -37,6 +32,7 @@ namespace weblog
             [JsonPropertyName("response_headers")]
             public IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders { get; set; }
         }
+
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
         {
             routeBuilder.MapGet("/make_distant_call", async context =>
@@ -60,7 +56,7 @@ namespace weblog
                     RequestHeaders = response.RequestMessage.Headers,
                     ResponseHeaders = response.Headers,
                 };
-                //context.Response.ContentType = "application/json";
+
                 await context.Response.WriteAsJsonAsync(endpointResponse);
             });
         }
