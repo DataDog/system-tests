@@ -287,6 +287,26 @@ function check-for-env-vars() {
     kubectl get ${pod} -oyaml | grep -A1 DD_TRACE_SAMPLE_RATE | grep ${trace_sample_rate}
 }
 
+function check-for-pod-metadata() {
+    pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
+    echo "[Test] test for labels/annotations ${pod}"
+    # TODO: check for label/annotation values not only the presence
+    kubectl get ${pod} -ojson | jq .metadata.labels | jq -e ."admission.datadoghq.com/enabled"
+    kubectl get ${pod} -ojson | jq .metadata.annotations | jq -e ."admission.datadoghq.com/${library}-lib.version" 
+    kubectl get ${pod} -ojson | jq .metadata.annotations | jq -e ."admission.datadoghq.com/${library}-lib.config.v1"
+}
+
+function check-for-deploy-metadata() {
+    deployment_name=test-${TEST_LIBRARY}-deployment
+    echo "[Test] test for labels/annotations ${deployment_name}"
+    rev="0"
+    if [ ${CONFIG_NAME} == "config-1" ] ;  then
+        rev="1"
+    fi
+    kubectl get deploy ${deployment_name} -ojson | jq .metadata.labels | jq -e ."admission.datadoghq.com/rc.id" | grep "11777398274940883092"
+    kubectl get deploy ${deployment_name} -ojson | jq .metadata.labels | jq -e ."admission.datadoghq.com/rc.rev" | grep ${rev}
+}
+
 function test-for-traces-manual() {
     echo "[Test] test for traces"
 

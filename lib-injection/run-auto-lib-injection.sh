@@ -32,6 +32,7 @@ if [ $TEST_CASE == "TC1" ]; then
     echo "[run-auto-lib-injection] Running tests"
     ${BASE_DIR}/execFunction.sh test-for-traces-auto
     ${BASE_DIR}/execFunction.sh check-for-env-vars
+    ${BASE_DIR}/execFunction.sh check-for-pod-metadata
     echo "[run-auto-lib-injection] Completed successfully"
 fi
 
@@ -60,6 +61,8 @@ if [ $TEST_CASE == "TC2" ]; then
     echo "[run-auto-lib-injection] Running tests for config-1"
     ${BASE_DIR}/execFunction.sh test-for-traces-auto
     CONFIG_NAME=config-1 ${BASE_DIR}/execFunction.sh check-for-env-vars
+    CONFIG_NAME=config-1 ${BASE_DIR}/execFunction.sh check-for-deploy-metadata
+    ${BASE_DIR}/execFunction.sh check-for-pod-metadata
     echo "[run-auto-lib-injection] Completed successfully"
 fi
 
@@ -84,10 +87,12 @@ if [ $TEST_CASE == "TC3" ]; then
     echo "[run-auto-lib-injection] Running tests"
     ${BASE_DIR}/execFunction.sh test-for-traces-auto
     ${BASE_DIR}/execFunction.sh check-for-env-vars
+    ${BASE_DIR}/execFunction.sh check-for-pod-metadata
     echo "[run-auto-lib-injection] Trigger unrelated rolling-update"
     ${BASE_DIR}/execFunction.sh trigger-app-rolling-update
     echo "[run-auto-lib-injection] Running tests"
     ${BASE_DIR}/execFunction.sh test-for-traces-auto
     ${BASE_DIR}/execFunction.sh check-for-env-vars
+    ${BASE_DIR}/execFunction.sh check-for-pod-metadata
     echo "[run-auto-lib-injection] Completed successfully"
 fi
