@@ -29,7 +29,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         if request.origin not in ["", None]:
             trace_id = parent.trace_id if parent else None
             parent_id = parent.span_id if parent else None
-            parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
+            parent = Context(
+                trace_id=trace_id, span_id=parent_id, dd_origin=request.origin
+            )
 
         if request.http_headers.ByteSize() > 0:
             headers = dict(request.http_headers.http_headers)
@@ -44,23 +46,17 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             activate=True,
         )
         self._spans[span.span_id] = span
-        return apm_test_client_pb2.StartSpanReturn(
-            span_id=span.span_id,
-        )
+        return apm_test_client_pb2.StartSpanReturn(span_id=span.span_id,)
 
     def InjectHeaders(self, request, context):
         ctx = self._spans[request.span_id].context
         headers = {}
         HTTPPropagator.inject(ctx, headers)
         distrib_headers = apm_test_client_pb2.DistributedHTTPHeaders()
+        for k, v in headers.items():
+            distrib_headers.http_headers[k] = v
 
-        if headers["x-datadog-trace-id"]:
-            for k,v in headers.items():
-                distrib_headers.http_headers[k] = v
-
-        return apm_test_client_pb2.InjectHeadersReturn(
-           http_headers=distrib_headers,
-        )
+        return apm_test_client_pb2.InjectHeadersReturn(http_headers=distrib_headers,)
 
     def SpanSetMeta(self, request, context):
         span = self._spans[request.span_id]
@@ -107,7 +103,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
 def serve(port: str):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
-    apm_test_client_pb2_grpc.add_APMClientServicer_to_server(APMClientServicer(), server)
+    apm_test_client_pb2_grpc.add_APMClientServicer_to_server(
+        APMClientServicer(), server
+    )
     server.add_insecure_port("[::]:%s" % port)
     server.start()
     server.wait_for_termination()

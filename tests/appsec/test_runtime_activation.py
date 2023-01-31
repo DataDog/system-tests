@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, irrelevant, scenario, missing_feature
+from utils import weblog, context, coverage, interfaces, released, irrelevant, scenario, missing_feature, bug
+
 
 # dd.rc.targets.key.id=TEST_KEY_ID
 # dd.rc.targets.key=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c
@@ -13,8 +14,9 @@ from utils import weblog, context, coverage, interfaces, released, irrelevant, s
 @released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="3.9.0", golang="?")
 @irrelevant(context.appsec_rules_file == "")
 @irrelevant(
-    context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with cutom rule file"
+    context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with custom rule file"
 )
+@bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
