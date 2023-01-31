@@ -80,8 +80,8 @@ jobs:
     strategy:
       matrix:
         variant:
-        # - library: java
-        #   weblog-variant: dd-lib-java-init-test-app
+        - library: java
+          weblog-variant: dd-lib-java-init-test-app
         - library: nodejs
           weblog-variant: sample-app
         - library: python
@@ -90,6 +90,7 @@ jobs:
           - TC1
           - TC2
           - TC3
+          - TC4
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}

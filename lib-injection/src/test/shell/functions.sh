@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ## HELPERS
 function echoerr() {
     echo "$@" 1>&2;
@@ -212,17 +214,17 @@ function reset-app() {
     kubectl delete pods my-app
 }
 
-function trigger-config-auto() {
+function apply-config-auto() {
     echo "[Auto Config] Triggering config change"
     config_name="${CONFIG_NAME:-config}"
     kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/${config_name}.yaml
     echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
-    echo "[Auto Config] trigger-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
-    kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=2m
+    echo "[Auto Config] apply-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
+    kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=5m
     # kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m
     kubectl get pods
-    echo "[Auto Config] trigger-config-auto: done"
+    echo "[Auto Config] apply-config-auto: done"
 }
 
 function deploy-app-manual() {
@@ -259,8 +261,8 @@ function deploy-app-auto() {
        | kubectl apply -f -
 
     echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
-    kubectl rollout status deployments/${deployment_name} --timeout=2m
-    # kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
+    kubectl rollout status deployments/${deployment_name} --timeout=5m
+    kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     sleep 5 && kubectl get pods
 
     echo "[Deploy] deploy-app-auto: done"
@@ -273,7 +275,7 @@ function trigger-app-rolling-update() {
 
     echo "[Deploy] trigger-app-rolling-update: waiting for deployments/${deployment_name} available"
     kubectl rollout status deployments/${deployment_name} --timeout=5m
-    # kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
+    kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     sleep 15 && kubectl get pods
 
     echo "[Deploy] trigger-app-rolling-update: done"
@@ -297,9 +299,25 @@ function check-for-pod-metadata() {
     echo "[Test] test for labels/annotations ${pod}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     # TODO: check for label/annotation values not only the presence
-    kubectl get ${pod} -ojson | jq .metadata.labels | jq -e '."admission.datadoghq.com/enabled"'
+    enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
+    if [[ $enabled != "\"true\"" ]]; then
+        echo "[Test] annotation 'admission.datadoghq.com/enabled' wasn't \"true\", got \"${enabled}\""
+        exit 1
+    fi
     kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.version"
     kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.config.v1"
+}
+
+function check-for-no-pod-metadata() {
+    sleep 15 && kubectl get pods
+    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
+    echo "[Test] test for labels/annotations ${pod}"
+    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+    has_enabled_key=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq 'has("admission.datadoghq.com/enabled")')
+    if [[ $has_enabled_key != "false" ]]; then
+        echo "[Test] annotation 'admission.datadoghq.com/enabled' was unexpectedly applied to the pod!"
+        exit 1
+    fi
 }
 
 function check-for-deploy-metadata() {
