@@ -4,12 +4,55 @@
   "description": "Instrumentation telemetry schema",
   "$ref": "#/$defs/Telemetry",
   "$defs": {
-    "ApiVersion": {
-      "type": "string",
-      "enum": ["v1"],
-      "example": "v1"
-    },
     "AppStarted": {
+      "type": "object",
+      "properties": {
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Dependency"
+          }
+        },
+        "integrations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Integration"
+          }
+        },
+        "configuration": {
+          "$ref": "#/$defs/Configuration"
+        },
+        "additional_payload": {
+          "$ref": "#/$defs/Configuration"
+        }
+      },
+      "required": ["integrations", "dependencies"]
+    },
+    "AppStartedV2": {
+      "type": "object",
+      "properties": {
+        "integrations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Integration"
+          }
+        },
+        "configuration": {
+          "$ref": "#/$defs/Configuration"
+        },
+        "remote_config": {
+          "$ref": "#/$defs/RemoteConfig"
+        },
+        "error": {
+          "$ref": "#/$defs/Error"
+        },
+        "additional_payload": {
+          "$ref": "#/$defs/Configuration"
+        }
+      },
+      "required": ["integrations", "dependencies"]
+    },
+    "ExtendedHeartbeat": {
       "type": "object",
       "properties": {
         "dependencies": {
@@ -57,7 +100,73 @@
       },
       "required": ["dependencies"]
     },
+    "ClientConfigurationChange": {
+      "type": "object",
+      "properties": {
+        "conf_key_values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConfigurationV2"
+          }
+        },
+        "remote_config": {
+          "$ref": "#/$defs/RemoteConfig"
+        }
+      },
+      "required": ["conf_key_values"]
+    },
+    "ProductChange": {
+      "type": "object",
+      "properties": {
+        "products": {
+          "$ref": "#/$defs/Products"
+        }
+      },
+      "required": ["products"]
+    },
     "Application": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "type": "string"
+        },
+        "language_name": {
+          "type": "string"
+        },
+        "language_version": {
+          "type": "string"
+        },
+        "runtime_name": {
+          "type": "string"
+        },
+        "runtime_patches": {
+          "type": "string"
+        },
+        "runtime_version": {
+          "type": "string"
+        },
+        "service_name": {
+          "type": "string"
+        },
+        "service_version": {
+          "type": "string"
+        },
+        "tracer_version": {
+          "type": "string"
+        },
+        "products": {
+          "$ref": "#/$defs/Products"
+        }
+      },
+      "required": [
+        "service_name",
+        "env",
+        "tracer_version",
+        "language_name",
+        "language_version"
+      ]
+    },
+    "ApplicationV2": {
       "type": "object",
       "properties": {
         "env": {
@@ -91,9 +200,12 @@
       "required": [
         "service_name",
         "env",
+        "service_version",
         "tracer_version",
         "language_name",
-        "language_version"
+        "language_version",
+        "runtime_name",
+        "runtime_version"
       ]
     },
     "Dependency": {
@@ -105,29 +217,15 @@
         "name": {
           "type": "string"
         },
-        "type": {
-          "$ref": "#/$defs/DependencyType"
-        },
         "version": {
           "type": "string"
         }
       },
       "required": ["name"]
     },
-    "DependencyType": {
-      "type": "string",
-      "enum": ["SharedSystemLibrary", "PlatformStandard"],
-      "example": "SharedSystemLibrary"
-    },
     "GenerateMetrics": {
       "type": "object",
       "properties": {
-        "lib_language": {
-          "type": "string"
-        },
-        "lib_version": {
-          "type": "string"
-        },
         "namespace": {
           "type": "string"
         },
@@ -138,14 +236,32 @@
           }
         }
       },
-      "required": ["namespace", "lib_language", "lib_version", "series"]
+      "required": ["namespace", "series"]
+    },
+    "Logs": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["ERROR", "WARN", "DEBUG"]
+        },
+        "tags": {
+          "type": "string"
+        },
+        "stack_trace": {
+          "type": "string"
+        },
+        "tracer_time": {
+          "type": "string"
+        }
+      }
     },
     "Host": {
       "type": "object",
       "properties": {
-        "container_id": {
-          "type": "string"
-        },
         "hostname": {
           "type": "string"
         },
@@ -153,6 +269,9 @@
           "type": "string"
         },
         "os_version": {
+          "type": "string"
+        },
+        "architecture": {
           "type": "string"
         },
         "kernel_name": {
@@ -164,7 +283,48 @@
         "kernel_version": {
           "type": "string"
         }
-      }
+      }, 
+      "required" : [
+        "hostname", 
+        "os",
+        "kernel_name", 
+        "kernel_release", 
+        "kernel_version"
+      ]
+    },
+    "HostV2": {
+      "type": "object",
+      "properties": {
+        "hostname": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "os_version": {
+          "type": "string"
+        },
+        "architecture": {
+          "type": "string"
+        },
+        "kernel_name": {
+          "type": "string"
+        },
+        "kernel_release": {
+          "type": "string"
+        },
+        "kernel_version": {
+          "type": "string"
+        }
+      }, 
+      "required" : [
+        "hostname", 
+        "os",
+        "architecture", 
+        "kernel_name", 
+        "kernel_release", 
+        "kernel_version"
+      ]
     },
     "Integration": {
       "type": "object",
@@ -178,6 +338,9 @@
         "enabled": {
           "type": "boolean"
         },
+        "error": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -185,7 +348,7 @@
           "type": "string"
         }
       },
-      "required": ["name"]
+      "required": ["name", "enabled"]
     },
     "Metric": {
       "oneOf": [
@@ -290,17 +453,45 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "value": { "type": ["number", "boolean", "string", "null"] }
+          "name": { 
+            "type": "string" 
+          },
+          "value": { 
+            "type": ["number", "boolean", "string", "null"] 
+          }
         },
-        "required": ["name"]
+        "required": ["name", "value"]
       }
     },
-    "Header": {
+    "ConfigurationV2": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { 
+            "type": "string" 
+          },
+          "value": { 
+            "type": ["number", "boolean", "string", "null"] 
+          },
+          "origin": {
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/$defs/Error"
+          },
+          "is_overridden": {
+            "type": "boolean"
+          }
+        },
+        "required": ["name", "value", "origin"]
+      }
+    },
+    "HeaderV1": {
       "type": "object",
       "properties": {
         "api_version": {
-          "$ref": "#/$defs/ApiVersion"
+          "const": "v1"
         },
         "application": {
           "$ref": "#/$defs/Application"
@@ -329,9 +520,112 @@
         "host"
       ]
     },
-    "Telemetry": {
+    "HeaderV2": {
+      "type": "object",
+      "properties": {
+        "api_version": {
+         "const": "v2" 
+        },
+        "application": {
+          "$ref": "#/$defs/ApplicationV2"
+        },
+        "host": {
+          "$ref": "#/$defs/HostV2"
+        },
+        "runtime_id": {
+          "type": "string"
+        },
+        "seq_id": {
+          "type": "integer",
+          "format": "uint64"
+        },
+        "tracer_time": {
+          "type": "integer",
+          "format": "uint64"
+        }
+      },
+      "required": [
+        "api_version",
+        "tracer_time",
+        "runtime_id",
+        "seq_id",
+        "application",
+        "host"
+      ]
+    },
+    "APMOnboardingHeader": {
+      "type": "object",
+      "properties": {
+        "api_version": {
+          "const": "v2"
+        },
+        "runtime_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "api_version"
+      ]
+    },
+    "Products": {
+      "type": "object",
+      "properties": {
+        "appsec": {
+          "$ref": "#/$defs/Product"
+        },
+        "profiler": {
+          "$ref": "#/$defs/Product"
+        },
+        "dynamic_instrumentation": {
+          "$ref": "#/$defs/Product"
+        }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "error": {
+          "$ref": "#/$defs/Error"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "RemoteConfig": {
+      "type": "object",
+      "properties": {
+        "user_enabled": {
+          "type": "string"
+        },
+        "configs_received": {
+          "type": "boolean"
+        },
+        "error": {
+          "$ref": "#/$defs/Error"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code" : {
+          "type": "integer"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required" : ["code", "message"]
+    },
+    "TelemetryV1": {
       "allOf": [
-        { "$ref": "#/$defs/Header" },
+        { "$ref": "#/$defs/HeaderV1" },
         {
           "oneOf": [
             {
@@ -375,6 +669,212 @@
               }
             }
           ]
+        }
+      ]
+    },
+    "MessageBatch": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-extended-heartbeat" },
+                "payload": { "$ref": "#/$defs/ExtendedHearbeat" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-integrations-change" },
+                "payload": { "$ref": "#/$defs/IntegrationsChange" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-dependencies-loaded" },
+                "payload": { "$ref": "#/$defs/DependenciesLoaded" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-client-configuration-change" },
+                "payload": { "$ref": "#/$defs/ClientConfigurationChange" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-product-change" },
+                "payload": { "$ref": "#/$defs/ProductChange" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "generate-metrics" },
+                "payload": { "$ref": "#/$defs/GenerateMetrics" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-heartbeat" }
+              }
+            }
+          ]
+    },
+    "TelemetryV2": {
+      "allOf": [
+        { "$ref": "#/$defs/HeaderV2" },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-started" },
+                "payload": { "$ref": "#/$defs/AppStartedV2" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-extended-heartbeat" },
+                "payload": { "$ref": "#/$defs/ExtendedHearbeat" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-integrations-change" },
+                "payload": { "$ref": "#/$defs/IntegrationsChange" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-dependencies-loaded" },
+                "payload": { "$ref": "#/$defs/DependenciesLoaded" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-client-configuration-change" },
+                "payload": { "$ref": "#/$defs/ClientConfigurationChange" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-product-change" },
+                "payload": { "$ref": "#/$defs/ProductChange" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "generate-metrics" },
+                "payload": { "$ref": "#/$defs/GenerateMetrics" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-heartbeat" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "app-closing" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "message-batch" },
+                "payload": { "$ref": "#/$defs/MessageBatch" }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Tags": {
+      "type": "object",
+      "properties": {
+        "env":{
+          "type": "string"
+        },
+        "lib_language": {
+          "type": "string"
+        },
+        "lib_version": {
+          "type": "string"
+        },
+        "service_name": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "connection": {
+          "type": "string"
+        },
+        "agent_platform": {
+          "type": "string"
+        },
+        "agent_version": {
+          "type": "string"
+        },
+        "agent_hostname": {
+          "type": "string"
+        },
+        "tracer_version_origin": {
+          "type": "string"
+        },
+        "script_name": {
+          "type": "string"
+        }
+      }
+    },
+    "APMOnboardingPayload": {
+      "type": "object",
+      "properties": {
+        "event_name":{
+          "type": "string"
+        },
+        "tags": {
+          "$ref": "#/$defs/Tags"
+        },
+        "error": {
+          "$ref": "#/$defs/Error"
+        }
+      }
+    },
+    "APMOnboarding": {
+      "allOf": [
+        { "$ref": "#/$defs/APMOnboardingHeader" },
+        {
+          "type": "object",
+          "properties": {
+            "request_type": { "const": "apm-onboarding-event" },
+            "payload": { "$ref": "#/$defs/APMOnboardingPayload" }
+          }
+        }
+      ]
+    },
+    "Telemetry": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TelemetryV1"
+        },
+        {
+          "$ref": "#/$defs/TelemetryV2"
+        },
+        {
+          "$ref": "#/$defs/APMOnboarding"
         }
       ]
     }
