@@ -42,7 +42,7 @@ jobs:
           - uds
           - network
 
-        lib-injection-use-admission-controller: 
+        lib-injection-use-admission-controller:
           - use-admission-controller
           - ''
 
