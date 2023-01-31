@@ -247,8 +247,6 @@ function deploy-app-manual() {
 }
 
 function deploy-app-auto() {
-    echo "[Deploy] deploy-app-auto: starting app deployment"
-
     echo "[Deploy] deploy-app-auto: deploying app for library ${TEST_LIBRARY}"
 
     deployment_name=test-${TEST_LIBRARY}-deployment
@@ -259,10 +257,25 @@ function deploy-app-auto() {
       --set deployment=${deployment_name} \
       --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
        | kubectl apply -f -
+
     echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     sleep 5 && kubectl get pods
+
     echo "[Deploy] deploy-app-auto: done"
+}
+
+function trigger-app-rolling-update() {
+    echo "[Deploy] trigger-app-rolling-update: updating deployment app ${TEST_LIBRARY}"
+
+    deployment_name=test-${TEST_LIBRARY}-deployment
+    kubectl set env deploy deployment_name ENV_FOO=ENV_BAR
+
+    echo "[Deploy] trigger-app-rolling-update: waiting for deployments/${deployment_name} available"
+    kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
+    sleep 15 && kubectl get pods
+
+    echo "[Deploy] trigger-app-rolling-update: done"
 }
 
 function cleanup-auto() {
