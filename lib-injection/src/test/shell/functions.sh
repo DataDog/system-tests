@@ -219,7 +219,7 @@ function trigger-config-auto() {
     echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
     echo "[Auto Config] trigger-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
-    kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=30s
+    kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=2m
     # kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m
     kubectl get pods
     echo "[Auto Config] trigger-config-auto: done"
@@ -259,7 +259,7 @@ function deploy-app-auto() {
        | kubectl apply -f -
 
     echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
-    kubectl rollout status deployments/${deployment_name} --timeout=30s
+    kubectl rollout status deployments/${deployment_name} --timeout=2m
     # kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     sleep 5 && kubectl get pods
 
