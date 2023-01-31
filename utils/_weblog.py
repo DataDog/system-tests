@@ -46,7 +46,17 @@ class _Weblog:
         return self.request("TRACE", path, params=params, data=data, headers=headers, **kwargs)
 
     def request(
-        self, method, path="/", params=None, data=None, headers=None, stream=None, domain="weblog", port=7777, allow_redirects=True, **kwargs,
+        self,
+        method,
+        path="/",
+        params=None,
+        data=None,
+        headers=None,
+        stream=None,
+        domain="weblog",
+        port=7777,
+        allow_redirects=True,
+        **kwargs,
     ):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
