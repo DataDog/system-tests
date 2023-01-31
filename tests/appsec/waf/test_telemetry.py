@@ -35,10 +35,10 @@ def _validate_metrics(payload, language):
     """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/SchemaDocumentation/Schemas/metric_data.md
     """
     expected_metrics = {
-        "dd.app_telemetry.appsec.event_rules.loaded": {"type": "count", "num_points": 1, "point": 134.0,},
-        "dd.app_telemetry.appsec.event_rules.error_count": {"type": "count", "num_points": 1, "point": 0.0,},
-        "dd.app_telemetry.appsec.waf.duration": {"type": "count", "num_points": 1, "point": 100.0,},
-        "dd.app_telemetry.appsec.waf.duration_ext222": {"type": "count", "num_points": 1, "point": 100.0,},
+        "dd.app_telemetry.appsec.event_rules.loaded": {"type": "count", "num_points": 1, "point": 134.0},
+        "dd.app_telemetry.appsec.event_rules.error_count": {"type": "count", "num_points": 1, "point": 0.0},
+        "dd.app_telemetry.appsec.waf.duration": {"type": "count", "num_points": 1, "point": 100.0},
+        "dd.app_telemetry.appsec.waf.duration_ext": {"type": "count", "num_points": 1, "point": 100.0},
     }
     assert payload["namespace"] == "appsec"
     assert len(payload["series"]) > 0
@@ -51,7 +51,7 @@ def _validate_metrics(payload, language):
             assert serie["points"][0][1] >= expected_metric["point"]
 
     if len(expected_metrics) > 0:
-        AssertionError(f"Metrics %s not found in payload" % [metric for metric in expected_metrics])
+        raise AssertionError(f"Metrics %s not found in payload" % [metric for metric in expected_metrics])
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
@@ -71,13 +71,12 @@ class Test_TelemetryMetrics:
 
         def validator(data):
             try:
-                logger.info(data)
+                # logger.info(data)
                 if data["request"]["content"].get("request_type") == TELEMETRY_REQUEST_TYPE_GENERATE_METRICS:
                     self.generate_metrics_requests = True
                     assert data["response"]["status_code"] == 202
                     _validate_headers(data["request"]["headers"], context.library)
                     _validate_metrics(data["request"]["content"]["payload"], context.library)
-                    logger.info("EVERYTHING OK!")
                     return True
             except Exception as e:
                 logger.error(str(e), exc_info=True)
