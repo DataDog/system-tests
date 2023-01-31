@@ -219,7 +219,8 @@ function trigger-config-auto() {
     echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
     sleep 90
     echo "[Auto Config] trigger-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
-    kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m
+    kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=5m
+    # kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m
     kubectl get pods
     echo "[Auto Config] trigger-config-auto: done"
 }
@@ -258,7 +259,8 @@ function deploy-app-auto() {
        | kubectl apply -f -
 
     echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
-    kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
+    kubectl rollout status deployments/${deployment_name} --timeout=5m
+    # kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     sleep 5 && kubectl get pods
 
     echo "[Deploy] deploy-app-auto: done"
@@ -270,17 +272,19 @@ function trigger-app-rolling-update() {
     kubectl set env deploy ${deployment_name} ENV_FOO=ENV_BAR
 
     echo "[Deploy] trigger-app-rolling-update: waiting for deployments/${deployment_name} available"
-    kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
+    kubectl rollout status deployments/${deployment_name} --timeout=5m
+    # kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     sleep 15 && kubectl get pods
 
     echo "[Deploy] trigger-app-rolling-update: done"
 }
 
 function check-for-env-vars() {
-    pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
+    sleep 15 && kubectl get pods
+    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
     echo "[Test] test for env vars ${pod}"
     trace_sample_rate="0.90"
-    if [ ${CONFIG_NAME} == "config-1" ] ;  then
+    if [[ $CONFIG_NAME = "config-1" ]] ;  then
         trace_sample_rate="0.50"
     fi
     # TODO: extend the list of tested env vars
@@ -288,23 +292,25 @@ function check-for-env-vars() {
 }
 
 function check-for-pod-metadata() {
-    pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
+    sleep 15 && kubectl get pods
+    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
     echo "[Test] test for labels/annotations ${pod}"
+    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     # TODO: check for label/annotation values not only the presence
-    kubectl get ${pod} -ojson | jq .metadata.labels | jq -e ."admission.datadoghq.com/enabled"
-    kubectl get ${pod} -ojson | jq .metadata.annotations | jq -e ."admission.datadoghq.com/${library}-lib.version" 
-    kubectl get ${pod} -ojson | jq .metadata.annotations | jq -e ."admission.datadoghq.com/${library}-lib.config.v1"
+    kubectl get ${pod} -ojson | jq .metadata.labels | jq -e '."admission.datadoghq.com/enabled"'
+    kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.version"
+    kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.config.v1"
 }
 
 function check-for-deploy-metadata() {
     deployment_name=test-${TEST_LIBRARY}-deployment
     echo "[Test] test for labels/annotations ${deployment_name}"
     rev="0"
-    if [ ${CONFIG_NAME} == "config-1" ] ;  then
+    if [[ $CONFIG_NAME = "config-1" ]] ;  then
         rev="1"
     fi
-    kubectl get deploy ${deployment_name} -ojson | jq .metadata.labels | jq -e ."admission.datadoghq.com/rc.id" | grep "11777398274940883092"
-    kubectl get deploy ${deployment_name} -ojson | jq .metadata.labels | jq -e ."admission.datadoghq.com/rc.rev" | grep ${rev}
+    kubectl get deploy ${deployment_name} -ojson | jq .metadata.annotations | jq -e '."admission.datadoghq.com/rc.id"' | grep "11777398274940883092"
+    kubectl get deploy ${deployment_name} -ojson | jq .metadata.annotations | jq -e '."admission.datadoghq.com/rc.rev"' | grep ${rev}
 }
 
 function test-for-traces-manual() {
