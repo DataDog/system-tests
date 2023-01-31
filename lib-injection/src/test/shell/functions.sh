@@ -248,7 +248,6 @@ function deploy-app-manual() {
 
 function deploy-app-auto() {
     echo "[Deploy] deploy-app-auto: deploying app for library ${TEST_LIBRARY}"
-
     deployment_name=test-${TEST_LIBRARY}-deployment
     helm template lib-injection/common \
       -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
@@ -267,9 +266,8 @@ function deploy-app-auto() {
 
 function trigger-app-rolling-update() {
     echo "[Deploy] trigger-app-rolling-update: updating deployment app ${TEST_LIBRARY}"
-
     deployment_name=test-${TEST_LIBRARY}-deployment
-    kubectl set env deploy deployment_name ENV_FOO=ENV_BAR
+    kubectl set env deploy ${deployment_name} ENV_FOO=ENV_BAR
 
     echo "[Deploy] trigger-app-rolling-update: waiting for deployments/${deployment_name} available"
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
@@ -361,7 +359,7 @@ function print-debug-info-auto() {
     kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml > ${log_dir}/test-${TEST_LIBRARY}-deployment.yaml
     kubectl get pods -l app=${TEST_LIBRARY}-app
     pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
-    kubectl get po ${pod} -oyaml > ${log_dir}/${pod}.yaml
+    kubectl get ${pod} -oyaml > ${log_dir}/${pod}.yaml
     kubectl logs ${pod} > ${log_dir}/${pod}.log
 
     echo "[debug] Cluster agent logs"
