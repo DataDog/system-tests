@@ -20,7 +20,7 @@ type apmClientServer struct {
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
 	var opts []tracer.StartSpanOption
-	if args.ParentId != nil && *args.ParentId > 0 {
+	if args.GetParentId() > 0 {
 		parent := s.spans[*args.ParentId]
 		opts = append(opts, tracer.ChildOf(parent.Context()))
 	}
@@ -34,7 +34,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 		opts = append(opts, tracer.SpanType(*args.Type))
 	}
 
-	if len(args.HttpHeaders.HttpHeaders) != 0 {
+	if args.GetHttpHeaders() != nil && len(args.HttpHeaders.HttpHeaders) != 0 {
 		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(args.HttpHeaders.HttpHeaders))
 		if err != nil {
 			fmt.Println("failed in StartSpan", err, args.HttpHeaders.HttpHeaders)
@@ -43,7 +43,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 		}
 	}
 	span := tracer.StartSpan(args.Name, opts...)
-	if args.Origin != nil && *args.Origin != "" {
+	if args.GetOrigin() != "" {
 		span.SetTag("_dd.origin", *args.Origin)
 	}
 	s.spans[span.Context().SpanID()] = span
@@ -58,6 +58,7 @@ func (s *apmClientServer) SpanSetMeta(ctx context.Context, args *SpanSetMetaArgs
 	span.SetTag(args.Key, args.Value)
 	return &SpanSetMetaReturn{}, nil
 }
+
 func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {
 	span := s.spans[args.SpanId]
 	headers := tracer.TextMapCarrier(map[string]string{})
