@@ -51,7 +51,7 @@ runs:
       - name: Run lib injection tests
         shell: bash
         run: |
-          cd system-tests   
+          cd system-tests
           ${{ inputs.test-script }}
 
       - name: Compress lib injection logs

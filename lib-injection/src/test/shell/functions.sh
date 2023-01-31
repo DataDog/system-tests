@@ -276,18 +276,6 @@ function trigger-app-rolling-update() {
     echo "[Deploy] trigger-app-rolling-update: done"
 }
 
-function cleanup-auto() {
-    echo "[Cleanup] delete deployments/${deployment_name}"
-    deployment_name=test-${TEST_LIBRARY}-deployment
-    kubectl delete deployments/${deployment_name}
-
-    echo "[Cleanup] uninstall datadog helm chart"
-    helm uninstall datadog
-
-    echo "[Cleanup] delete test agent"
-    kubectl delete daemonset datadog
-}
-
 function check-for-env-vars() {
     pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
     echo "[Test] test for env vars ${pod}"

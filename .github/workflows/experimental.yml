@@ -86,6 +86,10 @@ jobs:
         #   weblog-variant: sample-app
         - library: python
           weblog-variant: dd-lib-python-init-test-django
+        test-case: 
+          - TC1
+          - TC2
+          - TC3
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
@@ -94,7 +98,8 @@ jobs:
       DOCKER_IMAGE_TAG: latest
       DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
       BUILDX_PLATFORMS: linux/amd64
-      MODE: auto
+      MODE: auto-${{ matrix.test-case }}
+      TEST_CASE: ${{ matrix.test-case }}
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
