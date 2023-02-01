@@ -224,9 +224,7 @@ class Test_Telemetry:
         }
 
         test_defined_dependencies = {
-            "dotnet": {
-
-            },
+            "dotnet": {},
             "nodejs": {
                 "body-parser": False,
                 "cookie-parser": False,
