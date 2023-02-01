@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Exit early for any failed commands
+set -e
+# Print commands that are run
+set -x
+
 ## HELPERS
 function echoerr() {
     echo "$@" 1>&2;
@@ -99,6 +104,7 @@ function reset-cluster() {
     if [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
         kind delete cluster --name lib-injection-testing
     fi
+    # minikube delete lib-injection-testing
 }
 
 function reset-buildx() {
@@ -122,13 +128,14 @@ function reset-all() {
 
 function ensure-cluster() {
     if ! [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
-        kind create cluster --image=kindest/node:v1.22.9 --name lib-injection-testing --config "${SRC_DIR}/test/resources/kind-config.yaml" || exit 1
+        kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name lib-injection-testing --config "${SRC_DIR}/test/resources/kind-config.yaml"
     fi
+    # minikube start --kubernetes-version=v1.25.3 -p lib-injection-testing
 }
 
 function ensure-buildx() {
     if ! [[ "$(docker buildx ls)" =~ "lib-injection-testing" ]] ;  then
-        docker buildx create --name lib-injection-testing || exit 1
+        docker buildx create --name lib-injection-testing
     fi
     docker buildx use lib-injection-testing
 }
@@ -144,9 +151,7 @@ function deploy-operator() {
     helm repo update
     
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
-    helm install datadog --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
-    sleep 15 && kubectl get pods
-
+    helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
     kubectl wait "${pod_name}" --for condition=ready --timeout=5m
     sleep 15 && kubectl get pods
@@ -155,16 +160,12 @@ function deploy-operator() {
 function deploy-test-agent() {
     echo "[Deploy] deploy-test-agent"
     kubectl apply -f "${SRC_DIR}/test/resources/dd-apm-test-agent-config.yaml"
-    kubectl rollout status daemonset/datadog
-
-    echo "[Deploy] Get pods"
-    sleep 15 && kubectl get pods -l app=datadog
-
-    pod_name=$(kubectl get pods -l app=datadog -o name)
-
-    echo "[Deploy] pod_name: ${pod_name} waiting"
-    kubectl wait "${pod_name}" --for condition=ready
-    sleep 15 && kubectl get pods -l app=datadog
+    kubectl rollout status daemonset/datadog --timeout=5m
+    sleep 5
+    kubectl get daemonsets
+    echo "[Deploy] Wait for test agent pod"
+    kubectl wait --for=condition=ready pod -l app=datadog --timeout=5m
+    kubectl get pods -l app=datadog
     echo "[Deploy] deploy-test-agent done"
 }
 
@@ -174,7 +175,7 @@ function deploy-agents() {
         echo "[Deploy] Using admission controller"
         deploy-operator
     fi
-    deploy-test-agent   
+    deploy-test-agent
 }
 
 function reset-app() {
@@ -231,30 +232,30 @@ function print-debug-info(){
     mkdir -p ${log_dir}/pod
     echo "[debug] Generating debug log files... (${log_dir})"
     echo "[debug] Export: Current cluster status"
-    kubectl get pods > ${log_dir}/cluster_pods.log
-    kubectl get deployments datadog-cluster-agent > ${log_dir}/cluster_deployments.log
+    kubectl get pods > "${log_dir}/cluster_pods.log"
+    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log" || true
  
     echo "[debug] Export: Describe my-app status"
-    kubectl describe pod my-app > ${log_dir}/my-app_describe.log
-    kubectl logs pod/my-app > ${log_dir}/my-app.log
+    kubectl describe pod my-app > "${log_dir}/my-app_describe.log"
+    kubectl logs pod/my-app > "${log_dir}/my-app.log"
 
     echo "[debug] Export: Daemonset logs"
-    kubectl logs daemonset/datadog > ${log_dir}/daemonset_datadog.log
+    kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
 
     if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then 
 
         pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
 
         echo "[debug] Export: Describe datadog-cluster-agent"
-        kubectl describe ${pod_cluster_name} > ${log_dir}/${pod_cluster_name}_describe.log
-        kubectl logs ${pod_cluster_name} > ${log_dir}/${pod_cluster_name}.log
+        kubectl describe ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}_describe.log"
+        kubectl logs ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}.log"
 
         echo "[debug] Export: Telemetry datadog-cluster-agent"
-        kubectl exec -it ${pod_cluster_name} -- agent telemetry > ${log_dir}/${pod_cluster_name}_telemetry.log
+        kubectl exec -it ${pod_cluster_name} -- agent telemetry > "${log_dir}/${pod_cluster_name}_telemetry.log"
 
         echo "[debug] Export: Status datadog-cluster-agent"
-        #Sometimes this command fails.Ignoring this error
-        kubectl exec -it ${pod_cluster_name} -- agent status > ${log_dir}/${pod_cluster_name}_status.log || true
+        # Sometimes this command fails.Ignoring this error
+        kubectl exec -it ${pod_cluster_name} -- agent status > "${log_dir}/${pod_cluster_name}_status.log" || true
     fi
 }
 
