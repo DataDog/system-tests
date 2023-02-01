@@ -93,9 +93,9 @@ message SpanContextArgs {
   uint64 span_id = 1;
 }
 message SpanContextReturn {
-  bytes span_id = 1;
-  bytes trace_id = 2;
-  int32 trace_flags = 3;
+  string span_id = 1;
+  string trace_id = 2;
+  string trace_flags = 3;
   string trace_state = 4;
   bool remote = 5;
 }

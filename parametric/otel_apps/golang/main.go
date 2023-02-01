@@ -65,6 +65,27 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 	}, nil
 }
 
+func (s *apmClientServer) SpanContext(ctx context.Context, args *SpanContextArgs) (*SpanContextReturn, error) {
+	span, ok := s.spans[args.SpanId]
+	if !ok {
+		fmt.Printf("SpanContext call failed, span with id=%d not found", args.SpanId)
+	}
+	span_context := span.SpanContext()
+	spanID := span_context.SpanID().String()
+	traceID := span_context.TraceID().String()
+	traceFlags := span_context.TraceFlags().String()
+	traceState := span_context.TraceState().String()
+	remote := span_context.IsRemote()
+
+	return &SpanContextReturn{
+		SpanId:     spanID,
+		TraceId:    traceID,
+		TraceFlags: traceFlags,
+		TraceState: traceState,
+		Remote:     remote,
+	}, nil
+}
+
 func (s *apmClientServer) IsRecording(ctx context.Context, args *IsRecordingArgs) (*IsRecordingReturn, error) {
 	span, ok := s.spans[args.SpanId]
 	if !ok {

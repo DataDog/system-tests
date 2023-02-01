@@ -20,6 +20,7 @@ from parametric.protos import apm_test_otel_client_pb2_grpc
 from parametric.spec.trace import V06StatsPayload
 from parametric.spec.trace import Trace
 from parametric.spec.trace import decode_v06_stats
+from parametric.spec.otel_trace import OtelSpanContext
 
 
 class AgentRequest(TypedDict):
@@ -687,11 +688,14 @@ class _TestOtelSpan:
         return self._client.IsRecording(
             pb_otel.IsRecordingArgs(span_id=self.span_id)).is_recording
 
-    def span_context(self):
-        self._client.SpanContext(pb_otel.SpanContextArgs(id=self.span_id))
-
-#     TODO: leaving span_context to be done later with Evan
-
+    def span_context(self) -> dict:
+        sctx = self._client.SpanContext(pb_otel.SpanContextArgs(span_id=self.span_id))
+        return OtelSpanContext(
+                trace_id=sctx.trace_id,
+                span_id=sctx.span_id,
+                trace_flags=sctx.trace_flags,
+                trace_state=sctx.trace_state,
+                remote=sctx.remote)
 
 class APMLibrary:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
