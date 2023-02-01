@@ -177,7 +177,7 @@ Supported Libraries:
 This endpoint calls the appsec event tracking SDK function used for user login success.
 
 The generated event has the following specification:
-- User ID: `system_tests_user`
+- User ID: `123456` 
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
 ## GET /user_login_failure_event
@@ -185,7 +185,7 @@ The generated event has the following specification:
 This endpoint calls the appsec event tracking SDK function used for user login failure.
 
 The generated event has the following specification:
-- User ID: `system_tests_user`
+- User ID: `123456`
 - Exists: `true`
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
