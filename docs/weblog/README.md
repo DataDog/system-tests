@@ -180,6 +180,10 @@ The generated event has the following specification:
 - User ID: `123456` 
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
+*NOTE*: The user id must be an integer because we want to cover
+the test case where it's reported as an integer (client side) but still reported
+as a string through meta to the backend.
+
 ## GET /user_login_failure_event
 
 This endpoint calls the appsec event tracking SDK function used for user login failure.
@@ -188,6 +192,10 @@ The generated event has the following specification:
 - User ID: `123456`
 - Exists: `true`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+*NOTE*: The user id must be an integer because we want to cover
+the test case where it's reported as an integer (client side) but still reported
+as a string through meta to the backend.
 
 ## GET /custom_event
 
