@@ -27,16 +27,74 @@
           "operator": "match_regex"
         }
       ],
-      "on_match": ["block_request"]
+      "on_match": ["block"]
+    },
+    {
+      "id": "canary_rule1",
+      "name": "Canary 1",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^Canary\\/v1"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "on_match": ["block1"]
+    },
+    {
+      "id": "canary_rule2",
+      "name": "Canary 2",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^Canary\\/v2"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "on_match": ["block2"]
     }
   ],
   "actions": [
     {
-      "id": "block_request",
+      "id": "block1",
       "type": "block_request",
       "parameters": {
-        "status_code": 403,
+        "status_code": 401,
         "type": "auto"
+      }
+    },
+    {
+      "id": "block2",
+      "type": "redirect_request",
+      "parameters": {
+        "status_code": 301,
+        "location": "/you-have-been-blocked"
       }
     }
   ]
