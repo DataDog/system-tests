@@ -188,7 +188,7 @@ function deploy-test-agent() {
     pod_name=$(kubectl get pods -l app=datadog -o name)
 
     echo "[Deploy] pod_name: ${pod_name} waiting"
-    kubectl wait "${pod_name}" --for condition=ready
+    kubectl wait "${pod_name}" --for condition=ready --timeout=5m
     sleep 15 && kubectl get pods -l app=datadog
     echo "[Deploy] deploy-test-agent done"
 }
@@ -342,14 +342,14 @@ function test-for-traces-manual() {
     echo "[Test] ${traces}"
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
-        print-debug-info-manual
+        print-debug-info-manual || true
         reset-all
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
         echo "Received ${count} traces so far"
     fi
-    print-debug-info-manual
+    print-debug-info-manual || true
     echo "[Test] test-for traces completed successfully"
     reset-all
 }
@@ -365,68 +365,68 @@ function test-for-traces-auto() {
     echo "[Test] ${traces}"
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
-        print-debug-info-auto
+        print-debug-info-auto || true
         reset-all
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
         echo "Received ${count} traces so far"
     fi
-    print-debug-info-auto
+    print-debug-info-auto || true
     echo "[Test] test-for-traces completed successfully"
 }
 
 function print-debug-info-auto() {
-    log_dir=${BASE_DIR}/../logs_lib-injection/
+    log_dir=${BASE_DIR}/../logs_lib-injection
     mkdir -p ${log_dir}/pod
     echo "[debug] Generating debug log files... (${log_dir})"
     echo "[debug] Export: Current cluster status"
-    kubectl get pods > ${log_dir}/cluster_pods.log
-    kubectl get deployments datadog-cluster-agent > ${log_dir}/cluster_deployments.log
+    kubectl get pods > "${log_dir}/cluster_pods.log"
+    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
 
     echo "[debug] Export: Daemonset logs"
-    kubectl logs daemonset/datadog > ${log_dir}/daemonset_datadog.log
+    kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
 
     echo "[debug] Library deployment yaml and pod logs"
-    kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml > ${log_dir}/test-${TEST_LIBRARY}-deployment.yaml
+    kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml > "${log_dir}/test-${TEST_LIBRARY}-deployment.yaml"
     kubectl get pods -l app=${TEST_LIBRARY}-app
     pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
-    kubectl get ${pod} -oyaml > ${log_dir}/${pod}.yaml
-    kubectl logs ${pod} > ${log_dir}/${pod}.log
+    kubectl get ${pod} -oyaml > "${log_dir}/${pod}.yaml"
+    kubectl logs ${pod} > "${log_dir}/${pod}.log"
 
     echo "[debug] Cluster agent logs"
     pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
-    kubectl logs ${pod_cluster_name} > ${log_dir}/${pod_cluster_name}.log
+    kubectl logs ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}.log"
 }
 
 function print-debug-info-manual(){
-    log_dir=${BASE_DIR}/../logs_lib-injection/
+    log_dir=${BASE_DIR}/../logs_lib-injection
     mkdir -p ${log_dir}/pod
     echo "[debug] Generating debug log files... (${log_dir})"
     echo "[debug] Export: Current cluster status"
-    kubectl get pods > ${log_dir}/cluster_pods.log
-    kubectl get deployments datadog-cluster-agent > ${log_dir}/cluster_deployments.log
+    kubectl get pods > "${log_dir}/cluster_pods.log"
+    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
 
     echo "[debug] Export: Describe my-app status"
-    kubectl describe pod my-app > ${log_dir}/my-app_describe.log
-    kubectl logs pod/my-app > ${log_dir}/my-app.log
+    kubectl describe pod my-app > "${log_dir}/my-app_describe.log"
+    kubectl logs pod/my-app > "${log_dir}/my-app.log"
 
     echo "[debug] Export: Daemonset logs"
-    kubectl logs daemonset/datadog > ${log_dir}/daemonset_datadog.log
+    kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
 
     if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then 
         pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
 
         echo "[debug] Export: Describe datadog-cluster-agent"
-        kubectl describe ${pod_cluster_name} > ${log_dir}/${pod_cluster_name}_describe.log
-        kubectl logs ${pod_cluster_name} > ${log_dir}/${pod_cluster_name}.log
+        kubectl describe ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}_describe.log"
+        kubectl logs ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}.log"
 
         echo "[debug] Export: Telemetry datadog-cluster-agent"
-        kubectl exec -it ${pod_cluster_name} -- agent telemetry > ${log_dir}/${pod_cluster_name}_telemetry.log
+        kubectl exec -it ${pod_cluster_name} -- agent telemetry > "${log_dir}/${pod_cluster_name}_telemetry.log"
 
         echo "[debug] Export: Status datadog-cluster-agent"
         #Sometimes this command fails.Ignoring this error
-        kubectl exec -it ${pod_cluster_name} -- agent status > ${log_dir}/${pod_cluster_name}_status.log || true
+        kubectl exec -it ${pod_cluster_name} -- agent status > "${log_dir}/${pod_cluster_name}_status.log" || true
     fi
 }
 
