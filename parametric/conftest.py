@@ -683,8 +683,9 @@ class _TestOtelSpan:
     def finish(self):
         self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id))
 
-    def is_recording(self):
-        self._client.IsRecording(pb_otel.IsRecordingArgs(id=self.span_id))
+    def is_recording(self) -> bool:
+        return self._client.IsRecording(
+            pb_otel.IsRecordingArgs(span_id=self.span_id)).is_recording
 
     def span_context(self):
         self._client.SpanContext(pb_otel.SpanContextArgs(id=self.span_id))

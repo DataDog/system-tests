@@ -68,6 +68,15 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
 #     """want to verify that span operations become noop after end"""
 #     pass
 
+def test_is_recording_otel(test_agent, test_otel_library):
+    with test_otel_library:
+        with test_otel_library.start_otel_span(name="test_span") as span:
+            span.set_attributes({"key": "val"})
+            assert span.is_recording()
+            span.finish()
+            assert not span.is_recording()
+    
+
 def test_force_flush_otel(test_agent, test_otel_library):
     """verify that force flush flushed the spans"""
     # plan: start a bunch of spans, call flush

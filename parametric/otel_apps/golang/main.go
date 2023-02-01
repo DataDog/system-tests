@@ -65,6 +65,15 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 	}, nil
 }
 
+func (s *apmClientServer) IsRecording(ctx context.Context, args *IsRecordingArgs) (*IsRecordingReturn, error) {
+	span, ok := s.spans[args.SpanId]
+	if !ok {
+		fmt.Printf("IsRecording call failed, span with id=%d not found", args.SpanId)
+	}
+	is_recording := span.IsRecording()
+	return &IsRecordingReturn{IsRecording: is_recording}, nil
+}
+
 func (s *apmClientServer) EndOtelSpan(ctx context.Context, args *EndOtelSpanArgs) (*EndOtelSpanReturn, error) {
 	span, ok := s.spans[args.Id]
 	if !ok {
