@@ -678,7 +678,7 @@
               "type": "object",
               "properties": {
                 "request_type": { "const": "app-extended-heartbeat" },
-                "payload": { "$ref": "#/$defs/ExtendedHearbeat" }
+                "payload": { "$ref": "#/$defs/ExtendedHeartbeat" }
               }
             },
             {
@@ -740,7 +740,7 @@
               "type": "object",
               "properties": {
                 "request_type": { "const": "app-extended-heartbeat" },
-                "payload": { "$ref": "#/$defs/ExtendedHearbeat" }
+                "payload": { "$ref": "#/$defs/ExtendedHeartbeat" }
               }
             },
             {
