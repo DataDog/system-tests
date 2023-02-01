@@ -286,8 +286,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
-            if validator(span):
-                return
+            try:
+                if validator(span):
+                    return
+            except:
+                logger.error(f"This span is failing validation: {json.dumps(span, indent=2)}")
+                raise
 
         if not success_by_default:
             raise Exception("No span validates this test")

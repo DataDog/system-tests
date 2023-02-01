@@ -24,12 +24,14 @@ const servicer = new Servicer();
 
 server.addService(grpcObj.APMClient.service, {
     StartSpan: servicer.StartSpan,
+    InjectHeaders: servicer.InjectHeaders,
     SpanSetMeta: servicer.SetTag,
     SpanSetMetric: servicer.SetTag, // dd-trace-js has support for numeric values in tags
     SpanSetError: servicer.SpanSetError,
     FinishSpan: servicer.FinishSpan,
     FlushSpans: servicer.FlushSpans,
-    FlushTraceStats: servicer.FlushTraceStats
+    FlushTraceStats: servicer.FlushTraceStats,
+    StopTracer: servicer.StopTracer
 });
 
 server.bindAsync(
