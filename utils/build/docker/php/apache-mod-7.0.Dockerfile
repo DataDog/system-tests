@@ -1,5 +1,21 @@
+ARG TRACER_IMAGE=agent_local
 ARG PHP_VERSION=7.0
 ARG VARIANT=release
+
+#TODO RMM: The images will be in dd-trace-java repository. Now for tests purposes we are using system-tests repository
+FROM ghcr.io/datadog/system-tests/dd-trace-php:latest_snapshot as agent_latest_snapshot
+
+FROM ghcr.io/datadog/system-tests/dd-trace-php:latest as agent_latest
+
+FROM bash as agent_local
+
+ADD binaries* /binaries/
+RUN touch /LIBRARY_VERSION
+RUN touch /LIBDDWAF_VERSION
+RUN touch /APPSEC_EVENT_RULES_VERSION
+RUN touch /PHP_APPSEC_VERSION
+
+FROM $TRACER_IMAGE as agent
 
 FROM datadog/dd-appsec-php-ci:php-$PHP_VERSION-$VARIANT
 
@@ -10,7 +26,13 @@ ENV DD_TRACE_HEADER_TAGS=user-agent
 
 EXPOSE 7777/tcp
 
-ADD binaries* /binaries/
+COPY --from=agent /LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=agent /LIBDDWAF_VERSION /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=agent /APPSEC_EVENT_RULES_VERSION /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+COPY --from=agent /PHP_APPSEC_VERSION /binaries/SYSTEM_TESTS_PHP_APPSEC_VERSION
+
+COPY --from=agent /*.tar.gz /binaries/
+
 ADD utils/build/docker/php /tmp/php
 
 RUN chmod +x /tmp/php/apache-mod/build.sh
