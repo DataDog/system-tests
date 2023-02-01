@@ -324,12 +324,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         validator.final_check()
 
-    def assert_app_dependencies_loaded_validation(self):
-        validator = _AppDependenciesLoadedValidation()
-        self.validate_telemetry(validator, success_by_default=True)
-
-        validator.final_check()
-
     def add_profiling_validation(self, validator, success_by_default=True):
         self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
 
