@@ -533,6 +533,7 @@ def test_tracestate_header_name(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_tracestate_header_name_valid_casing(test_agent, test_library):
     """
