@@ -18,7 +18,7 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm
+apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl
 
 find /var/www/html -mindepth 1 -delete
 
@@ -47,3 +47,6 @@ export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
 cp /tmp/php/common/install_ddtrace.sh /
 /install_ddtrace.sh 0
+
+SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
+echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/$PHP_VERSION/fpm/php.ini

@@ -1,8 +1,8 @@
-As system-tests lives in a different repo, testing a new feature before merging it is not as straightforward as if the test suite was in your own repo. You mest make your changes on both repo, and, if we were in a perfect world, merge them simultaneously.
+As system-tests lives in a different repo, testing a new feature before merging it is not as straightforward as if the test suite was in your own repo. You must make your changes on both repo, and, if we were in a perfect world, merge them simultaneously.
 
-We are not in a perfect world, so here is the recipes : 
+We are not in a perfect world, so here is the recipes :
 
-## The very lazy way 
+## The very lazy way
 
 1. Do your PR in your repo, merge it
 2. Do the PR on system-tests, merge it

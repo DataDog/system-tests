@@ -3,10 +3,12 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/gin-gonic/gin"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -42,6 +44,21 @@ func main() {
 		if c := ctx.Request.URL.Query().Get("code"); c != "" {
 			if code, err := strconv.Atoi(c); err == nil {
 				ctx.Writer.WriteHeader(code)
+			}
+		}
+		ctx.Writer.Write([]byte("OK"))
+	})
+
+	r.Any("/make_distant_call", func(ctx *gin.Context) {
+		if url := ctx.Request.URL.Query().Get("url"); url != "" {
+
+			client := httptrace.WrapClient(http.DefaultClient)
+			req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
+			_, err := client.Do(req)
+
+			if err != nil {
+				log.Fatalln(err)
+				ctx.Writer.WriteHeader(500)
 			}
 		}
 		ctx.Writer.Write([]byte("OK"))

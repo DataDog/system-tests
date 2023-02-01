@@ -42,10 +42,10 @@ jobs:
           - uds
           - network
 
-        lib-injection-use-admission-controller: 
+        lib-injection-use-admission-controller:
           - use-admission-controller
           - ''
-        
+
         version: 
           - latest #Production tag
           - latest_snapshot
@@ -61,7 +61,7 @@ jobs:
       DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
       BUILDX_PLATFORMS: linux/amd64
     steps:
-    
+
       - name: lib-injection test runner
         id: lib-injection-test-runner
         uses: DataDog/system-tests/lib-injection/runner@main
@@ -69,3 +69,4 @@ jobs:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          test-script: ./lib-injection/run-lib-injection.sh
