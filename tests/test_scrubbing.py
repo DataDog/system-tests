@@ -71,6 +71,7 @@ class Test_UrlQuery:
 @released(python="1.7.1")
 @missing_feature(library="dotnet", reason="Needs weblog endpoint")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
+@bug(context.library > "php@0.83.1" and "apache" in context.weblog_variant, reason="span is not reported on apache")
 @coverage.basic
 class Test_UrlField:
     """ PII in url field are removed on distant calls """
