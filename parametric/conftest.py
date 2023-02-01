@@ -677,6 +677,9 @@ class _TestOtelSpan:
     def set_name(self, name):
         self._client.SetName(pb_otel.SetNameArgs(span_id=self.span_id, name=name))
 
+    def set_status(self, code, description):
+        self._client.SetStatus(pb_otel.SetStatusArgs(span_id=self.span_id, code=code, description=description))
+
     def finish(self):
         self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id))
 

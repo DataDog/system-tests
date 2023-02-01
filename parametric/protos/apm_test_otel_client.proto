@@ -63,7 +63,7 @@ message IsRecordingReturn {
 
 message SetStatusArgs {
   uint64 span_id = 1;
-  uint32 code = 2;
+  string code = 2;
   string description = 3;
 }
 message SetStatusReturn {}

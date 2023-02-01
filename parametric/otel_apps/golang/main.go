@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 
 	"go.opentelemetry.io/otel/attribute"
 	ot_api "go.opentelemetry.io/otel/trace"
@@ -102,7 +103,16 @@ func (s *apmClientServer) SetStatus(ctx context.Context, args *SetStatusArgs) (*
 	if !ok {
 		fmt.Sprintf("SetStatus call failed, span with id=%d not found", args.SpanId)
 	}
-	span.SetStatus(args.Code, args.Error)
+	if args.Code == "UNSET" {
+		span.SetStatus(codes.Unset, args.Description)
+	} else if args.Code == "ERROR" {
+		span.SetStatus(codes.Error, args.Description)
+	} else if args.Code == "OK" {
+		span.SetStatus(codes.Ok, args.Description)
+	} else {
+		fmt.Sprintf("Invalid code")
+	}
+	return &SetStatusReturn{}, nil
 }
 
 func (s *apmClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {

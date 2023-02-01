@@ -29,10 +29,9 @@ from parametric.spec.otel_trace import find_otel_span_in_traces, OtelSpan
 #     assert child_span["name"] == "operation.child"
 #     assert child_span["meta"]["key"] == "val"
 
-OTEL_UNSET_CODE=0
-OTEL_ERROR_CODE=1
-OTEL_OK_CODE=2
-OTEL_MAX_CODE=3
+OTEL_UNSET_CODE="UNSET"
+OTEL_ERROR_CODE="ERROR"
+OTEL_OK_CODE="OK"
 
 def test_otel_span_top_level_attributes(test_agent, test_otel_library):
     """Do a simple trace to ensure that the test client is working properly."""
@@ -53,25 +52,27 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
     # child name is "operation"
     # assert child.get("name") == "hello"
 
-    assert parent.get("meta").get("key") == "val"
-    assert child.get("meta").get("key2") == "val2"
+    tags = parent.get("meta")
+    assert tags is not None
+    assert tags.get("key") == "val"
+    # assert child.get("meta").get("key2") == "val2"
     # assert parent.get("service") == "my-webserver"
     # assert parent.get("resource") == "/endpoint"
     # assert child.get("parent_id") == parent.get("span_id")
 
-def test_start_otel_tracer(test_agent, test_otel_library):
-    """start tracer with various options, verify those options are set"""
-    pass
+# def test_start_otel_tracer(test_agent, test_otel_library):
+#     """start tracer with various options, verify those options are set"""
+#     pass
 
-def test_flush_otel_spans(test_agent, test_otel_library):
-    """verify that force flush flushed the spans"""
-    # plan: start a bunch of spans, call flush
-    # before the with statement ends -- wait_for_num_traces
-    pass
+# def test_flush_otel_spans(test_agent, test_otel_library):
+#     """verify that force flush flushed the spans"""
+#     # plan: start a bunch of spans, call flush
+#     # before the with statement ends -- wait_for_num_traces
+#     pass
 
-def test_end_otel_span(test_agent, test_otel_library):
-    """want to verify that span operations become noop after end"""
-    pass
+# def test_end_otel_span(test_agent, test_otel_library):
+#     """want to verify that span operations become noop after end"""
+#     pass
 
 def test_set_otel_span_status(test_agent, test_otel_library):
     """want to verify set status logic is correct"""
@@ -79,8 +80,11 @@ def test_set_otel_span_status(test_agent, test_otel_library):
         with test_otel_library.start_otel_span(name="test_span") as span:
             span.set_status(OTEL_ERROR_CODE, "error_desc")
             span.set_status(OTEL_UNSET_CODE, "unset_desc")
-
-        
+    traces = test_agent.wait_for_num_traces(1)
+    span = find_otel_span_in_traces(traces, OtelSpan(name="test_span"))
+    tags = span.get("meta")
+    assert tags is not None
+    assert tags.get("error.message") == "error_desc"
 
 def test_start_otel_api_span_with_set_name(test_agent, test_otel_library):
     """Test span is created with OTel API of Datadog Tracing Library"""
