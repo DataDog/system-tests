@@ -76,7 +76,7 @@ class Test_UrlField:
     """ PII in url field are removed on distant calls """
 
     def setup_main(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://name:leak-password-url@runner:8126"})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://leak-name-url:leak-password-url@runner:8126"})
 
     @missing_feature(
         context.weblog_variant in ("vertx3", "resteasy-netty3", "jersey-grizzly2"), reason="Need weblog endpoint"
@@ -98,10 +98,11 @@ class Test_UrlField:
         # we whitelist this value
         whitelist_pattern = (
             r"(http://(weblog|[a-z0-9]+):7777/make_distant_call\?)?"
-            r"url=http%3A%2F%2Fname%3Aleak-password-url%40runner%3A8126"
+            r"url=http%3A%2F%2Fleak-name-url%3Aleak-password-url%40runner%3A8126"
         )
 
         interfaces.library.validate(validate_no_leak("leak-password-url", whitelist_pattern), success_by_default=True)
+        interfaces.library.validate(validate_no_leak("leak-name-url", whitelist_pattern), success_by_default=True)
 
 
 @coverage.good
