@@ -8,7 +8,7 @@ if [ -e "/binaries/dd-trace-rb" ]; then
     echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', path: '/binaries/dd-trace-rb'" >> Gemfile
 elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     echo "Install prod version"
-    echo "gem 'ddtrace', '~> 1.0.0.beta1', require: 'ddtrace/auto_instrument'" >> Gemfile
+    echo "gem 'ddtrace', require: 'ddtrace/auto_instrument'" >> Gemfile
 else
     options=$(cat /binaries/ruby-load-from-bundle-add)
     echo "Install from $options"

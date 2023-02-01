@@ -56,8 +56,26 @@ version **against** production version of other components.
 
 ## Environement variables
 
-You can define your setup in environment variable in a `.env` file. Here is the mapping: 
+You can define your setup in environment variable in a `.env` file. Here is the mapping:
 
 * `<library_name>` => `TEST_LIBRARY`
 * `-i`/`--images` => `BUILD_IMAGES`
 * `-w`/`--weblog-variant` => `WEBLOG_VARIANT`
+
+## Authentication for pulling images
+
+Some images are hosted at Github. Those images require authentication.
+
+If you find an error messages like:
+
+```
+Error response from daemon: Head "https://ghcr.io/v2/datadog/system-tests-apps-ruby/rails70/manifests/latest": unauthorized
+```
+
+You have to make to sure to authenticate before pulling the images.
+
+1. Create a Github token. The token has to have package read and write perimssions. You can create the token using this link: https://github.com/settings/tokens/new?scopes=write:packages
+2. Make sure to enable SSO for the new token.
+3. Authenticate docker:
+    3.1 `docker login GITHUBUSERNAME`
+    3.2 paste the token string from step 1.

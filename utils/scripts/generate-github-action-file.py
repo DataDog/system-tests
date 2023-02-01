@@ -10,15 +10,12 @@ scenarios_sets = (
         "INTEGRATIONS",
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT",
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-    ),
-    (
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        "SAMPLING",
     ),
     (
         "APPSEC_MISSING_RULES",
@@ -32,11 +29,12 @@ scenarios_sets = (
         "APPSEC_RATE_LIMITER",
         "APPSEC_IP_BLOCKING",
         "APPSEC_RUNTIME_ACTIVATION",
+        "SAMPLING",
         # "APPSEC_UNSUPPORTED",
     ),
 )
 
-php_versions = ("7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1")
+php_versions = ("7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2")
 rails_versions = ("32", "40", "41", "42", "50", "51", "52", "60", "61", "70")
 
 
@@ -75,10 +73,13 @@ variants_graalvm = build_variant_array("java", ["spring-boot-native", "spring-bo
 
 
 class Job:
-    def __init__(self, name, needs=None, env=None):
+    def __init__(self, name, needs=None, env=None, large_runner=False):
         self.name = name
         self.data = {}
-        self.data["runs-on"] = "ubuntu-latest"
+        if large_runner:
+            self.data["runs-on"] = {"labels": "ubuntu-latest-16-cores", "group": "APM Larger Runners"}
+        else:
+            self.data["runs-on"] = "ubuntu-latest"
         if needs is not None:
             self.data["needs"] = needs
         if env is not None:
@@ -184,10 +185,10 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False):
+def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large_runner=False):
 
     name = f"test-the-tests-{i}"
-    job = Job(name, needs=[job.name for job in needs])
+    job = Job(name, needs=[job.name for job in needs], large_runner=large_runner)
 
     job.data["strategy"] = {
         "matrix": {"variant": variants, "version": ["prod", "dev"]},
@@ -253,16 +254,15 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False):
     )
 
     if use_cache:
-        # TODO RMM Reverse these conditions before merge!!!
         job.add_step(
             "Building with cache read-write mode",
             "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW",
-            if_condition="${{ github.ref != 'refs/heads/main'}}",
+            if_condition="${{ github.ref == 'refs/heads/main'}}",
         )
         job.add_step(
             "Building with cache read only mode",
             "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R",
-            if_condition="${{ github.ref == 'refs/heads/main'}}",
+            if_condition="${{ github.ref != 'refs/heads/main'}}",
         )
 
     else:
@@ -392,6 +392,7 @@ def main():
             scenarios=scenarios_sets[0],
             variants=deepcopy(variants_graalvm),
             use_cache=True,
+            large_runner=True,
         )
     )
     add_ci_dashboard_job(result, main_jobs)
