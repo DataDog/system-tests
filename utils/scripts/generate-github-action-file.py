@@ -46,7 +46,14 @@ variants = (
     build_variant_array("cpp", ["nginx"])
     + build_variant_array("dotnet", ["poc", "uds"])
     + build_variant_array("golang", ["chi", "echo", "gin", "gorilla", "net-http", "uds-echo"])
-    + build_variant_array(
+    + build_variant_array("nodejs", ["express4", "uds-express4", "express4-typescript"])
+    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask"])  # TODO pylons
+    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"])
+    + build_variant_array("ruby", [f"rails{v}" for v in rails_versions])
+)
+
+variants_standard = (
+    build_variant_array(
         "java",
         [
             "jersey-grizzly2",
@@ -61,14 +68,11 @@ variants = (
             "spring-boot-undertow",
         ],
     )
-    + build_variant_array("nodejs", ["express4", "uds-express4", "express4-typescript"])
     + build_variant_array("php", [f"apache-mod-{v}" for v in php_versions])
     + build_variant_array("php", [f"apache-mod-{v}-zts" for v in php_versions])
     + build_variant_array("php", [f"php-fpm-{v}" for v in php_versions])
-    + build_variant_array("python", ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask"])  # TODO pylons
-    + build_variant_array("ruby", ["rack", "sinatra14", "sinatra20", "sinatra21", "uds-sinatra"])
-    + build_variant_array("ruby", [f"rails{v}" for v in rails_versions])
 )
+
 variants_graalvm = build_variant_array("java", ["spring-boot-native", "spring-boot-3-native"])
 
 
@@ -185,28 +189,8 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large_runner=False):
+def add_download_binaries(job):
 
-    name = f"test-the-tests-{i}"
-    job = Job(name, needs=[job.name for job in needs], large_runner=large_runner)
-
-    job.data["strategy"] = {
-        "matrix": {"variant": variants, "version": ["prod", "dev"]},
-        "fail-fast": False,
-    }
-
-    job.data["env"] = {
-        "TEST_LIBRARY": "${{ matrix.variant.library }}",
-        "WEBLOG_VARIANT": "${{ matrix.variant.weblog }}",
-    }
-
-    if use_cache:
-        job.add_setup_buildx()
-        job.add_docker_login()
-
-    job.add_checkout()
-    job.add_step(run="mkdir logs && touch logs/.weblog.env")
-    job.add_step("Pull images", run="docker-compose pull cassandra_db mongodb postgres")
     job.add_step(
         "Load WAF rules",
         "./utils/scripts/load-binary.sh waf_rule_set",
@@ -247,6 +231,64 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
         "Load agent binary", "./utils/scripts/load-binary.sh agent", if_condition="${{ matrix.version == 'dev' }}"
     )
 
+
+def add_standard_binaries_download(job):
+
+    job.add_step(
+        "Load WAF rules",
+        "./utils/scripts/load-binary.sh waf_rule_set",
+        add_gh_token=True,
+        if_condition="${{ matrix.version == 'latest_snapshot' }}",
+    )
+
+    job.add_step(
+        "Load agent binary",
+        "./utils/scripts/load-binary.sh agent",
+        if_condition="${{ matrix.version == 'latest_snapshot' }}",
+    )
+
+
+def add_main_job(
+    i, workflow, needs, scenarios, variants, use_cache=False, large_runner=False, standard_binaries_download=False
+):
+
+    name = f"test-the-tests-{i}"
+    job = Job(name, needs=[job.name for job in needs], large_runner=large_runner)
+    build_params_standard_download = ""
+    if standard_binaries_download:
+        job.data["strategy"] = {
+            "matrix": {
+                "variant": variants,
+                "tracer_version": ["latest", "latest_snapshot"],
+                "agent_version": ["latest", "latest_snapshot"],
+            },
+            "fail-fast": False,
+        }
+        build_params_standard_download = "--tracer ${{ matrix.tracer_version }}"
+    else:
+        job.data["strategy"] = {
+            "matrix": {"variant": variants, "version": ["prod", "dev"]},
+            "fail-fast": False,
+        }
+
+    job.data["env"] = {
+        "TEST_LIBRARY": "${{ matrix.variant.library }}",
+        "WEBLOG_VARIANT": "${{ matrix.variant.weblog }}",
+    }
+
+    if use_cache:
+        job.add_setup_buildx()
+        job.add_docker_login()
+
+    job.add_checkout()
+    job.add_step(run="mkdir logs && touch logs/.weblog.env")
+    job.add_step("Pull images", run="docker-compose pull cassandra_db mongodb postgres")
+
+    if standard_binaries_download:
+        add_download_binaries(job)
+    else:
+        add_standard_binaries_download(job)
+
     job.add_step(
         "Log in to the Container registry",
         "echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin",
@@ -256,17 +298,17 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
     if use_cache:
         job.add_step(
             "Building with cache read-write mode",
-            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW",
+            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW " + build_params_standard_download,
             if_condition="${{ github.ref == 'refs/heads/main'}}",
         )
         job.add_step(
             "Building with cache read only mode",
-            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R",
+            "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R " + build_params_standard_download,
             if_condition="${{ github.ref != 'refs/heads/main'}}",
         )
 
     else:
-        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh")
+        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh " + build_params_standard_download)
 
     for scenario in scenarios:
         step = job.add_step(
@@ -381,9 +423,23 @@ def main():
 
     main_jobs = []
 
+    # Download binaries with script load-binary.sh
     for i, scenarios in enumerate(scenarios_sets):
         main_jobs.append(add_main_job(i, result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))
 
+    # Download binaries from standard way, using docker base images
+    for i, scenarios in enumerate(scenarios_sets):
+        main_jobs.append(
+            add_main_job(
+                "st" + str(i),
+                result,
+                needs=[lint_job],
+                scenarios=scenarios,
+                variants=deepcopy(variants_standard),
+                standard_binaries_download=True,
+            )
+        )
+    # Jobs that use large runners and standard way to download binaries (docker base image)
     main_jobs.append(
         add_main_job(
             "graalvm",
@@ -393,6 +449,7 @@ def main():
             variants=deepcopy(variants_graalvm),
             use_cache=True,
             large_runner=True,
+            standard_binaries_download=True,
         )
     )
     add_ci_dashboard_job(result, main_jobs)
