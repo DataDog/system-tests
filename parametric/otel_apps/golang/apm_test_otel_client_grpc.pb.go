@@ -30,6 +30,7 @@ type APMOtelClientClient interface {
 	SetStatus(ctx context.Context, in *SetStatusArgs, opts ...grpc.CallOption) (*SetStatusReturn, error)
 	SetName(ctx context.Context, in *SetNameArgs, opts ...grpc.CallOption) (*SetNameReturn, error)
 	SetAttributes(ctx context.Context, in *SetAttributesArgs, opts ...grpc.CallOption) (*SetAttributesReturn, error)
+	ForceFlushOtel(ctx context.Context, in *ForceFlushOtelArgs, opts ...grpc.CallOption) (*ForceFlushOtelReturn, error)
 	FlushOtelSpans(ctx context.Context, in *FlushOtelSpansArgs, opts ...grpc.CallOption) (*FlushOtelSpansReturn, error)
 	FlushOtelTraceStats(ctx context.Context, in *FlushOtelTraceStatsArgs, opts ...grpc.CallOption) (*FlushOtelTraceStatsReturn, error)
 	StopOtelTracer(ctx context.Context, in *StopOtelTracerArgs, opts ...grpc.CallOption) (*StopOtelTracerReturn, error)
@@ -115,6 +116,15 @@ func (c *aPMOtelClientClient) SetAttributes(ctx context.Context, in *SetAttribut
 	return out, nil
 }
 
+func (c *aPMOtelClientClient) ForceFlushOtel(ctx context.Context, in *ForceFlushOtelArgs, opts ...grpc.CallOption) (*ForceFlushOtelReturn, error) {
+	out := new(ForceFlushOtelReturn)
+	err := c.cc.Invoke(ctx, "/APMOtelClient/ForceFlushOtel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aPMOtelClientClient) FlushOtelSpans(ctx context.Context, in *FlushOtelSpansArgs, opts ...grpc.CallOption) (*FlushOtelSpansReturn, error) {
 	out := new(FlushOtelSpansReturn)
 	err := c.cc.Invoke(ctx, "/APMOtelClient/FlushOtelSpans", in, out, opts...)
@@ -154,6 +164,7 @@ type APMOtelClientServer interface {
 	SetStatus(context.Context, *SetStatusArgs) (*SetStatusReturn, error)
 	SetName(context.Context, *SetNameArgs) (*SetNameReturn, error)
 	SetAttributes(context.Context, *SetAttributesArgs) (*SetAttributesReturn, error)
+	ForceFlushOtel(context.Context, *ForceFlushOtelArgs) (*ForceFlushOtelReturn, error)
 	FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error)
 	FlushOtelTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error)
 	StopOtelTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error)
@@ -187,6 +198,9 @@ func (UnimplementedAPMOtelClientServer) SetName(context.Context, *SetNameArgs) (
 }
 func (UnimplementedAPMOtelClientServer) SetAttributes(context.Context, *SetAttributesArgs) (*SetAttributesReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetAttributes not implemented")
+}
+func (UnimplementedAPMOtelClientServer) ForceFlushOtel(context.Context, *ForceFlushOtelArgs) (*ForceFlushOtelReturn, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForceFlushOtel not implemented")
 }
 func (UnimplementedAPMOtelClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FlushOtelSpans not implemented")
@@ -354,6 +368,24 @@ func _APMOtelClient_SetAttributes_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _APMOtelClient_ForceFlushOtel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ForceFlushOtelArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APMOtelClientServer).ForceFlushOtel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/APMOtelClient/ForceFlushOtel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APMOtelClientServer).ForceFlushOtel(ctx, req.(*ForceFlushOtelArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _APMOtelClient_FlushOtelSpans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FlushOtelSpansArgs)
 	if err := dec(in); err != nil {
@@ -446,6 +478,10 @@ var APMOtelClient_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAttributes",
 			Handler:    _APMOtelClient_SetAttributes_Handler,
+		},
+		{
+			MethodName: "ForceFlushOtel",
+			Handler:    _APMOtelClient_ForceFlushOtel_Handler,
 		},
 		{
 			MethodName: "FlushOtelSpans",

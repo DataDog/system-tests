@@ -55,6 +55,11 @@ class APMOtelClientStub(object):
                 request_serializer=protos_dot_apm__test__otel__client__pb2.SetAttributesArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__otel__client__pb2.SetAttributesReturn.FromString,
                 )
+        self.ForceFlushOtel = channel.unary_unary(
+                '/APMOtelClient/ForceFlushOtel',
+                request_serializer=protos_dot_apm__test__otel__client__pb2.ForceFlushOtelArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__otel__client__pb2.ForceFlushOtelReturn.FromString,
+                )
         self.FlushOtelSpans = channel.unary_unary(
                 '/APMOtelClient/FlushOtelSpans',
                 request_serializer=protos_dot_apm__test__otel__client__pb2.FlushOtelSpansArgs.SerializeToString,
@@ -124,6 +129,12 @@ class APMOtelClientServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ForceFlushOtel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def FlushOtelSpans(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -184,6 +195,11 @@ def add_APMOtelClientServicer_to_server(servicer, server):
                     servicer.SetAttributes,
                     request_deserializer=protos_dot_apm__test__otel__client__pb2.SetAttributesArgs.FromString,
                     response_serializer=protos_dot_apm__test__otel__client__pb2.SetAttributesReturn.SerializeToString,
+            ),
+            'ForceFlushOtel': grpc.unary_unary_rpc_method_handler(
+                    servicer.ForceFlushOtel,
+                    request_deserializer=protos_dot_apm__test__otel__client__pb2.ForceFlushOtelArgs.FromString,
+                    response_serializer=protos_dot_apm__test__otel__client__pb2.ForceFlushOtelReturn.SerializeToString,
             ),
             'FlushOtelSpans': grpc.unary_unary_rpc_method_handler(
                     servicer.FlushOtelSpans,
@@ -344,6 +360,23 @@ class APMOtelClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMOtelClient/SetAttributes',
             protos_dot_apm__test__otel__client__pb2.SetAttributesArgs.SerializeToString,
             protos_dot_apm__test__otel__client__pb2.SetAttributesReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ForceFlushOtel(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMOtelClient/ForceFlushOtel',
+            protos_dot_apm__test__otel__client__pb2.ForceFlushOtelArgs.SerializeToString,
+            protos_dot_apm__test__otel__client__pb2.ForceFlushOtelReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

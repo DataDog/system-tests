@@ -64,15 +64,24 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
 #     """start tracer with various options, verify those options are set"""
 #     pass
 
-# def test_flush_otel_spans(test_agent, test_otel_library):
-#     """verify that force flush flushed the spans"""
-#     # plan: start a bunch of spans, call flush
-#     # before the with statement ends -- wait_for_num_traces
-#     pass
-
 # def test_end_otel_span(test_agent, test_otel_library):
 #     """want to verify that span operations become noop after end"""
 #     pass
+
+def test_force_flush_otel(test_agent, test_otel_library):
+    """verify that force flush flushed the spans"""
+    # plan: start a bunch of spans, call flush
+    # before the with statement ends -- wait_for_num_traces
+    with test_otel_library:
+        with test_otel_library.start_otel_span(name="test_span") as span:
+            pass
+        # force flush with 5 second time out
+        flushed = test_otel_library.force_flush(1)
+        assert flushed, "ForceFlush error"
+        # check if trace is flushed
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_otel_span_in_traces(traces, OtelSpan(name="test_span"))
+        assert span.get("name") == "test_span"
 
 def test_set_otel_span_status(test_agent, test_otel_library):
     """want to verify set status logic is correct"""

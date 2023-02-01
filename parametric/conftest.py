@@ -788,6 +788,12 @@ class APMOtelLibrary:
     # def get_span_context(self, span_id, attributes):
     #     return self._client.SpanContext(pb_otel.SpanContextArgs(span_id=span_id, attributes=attributes))
 
+    def force_flush(self, timeout_seconds: int = 5) -> bool:
+        return self._client.ForceFlushOtel(
+            pb_otel.ForceFlushOtelArgs(seconds=timeout_seconds)
+            ).success
+
+
     def flush(self):
         self._client.FlushOtelSpans(pb_otel.FlushOtelSpansArgs())
         self._client.FlushOtelTraceStats(pb_otel.FlushOtelTraceStatsArgs())

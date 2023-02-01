@@ -115,6 +115,14 @@ func (s *apmClientServer) SetStatus(ctx context.Context, args *SetStatusArgs) (*
 	return &SetStatusReturn{}, nil
 }
 
+func (s *apmClientServer) ForceFlushOtel(ctx context.Context, args *ForceFlushOtelArgs) (*ForceFlushOtelReturn, error) {
+	s.spans = make(map[uint64]ot_api.Span)
+	success := false
+	set_flush_success := func(ok bool) { success = ok }
+	s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, set_flush_success)
+	return &ForceFlushOtelReturn{Success: success}, nil
+}
+
 func (s *apmClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
 	s.spans = make(map[uint64]ot_api.Span)
 	return &FlushOtelSpansReturn{}, nil

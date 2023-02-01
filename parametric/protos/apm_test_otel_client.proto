@@ -10,6 +10,7 @@ service APMOtelClient {
   rpc SetStatus(SetStatusArgs) returns (SetStatusReturn) {}
   rpc SetName(SetNameArgs) returns (SetNameReturn) {}
   rpc SetAttributes(SetAttributesArgs) returns (SetAttributesReturn) {}
+  rpc ForceFlushOtel(ForceFlushOtelArgs) returns (ForceFlushOtelReturn) {}
   rpc FlushOtelSpans(FlushOtelSpansArgs) returns (FlushOtelSpansReturn) {}
   rpc FlushOtelTraceStats(FlushOtelTraceStatsArgs) returns (FlushOtelTraceStatsReturn) {}
   rpc StopOtelTracer(StopOtelTracerArgs) returns (StopOtelTracerReturn) {}
@@ -41,6 +42,13 @@ message EndOtelSpanArgs {
   uint64 id = 1;
 }
 message EndOtelSpanReturn {}
+
+message ForceFlushOtelArgs{
+  uint32 seconds = 1;
+}
+message ForceFlushOtelReturn{
+  bool success = 1;
+}
 
 message FlushOtelSpansArgs {}
 message FlushOtelSpansReturn {}
