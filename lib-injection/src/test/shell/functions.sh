@@ -222,7 +222,7 @@ function apply-config-auto() {
     sleep 90
     echo "[Auto Config] apply-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
     kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=5m
-    # kubectl wait deployments/test-${TEST_LIBRARY}-deployment --for condition=Available=True --timeout=5m
+    for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force;done
     kubectl get pods
     echo "[Auto Config] apply-config-auto: done"
 }
@@ -263,6 +263,7 @@ function deploy-app-auto() {
     echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
     kubectl rollout status deployments/${deployment_name} --timeout=5m
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
+    for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force;done
     sleep 5 && kubectl get pods
 
     echo "[Deploy] deploy-app-auto: done"
@@ -276,6 +277,7 @@ function trigger-app-rolling-update() {
     echo "[Deploy] trigger-app-rolling-update: waiting for deployments/${deployment_name} available"
     kubectl rollout status deployments/${deployment_name} --timeout=5m
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
+    for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force;done
     sleep 15 && kubectl get pods
 
     echo "[Deploy] trigger-app-rolling-update: done"
