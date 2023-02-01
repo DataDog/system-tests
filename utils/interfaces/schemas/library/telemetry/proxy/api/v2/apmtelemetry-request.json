@@ -50,7 +50,7 @@
           "$ref": "#/$defs/Configuration"
         }
       },
-      "required": ["integrations", "dependencies"]
+      "required": ["integrations"]
     },
     "ExtendedHeartbeat": {
       "type": "object",
@@ -455,11 +455,11 @@
         "properties": {
           "name": { 
             "type": "string" 
-          },
+        },
           "value": { 
             "type": ["number", "boolean", "string", "null"] 
-          }
-        },
+      }
+    },
         "required": ["name", "value"]
       }
     },
@@ -734,7 +734,7 @@
               "properties": {
                 "request_type": { "const": "app-started" },
                 "payload": { "$ref": "#/$defs/AppStartedV2" }
-              }
+    }
             },
             {
               "type": "object",
