@@ -91,6 +91,7 @@ jobs:
           - TC2
           - TC3
           - TC4
+          - TC5
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}

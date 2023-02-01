@@ -322,6 +322,18 @@ function check-for-no-pod-metadata() {
     fi
 }
 
+function check-for-disabled-pod-metadata() {
+    sleep 15 && kubectl get pods
+    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
+    echo "[Test] test for labels/annotations ${pod}"
+    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+    enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
+    if [[ $enabled != "\"false\"" ]]; then
+        echo "[Test] annotation 'admission.datadoghq.com/enabled' wasn't \"false\", got \"${enabled}\""
+        exit 1
+    fi
+}
+
 function check-for-deploy-metadata() {
     deployment_name=test-${TEST_LIBRARY}-deployment
     echo "[Test] test for labels/annotations ${deployment_name}"

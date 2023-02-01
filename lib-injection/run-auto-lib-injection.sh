@@ -26,7 +26,7 @@ if [ $TEST_CASE == "TC1" ]; then
     ${BASE_DIR}/execFunction.sh deploy-app-auto
     echo "[run-auto-lib-injection] Deploying agents"
     ${BASE_DIR}/execFunction.sh deploy-agents-auto
-    echo "[run-auto-lib-injection] Trigger config"
+    echo "[run-auto-lib-injection] Apply config"
     ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests"
     ${BASE_DIR}/execFunction.sh test-for-traces-auto
@@ -47,11 +47,11 @@ if [ $TEST_CASE == "TC2" ]; then
     ${BASE_DIR}/execFunction.sh deploy-app-auto
     echo "[run-auto-lib-injection] Deploying agents"
     ${BASE_DIR}/execFunction.sh deploy-agents-auto
-    echo "[run-auto-lib-injection] Trigger default config"
+    echo "[run-auto-lib-injection] Apply default config"
     ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests for default config"
     ${BASE_DIR}/execFunction.sh test-for-traces-auto
-    echo "[run-auto-lib-injection] Trigger config-1"
+    echo "[run-auto-lib-injection] Apply config-1"
     CONFIG_NAME=config-1 ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests for config-1"
     ${BASE_DIR}/execFunction.sh test-for-traces-auto
@@ -102,5 +102,27 @@ if [ $TEST_CASE == "TC4" ]; then
     CONFIG_NAME=config-mismatch-clustername ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests"
     ${BASE_DIR}/execFunction.sh check-for-no-pod-metadata
+    echo "[run-auto-lib-injection] Completed successfully"
+fi
+
+if [ $TEST_CASE == "TC5" ]; then
+    # Config change to action:disable
+    #   - deploy app & agent
+    #   - apply matching config
+    #   - check that deployment instrumented
+    #   - apply config with action:disable
+    #   - check that deployment is not longer instrumented
+    echo "[run-auto-lib-injection] Deploying deployment"
+    ${BASE_DIR}/execFunction.sh deploy-app-auto
+    echo "[run-auto-lib-injection] Deploying agents"
+    ${BASE_DIR}/execFunction.sh deploy-agents-auto
+    echo "[run-auto-lib-injection] Apply matching config"
+    ${BASE_DIR}/execFunction.sh apply-config-auto
+    echo "[run-auto-lib-injection] Check that deployment is instrumented"
+    ${BASE_DIR}/execFunction.sh test-for-traces-auto
+    echo "[run-auto-lib-injection] Apply disabled config"
+    CONFIG_NAME=config-disabled ${BASE_DIR}/execFunction.sh apply-config-auto
+    echo "[run-auto-lib-injection] Running tests"
+    ${BASE_DIR}/execFunction.sh check-for-disabled-metadata
     echo "[run-auto-lib-injection] Completed successfully"
 fi
