@@ -387,6 +387,7 @@ def test_traceparent_parent_id_too_short(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_traceparent_trace_flags_illegal_characters(test_agent, test_library):
     """
