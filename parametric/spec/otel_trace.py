@@ -10,9 +10,7 @@ class OtelSpan(TypedDict):
 class OtelSpanContext(TypedDict):
     trace_id: bytes
 
-
 Trace = List[OtelSpan]
-
 
 def find_otel_span_in_traces(traces: List[Trace], span: OtelSpan) -> OtelSpan:
     """Return a span from the traces which most closely matches `span`."""

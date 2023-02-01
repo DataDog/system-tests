@@ -4,12 +4,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.opentelemetry.io/otel"
 	"log"
 	"net"
 	"os"
 	"strconv"
 	"time"
+
+	"go.opentelemetry.io/otel"
 
 	"go.opentelemetry.io/otel/attribute"
 	ot_api "go.opentelemetry.io/otel/trace"
@@ -50,6 +51,7 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 			otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
 		}
 	}
+
 	ctx, span := s.tp.Tracer("").Start(context.Background(), args.Name, otelOpts...)
 	ddSpan, ok := span.(ddtrace.Span)
 	if !ok {
@@ -76,7 +78,7 @@ func (s *apmClientServer) EndOtelSpan(ctx context.Context, args *EndOtelSpanArgs
 func (s *apmClientServer) SetAttributes(ctx context.Context, args *SetAttributesArgs) (*SetAttributesReturn, error) {
 	span, ok := s.spans[args.SpanId]
 	if !ok {
-		fmt.Sprintf("EndOtelSpan call failed, span with id=%d not found", args.SpanId)
+		fmt.Sprintf("SetAttributes call failed, span with id=%d not found", args.SpanId)
 	}
 
 	for k, v := range args.Attributes {
@@ -89,10 +91,18 @@ func (s *apmClientServer) SetAttributes(ctx context.Context, args *SetAttributes
 func (s *apmClientServer) SetName(ctx context.Context, args *SetNameArgs) (*SetNameReturn, error) {
 	span, ok := s.spans[args.SpanId]
 	if !ok {
-		fmt.Sprintf("EndOtelSpan call failed, span with id=%d not found", args.SpanId)
+		fmt.Sprintf("SetName call failed, span with id=%d not found", args.SpanId)
 	}
 	span.SetName(args.Name)
 	return &SetNameReturn{}, nil
+}
+
+func (s *apmClientServer) SetStatus(ctx context.Context, args *SetStatusArgs) (*SetStatusReturn, error) {
+	span, ok := s.spans[args.SpanId]
+	if !ok {
+		fmt.Sprintf("SetStatus call failed, span with id=%d not found", args.SpanId)
+	}
+	span.SetStatus(args.Code, args.Error)
 }
 
 func (s *apmClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
