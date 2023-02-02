@@ -137,6 +137,7 @@ do
             CACHE_FROM="--no-cache"
         fi
         echo "CACHE VALUE:::::>>>>> $CACHE_FROM"
+        echo "DOCKER_PLATFORM_ARGS: $DOCKER_PLATFORM_ARGS"
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
