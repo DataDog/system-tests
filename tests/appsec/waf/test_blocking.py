@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenario, weblog
+from utils import released, coverage, interfaces, bug, scenario, weblog, rfc
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -123,7 +123,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 @coverage.basic
 @scenario("APPSEC_BLOCKING")
 class Test_Blocking:
-    """Blocking response is obtained when triggering a blocking rule"""
+    """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 
     def setup_no_accept(self):
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -219,3 +219,28 @@ class Test_Blocking:
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
         assert re.match("^text/html", self.r_afh.headers.get("content-type", "")) is not None
+
+
+@rfc(
+    "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
+)
+@released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@coverage.basic
+@scenario("APPSEC_BLOCKING")
+class Test_CustomBlockingResponse:
+    """Custom Blocking response"""
+
+    def setup_custom_status_code(self):
+        self.r_cst = weblog.get("/waf/", headers={"User-Agent": "Canary/v1"})
+
+    def test_custom_status_code(self):
+        """Block with a custom HTTP status code"""
+        assert self.r_cst.status_code == 401
+
+    def setup_custom_redirect(self):
+        self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v2"}, allow_redirects=False)
+
+    def test_custom_redirect(self):
+        """Block with an HTTP redirection"""
+        assert self.r_cr.status_code == 301
+        assert self.r_cr.headers.get("location", "") == "/you-have-been-blocked"
