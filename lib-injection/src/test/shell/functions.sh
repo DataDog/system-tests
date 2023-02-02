@@ -126,6 +126,7 @@ function ensure-cluster() {
     if ! [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
         kind create cluster --image=kindest/node:v1.22.9 --name lib-injection-testing --config "${SRC_DIR}/test/resources/kind-config.yaml" || exit 1
     fi
+    kubectl wait --for=condition=Ready nodes --all --timeout=5m
 }
 
 function ensure-buildx() {
