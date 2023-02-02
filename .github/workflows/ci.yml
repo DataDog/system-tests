@@ -566,7 +566,7 @@ jobs:
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
     - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' && false }}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
