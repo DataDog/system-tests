@@ -31,6 +31,10 @@ RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative native:compile
 
 FROM ubuntu
 
+# Custom cache invalidation
+ARG CACHEBUST=1
+RUN echo "CACHE BUST $CACHEBUST" 
+
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION

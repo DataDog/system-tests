@@ -131,15 +131,12 @@ do
     elif [[ $IMAGE_NAME == weblog ]]; then
         DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
-        if [ $ATTEMPT -gt 1 ]
+        if [ [$ATTEMPT -gt 1] and [ ! -z $CACHE_FROM ]]
         then
             echo "Disabling remote cache reading"
             CACHE_FROM="--build-arg CACHEBUST=$(date +%s)"
         fi
-        echo "CACHE VALUE:::::>>>>> $CACHE_FROM"
-        echo "DOCKER_PLATFORM_ARGS: $DOCKER_PLATFORM_ARGS"
-        echo "CACHE TO :::::>>>>> $CACHE_TO"
-         echo "EXTRA_DOCKER_ARGS TO :::::>>>>> $EXTRA_DOCKER_ARGS"
+
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
