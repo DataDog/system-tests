@@ -136,7 +136,7 @@ do
             echo "Disabling remote cache reading"
             CACHE_FROM=""
         fi
-        
+        echo "CACHE VALUE:::::>>>>> $CACHE_FROM"
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
