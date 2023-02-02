@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ATTEMPT=${SYSTEM_TEST_BUILD_ATTEMPTS:=1}
+export ATTEMPT=${SYSTEM_TEST_BUILD_ATTEMPTS:=1}
 
 for (( i=1; i<=$ATTEMPT; i++ ))
 do
