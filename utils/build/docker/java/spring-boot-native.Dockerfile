@@ -1,7 +1,7 @@
+FROM eclipse-temurin:8 as agent
+
 # Custom cache invalidation
 ARG CACHEBUST=1
-
-FROM eclipse-temurin:8 as agent
 
 # Install required bsdtar
 RUN apt-get update && \
