@@ -256,11 +256,16 @@
             "type": {
               "description": "Metric type variant",
               "type": "string",
-              "enum": ["gauge"],
+              "enum": ["gauge", "count", "rate"],
               "example": "gauge"
+            },
+            "interval": {
+              "description": "Set for gauge and rate metric types",
+              "type": "number",
+              "format": "double"
             }
           },
-          "required": ["metric", "points", "tags", "common", "type"]
+          "required": ["metric", "points"]
         },
         {
           "type": "object",
