@@ -599,7 +599,7 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
     - name: Building with cache read only mode
       if: ${{ github.ref != 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
