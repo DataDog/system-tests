@@ -104,7 +104,6 @@ function reset-cluster() {
     if [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
         kind delete cluster --name lib-injection-testing
     fi
-    # minikube delete lib-injection-testing
 }
 
 function reset-buildx() {
@@ -130,7 +129,7 @@ function ensure-cluster() {
     if ! [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
         kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name lib-injection-testing --config "${SRC_DIR}/test/resources/kind-config.yaml"
     fi
-    # minikube start --kubernetes-version=v1.25.3 -p lib-injection-testing
+    kubectl wait --for=condition=Ready nodes --all --timeout=5m
 }
 
 function ensure-buildx() {
@@ -161,8 +160,6 @@ function deploy-test-agent() {
     echo "[Deploy] deploy-test-agent"
     kubectl apply -f "${SRC_DIR}/test/resources/dd-apm-test-agent-config.yaml"
     kubectl rollout status daemonset/datadog --timeout=5m
-    sleep 5
-    kubectl get daemonsets
     echo "[Deploy] Wait for test agent pod"
     kubectl wait --for=condition=ready pod -l app=datadog --timeout=5m
     kubectl get pods -l app=datadog

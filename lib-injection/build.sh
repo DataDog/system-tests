@@ -22,11 +22,6 @@ else
 fi
 curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${KUBECTL_DOWNLOAD}"
 
-# echo "[build] Installing minikube"
-# curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-# sudo install minikube-linux-amd64 /usr/local/bin/minikube
-# echo "[build] minikube install complete"
-
 echo "[build] Installing kind"
 chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
