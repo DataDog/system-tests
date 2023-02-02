@@ -1,8 +1,7 @@
 #!/bin/bash
 
-export ATTEMPT=${SYSTEM_TEST_BUILD_ATTEMPTS:=1}
-
-for (( i=1; i<=$ATTEMPT; i++ ))
+export ATTEMPT=1
+for (( ; ATTEMPT<=${SYSTEM_TEST_BUILD_ATTEMPTS:=1}; ATTEMPT++ ))
 do
     echo "== Run build script (attempt $i on $ATTEMPT) =="
     ./utils/build/build.sh "$@"
