@@ -1,3 +1,5 @@
+# Custom cache invalidation
+ARG CACHEBUST=1
 
 FROM eclipse-temurin:8 as agent
 
