@@ -236,38 +236,39 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
         job.add_step(
             "Building with cache read-write mode",
             "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW",
-            step_id="build",
             if_condition="${{ github.ref == 'refs/heads/main'}}",
         )
         job.add_step(
             "Building with cache read only mode",
             "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R",
-            step_id="build",
             if_condition="${{ github.ref != 'refs/heads/main'}}",
         )
 
     else:
-        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh")
+        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh", step_id="build")
+
+    build_is_success = "steps.build.outcome == 'success'" if not use_cache else None
 
     for scenario in scenarios:
+
         step = job.add_step(
             f"Run {scenario} scenario",
             f"./run.sh {scenario}",
             env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"},
-            if_condition="steps.build.outcome == 'success'",
+            if_condition=build_is_success,
         )
 
         if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
     job.add_step(
-        "Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="steps.build.outcome == 'success'"
+        "Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition=build_is_success
     )
 
     job.add_upload_artifact(
         name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
         path="artifact.tar.gz",
-        if_condition="steps.build.outcome == 'success'",
+        if_condition=build_is_success,
     )
 
     job.add_step(
@@ -276,7 +277,7 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
             "./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} "
             "system-tests ${{ github.run_id }}-${{ github.run_attempt }}"
         ),
-        if_condition="steps.build.outcome == 'success'",
+        if_condition=build_is_success,
         env={"DD_API_KEY": "${{ secrets.DD_CI_API_KEY }}"},
     )
 
