@@ -276,7 +276,7 @@ def add_main_job(
         "WEBLOG_VARIANT": "${{ matrix.variant.weblog }}",
     }
 
-    if use_cache:
+    if use_cache or build_params_standard_download:
         job.add_setup_buildx()
         job.add_docker_login()
 

@@ -35,7 +35,7 @@ RUN /opt/apache-maven-3.8.6/bin/mvn -P native -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
 
 # Copy tracer
-COPY --from=agent /dd-tracer/dd-java-agent.jar .
+COPY --from=agent /dd-java-agent.jar .
 
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative native:compile
@@ -43,9 +43,9 @@ RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative native:compile
 FROM ubuntu
 
 WORKDIR /app
-COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=agent /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
-COPY --from=agent /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+COPY --from=agent /LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=agent /LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=agent /APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 COPY --from=build /app/target/myproject .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
