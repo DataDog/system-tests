@@ -319,8 +319,16 @@ def add_main_job(
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
+
+    matrix_tracer_version_alias = "${{ matrix.version }}"
+    if standard_binaries_download:
+        matrix_tracer_version_alias = "${{ matrix.tracer_version }}"
+
     job.add_upload_artifact(
-        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
+        name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_"
+        + matrix_tracer_version_alias
+        + "_"
+        + str(i),
         path="artifact.tar.gz",
         if_condition="${{ always() }}",
     )
@@ -328,8 +336,9 @@ def add_main_job(
     job.add_step(
         "Upload results CI Visibility",
         run=(
-            "./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} "
-            "system-tests ${{ github.run_id }}-${{ github.run_attempt }}"
+            "./utils/scripts/upload_results_CI_visibility.sh "
+            + matrix_tracer_version_alias
+            + " system-tests ${{ github.run_id }}-${{ github.run_attempt }}"
         ),
         if_condition="${{ always() }}",
         env={"DD_API_KEY": "${{ secrets.DD_CI_API_KEY }}"},

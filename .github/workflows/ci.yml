@@ -566,11 +566,11 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_st0
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.tracer_version }}_st0
         path: artifact.tar.gz
     - name: Upload results CI Visibility
       if: ${{ always() }}
-      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.tracer_version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
     - name: Print fancy log report
@@ -745,11 +745,11 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_st1
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.tracer_version }}_st1
         path: artifact.tar.gz
     - name: Upload results CI Visibility
       if: ${{ always() }}
-      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.tracer_version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
     - name: Print fancy log report
@@ -871,11 +871,11 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_graalvm
+        name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.tracer_version }}_graalvm
         path: artifact.tar.gz
     - name: Upload results CI Visibility
       if: ${{ always() }}
-      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+      run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.tracer_version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
     - name: Print fancy log report
