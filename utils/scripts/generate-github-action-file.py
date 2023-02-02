@@ -364,6 +364,8 @@ def main():
     }
     result["env"] = {"REGISTRY": "ghcr.io"}
 
+    result["concurrency"] = {"group": "${{ github.workflow }}-${{ github.ref }}", "cancel-in-progress": True}
+
     lint_job = add_lint_job(result)
 
     main_jobs = []
