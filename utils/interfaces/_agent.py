@@ -96,7 +96,12 @@ class AgentInterfaceValidator(InterfaceValidator):
             if data["request"]["content"].get("request_type") == "apm-onboarding-event":
                 return None
             return validator(data)
-        self.validate(validator=validator_skip_onboarding_event, success_by_default=success_by_default, path_filters="/api/v2/apmtelemetry")
+
+        self.validate(
+            validator=validator_skip_onboarding_event,
+            success_by_default=success_by_default,
+            path_filters="/api/v2/apmtelemetry",
+        )
 
     def add_traces_validation(self, validator, success_by_default=False):
         self.validate(

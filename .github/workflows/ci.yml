@@ -204,9 +204,9 @@ jobs:
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # - name: Load agent binary
-    #   if: ${{ matrix.version == 'dev' }}
-    #   run: ./utils/scripts/load-binary.sh agent
+    - name: Load agent binary
+      if: ${{ matrix.version == 'dev' }}
+      run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin

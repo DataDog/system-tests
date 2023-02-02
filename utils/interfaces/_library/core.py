@@ -157,8 +157,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
             if data["request"]["content"].get("request_type") == "apm-onboarding-event":
                 return None
             return validator(data)
+
         self.validate(
-            validator_skip_onboarding_event, path_filters="/telemetry/proxy/api/v2/apmtelemetry", success_by_default=success_by_default
+            validator_skip_onboarding_event,
+            path_filters="/telemetry/proxy/api/v2/apmtelemetry",
+            success_by_default=success_by_default,
         )
 
     def validate_appsec(self, request=None, validator=None, success_by_default=False, legacy_validator=None):
