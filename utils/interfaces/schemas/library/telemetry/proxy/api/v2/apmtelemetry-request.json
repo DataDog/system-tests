@@ -320,14 +320,7 @@
           "format": "uint64"
         }
       },
-      "required": [
-        "api_version",
-        "tracer_time",
-        "runtime_id",
-        "seq_id",
-        "application",
-        "host"
-      ]
+      "$comment": "api_version tracer_time runtime_id seq_id application host are required, but currently disabled because of the agent"
     },
     "Telemetry": {
       "allOf": [
