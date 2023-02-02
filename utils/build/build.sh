@@ -134,7 +134,7 @@ do
         if [ $ATTEMPT -gt 1 ]
         then
             echo "Disabling remote cache reading"
-            CACHE_FROM="--no-cache"
+            CACHE_FROM="--build-arg CACHEBUST=$(date +%s)"
         fi
         echo "CACHE VALUE:::::>>>>> $CACHE_FROM"
         echo "DOCKER_PLATFORM_ARGS: $DOCKER_PLATFORM_ARGS"
