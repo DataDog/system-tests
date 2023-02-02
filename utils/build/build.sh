@@ -138,6 +138,8 @@ do
         fi
         echo "CACHE VALUE:::::>>>>> $CACHE_FROM"
         echo "DOCKER_PLATFORM_ARGS: $DOCKER_PLATFORM_ARGS"
+        echo "CACHE TO :::::>>>>> $CACHE_TO"
+         echo "EXTRA_DOCKER_ARGS TO :::::>>>>> $EXTRA_DOCKER_ARGS"
         docker buildx build \
             --progress=plain \
             ${DOCKER_PLATFORM_ARGS} \
