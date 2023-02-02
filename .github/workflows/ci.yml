@@ -114,12 +114,30 @@ jobs:
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
     - name: Load WAF rules
-      if: ${{ matrix.version == 'latest_snapshot' }}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library binary
+      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    - name: Load PHP prod library binary
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library PHP appsec binary
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library dotNet prod binary
+      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
-      if: ${{ matrix.version == 'latest_snapshot' }}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
@@ -279,12 +297,30 @@ jobs:
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
     - name: Load WAF rules
-      if: ${{ matrix.version == 'latest_snapshot' }}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library binary
+      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
+    - name: Load PHP prod library binary
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library PHP appsec binary
+      if: ${{ matrix.variant.library == 'php' }}
+      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Load library dotNet prod binary
+      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
+      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
-      if: ${{ matrix.version == 'latest_snapshot' }}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
@@ -448,30 +484,12 @@ jobs:
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
     - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
@@ -640,30 +658,12 @@ jobs:
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
     - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
@@ -775,30 +775,12 @@ jobs:
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
     - name: Load WAF rules
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library PHP appsec binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
+      if: ${{ matrix.version == 'latest_snapshot' }}
       run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}

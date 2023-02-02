@@ -285,9 +285,9 @@ def add_main_job(
     job.add_step("Pull images", run="docker-compose pull cassandra_db mongodb postgres")
 
     if standard_binaries_download:
-        add_download_binaries(job)
-    else:
         add_standard_binaries_download(job)
+    else:
+        add_download_binaries(job)
 
     job.add_step(
         "Log in to the Container registry",
