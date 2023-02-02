@@ -275,16 +275,6 @@
         }
       ]
     },
-    "Payload": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/AppStarted"
-        },
-        {
-          "$ref": "#/$defs/GenerateMetrics"
-        }
-      ]
-    },
     "Configuration": {
       "type": "array",
       "items": {
