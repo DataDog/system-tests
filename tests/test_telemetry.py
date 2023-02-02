@@ -26,7 +26,7 @@ class Test_Telemetry:
         if len(telemetry_data) == 0:
             if not success_by_default:
                 raise Exception("No telemetry data to validate on")
-                
+
         for data in telemetry_data:
             validator(data)
 
@@ -36,10 +36,9 @@ class Test_Telemetry:
         if len(telemetry_data) == 0:
             if not success_by_default:
                 raise Exception("No telemetry data to validate on")
-                
+
         for data in telemetry_data:
             validator(data)
-
 
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
@@ -58,8 +57,12 @@ class Test_Telemetry:
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
-        header_presence_validator = HeadersPresenceValidator(request_headers=["dd-agent-hostname", "dd-agent-env"], response_headers=(), check_condition=None)
-        header_match_validator = HeadersMatchValidator(request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=None)
+        header_presence_validator = HeadersPresenceValidator(
+            request_headers=["dd-agent-hostname", "dd-agent-env"], response_headers=(), check_condition=None
+        )
+        header_match_validator = HeadersMatchValidator(
+            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=None
+        )
 
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
@@ -74,8 +77,44 @@ class Test_Telemetry:
     @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
-        interfaces.library.assert_seq_ids_are_roughly_sequential()
-        interfaces.library.assert_no_skipped_seq_ids()
+
+        MAX_OUT_OF_ORDER_LAG = 0.1  # s
+
+        max_seq_id = 0
+        received_max_time = None
+        seq_ids = []
+
+        fmt = "%Y-%m-%dT%H:%M:%S.%f"
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            if 200 <= data["response"]["status_code"] < 300:
+                seq_id = data["request"]["content"]["seq_id"]
+                seq_ids.append((seq_id, data["log_filename"]))
+                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+            if seq_id > max_seq_id:
+                max_seq_id = seq_id
+                received_max_time = curr_message_time
+            else:
+                if received_max_time is not None and (curr_message_time - received_max_time) > MAX_OUT_OF_ORDER_LAG:
+                    raise Exception(
+                        f"Received message with seq_id {seq_id} to far more than"
+                        f"100ms after message with seq_id {max_seq_id}"
+                    )
+
+        seq_ids.sort()
+        for i in range(len(seq_ids) - 1):
+            diff = seq_ids[i + 1][0] - seq_ids[i][0]
+            if diff == 0:
+                raise Exception(
+                    f"Detected 2 telemetry messages with same seq_id {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
+                )
+
+            if diff > 1:
+                raise Exception(f"Detected non conscutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @bug(library="python", reason="To be explained")
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -138,8 +177,9 @@ class Test_Telemetry:
             key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
             container[key] = data
 
-
-        self.validate_library_telemetry_data(lambda data: save_data(data, self.library_requests), success_by_default=False)
+        self.validate_library_telemetry_data(
+            lambda data: save_data(data, self.library_requests), success_by_default=False
+        )
         self.validate_agent_telemetry_data(lambda data: save_data(data, self.agent_requests), success_by_default=False)
 
         # At the end, check that all data are consistent
