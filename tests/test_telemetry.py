@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant
 from utils.tools import logger
+from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
@@ -19,16 +20,36 @@ class Test_Telemetry:
 
     app_started_count = 0
 
+    def validate_library_telemetry_data(self, validator, success_by_default=False):
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+
+        if len(telemetry_data) == 0:
+            if not success_by_default:
+                raise Exception("No telemetry data to validate on")
+                
+        for data in telemetry_data:
+            validator(data)
+
+    def validate_agent_telemetry_data(self, validator, success_by_default=False):
+        telemetry_data = list(interfaces.agent.get_telemetry_data())
+
+        if len(telemetry_data) == 0:
+            if not success_by_default:
+                raise Exception("No telemetry data to validate on")
+                
+        for data in telemetry_data:
+            validator(data)
+
+
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
         def validator(data):
-            repsonse_code = data["response"]["status_code"]
-            assert 200 <= repsonse_code < 300, f"Got response code {repsonse_code}"
+            response_code = data["response"]["status_code"]
+            assert 200 <= response_code < 300, f"Got response code {response_code}"
 
-        interfaces.library.validate_telemetry(validator, success_by_default=True)
-        interfaces.agent.validate_telemetry(validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator)
 
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
@@ -36,12 +57,12 @@ class Test_Telemetry:
     )
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
-        interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
-        )
-        interfaces.agent.assert_headers_match(
-            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
-        )
+
+        header_presence_validator = HeadersPresenceValidator(request_headers=["dd-agent-hostname", "dd-agent-env"], response_headers=(), check_condition=None)
+        header_match_validator = HeadersMatchValidator(request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=None)
+
+        self.validate_agent_telemetry_data(header_presence_validator)
+        self.validate_agent_telemetry_data(header_match_validator)
 
     @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
@@ -65,7 +86,7 @@ class Test_Telemetry:
         def validator(data):
             return data["request"]["content"].get("request_type") == "app-started"
 
-        interfaces.library.validate_telemetry(validator=validator)
+        self.validate_library_telemetry_data(validator)
 
     @missing_feature(library="python")
     def test_app_started_sent_only_once(self):
@@ -76,7 +97,7 @@ class Test_Telemetry:
                 self.app_started_count += 1
                 assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator)
 
     def test_telemetry_messages_valid(self):
         """Telemetry messages additional validation"""
@@ -84,15 +105,15 @@ class Test_Telemetry:
         def validate_integration_changes(data):
             content = data["request"]["content"]
             if content.get("request_type") == "app-integrations-change":
-                assert content["payload"]["integrations"], "Integration changes must mot be empty"
+                assert content["payload"]["integrations"], "Integrations changes must not be empty"
 
         def validate_dependencies_changes(data):
             content = data["request"]["content"]
             if content["request_type"] == "app-dependencies-loaded":
-                assert content["payload"]["dependencies"], "dependencies changes must mot be empty"
+                assert content["payload"]["dependencies"], "Dependencies changes must not be empty"
 
-        interfaces.library.validate_telemetry(validator=validate_integration_changes, success_by_default=True)
-        interfaces.library.validate_telemetry(validator=validate_dependencies_changes, success_by_default=True)
+        self.validate_library_telemetry_data(validate_integration_changes)
+        self.validate_library_telemetry_data(validate_dependencies_changes)
 
     @bug(
         library="dotnet",
@@ -117,11 +138,9 @@ class Test_Telemetry:
             key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
             container[key] = data
 
-        # save all data from lib to agent
-        interfaces.library.validate_telemetry(lambda data: save_data(data, self.library_requests), True)
 
-        # save all data from agent to backend
-        interfaces.agent.validate_telemetry(lambda data: save_data(data, self.agent_requests), True)
+        self.validate_library_telemetry_data(lambda data: save_data(data, self.library_requests), success_by_default=False)
+        self.validate_agent_telemetry_data(lambda data: save_data(data, self.agent_requests), success_by_default=False)
 
         # At the end, check that all data are consistent
         for key, agent_data in self.agent_requests.items():
@@ -175,7 +194,7 @@ class Test_Telemetry:
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator)
 
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
@@ -185,7 +204,11 @@ class Test_Telemetry:
         ALLOWED_INTERVALS = 2
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
-        for data in interfaces.library.get_telemetry_data():
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time != -1:
                 delta = curr_message_time - prev_message_time
