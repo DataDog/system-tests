@@ -1,8 +1,5 @@
 FROM eclipse-temurin:8 as agent
 
-# Custom cache invalidation
-ARG CACHEBUST=1
-
 # Install required bsdtar
 RUN apt-get update && \
 	apt-get install -y libarchive-tools
@@ -39,6 +36,9 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -P spring-native
 
 FROM ubuntu
+
+# Custom cache invalidation
+ARG CACHEBUST=1
 
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
