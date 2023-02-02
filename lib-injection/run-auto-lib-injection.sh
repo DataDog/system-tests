@@ -123,6 +123,6 @@ if [ $TEST_CASE == "TC5" ]; then
     echo "[run-auto-lib-injection] Apply disabled config"
     CONFIG_NAME=config-disabled ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests"
-    ${BASE_DIR}/execFunction.sh check-for-disabled-metadata
+    ${BASE_DIR}/execFunction.sh check-for-disabled-pod-metadata
     echo "[run-auto-lib-injection] Completed successfully"
 fi

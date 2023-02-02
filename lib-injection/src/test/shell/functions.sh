@@ -330,7 +330,7 @@ function check-for-disabled-pod-metadata() {
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
     if [[ $enabled != "\"false\"" ]]; then
-        echo "[Test] annotation 'admission.datadoghq.com/enabled' wasn't \"false\", got \"${enabled}\""
+        echo "[Test] label 'admission.datadoghq.com/enabled' wasn't \"false\", got \"${enabled}\""
         exit 1
     fi
 }
