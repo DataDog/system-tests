@@ -134,7 +134,7 @@ do
         if [ $ATTEMPT -gt 1 ]
         then
             echo "Disabling remote cache reading"
-            CACHE_FROM=""
+            CACHE_FROM="--no-cache"
         fi
         echo "CACHE VALUE:::::>>>>> $CACHE_FROM"
         docker buildx build \
