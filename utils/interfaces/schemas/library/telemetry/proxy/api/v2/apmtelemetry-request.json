@@ -366,6 +366,12 @@
               "properties": {
                 "request_type": { "const": "app-closing" }
               }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "request_type": { "const": "apm-onboarding-event" }
+              }
             }
           ]
         }
