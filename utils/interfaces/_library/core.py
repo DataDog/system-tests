@@ -153,8 +153,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
     ############################################################
 
     def validate_telemetry(self, validator, success_by_default=False):
+        def validator_skip_onboarding_event(data):
+            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
+                return None
+            return validator(data)
+
         self.validate(
-            validator, path_filters="/telemetry/proxy/api/v2/apmtelemetry", success_by_default=success_by_default
+            validator_skip_onboarding_event,
+            path_filters="/telemetry/proxy/api/v2/apmtelemetry",
+            success_by_default=success_by_default,
         )
 
     def validate_appsec(self, request=None, validator=None, success_by_default=False, legacy_validator=None):
@@ -286,8 +293,12 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
-            if validator(span):
-                return
+            try:
+                if validator(span):
+                    return
+            except:
+                logger.error(f"This span is failing validation: {json.dumps(span, indent=2)}")
+                raise
 
         if not success_by_default:
             raise Exception("No span validates this test")

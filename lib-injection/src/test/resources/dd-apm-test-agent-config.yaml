@@ -37,13 +37,12 @@ spec:
             port: 8126
           timeoutSeconds: 10
         readinessProbe:
-          initialDelaySeconds: 15
-          periodSeconds: 15
+          initialDelaySeconds: 1
+          periodSeconds: 2
           timeoutSeconds: 10
           successThreshold: 1
           tcpSocket:
             port: 8126
-          failureThreshold: 12
         name: trace-agent
         ports:
         - containerPort: 8126
@@ -66,8 +65,3 @@ spec:
           hostPath:
             path: /var/run/datadog
             type: DirectoryOrCreate
-  updateStrategy:
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 10%
-    type: RollingUpdate
