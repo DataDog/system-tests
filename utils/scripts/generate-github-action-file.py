@@ -150,6 +150,7 @@ def add_job(workflow, job):
 
 def add_lint_job(workflow):
     job = Job("lint_and_test", large_runner=True)
+    job.data["if"] = "! github.event.pull_request.draft || github.event.label.name == 'test_the_tests'"
     job.add_checkout()
     job.add_step(uses="actions/setup-python@v4", with_statement={"python-version": "3.9"})
     job.add_step(run="pip install -r requirements.txt")
@@ -366,6 +367,7 @@ def main():
         "workflow_dispatch": {},
         "schedule": [{"cron": "00 02 * * 2-6"}],
         "pull_request": {"branches": ["**"]},
+        "pull_request_target": {"types": ["ready_for_review"]},
         "push": {"branches": ["main"]},
     }
     result["env"] = {"REGISTRY": "ghcr.io"}

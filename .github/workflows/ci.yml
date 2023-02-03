@@ -7,6 +7,9 @@ name: Testing the test
   pull_request:
     branches:
     - '**'
+  pull_request_target:
+    types:
+    - ready_for_review
   push:
     branches:
     - main
@@ -20,6 +23,7 @@ jobs:
     runs-on:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
+    if: '! github.event.pull_request.draft || github.event.label.name == ''test_the_tests'''
     steps:
     - name: Checkout
       uses: actions/checkout@v3
