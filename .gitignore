@@ -5,6 +5,7 @@ binaries/*
 !binaries/README.md
 
 venv
+vendor/
 
 # tools for http tunneling
 ngrok
