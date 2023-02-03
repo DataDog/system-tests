@@ -4,9 +4,11 @@
 
 from utils import missing_feature, interfaces, coverage, released
 
-
-@released(dotnet="?", golang="?", java="?", nodejs="?")
+@released(dotnet="?", golang="?", nodejs="?")
 @released(php_appsec="?", python="?", ruby="?", cpp="?")
+@released(
+    java={"spring-boot": "1.3.0", "spring-boot-jetty": "1.3.0", "spring-boot-openliberty": "1.3.0", "*": "?"},
+)
 @coverage.basic
 class TestIastNoRequest:
     """ IAST deals with vulnerabilities outside of requests """
