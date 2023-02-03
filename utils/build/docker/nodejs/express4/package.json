@@ -16,8 +16,5 @@
     "pg": "^8.8.0",
     "glob": "^8.0.3",
     "axios": "1.2.3"
-  }, 
-  "loaded-dependencies": {
-    "glob": "^8.0.3"
   }
 }

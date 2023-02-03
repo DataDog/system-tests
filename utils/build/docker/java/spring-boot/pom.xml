@@ -422,7 +422,6 @@
     <properties>
         <protobuf.version>3.16.3</protobuf.version>
         <grpc.version>1.31.0</grpc.version>
-        <loadedDependency>httpclient</loadedDependency>
         <packaging.type>jar</packaging.type>
 	</properties>
     <repositories>
