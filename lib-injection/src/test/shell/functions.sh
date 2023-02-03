@@ -44,17 +44,17 @@ if [ -z "${DD_API_KEY}" ] ; then
     export DD_APP_KEY=appkey
 fi
 
-#TODO: homogenize the names of things. nodejs or js? python or py? Source of problems!!!!
+# TODO: homogenize the names of things. nodejs or js? python or py? Source of problems!!!!
  [[ $TEST_LIBRARY = nodejs ]] && init_image_repo_alias=js || init_image_repo_alias=$TEST_LIBRARY
  [[ $init_image_repo_alias = python ]] && init_image_repo_alias=py
  [[ $TEST_LIBRARY = nodejs ]] && init_image_alias=js || init_image_alias=$TEST_LIBRARY
 
 
 if [ "$DOCKER_IMAGE_TAG" == "latest" ]; then
-    #Release version are published in docker.io
+    # Release version are published in docker.io
     export INIT_DOCKER_IMAGE_REPO=docker.io/datadog/dd-lib-${init_image_alias}-init
 elif [ "$DOCKER_IMAGE_TAG" == "local" ]; then
-    #Docker hub doesn't allow multi level repo paths
+    # Docker hub doesn't allow multi level repo paths
     export INIT_DOCKER_IMAGE_REPO=${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-${init_image_alias}-init
 else
     export INIT_DOCKER_IMAGE_REPO=${DOCKER_REGISTRY_IMAGES_PATH}/dd-trace-${init_image_repo_alias}/dd-lib-${init_image_alias}-init
@@ -253,7 +253,7 @@ function print-debug-info(){
         kubectl exec -it ${pod_cluster_name} -- agent telemetry > "${log_dir}/${pod_cluster_name}_telemetry.log"
 
         echo "[debug] Export: Status datadog-cluster-agent"
-        # Sometimes this command fails.Ignoring this error
+        # Sometimes this command fails. Ignore this error
         kubectl exec -it ${pod_cluster_name} -- agent status > "${log_dir}/${pod_cluster_name}_status.log" || true
     fi
 }
@@ -265,7 +265,7 @@ function build-and-push-test-app-image() {
     cd $current_dir
 }
 
-#Used only to local testing
+# Used only to local testing
 function build-and-push-init-image() {
     ensure-buildx
 
@@ -279,6 +279,5 @@ function build-and-push-init-image() {
     #TODO change this. Two options: 1) not build the image, pull it (best option). 2) change to main branch
     echo "Building init image"  
     echo "docker buildx build https://github.com/DataDog/dd-trace-${init_image_repo_alias}.git#robertomonteromiguel/lib_injection_system_tests_integration:lib-injection --build-context ${TEST_LIBRARY}_agent=$(pwd)/binaries/ --platform ${BUILDX_PLATFORMS} -t "${INIT_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}" --push "
-    docker buildx build https://github.com/DataDog/dd-trace-${init_image_repo_alias}.git#robertomonteromiguel/lib_injection_system_tests_integration:lib-injection --build-context ${TEST_LIBRARY}_agent=$(pwd)/binaries/ --platform ${BUILDX_PLATFORMS} -t "${INIT_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}" --push
    
 }
