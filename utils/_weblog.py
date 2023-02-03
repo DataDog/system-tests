@@ -46,7 +46,17 @@ class _Weblog:
         return self.request("TRACE", path, params=params, data=data, headers=headers, **kwargs)
 
     def request(
-        self, method, path="/", params=None, data=None, headers=None, stream=None, domain="weblog", port=7777, **kwargs,
+        self,
+        method,
+        path="/",
+        params=None,
+        data=None,
+        headers=None,
+        stream=None,
+        domain="weblog",
+        port=7777,
+        allow_redirects=True,
+        **kwargs,
     ):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
@@ -72,7 +82,7 @@ class _Weblog:
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")
 
-            r = requests.Session().send(r, timeout=5, stream=stream)
+            r = requests.Session().send(r, timeout=5, stream=stream, allow_redirects=allow_redirects)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
             return _FailedQuery(request=r)
