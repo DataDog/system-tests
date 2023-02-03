@@ -507,6 +507,10 @@ jobs:
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_WAF_TELEMETRY scenario
+      run: ./run.sh APPSEC_WAF_TELEMETRY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       run: ./run.sh SAMPLING
       env:
