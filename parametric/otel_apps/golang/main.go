@@ -25,18 +25,19 @@ type apmClientServer struct {
 	UnimplementedAPMOtelClientServer
 	tp     *ot.TracerProvider
 	tracer ot_api.Tracer
-	spans  map[uint64]ot_api.Span
+	spans  map[string]ot_api.Span
 }
 
 func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpanArgs) (*StartOtelSpanReturn, error) {
 	fmt.Println("started_StartOtelSpan")
-	//todo tracer options/ span parent context not passed
-	//var pCtx = context.Background()
-	//if args.ParentId != nil && *args.ParentId > 0 {
-	//	parent := s.spans[*args.ParentId]
-	//	ddP, ok := parent.(ddtrace.Span)
-	//	pCtx = tracer.ContextWithSpan(ctx, ddP)
-	//}
+
+	var pCtx context.Context
+	if pid := args.GetParentId(); pid != "" {
+		parent := s.spans[pid]
+		pCtx = tracer.ContextWithSpan(context.Background(), parent.(ddtrace.Span))
+	} else {
+		pCtx = context.Background()
+	}
 	var otelOpts = []ot_api.SpanStartOption{
 		ot_api.WithSpanKind(ot_api.SpanKind(args.GetSpanKind())),
 	}
@@ -53,15 +54,11 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 		}
 	}
 
-	ctx, span := s.tp.Tracer("").Start(context.Background(), args.Name, otelOpts...)
-	ddSpan, ok := span.(ddtrace.Span)
-	if !ok {
-		fmt.Println("span must be of ddtrace.Span type")
-	}
-	s.spans[ddSpan.Context().SpanID()] = span
+	_, span := s.tp.Tracer("").Start(pCtx, args.Name, otelOpts...)
+	s.spans[span.SpanContext().SpanID().String()] = span
 	return &StartOtelSpanReturn{
-		SpanId:  ddSpan.Context().SpanID(),
-		TraceId: ddSpan.Context().SpanID(),
+		SpanId:  span.SpanContext().SpanID().String(),
+		TraceId: span.SpanContext().TraceID().String(),
 	}, nil
 }
 
@@ -146,7 +143,7 @@ func (s *apmClientServer) SetStatus(ctx context.Context, args *SetStatusArgs) (*
 }
 
 func (s *apmClientServer) ForceFlushOtel(ctx context.Context, args *ForceFlushOtelArgs) (*ForceFlushOtelReturn, error) {
-	s.spans = make(map[uint64]ot_api.Span)
+	s.spans = make(map[string]ot_api.Span)
 	success := false
 	set_flush_success := func(ok bool) { success = ok }
 	s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, set_flush_success)
@@ -154,12 +151,12 @@ func (s *apmClientServer) ForceFlushOtel(ctx context.Context, args *ForceFlushOt
 }
 
 func (s *apmClientServer) FlushOtelSpans(context.Context, *FlushOtelSpansArgs) (*FlushOtelSpansReturn, error) {
-	s.spans = make(map[uint64]ot_api.Span)
+	s.spans = make(map[string]ot_api.Span)
 	return &FlushOtelSpansReturn{}, nil
 }
 
 func (s *apmClientServer) FlushOtelTraceStats(context.Context, *FlushOtelTraceStatsArgs) (*FlushOtelTraceStatsReturn, error) {
-	s.spans = make(map[uint64]ot_api.Span)
+	s.spans = make(map[string]ot_api.Span)
 	return &FlushOtelTraceStatsReturn{}, nil
 }
 
@@ -178,7 +175,7 @@ func (s *apmClientServer) StartOtelTracer(context.Context, *StartOtelTracerArgs)
 
 func newServer() *apmClientServer {
 	s := &apmClientServer{
-		spans: make(map[uint64]ot_api.Span),
+		spans: make(map[string]ot_api.Span),
 	}
 	return s
 }

@@ -19,7 +19,7 @@ service APMOtelClient {
 message StartOtelSpanArgs {
   string name = 1;
   optional bool new_root = 2;
-  optional uint64 parent_id = 3;
+  optional string parent_id = 3;
   optional uint64 span_kind = 9;
   optional string service = 4;
   optional string resource = 5;
@@ -35,11 +35,11 @@ message attributes {
 //}
 
 message StartOtelSpanReturn {
-  uint64 span_id = 1;
-  uint64 trace_id = 2;
+  string span_id = 1;
+  string trace_id = 2;
 }
 message EndOtelSpanArgs {
-  uint64 id = 1;
+  string id = 1;
 }
 message EndOtelSpanReturn {}
 
@@ -63,34 +63,34 @@ message StartOtelTracerArgs {}
 message StartOtelTracerReturn {}
 
 message IsRecordingArgs {
-  uint64 span_id = 1;
+  string span_id = 1;
 }
 message IsRecordingReturn {
   bool is_recording = 1;
 }
 
 message SetStatusArgs {
-  uint64 span_id = 1;
+  string span_id = 1;
   string code = 2;
   string description = 3;
 }
 message SetStatusReturn {}
 
 message SetNameArgs {
-  uint64 span_id = 1;
+  string span_id = 1;
   string name = 2;
 }
 message SetNameReturn {}
 
 message SetAttributesArgs {
-  uint64 span_id = 1;
+  string span_id = 1;
   map<string, string> attributes = 2;
 }
 message SetAttributesReturn {}
 
 
 message SpanContextArgs {
-  uint64 span_id = 1;
+  string span_id = 1;
 }
 message SpanContextReturn {
   string span_id = 1;

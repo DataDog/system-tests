@@ -7,7 +7,7 @@ import math
 from typing import List
 from typing import Optional
 from typing import TypedDict
-
+from typing import Union
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
 from ddapm_test_agent.trace import root_span
@@ -18,6 +18,8 @@ from ddsketch.store import CollapsingLowestDenseStore
 from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
+
+from parametric.spec.otel_trace import OtelSpan, OtelTrace
 
 """Key used in the meta map to indicate the span origin"""
 ORIGIN = "_dd.origin"
@@ -159,7 +161,11 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
     )
 
 
-def _span_similarity(s1: Span, s2: Span) -> int:
+SpanTypes = Union[Span, OtelSpan]
+TraceTypes = Union[Trace, OtelTrace]
+
+
+def _span_similarity(s1: SpanTypes, s2: SpanTypes) -> int:
     """Return a similarity rating for the two given spans."""
     score = 0
 
@@ -181,7 +187,7 @@ def _span_similarity(s1: Span, s2: Span) -> int:
     return score
 
 
-def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
+def find_trace_by_root(traces: TraceTypes, span: SpanTypes) -> TraceTypes:
     """Return the trace from `traces` with root span most similar to `span`."""
     assert len(traces) > 0
 
@@ -196,7 +202,7 @@ def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
     return max_score_trace
 
 
-def find_span(trace: Trace, span: Span) -> Span:
+def find_span(trace: TraceTypes, span: SpanTypes) -> TraceTypes:
     """Return a span from the trace which most closely matches `span`."""
     assert len(trace) > 0
 
@@ -210,7 +216,7 @@ def find_span(trace: Trace, span: Span) -> Span:
     return max_similarity_span
 
 
-def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
+def find_span_in_traces(traces: TraceTypes, span: SpanTypes) -> SpanTypes:
     """Return a span from the traces which most closely matches `span`."""
     assert len(traces) > 0
 
@@ -227,6 +233,6 @@ def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
     return max_similarity_span
 
 
-def span_has_no_parent(span: Span) -> bool:
+def span_has_no_parent(span: SpanTypes) -> bool:
     """Return if a span has a parent by checking the presence and value of the `parent_id`."""
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None

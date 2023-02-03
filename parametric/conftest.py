@@ -668,9 +668,10 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub, span_id: int):
+    def __init__(self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub, span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
+        self.trace_id = trace_id
 
     def set_attributes(self, attributes):
         self._client.SetAttributes(pb_otel.SetAttributesArgs(span_id=self.span_id, attributes=attributes))
@@ -685,17 +686,18 @@ class _TestOtelSpan:
         self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id))
 
     def is_recording(self) -> bool:
-        return self._client.IsRecording(
-            pb_otel.IsRecordingArgs(span_id=self.span_id)).is_recording
+        return self._client.IsRecording(pb_otel.IsRecordingArgs(span_id=self.span_id)).is_recording
 
     def span_context(self) -> dict:
         sctx = self._client.SpanContext(pb_otel.SpanContextArgs(span_id=self.span_id))
         return OtelSpanContext(
-                trace_id=sctx.trace_id,
-                span_id=sctx.span_id,
-                trace_flags=sctx.trace_flags,
-                trace_state=sctx.trace_state,
-                remote=sctx.remote)
+            trace_id=sctx.trace_id,
+            span_id=sctx.span_id,
+            trace_flags=sctx.trace_flags,
+            trace_state=sctx.trace_state,
+            remote=sctx.remote,
+        )
+
 
 class APMLibrary:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
@@ -766,27 +768,24 @@ class APMOtelLibrary:
     DistributedHTTPHeaders = {}
 
     @contextlib.contextmanager
-    def start_otel_span(self,
-                        name: str,
-                        service: str = "",
-                        resource: str = "",
-                        new_root: bool = True,
-                        parent_id: int = 0,
-                        ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.StartOtelSpan(pb_otel.StartOtelSpanArgs(
-            name=name,
-            new_root=new_root,
-            parent_id=parent_id
-        # NewRoot
-            # ParentId
-            # SpanKind
-            # Service
-            # Resource
-            # Type
-            # Timestamp
-
-        ))
-        span = _TestOtelSpan(self._client, resp.span_id)
+    def start_otel_span(
+        self, name: str, service: str = "", resource: str = "", new_root: bool = False, parent_id: str = "",
+    ) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.StartOtelSpan(
+            pb_otel.StartOtelSpanArgs(
+                name=name,
+                new_root=new_root,
+                parent_id=parent_id
+                # NewRoot
+                # ParentId
+                # SpanKind
+                # Service
+                # Resource
+                # Type
+                # Timestamp
+            )
+        )
+        span = _TestOtelSpan(self._client, resp.span_id, resp.trace_id)
         yield span
         span.finish()
 
@@ -794,10 +793,7 @@ class APMOtelLibrary:
     #     return self._client.SpanContext(pb_otel.SpanContextArgs(span_id=span_id, attributes=attributes))
 
     def force_flush(self, timeout_seconds: int = 5) -> bool:
-        return self._client.ForceFlushOtel(
-            pb_otel.ForceFlushOtelArgs(seconds=timeout_seconds)
-            ).success
-
+        return self._client.ForceFlushOtel(pb_otel.ForceFlushOtelArgs(seconds=timeout_seconds)).success
 
     def flush(self):
         self._client.FlushOtelSpans(pb_otel.FlushOtelSpansArgs())
