@@ -112,13 +112,6 @@ function reset-buildx() {
     fi
 }
 
-function reset-deploys() {
-    reset-app
-    helm uninstall datadog
-    kubectl delete daemonset datadog
-    kubectl delete pods -l app=datadog
-}
-
 function reset-all() {
     reset-cluster
     reset-buildx
@@ -153,12 +146,11 @@ function deploy-operator() {
 
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
     helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
-    
-    sleep 15 && kubectl get pods
+    kubectl get pods
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
     kubectl wait "${pod_name}" --for condition=ready --timeout=5m
-    sleep 15 && kubectl get pods
+    kubectl get pods
 }
 
 function deploy-operator-auto() {
@@ -175,12 +167,11 @@ function deploy-operator-auto() {
     # TODO: This is a hack until the patching permission is added in the official helm chart.
     echo "[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole"
     kubectl patch clusterrole datadog-cluster-agent --type='json' -p '[{"op": "add", "path": "/rules/0", "value":{ "apiGroups": ["apps"], "resources": ["deployments"], "verbs": ["patch"]}}]'
-   
-    sleep 15 && kubectl get pods
+    kubectl get pods
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
     kubectl wait "${pod_name}" --for condition=ready --timeout=5m
-    sleep 15 && kubectl get pods
+    kubectl get pods
 }
 
 function deploy-test-agent() {
@@ -207,11 +198,6 @@ function deploy-agents-auto() {
     deploy-test-agent
     echo "[Deploy] Cluster Agent with patcher enabled"
     deploy-operator-auto
-    sleep 30
-}
-
-function reset-app() {
-    kubectl delete pods my-app
 }
 
 function apply-config-auto() {
@@ -245,7 +231,7 @@ function deploy-app-manual() {
        | kubectl apply -f -
     echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
     kubectl wait pod/${app_name} --for condition=ready --timeout=5m
-    sleep 5 && kubectl get pods
+    kubectl get pods
     echo "[Deploy] deploy-app done"
 }
 
@@ -264,7 +250,7 @@ function deploy-app-auto() {
     kubectl rollout status deployments/${deployment_name} --timeout=5m
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     remove-terminating-pods
-    sleep 5 && kubectl get pods
+    kubectl get pods
 
     echo "[Deploy] deploy-app-auto: done"
 }
@@ -278,13 +264,13 @@ function trigger-app-rolling-update() {
     kubectl rollout status deployments/${deployment_name} --timeout=5m
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
     remove-terminating-pods
-    sleep 15 && kubectl get pods
+    kubectl get pods
 
     echo "[Deploy] trigger-app-rolling-update: done"
 }
 
 function check-for-env-vars() {
-    sleep 15 && kubectl get pods
+    kubectl get pods
     pod=$(latest-app-pod-auto)
     echo "[Test] test for env vars ${pod}"
     trace_sample_rate="0.90"
@@ -296,7 +282,7 @@ function check-for-env-vars() {
 }
 
 function check-for-pod-metadata() {
-    sleep 15 && kubectl get pods
+    kubectl get pods
     pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
@@ -311,7 +297,7 @@ function check-for-pod-metadata() {
 }
 
 function check-for-no-pod-metadata() {
-    sleep 15 && kubectl get pods
+    kubectl get pods
     pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
@@ -325,7 +311,7 @@ function check-for-no-pod-metadata() {
 }
 
 function check-for-disabled-pod-metadata() {
-    sleep 15 && kubectl get pods
+    kubectl get pods
     pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
