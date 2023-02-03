@@ -56,11 +56,14 @@ class Test_Telemetry:
     )
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
+
         def not_onboarding_event(data):
             return data["request"]["content"].get("request_type") != "apm-onboarding-event"
 
         header_presence_validator = HeadersPresenceValidator(
-            request_headers=["dd-agent-hostname", "dd-agent-env"], response_headers=(), check_condition=not_onboarding_event
+            request_headers=["dd-agent-hostname", "dd-agent-env"],
+            response_headers=(),
+            check_condition=not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
             request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event
