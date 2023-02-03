@@ -57,6 +57,37 @@
       },
       "required": ["dependencies"]
     },
+    "ApmOnboardingEvent": {
+      "type": "object",
+      "properties": {
+        "event_name": {
+          "enum": ["agent.startup.errors", "agent.startup.success", "agent.trace.success"]
+        },
+        "tags": {
+          "type": "object",
+          "properties": {
+            "env": {"type": "string"},
+            "lib_language": {"type": "string"},
+            "lib_version": {"type": "string"},
+            "service_name": {"type": "string"},
+            "product": {"type": "string"},
+            "connection": {"type": "string"},
+            "agent_platform": {"type": "string"},
+            "agent_version": {"type": "string"},
+            "agent_hostname": {"type": "string"},
+            "script_version": {"type": "string"}
+          }
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {"type": "integer"},
+            "message": {"type": "string"}
+          }
+        }
+      },
+      "required": ["tags"]
+    },
     "Application": {
       "type": "object",
       "properties": {
@@ -225,11 +256,16 @@
             "type": {
               "description": "Metric type variant",
               "type": "string",
-              "enum": ["gauge"],
+              "enum": ["gauge", "count", "rate"],
               "example": "gauge"
+            },
+            "interval": {
+              "description": "Set for gauge and rate metric types",
+              "type": "number",
+              "format": "double"
             }
           },
-          "required": ["metric", "points", "tags", "common", "type"]
+          "required": ["metric", "points"]
         },
         {
           "type": "object",
@@ -272,16 +308,6 @@
             }
           },
           "required": ["metric", "points", "tags", "common", "type"]
-        }
-      ]
-    },
-    "Payload": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/AppStarted"
-        },
-        {
-          "$ref": "#/$defs/GenerateMetrics"
         }
       ]
     },
@@ -370,7 +396,8 @@
             {
               "type": "object",
               "properties": {
-                "request_type": { "const": "apm-onboarding-event" }
+                "request_type": { "const": "apm-onboarding-event" },
+                "payload": { "$ref": "#/$defs/ApmOnboardingEvent" }
               }
             }
           ]

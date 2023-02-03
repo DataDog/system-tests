@@ -166,7 +166,7 @@ class Test_AppSecEventSpanTags:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @released(golang="1.38.0", dotnet="2.7.0", java="0.113.0", nodejs="2.6.0")
-@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good

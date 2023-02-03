@@ -10,7 +10,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="?")
+@released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0", php="0.75.0", python="1.2.1", ruby="1.8.0")
 @coverage.good
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -109,7 +109,7 @@ class Test_StandardTagsUserAgent:
 
 
 @released(dotnet="2.0.0", golang="1.39.0", java="0.102.0", nodejs="2.11.0")
-@released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="?")
+@released(php="0.75.0", python=PYTHON_RELEASE_PUBLIC_BETA, ruby="1.8.0")
 @coverage.good
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -125,6 +125,14 @@ class Test_StandardTagsStatusCode:
 
 @released(dotnet="2.13.0", golang="1.39.0", nodejs="2.11.0", php="?", python="1.6.0", ruby="?")
 @released(java={"spring-boot": "0.102.0", "spring-boot-jetty": "0.102.0", "*": "?"})
+@irrelevant(
+    (context.library, context.weblog_variant) == ("golang", "net-http"),
+    reason="net-http does not handle route parameters",
+)
+@irrelevant(library="ruby", weblog_variant="rack", reason="rack can not access route pattern")
+@missing_feature(
+    context.library == "ruby" and context.weblog_variant in ("rails", "sinatra14", "sinatra20", "sinatra21")
+)
 @coverage.basic
 class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""
@@ -132,10 +140,6 @@ class Test_StandardTagsRoute:
     def setup_route(self):
         self.r = weblog.get("/sample_rate_route/1")
 
-    @irrelevant(
-        (context.library, context.weblog_variant) == ("golang", "net-http"),
-        reason="net-http does not handle route parameters",
-    )
     def test_route(self):
 
         tags = {"http.route": "/sample_rate_route/{i}"}
@@ -156,8 +160,10 @@ class Test_StandardTagsRoute:
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @released(dotnet="?", golang="1.46.0", java="0.114.0")
 @released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="?")
+@bug(library="ruby", reason="APPSEC-7946")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
