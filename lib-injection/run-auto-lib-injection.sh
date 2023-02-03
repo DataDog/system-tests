@@ -29,7 +29,7 @@ if [ $TEST_CASE == "TC1" ]; then
     echo "[run-auto-lib-injection] Apply config"
     ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests"
-    ${BASE_DIR}/execFunction.sh test-for-traces-auto
+    ${BASE_DIR}/execFunction.sh test-for-traces
     ${BASE_DIR}/execFunction.sh check-for-env-vars
     ${BASE_DIR}/execFunction.sh check-for-pod-metadata
     ${BASE_DIR}/execFunction.sh check-for-deploy-metadata
@@ -50,11 +50,11 @@ if [ $TEST_CASE == "TC2" ]; then
     echo "[run-auto-lib-injection] Apply default config"
     ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests for default config"
-    ${BASE_DIR}/execFunction.sh test-for-traces-auto
+    ${BASE_DIR}/execFunction.sh test-for-traces
     echo "[run-auto-lib-injection] Apply config-1"
     CONFIG_NAME=config-1 ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests for config-1"
-    ${BASE_DIR}/execFunction.sh test-for-traces-auto
+    ${BASE_DIR}/execFunction.sh test-for-traces
     CONFIG_NAME=config-1 ${BASE_DIR}/execFunction.sh check-for-env-vars
     CONFIG_NAME=config-1 ${BASE_DIR}/execFunction.sh check-for-deploy-metadata
     ${BASE_DIR}/execFunction.sh check-for-pod-metadata
@@ -75,14 +75,14 @@ if [ $TEST_CASE == "TC3" ]; then
     echo "[run-auto-lib-injection] Trigger config"
     ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests"
-    ${BASE_DIR}/execFunction.sh test-for-traces-auto
+    ${BASE_DIR}/execFunction.sh test-for-traces
     ${BASE_DIR}/execFunction.sh check-for-env-vars
     ${BASE_DIR}/execFunction.sh check-for-pod-metadata
     ${BASE_DIR}/execFunction.sh check-for-deploy-metadata
     echo "[run-auto-lib-injection] Trigger unrelated rolling-update"
     ${BASE_DIR}/execFunction.sh trigger-app-rolling-update
     echo "[run-auto-lib-injection] Running tests"
-    ${BASE_DIR}/execFunction.sh test-for-traces-auto
+    ${BASE_DIR}/execFunction.sh test-for-traces
     ${BASE_DIR}/execFunction.sh check-for-env-vars
     ${BASE_DIR}/execFunction.sh check-for-pod-metadata
     ${BASE_DIR}/execFunction.sh check-for-deploy-metadata
@@ -119,7 +119,7 @@ if [ $TEST_CASE == "TC5" ]; then
     echo "[run-auto-lib-injection] Apply matching config"
     ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Check that deployment is instrumented"
-    ${BASE_DIR}/execFunction.sh test-for-traces-auto
+    ${BASE_DIR}/execFunction.sh test-for-traces
     echo "[run-auto-lib-injection] Apply disabled config"
     CONFIG_NAME=config-disabled ${BASE_DIR}/execFunction.sh apply-config-auto
     echo "[run-auto-lib-injection] Running tests"

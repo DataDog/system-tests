@@ -286,10 +286,10 @@ function check-for-no-pod-metadata() {
     has_enabled_key=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq 'has("admission.datadoghq.com/enabled")')
     if [[ $has_enabled_key != "false" ]]; then
         echo "[Test] annotation 'admission.datadoghq.com/enabled' was unexpectedly applied to the pod!"
-        print-debug-info-auto || true
+        print-debug-info || true
         exit 1
     fi
-    print-debug-info-auto || true
+    print-debug-info || true
 }
 
 function check-for-disabled-pod-metadata() {
@@ -315,7 +315,7 @@ function check-for-deploy-metadata() {
     kubectl get deploy ${deployment_name} -ojson | jq .metadata.annotations | jq -e '."admission.datadoghq.com/rc.rev"' | grep ${rev}
 }
 
-function test-for-traces-manual() {
+function test-for-traces() {
     sleep 60 && kubectl get pods
     echo "[Test] test for traces"
 
@@ -327,36 +327,18 @@ function test-for-traces-manual() {
     echo "[Test] ${traces}"
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
-        print-debug-info-manual || true
+        print-debug-info || true
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
         echo "Received ${count} traces so far"
     fi
-    print-debug-info-manual || true
-    echo "[Test] test-for traces completed successfully"
+    print-debug-info || true
+    echo "[Test] test-for-traces completed successfully"
 }
 
-function test-for-traces-auto() {
-    sleep 60 && kubectl get pods
-    echo "[Test] test for traces"
-
-    tmpfile=$(mktemp -t traces.XXXXXX)
-    echo "tmp file in ${tmpfile}"
-
-    wget -O $(readlink -f "${tmpfile}") http://localhost:18126/test/traces || true
-    traces=`cat ${tmpfile}`
-    echo "[Test] ${traces}"
-    if [[ ${#traces} -lt 3 ]] ; then
-        echoerr "No traces reported - ${traces}"
-        print-debug-info-auto || true
-        exit 1
-    else
-        count=`jq '. | length' <<< "${traces}"`
-        echo "Received ${count} traces so far"
-    fi
-    print-debug-info-auto || true
-    echo "[Test] test-for-traces completed successfully"
+function print-debug-info() {
+    if [[ $MODE == "manual" ]]; then print-debug-info-manual; else print-debug-info-auto; fi
 }
 
 function print-debug-info-auto() {
@@ -382,7 +364,7 @@ function print-debug-info-auto() {
     kubectl logs ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}.log"
 }
 
-function print-debug-info-manual(){
+function print-debug-info-manual() {
     log_dir=${BASE_DIR}/../logs_lib-injection
     mkdir -p ${log_dir}/pod
     echo "[debug] Generating debug log files... (${log_dir})"
