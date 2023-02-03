@@ -128,6 +128,9 @@ function ensure-cluster() {
     if ! [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
         kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name lib-injection-testing --config "${SRC_DIR}/test/resources/kind-config.yaml"
     fi
+    # Wait for the nodes to be ready before proceeding... important
+    # as many of the k8s deploy commands will return successful even
+    # if the nodes aren't up.
     kubectl wait --for=condition=Ready nodes --all --timeout=5m
 }
 
@@ -152,7 +155,7 @@ function deploy-operator() {
     helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
     kubectl wait "${pod_name}" --for condition=ready --timeout=5m
-    kubectl get pods
+    sleep 15 && kubectl get pods
 }
 
 function deploy-test-agent() {
@@ -195,7 +198,7 @@ function deploy-app() {
        | kubectl apply -f -
     echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
     kubectl wait pod/${app_name} --for condition=ready --timeout=5m
-    kubectl get pods
+    sleep 5 && kubectl get pods
     echo "[Deploy] deploy-app done"
 }
 
