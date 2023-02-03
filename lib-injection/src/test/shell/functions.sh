@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # -e Exit early for any failed commands
-# -x Print commands that are run
-set -ex
+set -e
 
 
 ## HELPERS
@@ -223,7 +222,7 @@ function apply-config-auto() {
     sleep 90
     echo "[Auto Config] apply-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
     kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=5m
-    for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force;done
+    remove-terminating-pods
     kubectl get pods
     echo "[Auto Config] apply-config-auto: done"
 }
@@ -264,7 +263,7 @@ function deploy-app-auto() {
     echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
     kubectl rollout status deployments/${deployment_name} --timeout=5m
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
-    for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force;done
+    remove-terminating-pods
     sleep 5 && kubectl get pods
 
     echo "[Deploy] deploy-app-auto: done"
@@ -278,7 +277,7 @@ function trigger-app-rolling-update() {
     echo "[Deploy] trigger-app-rolling-update: waiting for deployments/${deployment_name} available"
     kubectl rollout status deployments/${deployment_name} --timeout=5m
     kubectl wait deployments/${deployment_name} --for condition=Available=True --timeout=5m
-    for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force;done
+    remove-terminating-pods
     sleep 15 && kubectl get pods
 
     echo "[Deploy] trigger-app-rolling-update: done"
@@ -286,7 +285,7 @@ function trigger-app-rolling-update() {
 
 function check-for-env-vars() {
     sleep 15 && kubectl get pods
-    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
+    pod=$(latest-app-pod-auto)
     echo "[Test] test for env vars ${pod}"
     trace_sample_rate="0.90"
     if [[ $CONFIG_NAME = "config-1" ]] ;  then
@@ -298,7 +297,7 @@ function check-for-env-vars() {
 
 function check-for-pod-metadata() {
     sleep 15 && kubectl get pods
-    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
+    pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     # TODO: check for label/annotation values not only the presence
@@ -313,7 +312,7 @@ function check-for-pod-metadata() {
 
 function check-for-no-pod-metadata() {
     sleep 15 && kubectl get pods
-    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
+    pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     has_enabled_key=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq 'has("admission.datadoghq.com/enabled")')
@@ -327,7 +326,7 @@ function check-for-no-pod-metadata() {
 
 function check-for-disabled-pod-metadata() {
     sleep 15 && kubectl get pods
-    pod=$(kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1)
+    pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
@@ -469,4 +468,12 @@ function build-and-push-init-image() {
     echo "Building init image"  
     echo "docker buildx build https://github.com/DataDog/dd-trace-${init_image_repo_alias}.git#robertomonteromiguel/lib_injection_system_tests_integration:lib-injection --build-context ${TEST_LIBRARY}_agent=$(pwd)/binaries/ --platform ${BUILDX_PLATFORMS} -t "${INIT_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}" --push "
    
+}
+
+function latest-app-pod-auto() {
+    kubectl get pods --field-selector=status.phase=Running --sort-by=.metadata.creationTimestamp -l app=${TEST_LIBRARY}-app -o name | head -n 1
+}
+
+function remove-terminating-pods() {
+    for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force; done
 }
