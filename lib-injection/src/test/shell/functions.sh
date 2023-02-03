@@ -209,7 +209,6 @@ function deploy-agents-auto() {
     echo "[Deploy] Cluster Agent with patcher enabled"
     deploy-operator-auto
     sleep 30
-    deploy-test-agent
 }
 
 function reset-app() {
@@ -399,16 +398,6 @@ function print-debug-info-auto() {
     echo "[debug] Export: Current cluster status"
     kubectl get pods > "${log_dir}/cluster_pods.log"
     kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
- 
-    echo "[debug] Export: Describe my-app status"
-    kubectl describe pod my-app > ${log_dir}/my-app_describe.log
-    kubectl logs pod/my-app > ${log_dir}/my-app.log
-    kubectl get pods > "${log_dir}/cluster_pods.log"
-    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log" || true
- 
-    echo "[debug] Export: Describe my-app status"
-    kubectl describe pod my-app > "${log_dir}/my-app_describe.log"
-    kubectl logs pod/my-app > "${log_dir}/my-app.log"
 
     echo "[debug] Export: Daemonset logs"
     kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
