@@ -20,10 +20,8 @@ clusterAgent:
     successThreshold: 1
     failureThreshold: 12
   image:
-    # TODO: update this to datadog/cluster-agent-dev:master after
-    # https://github.com/DataDog/datadog-agent/pull/15221 is merged
-    tag: fileprovider
-    repository: ddkverhoog/injecttest
+    tag: master
+    repository: datadog/cluster-agent-dev
     pullPolicy: Always
     doNotCheckTag: true
   env:
