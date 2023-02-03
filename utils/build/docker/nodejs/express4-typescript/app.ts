@@ -80,6 +80,13 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
   });
 });
 
+app.get('/load_dependency', (req: Request, res: Response) => {
+  console.log('Load dependency endpoint');
+  var glob = require("glob")
+  res.send("Loaded a dependency")
+ }); 
+
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');
