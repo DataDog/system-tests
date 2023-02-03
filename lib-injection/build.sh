@@ -7,9 +7,10 @@ SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
 
 echo "[build] Building not required for lib injection tests"
 
-KIND_VERSION='v0.14.0'
+KIND_VERSION='v0.17.0'
+KUBECTL_VERSION='v1.25.3'
 
-#Download appropriate version (Mac M1 arm64 arch or linux amd64)
+# Download appropriate version (Mac M1 arm64 arch or linux amd64)
 echo "[build] Download installable artifacts"
 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 if [ "$ARCH" = "arm64" ]; then
@@ -19,9 +20,9 @@ else
     curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
     KUBECTL_DOWNLOAD="linux/amd64/kubectl"
 fi
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/${KUBECTL_DOWNLOAD}"
+curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${KUBECTL_DOWNLOAD}"
 
-echo "[build] Installing kind "
+echo "[build] Installing kind"
 chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
 echo "[build] kind install complete"
