@@ -457,9 +457,9 @@ jobs:
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # - name: Load agent binary
-    #   if: ${{ matrix.version == 'dev' }}
-    #   run: ./utils/scripts/load-binary.sh agent
+    - name: Load agent binary
+      if: ${{ matrix.version == 'dev' }}
+      run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
@@ -541,8 +541,8 @@ jobs:
         variant:
         - library: java
           weblog: spring-boot-native
-     #   - library: java
-     #     weblog: spring-boot-3-native
+        - library: java
+          weblog: spring-boot-3-native
         version:
         - prod
         - dev
@@ -589,9 +589,9 @@ jobs:
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # - name: Load agent binary
-    #   if: ${{ matrix.version == 'dev' }}
-    #   run: ./utils/scripts/load-binary.sh agent
+    - name: Load agent binary
+      if: ${{ matrix.version == 'dev' }}
+      run: ./utils/scripts/load-binary.sh agent
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
@@ -600,7 +600,7 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
     - name: Building with cache read only mode
       if: ${{ github.ref != 'refs/heads/main'}}
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode R
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --cache-mode RW
     - name: Run DEFAULT scenario
       run: ./run.sh DEFAULT
       env:
