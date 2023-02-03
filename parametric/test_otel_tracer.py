@@ -41,23 +41,21 @@ SK_CLIENT = 3
 SK_PRODUCER = 4
 SK_CONSUMER = 5
 
+
 def test_otel_span_top_level_attributes(test_agent, test_otel_library):
     """Do a simple trace to ensure that the test client is working properly.
         - start parent span and child span
         - set attributes
     """
     with test_otel_library:
-        with test_otel_library.start_otel_span("operation",
-                                               span_kind=SK_PRODUCER,
-                                               timestamp=int(time.time()),
-                                               new_root=True,
-                                               attributes={'zoowee':'mama'}) as parent:
+        with test_otel_library.start_otel_span(
+            "operation", span_kind=SK_PRODUCER, timestamp=int(time.time()), new_root=True, attributes={"zoowee": "mama"}
+        ) as parent:
             parent.set_attributes({"key": "val"})
 
-            with test_otel_library.start_otel_span(name="child",
-                                                   span_kind=SK_PRODUCER,
-                                                   timestamp=int(time.time()),
-                                                   parent_id=parent.span_id) as child:
+            with test_otel_library.start_otel_span(
+                name="child", span_kind=SK_PRODUCER, timestamp=int(time.time()), parent_id=parent.span_id
+            ) as child:
 
                 child.set_attributes({"key2": "val2"})
                 child.set_name("operation.child")
@@ -90,6 +88,7 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
 #     """want to verify that span operations become noop after end"""
 #     pass
 
+
 def test_is_recording_otel(test_agent, test_otel_library):
     with test_otel_library:
         with test_otel_library.start_otel_span(name="test_span") as span:
@@ -97,6 +96,7 @@ def test_is_recording_otel(test_agent, test_otel_library):
             assert span.is_recording()
             span.finish()
             assert not span.is_recording()
+
 
 def test_force_flush_otel(test_agent, test_otel_library):
     """verify that force flush flushed the spans"""

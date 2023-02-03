@@ -752,13 +752,12 @@ class APMLibrary:
 class APMOtelLibrary:
     def __init__(
         self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub,
-        
     ):
         self._client = client
         self._client.StartOtelTracer(pb_otel.StartOtelTracerArgs())
         # pass in tracer.StartOptions
         # lets see how tracer code does it rn
-        
+
     def __enter__(self):
         pass
 
@@ -771,13 +770,13 @@ class APMOtelLibrary:
 
     @contextlib.contextmanager
     def start_otel_span(
-        self, 
+        self,
         name: str,
         new_root: bool = False,
         timestamp: bool = False,
         span_kind: int = 0,
         parent_id: str = "",
-        attributes = {}
+        attributes={},
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.StartOtelSpan(
             pb_otel.StartOtelSpanArgs(
