@@ -26,7 +26,7 @@ jobs:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
     steps:
-    - run: echo "hello!!!"
+    - run: echo "hello!!!!"
     - run: curl https://api.github.com/repos/datadog/system-tests/issues/841/labels| jq '.[].name' 
 
   lint_and_test:
@@ -34,7 +34,7 @@ jobs:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
     #if: "! github.event.pull_request.draft || github.event.label.name == 'test_the_tests'"
-    if: " github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'test_the_tests')"
+    if: " github.event.pull_request.draft != false || contains(github.event.pull_request.labels.*.name, 'test_the_tests')"
     steps:
     - name: Checkout
       uses: actions/checkout@v3
