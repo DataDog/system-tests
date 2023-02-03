@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Exit early for any failed commands
-set -e
-# Print commands that are run
-set -x
+# -e Exit early for any failed commands
+# -x Print commands that are run
+set -ex
 
 ## HELPERS
 function echoerr() {
@@ -153,7 +152,7 @@ function deploy-operator() {
     helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
     kubectl wait "${pod_name}" --for condition=ready --timeout=5m
-    sleep 15 && kubectl get pods
+    kubectl get pods
 }
 
 function deploy-test-agent() {
@@ -196,7 +195,7 @@ function deploy-app() {
        | kubectl apply -f -
     echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
     kubectl wait pod/${app_name} --for condition=ready --timeout=5m
-    sleep 5 && kubectl get pods
+    kubectl get pods
     echo "[Deploy] deploy-app done"
 }
 
