@@ -316,6 +316,7 @@ function check-for-deploy-metadata() {
 }
 
 function test-for-traces-manual() {
+    sleep 60 && kubectl get pods
     echo "[Test] test for traces"
 
     tmpfile=$(mktemp -t traces.XXXXXX)
@@ -337,6 +338,7 @@ function test-for-traces-manual() {
 }
 
 function test-for-traces-auto() {
+    sleep 60 && kubectl get pods
     echo "[Test] test for traces"
 
     tmpfile=$(mktemp -t traces.XXXXXX)
