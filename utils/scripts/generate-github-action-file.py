@@ -367,7 +367,7 @@ def main():
         "workflow_dispatch": {},
         "schedule": [{"cron": "00 02 * * 2-6"}],
         "pull_request": {"branches": ["**"]},
-        "pull_request_target": {"types": ["ready_for_review"]},
+        "pull_request_target": {"types": ["ready_for_review", "labeled"]},
         "push": {"branches": ["main"]},
     }
     result["env"] = {"REGISTRY": "ghcr.io"}
