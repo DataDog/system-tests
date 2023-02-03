@@ -39,7 +39,7 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 		pCtx = context.Background()
 	}
 	var otelOpts = []ot_api.SpanStartOption{
-		ot_api.WithSpanKind(ot_api.SpanKind(args.GetSpanKind())),
+		ot_api.WithSpanKind(ot_api.ValidateSpanKind(ot_api.SpanKind(args.GetSpanKind()))),
 	}
 	if args.GetNewRoot() {
 		otelOpts = append(otelOpts, ot_api.WithNewRoot())
@@ -49,7 +49,7 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
 	}
 	if attrs := args.GetAttributes(); attrs != nil {
-		for k, v := range attrs.Tags {
+		for k, v := range attrs {
 			otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
 		}
 	}
@@ -57,8 +57,7 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 	_, span := s.tp.Tracer("").Start(pCtx, args.Name, otelOpts...)
 	s.spans[span.SpanContext().SpanID().String()] = span
 	return &StartOtelSpanReturn{
-		SpanId:  span.SpanContext().SpanID().String(),
-		TraceId: span.SpanContext().TraceID().String(),
+		SpanId: span.SpanContext().SpanID().String(),
 	}, nil
 }
 
@@ -97,8 +96,8 @@ func (s *apmClientServer) EndOtelSpan(ctx context.Context, args *EndOtelSpanArgs
 	if !ok {
 		fmt.Sprintf("EndOtelSpan call failed, span with id=%d not found", args.Id)
 	}
-	// todo pass end span options
-	span.End()
+	var endOpts = []ot_api.SpanEndOption{}
+	span.End(endOpts...)
 
 	return &EndOtelSpanReturn{}, nil
 }

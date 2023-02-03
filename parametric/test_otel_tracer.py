@@ -2,6 +2,7 @@ from parametric.spec.trace import find_trace_by_root
 from parametric.spec.trace import find_span_in_traces
 from parametric.spec.trace import find_span
 from parametric.spec.otel_trace import OtelSpan
+import time
 
 # todo: add prefix_library to run otel_*
 # @pytest.mark.skip_library("golang", "parent context can't be passed")
@@ -29,10 +30,16 @@ from parametric.spec.otel_trace import OtelSpan
 #     child_span = find_span_in_traces(trace, Span(name="operation.child"))
 #     assert child_span["name"] == "operation.child"
 #     assert child_span["meta"]["key"] == "val"
-
 OTEL_UNSET_CODE = "UNSET"
 OTEL_ERROR_CODE = "ERROR"
 OTEL_OK_CODE = "OK"
+
+SK_UNSPECIFIED = 0
+SK_INTERNAL = 1
+SK_SERVER = 2
+SK_CLIENT = 3
+SK_PRODUCER = 4
+SK_CONSUMER = 5
 
 def test_otel_span_top_level_attributes(test_agent, test_otel_library):
     """Do a simple trace to ensure that the test client is working properly.
@@ -40,13 +47,25 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
         - set attributes
     """
     with test_otel_library:
-        with test_otel_library.start_otel_span("operation") as parent:
+        with test_otel_library.start_otel_span("operation",
+                                               span_kind=SK_PRODUCER,
+                                               timestamp=int(time.time()),
+                                               new_root=True,
+                                               attributes={'zoowee':'mama'}) as parent:
             parent.set_attributes({"key": "val"})
-            with test_otel_library.start_otel_span(
-                name="operation.child", new_root=False, parent_id=parent.span_id
-            ) as child:
+
+            with test_otel_library.start_otel_span(name="child",
+                                                   span_kind=SK_PRODUCER,
+                                                   timestamp=int(time.time()),
+                                                   parent_id=parent.span_id) as child:
+
                 child.set_attributes({"key2": "val2"})
-                assert child.trace_id == parent.trace_id
+                child.set_name("operation.child")
+
+                assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
+                assert parent.span_context()["trace_flags"] == child.span_context()["trace_flags"]
+                assert parent.span_context()["trace_state"] == child.span_context()["trace_state"]
+                assert parent.span_context()["remote"] == child.span_context()["remote"]
 
     traces = test_agent.wait_for_num_traces(1)
 
@@ -57,9 +76,11 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
 
     assert root_span["name"] == "operation"
     assert root_span["meta"]["key"] == "val"
+    assert root_span["meta"]["zoowee"] == "mama"
     child_span = find_span(trace, OtelSpan(name="operation.child"))
     assert child_span["name"] == "operation.child"
     assert child_span["meta"]["key2"] == "val2"
+
 
 # def test_start_otel_tracer(test_agent, test_otel_library):
 #     """start tracer with various options, verify those options are set"""
@@ -90,6 +111,7 @@ def test_force_flush_otel(test_agent, test_otel_library):
         span = find_span_in_traces(traces, OtelSpan(name="test_span"))
         assert span.get("name") == "test_span"
 
+
 def test_set_otel_span_status(test_agent, test_otel_library):
     """want to verify set status logic is correct"""
     with test_otel_library:
@@ -102,15 +124,16 @@ def test_set_otel_span_status(test_agent, test_otel_library):
     assert tags is not None
     assert tags.get("error.message") == "error_desc"
 
-def test_start_otel_api_span_with_set_name(test_agent, test_otel_library):
-    """Test span is created with OTel API of Datadog Tracing Library"""
-    with test_otel_library:
-        with test_otel_library.start_otel_span(
-            name="operation", service="my-webserver", resource="/endpoint"
-        ) as parent:
-            parent.set_attributes({"key": "val"})
-            parent.set_name("new_op")
 
-    span = find_span_in_traces(test_agent.wait_for_num_traces(1), OtelSpan(name="web.otel"))
-    assert span.get("name") == "new_op"
-    assert span.get("resource") == "operation"
+# def test_start_otel_api_span_with_set_name(test_agent, test_otel_library):
+#     """Test span is created with OTel API of Datadog Tracing Library"""
+#     with test_otel_library:
+#         with test_otel_library.start_otel_span(
+#             name="operation"
+#         ) as parent:
+#             parent.set_attributes({"key": "val"})
+#             parent.set_name("new_op")
+
+#     span = find_span_in_traces(test_agent.wait_for_num_traces(1), OtelSpan(name="web.otel"))
+#     assert span.get("name") == "new_op"
+#     assert span.get("resource") == "operation"

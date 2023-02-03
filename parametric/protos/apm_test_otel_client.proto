@@ -18,6 +18,7 @@ service APMOtelClient {
 
 message StartOtelSpanArgs {
   string name = 1;
+  map<string, string> attributes = 8;
   optional bool new_root = 2;
   optional string parent_id = 3;
   optional uint64 span_kind = 9;
@@ -25,11 +26,8 @@ message StartOtelSpanArgs {
   optional string resource = 5;
   optional string type = 6;
   optional int64 timestamp = 7;
-  optional attributes attributes = 8;
 }
-message attributes {
-  map<string, string> tags = 9;
-}
+
 //message DistributedHTTPHeaders {
 //    map<string, string> http_headers = 9;
 //}

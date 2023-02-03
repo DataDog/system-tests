@@ -25,15 +25,15 @@ type StartOtelSpanArgs struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name       string      `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	NewRoot    *bool       `protobuf:"varint,2,opt,name=new_root,json=newRoot,proto3,oneof" json:"new_root,omitempty"`
-	ParentId   *string     `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
-	SpanKind   *uint64     `protobuf:"varint,9,opt,name=span_kind,json=spanKind,proto3,oneof" json:"span_kind,omitempty"`
-	Service    *string     `protobuf:"bytes,4,opt,name=service,proto3,oneof" json:"service,omitempty"`
-	Resource   *string     `protobuf:"bytes,5,opt,name=resource,proto3,oneof" json:"resource,omitempty"`
-	Type       *string     `protobuf:"bytes,6,opt,name=type,proto3,oneof" json:"type,omitempty"`
-	Timestamp  *int64      `protobuf:"varint,7,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
-	Attributes *Attributes `protobuf:"bytes,8,opt,name=attributes,proto3,oneof" json:"attributes,omitempty"`
+	Name       string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Attributes map[string]string `protobuf:"bytes,8,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	NewRoot    *bool             `protobuf:"varint,2,opt,name=new_root,json=newRoot,proto3,oneof" json:"new_root,omitempty"`
+	ParentId   *string           `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
+	SpanKind   *uint64           `protobuf:"varint,9,opt,name=span_kind,json=spanKind,proto3,oneof" json:"span_kind,omitempty"`
+	Service    *string           `protobuf:"bytes,4,opt,name=service,proto3,oneof" json:"service,omitempty"`
+	Resource   *string           `protobuf:"bytes,5,opt,name=resource,proto3,oneof" json:"resource,omitempty"`
+	Type       *string           `protobuf:"bytes,6,opt,name=type,proto3,oneof" json:"type,omitempty"`
+	Timestamp  *int64            `protobuf:"varint,7,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
 }
 
 func (x *StartOtelSpanArgs) Reset() {
@@ -73,6 +73,13 @@ func (x *StartOtelSpanArgs) GetName() string {
 		return x.Name
 	}
 	return ""
+}
+
+func (x *StartOtelSpanArgs) GetAttributes() map[string]string {
+	if x != nil {
+		return x.Attributes
+	}
+	return nil
 }
 
 func (x *StartOtelSpanArgs) GetNewRoot() bool {
@@ -124,60 +131,6 @@ func (x *StartOtelSpanArgs) GetTimestamp() int64 {
 	return 0
 }
 
-func (x *StartOtelSpanArgs) GetAttributes() *Attributes {
-	if x != nil {
-		return x.Attributes
-	}
-	return nil
-}
-
-type Attributes struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Tags map[string]string `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-}
-
-func (x *Attributes) Reset() {
-	*x = Attributes{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Attributes) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Attributes) ProtoMessage() {}
-
-func (x *Attributes) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Attributes.ProtoReflect.Descriptor instead.
-func (*Attributes) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *Attributes) GetTags() map[string]string {
-	if x != nil {
-		return x.Tags
-	}
-	return nil
-}
-
 type StartOtelSpanReturn struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -190,7 +143,7 @@ type StartOtelSpanReturn struct {
 func (x *StartOtelSpanReturn) Reset() {
 	*x = StartOtelSpanReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[2]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -203,7 +156,7 @@ func (x *StartOtelSpanReturn) String() string {
 func (*StartOtelSpanReturn) ProtoMessage() {}
 
 func (x *StartOtelSpanReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[2]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -216,7 +169,7 @@ func (x *StartOtelSpanReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartOtelSpanReturn.ProtoReflect.Descriptor instead.
 func (*StartOtelSpanReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{2}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *StartOtelSpanReturn) GetSpanId() string {
@@ -244,7 +197,7 @@ type EndOtelSpanArgs struct {
 func (x *EndOtelSpanArgs) Reset() {
 	*x = EndOtelSpanArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[3]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -257,7 +210,7 @@ func (x *EndOtelSpanArgs) String() string {
 func (*EndOtelSpanArgs) ProtoMessage() {}
 
 func (x *EndOtelSpanArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[3]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +223,7 @@ func (x *EndOtelSpanArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndOtelSpanArgs.ProtoReflect.Descriptor instead.
 func (*EndOtelSpanArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{3}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *EndOtelSpanArgs) GetId() string {
@@ -289,7 +242,7 @@ type EndOtelSpanReturn struct {
 func (x *EndOtelSpanReturn) Reset() {
 	*x = EndOtelSpanReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[4]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -302,7 +255,7 @@ func (x *EndOtelSpanReturn) String() string {
 func (*EndOtelSpanReturn) ProtoMessage() {}
 
 func (x *EndOtelSpanReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[4]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -315,7 +268,7 @@ func (x *EndOtelSpanReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndOtelSpanReturn.ProtoReflect.Descriptor instead.
 func (*EndOtelSpanReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{4}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{3}
 }
 
 type ForceFlushOtelArgs struct {
@@ -329,7 +282,7 @@ type ForceFlushOtelArgs struct {
 func (x *ForceFlushOtelArgs) Reset() {
 	*x = ForceFlushOtelArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[5]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -342,7 +295,7 @@ func (x *ForceFlushOtelArgs) String() string {
 func (*ForceFlushOtelArgs) ProtoMessage() {}
 
 func (x *ForceFlushOtelArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[5]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -355,7 +308,7 @@ func (x *ForceFlushOtelArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceFlushOtelArgs.ProtoReflect.Descriptor instead.
 func (*ForceFlushOtelArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{5}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ForceFlushOtelArgs) GetSeconds() uint32 {
@@ -376,7 +329,7 @@ type ForceFlushOtelReturn struct {
 func (x *ForceFlushOtelReturn) Reset() {
 	*x = ForceFlushOtelReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[6]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -389,7 +342,7 @@ func (x *ForceFlushOtelReturn) String() string {
 func (*ForceFlushOtelReturn) ProtoMessage() {}
 
 func (x *ForceFlushOtelReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[6]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -402,7 +355,7 @@ func (x *ForceFlushOtelReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceFlushOtelReturn.ProtoReflect.Descriptor instead.
 func (*ForceFlushOtelReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{6}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ForceFlushOtelReturn) GetSuccess() bool {
@@ -421,7 +374,7 @@ type FlushOtelSpansArgs struct {
 func (x *FlushOtelSpansArgs) Reset() {
 	*x = FlushOtelSpansArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[7]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -434,7 +387,7 @@ func (x *FlushOtelSpansArgs) String() string {
 func (*FlushOtelSpansArgs) ProtoMessage() {}
 
 func (x *FlushOtelSpansArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[7]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -447,7 +400,7 @@ func (x *FlushOtelSpansArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushOtelSpansArgs.ProtoReflect.Descriptor instead.
 func (*FlushOtelSpansArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{7}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{6}
 }
 
 type FlushOtelSpansReturn struct {
@@ -459,7 +412,7 @@ type FlushOtelSpansReturn struct {
 func (x *FlushOtelSpansReturn) Reset() {
 	*x = FlushOtelSpansReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[8]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -472,7 +425,7 @@ func (x *FlushOtelSpansReturn) String() string {
 func (*FlushOtelSpansReturn) ProtoMessage() {}
 
 func (x *FlushOtelSpansReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[8]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -485,7 +438,7 @@ func (x *FlushOtelSpansReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushOtelSpansReturn.ProtoReflect.Descriptor instead.
 func (*FlushOtelSpansReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{8}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{7}
 }
 
 type FlushOtelTraceStatsArgs struct {
@@ -497,7 +450,7 @@ type FlushOtelTraceStatsArgs struct {
 func (x *FlushOtelTraceStatsArgs) Reset() {
 	*x = FlushOtelTraceStatsArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[9]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -510,7 +463,7 @@ func (x *FlushOtelTraceStatsArgs) String() string {
 func (*FlushOtelTraceStatsArgs) ProtoMessage() {}
 
 func (x *FlushOtelTraceStatsArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[9]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -523,7 +476,7 @@ func (x *FlushOtelTraceStatsArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushOtelTraceStatsArgs.ProtoReflect.Descriptor instead.
 func (*FlushOtelTraceStatsArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{9}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{8}
 }
 
 type FlushOtelTraceStatsReturn struct {
@@ -535,7 +488,7 @@ type FlushOtelTraceStatsReturn struct {
 func (x *FlushOtelTraceStatsReturn) Reset() {
 	*x = FlushOtelTraceStatsReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[10]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -548,7 +501,7 @@ func (x *FlushOtelTraceStatsReturn) String() string {
 func (*FlushOtelTraceStatsReturn) ProtoMessage() {}
 
 func (x *FlushOtelTraceStatsReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[10]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -561,7 +514,7 @@ func (x *FlushOtelTraceStatsReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushOtelTraceStatsReturn.ProtoReflect.Descriptor instead.
 func (*FlushOtelTraceStatsReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{10}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{9}
 }
 
 type StopOtelTracerArgs struct {
@@ -573,7 +526,7 @@ type StopOtelTracerArgs struct {
 func (x *StopOtelTracerArgs) Reset() {
 	*x = StopOtelTracerArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[11]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -586,7 +539,7 @@ func (x *StopOtelTracerArgs) String() string {
 func (*StopOtelTracerArgs) ProtoMessage() {}
 
 func (x *StopOtelTracerArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[11]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -599,7 +552,7 @@ func (x *StopOtelTracerArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopOtelTracerArgs.ProtoReflect.Descriptor instead.
 func (*StopOtelTracerArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{11}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{10}
 }
 
 type StopOtelTracerReturn struct {
@@ -611,7 +564,7 @@ type StopOtelTracerReturn struct {
 func (x *StopOtelTracerReturn) Reset() {
 	*x = StopOtelTracerReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[12]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -624,7 +577,7 @@ func (x *StopOtelTracerReturn) String() string {
 func (*StopOtelTracerReturn) ProtoMessage() {}
 
 func (x *StopOtelTracerReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[12]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -637,7 +590,7 @@ func (x *StopOtelTracerReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopOtelTracerReturn.ProtoReflect.Descriptor instead.
 func (*StopOtelTracerReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{12}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{11}
 }
 
 type StartOtelTracerArgs struct {
@@ -649,7 +602,7 @@ type StartOtelTracerArgs struct {
 func (x *StartOtelTracerArgs) Reset() {
 	*x = StartOtelTracerArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[13]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -662,7 +615,7 @@ func (x *StartOtelTracerArgs) String() string {
 func (*StartOtelTracerArgs) ProtoMessage() {}
 
 func (x *StartOtelTracerArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[13]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -675,7 +628,7 @@ func (x *StartOtelTracerArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartOtelTracerArgs.ProtoReflect.Descriptor instead.
 func (*StartOtelTracerArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{13}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{12}
 }
 
 type StartOtelTracerReturn struct {
@@ -687,7 +640,7 @@ type StartOtelTracerReturn struct {
 func (x *StartOtelTracerReturn) Reset() {
 	*x = StartOtelTracerReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[14]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -700,7 +653,7 @@ func (x *StartOtelTracerReturn) String() string {
 func (*StartOtelTracerReturn) ProtoMessage() {}
 
 func (x *StartOtelTracerReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[14]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -713,7 +666,7 @@ func (x *StartOtelTracerReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartOtelTracerReturn.ProtoReflect.Descriptor instead.
 func (*StartOtelTracerReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{14}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{13}
 }
 
 type IsRecordingArgs struct {
@@ -727,7 +680,7 @@ type IsRecordingArgs struct {
 func (x *IsRecordingArgs) Reset() {
 	*x = IsRecordingArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[15]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -740,7 +693,7 @@ func (x *IsRecordingArgs) String() string {
 func (*IsRecordingArgs) ProtoMessage() {}
 
 func (x *IsRecordingArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[15]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -753,7 +706,7 @@ func (x *IsRecordingArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsRecordingArgs.ProtoReflect.Descriptor instead.
 func (*IsRecordingArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{15}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *IsRecordingArgs) GetSpanId() string {
@@ -774,7 +727,7 @@ type IsRecordingReturn struct {
 func (x *IsRecordingReturn) Reset() {
 	*x = IsRecordingReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[16]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -787,7 +740,7 @@ func (x *IsRecordingReturn) String() string {
 func (*IsRecordingReturn) ProtoMessage() {}
 
 func (x *IsRecordingReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[16]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -800,7 +753,7 @@ func (x *IsRecordingReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsRecordingReturn.ProtoReflect.Descriptor instead.
 func (*IsRecordingReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{16}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *IsRecordingReturn) GetIsRecording() bool {
@@ -823,7 +776,7 @@ type SetStatusArgs struct {
 func (x *SetStatusArgs) Reset() {
 	*x = SetStatusArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[17]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -836,7 +789,7 @@ func (x *SetStatusArgs) String() string {
 func (*SetStatusArgs) ProtoMessage() {}
 
 func (x *SetStatusArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[17]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -849,7 +802,7 @@ func (x *SetStatusArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStatusArgs.ProtoReflect.Descriptor instead.
 func (*SetStatusArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{17}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *SetStatusArgs) GetSpanId() string {
@@ -882,7 +835,7 @@ type SetStatusReturn struct {
 func (x *SetStatusReturn) Reset() {
 	*x = SetStatusReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[18]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -895,7 +848,7 @@ func (x *SetStatusReturn) String() string {
 func (*SetStatusReturn) ProtoMessage() {}
 
 func (x *SetStatusReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[18]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -908,7 +861,7 @@ func (x *SetStatusReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStatusReturn.ProtoReflect.Descriptor instead.
 func (*SetStatusReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{18}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{17}
 }
 
 type SetNameArgs struct {
@@ -923,7 +876,7 @@ type SetNameArgs struct {
 func (x *SetNameArgs) Reset() {
 	*x = SetNameArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[19]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -936,7 +889,7 @@ func (x *SetNameArgs) String() string {
 func (*SetNameArgs) ProtoMessage() {}
 
 func (x *SetNameArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[19]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -949,7 +902,7 @@ func (x *SetNameArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetNameArgs.ProtoReflect.Descriptor instead.
 func (*SetNameArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{19}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SetNameArgs) GetSpanId() string {
@@ -975,7 +928,7 @@ type SetNameReturn struct {
 func (x *SetNameReturn) Reset() {
 	*x = SetNameReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[20]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -988,7 +941,7 @@ func (x *SetNameReturn) String() string {
 func (*SetNameReturn) ProtoMessage() {}
 
 func (x *SetNameReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[20]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1001,7 +954,7 @@ func (x *SetNameReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetNameReturn.ProtoReflect.Descriptor instead.
 func (*SetNameReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{20}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{19}
 }
 
 type SetAttributesArgs struct {
@@ -1016,7 +969,7 @@ type SetAttributesArgs struct {
 func (x *SetAttributesArgs) Reset() {
 	*x = SetAttributesArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[21]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1029,7 +982,7 @@ func (x *SetAttributesArgs) String() string {
 func (*SetAttributesArgs) ProtoMessage() {}
 
 func (x *SetAttributesArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[21]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1042,7 +995,7 @@ func (x *SetAttributesArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAttributesArgs.ProtoReflect.Descriptor instead.
 func (*SetAttributesArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{21}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SetAttributesArgs) GetSpanId() string {
@@ -1068,7 +1021,7 @@ type SetAttributesReturn struct {
 func (x *SetAttributesReturn) Reset() {
 	*x = SetAttributesReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[22]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1081,7 +1034,7 @@ func (x *SetAttributesReturn) String() string {
 func (*SetAttributesReturn) ProtoMessage() {}
 
 func (x *SetAttributesReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[22]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1094,7 +1047,7 @@ func (x *SetAttributesReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAttributesReturn.ProtoReflect.Descriptor instead.
 func (*SetAttributesReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{22}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{21}
 }
 
 type SpanContextArgs struct {
@@ -1108,7 +1061,7 @@ type SpanContextArgs struct {
 func (x *SpanContextArgs) Reset() {
 	*x = SpanContextArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[23]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1121,7 +1074,7 @@ func (x *SpanContextArgs) String() string {
 func (*SpanContextArgs) ProtoMessage() {}
 
 func (x *SpanContextArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[23]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1134,7 +1087,7 @@ func (x *SpanContextArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanContextArgs.ProtoReflect.Descriptor instead.
 func (*SpanContextArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{23}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SpanContextArgs) GetSpanId() string {
@@ -1159,7 +1112,7 @@ type SpanContextReturn struct {
 func (x *SpanContextReturn) Reset() {
 	*x = SpanContextReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_otel_client_proto_msgTypes[24]
+		mi := &file_protos_apm_test_otel_client_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1172,7 +1125,7 @@ func (x *SpanContextReturn) String() string {
 func (*SpanContextReturn) ProtoMessage() {}
 
 func (x *SpanContextReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_otel_client_proto_msgTypes[24]
+	mi := &file_protos_apm_test_otel_client_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1185,7 +1138,7 @@ func (x *SpanContextReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanContextReturn.ProtoReflect.Descriptor instead.
 func (*SpanContextReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{24}
+	return file_protos_apm_test_otel_client_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SpanContextReturn) GetSpanId() string {
@@ -1228,40 +1181,37 @@ var File_protos_apm_test_otel_client_proto protoreflect.FileDescriptor
 var file_protos_apm_test_otel_client_proto_rawDesc = []byte{
 	0x0a, 0x21, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x2f, 0x61, 0x70, 0x6d, 0x5f, 0x74, 0x65, 0x73,
 	0x74, 0x5f, 0x6f, 0x74, 0x65, 0x6c, 0x5f, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x22, 0xa1, 0x03, 0x0a, 0x11, 0x53, 0x74, 0x61, 0x72, 0x74, 0x4f, 0x74, 0x65,
+	0x6f, 0x74, 0x6f, 0x22, 0xe3, 0x03, 0x0a, 0x11, 0x53, 0x74, 0x61, 0x72, 0x74, 0x4f, 0x74, 0x65,
 	0x6c, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d,
-	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1e, 0x0a,
-	0x08, 0x6e, 0x65, 0x77, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x48,
-	0x00, 0x52, 0x07, 0x6e, 0x65, 0x77, 0x52, 0x6f, 0x6f, 0x74, 0x88, 0x01, 0x01, 0x12, 0x20, 0x0a,
-	0x09, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x48, 0x01, 0x52, 0x08, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x49, 0x64, 0x88, 0x01, 0x01, 0x12,
-	0x20, 0x0a, 0x09, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x6b, 0x69, 0x6e, 0x64, 0x18, 0x09, 0x20, 0x01,
-	0x28, 0x04, 0x48, 0x02, 0x52, 0x08, 0x73, 0x70, 0x61, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x88, 0x01,
-	0x01, 0x12, 0x1d, 0x0a, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01,
-	0x28, 0x09, 0x48, 0x03, 0x52, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x88, 0x01, 0x01,
-	0x12, 0x1f, 0x0a, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01,
-	0x28, 0x09, 0x48, 0x04, 0x52, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x88, 0x01,
-	0x01, 0x12, 0x17, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x48,
-	0x05, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x88, 0x01, 0x01, 0x12, 0x21, 0x0a, 0x09, 0x74, 0x69,
-	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x07, 0x20, 0x01, 0x28, 0x03, 0x48, 0x06, 0x52,
-	0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x88, 0x01, 0x01, 0x12, 0x30, 0x0a,
-	0x0a, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x18, 0x08, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x0b, 0x2e, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x48, 0x07,
-	0x52, 0x0a, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x88, 0x01, 0x01, 0x42,
-	0x0b, 0x0a, 0x09, 0x5f, 0x6e, 0x65, 0x77, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x42, 0x0c, 0x0a, 0x0a,
-	0x5f, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x42, 0x0c, 0x0a, 0x0a, 0x5f, 0x73,
-	0x70, 0x61, 0x6e, 0x5f, 0x6b, 0x69, 0x6e, 0x64, 0x42, 0x0a, 0x0a, 0x08, 0x5f, 0x73, 0x65, 0x72,
-	0x76, 0x69, 0x63, 0x65, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63,
-	0x65, 0x42, 0x07, 0x0a, 0x05, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x42, 0x0c, 0x0a, 0x0a, 0x5f, 0x74,
-	0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x0d, 0x0a, 0x0b, 0x5f, 0x61, 0x74, 0x74,
-	0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x22, 0x70, 0x0a, 0x0a, 0x61, 0x74, 0x74, 0x72, 0x69,
-	0x62, 0x75, 0x74, 0x65, 0x73, 0x12, 0x29, 0x0a, 0x04, 0x74, 0x61, 0x67, 0x73, 0x18, 0x09, 0x20,
-	0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73,
-	0x2e, 0x54, 0x61, 0x67, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x04, 0x74, 0x61, 0x67, 0x73,
-	0x1a, 0x37, 0x0a, 0x09, 0x54, 0x61, 0x67, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a,
-	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12,
-	0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x49, 0x0a, 0x13, 0x53, 0x74, 0x61,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x42, 0x0a,
+	0x0a, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x18, 0x08, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x22, 0x2e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x70, 0x61,
+	0x6e, 0x41, 0x72, 0x67, 0x73, 0x2e, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0a, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65,
+	0x73, 0x12, 0x1e, 0x0a, 0x08, 0x6e, 0x65, 0x77, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x08, 0x48, 0x00, 0x52, 0x07, 0x6e, 0x65, 0x77, 0x52, 0x6f, 0x6f, 0x74, 0x88, 0x01,
+	0x01, 0x12, 0x20, 0x0a, 0x09, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x48, 0x01, 0x52, 0x08, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x49, 0x64,
+	0x88, 0x01, 0x01, 0x12, 0x20, 0x0a, 0x09, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x6b, 0x69, 0x6e, 0x64,
+	0x18, 0x09, 0x20, 0x01, 0x28, 0x04, 0x48, 0x02, 0x52, 0x08, 0x73, 0x70, 0x61, 0x6e, 0x4b, 0x69,
+	0x6e, 0x64, 0x88, 0x01, 0x01, 0x12, 0x1d, 0x0a, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x48, 0x03, 0x52, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x88, 0x01, 0x01, 0x12, 0x1f, 0x0a, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x48, 0x04, 0x52, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72,
+	0x63, 0x65, 0x88, 0x01, 0x01, 0x12, 0x17, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x06, 0x20,
+	0x01, 0x28, 0x09, 0x48, 0x05, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x88, 0x01, 0x01, 0x12, 0x21,
+	0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x07, 0x20, 0x01, 0x28,
+	0x03, 0x48, 0x06, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x88, 0x01,
+	0x01, 0x1a, 0x3d, 0x0a, 0x0f, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x45,
+	0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01,
+	0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x6e, 0x65, 0x77, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x42, 0x0c, 0x0a,
+	0x0a, 0x5f, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x42, 0x0c, 0x0a, 0x0a, 0x5f,
+	0x73, 0x70, 0x61, 0x6e, 0x5f, 0x6b, 0x69, 0x6e, 0x64, 0x42, 0x0a, 0x0a, 0x08, 0x5f, 0x73, 0x65,
+	0x72, 0x76, 0x69, 0x63, 0x65, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72,
+	0x63, 0x65, 0x42, 0x07, 0x0a, 0x05, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x42, 0x0c, 0x0a, 0x0a, 0x5f,
+	0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x49, 0x0a, 0x13, 0x53, 0x74, 0x61,
 	0x72, 0x74, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e,
 	0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x74, 0x72, 0x61,
@@ -1393,69 +1343,67 @@ func file_protos_apm_test_otel_client_proto_rawDescGZIP() []byte {
 	return file_protos_apm_test_otel_client_proto_rawDescData
 }
 
-var file_protos_apm_test_otel_client_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_protos_apm_test_otel_client_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_protos_apm_test_otel_client_proto_goTypes = []interface{}{
 	(*StartOtelSpanArgs)(nil),         // 0: StartOtelSpanArgs
-	(*Attributes)(nil),                // 1: attributes
-	(*StartOtelSpanReturn)(nil),       // 2: StartOtelSpanReturn
-	(*EndOtelSpanArgs)(nil),           // 3: EndOtelSpanArgs
-	(*EndOtelSpanReturn)(nil),         // 4: EndOtelSpanReturn
-	(*ForceFlushOtelArgs)(nil),        // 5: ForceFlushOtelArgs
-	(*ForceFlushOtelReturn)(nil),      // 6: ForceFlushOtelReturn
-	(*FlushOtelSpansArgs)(nil),        // 7: FlushOtelSpansArgs
-	(*FlushOtelSpansReturn)(nil),      // 8: FlushOtelSpansReturn
-	(*FlushOtelTraceStatsArgs)(nil),   // 9: FlushOtelTraceStatsArgs
-	(*FlushOtelTraceStatsReturn)(nil), // 10: FlushOtelTraceStatsReturn
-	(*StopOtelTracerArgs)(nil),        // 11: StopOtelTracerArgs
-	(*StopOtelTracerReturn)(nil),      // 12: StopOtelTracerReturn
-	(*StartOtelTracerArgs)(nil),       // 13: StartOtelTracerArgs
-	(*StartOtelTracerReturn)(nil),     // 14: StartOtelTracerReturn
-	(*IsRecordingArgs)(nil),           // 15: IsRecordingArgs
-	(*IsRecordingReturn)(nil),         // 16: IsRecordingReturn
-	(*SetStatusArgs)(nil),             // 17: SetStatusArgs
-	(*SetStatusReturn)(nil),           // 18: SetStatusReturn
-	(*SetNameArgs)(nil),               // 19: SetNameArgs
-	(*SetNameReturn)(nil),             // 20: SetNameReturn
-	(*SetAttributesArgs)(nil),         // 21: SetAttributesArgs
-	(*SetAttributesReturn)(nil),       // 22: SetAttributesReturn
-	(*SpanContextArgs)(nil),           // 23: SpanContextArgs
-	(*SpanContextReturn)(nil),         // 24: SpanContextReturn
-	nil,                               // 25: attributes.TagsEntry
-	nil,                               // 26: SetAttributesArgs.AttributesEntry
+	(*StartOtelSpanReturn)(nil),       // 1: StartOtelSpanReturn
+	(*EndOtelSpanArgs)(nil),           // 2: EndOtelSpanArgs
+	(*EndOtelSpanReturn)(nil),         // 3: EndOtelSpanReturn
+	(*ForceFlushOtelArgs)(nil),        // 4: ForceFlushOtelArgs
+	(*ForceFlushOtelReturn)(nil),      // 5: ForceFlushOtelReturn
+	(*FlushOtelSpansArgs)(nil),        // 6: FlushOtelSpansArgs
+	(*FlushOtelSpansReturn)(nil),      // 7: FlushOtelSpansReturn
+	(*FlushOtelTraceStatsArgs)(nil),   // 8: FlushOtelTraceStatsArgs
+	(*FlushOtelTraceStatsReturn)(nil), // 9: FlushOtelTraceStatsReturn
+	(*StopOtelTracerArgs)(nil),        // 10: StopOtelTracerArgs
+	(*StopOtelTracerReturn)(nil),      // 11: StopOtelTracerReturn
+	(*StartOtelTracerArgs)(nil),       // 12: StartOtelTracerArgs
+	(*StartOtelTracerReturn)(nil),     // 13: StartOtelTracerReturn
+	(*IsRecordingArgs)(nil),           // 14: IsRecordingArgs
+	(*IsRecordingReturn)(nil),         // 15: IsRecordingReturn
+	(*SetStatusArgs)(nil),             // 16: SetStatusArgs
+	(*SetStatusReturn)(nil),           // 17: SetStatusReturn
+	(*SetNameArgs)(nil),               // 18: SetNameArgs
+	(*SetNameReturn)(nil),             // 19: SetNameReturn
+	(*SetAttributesArgs)(nil),         // 20: SetAttributesArgs
+	(*SetAttributesReturn)(nil),       // 21: SetAttributesReturn
+	(*SpanContextArgs)(nil),           // 22: SpanContextArgs
+	(*SpanContextReturn)(nil),         // 23: SpanContextReturn
+	nil,                               // 24: StartOtelSpanArgs.AttributesEntry
+	nil,                               // 25: SetAttributesArgs.AttributesEntry
 }
 var file_protos_apm_test_otel_client_proto_depIdxs = []int32{
-	1,  // 0: StartOtelSpanArgs.attributes:type_name -> attributes
-	25, // 1: attributes.tags:type_name -> attributes.TagsEntry
-	26, // 2: SetAttributesArgs.attributes:type_name -> SetAttributesArgs.AttributesEntry
-	13, // 3: APMOtelClient.StartOtelTracer:input_type -> StartOtelTracerArgs
-	0,  // 4: APMOtelClient.StartOtelSpan:input_type -> StartOtelSpanArgs
-	3,  // 5: APMOtelClient.EndOtelSpan:input_type -> EndOtelSpanArgs
-	15, // 6: APMOtelClient.IsRecording:input_type -> IsRecordingArgs
-	23, // 7: APMOtelClient.SpanContext:input_type -> SpanContextArgs
-	17, // 8: APMOtelClient.SetStatus:input_type -> SetStatusArgs
-	19, // 9: APMOtelClient.SetName:input_type -> SetNameArgs
-	21, // 10: APMOtelClient.SetAttributes:input_type -> SetAttributesArgs
-	5,  // 11: APMOtelClient.ForceFlushOtel:input_type -> ForceFlushOtelArgs
-	7,  // 12: APMOtelClient.FlushOtelSpans:input_type -> FlushOtelSpansArgs
-	9,  // 13: APMOtelClient.FlushOtelTraceStats:input_type -> FlushOtelTraceStatsArgs
-	11, // 14: APMOtelClient.StopOtelTracer:input_type -> StopOtelTracerArgs
-	14, // 15: APMOtelClient.StartOtelTracer:output_type -> StartOtelTracerReturn
-	2,  // 16: APMOtelClient.StartOtelSpan:output_type -> StartOtelSpanReturn
-	4,  // 17: APMOtelClient.EndOtelSpan:output_type -> EndOtelSpanReturn
-	16, // 18: APMOtelClient.IsRecording:output_type -> IsRecordingReturn
-	24, // 19: APMOtelClient.SpanContext:output_type -> SpanContextReturn
-	18, // 20: APMOtelClient.SetStatus:output_type -> SetStatusReturn
-	20, // 21: APMOtelClient.SetName:output_type -> SetNameReturn
-	22, // 22: APMOtelClient.SetAttributes:output_type -> SetAttributesReturn
-	6,  // 23: APMOtelClient.ForceFlushOtel:output_type -> ForceFlushOtelReturn
-	8,  // 24: APMOtelClient.FlushOtelSpans:output_type -> FlushOtelSpansReturn
-	10, // 25: APMOtelClient.FlushOtelTraceStats:output_type -> FlushOtelTraceStatsReturn
-	12, // 26: APMOtelClient.StopOtelTracer:output_type -> StopOtelTracerReturn
-	15, // [15:27] is the sub-list for method output_type
-	3,  // [3:15] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	24, // 0: StartOtelSpanArgs.attributes:type_name -> StartOtelSpanArgs.AttributesEntry
+	25, // 1: SetAttributesArgs.attributes:type_name -> SetAttributesArgs.AttributesEntry
+	12, // 2: APMOtelClient.StartOtelTracer:input_type -> StartOtelTracerArgs
+	0,  // 3: APMOtelClient.StartOtelSpan:input_type -> StartOtelSpanArgs
+	2,  // 4: APMOtelClient.EndOtelSpan:input_type -> EndOtelSpanArgs
+	14, // 5: APMOtelClient.IsRecording:input_type -> IsRecordingArgs
+	22, // 6: APMOtelClient.SpanContext:input_type -> SpanContextArgs
+	16, // 7: APMOtelClient.SetStatus:input_type -> SetStatusArgs
+	18, // 8: APMOtelClient.SetName:input_type -> SetNameArgs
+	20, // 9: APMOtelClient.SetAttributes:input_type -> SetAttributesArgs
+	4,  // 10: APMOtelClient.ForceFlushOtel:input_type -> ForceFlushOtelArgs
+	6,  // 11: APMOtelClient.FlushOtelSpans:input_type -> FlushOtelSpansArgs
+	8,  // 12: APMOtelClient.FlushOtelTraceStats:input_type -> FlushOtelTraceStatsArgs
+	10, // 13: APMOtelClient.StopOtelTracer:input_type -> StopOtelTracerArgs
+	13, // 14: APMOtelClient.StartOtelTracer:output_type -> StartOtelTracerReturn
+	1,  // 15: APMOtelClient.StartOtelSpan:output_type -> StartOtelSpanReturn
+	3,  // 16: APMOtelClient.EndOtelSpan:output_type -> EndOtelSpanReturn
+	15, // 17: APMOtelClient.IsRecording:output_type -> IsRecordingReturn
+	23, // 18: APMOtelClient.SpanContext:output_type -> SpanContextReturn
+	17, // 19: APMOtelClient.SetStatus:output_type -> SetStatusReturn
+	19, // 20: APMOtelClient.SetName:output_type -> SetNameReturn
+	21, // 21: APMOtelClient.SetAttributes:output_type -> SetAttributesReturn
+	5,  // 22: APMOtelClient.ForceFlushOtel:output_type -> ForceFlushOtelReturn
+	7,  // 23: APMOtelClient.FlushOtelSpans:output_type -> FlushOtelSpansReturn
+	9,  // 24: APMOtelClient.FlushOtelTraceStats:output_type -> FlushOtelTraceStatsReturn
+	11, // 25: APMOtelClient.StopOtelTracer:output_type -> StopOtelTracerReturn
+	14, // [14:26] is the sub-list for method output_type
+	2,  // [2:14] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_protos_apm_test_otel_client_proto_init() }
@@ -1477,18 +1425,6 @@ func file_protos_apm_test_otel_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_otel_client_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Attributes); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_protos_apm_test_otel_client_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StartOtelSpanReturn); i {
 			case 0:
 				return &v.state
@@ -1500,7 +1436,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EndOtelSpanArgs); i {
 			case 0:
 				return &v.state
@@ -1512,7 +1448,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EndOtelSpanReturn); i {
 			case 0:
 				return &v.state
@@ -1524,7 +1460,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ForceFlushOtelArgs); i {
 			case 0:
 				return &v.state
@@ -1536,7 +1472,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ForceFlushOtelReturn); i {
 			case 0:
 				return &v.state
@@ -1548,7 +1484,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FlushOtelSpansArgs); i {
 			case 0:
 				return &v.state
@@ -1560,7 +1496,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FlushOtelSpansReturn); i {
 			case 0:
 				return &v.state
@@ -1572,7 +1508,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FlushOtelTraceStatsArgs); i {
 			case 0:
 				return &v.state
@@ -1584,7 +1520,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FlushOtelTraceStatsReturn); i {
 			case 0:
 				return &v.state
@@ -1596,7 +1532,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StopOtelTracerArgs); i {
 			case 0:
 				return &v.state
@@ -1608,7 +1544,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StopOtelTracerReturn); i {
 			case 0:
 				return &v.state
@@ -1620,7 +1556,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StartOtelTracerArgs); i {
 			case 0:
 				return &v.state
@@ -1632,7 +1568,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StartOtelTracerReturn); i {
 			case 0:
 				return &v.state
@@ -1644,7 +1580,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IsRecordingArgs); i {
 			case 0:
 				return &v.state
@@ -1656,7 +1592,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*IsRecordingReturn); i {
 			case 0:
 				return &v.state
@@ -1668,7 +1604,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetStatusArgs); i {
 			case 0:
 				return &v.state
@@ -1680,7 +1616,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetStatusReturn); i {
 			case 0:
 				return &v.state
@@ -1692,7 +1628,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetNameArgs); i {
 			case 0:
 				return &v.state
@@ -1704,7 +1640,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetNameReturn); i {
 			case 0:
 				return &v.state
@@ -1716,7 +1652,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetAttributesArgs); i {
 			case 0:
 				return &v.state
@@ -1728,7 +1664,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetAttributesReturn); i {
 			case 0:
 				return &v.state
@@ -1740,7 +1676,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SpanContextArgs); i {
 			case 0:
 				return &v.state
@@ -1752,7 +1688,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 				return nil
 			}
 		}
-		file_protos_apm_test_otel_client_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+		file_protos_apm_test_otel_client_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SpanContextReturn); i {
 			case 0:
 				return &v.state
@@ -1772,7 +1708,7 @@ func file_protos_apm_test_otel_client_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_protos_apm_test_otel_client_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

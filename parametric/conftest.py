@@ -668,10 +668,9 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub, span_id: int, trace_id: int):
+    def __init__(self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub, span_id: int):
         self._client = client
         self.span_id = span_id
-        self.trace_id = trace_id
 
     def set_attributes(self, attributes):
         self._client.SetAttributes(pb_otel.SetAttributesArgs(span_id=self.span_id, attributes=attributes))
@@ -753,10 +752,13 @@ class APMLibrary:
 class APMOtelLibrary:
     def __init__(
         self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub,
+        
     ):
         self._client = client
         self._client.StartOtelTracer(pb_otel.StartOtelTracerArgs())
-
+        # pass in tracer.StartOptions
+        # lets see how tracer code does it rn
+        
     def __enter__(self):
         pass
 
@@ -769,13 +771,22 @@ class APMOtelLibrary:
 
     @contextlib.contextmanager
     def start_otel_span(
-        self, name: str, service: str = "", resource: str = "", new_root: bool = False, parent_id: str = "",
+        self, 
+        name: str,
+        new_root: bool = False,
+        timestamp: bool = False,
+        span_kind: int = 0,
+        parent_id: str = "",
+        attributes = {}
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.StartOtelSpan(
             pb_otel.StartOtelSpanArgs(
                 name=name,
                 new_root=new_root,
-                parent_id=parent_id
+                parent_id=parent_id,
+                span_kind=span_kind,
+                timestamp=timestamp,
+                attributes=attributes
                 # NewRoot
                 # ParentId
                 # SpanKind
@@ -785,12 +796,9 @@ class APMOtelLibrary:
                 # Timestamp
             )
         )
-        span = _TestOtelSpan(self._client, resp.span_id, resp.trace_id)
+        span = _TestOtelSpan(self._client, resp.span_id)
         yield span
         span.finish()
-
-    # def get_span_context(self, span_id, attributes):
-    #     return self._client.SpanContext(pb_otel.SpanContextArgs(span_id=span_id, attributes=attributes))
 
     def force_flush(self, timeout_seconds: int = 5) -> bool:
         return self._client.ForceFlushOtel(pb_otel.ForceFlushOtelArgs(seconds=timeout_seconds)).success
