@@ -17,7 +17,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   lint_and_test:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -35,7 +37,9 @@ jobs:
     - run: mkdir -p logs/docker/weblog/logs/
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test
   test-the-tests-main:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     strategy:
@@ -414,116 +418,144 @@ jobs:
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
+      id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
     - name: Run DEFAULT scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run CGROUP scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh CGROUP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
+      if: ${{ matrix.variant.library != 'python' }}
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      if: ${{ matrix.variant.library != 'python' }}
     - name: Run INTEGRATIONS scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADERS_LONG scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_RULES scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_CUSTOM_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_BLOCKING scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_DISABLED scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RATE_LIMITER scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_RATE_LIMITER
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_IP_BLOCKING scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_IP_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
+      if: steps.build.outcome == 'success'
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
+      if: steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
+      if: steps.build.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_graalvm
         path: artifact.tar.gz
     - name: Upload results CI Visibility
+      if: steps.build.outcome == 'success'
       run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
@@ -531,7 +563,9 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
   post_test-the-tests:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - test-the-tests-main
     - test-the-tests-graalvm
@@ -545,7 +579,9 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     env:
@@ -558,7 +594,9 @@ jobs:
     - name: Display
       run: python scenarios/perfs/process.py
   fuzzer:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     env:
@@ -573,7 +611,9 @@ jobs:
       env:
         RUNNER_CMD: python
   parametric:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
     needs:
     - lint_and_test
     strategy:

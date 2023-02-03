@@ -149,7 +149,7 @@ def add_job(workflow, job):
 
 
 def add_lint_job(workflow):
-    job = Job("lint_and_test")
+    job = Job("lint_and_test", large_runner=True)
     job.add_checkout()
     job.add_step(uses="actions/setup-python@v4", with_statement={"python-version": "3.9"})
     job.add_step(run="pip install -r requirements.txt")
@@ -289,7 +289,7 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
 
 
 def add_ci_dashboard_job(workflow, needs):
-    job = Job("post_test-the-tests", needs=[job.name for job in needs])
+    job = Job("post_test-the-tests", needs=[job.name for job in needs], large_runner=True)
 
     job.data["if"] = "always() && github.ref == 'refs/heads/main'"
     job.add_checkout()
@@ -306,7 +306,12 @@ def add_ci_dashboard_job(workflow, needs):
 
 
 def add_perf_job(workflow, needs):
-    job = Job("peformances", needs=[job.name for job in needs], env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"})
+    job = Job(
+        "peformances",
+        needs=[job.name for job in needs],
+        env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"},
+        large_runner=True,
+    )
 
     job.add_checkout()
     job.add_step("Run", "./scenarios/perfs/run.sh golang")
@@ -318,7 +323,9 @@ def add_perf_job(workflow, needs):
 
 
 def add_fuzzer_job(workflow, needs):
-    job = Job("fuzzer", needs=[job.name for job in needs], env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"})
+    job = Job(
+        "fuzzer", needs=[job.name for job in needs], env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"}, large_runner=True
+    )
 
     job.add_checkout()
     job.add_step("Build", "./build.sh golang")
@@ -330,7 +337,7 @@ def add_fuzzer_job(workflow, needs):
 
 
 def add_parametric_job(workflow, needs):
-    job = Job("parametric", needs=[job.name for job in needs])
+    job = Job("parametric", needs=[job.name for job in needs], large_runner=True)
 
     job.data["strategy"] = {"matrix": {"client": ["python", "dotnet", "golang", "nodejs"]}, "fail-fast": False}
 
@@ -398,7 +405,11 @@ def main():
         # "APPSEC_UNSUPPORTED",
     )
 
-    main_jobs.append(add_main_job("main", result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))
+    main_jobs.append(
+        add_main_job(
+            "main", result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants), large_runner=True
+        )
+    )
 
     main_jobs.append(
         add_main_job(
