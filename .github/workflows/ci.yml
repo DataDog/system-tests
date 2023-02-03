@@ -25,7 +25,7 @@ jobs:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
     #if: "! github.event.pull_request.draft || github.event.label.name == 'test_the_tests'"
-    if: " github.event.pull_request.draft == false"
+    if: " github.event.pull_request.draft == false || github.event.label.name == 'test_the_tests'"
     steps:
     - name: Checkout
       uses: actions/checkout@v3
