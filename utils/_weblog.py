@@ -34,7 +34,6 @@ class _GrpcQuery:
 
 
 class _Weblog:
-    _url_prefix = "http://weblog:7777"
     _grpc_target = "weblog:7778"
 
     def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
@@ -46,7 +45,19 @@ class _Weblog:
     def trace(self, path="/", params=None, data=None, headers=None, **kwargs):
         return self.request("TRACE", path, params=params, data=data, headers=headers, **kwargs)
 
-    def request(self, method, path="/", params=None, data=None, headers=None, stream=None, **kwargs):
+    def request(
+        self,
+        method,
+        path="/",
+        params=None,
+        data=None,
+        headers=None,
+        stream=None,
+        domain="weblog",
+        port=7777,
+        allow_redirects=True,
+        **kwargs,
+    ):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = headers or {}
@@ -61,9 +72,9 @@ class _Weblog:
         headers[user_agent_key] = f"{user_agent} rid/{rid}"
 
         if method == "GET" and params:
-            url = self._get_url(path, params)
+            url = self._get_url(path, domain, port, params)
         else:
-            url = self._get_url(path)
+            url = self._get_url(path, domain, port)
 
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
@@ -71,7 +82,7 @@ class _Weblog:
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")
 
-            r = requests.Session().send(r, timeout=5, stream=stream)
+            r = requests.Session().send(r, timeout=5, stream=stream, allow_redirects=allow_redirects)
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
             return _FailedQuery(request=r)
@@ -80,13 +91,13 @@ class _Weblog:
 
         return r
 
-    def _get_url(self, path, query=None):
+    def _get_url(self, path, domain, port, query=None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative
         if path.startswith("/"):
             path = path[1:]
 
-        res = self._url_prefix + "/" + path  # urllib.parse.urljoin(self._url_prefix, path)
+        res = f"http://{domain}:{port}/{path}"
 
         if query:
             res += "?" + urllib.parse.urlencode(query)

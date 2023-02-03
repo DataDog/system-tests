@@ -51,14 +51,24 @@ class LibraryInterfaceValidator(InterfaceValidator):
         return super().append_data(data)
 
     ############################################################
-    def get_traces(self):
-
+    def get_traces(self, request=None):
         paths = ["/v0.4/traces", "/v0.5/traces"]
+
+        rid = get_rid_from_request(request)
+
+        if rid:
+            logger.debug(f"Try to found traces related to request {rid}")
 
         for data in self.get_data(path_filters=paths):
             traces = data["request"]["content"]
             for trace in traces:
-                yield data, trace
+                if rid is None:
+                    yield data, trace
+                else:
+                    for span in trace:
+                        if rid == get_rid_from_span(span):
+                            yield data, trace
+                            break
 
     def get_spans(self, request=None):
         rid = get_rid_from_request(request)
@@ -143,8 +153,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
     ############################################################
 
     def validate_telemetry(self, validator, success_by_default=False):
+        def validator_skip_onboarding_event(data):
+            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
+                return None
+            return validator(data)
+
         self.validate(
-            validator, path_filters="/telemetry/proxy/api/v2/apmtelemetry", success_by_default=success_by_default
+            validator_skip_onboarding_event,
+            path_filters="/telemetry/proxy/api/v2/apmtelemetry",
+            success_by_default=success_by_default,
         )
 
     def validate_appsec(self, request=None, validator=None, success_by_default=False, legacy_validator=None):
@@ -266,10 +283,22 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def add_traces_validation(self, validator, success_by_default=False):
         self.validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
 
+    def validate_traces(self, request=None, validator=None, success_by_default=False):
+        for _, trace in self.get_traces(request=request):
+            if validator(trace):
+                return
+
+        if not success_by_default:
+            raise Exception("No span validates this test")
+
     def validate_spans(self, request=None, validator=None, success_by_default=False):
         for _, _, span in self.get_spans(request=request):
-            if validator(span):
-                return
+            try:
+                if validator(span):
+                    return
+            except:
+                logger.error(f"This span is failing validation: {json.dumps(span, indent=2)}")
+                raise
 
         if not success_by_default:
             raise Exception("No span validates this test")
