@@ -219,7 +219,7 @@ function apply-config-auto() {
     config_name="${CONFIG_NAME:-config}"
     kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/${config_name}.yaml
     echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
-    sleep 90
+    sleep 120
     echo "[Auto Config] apply-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
     kubectl rollout status deployments/test-${TEST_LIBRARY}-deployment --timeout=5m
     remove-terminating-pods
