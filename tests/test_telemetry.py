@@ -36,11 +36,19 @@ class Test_Telemetry:
     )
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
+
+        def not_onboarding_event(data):
+            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
+
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-agent-hostname", "dd-agent-env"],
+            check_condition=not_onboarding_event,
         )
         interfaces.agent.assert_headers_match(
-            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
+            path_filter="/api/v2/apmtelemetry",
+            request_headers={"via": r"trace-agent 7\..+"},
+            check_condition=not_onboarding_event,
         )
 
     @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
