@@ -391,7 +391,7 @@ def main():
             needs=[lint_job],
             scenarios=scenarios_sets[0],
             variants=deepcopy(variants_graalvm),
-            use_cache=True,
+            use_cache=False,
             large_runner=True,
         )
     )
