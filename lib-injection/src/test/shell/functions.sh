@@ -319,8 +319,10 @@ function check-for-no-pod-metadata() {
     has_enabled_key=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq 'has("admission.datadoghq.com/enabled")')
     if [[ $has_enabled_key != "false" ]]; then
         echo "[Test] annotation 'admission.datadoghq.com/enabled' was unexpectedly applied to the pod!"
+        print-debug-info-auto || true
         exit 1
     fi
+    print-debug-info-auto || true
 }
 
 function check-for-disabled-pod-metadata() {
