@@ -99,24 +99,6 @@ function use-admission-controller() {
 }
 
 ## FUNCTIONS
-function reset-cluster() {
-    if [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
-        kind delete cluster --name lib-injection-testing
-    fi
-}
-
-function reset-buildx() {
-    if [[ "$(docker buildx ls)" =~ "lib-injection-testing" ]] ;  then
-        echo "deleting docker buildx builder: lib-injection-testing"
-        docker buildx rm lib-injection-testing
-    fi
-}
-
-function reset-all() {
-    reset-cluster
-    reset-buildx
-}
-
 function ensure-cluster() {
     if ! [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
         kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name lib-injection-testing --config "${SRC_DIR}/test/resources/kind-config.yaml"
@@ -345,7 +327,6 @@ function test-for-traces-manual() {
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
         print-debug-info-manual || true
-        reset-all
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
@@ -353,7 +334,6 @@ function test-for-traces-manual() {
     fi
     print-debug-info-manual || true
     echo "[Test] test-for traces completed successfully"
-    reset-all
 }
 
 function test-for-traces-auto() {
@@ -368,7 +348,6 @@ function test-for-traces-auto() {
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
         print-debug-info-auto || true
-        reset-all
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
