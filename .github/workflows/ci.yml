@@ -20,6 +20,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+
+  labels_tests:
+    runs-on:
+      labels: ubuntu-latest-16-cores
+      group: APM Larger Runners
+    steps:
+    - run: curl https://api.github.com/repos/datadog/system-tests/issues/841/labels| jq '.[].name' 
+
   lint_and_test:
     runs-on:
       labels: ubuntu-latest-16-cores
