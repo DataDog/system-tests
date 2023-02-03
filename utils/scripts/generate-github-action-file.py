@@ -261,9 +261,7 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
         if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
-    job.add_step(
-        "Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition=build_is_success
-    )
+    job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition=build_is_success)
 
     job.add_upload_artifact(
         name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
