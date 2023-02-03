@@ -9,6 +9,7 @@ name: Testing the test
     - '**'
 #  pull_request_target:
     types:
+    - opened
     - ready_for_review
     - labeled
   push:
