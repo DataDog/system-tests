@@ -354,39 +354,13 @@ def add_process_pr_labels_job(workflow, needs):
     job = Job("process-pr-labels", needs=[job.name for job in needs])
     job.data["outputs"] = {"library-exclusion": "${{ steps.lbl-exclusion.outputs.library }}"}
     job.add_checkout()
-
     job.add_step(
         "Run",
-        run="|\n"
-        "#Use github API in order to query for existing labels in this PR.\n"
-        "PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = \"/\" } ; { print $3 }')\n"
-        'echo "Working PR number: $PR_NUMBER"\n'
-        "#Only if we are in PR (number)\n"
-        'if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" -eq "$PR_NUMBER" ] 2>/dev/null; then\n'
-        "existing_labels=$(curl \\\n"
-        '-H "Accept: application/vnd.github+json" \\\n'
-        '-H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \\\n'
-        "https://api.github.com/repos/robertomonteromiguel/workflow-testing/issues/$PR_NUMBER/labels| jq -r '.[]|select(.name | startswith(\"test_\")).name| @sh')\n"
-        "existing_labels=($existing_labels)\n"
-        "fi\n"
-        'echo "Number of tests labels found: " ${#existing_labels[@]}\n'
-        'echo "Test labels: "${existing_labels[@]}\n'
-        "#Load json file with all libraries\n"
-        'jsonExclusion="$(cat .github/workflows/library_langs.json)"\n'
-        "#We have a json with all library names for exclusion. We remove from exclusion the found labels\n"
-        'for label_pr in "${existing_labels[@]}"\n'
-        "do\n"
-        'label_pr=$(echo $label_pr|tr -d "\'"|tr -d "test_") #Remove quotes and prefix\n'
-        "jsonExclusion=$(echo $jsonExclusion|jq --arg labelpr \"$label_pr\" 'del(.[] | select(.variant.library == $labelpr))')\n"
-        "done\n"
-        '#If we have label "test_all" we are going to execute full matrix\n'
-        '#If we have PR in "Ready to review" we are going to execute full matrix\n'
-        'if [[ " ${existing_labels[*]} " =~ "test_all" || "${{ github.event.pull_request.draft }}" != "true" ]]; then\n'
-        "jsonExclusion=$(echo $jsonExclusion|jq 'del(.[] )')\n"
-        "fi\n"
-        "#Print exclusion and return\n"
-        "echo $jsonExclusion| jq -r tostring\n"
-        'echo "library=$(echo $jsonExclusion| jq -r tostring)" >> $GITHUB_OUTPUT\n',
+        run="utils/scripts/process-pr-labels.sh",
+        env={
+            "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN  }}",
+            "PULL_REQUEST_DRAFT": "${{ github.event.pull_request.draft }}",
+        },
         step_id="lbl-exclusion",
     )
 
