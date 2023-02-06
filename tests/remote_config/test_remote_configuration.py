@@ -253,6 +253,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="java", reason="cache is implemented")
 @irrelevant(library="golang", reason="cache is implemented")
+@irrelevant(library="php", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
