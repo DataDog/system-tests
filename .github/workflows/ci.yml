@@ -342,10 +342,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
-      if: steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
-      if: steps.build.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_main
