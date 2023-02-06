@@ -22,8 +22,6 @@ if context.library == "cpp":
 class TestRequestCookie:
     """Verify that request cookies are tainted"""
 
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_cookie(self):
         weblog.get("/iast/source/cookie/test", cookies={"cookie-source-name": "cookie-source-value"})
         interfaces.library_stdout.wait()

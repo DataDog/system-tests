@@ -22,8 +22,6 @@ if context.library == "cpp":
 class TestRequestHeaderName:
     """Verify that request headers name are tainted"""
 
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_headername(self):
         weblog.get("/iast/source/headername/test", headers={"random-key": "header-name"})
         interfaces.library_stdout.wait()

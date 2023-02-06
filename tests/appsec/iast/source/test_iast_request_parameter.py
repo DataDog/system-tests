@@ -22,8 +22,6 @@ if context.library == "cpp":
 class TestRequestParameter:
     """Verify that request parameters are tainted"""
 
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_parameter(self):
         weblog.post("/iast/source/parameter/test", data={"source": "parameter", "value": "parameterValue"})
         interfaces.library_stdout.wait()
