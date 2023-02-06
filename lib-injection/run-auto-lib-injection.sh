@@ -17,7 +17,7 @@ echo "**************************"
 echo "*  Running Test Case ${TEST_CASE} *"
 echo "**************************"
 
-if [ $TEST_CASE == "TC1" ]; then
+if [ $TEST_CASE == "TestCase1" ]; then
     # Nominal case:
     #   - deploy app & agent
     #   - apply config
@@ -36,7 +36,7 @@ if [ $TEST_CASE == "TC1" ]; then
     echo "[run-auto-lib-injection] Completed successfully"
 fi
 
-if [ $TEST_CASE == "TC2" ]; then
+if [ $TEST_CASE == "TestCase2" ]; then
     # Config change:
     #   - deploy app & agent
     #   - apply config
@@ -61,7 +61,7 @@ if [ $TEST_CASE == "TC2" ]; then
     echo "[run-auto-lib-injection] Completed successfully"
 fi
 
-if [ $TEST_CASE == "TC3" ]; then
+if [ $TEST_CASE == "TestCase3" ]; then
     # Config persistence:
     #   - deploy app & agent
     #   - apply config
@@ -89,7 +89,7 @@ if [ $TEST_CASE == "TC3" ]; then
     echo "[run-auto-lib-injection] Completed successfully"
 fi
 
-if [ $TEST_CASE == "TC4" ]; then
+if [ $TEST_CASE == "TestCase4" ]; then
     # Mismatching config:
     #   - deploy app & agent
     #   - apply config with non-matching cluster name
@@ -105,7 +105,7 @@ if [ $TEST_CASE == "TC4" ]; then
     echo "[run-auto-lib-injection] Completed successfully"
 fi
 
-if [ $TEST_CASE == "TC5" ]; then
+if [ $TEST_CASE == "TestCase5" ]; then
     # Config change to action:disable
     #   - deploy app & agent
     #   - apply matching config

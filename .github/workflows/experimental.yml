@@ -81,11 +81,11 @@ jobs:
         - library: python
           weblog-variant: dd-lib-python-init-test-django
         test-case: 
-          - TC1
-          - TC2
-          - TC3
-          - TC4
-          - TC5
+          - TestCase1
+          - TestCase2
+          - TestCase3
+          - TestCase4
+          - TestCase5
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
