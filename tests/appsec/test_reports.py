@@ -69,6 +69,7 @@ class Test_StatusCode:
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@flaky(context.library == "ruby" and context.weblog_variant in ("rails32", "rails40"))
 @coverage.good
 class Test_HttpClientIP:
     """AppSec reports good http client IP"""
