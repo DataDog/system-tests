@@ -8,7 +8,7 @@ require (
 	github.com/labstack/echo/v4 v4.9.0
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.28.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.42.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230118154225-47071888d1a6
 )
 
 require (
@@ -41,7 +41,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/tinylib/msgp v1.1.2 // indirect
+	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
