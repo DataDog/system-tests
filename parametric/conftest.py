@@ -21,6 +21,7 @@ from parametric.spec.trace import V06StatsPayload
 from parametric.spec.trace import Trace
 from parametric.spec.trace import decode_v06_stats
 from parametric.spec.otel_trace import OtelSpanContext
+from parametric.spec.otel_trace import convert_to_proto
 
 
 class AgentRequest(TypedDict):
@@ -673,7 +674,9 @@ class _TestOtelSpan:
         self.span_id = span_id
 
     def set_attributes(self, attributes):
-        self._client.SetAttributes(pb_otel.SetAttributesArgs(span_id=self.span_id, attributes=attributes))
+        self._client.SetAttributes(
+            pb_otel.SetAttributesArgs(span_id=self.span_id, attributes=convert_to_proto(attributes))
+        )
 
     def set_name(self, name):
         self._client.SetName(pb_otel.SetNameArgs(span_id=self.span_id, name=name))
@@ -754,12 +757,12 @@ class APMOtelLibrary:
         self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub,
     ):
         self._client = client
-        self._client.StartOtelTracer(pb_otel.StartOtelTracerArgs())
-        # pass in tracer.StartOptions
-        # lets see how tracer code does it rn
+        self.name = ""
+        self.service = ""
+        self.env = ""
 
     def __enter__(self):
-        pass
+        self._client.StartOtelTracer(pb_otel.StartOtelTracerArgs(name=self.name, env=self.env, service=self.service))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Only attempt a flush if there was no exception raised.
@@ -770,29 +773,11 @@ class APMOtelLibrary:
 
     @contextlib.contextmanager
     def start_otel_span(
-        self,
-        name: str,
-        new_root: bool = False,
-        timestamp: bool = False,
-        span_kind: int = 0,
-        parent_id: str = "",
-        attributes={},
+        self, name: str, new_root: bool = False, timestamp: bool = False, span_kind: int = 0, parent_id: str = "",
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.StartOtelSpan(
             pb_otel.StartOtelSpanArgs(
-                name=name,
-                new_root=new_root,
-                parent_id=parent_id,
-                span_kind=span_kind,
-                timestamp=timestamp,
-                attributes=attributes
-                # NewRoot
-                # ParentId
-                # SpanKind
-                # Service
-                # Resource
-                # Type
-                # Timestamp
+                name=name, new_root=new_root, parent_id=parent_id, span_kind=span_kind, timestamp=timestamp
             )
         )
         span = _TestOtelSpan(self._client, resp.span_id)

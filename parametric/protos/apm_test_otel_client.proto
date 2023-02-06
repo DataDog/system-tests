@@ -18,7 +18,6 @@ service APMOtelClient {
 
 message StartOtelSpanArgs {
   string name = 1;
-  map<string, string> attributes = 8;
   optional bool new_root = 2;
   optional string parent_id = 3;
   optional uint64 span_kind = 9;
@@ -26,6 +25,7 @@ message StartOtelSpanArgs {
   optional string resource = 5;
   optional string type = 6;
   optional int64 timestamp = 7;
+  Attributes attributes = 8;
 }
 
 //message DistributedHTTPHeaders {
@@ -57,7 +57,11 @@ message FlushOtelTraceStatsReturn {}
 message StopOtelTracerArgs {}
 message StopOtelTracerReturn {}
 
-message StartOtelTracerArgs {}
+message StartOtelTracerArgs {
+  string name = 1;
+  string env = 2;
+  string service = 3;
+}
 message StartOtelTracerReturn {}
 
 message IsRecordingArgs {
@@ -82,10 +86,26 @@ message SetNameReturn {}
 
 message SetAttributesArgs {
   string span_id = 1;
-  map<string, string> attributes = 2;
+  Attributes attributes = 2;
 }
 message SetAttributesReturn {}
 
+message Attributes {
+  map<string, ListVal> key_vals = 3;
+}
+
+message ListVal {
+  repeated AttrVal val = 1;
+}
+
+message AttrVal {
+  oneof val {
+    bool bool_val = 1;
+    string string_val = 2;
+    double double_val = 3;
+    int64 integer_val = 4;
+  }
+}
 
 message SpanContextArgs {
   string span_id = 1;

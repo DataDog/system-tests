@@ -48,11 +48,12 @@ func (s *apmClientServer) StartOtelSpan(ctx context.Context, args *StartOtelSpan
 		tm := time.Unix(t, 0)
 		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
 	}
-	if attrs := args.GetAttributes(); attrs != nil {
-		for k, v := range attrs {
-			otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
-		}
-	}
+
+	// if attrs := args.GetAttributes(); attrs != nil {
+	// 	for k, v := range attrs {
+	// 		otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
+	// 	}
+	// }
 
 	_, span := s.tp.Tracer("").Start(pCtx, args.Name, otelOpts...)
 	s.spans[span.SpanContext().SpanID().String()] = span
@@ -102,16 +103,46 @@ func (s *apmClientServer) EndOtelSpan(ctx context.Context, args *EndOtelSpanArgs
 	return &EndOtelSpanReturn{}, nil
 }
 
+func setAttributes(span ot_api.Span, args *SetAttributesArgs) {
+	for k, lv := range args.Attributes.KeyVals {
+		first := lv.GetVal()[0]
+		n := len(lv.GetVal())
+		switch first.Val.(type) {
+		case *AttrVal_StringVal:
+			inp := make([]string, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetStringVal())
+			}
+			span.SetAttributes(attribute.StringSlice(k, inp))
+		case *AttrVal_BoolVal:
+			inp := make([]bool, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetBoolVal())
+			}
+			span.SetAttributes(attribute.BoolSlice(k, inp))
+		case *AttrVal_DoubleVal:
+			inp := make([]float64, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetDoubleVal())
+			}
+			span.SetAttributes(attribute.Float64Slice(k, inp))
+		case *AttrVal_IntegerVal:
+			inp := make([]int64, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetIntegerVal())
+			}
+			span.SetAttributes(attribute.Int64Slice(k, inp))
+		}
+
+	}
+}
+
 func (s *apmClientServer) SetAttributes(ctx context.Context, args *SetAttributesArgs) (*SetAttributesReturn, error) {
 	span, ok := s.spans[args.SpanId]
 	if !ok {
 		fmt.Sprintf("SetAttributes call failed, span with id=%d not found", args.SpanId)
 	}
-
-	for k, v := range args.Attributes {
-		span.SetAttributes(attribute.String(k, v))
-
-	}
+	setAttributes(span, args)
 	return &SetAttributesReturn{}, nil
 }
 
@@ -164,11 +195,18 @@ func (s *apmClientServer) StopOtelTracer(context.Context, *StopOtelTracerArgs) (
 	return &StopOtelTracerReturn{}, nil
 }
 
-func (s *apmClientServer) StartOtelTracer(context.Context, *StartOtelTracerArgs) (*StartOtelTracerReturn, error) {
-	s.tp = ot.NewTracerProvider()
+func (s *apmClientServer) StartOtelTracer(ctx context.Context, args *StartOtelTracerArgs) (*StartOtelTracerReturn, error) {
+	var tracerOpts = []tracer.StartOption{}
+	if env := args.GetEnv(); env != "" {
+		tracerOpts = append(tracerOpts, tracer.WithEnv(env))
+	}
+	if srv := args.GetService(); srv != "" {
+		tracerOpts = append(tracerOpts, tracer.WithService(srv))
+	}
+	s.tp = ot.NewTracerProvider(tracerOpts...)
 	otel.SetTracerProvider(s.tp)
-	//todo tracer options go here
-	s.tracer = s.tp.Tracer("")
+
+	s.tracer = s.tp.Tracer(args.GetName())
 	return &StartOtelTracerReturn{}, nil
 }
 

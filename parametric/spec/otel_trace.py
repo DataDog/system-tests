@@ -1,5 +1,6 @@
 from typing import List
 from typing import TypedDict
+from parametric.protos import apm_test_otel_client_pb2 as pb_otel
 
 
 class OtelSpan(TypedDict):
@@ -15,6 +16,51 @@ class OtelSpanContext(TypedDict):
 
 
 OtelTrace = List[OtelSpan]
+
+
+def check_list_type(v, type: type) -> bool:
+    if v and all(isinstance(i, type) for i in v):
+        return True
+    return False
+
+
+# values for otel span attributes can be a list -
+# to avoid having multiple map fields in Attributes
+# (one where the value is type ListVal, another where value is type AttrVal)
+# we just represent all values in List form
+def get_val(v) -> pb_otel.ListVal:
+    if isinstance(v, list) and check_list_type(v, str):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(string_val=i) for i in v])
+    if isinstance(v, list) and check_list_type(v, bool):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(bool_val=i) for i in v])
+    if isinstance(v, list) and check_list_type(v, float):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(double_val=i) for i in v])
+    if isinstance(v, list) and check_list_type(v, int):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(integer_val=i) for i in v])
+    elif isinstance(v, str):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(string_val=v)])
+    elif isinstance(v, bool):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(bool_val=v)])
+    elif isinstance(v, float):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(double_val=v)])
+    elif isinstance(v, int):
+        return pb_otel.ListVal(val=[pb_otel.AttrVal(integer_val=v)])
+    else:
+        return None
+
+
+# converts a dictionary containing span attributes into
+# the proto message "Attributes"
+def convert_to_proto(attributes: dict) -> pb_otel.Attributes:
+    list_attr = {}
+    for k, v in attributes.items():
+        if not v:
+            continue
+        ret = get_val(v)
+        if ret:
+            list_attr[k] = ret
+    return pb_otel.Attributes(key_vals=list_attr)
+
 
 # def find_otel_span_in_traces(traces: List[Trace], span: OtelSpan) -> OtelSpan:
 #     """Return a span from the traces which most closely matches `span`."""
