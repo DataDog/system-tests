@@ -8,7 +8,7 @@ if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" -eq "$PR_NUMBER" ] 2>/dev/null; then
     existing_labels=$(curl \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer $GITHUB_TOKEN" \
-        https://api.github.com/repos/robertomonteromiguel/workflow-testing/issues/$PR_NUMBER/labels| jq -r '.[]|select(.name | startswith("test_")).name| @sh')
+        https://api.github.com/repos/datadog/system-tests/issues/$PR_NUMBER/labels| jq -r '.[]|select(.name | startswith("test_")).name| @sh')
     existing_labels=($existing_labels)
 fi
 echo "Number of tests labels found: " ${#existing_labels[@]}
