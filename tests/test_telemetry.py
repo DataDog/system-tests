@@ -49,6 +49,7 @@ class Test_Telemetry:
             assert 200 <= response_code < 300, f"Got response code {response_code}"
 
         self.validate_library_telemetry_data(validator)
+        self.validate_agent_telemetry_data(validator)
 
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
