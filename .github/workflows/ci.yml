@@ -204,7 +204,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Test outputs
-      run: echo " LA SALIDA ${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}"
+      run: echo " LA SALIDA ${{ needs.process-pr-labels.outputs.library-exclusion }} ----- ${{ steps.build.outcome }}"
     - run: mkdir logs && touch logs/.weblog.env
     - name: Pull images
       run: docker-compose pull cassandra_db mongodb postgres
