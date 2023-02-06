@@ -198,7 +198,7 @@ function apply-config-auto() {
 function deploy-app-manual() {
     app_name=my-app
     echo "[Deploy] deploy-app: ${app_name} . Using UDS: ${USE_UDS}. Using adm.controller: ${USE_ADMISSION_CONTROLLER}"
-    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+    library=$(get-library)
     echo "[Deploy] Using library alias: ${library}"
 
     helm template lib-injection/common \
@@ -267,7 +267,7 @@ function check-for-pod-metadata() {
     kubectl get pods
     pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
-    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+    library=$(get-library)
     # TODO: check for label/annotation values not only the presence
     enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
     if [[ $enabled != "\"true\"" ]]; then
@@ -282,7 +282,6 @@ function check-for-no-pod-metadata() {
     kubectl get pods
     pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
-    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     has_enabled_key=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq 'has("admission.datadoghq.com/enabled")')
     if [[ $has_enabled_key != "false" ]]; then
         echo "[Test] annotation 'admission.datadoghq.com/enabled' was unexpectedly applied to the pod!"
@@ -296,7 +295,6 @@ function check-for-disabled-pod-metadata() {
     kubectl get pods
     pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
-    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
     enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
     if [[ $enabled != "\"false\"" ]]; then
         echo "[Test] label 'admission.datadoghq.com/enabled' wasn't \"false\", got \"${enabled}\""
@@ -425,4 +423,10 @@ function latest-app-pod-auto() {
 
 function remove-terminating-pods() {
     for p in $(kubectl get pods | grep Terminating | awk '{print $1}'); do kubectl delete pod $p --grace-period=0 --force; done
+}
+
+function get-library() {
+    local library
+    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+    echo $library
 }
