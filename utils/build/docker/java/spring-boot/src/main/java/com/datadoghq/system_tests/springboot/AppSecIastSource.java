@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 
 @RestController
@@ -23,7 +21,7 @@ public class AppSecIastSource {
 
 
     @PostMapping("/parameter/test")
-    String sourceParameter(final ServletRequest request) throws SQLException {
+    String sourceParameter(final ServletRequest request) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
