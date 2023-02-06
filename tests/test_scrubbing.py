@@ -68,7 +68,7 @@ class Test_UrlQuery:
         interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
 
 
-@released(python="1.7.1")
+@released(nodejs="3.13.1", python="1.7.1")
 @missing_feature(library="dotnet", reason="Needs weblog endpoint")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @bug(context.library > "php@0.83.1" and "apache" in context.weblog_variant, reason="span is not reported on apache")
