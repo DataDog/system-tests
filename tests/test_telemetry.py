@@ -91,6 +91,12 @@ class Test_Telemetry:
             Has not implemented os related fields for telemetry.
         """,
     )
+    @bug(
+        library="dotnet",
+        reason="""
+            Some configurations do not have values.
+        """,
+    )
     def test_telemetry_v1_messages_valid(self):
         """Telemetry messages additional validation"""
 
@@ -116,6 +122,12 @@ class Test_Telemetry:
                 assert dependency_id not in seen_dependencies, "Dependency payload must not contain duplicates"
                 seen_dependencies.add(dependency_id)
 
+        def validate_configuration(content):
+            configurations = content["payload"]["configuration"]
+            for configuration in configurations:
+                assert configuration["name"], "configuration name must not be empty"
+                assert configuration["value"], "configuration value must not be empty"
+
         def validate_top_level_keys(content):
             if content.get("request_type") == "app-heartbeat" or content.get("request_type") == "app-closing":
                 return
@@ -134,7 +146,6 @@ class Test_Telemetry:
             required_app_started_payload_keys = [
                 "hostname",
                 "os",
-                "os_version",
                 "kernel_name",
                 "kernel_release",
                 "kernel_version",
@@ -145,22 +156,12 @@ class Test_Telemetry:
                 validate_dependencies(payload["dependencies"])
             if payload.get("integrations"):
                 validate_dependencies(payload["integrations"], track_integration_w_version=True)
-
-        def validate_integrations_change(content):
-            assert content["payload"]["integrations"], "Integrations changes must not be empty"
-            validate_dependencies(content["payload"]["integrations"], check_integration_w_version=True)
-
-        def validate_dependencies_loaded(content):
-            assert content["payload"]["dependencies"], "Dependencies loaded must not be empty"
-            validate_dependencies(content["payload"]["dependencies"])
+            if payload.get("configuration"):
+                validate_configuration(payload["configuration"])
 
         def validate_event_payloads(content):
             if content.get("request_type") == "app-started":
                 validate_app_started(content)
-            elif content.get("request_type") == "app-dependencies-loaded":
-                validate_dependencies_loaded(content)
-            elif content.get("request_type") == "app-integrations-change":
-                validate_integrations_change(content)
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]

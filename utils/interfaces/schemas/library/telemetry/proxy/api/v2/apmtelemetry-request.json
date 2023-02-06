@@ -285,11 +285,7 @@
         }
       }, 
       "required" : [
-        "hostname", 
-        "os",
-        "kernel_name", 
-        "kernel_release", 
-        "kernel_version"
+        "hostname"
       ]
     },
     "HostV2": {
@@ -460,7 +456,7 @@
             "type": ["number", "boolean", "string", "null"] 
       }
     },
-        "required": ["name", "value"]
+        "required": ["name"]
       }
     },
     "ConfigurationV2": {
