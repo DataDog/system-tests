@@ -130,8 +130,7 @@ class Test_Telemetry:
                 assert dependency_id not in seen_dependencies, "Dependency payload must not contain duplicates"
                 seen_dependencies.add(dependency_id)
 
-        def validate_configuration(content):
-            configurations = content["payload"]["configuration"]
+        def validate_configuration(configurations):
             for configuration in configurations:
                 assert configuration["name"], "configuration name must not be empty"
                 assert configuration["value"], "configuration value must not be empty"
