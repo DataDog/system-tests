@@ -1,0 +1,19 @@
+[{
+    "variant": 
+      {
+        "library": "java"
+      }
+ },
+ {
+    "variant": 
+      {
+        "library": "php"
+      }
+    
+},
+{
+    "variant": 
+      {
+        "library": "cpp"
+      }
+ } ]

@@ -16,6 +16,7 @@ env:
 jobs:
 
   lib-injection-tests:
+    if: " github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'test_lib-injection')  || contains(github.event.pull_request.labels.*.name, 'test_all')"
     runs-on: ubuntu-latest
     permissions:
       contents: read

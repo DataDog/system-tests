@@ -172,6 +172,7 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
     job.data["strategy"] = {
         "matrix": {"variant": variants, "version": ["prod", "dev"]},
         "fail-fast": False,
+        "exclusion": "${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}",
     }
 
     job.data["env"] = {
@@ -331,13 +332,60 @@ def add_fuzzer_job(workflow, needs):
 
 def add_parametric_job(workflow, needs):
     job = Job("parametric", needs=[job.name for job in needs])
-
+    job.data[
+        "if"
+    ] = "github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'test_parameteric')  || contains(github.event.pull_request.labels.*.name, 'test_all')"
     job.data["strategy"] = {"matrix": {"client": ["python", "dotnet", "golang", "nodejs"]}, "fail-fast": False}
 
     job.add_checkout()
     job.add_step(uses="actions/setup-python@v4", with_statement={"python-version": "3.9"})
     job.add_step("Install", "cd parametric && pip install wheel && pip install -r requirements.txt")
     job.add_step("Run", "cd parametric && CLIENTS_ENABLED=${{ matrix.client }} ./run.sh")
+
+    add_job(workflow, job)
+
+    return job
+
+
+def add_process_pr_labels_job(workflow, needs):
+    job = Job("process-pr-labels", needs=[job.name for job in needs])
+    job.data["outputs"] = {"library-exclusion": "${{ steps.lbl-exclusion.outputs.library }}"}
+    job.add_checkout()
+
+    job.add_step(
+        "Run",
+        run="|\n"
+        "#Use github API in order to query for existing labels in this PR.\n"
+        "PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = \"/\" } ; { print $3 }')\n"
+        'echo "Working PR number: $PR_NUMBER"\n'
+        "#Only if we are in PR (number)\n"
+        'if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" -eq "$PR_NUMBER" ] 2>/dev/null; then\n'
+        "existing_labels=$(curl \\\n"
+        '-H "Accept: application/vnd.github+json" \\\n'
+        '-H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \\\n'
+        "https://api.github.com/repos/robertomonteromiguel/workflow-testing/issues/$PR_NUMBER/labels| jq -r '.[]|select(.name | startswith(\"test_\")).name| @sh')\n"
+        "existing_labels=($existing_labels)\n"
+        "fi\n"
+        'echo "Number of tests labels found: " ${#existing_labels[@]}\n'
+        'echo "Test labels: "${existing_labels[@]}\n'
+        "#Load json file with all libraries\n"
+        'jsonExclusion="$(cat .github/workflows/library_langs.json)"\n'
+        "#We have a json with all library names for exclusion. We remove from exclusion the found labels\n"
+        'for label_pr in "${existing_labels[@]}"\n'
+        "do\n"
+        'label_pr=$(echo $label_pr|tr -d "\'"|tr -d "test_") #Remove quotes and prefix\n'
+        "jsonExclusion=$(echo $jsonExclusion|jq --arg labelpr \"$label_pr\" 'del(.[] | select(.variant.library == $labelpr))')\n"
+        "done\n"
+        '#If we have label "test_all" we are going to execute full matrix\n'
+        '#If we have PR in "Ready to review" we are going to execute full matrix\n'
+        'if [[ " ${existing_labels[*]} " =~ "test_all" || "${{ github.event.pull_request.draft }}" != "true" ]]; then\n'
+        "jsonExclusion=$(echo $jsonExclusion|jq 'del(.[] )')\n"
+        "fi\n"
+        "#Print exclusion and return\n"
+        "echo $jsonExclusion| jq -r tostring\n"
+        'echo "library=$(echo $jsonExclusion| jq -r tostring)" >> $GITHUB_OUTPUT\n',
+        step_id="lbl-exclusion",
+    )
 
     add_job(workflow, job)
 
@@ -358,7 +406,10 @@ def main():
     result["on"] = {
         "workflow_dispatch": {},
         "schedule": [{"cron": "00 02 * * 2-6"}],
-        "pull_request": {"branches": ["**"]},
+        "pull_request": {
+            "branches": ["**"],
+            "types": ["opened", "synchronize", "ready_for_review", "converted_to_draft", "labeled"],
+        },
         "push": {"branches": ["main"]},
     }
     result["env"] = {"REGISTRY": "ghcr.io"}
@@ -366,7 +417,7 @@ def main():
     result["concurrency"] = {"group": "${{ github.workflow }}-${{ github.ref }}", "cancel-in-progress": True}
 
     lint_job = add_lint_job(result)
-
+    process_pr_labels_job = add_process_pr_labels_job(result, needs=[lint_job],)
     main_jobs = []
 
     scenarios = (
@@ -398,13 +449,15 @@ def main():
         # "APPSEC_UNSUPPORTED",
     )
 
-    main_jobs.append(add_main_job("main", result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))
+    main_jobs.append(
+        add_main_job("main", result, needs=[process_pr_labels_job], scenarios=scenarios, variants=deepcopy(variants))
+    )
 
     main_jobs.append(
         add_main_job(
             "graalvm",
             result,
-            needs=[lint_job],
+            needs=[process_pr_labels_job],
             scenarios=scenarios,
             variants=deepcopy(variants_graalvm),
             use_cache=False,
