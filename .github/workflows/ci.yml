@@ -252,8 +252,8 @@ jobs:
         version:
         - prod
         - dev
+        exclude: ${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}
       fail-fast: false
-      exclusion: ${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
@@ -453,8 +453,8 @@ jobs:
         version:
         - prod
         - dev
+        exclude: ${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}
       fail-fast: false
-      exclusion: ${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}

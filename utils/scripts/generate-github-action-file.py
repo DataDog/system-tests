@@ -170,9 +170,12 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
     job = Job(name, needs=[job.name for job in needs], large_runner=large_runner)
 
     job.data["strategy"] = {
-        "matrix": {"variant": variants, "version": ["prod", "dev"]},
+        "matrix": {
+            "variant": variants,
+            "version": ["prod", "dev"],
+            "exclude": "${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}",
+        },
         "fail-fast": False,
-        "exclusion": "${{fromJson(needs.process-pr-labels.outputs.library-exclusion)}}",
     }
 
     job.data["env"] = {
