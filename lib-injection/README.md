@@ -139,7 +139,7 @@ The first step is do loging in docker hub:
 
 The second step is define the environment variables:
 
-``` 
+```sh
 export TEST_LIBRARY=java
 export WEBLOG_VARIANT=dd-lib-java-init-test-app
 export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_USERNAME
@@ -147,20 +147,31 @@ export LIBRARY_INJECTION_CONNECTION=‘network’
 export LIBRARY_INJECTION_ADMISSION_CONTROLLER='use-admission-controller'
 export BUILDX_PLATFORMS=linux/arm64
 ```
+
 The next is to dwnload or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
 When we have the environment ready, we have to execute this logic:
 
 * Build and push the init image
 * Build and push the app image
 * Create the Kubernetes cluster
-* Execute the tests
 
-```
+```sh
 ./lib-injection/run.sh build-and-push-init-image
 ./lib-injection/run.sh build-and-push-test-app-image
 ./lib-injection/build.sh
-./lib-injection/run-lib-injection.sh
+```
 
+* Execute the manual tests
+
+```sh
+./lib-injection/run-manual-lib-injection.sh
+```
+
+* Execute the auto tests
+
+```sh
+TEST_CASE=<TestCaseN>  # define the test case
+./lib-injection/run-auto-lib-injection.sh
 ```
 
 ## How to create init images in your tracer repository
