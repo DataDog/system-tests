@@ -71,7 +71,7 @@ public class AppSecIastSource {
             cookie.getName();
             cookie.getValue();
         }
-        return String.format("Request Headers => %s", cookies);
+        return String.format("Request Cookies => %s", cookies);
     }
 
 }
