@@ -103,7 +103,11 @@ func (s *apmClientServer) EndOtelSpan(ctx context.Context, args *EndOtelSpanArgs
 	return &EndOtelSpanReturn{}, nil
 }
 
-func setAttributes(span ot_api.Span, args *SetAttributesArgs) {
+func (s *apmClientServer) SetAttributes(ctx context.Context, args *SetAttributesArgs) (*SetAttributesReturn, error) {
+	span, ok := s.spans[args.SpanId]
+	if !ok {
+		fmt.Sprintf("SetAttributes call failed, span with id=%d not found", args.SpanId)
+	}
 	for k, lv := range args.Attributes.KeyVals {
 		first := lv.GetVal()[0]
 		n := len(lv.GetVal())
@@ -135,14 +139,6 @@ func setAttributes(span ot_api.Span, args *SetAttributesArgs) {
 		}
 
 	}
-}
-
-func (s *apmClientServer) SetAttributes(ctx context.Context, args *SetAttributesArgs) (*SetAttributesReturn, error) {
-	span, ok := s.spans[args.SpanId]
-	if !ok {
-		fmt.Sprintf("SetAttributes call failed, span with id=%d not found", args.SpanId)
-	}
-	setAttributes(span, args)
 	return &SetAttributesReturn{}, nil
 }
 
