@@ -309,7 +309,8 @@ function check-for-deploy-metadata() {
     if [[ $CONFIG_NAME = "config-1" ]] ;  then
         rev="1"
     fi
-    kubectl get deploy ${deployment_name} -ojson | jq .metadata.annotations | jq -e '."admission.datadoghq.com/rc.id"' | grep "11777398274940883092"
+    readonly RC_ID="11777398274940883092"
+    kubectl get deploy ${deployment_name} -ojson | jq .metadata.annotations | jq -e '."admission.datadoghq.com/rc.id"' | grep ${RC_ID}
     kubectl get deploy ${deployment_name} -ojson | jq .metadata.annotations | jq -e '."admission.datadoghq.com/rc.rev"' | grep ${rev}
 }
 
@@ -428,5 +429,5 @@ function remove-terminating-pods() {
 function get-library() {
     local library
     [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
-    echo $library
+    echo ${library}
 }
