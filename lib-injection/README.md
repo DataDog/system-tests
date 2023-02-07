@@ -2,14 +2,31 @@
 
 ## What is the lib-injection feature?
 
-The lib-injection project is a tool to allow injection of the tracer into a customer's application container without
-requiring them to modify their application images.
+The lib-injection project is a feature to allow injection of the Datadog library
+into a customer's application container without requiring them to modify their
+application images.
 
-This feature enables applications written in Java, Node or Python running Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries.
+This feature enables applications written in Java, Node or Python running
+in Kubernetes to be automatically instrumented with the corresponding Datadog
+APM libraries.
+
+Currently, there are two different ways to have the Datadog library injected
+into the application container:
+
+1) Manually via Kubernetes annotations as described here: https://docs.datadoghq.com/tracing/trace_collection/admission_controller/.
+2) Automatically with Remote Config via the Datadog UI.
+
+References to "manual" and "auto" in the tests refer to these different
+features, respectively. Under the hood the two mechanisms rely on the same logic
+to instrument the application.
+
 
 ## How does it work?
 
-It works via the Kubernetes Admission Controller which adds special APM library Docker containers to the deployment. These containers contain everything necessary to install and instrument the application with the APM library.
+The feature works via the Kubernetes Admission Controller which adds special APM
+library Docker containers to the deployment. These containers, combined with
+environment variables and volume mounts contain everything necessary to install
+and instrument the application with the APM library.
 
 ## What’s the Datadog Cluster Agent and why?
 
@@ -26,7 +43,7 @@ The Datadog admission controller is a component of the Datadog Cluster Agent. It
 
 Lib injection testing is part of the "system-tests" test suite. Although we run it in isolation from the system-tests, they share certain similarities
 
-To test lib-injection/autoinstrumentation feature, we run kubernetes cluster with datadog cluster agent and we check that the instrumentation run smoothly using different sample application (weblog) in different languages (currently Java, Python and node).
+To test lib-injection/autoinstrumentation feature, we run a Kubernetes cluster with the Datadog Cluster Agent and we check that the instrumentation runs smoothly using different sample applications (weblog) in different languages (currently Java, Python and Node).
 
 The following image represents, in general terms, the necessary and dependent architecture to be able to run lib-injection tests:
 
@@ -48,17 +65,18 @@ All that we need to execute lib-injection tests is located under lib-injection t
 * **Common:** Contains operator yaml templates. These templates will be used when we are launching tests with the Admission Controller.
     * **Operator-helm-values-uds.yaml:** Template to configure the Admission Controller using UDS.
     * **Operator-helm-values.yaml:** Template to configure the Admission Controller without UDS.
+    * **Operator-helm-values-auto.yaml:** Template to configure the Admission Controller for automatic instrumentation.
 * **docker-tags:** GitHub custom and shared actions that helps to "tracer repositories" to create appropiate tag names for init images (see section "How to create init images in your tracer repository")
 * **runner:** GitHub custom and shared actions that helps to run the tests in GitHub Actions CI. (see section "How to run the lib-injection tests in CI")
 * **src/test/resources:** Yaml kubernetes descriptors to create Datadog agent and Cluster agent.
 * **src/test/shell/functions.sh:** Contains the "logic" of these tests. We can found functions to manipulate helm templates and create kubernetes cluster environment (see section "lib-injections tests functions" ).
 * **build.sh:** Install binaries for kubernetes.
 * **execFunction.sh**: Helper to launch the functions that are stored in functions.sh.
-* **run-lib-injection.sh**: Orquestates the differents steps to launch the tests.
+* **run-{manual,auto}-lib-injection.sh**: Orchestrates the differents steps to launch the tests for the manual and auto test cases.
 
 ## lib-injections tests functions
 
-Functions.sh file contains the "logic" of these tests. 
+`functions.sh` contains the "logic" of these tests. 
 We can find some environment variables that we need to define previously:
 
 * **TEST_LIBRARY:** Language that we want to test. Possible values: java, python, nodejs
@@ -70,7 +88,7 @@ We can find some environment variables that we need to define previously:
 * **LIBRARY_INJECTION_CONNECTION:** Test with or without UDS.
 * **LIBRARY_INJECTION_ADMISSION_CONTROLLER:** Test autoinstrumentation with or without admission controller.
 
-Functions.sh contains some remarkable functions:
+`functions.sh` contains some remarkable functions:
 
 * **ensure-cluster:** It creates a Kubernetes cluster using configuration file: test/resources/kind-config.yaml.
 * **deploy-operator:** Deploys Datadog operator in the case that we are using Admission Controller. It uses common/operator-helm-values.yaml or common/operator-helm-values-uds.yaml to configure Admission Controller.
@@ -106,17 +124,16 @@ To run lib-injection tests in your CI you need:
       DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
       DOCKER_IMAGE_TAG: ${{ github.sha }}
     steps:    
-    
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@robertomonteromiguel/lib_injection_integration_v2
+        uses: DataDog/system-tests/lib-injection/runner@main
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.repository_owner }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## How to run the lib-injection tests in Local
+## How to run the manual lib-injection tests in Local
 
 You can also run the tests locally, but in this case we will create the docker init image using the corresponding tracer library.
 
@@ -125,7 +142,7 @@ The first step is do loging in docker hub:
 
 The second step is define the environment variables:
 
-``` 
+```sh
 export TEST_LIBRARY=java
 export WEBLOG_VARIANT=dd-lib-java-init-test-app
 export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_USERNAME
@@ -133,20 +150,31 @@ export LIBRARY_INJECTION_CONNECTION=‘network’
 export LIBRARY_INJECTION_ADMISSION_CONTROLLER='use-admission-controller'
 export BUILDX_PLATFORMS=linux/arm64
 ```
+
 The next is to dwnload or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
 When we have the environment ready, we have to execute this logic:
 
 * Build and push the init image
 * Build and push the app image
 * Create the Kubernetes cluster
-* Execute the tests
 
-```
+```sh
 ./lib-injection/run.sh build-and-push-init-image
 ./lib-injection/run.sh build-and-push-test-app-image
 ./lib-injection/build.sh
-./lib-injection/run-lib-injection.sh
+```
 
+* Execute the manual tests
+
+```sh
+./lib-injection/run-manual-lib-injection.sh
+```
+
+* Execute the auto tests
+
+```sh
+TEST_CASE=<TestCaseN>  # define the test case
+./lib-injection/run-auto-lib-injection.sh
 ```
 
 ## How to create init images in your tracer repository
@@ -203,7 +231,7 @@ jobs:
 
     - name: lib-injection-tags
       id: lib-injection-tags
-      uses: DataDog/system-tests/lib-injection/docker-tags@robertomonteromiguel/lib_injection_integration_v2
+      uses: DataDog/system-tests/lib-injection/docker-tags@main
       with:
         init-image-name: 'dd-lib-java-init'
         main-branch-name: 'robertomonteromiguel-lib_injection_system_tests_integration'
@@ -221,5 +249,4 @@ jobs:
         tags: ${{ steps.lib-injection-tags.outputs.tag-names }}
         platforms: ${{ steps.buildx-platforms.outputs.platforms }}
         context: ./lib-injection
-
 ```
