@@ -462,7 +462,7 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
 def test_root_span_selected_by_sss014(test_agent, test_library):
     """Single spans selected by SSS must be kept and shouldn't affect child span sampling priority.
     
-    We're essentially testing to make sure that the span sampling rule keeps selected spans despite of the trace sampling decision
+    We're essentially testing to make sure that the span sampling rule keeps selected spans regardless of the trace sampling decision
     and doesn't affect child spans that are dropped by the tracer sampling mechanism.
     """
     with test_library:
