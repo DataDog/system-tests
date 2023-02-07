@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	grpctrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/google.golang.org/grpc"
@@ -25,6 +26,7 @@ func listenAndServeGRPC() {
 		grpc.Creds(insecure.NewCredentials()),
 	)
 	RegisterWeblogServer(grpcServer, server{})
+	reflection.Register(grpcServer)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal(err)
 	}
