@@ -18,8 +18,8 @@ class OtelSpanContext(TypedDict):
 OtelTrace = List[OtelSpan]
 
 
-def check_list_type(v, type: type) -> bool:
-    if v and all(isinstance(i, type) for i in v):
+def check_list_type(value, t: type) -> bool:
+    if value and all(isinstance(item, t) for item in value):
         return True
     return False
 

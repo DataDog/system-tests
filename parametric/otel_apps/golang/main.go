@@ -109,8 +109,13 @@ func (s *apmClientServer) SetAttributes(ctx context.Context, args *SetAttributes
 		fmt.Sprintf("SetAttributes call failed, span with id=%d not found", args.SpanId)
 	}
 	for k, lv := range args.Attributes.KeyVals {
-		first := lv.GetVal()[0]
 		n := len(lv.GetVal())
+		if n == 0 {
+			continue
+		}
+		// all values are represented as slices
+		// lv
+		first := lv.GetVal()[0]
 		switch first.Val.(type) {
 		case *AttrVal_StringVal:
 			inp := make([]string, n)

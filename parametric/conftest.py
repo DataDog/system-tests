@@ -168,7 +168,7 @@ def golang_otel_library_factory(env: Dict[str, str]):
     go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
     go_reldir = os.path.join("parametric", go_appdir)
     return APMLibraryTestServer(
-        lang="golang",
+        lang="otel_golang",
         container_name="go-test-library",
         container_tag="go119-test-library",
         container_img=f"""
@@ -246,7 +246,7 @@ _libs = {
     "otel_golang": golang_otel_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "otel_golang,dotnet,golang,java,nodejs,python").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))

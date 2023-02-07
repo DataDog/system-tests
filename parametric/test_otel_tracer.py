@@ -1,8 +1,10 @@
+import time
+import pytest
+
 from parametric.spec.trace import find_trace_by_root
 from parametric.spec.trace import find_span_in_traces
 from parametric.spec.trace import find_span
 from parametric.spec.otel_trace import OtelSpan
-import time
 
 # todo: add prefix_library to run otel_*
 
@@ -17,7 +19,11 @@ SK_CLIENT = 3
 SK_PRODUCER = 4
 SK_CONSUMER = 5
 
-
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
 def test_otel_span_top_level_attributes(test_agent, test_otel_library):
     """Do a simple trace to ensure that the test client is working properly.
         - start tracer with tracer options
@@ -68,7 +74,11 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
     assert "val2" in child_span["meta"]["key2"]
     assert "val3" in child_span["meta"]["key2"]
 
-
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
 def test_is_recording_otel(test_agent, test_otel_library):
     with test_otel_library:
         with test_otel_library.start_otel_span(name="test_span") as span:
@@ -77,7 +87,11 @@ def test_is_recording_otel(test_agent, test_otel_library):
             span.finish()
             assert not span.is_recording()
 
-
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
 def test_force_flush_otel(test_agent, test_otel_library):
     """verify that force flush flushed the spans"""
     with test_otel_library:
@@ -91,7 +105,11 @@ def test_force_flush_otel(test_agent, test_otel_library):
         span = find_span_in_traces(traces, OtelSpan(name="test_span"))
         assert span.get("name") == "test_span"
 
-
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
 def test_otel_span_end(test_agent, test_otel_library):
     """
     Test functionality of ending a span. After ending:
@@ -133,7 +151,11 @@ def test_otel_span_end(test_agent, test_otel_library):
     assert "value" in c1["meta"]["key"]
     assert "v2" in c2["meta"]["k2"]
 
-
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
 def test_set_otel_span_status(test_agent, test_otel_library):
     """want to verify set status logic is correct"""
     with test_otel_library:
