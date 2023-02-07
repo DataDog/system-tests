@@ -453,7 +453,6 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
                 [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
             ),
            "DD_TRACE_SAMPLE_RATE": 0,
-            #"DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}]),
         }
     ],
 )
