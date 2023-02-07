@@ -314,7 +314,9 @@ def add_ci_dashboard_job(workflow, needs):
 
 def add_perf_job(workflow, needs):
     job = Job("peformances", needs=[job.name for job in needs], env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"})
-
+    job.data[
+        "if"
+    ] = "github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'test_performances')  || contains(github.event.pull_request.labels.*.name, 'test_all')"
     job.add_checkout()
     job.add_step("Run", "./scenarios/perfs/run.sh golang")
     job.add_step("Display", "python scenarios/perfs/process.py")
@@ -326,7 +328,9 @@ def add_perf_job(workflow, needs):
 
 def add_fuzzer_job(workflow, needs):
     job = Job("fuzzer", needs=[job.name for job in needs], env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"})
-
+    job.data[
+        "if"
+    ] = "github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'test_fuzzer')  || contains(github.event.pull_request.labels.*.name, 'test_all')"
     job.add_checkout()
     job.add_step("Build", "./build.sh golang")
     job.add_step("Run", "./run.sh scenarios/fuzzer/main.py -t 60", env={"RUNNER_CMD": "python"})
