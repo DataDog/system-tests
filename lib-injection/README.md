@@ -16,7 +16,9 @@ into the application container:
 1) Manually via Kubernetes annotations as described here: https://docs.datadoghq.com/tracing/trace_collection/admission_controller/.
 2) Automatically with Remote Config via the Datadog UI.
 
-References to "manual" and "auto" in the tests refer to these different features, respectively.
+References to "manual" and "auto" in the tests refer to these different
+features, respectively. Under the hood the two mechanisms rely on the same logic
+to instrument the application.
 
 
 ## How does it work?
@@ -63,17 +65,18 @@ All that we need to execute lib-injection tests is located under lib-injection t
 * **Common:** Contains operator yaml templates. These templates will be used when we are launching tests with the Admission Controller.
     * **Operator-helm-values-uds.yaml:** Template to configure the Admission Controller using UDS.
     * **Operator-helm-values.yaml:** Template to configure the Admission Controller without UDS.
+    * **Operator-helm-values-auto.yaml:** Template to configure the Admission Controller for automatic instrumentation.
 * **docker-tags:** GitHub custom and shared actions that helps to "tracer repositories" to create appropiate tag names for init images (see section "How to create init images in your tracer repository")
 * **runner:** GitHub custom and shared actions that helps to run the tests in GitHub Actions CI. (see section "How to run the lib-injection tests in CI")
 * **src/test/resources:** Yaml kubernetes descriptors to create Datadog agent and Cluster agent.
 * **src/test/shell/functions.sh:** Contains the "logic" of these tests. We can found functions to manipulate helm templates and create kubernetes cluster environment (see section "lib-injections tests functions" ).
 * **build.sh:** Install binaries for kubernetes.
 * **execFunction.sh**: Helper to launch the functions that are stored in functions.sh.
-* **run-lib-injection.sh**: Orquestates the differents steps to launch the tests.
+* **run-{manual,auto}-lib-injection.sh**: Orchestrates the differents steps to launch the tests for the manual and auto test cases.
 
 ## lib-injections tests functions
 
-Functions.sh file contains the "logic" of these tests. 
+`functions.sh` contains the "logic" of these tests. 
 We can find some environment variables that we need to define previously:
 
 * **TEST_LIBRARY:** Language that we want to test. Possible values: java, python, nodejs
@@ -85,7 +88,7 @@ We can find some environment variables that we need to define previously:
 * **LIBRARY_INJECTION_CONNECTION:** Test with or without UDS.
 * **LIBRARY_INJECTION_ADMISSION_CONTROLLER:** Test autoinstrumentation with or without admission controller.
 
-Functions.sh contains some remarkable functions:
+`functions.sh` contains some remarkable functions:
 
 * **ensure-cluster:** It creates a Kubernetes cluster using configuration file: test/resources/kind-config.yaml.
 * **deploy-operator:** Deploys Datadog operator in the case that we are using Admission Controller. It uses common/operator-helm-values.yaml or common/operator-helm-values-uds.yaml to configure Admission Controller.
@@ -130,7 +133,7 @@ To run lib-injection tests in your CI you need:
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## How to run the lib-injection tests in Local
+## How to run the manual lib-injection tests in Local
 
 You can also run the tests locally, but in this case we will create the docker init image using the corresponding tracer library.
 
@@ -246,5 +249,4 @@ jobs:
         tags: ${{ steps.lib-injection-tags.outputs.tag-names }}
         platforms: ${{ steps.buildx-platforms.outputs.platforms }}
         context: ./lib-injection
-
 ```
