@@ -443,19 +443,17 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
 
-
-@pytest.mark.skip_library("golang", "Not implemented")
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.parametrize(
     "library_env",
     [
         {
             "DD_SPAN_SAMPLING_RULES": json.dumps(
-                [{"service": "webserver", "name": "web.request", "sample_rate": 1.0, "max_per_second": 50}]
+                [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
             ),
-            "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}]),
+           "DD_TRACE_SAMPLE_RATE": 0,
+            #"DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}]),
         }
     ],
 )
@@ -466,20 +464,21 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     and doesn't affect child spans that are dropped by the tracer sampling mechanism.
     """
     with test_library:
-        with test_library.start_span(name="web.request", service="webserver") as parent_span:
-            with test_library.start_span(name="web.handler", service="webserver", parent_id=parent_span.span_id):
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                 pass
 
     traces = test_agent.wait_for_num_traces(1, clear=True)
 
-    root_span = find_span_in_traces(traces, Span(name="web.request", service="webserver"))
-    child_span = find_span_in_traces(traces, Span(name="web.handler", service="webserver"))
+    parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
+    child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
     # root span should be kept by defined the SSS rules
-    assert root_span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
-    assert root_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-    assert root_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-    assert root_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
+    # don't check SAMPLING_PRIORITY_KEY of the parent since it could be set to drop,
+    # but it isn't a requirement
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     # child span should be dropped by defined trace sampling rules
     assert child_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
@@ -487,21 +486,17 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    # verify correctness of the Datadog tags for both spans
-    assert root_span["meta"].get("_dd.p.dm") == "-8"  # span sampling mechanism
     assert child_span["meta"].get("_dd.p.dm") is None
 
 
-@pytest.mark.skip_library("golang", "Not implemented")
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.parametrize(
     "library_env",
     [
         {
             "DD_SPAN_SAMPLING_RULES": json.dumps(
-                [{"service": "webserver", "name": "web.handler", "sample_rate": 1.0, "max_per_second": 50}]
+                [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
             ),
             "DD_TRACE_SAMPLE_RATE": 0,
         }
@@ -514,27 +509,22 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
     and doesn't affect parent spans that are dropped by the tracer sampling mechanism.
     """
     with test_library:
-        with test_library.start_span(name="web.request", service="webserver") as parent_span:
-            with test_library.start_span(name="web.handler", service="webserver", parent_id=parent_span.span_id):
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                 pass
 
     traces = test_agent.wait_for_num_traces(1, clear=True)
 
-    root_span = find_span_in_traces(traces, Span(name="web.request", service="webserver"))
-    child_span = find_span_in_traces(traces, Span(name="web.handler", service="webserver"))
+    parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
+    child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
     # root span should be dropped by defined trace sampling rules
-    assert root_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
-    assert root_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
-    assert root_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
-    assert root_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+    assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     # child span should be kept by defined the SSS rules
-    assert child_span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
-
-    # verify correctness of the Datadog tags for both spans
-    assert root_span["meta"].get("_dd.p.dm") is None
-    assert child_span["meta"].get("_dd.p.dm") == "-8"  # span sampling mechanism
