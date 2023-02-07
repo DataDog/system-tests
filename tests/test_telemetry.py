@@ -67,7 +67,9 @@ class Test_Telemetry:
             check_condition=self.not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=self.not_onboarding_event
+            request_headers={"via": r"trace-agent 7\..+"},
+            response_headers=(),
+            check_condition=self.not_onboarding_event,
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
