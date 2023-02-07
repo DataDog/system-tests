@@ -150,220 +150,496 @@
 					"properties": {
             "code": {"type": "integer"},
             "message": {"type": "string"}
-          }
-        }
-      },
-      "required": ["tags"]
-    },
-    "Application": {
-      "type": "object",
-      "properties": {
-        "env": {
-          "type": "string"
-        },
-        "language_name": {
-          "type": "string"
-        },
-        "language_version": {
-          "type": "string"
-        },
-        "runtime_name": {
-          "type": "string"
-        },
-        "runtime_patches": {
-          "type": "string"
-        },
-        "runtime_version": {
-          "type": "string"
-        },
-        "service_name": {
-          "type": "string"
-        },
-        "service_version": {
-          "type": "string"
-        },
-        "tracer_version": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "service_name",
-        "env",
-        "tracer_version",
-        "language_name",
-        "language_version"
-      ]
-    },
-    "Dependency": {
-      "type": "object",
-      "properties": {
-        "hash": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "type": {
-          "$ref": "#/$defs/DependencyType"
-        },
-        "version": {
-          "type": "string"
-        }
-      },
-      "required": ["name"]
-    },
-    "DependencyType": {
-      "type": "string",
-      "enum": ["SharedSystemLibrary", "PlatformStandard"],
-      "example": "SharedSystemLibrary"
-    },
-    "GenerateMetrics": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "series": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Metric"
-          }
-        }
-      },
-      "required": ["namespace", "series"]
-    },
-    "Host": {
-      "type": "object",
-      "properties": {
-        "container_id": {
-          "type": "string"
-        },
-        "hostname": {
-          "type": "string"
-        },
-        "os": {
-          "type": "string"
-        },
-        "os_version": {
-          "type": "string"
-        },
-        "kernel_name": {
-          "type": "string"
-        },
-        "kernel_release": {
-          "type": "string"
-        },
-        "kernel_version": {
-          "type": "string"
-        }
-      }
-    },
-    "Integration": {
-      "type": "object",
-      "properties": {
-        "auto_enabled": {
-          "type": "boolean"
-        },
-        "compatible": {
-          "type": "boolean"
-        },
-        "enabled": {
-          "type": "boolean"
-        },
-        "name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        }
-      },
-      "required": ["name"]
-    },
-    "Metric": {
-      "type": "object",
-      "properties": {
-        "common": {
-          "type": "boolean"
-        },
-        "metric": {
-          "type": "string"
-        },
-        "points": {
-          "type": "array",
-          "items": {
-            "type": "array",
-            "items": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "format": "uint64"
-                },
-                {
-                  "type": "number",
-                  "format": "double"
-                }
-              ]
-            }
-          }
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "type": {
-          "description": "Metric type variant",
-          "type": "string",
-          "enum": ["gauge", "count", "rate"],
-          "example": "gauge"
-        },
-        "interval": {
-          "description": "Set for gauge and rate metric types",
-          "type": "number",
-          "format": "double"
-        }
-      },
-      "required": ["metric", "points"]
-    },
-    "Configuration": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "value": { "type": ["number", "boolean", "string", "null"] }
-        },
-        "required": ["name"]
-      }
-    },
-    "Header": {
-      "type": "object",
-      "properties": {
-        "api_version": {
-          "$ref": "#/$defs/ApiVersion"
-        },
-        "application": {
-          "$ref": "#/$defs/Application"
-        },
-        "host": {
-          "$ref": "#/$defs/Host"
-        },
-        "runtime_id": {
-          "type": "string"
-        },
-        "seq_id": {
-          "type": "integer",
-          "format": "uint64"
-        },
-        "tracer_time": {
-          "type": "integer",
-          "format": "uint64"
-        }
-      },
-      "$comment": "api_version tracer_time runtime_id seq_id application host are required, but currently disabled because of the agent"
-    },
-    "TelemetryV1": {
+					}
+				}
+			},
+			"required": ["tags"]
+		},
+		"Application": {
+			"type": "object",
+			"properties": {
+				"env": {
+					"type": "string"
+				},
+				"language_name": {
+					"type": "string"
+				},
+				"language_version": {
+					"type": "string"
+				},
+				"runtime_name": {
+					"type": "string"
+				},
+				"runtime_patches": {
+					"type": "string"
+				},
+				"runtime_version": {
+					"type": "string"
+				},
+				"service_name": {
+					"type": "string"
+				},
+				"service_version": {
+					"type": "string"
+				},
+				"tracer_version": {
+					"type": "string"
+				},
+				"products": {
+					"$ref": "#/$defs/Products"
+				}
+			},
+			"required": [
+				"service_name",
+				"env",
+				"tracer_version",
+				"language_name",
+				"language_version"
+			]
+		},
+		"ApplicationV2": {
+			"type": "object",
+			"properties": {
+				"env": {
+					"type": "string"
+				},
+				"language_name": {
+					"type": "string"
+				},
+				"language_version": {
+					"type": "string"
+				},
+				"runtime_name": {
+					"type": "string"
+				},
+				"runtime_patches": {
+					"type": "string"
+				},
+				"runtime_version": {
+					"type": "string"
+				},
+				"service_name": {
+					"type": "string"
+				},
+				"service_version": {
+					"type": "string"
+				},
+				"tracer_version": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"service_name",
+				"env",
+				"service_version",
+				"tracer_version",
+				"language_name",
+				"language_version",
+				"runtime_name",
+				"runtime_version"
+			]
+		},
+		"Dependency": {
+			"type": "object",
+			"properties": {
+				"hash": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"version": {
+					"type": "string"
+				}
+			},
+			"required": ["name"]
+		},
+		"GenerateMetrics": {
+			"type": "object",
+			"properties": {
+				"namespace": {
+					"type": "string"
+				},
+				"series": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/Metric"
+					}
+				}
+			},
+			"required": ["namespace", "series"]
+		},
+		"Logs": {
+			"type": "object",
+			"properties": {
+				"message": {
+					"type": "string"
+				},
+				"level": {
+					"type": "string",
+					"enum": ["ERROR", "WARN", "DEBUG"]
+				},
+				"tags": {
+					"type": "string"
+				},
+				"stack_trace": {
+					"type": "string"
+				},
+				"tracer_time": {
+					"type": "string"
+				}
+			}
+		},
+		"Host": {
+			"type": "object",
+			"properties": {
+				"hostname": {
+					"type": "string"
+				},
+				"os": {
+					"type": "string"
+				},
+				"os_version": {
+					"type": "string"
+				},
+				"architecture": {
+					"type": "string"
+				},
+				"kernel_name": {
+					"type": "string"
+				},
+				"kernel_release": {
+					"type": "string"
+				},
+				"kernel_version": {
+					"type": "string"
+				}
+			},
+      "required" : [
+				"hostname"
+			]
+		},
+		"HostV2": {
+			"type": "object",
+			"properties": {
+				"hostname": {
+					"type": "string"
+				},
+				"os": {
+					"type": "string"
+				},
+				"os_version": {
+					"type": "string"
+				},
+				"architecture": {
+					"type": "string"
+				},
+				"kernel_name": {
+					"type": "string"
+				},
+				"kernel_release": {
+					"type": "string"
+				},
+				"kernel_version": {
+					"type": "string"
+				}
+			},
+      "required" : [
+				"hostname",
+				"os",
+				"architecture",
+				"kernel_name",
+				"kernel_release",
+				"kernel_version"
+			]
+		},
+		"Integration": {
+			"type": "object",
+			"properties": {
+				"auto_enabled": {
+					"type": "boolean"
+				},
+				"compatible": {
+					"type": "boolean"
+				},
+				"enabled": {
+					"type": "boolean"
+				},
+				"error": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"version": {
+					"type": "string"
+				}
+			},
+			"required": ["name", "enabled"]
+		},
+		"Metric": {
+      "oneOf": [
+        {
+					"type": "object",
+					"properties": {
+						"common": {
+							"type": "boolean"
+						},
+						"metric": {
+							"type": "string"
+						},
+						"points": {
+							"type": "array",
+							"items": {
+								"type": "array",
+								"items": {
+                  "oneOf": [
+                    {
+											"type": "integer",
+											"format": "uint64"
+										},
+										{
+											"type": "number",
+											"format": "double"
+										}
+									]
+								}
+							}
+						},
+						"tags": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"type": {
+							"description": "Metric type variant",
+							"type": "string",
+							"enum": ["gauge", "count", "rate"],
+							"example": "gauge"
+						},
+						"interval": {
+							"description": "Set for gauge and rate metric types",
+							"type": "number",
+							"format": "double"
+						}
+					},
+					"required": ["metric", "points"]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"common": {
+							"type": "boolean"
+						},
+						"metric": {
+							"type": "string"
+						},
+						"points": {
+							"type": "array",
+							"items": {
+								"type": "array",
+								"items": {
+                  "oneOf": [
+                    {
+											"type": "integer",
+											"format": "uint64"
+										},
+										{
+											"type": "number",
+											"format": "double"
+										}
+									]
+								}
+							}
+						},
+						"tags": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"type": {
+							"description": "Metric type variant",
+							"type": "string",
+							"enum": ["gauge"],
+							"example": "gauge"
+						}
+					},
+					"required": ["metric", "points", "tags", "common", "type"]
+				}
+			]
+		},
+		"Configuration": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": ["number", "boolean", "string", "null"]
+					}
+				},
+				"required": ["name"]
+			}
+		},
+		"ConfigurationV2": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": ["number", "boolean", "string", "null"]
+					},
+					"origin": {
+						"type": "string"
+					},
+					"error": {
+						"$ref": "#/$defs/Error"
+					},
+					"is_overridden": {
+						"type": "boolean"
+					}
+				},
+				"required": ["name", "value", "origin"]
+			}
+		},
+		"HeaderV1": {
+			"type": "object",
+			"properties": {
+				"api_version": {
+					"const": "v1"
+				},
+				"application": {
+					"$ref": "#/$defs/Application"
+				},
+				"host": {
+					"$ref": "#/$defs/Host"
+				},
+				"runtime_id": {
+					"type": "string"
+				},
+				"seq_id": {
+					"type": "integer",
+					"format": "uint64"
+				},
+				"tracer_time": {
+					"type": "integer",
+					"format": "uint64"
+				}
+			},
+			"$comment": "api_version tracer_time runtime_id seq_id application host are required, but currently disabled because of the agent"
+
+		},
+		"HeaderV2": {
+			"type": "object",
+			"properties": {
+				"api_version": {
+					"const": "v2"
+				},
+				"application": {
+					"$ref": "#/$defs/ApplicationV2"
+				},
+				"host": {
+					"$ref": "#/$defs/HostV2"
+				},
+				"runtime_id": {
+					"type": "string"
+				},
+				"seq_id": {
+					"type": "integer",
+					"format": "uint64"
+				},
+				"tracer_time": {
+					"type": "integer",
+					"format": "uint64"
+				}
+			},
+			"required": [
+				"api_version",
+				"tracer_time",
+				"runtime_id",
+				"seq_id",
+				"application",
+				"host"
+			]
+		},
+		"APMOnboardingHeader": {
+			"type": "object",
+			"properties": {
+				"api_version": {
+					"const": "v2"
+				},
+				"runtime_id": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"api_version"
+			]
+		},
+		"Products": {
+			"type": "object",
+			"properties": {
+				"appsec": {
+					"$ref": "#/$defs/Product"
+				},
+				"profiler": {
+					"$ref": "#/$defs/Product"
+				},
+				"dynamic_instrumentation": {
+					"$ref": "#/$defs/Product"
+				}
+			}
+		},
+		"Product": {
+			"type": "object",
+			"properties": {
+				"version": {
+					"type": "string"
+				},
+				"enabled": {
+					"type": "boolean"
+				},
+				"error": {
+					"$ref": "#/$defs/Error"
+				}
+			},
+			"required": ["enabled"]
+		},
+		"RemoteConfig": {
+			"type": "object",
+			"properties": {
+				"user_enabled": {
+					"type": "string"
+				},
+				"configs_received": {
+					"type": "boolean"
+				},
+				"error": {
+					"$ref": "#/$defs/Error"
+				}
+			},
+			"required": ["enabled"]
+		},
+		"Error": {
+			"type": "object",
+			"properties": {
+        "code" : {
+					"type": "integer"
+				},
+				"message": {
+					"type": "string"
+				}
+			},
+      "required" : ["code", "message"]
+		},
+    "TelemetryV1" : {
       "allOf": [
         { "$ref": "#/$defs/HeaderV1" },
 			{
