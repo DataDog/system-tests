@@ -604,6 +604,8 @@ jobs:
     - lint_and_test
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    if: github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'test_performances')  || contains(github.event.pull_request.labels.*.name,
+      'test_all')
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -617,6 +619,8 @@ jobs:
     - lint_and_test
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    if: github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'test_fuzzer')  || contains(github.event.pull_request.labels.*.name,
+      'test_all')
     steps:
     - name: Checkout
       uses: actions/checkout@v3
