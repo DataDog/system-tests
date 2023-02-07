@@ -48,6 +48,7 @@ VARIANT_COMPONENT_MAP = {
     },
     "spring-boot-3-native": {
         "servlet.request": "tomcat-server",
+        "spring.handler": "spring-web-controller",
         "hsqldb.query": "java-jdbc-statement",
         "servlet.response": "java-web-servlet-response",
     },
