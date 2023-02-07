@@ -1,0 +1,90 @@
+name: System tests - test montero
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron:  '00 04 * * 2-6'
+  pull_request:
+    branches:
+    - '**'
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  system-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - library: golang
+            weblog-variant: echo
+          - library: golang
+            weblog-variant: net-http
+          - library: golang
+            weblog-variant: gorilla
+          - library: golang
+            weblog-variant: chi
+          - library: golang
+            weblog-variant: gin
+          - library: nodejs
+            weblog-variant: express4
+          - library: nodejs
+            weblog-variant: express4-typescript
+          - library: dotnet
+            weblog-variant: poc
+          - library: java
+            weblog-variant: spring-boot
+          - library: php
+            weblog-variant: apache-mod-8.0
+          - library: php
+            weblog-variant: php-fpm-8.0
+          - library: python
+            weblog-variant: django-poc
+          - library: python
+            weblog-variant: flask-poc
+          - library: python
+            weblog-variant: uwsgi-poc
+          - library: ruby
+            weblog-variant: sinatra21
+          - library: ruby
+            weblog-variant: rails70
+          - library: ruby
+            weblog-variant: rack
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: 'DataDog/system-tests'
+
+      - name: Checkout appsec-event-rules
+        uses: actions/checkout@v2
+        with:
+          path: 'appsec-event-rules'
+
+      - name: Load WAF ruleset
+        run: cp appsec-event-rules/build/recommended.json binaries/waf_rule_set.json
+
+      - name: Log in to the Container registry
+        if: ${{ matrix.library == 'ruby' }}
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+      - name: Build
+        run: ./build.sh ${{ matrix.library }} -w ${{ matrix.weblog-variant }}
+
+      - name: Run default scenario
+        run: ./run.sh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+
+      - name: Compress artifact
+        if: ${{ always() }}
+        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ always() }}
+        with:
+          name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}_prod
+          path: artifact.tar.gz
