@@ -22,10 +22,6 @@ public class AppSecIastSource {
 
     @PostMapping("/parameter/test")
     String sourceParameter(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String source = request.getParameter("source");
         final String value = request.getParameter("value");
         return String.format("Request Parameters => source: %s, value: %s", source, value);
@@ -33,39 +29,23 @@ public class AppSecIastSource {
 
     @PostMapping("/parametername/test")
     String sourceParameterName(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         List<String> parameterNames = Collections.list(request.getParameterNames());
         return String.format("Request Parameter Names => %s", parameterNames);
     }
 
     @GetMapping("/headername/test")
     String sourceHeaderName(final HttpServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         List<String> headerNames = Collections.list(request.getHeaderNames());
         return String.format("Request Headers => %s", headerNames);
     }
 
     @GetMapping("/header/test")
     String sourceHeaders(@RequestHeader("random-key") String header) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return String.format("Request Headers => %s", header);
     }
 
     @GetMapping("/cookie/test")
     String sourceCookies(final HttpServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         Cookie[] cookies = request.getCookies();
         for (Cookie cookie : cookies) {
             cookie.getName();
