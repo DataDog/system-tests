@@ -9,15 +9,15 @@ import time
 from typing import Callable, Dict, Generator, List, TextIO, Tuple, TypedDict
 import urllib.parse
 
-import grpc
 import requests
 import pytest
 
-from parametric.protos import apm_test_client_pb2 as pb
-from parametric.protos import apm_test_client_pb2_grpc
 from parametric.spec.trace import V06StatsPayload
 from parametric.spec.trace import Trace
 from parametric.spec.trace import decode_v06_stats
+from parametric._library_client import APMLibraryClientGRPC
+from parametric._library_client import APMLibraryClientHTTP
+from parametric._library_client import APMLibrary
 
 
 class AgentRequest(TypedDict):
@@ -70,7 +70,7 @@ class APMLibraryTestServer:
     container_img: str
     container_cmd: List[str]
     container_build_dir: str
-    port: str = os.getenv("APM_GRPC_SERVER_PORT", "50052")
+    port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
@@ -95,6 +95,28 @@ FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724
 WORKDIR /client
 RUN pyenv global 3.9.11
 RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3
+RUN python3.9 -m pip install %s
+"""
+        % (python_package,),
+        container_cmd="python3.9 -m apm_test_client".split(" "),
+        container_build_dir=python_dir,
+        volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
+        env=env,
+    )
+
+
+def python_http_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    python_dir = os.path.join(os.path.dirname(__file__), "apps", "python_http")
+    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
+    return APMLibraryTestServer(
+        lang="python",
+        container_name="python-test-library-http",
+        container_tag="python-test-library",
+        container_img="""
+FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
+WORKDIR /client
+RUN pyenv global 3.9.11
+RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
 RUN python3.9 -m pip install %s
 """
         % (python_package,),
@@ -215,9 +237,10 @@ _libs = {
     "java": java_library_factory,
     "nodejs": node_library_factory,
     "python": python_library_factory,
+    "python_http": python_http_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python,python_http").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -619,77 +642,6 @@ def test_server(
     os.remove(dockf_path)
 
 
-class _TestSpan:
-    def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub, span_id: int):
-        self._client = client
-        self.span_id = span_id
-
-    def set_meta(self, key: str, val: str):
-        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=self.span_id, key=key, value=val,))
-
-    def set_metric(self, key: str, val: float):
-        self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=self.span_id, key=key, value=val,))
-
-    def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
-        self._client.SpanSetError(
-            pb.SpanSetErrorArgs(span_id=self.span_id, type=typestr, message=message, stack=stack,)
-        )
-
-    def finish(self):
-        self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
-
-
-class APMLibrary:
-    def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
-        self._client = client
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # Only attempt a flush if there was no exception raised.
-        if exc_type is None:
-            self.flush()
-
-    DistributedHTTPHeaders = {}
-
-    @contextlib.contextmanager
-    def start_span(
-        self,
-        name: str,
-        service: str = "",
-        resource: str = "",
-        parent_id: int = 0,
-        typestr: str = "",
-        origin: str = "",
-        http_headers: DistributedHTTPHeaders = None,
-    ) -> Generator[_TestSpan, None, None]:
-        resp = self._client.StartSpan(
-            pb.StartSpanArgs(
-                name=name,
-                service=service,
-                resource=resource,
-                parent_id=parent_id,
-                type=typestr,
-                origin=origin,
-                http_headers=http_headers,
-            )
-        )
-        span = _TestSpan(self._client, resp.span_id)
-        yield span
-        span.finish()
-
-    def flush(self):
-        self._client.FlushSpans(pb.FlushSpansArgs())
-        self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
-
-    def inject_headers(self, span_id):
-        return self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
-
-    def stop(self):
-        return self._client.StopTracer(pb.StopTracerArgs())
-
-
 @pytest.fixture
 def test_server_timeout() -> int:
     return 60
@@ -697,8 +649,9 @@ def test_server_timeout() -> int:
 
 @pytest.fixture
 def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
-    channel = grpc.insecure_channel("localhost:%s" % test_server.port)
-    grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
-    client = apm_test_client_pb2_grpc.APMClientStub(channel)
+    if test_server.lang in ["php"] or test_server.container_name in ["python-test-library-http"]:
+        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
+    else:
+        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
     tracer = APMLibrary(client)
     yield tracer

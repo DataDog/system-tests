@@ -332,7 +332,10 @@ def add_fuzzer_job(workflow, needs):
 def add_parametric_job(workflow, needs):
     job = Job("parametric", needs=[job.name for job in needs])
 
-    job.data["strategy"] = {"matrix": {"client": ["python", "dotnet", "golang", "nodejs"]}, "fail-fast": False}
+    job.data["strategy"] = {
+        "matrix": {"client": ["python", "python_http", "dotnet", "golang", "nodejs"]},
+        "fail-fast": False,
+    }
 
     job.add_checkout()
     job.add_step(uses="actions/setup-python@v4", with_statement={"python-version": "3.9"})
