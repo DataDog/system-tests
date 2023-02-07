@@ -33,3 +33,11 @@ fi
 #Print exclusion and return
 echo $jsonExclusion| jq -r tostring
 echo "library=$(echo $jsonExclusion| jq -r tostring)" >> $GITHUB_OUTPUT
+
+#If there aren't any labels related with the library_language, we create a variable to mark it
+jsonExclusionSource="$(cat .github/workflows/library_langs.json)"
+if [[ "$jsonExclusionSource" = "$jsonExclusion" ]]; then
+    echo "language_labels_exist=false" >> $GITHUB_OUTPUT 
+else
+    echo "language_labels_exist=true" >> $GITHUB_OUTPUT
+fi

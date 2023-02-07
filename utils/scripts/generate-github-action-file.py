@@ -168,6 +168,9 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
 
     name = f"test-the-tests-{i}"
     job = Job(name, needs=[job.name for job in needs], large_runner=large_runner)
+    job.data[
+        "if"
+    ] = "${{ github.event.pull_request.draft == false || needs.process-pr-labels.outputs.language-labels-exist == 'true' }}"
 
     job.data["strategy"] = {
         "matrix": {
@@ -352,7 +355,10 @@ def add_parametric_job(workflow, needs):
 
 def add_process_pr_labels_job(workflow, needs):
     job = Job("process-pr-labels", needs=[job.name for job in needs])
-    job.data["outputs"] = {"library-exclusion": "${{ steps.lbl-exclusion.outputs.library }}"}
+    job.data["outputs"] = {
+        "library-exclusion": "${{ steps.lbl-exclusion.outputs.library }}",
+        "language-labels-exist": "${{ steps.lbl-exclusion.outputs.language_labels_exist }}",
+    }
     job.add_checkout()
     job.add_step(
         "Run",
