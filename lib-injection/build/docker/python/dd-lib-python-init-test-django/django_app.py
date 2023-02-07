@@ -9,6 +9,7 @@ from django.urls import path
 def handle_sigterm(signo, sf):
     sys.exit(0)
 
+
 signal.signal(signal.SIGTERM, handle_sigterm)
 
 

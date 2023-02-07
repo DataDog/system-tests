@@ -58,8 +58,7 @@ jobs:
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        # TODO: change this back to `main`
-        uses: DataDog/system-tests/lib-injection/runner@onboarding-rc-injection
+        uses: DataDog/system-tests/lib-injection/runner@main
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
@@ -99,8 +98,7 @@ jobs:
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        # TODO: change this back to `main`
-        uses: DataDog/system-tests/lib-injection/runner@onboarding-rc-injection
+        uses: DataDog/system-tests/lib-injection/runner@main
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
