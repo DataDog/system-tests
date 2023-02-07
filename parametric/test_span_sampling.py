@@ -508,7 +508,7 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     ],
 )
 def test_child_span_selected_by_sss015(test_agent, test_library):
-    """Single spans selected by SSS must be kept despite of its parent has been dropped.
+    """Single spans selected by SSS must be kept even if its parent has been dropped.
     
     We're essentially testing to make sure that the span sampling rule keeps selected spans despite of the trace sampling decision
     and doesn't affect parent spans that are dropped by the tracer sampling mechanism.
