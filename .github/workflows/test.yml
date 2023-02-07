@@ -61,6 +61,7 @@ jobs:
       - name: Checkout appsec-event-rules
         uses: actions/checkout@v2
         with:
+          repository: 'DataDog/appsec-event-rules'
           ref: "main"
           path: 'appsec-event-rules'
 
