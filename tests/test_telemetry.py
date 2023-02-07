@@ -60,9 +60,14 @@ class Test_Telemetry:
 
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
+
+        def not_onboarding_event(data):
+            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
+
         interfaces.agent.assert_headers_presence(
             path_filter="/api/v2/apmtelemetry",
             request_headers=["dd-api-key", "dd-telemetry-api-version", "dd-telemetry-request-type"],
+            check_condition=not_onboarding_event,
         )
 
     @missing_feature(library="python")
