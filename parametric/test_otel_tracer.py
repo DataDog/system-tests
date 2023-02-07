@@ -19,6 +19,7 @@ SK_CLIENT = 3
 SK_PRODUCER = 4
 SK_CONSUMER = 5
 
+
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
@@ -74,6 +75,7 @@ def test_otel_span_top_level_attributes(test_agent, test_otel_library):
     assert "val2" in child_span["meta"]["key2"]
     assert "val3" in child_span["meta"]["key2"]
 
+
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
@@ -86,6 +88,7 @@ def test_is_recording_otel(test_agent, test_otel_library):
             assert span.is_recording()
             span.finish()
             assert not span.is_recording()
+
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "Not implemented")
@@ -104,6 +107,7 @@ def test_force_flush_otel(test_agent, test_otel_library):
         traces = test_agent.wait_for_num_traces(1)
         span = find_span_in_traces(traces, OtelSpan(name="test_span"))
         assert span.get("name") == "test_span"
+
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "Not implemented")
@@ -150,6 +154,7 @@ def test_otel_span_end(test_agent, test_otel_library):
     c2 = find_span(trace, OtelSpan(name="child2"))
     assert "value" in c1["meta"]["key"]
     assert "v2" in c2["meta"]["k2"]
+
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "Not implemented")
