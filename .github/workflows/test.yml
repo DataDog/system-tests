@@ -65,8 +65,8 @@ jobs:
 
       - name: Load WAF ruleset
         run: |
-          echo "current directory"
-          ls
+          echo "current directory 2"
+          ls appsec-event-rules/
           cp appsec-event-rules/build/recommended.json binaries/waf_rule_set.json
 
       - name: Log in to the Container registry
