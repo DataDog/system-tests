@@ -64,7 +64,10 @@ jobs:
           path: 'appsec-event-rules'
 
       - name: Load WAF ruleset
-        run: cp system-tests/appsec-event-rules/build/recommended.json binaries/waf_rule_set.json
+        run: |
+          echo "current directory"
+          ls
+          cp appsec-event-rules/build/recommended.json binaries/waf_rule_set.json
 
       - name: Log in to the Container registry
         if: ${{ matrix.library == 'ruby' }}
