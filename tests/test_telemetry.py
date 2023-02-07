@@ -20,6 +20,9 @@ class Test_Telemetry:
 
     app_started_count = 0
 
+    def not_onboarding_event(self, data):
+        return data["request"]["content"].get("request_type") != "apm-onboarding-event"
+
     def validate_library_telemetry_data(self, validator, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data())
 
@@ -58,16 +61,13 @@ class Test_Telemetry:
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
-        def not_onboarding_event(data):
-            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
-
         header_presence_validator = HeadersPresenceValidator(
             request_headers=["dd-agent-hostname", "dd-agent-env"],
             response_headers=(),
-            check_condition=not_onboarding_event,
+            check_condition=self.not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event
+            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=self.not_onboarding_event
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
@@ -180,8 +180,9 @@ class Test_Telemetry:
 
         def save_data(data, container):
             # payloads are identifed by their seq_id/runtime_id
-            key = data["request"]["content"]["tracer_time"], data["request"]["content"]["runtime_id"]
-            container[key] = data
+            if self.not_onboarding_event(data):
+                key = data["request"]["content"]["tracer_time"], data["request"]["content"]["runtime_id"]
+                container[key] = data
 
         self.validate_library_telemetry_data(
             lambda data: save_data(data, self.library_requests), success_by_default=False
