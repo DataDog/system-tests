@@ -1,19 +1,43 @@
-[{
-    "variant": 
-      {
-        "library": "java"
-      }
- },
- {
-    "variant": 
-      {
-        "library": "php"
-      }
-    
-},
-{
-    "variant": 
-      {
-        "library": "cpp"
-      }
- } ]
+[
+  {
+    "variant": {
+      "library": "java"
+    }
+  },
+  {
+    "variant": {
+      "library": "php"
+    }
+  },
+  {
+    "variant": {
+      "library": "cpp"
+    }
+  },
+  {
+    "variant": {
+      "library": "dotnet"
+    }
+  },
+  {
+    "variant": {
+      "library": "golang"
+    }
+  },
+  {
+    "variant": {
+      "library": "nodejs"
+    }
+  },
+  {
+    "variant": {
+      "library": "python
+      "
+    }
+  },
+  {
+    "variant": {
+      "library": "ruby"
+    }
+  }
+]
