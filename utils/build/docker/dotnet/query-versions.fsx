@@ -5,13 +5,13 @@ open System
 open System.Runtime.InteropServices
 open Microsoft.FSharp.NativeInterop
 
-// <= waf1.3.0 it was a struct and not a string
+// <= waf1.3.0 it was a struct and not a string, < tracer version 15
 module NativeOld =
     [<DllImport("ddwaf.so")>]    
     extern IntPtr ddwaf_get_version(nativeint version)
 
 module Native =
-    [<DllImport("ddwaf.so")>]    
+    [<DllImport("ddwaf.so")>]
     extern IntPtr ddwaf_get_version()
 
 module QueryVersions =
