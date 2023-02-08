@@ -15,8 +15,6 @@ import pytest
 
 from parametric.protos import apm_test_client_pb2 as pb
 from parametric.protos import apm_test_client_pb2_grpc
-from parametric.protos import apm_test_otel_client_pb2 as pb_otel
-from parametric.protos import apm_test_otel_client_pb2_grpc
 from parametric.spec.trace import V06StatsPayload
 from parametric.spec.trace import Trace
 from parametric.spec.trace import decode_v06_stats
@@ -161,30 +159,6 @@ RUN go install
     )
 
 
-def golang_otel_library_factory(env: Dict[str, str]):
-    go_appdir = os.path.join("otel_apps", "golang")
-    go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
-    go_reldir = os.path.join("parametric", go_appdir)
-    return APMLibraryTestServer(
-        lang="golang",
-        container_name="go-test-library",
-        container_tag="go119-test-library",
-        container_img=f"""
-FROM golang:1.19
-WORKDIR /client
-COPY {go_reldir}/go.mod /client
-COPY {go_reldir}/go.sum /client
-COPY {go_reldir} /client
-RUN go mod tidy
-RUN go install
-""",
-        container_cmd=["main"],
-        container_build_dir=go_dir,
-        volumes=[(os.path.join(go_dir), "/client"),],
-        env=env,
-    )
-
-
 def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
@@ -241,7 +215,6 @@ _libs = {
     "java": java_library_factory,
     "nodejs": node_library_factory,
     "python": python_library_factory,
-    "otel_golang": golang_otel_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
 for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python").split(","):
@@ -667,31 +640,30 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub, span_id: int):
+    def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub, span_id: int):
         self._client = client
         self.span_id = span_id
 
     def set_attributes(self, attributes):
-        self._client.SetAttributes(pb_otel.SetAttributesArgs(span_id=self.span_id, attributes=attributes))
+        self._client.OtelSetAttributes(pb.OtelSetAttributesArgs(span_id=self.span_id, attributes=attributes))
 
     def set_name(self, name):
-        self._client.SetName(pb_otel.SetNameArgs(span_id=self.span_id, name=name))
+        self._client.OtelSetName(pb.OtelSetNameArgs(span_id=self.span_id, name=name))
 
     def finish(self):
-        self._client.EndOtelSpan(pb_otel.EndOtelSpanArgs(id=self.span_id))
+        self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=self.span_id))
 
     def is_recording(self):
-        self._client.IsRecording(pb_otel.IsRecordingArgs(id=self.span_id))
+        self._client.OtelIsRecording(pb.OtelIsRecordingArgs(id=self.span_id))
 
     def span_context(self):
-        self._client.SpanContext(pb_otel.SpanContextArgs(id=self.span_id))
-
-#     TODO: leaving span_context to be done later with Evan
+        self._client.OtelSpanContext(pb.OtelSpanContextArgs(id=self.span_id))
 
 
 class APMLibrary:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
+        self._client.StartTracer(pb.StartTracerArgs())
 
     def __enter__(self):
         pass
@@ -729,6 +701,27 @@ class APMLibrary:
         yield span
         span.finish()
 
+    @contextlib.contextmanager
+    def start_otel_span(self,
+                        name: str,
+                        service: str = "",
+                        resource: str = "",
+                        new_root: bool = True,
+                        parent_id: int = 0,
+                        ) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.OtelStartSpan(pb.OtelStartSpanArgs(
+            name=name,
+            new_root=new_root,
+            parent_id=parent_id
+        ))
+        span = _TestOtelSpan(self._client, resp.span_id)
+        yield span
+        span.finish()
+
+    def flush_otel(self):
+        self._client.OtelFlushSpans(pb.OtelFlushSpansArgs())
+        self._client.OtelFlushTraceStats(pb.OtelFlushTraceStatsArgs())
+
     def flush(self):
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
@@ -738,60 +731,6 @@ class APMLibrary:
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
-
-
-class APMOtelLibrary:
-    def __init__(
-        self, client: apm_test_otel_client_pb2_grpc.APMOtelClientStub,
-    ):
-        self._client = client
-        self._client.StartOtelTracer(pb_otel.StartOtelTracerArgs())
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # Only attempt a flush if there was no exception raised.
-        if exc_type is None:
-            self.flush()
-
-    DistributedHTTPHeaders = {}
-
-    @contextlib.contextmanager
-    def start_otel_span(self,
-                        name: str,
-                        service: str = "",
-                        resource: str = "",
-                        new_root: bool = True,
-                        parent_id: int = 0,
-                        ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.StartOtelSpan(pb_otel.StartOtelSpanArgs(
-            name=name,
-            new_root=new_root,
-            parent_id=parent_id
-        # NewRoot
-            # ParentId
-            # SpanKind
-            # Service
-            # Resource
-            # Type
-            # Timestamp
-
-        ))
-        span = _TestOtelSpan(self._client, resp.span_id)
-        yield span
-        span.finish()
-
-    # def get_span_context(self, span_id, attributes):
-    #     return self._client.SpanContext(pb_otel.SpanContextArgs(span_id=span_id, attributes=attributes))
-
-    def flush(self):
-        self._client.FlushOtelSpans(pb_otel.FlushOtelSpansArgs())
-        self._client.FlushOtelTraceStats(pb_otel.FlushOtelTraceStatsArgs())
-
-    def stop(self):
-        return self._client.StopOtelTracer(pb_otel.StopOtelTracerArgs())
-
 
 @pytest.fixture
 def test_server_timeout() -> int:
@@ -804,15 +743,4 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
     grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
     client = apm_test_client_pb2_grpc.APMClientStub(channel)
     tracer = APMLibrary(client)
-    yield tracer
-
-
-@pytest.fixture
-def test_otel_library(
-    test_server: APMLibraryTestServer, test_server_timeout: int
-) -> Generator[APMOtelLibrary, None, None]:
-    channel = grpc.insecure_channel("localhost:%s" % test_server.port)
-    grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
-    client = apm_test_otel_client_pb2_grpc.APMOtelClientStub(channel)
-    tracer = APMOtelLibrary(client)
     yield tracer
