@@ -702,18 +702,10 @@ class APMLibrary:
         span.finish()
 
     @contextlib.contextmanager
-    def start_otel_span(self,
-                        name: str,
-                        service: str = "",
-                        resource: str = "",
-                        new_root: bool = True,
-                        parent_id: int = 0,
-                        ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.OtelStartSpan(pb.OtelStartSpanArgs(
-            name=name,
-            new_root=new_root,
-            parent_id=parent_id
-        ))
+    def start_otel_span(
+        self, name: str, service: str = "", resource: str = "", new_root: bool = True, parent_id: int = 0,
+    ) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.OtelStartSpan(pb.OtelStartSpanArgs(name=name, new_root=new_root, parent_id=parent_id))
         span = _TestOtelSpan(self._client, resp.span_id)
         yield span
         span.finish()
@@ -731,6 +723,7 @@ class APMLibrary:
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
+
 
 @pytest.fixture
 def test_server_timeout() -> int:
