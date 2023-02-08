@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 const tracer = require('dd-trace').init({ debug: true });
 
 const app = require('express')();
+var axios = require('axios');
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
@@ -53,6 +54,30 @@ app.get('/identify', (req: Request, res: Response) => {
 
 app.get('/status', (req: Request, res: Response) => {
   res.status(parseInt('' + req.query.code)).send('OK');
+});
+
+app.get("/make_distant_call", (req: Request, res: Response) => {
+  const url = req.query.url;
+  console.log(url);
+
+  axios.get(url)
+  .then((response: Response) => {
+    res.json({
+      url: url,
+      status_code: response.statusCode,
+      request_headers: null,
+      response_headers: null,
+    });
+  })
+  .catch((error: Error) => {
+    console.log(error);
+    res.json({
+      url: url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null,
+    });
+  });
 });
 
 app.listen(7777, '0.0.0.0', () => {

@@ -12,6 +12,11 @@ import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
+
+import java.util.HashMap;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Map;
 import java.util.List;
 
 @Path("/")
@@ -87,5 +92,50 @@ public class MyResource {
             sb.append('}');
             return sb.toString();
         }
+    }
+
+    @GET
+    @Path("/make_distant_call")
+    DistantCallResponse make_distant_call(@QueryParam("url") String url) throws Exception {
+        URL urlObject = new URL(url);
+
+        HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
+        con.setRequestMethod("GET");
+
+        // Save request headers
+        HashMap<String, String> request_headers = new HashMap<String, String>();
+        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
+            if (header.getKey() == null) {
+                continue;
+            }
+
+            request_headers.put(header.getKey(), header.getValue().get(0));
+        }
+
+        // Save response headers and status code
+        int status_code = con.getResponseCode();
+        HashMap<String, String> response_headers = new HashMap<String, String>();
+        for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
+            if (header.getKey() == null) {
+                continue;
+            }
+
+            response_headers.put(header.getKey(), header.getValue().get(0));
+        }
+
+        DistantCallResponse result = new DistantCallResponse();
+        result.url = url;
+        result.status_code = status_code;
+        result.request_headers = request_headers;
+        result.response_headers = response_headers;
+
+        return result;
+    }
+
+    public static final class DistantCallResponse {
+        public String url;
+        public int status_code;
+        public HashMap<String, String> request_headers;
+        public HashMap<String, String> response_headers;
     }
 }

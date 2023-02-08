@@ -300,7 +300,7 @@ class Test_BodyRaw:
         interfaces.library.assert_waf_attack(self.r, address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="1.4.0rc1.dev", ruby="?")
+@released(golang="1.37.0", dotnet="2.7.0", nodejs="2.2.0", php_appsec="0.1.0", python="1.4.0rc1.dev", ruby="1.8.0")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "spring-boot-undertow": "0.98.0", "*": "0.95.1"})
 @coverage.basic
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
@@ -331,7 +331,7 @@ class Test_BodyUrlEncoded:
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.4.0rc1.dev", ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python="1.4.0rc1.dev", ruby="1.8.0")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "*": "0.95.1"})
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -441,7 +441,7 @@ class Test_ResponseStatus:
         interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
 
 
-@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="?")
+@released(dotnet="2.5.1", nodejs="2.0.0", php_appsec="0.2.1", ruby="1.8.0")
 @released(java={"vertx3": "0.99.0", "ratpack": "0.99.0", "resteasy-netty3": "?", "jersey-grizzly2": "?", "*": "0.95.1"})
 @released(golang={"gin": "1.37.0", "*": "1.36.0"})
 @released(
@@ -456,6 +456,7 @@ class Test_ResponseStatus:
 @irrelevant(
     context.library == "golang" and context.weblog_variant == "net-http", reason="net-http doesn't handle path params"
 )
+@irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic

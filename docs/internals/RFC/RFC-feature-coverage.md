@@ -1,6 +1,6 @@
 ## TL;DR.
 
-We'll implement a mechanism that will put metadata on each test class about the coverage/completness of the test. Two questions : 
+We'll implement a mechanism that will put metadata on each test class about the coverage/completness of the test. Two questions :
 
 * There will be three level, `basic`, `good`, `complete`. It's a compromise, do you think it's too many? not enough?
 * Two proposition of implementations, one using decorators, and one using class inheritance :
@@ -28,7 +28,7 @@ For a given feature, a test can have two informal coverage status:
 * The test is written. It provides a certain level of garantee for the feature to be bug-free
 * The test is not written
 
-The first status is obvious to observe (the test class exists), **but** there is no information about how far the test cover the feature. From bottom to top, it can be : 
+The first status is obvious to observe (the test class exists), **but** there is no information about how far the test cover the feature. From bottom to top, it can be :
 
 * just a declarative test (nothing is actually tested)
 * indirect testing, it guess that the feature is working becase another one is working
@@ -36,7 +36,7 @@ The first status is obvious to observe (the test class exists), **but** there is
 * a quite complete test
 * a rock solid test, implying a very strong confidence on the feature
 
-The second state is more ambigious. Often, the test classe is missing, but we don't know if it's because the feature is not testable or if we can one day implement it.
+The second state is more ambigious. Often, the test class is missing, but we don't know if it's because the feature is not testable or if we can one day implement it.
 
 This document will propose a mechanism to add metadata on test classes that allow to describe precisely the test coverage of each feature
 
@@ -103,22 +103,22 @@ class Test_Feature():
 # => error
 ```
 
-In particular, weblog missing endpoints can't have impact on test coverage, as there is nothing to do on the test class. We must use `missing_feature` for this use case (yes, it is a missing feature, *test is a true part of the feature*) : 
+In particular, weblog missing endpoints can't have impact on test coverage, as there is nothing to do on the test class. We must use `missing_feature` for this use case (yes, it is a missing feature, *test is a true part of the feature*) :
 
 ```python
 @coverage.basic
-@missing_feature(context.weblog_variant="gin", reason="Missing weblog endpoint")
+@missing_feature(library="golang", context.weblog_variant="gin", reason="Missing weblog endpoint")
 class Test_Feature():
     pass
 
 # => the coverage is "basic", and the test will be flagged as missing feature for golang/gin
 ```
 
-The `@overage` decorator can't be used on methods
+The `@coverage` decorator can't be used on methods
 
 ### Other implemention : Using base test class inheritance
 
-This implementation has not been chosen because : 
+This implementation has not been chosen because :
 
 * it would make the delcaration mandatory => causes friction
 * it uses another mechanism to declare metadata => causes friction

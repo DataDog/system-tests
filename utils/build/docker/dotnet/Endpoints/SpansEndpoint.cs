@@ -1,7 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Datadog.Trace;
 
 namespace weblog
 {

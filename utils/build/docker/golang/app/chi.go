@@ -3,10 +3,12 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/go-chi/chi/v5"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -50,6 +52,20 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
+		if url := r.URL.Query().Get("url"); url != "" {
+			client := httptrace.WrapClient(http.DefaultClient)
+			req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+			_, err := client.Do(req)
+
+			if err != nil {
+				log.Fatalln(err)
+				w.WriteHeader(500)
+			}
+		}
+		w.Write([]byte("OK"))
+	})
+
 	mux.HandleFunc("/headers/", headers)
 	mux.HandleFunc("/headers", headers)
 
@@ -70,6 +86,18 @@ func main() {
 			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
+	})
+
+	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
+		appsec.TrackUserLoginSuccessEvent(r.Context(), "system_tests_user", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
+		appsec.TrackUserLoginFailureEvent(r.Context(), "system_tests_user", true, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
+		appsec.TrackCustomEvent(r.Context(), "system_tests_event", map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {

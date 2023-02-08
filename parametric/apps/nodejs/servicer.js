@@ -26,6 +26,15 @@ class Servicer {
             parent.origin = request.origin;
         }
 
+        const { http_headers } = request.http_headers || {};
+        // Node.js HTTP headers are automatically lower-cased, simulate that here.
+        const convertedHeaders = {};
+        for (const [key, value] of Object.entries(http_headers)) {
+            convertedHeaders[key.toLowerCase()] = value;
+        }
+        const extracted = tracer.extract('http_headers', convertedHeaders);
+        if (extracted !== null) parent = extracted;
+
         const span = tracer.startSpan(request.name, {
             service: request.service,
             type: request.type,
@@ -33,11 +42,29 @@ class Servicer {
             childOf: parent,
         });
 
+        const ctx = span.context();
+        console.log('StartSpan', http_headers, ctx.toTraceparent(), ctx._tags);
+
         this.spans[span.context().toSpanId()] = span;
 
         return callback(null, {
             span_id: span.context().toSpanId(),
             trace_id: span.context().toTraceId()
+        });
+    }
+
+    InjectHeaders = (call, callback) => {
+        const { request } = call;
+        const span = this.spans[request.span_id];
+        const http_headers = {};
+
+        tracer.inject(span, 'http_headers', http_headers);
+
+        const ctx = span._spanContext
+        console.log('InjectHeaders', http_headers, ctx.toTraceparent(), ctx._tags)
+
+        return callback(null, {
+            http_headers: { http_headers }
         });
     }
 
@@ -76,6 +103,10 @@ class Servicer {
 
     FlushTraceStats = (_, callback) => {
         // TODO: implement once available in NodeJS Tracer
+        return callback(null, {})
+    }
+
+    StopTracer = (_, callback) => {
         return callback(null, {})
     }
 }

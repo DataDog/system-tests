@@ -3,10 +3,12 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/gin-gonic/gin"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -47,6 +49,21 @@ func main() {
 		ctx.Writer.Write([]byte("OK"))
 	})
 
+	r.Any("/make_distant_call", func(ctx *gin.Context) {
+		if url := ctx.Request.URL.Query().Get("url"); url != "" {
+
+			client := httptrace.WrapClient(http.DefaultClient)
+			req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
+			_, err := client.Do(req)
+
+			if err != nil {
+				log.Fatalln(err)
+				ctx.Writer.WriteHeader(500)
+			}
+		}
+		ctx.Writer.Write([]byte("OK"))
+	})
+
 	r.Any("/headers/", headers)
 	r.Any("/headers", headers)
 
@@ -67,6 +84,18 @@ func main() {
 			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		ctx.Writer.Write([]byte("Hello, identify-propagate!"))
+	})
+
+	r.GET("/user_login_success_event", func(ctx *gin.Context) {
+		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), "system_tests_user", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	r.GET("/user_login_failure_event", func(ctx *gin.Context) {
+		appsec.TrackUserLoginFailureEvent(ctx.Request.Context(), "system_tests_user", true, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	r.GET("/custom_event", func(ctx *gin.Context) {
+		appsec.TrackCustomEvent(ctx.Request.Context(), "system_tests_event", map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	initDatadog()
