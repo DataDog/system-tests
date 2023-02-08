@@ -56,7 +56,7 @@ module QueryVersions =
         Console.WriteLine("buffer ok")
         // just to try directly
         let ddWafVersionStruct =  new NativeTypes.DdWafVersionStruct()
-        Marshal.PtrToStructure(buffer, ref ddWafVersionStruct);
+        Marshal.PtrToStructure(buffer, ref ddWafVersionStruct)
         Console.WriteLine(t.ToString())
         let version = 
             if assem.GetName().Version.Major <= 2 && assem.GetName().Version.Minor <= 13 then Marshal.PtrToStructure<NativeTypes.DdWafVersionStruct>(buffer).ToString() 
