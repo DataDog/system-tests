@@ -5,11 +5,11 @@ from utils import weblog, interfaces, rfc, scenario
 class Test_Backend:
     """This is a smoke test that exercises the full flow of APM Tracing.
     It includes trace submission, the trace flowing through the backend processing,
-    and then finally fetching the final trace from the API.
+    and then finally successfully fetching the final trace from the API.
     """
 
     def setup_main(self):
         self.r = weblog.get("/")
 
     def test_main(self):
-        interfaces.backend.assert_trace_exists(self.r)
+        trace = interfaces.backend.assert_trace_exists(self.r)
