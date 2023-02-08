@@ -3,8 +3,25 @@
 open System
 open System.Runtime.InteropServices
 
+module NativeTypes =
+    [<type: StructLayout(LayoutKind.Sequential)>]
+    type DdWafVersionStruct =
+        class 
+            val mutable public Major: uint16
+            val mutable public Minor: uint16
+            val mutable public Patch: uint16
+            new() = {
+                Major = (uint16)0
+                Minor = (uint16)0
+                Patch = (uint16)0
+            }
+        end
+        override this.ToString() =
+            $"{this.Major.ToString()}.{this.Major.ToString()}.{this.Major.ToString()}"
+
+
 module Native =
-    [<DllImport("ddwaf.so")>]
+    [<DllImport("ddwaf.so")>]    
     extern IntPtr ddwaf_get_version()
 
 module QueryVersions =
@@ -16,7 +33,7 @@ module QueryVersions =
 
     let unknownRulesDefault = "1.2.5"
     let assem = Assembly.LoadFrom("/opt/datadog/netcoreapp3.1/Datadog.Trace.dll")
-
+   
     let writeRulesVersion () =
         let ruleVersion =
             use stream = assem.GetManifestResourceStream("Datadog.Trace.AppSec.Waf.rule-set.json")
@@ -36,7 +53,15 @@ module QueryVersions =
 
     let writeWafVersion () =
         let buffer = Native.ddwaf_get_version()
-        let version = Marshal.PtrToStringAnsi(buffer)
+        Console.WriteLine("buffer ok")
+        // just to try directly
+        let ddWafVersionStruct =  new NativeTypes.DdWafVersionStruct()
+        Marshal.PtrToStructure(buffer, ref ddWafVersionStruct);
+        Console.WriteLine(t.ToString())
+        let version = 
+            if assem.GetName().Version.Major <= 2 && assem.GetName().Version.Minor <= 13 then Marshal.PtrToStructure<NativeTypes.DdWafVersionStruct>(buffer).ToString() 
+            else Console.WriteLine("higher version"); Marshal.PtrToStringAnsi(buffer)
+        Console.WriteLine("version is" + version)
         File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", version)
 
     writeRulesVersion ()
