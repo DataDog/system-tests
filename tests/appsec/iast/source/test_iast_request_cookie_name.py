@@ -15,13 +15,17 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.5.0", "spring-boot-jetty": "1.5.0", "spring-boot-openliberty": "1.5.0", "*": "?"})
 @released(nodejs="?")
-class TestRequestParameterName:
-    """Verify that request parameters are tainted"""
+class TestRequestCookieName:
+    """Verify that request cookies are tainted"""
 
-    def setup_parametername(self):
-        self.r = weblog.post("/iast/source/parametername/test", data={"source": "parameterName"})
+    def setup_cookie_name(self):
+        self.r = weblog.get("/iast/source/cookiename/test", cookies={"cookie-source-name": "cookie-source-value"})
 
-    def test_parametername(self):
+    def test_cookie_name(self):
         interfaces.library.expect_iast_sources(
-            self.r, source_count=1, name="source", origin="http.request.parameter.name",
+            self.r,
+            source_count=1,
+            name="cookie-source-name",
+            origin="http.request.cookie.name",
+            value="cookie-source-name",
         )

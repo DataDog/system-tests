@@ -18,10 +18,10 @@ if context.library == "cpp":
 class TestRequestHeaderName:
     """Verify that request headers name are tainted"""
 
+    def setup_headername(self):
+        self.r = weblog.get("/iast/source/headername/test", headers={"random-key": "header-name"})
+
     def test_headername(self):
-        weblog.get("/iast/source/headername/test", headers={"random-key": "header-name"})
-        interfaces.library_stdout.wait()
-        test = re.escape(
-            'tainted={"value":"random-key","ranges":[{"source":{"origin":"http.request.header.name","name":"random-key"},"start":0,"length":10}]}'
+        interfaces.library.expect_iast_sources(
+            self.r, source_count=1, name="random-key", origin="http.request.header.name"
         )
-        interfaces.library_stdout.assert_presence(test, level="DEBUG")

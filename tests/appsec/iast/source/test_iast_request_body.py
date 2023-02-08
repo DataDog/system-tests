@@ -13,15 +13,15 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.5.0", "spring-boot-jetty": "1.5.0", "spring-boot-openliberty": "1.5.0", "*": "?"})
+@released(java={"spring-boot": "1.7.0", "*": "?"})
 @released(nodejs="?")
-class TestRequestParameterName:
-    """Verify that request parameters are tainted"""
+class TestRequestCookieName:
+    """Verify that request json body is tainted"""
 
-    def setup_parametername(self):
-        self.r = weblog.post("/iast/source/parametername/test", data={"source": "parameterName"})
+    def setup_body(self):
+        self.r = weblog.post("/iast/source/body/test", json={"name": "nameTest", "value": "valueTest"})
 
-    def test_parametername(self):
+    def test_body(self):
         interfaces.library.expect_iast_sources(
-            self.r, source_count=1, name="source", origin="http.request.parameter.name",
+            self.r, source_count=1, origin="http.request.body",
         )

@@ -18,14 +18,10 @@ if context.library == "cpp":
 class TestRequestParameter:
     """Verify that request parameters are tainted"""
 
+    def setup_parameter(self):
+        self.r = weblog.post("/iast/source/parameter/test", data={"source": "parameter"})
+
     def test_parameter(self):
-        weblog.post("/iast/source/parameter/test", data={"source": "parameter", "value": "parameterValue"})
-        interfaces.library_stdout.wait()
-        testSource = re.escape(
-            'tainted={"value":"parameter","ranges":[{"source":{"origin":"http.request.parameter","name":"source","value":"parameter"},"start":0,"length":9}]}'
+        interfaces.library.expect_iast_sources(
+            self.r, source_count=1, name="source", origin="http.request.parameter", value="parameter"
         )
-        interfaces.library_stdout.assert_presence(testSource, level="DEBUG")
-        testValue = re.escape(
-            'tainted={"value":"parameterValue","ranges":[{"source":{"origin":"http.request.parameter","name":"value","value":"parameterValue"},"start":0,"length":14}]}'
-        )
-        interfaces.library_stdout.assert_presence(testValue, level="DEBUG")
