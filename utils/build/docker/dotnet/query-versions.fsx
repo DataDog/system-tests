@@ -1,24 +1,14 @@
 #r "nuget: Newtonsoft.Json, 13.0.1"
+#nowarn "9"
 
 open System
 open System.Runtime.InteropServices
+open Microsoft.FSharp.NativeInterop
 
-module NativeTypes =
-    [<type: StructLayout(LayoutKind.Sequential)>]
-    type DdWafVersionStruct =
-        class 
-            val mutable public Major: uint16
-            val mutable public Minor: uint16
-            val mutable public Patch: uint16
-            new() = {
-                Major = (uint16)0
-                Minor = (uint16)0
-                Patch = (uint16)0
-            }
-        end
-        override this.ToString() =
-            $"{this.Major.ToString()}.{this.Major.ToString()}.{this.Major.ToString()}"
-
+// <= waf1.3.0 it was a struct and not a string
+module NativeOld =
+    [<DllImport("ddwaf.so")>]    
+    extern IntPtr ddwaf_get_version(nativeint version)
 
 module Native =
     [<DllImport("ddwaf.so")>]    
@@ -30,6 +20,17 @@ module QueryVersions =
     open System.Reflection
     open Newtonsoft.Json
     open Newtonsoft.Json.Linq
+
+    [<Struct>]
+    [<StructLayout(LayoutKind.Sequential, Pack=1)>]
+    type WafVersion =
+        struct 
+            val mutable Major: uint16
+            val mutable Minor: uint16
+            val mutable Patch: uint16
+        end
+        override this.ToString() =
+            $"{this.Major.ToString()}.{this.Minor.ToString()}.{this.Patch.ToString()}"
 
     let unknownRulesDefault = "1.2.5"
     let assem = Assembly.LoadFrom("/opt/datadog/netcoreapp3.1/Datadog.Trace.dll")
@@ -52,16 +53,20 @@ module QueryVersions =
         File.WriteAllText("/app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", ruleVersion)
 
     let writeWafVersion () =
-        let buffer = Native.ddwaf_get_version()
-        Console.WriteLine("buffer ok")
-        // just to try directly
-        let ddWafVersionStruct =  new NativeTypes.DdWafVersionStruct()
-        Marshal.PtrToStructure(buffer, ref ddWafVersionStruct)
-        Console.WriteLine(t.ToString())
+        let getOldWafVersion () =
+            let mutable ver:WafVersion = WafVersion()
+            let verPtr = &&ver
+            let nativeInt = NativePtr.toNativeInt verPtr
+            NativeOld.ddwaf_get_version(nativeInt) |> ignore
+            ver.ToString()
+        
+        let getWafVersion () =
+            let buffer = Native.ddwaf_get_version()
+            Marshal.PtrToStringAnsi(buffer)
+        
         let version = 
-            if assem.GetName().Version.Major <= 2 && assem.GetName().Version.Minor <= 13 then Marshal.PtrToStructure<NativeTypes.DdWafVersionStruct>(buffer).ToString() 
-            else Console.WriteLine("higher version"); Marshal.PtrToStringAnsi(buffer)
-        Console.WriteLine("version is" + version)
+            if assem.GetName().Version.Major <= 2 && assem.GetName().Version.Minor <= 14 then getOldWafVersion()
+            else getWafVersion()
         File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", version)
 
     writeRulesVersion ()
