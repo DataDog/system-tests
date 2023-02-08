@@ -82,14 +82,16 @@ class _BackendInterfaceValidator(InterfaceValidator):
                 return data
 
             time.sleep(sleep_interval_s)
-            sleep_interval_s *= sleep_interval_multiplier # increase the sleep time with each retry
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
 
-        raise Exception(f"Backend did not provide trace after {retries} retries: {data['path']}. Status is {status_code}.")
+        raise Exception(
+            f"Backend did not provide trace after {retries} retries: {data['path']}. Status is {status_code}."
+        )
 
     def _extract_trace_from_backend_response(self, response):
         content_parsed = json.loads(response["content"])
         trace = content_parsed.get("trace")
-        if not trace: 
+        if not trace:
             raise Exception(f"The response does not contain valid trace content: {response}")
         return trace
 
