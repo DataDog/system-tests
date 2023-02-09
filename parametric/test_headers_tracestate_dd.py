@@ -434,7 +434,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
     dd_items4 = tracestate4["dd"].split(";")
     assert "traceparent" in headers4
 
-    if headers4["x-datadog-tags"] is None or headers4["x-datadog-tags"] == "":
+    if headers4.get("x-datadog-tags", "") == "":
         assert not any(item.startswith("t:") for item in dd_items4)
     else:
         assert "tracestate" in headers4
