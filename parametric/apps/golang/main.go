@@ -4,13 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.opentelemetry.io/otel"
-	"google.golang.org/grpc"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"log"
 	"net"
 	"os"
 	"strconv"
+
+	"go.opentelemetry.io/otel"
+	"google.golang.org/grpc"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ot_api "go.opentelemetry.io/otel/trace"
 	ot "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
@@ -19,7 +20,7 @@ import (
 type apmClientServer struct {
 	UnimplementedAPMClientServer
 	spans     map[uint64]tracer.Span
-	otelSpans map[uint64]ot_api.Span
+	otelSpans map[string]ot_api.Span
 	tp        *ot.TracerProvider
 	tracer    ot_api.Tracer
 }
@@ -35,7 +36,7 @@ func (s *apmClientServer) StartTracer(context.Context, *StartTracerArgs) (*Start
 func newServer() *apmClientServer {
 	s := &apmClientServer{
 		spans:     make(map[uint64]tracer.Span),
-		otelSpans: make(map[uint64]ot_api.Span),
+		otelSpans: make(map[string]ot_api.Span),
 	}
 	return s
 }

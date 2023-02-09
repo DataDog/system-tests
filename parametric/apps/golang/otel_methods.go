@@ -3,23 +3,27 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	ot_api "go.opentelemetry.io/otel/trace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"time"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
 	fmt.Println("started_StartOtelSpan")
-	//todo tracer options/ span parent context not passed
-	//var pCtx = context.Background()
-	//if args.ParentId != nil && *args.ParentId > 0 {
-	//	parent := s.spans[*args.ParentId]
-	//	ddP, ok := parent.(ddtrace.Span)
-	//	pCtx = tracer.ContextWithSpan(ctx, ddP)
-	//}
+
+	var pCtx context.Context
+	if pid := args.GetParentId(); pid != "" {
+		parent := s.otelSpans[pid]
+		pCtx = tracer.ContextWithSpan(context.Background(), parent.(ddtrace.Span))
+	} else {
+		pCtx = context.Background()
+	}
 	var otelOpts = []ot_api.SpanStartOption{
-		ot_api.WithSpanKind(ot_api.SpanKind(args.GetSpanKind())),
+		ot_api.WithSpanKind(ot_api.ValidateSpanKind(ot_api.SpanKind(args.GetSpanKind()))),
 	}
 	if args.GetNewRoot() {
 		otelOpts = append(otelOpts, ot_api.WithNewRoot())
@@ -28,20 +32,17 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		tm := time.Unix(t, 0)
 		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
 	}
-	if attrs := args.GetAttributes(); attrs != nil {
-		for k, v := range attrs.Tags {
-			otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
-		}
-	}
-	ctx, span := s.tp.Tracer("").Start(context.Background(), args.Name, otelOpts...)
-	ddSpan, ok := span.(ddtrace.Span)
-	if !ok {
-		fmt.Println("span must be of ddtrace.Span type")
-	}
-	s.otelSpans[ddSpan.Context().SpanID()] = span
+
+	// if attrs := args.GetAttributes(); attrs != nil {
+	// 	for k, v := range attrs {
+	// 		otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
+	// 	}
+	// }
+
+	_, span := s.tp.Tracer("").Start(pCtx, args.Name, otelOpts...)
+	s.otelSpans[span.SpanContext().SpanID().String()] = span
 	return &OtelStartSpanReturn{
-		SpanId:  ddSpan.Context().SpanID(),
-		TraceId: ddSpan.Context().SpanID(),
+		SpanId: span.SpanContext().SpanID().String(),
 	}, nil
 }
 
@@ -59,11 +60,41 @@ func (s *apmClientServer) OtelEndSpan(ctx context.Context, args *OtelEndSpanArgs
 func (s *apmClientServer) OtelSetAttributes(ctx context.Context, args *OtelSetAttributesArgs) (*OtelSetAttributesReturn, error) {
 	span, ok := s.otelSpans[args.SpanId]
 	if !ok {
-		fmt.Sprintf("EndOtelSpan call failed, span with id=%d not found", args.SpanId)
+		fmt.Sprintf("SetAttributes call failed, span with id=%d not found", args.SpanId)
 	}
-
-	for k, v := range args.Attributes {
-		span.SetAttributes(attribute.String(k, v))
+	for k, lv := range args.Attributes.KeyVals {
+		n := len(lv.GetVal())
+		if n == 0 {
+			continue
+		}
+		// all values are represented as slices
+		first := lv.GetVal()[0]
+		switch first.Val.(type) {
+		case *AttrVal_StringVal:
+			inp := make([]string, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetStringVal())
+			}
+			span.SetAttributes(attribute.StringSlice(k, inp))
+		case *AttrVal_BoolVal:
+			inp := make([]bool, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetBoolVal())
+			}
+			span.SetAttributes(attribute.BoolSlice(k, inp))
+		case *AttrVal_DoubleVal:
+			inp := make([]float64, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetDoubleVal())
+			}
+			span.SetAttributes(attribute.Float64Slice(k, inp))
+		case *AttrVal_IntegerVal:
+			inp := make([]int64, n)
+			for _, v := range lv.GetVal() {
+				inp = append(inp, v.GetIntegerVal())
+			}
+			span.SetAttributes(attribute.Int64Slice(k, inp))
+		}
 
 	}
 	return &OtelSetAttributesReturn{}, nil
@@ -78,29 +109,64 @@ func (s *apmClientServer) OtelSetName(ctx context.Context, args *OtelSetNameArgs
 	return &OtelSetNameReturn{}, nil
 }
 
-func (s *apmClientServer) OtelFlushSpans(context.Context, *OtelFlushSpansArgs) (*OtelFlushSpansReturn, error) {
-	s.otelSpans = make(map[uint64]ot_api.Span)
-	return &OtelFlushSpansReturn{}, nil
+func (s *apmClientServer) OtelFlushSpans(ctx context.Context, args *OtelFlushSpansArgs) (*OtelFlushSpansReturn, error) {
+	s.otelSpans = make(map[string]ot_api.Span)
+	success := false
+	set_flush_success := func(ok bool) { success = ok }
+	s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, set_flush_success)
+	return &OtelFlushSpansReturn{Success: success}, nil
 }
 
 func (s *apmClientServer) OtelFlushTraceStats(context.Context, *OtelFlushTraceStatsArgs) (*OtelFlushTraceStatsReturn, error) {
-	s.otelSpans = make(map[uint64]ot_api.Span)
+	s.otelSpans = make(map[string]ot_api.Span)
 	return &OtelFlushTraceStatsReturn{}, nil
 }
 
 func (s *apmClientServer) OtelIsRecording(ctx context.Context, args *OtelIsRecordingArgs) (*OtelIsRecordingReturn, error) {
-	//TODO implement me
-	panic("implement me")
+	span, ok := s.otelSpans[args.SpanId]
+	if !ok {
+		fmt.Printf("IsRecording call failed, span with id=%d not found", args.SpanId)
+	}
+	is_recording := span.IsRecording()
+	return &OtelIsRecordingReturn{IsRecording: is_recording}, nil
 }
 
 func (s *apmClientServer) OtelSpanContext(ctx context.Context, args *OtelSpanContextArgs) (*OtelSpanContextReturn, error) {
-	//TODO implement me
-	panic("implement me")
+	span, ok := s.otelSpans[args.SpanId]
+	if !ok {
+		fmt.Printf("SpanContext call failed, span with id=%d not found", args.SpanId)
+	}
+	span_context := span.SpanContext()
+	spanID := span_context.SpanID().String()
+	traceID := span_context.TraceID().String()
+	traceFlags := span_context.TraceFlags().String()
+	traceState := span_context.TraceState().String()
+	remote := span_context.IsRemote()
+
+	return &OtelSpanContextReturn{
+		SpanId:     spanID,
+		TraceId:    traceID,
+		TraceFlags: traceFlags,
+		TraceState: traceState,
+		Remote:     remote,
+	}, nil
 }
 
 func (s *apmClientServer) OtelSetStatus(ctx context.Context, args *OtelSetStatusArgs) (*OtelSetStatusReturn, error) {
-	//TODO implement me
-	panic("implement me")
+	span, ok := s.otelSpans[args.SpanId]
+	if !ok {
+		fmt.Sprintf("SetStatus call failed, span with id=%d not found", args.SpanId)
+	}
+	if args.Code == "UNSET" {
+		span.SetStatus(codes.Unset, args.Description)
+	} else if args.Code == "ERROR" {
+		span.SetStatus(codes.Error, args.Description)
+	} else if args.Code == "OK" {
+		span.SetStatus(codes.Ok, args.Description)
+	} else {
+		fmt.Sprintf("Invalid code")
+	}
+	return &OtelSetStatusReturn{}, nil
 }
 
 //func (s *apmClientServer) StopOtelTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error) {
