@@ -443,6 +443,7 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
 
+
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.parametrize(
@@ -452,7 +453,7 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
             "DD_SPAN_SAMPLING_RULES": json.dumps(
                 [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
             ),
-           "DD_TRACE_SAMPLE_RATE": 0,
+            "DD_TRACE_SAMPLE_RATE": 0,
         }
     ],
 )
@@ -472,9 +473,7 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
     child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
 
-    # root span should be kept by defined the SSS rules
-    # don't check SAMPLING_PRIORITY_KEY of the parent since it could be set to drop,
-    # but it isn't a requirement
+    # the trace should be dropped, so the parent span priority is set to -1
     assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
     assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
