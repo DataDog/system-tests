@@ -83,7 +83,7 @@ $router->addRoute('POST', '/trace/span/set_meta', new ClosureRequestHandler(func
 }));
 $router->addRoute('POST', '/trace/span/set_metric', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
-    $span->metric[arg($req, 'key')] = arg($req, 'value');
+    $span->metrics[arg($req, 'key')] = arg($req, 'value');
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(function (Request $req) use (&$spans) {
