@@ -2,6 +2,9 @@
 
 const tracer = require("dd-trace").init({
   debug: true,
+  appsec: {
+    enabled: true
+  },
   experimental: {
     iast: {
       enabled: true,
@@ -85,6 +88,22 @@ app.get("/make_distant_call", (req, res) => {
       response_headers: null,
     });
   });
+});
+
+app.get("/users", (req, res) => {
+  let user = {}
+  if (req.query['user']) {
+    user.id = req.query['user']
+  } else {
+    user.id = 'anonymous'
+  }
+
+  const ret = tracer.appsec.isUserBlocked(user)
+  if (ret) {
+    tracer.appsec.blockRequest(req, res)
+  } else {
+    res.send(`Hello ${user.id}`)
+  }
 });
 
 require("./iast")(app, tracer);
