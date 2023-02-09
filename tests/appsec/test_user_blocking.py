@@ -3,7 +3,7 @@ import pytest
 from utils import released, coverage, interfaces, scenario, weblog
 
 
-@released(dotnet="?", golang="?", java="?", nodejs="4.0.0-pre", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @coverage.basic
 @scenario("APPSEC_BLOCKING")
 class Test_UserBlocking:
