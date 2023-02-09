@@ -1,3 +1,4 @@
+{{ if .Values.as_pod }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -103,3 +104,4 @@ spec:
       name: datadog
     {{ end }}
     {{ end }}
+{{ end }}

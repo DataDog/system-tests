@@ -22,6 +22,12 @@ public class K8sLibInjectionAppApplication {
                             .jackson()))));
 
     public static void main (String[] args) {
+        final Thread mainThread = Thread.currentThread();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                System.exit(0);
+            }
+        });
         app.run(args);
     }
 }
