@@ -66,7 +66,7 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
 
 
 class SpanFinishArgs(BaseModel):
-    id: int
+    span_id: int
 
 
 class SpanFinishReturn(BaseModel):
@@ -75,7 +75,7 @@ class SpanFinishReturn(BaseModel):
 
 @app.post("/trace/span/finish")
 def trace_span_finish(args: SpanFinishArgs) -> SpanFinishReturn:
-    span = spans[args.id]
+    span = spans[args.span_id]
     span.finish()
     return SpanFinishReturn()
 

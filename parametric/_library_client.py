@@ -105,7 +105,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
 
     def finish_span(self, span_id: int) -> None:
-        self._session.post(self._url("/trace/span/finish"), json={"id": span_id,})
+        self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
         return None
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
