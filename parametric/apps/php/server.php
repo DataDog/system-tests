@@ -35,14 +35,15 @@ function jsonResponse($array) {
     return new Response(headers: ['content-type' => 'application/json'], body: json_encode($array));
 }
 
-function arg($req, $arg, bool $array = false) {
-    return Query::createFromUri($req->getUri())->{$array ? "getAll" : "get"}($arg);
+function arg($req, $arg) {
+    static $buffer = new WeakMap;
+    return ($buffer[$req] ??= json_decode($req->getBody()->buffer(), true))[$arg] ?? null;
 }
 
 $spans = [];
 
 $router = new Router($server, $errorHandler);
-$router->addRoute('GET', '/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     if ($parent = arg($req, 'parent_id')) {
         \DDTrace\switch_stack($spans[$parent]);
         \DDTrace\create_stack();
@@ -50,7 +51,7 @@ $router->addRoute('GET', '/start_span', new ClosureRequestHandler(function (Requ
     } else {
         $span = \DDTrace\start_trace_span();
     }
-    if ($headers = arg($req, 'http_headers', true)) {
+    if ($headers = arg($req, 'http_headers')) {
         \DDTrace\consume_distributed_tracing_headers(function ($headername) use ($headers) {
             return $headers[strtolower($headername)] ?? null;
         });
@@ -64,31 +65,31 @@ $router->addRoute('GET', '/start_span', new ClosureRequestHandler(function (Requ
         "trace_id" => \DDTrace\trace_id(),
     ]);
 }));
-$router->addRoute('GET', '/inject_headers', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/inject_headers', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
     \DDTrace\switch_stack($span);
     return jsonResponse(\DDTrace\generate_distributed_tracing_headers());
 }));
-$router->addRoute('GET', '/set_tag', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/set_tag', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
     $span->meta[arg($req, 'key')] = arg($req, 'value');
     return jsonResponse([]);
 }));
-$router->addRoute('GET', '/span_set_error', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/span_set_error', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
     $span->meta['error.msg'] = arg($req, 'message');
     $span->meta['error.type'] = arg($req, 'type');
     $span->meta['error.stack'] = arg($req, 'stack');
     return jsonResponse([]);
 }));
-$router->addRoute('GET', '/finish_span', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+$router->addRoute('POST', '/finish_span', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span_id = arg($req, 'span_id');
     \DDTrace\switch_stack($spans[$span_id]);
     \DDTrace\close_span();
     unset($spans[$span_id]);
     return jsonResponse([]);
 }));
-$router->addRoute('GET', '/flush_spans', new ClosureRequestHandler(function () use (&$spans) {
+$router->addRoute('POST', '/flush_spans', new ClosureRequestHandler(function () use (&$spans) {
     \DDTrace\flush();
     return jsonResponse([]);
 }));
