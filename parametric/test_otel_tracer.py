@@ -48,6 +48,8 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
     assert len(trace) == 2
 
     root_span = find_span(trace, OtelSpan(name="operation"))
+    assert root_span["name"] == "operation"
+    assert root_span["resource"] == "operation"
     assert "val2" in root_span["meta"]["key"]
     assert "val1" in root_span["meta"]["key"]
     # assert root_span["meta"]["key2"] == "1"
