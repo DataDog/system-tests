@@ -7,7 +7,7 @@ import (
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
 	var opts []tracer.StartSpanOption
-	if args.ParentId != nil && *args.ParentId > 0 {
+	if args.GetParentId() > 0 {
 		parent := s.spans[*args.ParentId]
 		opts = append(opts, tracer.ChildOf(parent.Context()))
 	}
