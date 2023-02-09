@@ -716,7 +716,7 @@ class APMLibrary:
 
     @contextlib.contextmanager
     def start_otel_span(
-        self, name: str, new_root: bool = True, 
+        self, name: str, new_root: bool = False, 
         timestamp: bool = False, span_kind: int = 0, parent_id: str = "",
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.OtelStartSpan(pb.OtelStartSpanArgs(

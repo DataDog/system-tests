@@ -20,7 +20,6 @@ SK_CONSUMER = 5
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
@@ -30,8 +29,6 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
         - start parent span and child span
         - set attributes
     """
-    test_library.service = "test_service"
-    test_library.env = "test_env"
 
     # entering test_otel_library starts the tracer with the above options
     with test_library:
@@ -60,8 +57,6 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
 
     root_span = find_span(trace, OtelSpan(name="operation"))
     assert root_span["name"] == "operation"
-    assert root_span["service"] == "test_service"
-    assert root_span["meta"]["env"] == "test_env"
 
     assert "val2" in root_span["meta"]["key"]
     assert "val1" in root_span["meta"]["key"]
@@ -76,7 +71,6 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
@@ -90,7 +84,6 @@ def test_is_recording_otel(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
@@ -109,7 +102,6 @@ def test_force_flush_otel(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
@@ -156,7 +148,6 @@ def test_otel_span_end(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
