@@ -13,15 +13,15 @@ import (
 )
 
 func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
-	fmt.Println("started_StartOtelSpan")
-
-	var pCtx context.Context = context.Background()
+	// todo span options to be expanded
+  var pCtx context.Context = context.Background()
 	if pid := args.GetParentId(); pid != "" {
 		parent, ok := s.otelSpans[pid]
 		if ok {
 			pCtx = tracer.ContextWithSpan(context.Background(), parent.(ddtrace.Span))
 		}
 	}
+
 	var otelOpts = []ot_api.SpanStartOption{
 		ot_api.WithSpanKind(ot_api.ValidateSpanKind(ot_api.SpanKind(args.GetSpanKind()))),
 	}
@@ -168,8 +168,3 @@ func (s *apmClientServer) OtelSetStatus(ctx context.Context, args *OtelSetStatus
 	}
 	return &OtelSetStatusReturn{}, nil
 }
-
-//func (s *apmClientServer) StopOtelTracer(context.Context, *StopOtelTracerArgs) (*StopOtelTracerReturn, error) {
-//	tracer.Stop()
-//	return &StopOtelTracerReturn{}, nil
-//}
