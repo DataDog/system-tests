@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Callable, Dict, Generator, List, TextIO, Tuple, TypedDict
+from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, TypedDict, Union
 import urllib.parse
 
 import requests
@@ -64,7 +64,10 @@ def _request_token(request):
 
 @dataclasses.dataclass
 class APMLibraryTestServer:
+    # The library of the interface.
     lang: str
+    # The interface that this test server implements.
+    protocol: Union[Literal["grpc"], Literal["http"]]
     container_name: str
     container_tag: str
     container_img: str
@@ -88,6 +91,7 @@ def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
+        protocol="grpc",
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
@@ -110,6 +114,7 @@ def python_http_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
+        protocol="http",
         container_name="python-test-library-http",
         container_tag="python-test-library",
         container_img="""
@@ -134,6 +139,7 @@ def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
+        protocol="grpc",
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
@@ -164,6 +170,7 @@ def golang_library_factory(env: Dict[str, str]):
     go_reldir = os.path.join("parametric", go_appdir)
     return APMLibraryTestServer(
         lang="golang",
+        protocol="grpc",
         container_name="go-test-library",
         container_tag="go118-test-library",
         container_img=f"""
@@ -187,6 +194,7 @@ def dotnet_library_factory(env: Dict[str, str]):
     dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
     server = APMLibraryTestServer(
         lang="dotnet",
+        protocol="grpc",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
         container_img=f"""
@@ -212,6 +220,7 @@ def java_library_factory(env: Dict[str, str]):
     java_reldir = os.path.join("parametric", java_appdir)
     return APMLibraryTestServer(
         lang="java",
+        protocol="grpc",
         container_name="java-test-client",
         container_tag="java8-test-client",
         container_img=f"""
@@ -649,9 +658,11 @@ def test_server_timeout() -> int:
 
 @pytest.fixture
 def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
-    if test_server.lang in ["php"] or test_server.container_name in ["python-test-library-http"]:
+    if test_server.protocol == "grpc":
+        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
+    elif test_server.protocol == "http":
         client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
     else:
-        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
+        raise ValueError("interface %s not supported" % test_server.protocol)
     tracer = APMLibrary(client)
     yield tracer
