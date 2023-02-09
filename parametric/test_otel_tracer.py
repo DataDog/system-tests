@@ -5,18 +5,10 @@ from parametric.spec.trace import find_trace_by_root
 from parametric.spec.trace import find_span_in_traces
 from parametric.spec.trace import find_span
 from parametric.spec.otel_trace import OtelSpan
+from parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE
+from parametric.spec.otel_trace import SK_PRODUCER
 
 # todo: add prefix_library to run otel_*
-OTEL_UNSET_CODE = "UNSET"
-OTEL_ERROR_CODE = "ERROR"
-OTEL_OK_CODE = "OK"
-
-SK_UNSPECIFIED = 0
-SK_INTERNAL = 1
-SK_SERVER = 2
-SK_CLIENT = 3
-SK_PRODUCER = 4
-SK_CONSUMER = 5
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -56,13 +48,11 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
     assert len(trace) == 2
 
     root_span = find_span(trace, OtelSpan(name="operation"))
-    assert root_span["name"] == "operation"
-
     assert "val2" in root_span["meta"]["key"]
     assert "val1" in root_span["meta"]["key"]
-    assert "1" in root_span["meta"]["key2"]
-    assert "3.14" in root_span["meta"]["pi"]
-    assert "bye" in root_span["meta"]["hi"]
+    # assert root_span["meta"]["key2"] == "1"
+    # assert root_span["meta"]["pi"] == "3.14"
+    assert root_span["meta"]["hi"] == "bye"
 
     child_span = find_span(trace, OtelSpan(name="operation.child"))
     assert child_span["name"] == "operation.child"

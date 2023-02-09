@@ -14,7 +14,7 @@ import (
 
 func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
 	// todo span options to be expanded
-  var pCtx context.Context = context.Background()
+	var pCtx context.Context = context.Background()
 	if pid := args.GetParentId(); pid != "" {
 		parent, ok := s.otelSpans[pid]
 		if ok {
@@ -72,28 +72,44 @@ func (s *apmClientServer) OtelSetAttributes(ctx context.Context, args *OtelSetAt
 		switch first.Val.(type) {
 		case *AttrVal_StringVal:
 			inp := make([]string, n)
-			for _, v := range lv.GetVal() {
-				inp = append(inp, v.GetStringVal())
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetStringVal()
 			}
-			span.SetAttributes(attribute.StringSlice(k, inp))
+			if len(inp) > 1 {
+				span.SetAttributes(attribute.StringSlice(k, inp))
+			} else {
+				span.SetAttributes(attribute.String(k, inp[0]))
+			}
 		case *AttrVal_BoolVal:
 			inp := make([]bool, n)
-			for _, v := range lv.GetVal() {
-				inp = append(inp, v.GetBoolVal())
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetBoolVal()
 			}
-			span.SetAttributes(attribute.BoolSlice(k, inp))
+			if len(inp) > 1 {
+				span.SetAttributes(attribute.BoolSlice(k, inp))
+			} else {
+				span.SetAttributes(attribute.Bool(k, inp[0]))
+			}
 		case *AttrVal_DoubleVal:
 			inp := make([]float64, n)
-			for _, v := range lv.GetVal() {
-				inp = append(inp, v.GetDoubleVal())
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetDoubleVal()
 			}
-			span.SetAttributes(attribute.Float64Slice(k, inp))
+			if len(inp) > 1 {
+				span.SetAttributes(attribute.Float64Slice(k, inp))
+			} else {
+				span.SetAttributes(attribute.Float64(k, inp[0]))
+			}
 		case *AttrVal_IntegerVal:
 			inp := make([]int64, n)
-			for _, v := range lv.GetVal() {
-				inp = append(inp, v.GetIntegerVal())
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetIntegerVal()
 			}
-			span.SetAttributes(attribute.Int64Slice(k, inp))
+			if len(inp) > 1 {
+				span.SetAttributes(attribute.Int64Slice(k, inp))
+			} else {
+				span.SetAttributes(attribute.Int64(k, inp[0]))
+			}
 		}
 
 	}
@@ -112,8 +128,7 @@ func (s *apmClientServer) OtelSetName(ctx context.Context, args *OtelSetNameArgs
 func (s *apmClientServer) OtelFlushSpans(ctx context.Context, args *OtelFlushSpansArgs) (*OtelFlushSpansReturn, error) {
 	s.otelSpans = make(map[string]ot_api.Span)
 	success := false
-	set_flush_success := func(ok bool) { success = ok }
-	s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, set_flush_success)
+	s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, func(ok bool) { success = ok })
 	return &OtelFlushSpansReturn{Success: success}, nil
 }
 
@@ -127,8 +142,7 @@ func (s *apmClientServer) OtelIsRecording(ctx context.Context, args *OtelIsRecor
 	if !ok {
 		fmt.Printf("IsRecording call failed, span with id=%s not found", args.SpanId)
 	}
-	is_recording := span.IsRecording()
-	return &OtelIsRecordingReturn{IsRecording: is_recording}, nil
+	return &OtelIsRecordingReturn{IsRecording: span.IsRecording()}, nil
 }
 
 func (s *apmClientServer) OtelSpanContext(ctx context.Context, args *OtelSpanContextArgs) (*OtelSpanContextReturn, error) {
@@ -137,18 +151,13 @@ func (s *apmClientServer) OtelSpanContext(ctx context.Context, args *OtelSpanCon
 		fmt.Printf("SpanContext call failed, span with id=%s not found", args.SpanId)
 	}
 	span_context := span.SpanContext()
-	spanID := span_context.SpanID().String()
-	traceID := span_context.TraceID().String()
-	traceFlags := span_context.TraceFlags().String()
-	traceState := span_context.TraceState().String()
-	remote := span_context.IsRemote()
 
 	return &OtelSpanContextReturn{
-		SpanId:     spanID,
-		TraceId:    traceID,
-		TraceFlags: traceFlags,
-		TraceState: traceState,
-		Remote:     remote,
+		SpanId:     span_context.SpanID().String(),
+		TraceId:    span_context.TraceID().String(),
+		TraceFlags: span_context.TraceFlags().String(),
+		TraceState: span_context.TraceState().String(),
+		Remote:     span_context.IsRemote(),
 	}, nil
 }
 
