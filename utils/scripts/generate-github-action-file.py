@@ -261,12 +261,12 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
         if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
-    job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition=build_is_success)
+    job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
 
     job.add_upload_artifact(
         name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
         path="artifact.tar.gz",
-        if_condition=build_is_success,
+        if_condition="${{ always() }}",
     )
 
     job.add_step(
@@ -275,7 +275,7 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
             "./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} "
             "system-tests ${{ github.run_id }}-${{ github.run_attempt }}"
         ),
-        if_condition=build_is_success,
+        if_condition="${{ always() }}",
         env={"DD_API_KEY": "${{ secrets.DD_CI_API_KEY }}"},
     )
 
@@ -332,7 +332,10 @@ def add_fuzzer_job(workflow, needs):
 def add_parametric_job(workflow, needs):
     job = Job("parametric", needs=[job.name for job in needs])
 
-    job.data["strategy"] = {"matrix": {"client": ["python", "dotnet", "golang", "nodejs"]}, "fail-fast": False}
+    job.data["strategy"] = {
+        "matrix": {"client": ["python", "python_http", "dotnet", "golang", "nodejs"]},
+        "fail-fast": False,
+    }
 
     job.add_checkout()
     job.add_step(uses="actions/setup-python@v4", with_statement={"python-version": "3.9"})

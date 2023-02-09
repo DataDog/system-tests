@@ -12,9 +12,9 @@ from utils import weblog, context, coverage, interfaces, released, irrelevant, s
 
 @scenario("APPSEC_RUNTIME_ACTIVATION")
 @released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="3.9.0", golang="?")
-@irrelevant(context.appsec_rules_file == "")
 @irrelevant(
-    context.library >= "java@1.1.0" and context.appsec_rules_file is not None, reason="Can't test with custom rule file"
+    context.library == "java" and context.appsec_rules_file is not None,
+    reason="No Remote Config sub with custom rules file",
 )
 @bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")

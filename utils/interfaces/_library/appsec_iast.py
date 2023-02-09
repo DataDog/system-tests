@@ -50,3 +50,47 @@ class _AppSecIastValidator:
             return count_filtered > 0
 
         return self.vulnerability_count == count_filtered
+
+
+class _AppSecIastSourceValidator:
+    """Base class for all IAST Source validations"""
+
+    def __init__(
+        self, name=None, origin=None, value=None, source_count=None,
+    ):
+
+        self.name = name
+        self.origin = origin
+        self.value = value
+        self.source_count = source_count
+        self.filters = []
+
+        if self.name:
+            self.filters.append(lambda src: src.name == self.name)
+
+        if self.origin:
+            self.filters.append(lambda src: src.origin == self.origin)
+
+        if self.value:
+            self.filters.append(lambda src: src.value == self.value)
+
+    def __call__(self, sources):
+
+        filtered_sources = list(filter(lambda x: all(f(x) for f in self.filters), sources))
+        count_filtered = len(filtered_sources)
+
+        if not self._check_count_conditions(count_filtered):
+            raise Exception(
+                f"""Expected assertion failed:
+        Expect count: {self.source_count},
+        [ name: {self.name}, origin:{self.origin}, value: {self.value} ]
+        All sources: \n count:{len(sources)},[ {(sources)}]
+        Filtered sources: \n count:{len(filtered_sources)},[ {(filtered_sources)}] """
+            )
+        return True
+
+    def _check_count_conditions(self, count_filtered):
+        if self.source_count is None:
+            return count_filtered > 0
+
+        return self.source_count == count_filtered
