@@ -27,7 +27,8 @@ $logger->pushHandler($logHandler);
 
 $server = new SocketHttpServer($logger);
 
-$server->expose("0.0.0.0:80");
+$port = getenv('APM_TEST_CLIENT_SERVER_PORT');
+$server->expose("0.0.0.0:" . $port);
 
 $errorHandler = new DefaultErrorHandler;
 
@@ -61,6 +62,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
         $context = \DDTrace\current_context();
         \DDTrace\set_distributed_tracing_context($context["trace_id"], $context["distributed_tracing_parent_id"] ?? 0, $origin);
     }
+    $span->name = arg($req, 'name');
     $span->service = arg($req, 'service');
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
@@ -102,6 +104,7 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
 }));
 $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(function () use (&$spans) {
     \DDTrace\flush();
+    dd_trace_internal_fn("synchronous_flush");
     return jsonResponse([]);
 }));
 
