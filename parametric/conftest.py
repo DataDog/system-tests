@@ -240,16 +240,43 @@ RUN bash build.sh
     )
 
 
+def php_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    python_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
+    env = env.copy()
+    env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
+    return APMLibraryTestServer(
+        lang="php",
+        protocol="http",
+        container_name="php-test-library",
+        container_tag="php-test-library",
+        container_img="""
+FROM datadog/dd-trace-ci:php-8.2_buster
+WORKDIR /tmp
+ENV DD_TRACE_CLI_ENABLED=1
+ADD ./parametric/apps/php/composer.json .
+ADD ./parametric/apps/php/composer.lock .
+ADD ./parametric/apps/php/server.php .
+RUN curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php && php datadog-setup.php --php-bin=all
+RUN composer install
+""",
+        container_cmd=["php", "server.php"],
+        container_build_dir=python_dir,
+        volumes=[(os.path.join(python_dir, "server.php"), "/client/server.php"),],
+        env=env,
+    )
+
+
 _libs = {
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
     "java": java_library_factory,
     "nodejs": node_library_factory,
+    "php": php_library_factory,
     "python": python_library_factory,
     "python_http": python_http_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python,python_http").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,php,python,python_http").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
