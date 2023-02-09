@@ -639,9 +639,31 @@ class _TestSpan:
         self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
 
 
+class _TestOtelSpan:
+    def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub, span_id: int):
+        self._client = client
+        self.span_id = span_id
+
+    def set_attributes(self, attributes):
+        self._client.OtelSetAttributes(pb.OtelSetAttributesArgs(span_id=self.span_id, attributes=attributes))
+
+    def set_name(self, name):
+        self._client.OtelSetName(pb.OtelSetNameArgs(span_id=self.span_id, name=name))
+
+    def finish(self):
+        self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=self.span_id))
+
+    def is_recording(self):
+        self._client.OtelIsRecording(pb.OtelIsRecordingArgs(id=self.span_id))
+
+    def span_context(self):
+        self._client.OtelSpanContext(pb.OtelSpanContextArgs(id=self.span_id))
+
+
 class APMLibrary:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
+        self._client.StartTracer(pb.StartTracerArgs())
 
     def __enter__(self):
         pass
@@ -678,6 +700,19 @@ class APMLibrary:
         span = _TestSpan(self._client, resp.span_id)
         yield span
         span.finish()
+
+    @contextlib.contextmanager
+    def start_otel_span(
+        self, name: str, service: str = "", resource: str = "", new_root: bool = True, parent_id: int = 0,
+    ) -> Generator[_TestOtelSpan, None, None]:
+        resp = self._client.OtelStartSpan(pb.OtelStartSpanArgs(name=name, new_root=new_root, parent_id=parent_id))
+        span = _TestOtelSpan(self._client, resp.span_id)
+        yield span
+        span.finish()
+
+    def flush_otel(self):
+        self._client.OtelFlushSpans(pb.OtelFlushSpansArgs())
+        self._client.OtelFlushTraceStats(pb.OtelFlushTraceStatsArgs())
 
     def flush(self):
         self._client.FlushSpans(pb.FlushSpansArgs())

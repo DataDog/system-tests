@@ -10,6 +10,18 @@ service APMClient {
   rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
   rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
   rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
+
+  rpc OtelStartSpan(OtelStartSpanArgs) returns (OtelStartSpanReturn) {}
+  rpc OtelEndSpan(OtelEndSpanArgs) returns (OtelEndSpanReturn) {}
+  rpc OtelIsRecording(OtelIsRecordingArgs) returns (OtelIsRecordingReturn) {}
+  rpc OtelSpanContext(OtelSpanContextArgs) returns (OtelSpanContextReturn) {}
+  rpc OtelSetStatus(OtelSetStatusArgs) returns (OtelSetStatusReturn) {}
+  rpc OtelSetName(OtelSetNameArgs) returns (OtelSetNameReturn) {}
+  rpc OtelSetAttributes(OtelSetAttributesArgs) returns (OtelSetAttributesReturn) {}
+  rpc OtelFlushSpans(OtelFlushSpansArgs) returns (OtelFlushSpansReturn) {}
+  rpc OtelFlushTraceStats(OtelFlushTraceStatsArgs) returns (OtelFlushTraceStatsReturn) {}
+
+  rpc StartTracer(StartTracerArgs) returns (StartTracerReturn) {}
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 
@@ -24,7 +36,7 @@ message StartSpanArgs {
 }
 
 message DistributedHTTPHeaders {
-    map<string, string> http_headers = 9;
+  map<string, string> http_headers = 9;
 }
 
 message StartSpanReturn {
@@ -37,7 +49,7 @@ message InjectHeadersArgs {
 }
 
 message InjectHeadersReturn {
-    optional DistributedHTTPHeaders http_headers = 1;
+  optional DistributedHTTPHeaders http_headers = 1;
 }
 
 message FinishSpanArgs {
@@ -76,5 +88,76 @@ message FlushSpansReturn {}
 message FlushTraceStatsArgs {}
 message FlushTraceStatsReturn {}
 
+
+message OtelStartSpanArgs {
+  string name = 1;
+  optional bool new_root = 2;
+  optional uint64 parent_id = 3;
+  optional uint64 span_kind = 9;
+  optional string service = 4;
+  optional string resource = 5;
+  optional string type = 6;
+  optional int64 timestamp = 7;
+  optional attributes attributes = 8;
+}
+message attributes {
+  map<string, string> tags = 9;
+}
+
+message OtelStartSpanReturn {
+  uint64 span_id = 1;
+  uint64 trace_id = 2;
+}
+message OtelEndSpanArgs {
+  uint64 id = 1;
+}
+message OtelEndSpanReturn {}
+
+message OtelFlushSpansArgs {}
+message OtelFlushSpansReturn {}
+
+message OtelFlushTraceStatsArgs {}
+message OtelFlushTraceStatsReturn {}
+
+
+message OtelIsRecordingArgs {
+  uint64 span_id = 1;
+}
+message OtelIsRecordingReturn {
+  bool is_recording = 1;
+}
+
+message OtelSetStatusArgs {
+  uint64 span_id = 1;
+}
+message OtelSetStatusReturn {}
+
+message OtelSetNameArgs {
+  uint64 span_id = 1;
+  string name = 2;
+}
+message OtelSetNameReturn {}
+
+message OtelSetAttributesArgs {
+  uint64 span_id = 1;
+  map<string, string> attributes = 2;
+}
+message OtelSetAttributesReturn {}
+
+message OtelSpanContextArgs {
+  uint64 span_id = 1;
+}
+message OtelSpanContextReturn {
+  bytes span_id = 1;
+  bytes trace_id = 2;
+  int32 trace_flags = 3;
+  string trace_state = 4;
+  bool remote = 5;
+}
+
+
 message StopTracerArgs {}
 message StopTracerReturn {}
+
+message StartTracerArgs {}
+message StartTracerReturn {}
