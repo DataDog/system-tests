@@ -20,7 +20,7 @@ SK_CONSUMER = 5
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-#@pytest.mark.skip_library("golang", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
@@ -80,9 +80,9 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_is_recording_otel(test_agent, test_otel_library):
-    with test_otel_library:
-        with test_otel_library.start_otel_span(name="test_span") as span:
+def test_is_recording_otel(test_agent, test_library):
+    with test_library:
+        with test_library.start_otel_span(name="test_span") as span:
             span.set_attributes({"key": "val"})
             assert span.is_recording()
             span.finish()
@@ -94,13 +94,13 @@ def test_is_recording_otel(test_agent, test_otel_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_force_flush_otel(test_agent, test_otel_library):
+def test_force_flush_otel(test_agent, test_library):
     """verify that force flush flushed the spans"""
-    with test_otel_library:
-        with test_otel_library.start_otel_span(name="test_span") as span:
+    with test_library:
+        with test_library.start_otel_span(name="test_span") as span:
             pass
         # force flush with 5 second time out
-        flushed = test_otel_library.force_flush(1)
+        flushed = test_library.flush_otel(5)
         assert flushed, "ForceFlush error"
         # check if trace is flushed
         traces = test_agent.wait_for_num_traces(1)
@@ -113,7 +113,7 @@ def test_force_flush_otel(test_agent, test_otel_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_otel_span_end(test_agent, test_otel_library):
+def test_otel_span_end(test_agent, test_library):
     """
     Test functionality of ending a span. After ending:
         - operations on that span become noop
@@ -121,17 +121,17 @@ def test_otel_span_end(test_agent, test_otel_library):
         - child spans are still running and can be ended later
         - still possible to start child spans from parent context
     """
-    with test_otel_library:
+    with test_library:
         # start parent
-        with test_otel_library.start_otel_span(name="parent") as parent:
+        with test_library.start_otel_span(name="parent") as parent:
             pid = parent.span_id
             # start first child
-            with test_otel_library.start_otel_span(name="child1", parent_id=pid) as child1:
+            with test_library.start_otel_span(name="child1", parent_id=pid) as child1:
                 parent.finish()
                 parent.set_name("grandparent")  # should have no affect
 
                 # start second child after parent has been ended
-                with test_otel_library.start_otel_span(name="child2", parent_id=pid) as child2:
+                with test_library.start_otel_span(name="child2", parent_id=pid) as child2:
                     child1.set_attributes({"key": "value"})
                     child2.set_attributes({"k2": "v2"})
 
@@ -160,10 +160,10 @@ def test_otel_span_end(test_agent, test_otel_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_set_otel_span_status(test_agent, test_otel_library):
+def test_set_otel_span_status(test_agent, test_library):
     """want to verify set status logic is correct"""
-    with test_otel_library:
-        with test_otel_library.start_otel_span(name="test_span") as span:
+    with test_library:
+        with test_library.start_otel_span(name="test_span") as span:
             span.set_status(OTEL_ERROR_CODE, "error_desc")
             # error code > unset code, so status does not change
             span.set_status(OTEL_UNSET_CODE, "unset_desc")
