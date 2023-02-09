@@ -21,6 +21,7 @@ from parametric.spec.trace import decode_v06_stats
 from parametric.spec.otel_trace import OtelSpanContext
 from parametric.spec.otel_trace import convert_to_proto
 
+
 class AgentRequest(TypedDict):
     method: str
     url: str
@@ -646,8 +647,9 @@ class _TestOtelSpan:
         self.span_id = span_id
 
     def set_attributes(self, attributes):
-        self._client.OtelSetAttributes(pb.OtelSetAttributesArgs(span_id=self.span_id, 
-                                                                attributes=convert_to_proto(attributes)))
+        self._client.OtelSetAttributes(
+            pb.OtelSetAttributesArgs(span_id=self.span_id, attributes=convert_to_proto(attributes))
+        )
 
     def set_name(self, name):
         self._client.OtelSetName(pb.OtelSetNameArgs(span_id=self.span_id, name=name))
@@ -670,7 +672,6 @@ class _TestOtelSpan:
             trace_state=sctx.trace_state,
             remote=sctx.remote,
         )
-
 
 
 class APMLibrary:
@@ -716,15 +717,13 @@ class APMLibrary:
 
     @contextlib.contextmanager
     def start_otel_span(
-        self, name: str, new_root: bool = False, 
-        timestamp: bool = False, span_kind: int = 0, parent_id: str = "",
+        self, name: str, new_root: bool = False, timestamp: bool = False, span_kind: int = 0, parent_id: str = "",
     ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.OtelStartSpan(pb.OtelStartSpanArgs(
-            name=name, 
-            new_root=new_root, 
-            parent_id=parent_id, 
-            span_kind=span_kind, 
-            timestamp=timestamp))
+        resp = self._client.OtelStartSpan(
+            pb.OtelStartSpanArgs(
+                name=name, new_root=new_root, parent_id=parent_id, span_kind=span_kind, timestamp=timestamp
+            )
+        )
         span = _TestOtelSpan(self._client, resp.span_id)
         yield span
         span.finish()

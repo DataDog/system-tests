@@ -62,7 +62,6 @@ def convert_to_proto(attributes: dict) -> pb.Attributes:
     return pb.Attributes(key_vals=list_attr)
 
 
-
 # def find_otel_span_in_traces(traces: List[Trace], span: OtelSpan) -> OtelSpan:
 #     """Return a span from the traces which most closely matches `span`."""
 #     assert len(traces) > 0
