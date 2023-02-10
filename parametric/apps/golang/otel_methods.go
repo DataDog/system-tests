@@ -32,13 +32,57 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		tm := time.Unix(t, 0)
 		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
 	}
+	for k, lv := range args.Attributes.KeyVals {
+		n := len(lv.GetVal())
+		if n == 0 {
+			continue
+		}
+		// all values are represented as slices
+		first := lv.GetVal()[0]
+		switch first.Val.(type) {
+		case *AttrVal_StringVal:
+			inp := make([]string, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetStringVal()
+			}
+			if len(inp) > 1 {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.StringSlice(k, inp)))
+			} else {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, inp[0])))
+			}
+		case *AttrVal_BoolVal:
+			inp := make([]bool, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetBoolVal()
+			}
+			if len(inp) > 1 {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.BoolSlice(k, inp)))
+			} else {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.Bool(k, inp[0])))
+			}
+		case *AttrVal_DoubleVal:
+			inp := make([]float64, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetDoubleVal()
+			}
+			if len(inp) > 1 {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.Float64Slice(k, inp)))
+			} else {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.Float64(k, inp[0])))
+			}
+		case *AttrVal_IntegerVal:
+			inp := make([]int64, n)
+			for i, v := range lv.GetVal() {
+				inp[i] = v.GetIntegerVal()
+			}
+			if len(inp) > 1 {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.Int64Slice(k, inp)))
+			} else {
+				otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.Int64(k, inp[0])))
+			}
+		}
 
-	// if attrs := args.GetAttributes(); attrs != nil {
-	// 	for k, v := range attrs {
-	// 		otelOpts = append(otelOpts, ot_api.WithAttributes(attribute.String(k, v)))
-	// 	}
-	// }
-
+	}
 	_, span := s.tp.Tracer("").Start(pCtx, args.Name, otelOpts...)
 	s.otelSpans[span.SpanContext().SpanID().String()] = span
 	return &OtelStartSpanReturn{

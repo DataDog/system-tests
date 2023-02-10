@@ -64,6 +64,8 @@ def get_val(v) -> pb.ListVal:
 # the proto message "Attributes"
 def convert_to_proto(attributes: dict) -> pb.Attributes:
     list_attr = {}
+    if not attributes:
+        return pb.Attributes()
     for k, v in attributes.items():
         if not v:
             continue

@@ -17,15 +17,17 @@ from parametric.spec.otel_trace import SK_PRODUCER
 @pytest.mark.skip_library("java", "Not implemented")
 def test_otel_span_top_level_attributes(test_agent, test_library):
     """Do a simple trace to ensure that the test client is working properly.
-        - start tracer with tracer options
+        - start tracer
         - start parent span and child span
         - set attributes
     """
 
+    starting_attributes = {"start_attr_key": "start_attr_val"}
     # entering test_otel_library starts the tracer with the above options
     with test_library:
         with test_library.start_otel_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=int(time.time()), new_root=True
+            "operation", span_kind=SK_PRODUCER, timestamp=int(time.time()), new_root=True,
+            attributes = starting_attributes
         ) as parent:
             parent.set_attributes({"key": ["val1", "val2"]})
             parent.set_attributes({"key2": [1]})
@@ -50,10 +52,11 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
     root_span = find_span(trace, OtelSpan(name="operation"))
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
+    assert root_span["meta"]["start_attr_key"] == "start_attr_val"
     assert "val2" in root_span["meta"]["key"]
     assert "val1" in root_span["meta"]["key"]
-    # assert root_span["meta"]["key2"] == "1"
-    # assert root_span["meta"]["pi"] == "3.14"
+    assert root_span["metrics"]["key2"] == 1
+    assert root_span["metrics"]["pi"] == 3.14
     assert root_span["meta"]["hi"] == "bye"
 
     child_span = find_span(trace, OtelSpan(name="operation.child"))
