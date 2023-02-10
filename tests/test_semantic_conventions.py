@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, released
+from utils import context, interfaces, bug, released, missing_feature
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
