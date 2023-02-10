@@ -243,7 +243,7 @@ RUN bash build.sh
 def php_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
     env = env.copy()
-    env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
+    # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
     return APMLibraryTestServer(
         lang="php",
         protocol="http",
@@ -256,7 +256,9 @@ ENV DD_TRACE_CLI_ENABLED=1
 ADD ./parametric/apps/php/composer.json .
 ADD ./parametric/apps/php/composer.lock .
 ADD ./parametric/apps/php/server.php .
-RUN curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php && php datadog-setup.php --php-bin=all
+RUN curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php
+RUN curl -LO https://output.circle-artifacts.com/output/job/66a59769-7785-4db4-af6c-36a905218db1/artifacts/0/dd-library-php-1.0.0-nightly-aarch64-linux-gnu.tar.gz
+RUN php datadog-setup.php --php-bin=all --file=dd-library-php-1.0.0-nightly-aarch64-linux-gnu.tar.gz
 RUN composer install
 """,
         container_cmd=["php", "server.php"],

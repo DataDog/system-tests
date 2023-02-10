@@ -607,6 +607,7 @@ jobs:
     strategy:
       matrix:
         client:
+        - php
         - python
         - python_http
         - dotnet
