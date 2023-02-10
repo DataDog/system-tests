@@ -2,9 +2,6 @@
 
 const tracer = require("dd-trace").init({
   debug: true,
-  appsec: {
-    enabled: true
-  },
   experimental: {
     iast: {
       enabled: true,
