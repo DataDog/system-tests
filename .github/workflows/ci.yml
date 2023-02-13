@@ -20,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       parametric: ${{ steps.changes.outputs.parametric}}
-      lib-injection: ${{ steps.changes.outputs.lib-injection}}
       test-the-tests: ${{ steps.changes.outputs.test-the-tests}}
     steps:
       - uses: dorny/paths-filter@v2
@@ -30,9 +29,6 @@ jobs:
             parametric:
               - 'parametric/**'
               - .github/workflows/ci.yml
-            lib-injection:
-              - 'lib-injection/**'
-              - .github/workflows/experimental.yml
             test-the-tests:
               - 'utils/**'
               - 'scenarios/**'
