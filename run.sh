@@ -125,6 +125,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
     export RUNNER_ARGS="tests/apm-tracing-e2e"
 
+elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E_SINGLE_SPAN" ]; then
+    export RUNNER_ARGS="tests/apm-tracing-e2e"
+    WEBLOG_ENV+="DD_SPAN_SAMPLING_RULES='[{\"service\": \"weblog\", \"name\": \"*single_span_submitted\", \"sample_rate\": 1.0}]'"
+    WEBLOG_ENV+="\nDD_TRACE_SAMPLE_RATE=0"
+
 else # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
     export RUNNER_ARGS=$@

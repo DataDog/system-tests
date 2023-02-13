@@ -1,15 +1,18 @@
 package main
 
 import (
-	"net/http"
-	"strconv"
+	"context"
 	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -98,6 +101,23 @@ func main() {
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
 		appsec.TrackCustomEvent(r.Context(), "system_tests_event", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/e2e_single_span", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("DD_SPAN_SAMPLING_RULES: " + os.Getenv("DD_SPAN_SAMPLING_RULES"))
+
+		parentName := r.URL.Query().Get("parentName")
+		childName := r.URL.Query().Get("childName")
+
+		// Make a fresh root span!
+		duration, _ := time.ParseDuration("10s")
+		testTag := tracer.Tag("e2e_apm_tracing_test", "single_span")
+		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, testTag)
+		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, testTag)
+		childSpan.Finish(tracer.FinishTime(time.Now().Add(duration)))
+		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
+
+		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
