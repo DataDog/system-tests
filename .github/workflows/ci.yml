@@ -619,7 +619,7 @@ jobs:
       env:
         RUNNER_CMD: python
   parametric:
-    if: needs.check-changes.outputs.parametric == true || github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    if: ${{ needs.check-changes.outputs.parametric == 'true' || github.event_name == 'schedule' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
