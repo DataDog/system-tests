@@ -180,7 +180,7 @@ By default, the generated event has the following specification:
 - User ID: `system_tests_user`
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
-Values can be changed with the query params called `event_user_id` and `event_metadata`.
+Values can be changed with the query params called `event_user_id`.
 
 ## GET /user_login_failure_event
 
@@ -191,7 +191,7 @@ By default, the generated event has the following specification:
 - Exists: `true`
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
-Values can be changed with the query params called `event_user_id`, `event_user_exists` and `event_metadata`.
+Values can be changed with the query params called `event_user_id` and `event_user_exists`.
 
 ## GET /custom_event
 
@@ -201,4 +201,4 @@ By default, the generated event has the following specification:
 - Event name: `system_tests_event`
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
-Values can be changed with the query params called `event_name` and `event_metadata`.
+Values can be changed with the query params called `event_name`.
