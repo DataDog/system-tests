@@ -28,7 +28,7 @@ jobs:
               - .github/workflows/experimental.yml
 
   manual-lib-injection-tests:
-    if: needs.check-changes.outputs.lib-injection == ‘true’ || github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    if: needs.check-changes.outputs.lib-injection == 'true' || github.event_name == 'schedule' || github.ref == 'refs/heads/main'
     needs: check-changes
     runs-on: ubuntu-latest
     permissions:
