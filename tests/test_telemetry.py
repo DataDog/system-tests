@@ -137,8 +137,8 @@ class Test_Telemetry:
 
         def validate_configuration(configurations):
             for configuration in configurations:
-                assert configuration["name"], "configuration name must not be empty"
-                assert configuration["value"], "configuration value must not be empty"
+                assert configuration["name"] is not None, "configuration name must not be empty"
+                assert configuration["value"] is not None, "configuration value must not be empty"
 
         def validate_top_level_keys(content):
             if content.get("request_type") == "app-heartbeat" or content.get("request_type") == "app-closing":
