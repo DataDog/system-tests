@@ -113,6 +113,7 @@ message OtelStartSpanReturn {
 }
 message OtelEndSpanArgs {
   string id = 1;
+  optional int64 timestamp = 2;
 }
 message OtelEndSpanReturn {}
 

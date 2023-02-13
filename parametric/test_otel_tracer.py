@@ -15,48 +15,70 @@ from parametric.spec.otel_trace import SK_PRODUCER
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_otel_span_top_level_attributes(test_agent, test_library):
-    """Do a simple trace to ensure that the test client is working properly.
-        - start tracer
-        - start parent span and child span
-        - set attributes
+def test_otel_span_options(test_agent, test_library):
+    """
+        - Start/end a span with start and end options
+        - Start a tracer with options
     """
     test_library.otel_env = "otel_env"
     test_library.otel_service = "otel_serv"
     # entering test_otel_library starts the tracer with the above options
+    start_time = int(time.time())
     with test_library:
         starting_attributes = {"start_attr_key": "start_attr_val"}
         with test_library.start_otel_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=int(time.time()), new_root=True,
-            attributes = starting_attributes
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True, attributes=starting_attributes,
+        ) as parent:
+            end_time = start_time + 200
+            parent.finish(timestamp=end_time)
+
+    traces = test_agent.wait_for_num_traces(1)
+    trace = find_trace_by_root(traces, OtelSpan(name="operation"))
+    assert len(trace) == 1
+
+    root_span = find_span(trace, OtelSpan(name="operation"))
+    assert root_span["meta"]["env"] == "otel_env"
+    assert root_span["service"] == "otel_serv"
+    assert root_span["name"] == "operation"
+    assert root_span["resource"] == "operation"
+    assert root_span["meta"]["start_attr_key"] == "start_attr_val"
+    assert root_span["duration"] * (1e-9) == end_time - start_time
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+def test_otel_span_methods(test_agent, test_library):
+    """
+        Do a simple trace to ensure span methods are working properly
+            - start a child span from parent span
+            - set attributes of various types
+    """
+    parent_start_time = int(time.time())
+    with test_library:
+        with test_library.start_otel_span(
+            "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
         ) as parent:
             parent.set_attributes({"key": ["val1", "val2"]})
             parent.set_attributes({"key2": [1]})
             parent.set_attributes({"pi": 3.14, "hi": "bye"})
-
-            with test_library.start_otel_span(
-                name="child", span_kind=SK_PRODUCER, timestamp=int(time.time()), parent_id=parent.span_id
-            ) as child:
+            with test_library.start_otel_span(name="child", span_kind=SK_PRODUCER, parent_id=parent.span_id) as child:
                 child.set_attributes({"key2": ["val2", "val3"]})
                 child.set_name("operation.child")
-
                 assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
                 assert parent.span_context()["trace_flags"] == child.span_context()["trace_flags"]
                 assert parent.span_context()["trace_state"] == child.span_context()["trace_state"]
                 assert parent.span_context()["remote"] == child.span_context()["remote"]
 
     traces = test_agent.wait_for_num_traces(1)
-
     trace = find_trace_by_root(traces, OtelSpan(name="operation"))
     assert len(trace) == 2
 
     root_span = find_span(trace, OtelSpan(name="operation"))
-    assert root_span["meta"]["env"] == "otel_env"
-    assert root_span["service"] == "otel_serv"
 
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
-    assert root_span["meta"]["start_attr_key"] == "start_attr_val"
     assert "val2" in root_span["meta"]["key"]
     assert "val1" in root_span["meta"]["key"]
     assert root_span["metrics"]["key2"] == 1

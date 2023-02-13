@@ -657,8 +657,8 @@ class _TestOtelSpan:
     def set_status(self, code, description):
         self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=self.span_id, code=code, description=description))
 
-    def finish(self):
-        self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=self.span_id))
+    def finish(self, timestamp: int = 0):
+        self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=self.span_id, timestamp=timestamp))
 
     def is_recording(self) -> bool:
         return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=self.span_id)).is_recording
@@ -682,8 +682,9 @@ class APMLibrary:
         self.otel_tracer_name = ""
 
     def __enter__(self):
-        self._client.StartTracer(pb.StartTracerArgs(name=self.otel_tracer_name,
-                                                    service=self.otel_service, env=self.otel_env))
+        self._client.StartTracer(
+            pb.StartTracerArgs(name=self.otel_tracer_name, service=self.otel_service, env=self.otel_env)
+        )
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Only attempt a flush if there was no exception raised.
@@ -720,14 +721,22 @@ class APMLibrary:
 
     @contextlib.contextmanager
     def start_otel_span(
-        self, name: str, new_root: bool = False, timestamp: bool = False, span_kind: int = 0, parent_id: str = "",
-        attributes: dict = None
+        self,
+        name: str,
+        new_root: bool = False,
+        timestamp: int = 0,
+        span_kind: int = 0,
+        parent_id: str = "",
+        attributes: dict = None,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.OtelStartSpan(
             pb.OtelStartSpanArgs(
-                name=name, new_root=new_root, parent_id=parent_id,
-                span_kind=span_kind, timestamp=timestamp,
-                attributes=convert_to_proto(attributes)
+                name=name,
+                new_root=new_root,
+                parent_id=parent_id,
+                span_kind=span_kind,
+                timestamp=timestamp,
+                attributes=convert_to_proto(attributes),
             )
         )
         span = _TestOtelSpan(self._client, resp.span_id)

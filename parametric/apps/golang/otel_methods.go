@@ -95,8 +95,12 @@ func (s *apmClientServer) OtelEndSpan(ctx context.Context, args *OtelEndSpanArgs
 	if !ok {
 		fmt.Sprintf("EndOtelSpan call failed, span with id=%s not found", args.Id)
 	}
-	// todo pass end span options
-	span.End()
+	endOpts := []ot_api.SpanEndOption{}
+	if t := args.GetTimestamp(); t != 0 {
+		tm := time.Unix(t, 0)
+		endOpts = append(endOpts, ot_api.WithTimestamp(tm))
+	}
+	span.End(endOpts...)
 
 	return &OtelEndSpanReturn{}, nil
 }
