@@ -14,8 +14,22 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      lib-injection:  ${{ steps.changes.outputs.lib-injection}}
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            lib-injection:
+              - 'lib-injection/**'
+              - .github/workflows/experimental.yml
 
   manual-lib-injection-tests:
+    if: needs.check-changes.outputs.lib-injection == ‘true’ || github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    needs: check-changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -66,6 +80,8 @@ jobs:
           test-script: ./lib-injection/run-manual-lib-injection.sh
 
   auto-lib-injection-tests:
+    if: needs.check-changes.outputs.lib-injection == ‘true’ || github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    needs: check-changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
