@@ -176,23 +176,29 @@ Supported Libraries:
 
 This endpoint calls the appsec event tracking SDK function used for user login success.
 
-The generated event has the following specification:
+By default, the generated event has the following specification:
 - User ID: `system_tests_user`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+Values can be changed with the query params called `event_user_id` and `event_metadata`.
 
 ## GET /user_login_failure_event
 
 This endpoint calls the appsec event tracking SDK function used for user login failure.
 
-The generated event has the following specification:
+By default, the generated event has the following specification:
 - User ID: `system_tests_user`
 - Exists: `true`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+Values can be changed with the query params called `event_user_id`, `event_user_exists` and `event_metadata`.
 
 ## GET /custom_event
 
 This endpoint calls the appsec event tracking SDK function used for custom events.
 
-The generated event has the following specification:
+By default, the generated event has the following specification:
 - Event name: `system_tests_event`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+Values can be changed with the query params called `event_name` and `event_metadata`.
