@@ -200,5 +200,9 @@ message AttrVal {
 message StopTracerArgs {}
 message StopTracerReturn {}
 
-message StartTracerArgs {}
+message StartTracerArgs {
+  string name = 1;
+  string env = 2;
+  string service = 3;
+}
 message StartTracerReturn {}

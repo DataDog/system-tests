@@ -21,10 +21,11 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
         - start parent span and child span
         - set attributes
     """
-
-    starting_attributes = {"start_attr_key": "start_attr_val"}
+    test_library.otel_env = "otel_env"
+    test_library.otel_service = "otel_serv"
     # entering test_otel_library starts the tracer with the above options
     with test_library:
+        starting_attributes = {"start_attr_key": "start_attr_val"}
         with test_library.start_otel_span(
             "operation", span_kind=SK_PRODUCER, timestamp=int(time.time()), new_root=True,
             attributes = starting_attributes
@@ -50,6 +51,9 @@ def test_otel_span_top_level_attributes(test_agent, test_library):
     assert len(trace) == 2
 
     root_span = find_span(trace, OtelSpan(name="operation"))
+    assert root_span["meta"]["env"] == "otel_env"
+    assert root_span["service"] == "otel_serv"
+
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
     assert root_span["meta"]["start_attr_key"] == "start_attr_val"

@@ -25,10 +25,16 @@ type apmClientServer struct {
 	tracer    ot_api.Tracer
 }
 
-func (s *apmClientServer) StartTracer(context.Context, *StartTracerArgs) (*StartTracerReturn, error) {
-	s.tp = ot.NewTracerProvider()
+func (s *apmClientServer) StartTracer(ctx context.Context, args *StartTracerArgs) (*StartTracerReturn, error) {
+	options := []tracer.StartOption{}
+	if serv := args.GetService(); serv != "" {
+		options = append(options, tracer.WithService(serv))
+	}
+	if env := args.GetEnv(); env != "" {
+		options = append(options, tracer.WithEnv(env))
+	}
+	s.tp = ot.NewTracerProvider(options...)
 	otel.SetTracerProvider(s.tp)
-	//todo tracer options go here
 	s.tracer = s.tp.Tracer("")
 	return &StartTracerReturn{}, nil
 }

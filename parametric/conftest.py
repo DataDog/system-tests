@@ -677,10 +677,13 @@ class _TestOtelSpan:
 class APMLibrary:
     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
         self._client = client
-        self._client.StartTracer(pb.StartTracerArgs())
+        self.otel_env = ""
+        self.otel_service = ""
+        self.otel_tracer_name = ""
 
     def __enter__(self):
-        pass
+        self._client.StartTracer(pb.StartTracerArgs(name=self.otel_tracer_name,
+                                                    service=self.otel_service, env=self.otel_env))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Only attempt a flush if there was no exception raised.
