@@ -31,12 +31,6 @@
 		"AppStartedV2": {
 			"type": "object",
 			"properties": {
-				"integrations": {
-					"type": "array",
-					"items": {
-						"$ref": "#/$defs/Integration"
-					}
-				},
 				"configuration": {
 					"$ref": "#/$defs/Configuration"
 				},
@@ -50,7 +44,8 @@
 					"$ref": "#/$defs/Configuration"
 				}
 			},
-			"required": ["integrations"]
+			"required": ["configuration"],
+            "not": {"required": [ "dependencies", "integrations" ]}
 		},
 		"ExtendedHeartbeat": {
 			"type": "object",
