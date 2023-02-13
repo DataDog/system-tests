@@ -117,6 +117,10 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
         "sprint-boot-jetty": "0.112.0",
         "spring-boot-undertow": "0.112.0",
         "spring-boot-openliberty": "1.3.0",
+        "ratpack": "1.7.0",
+        "jersey-grizzly2": "1.7.0",
+        "resteasy-netty3": "1.7.0",
+        "vertx3": "1.7.0",
         "*": "?",
     }
 )

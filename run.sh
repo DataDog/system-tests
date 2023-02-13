@@ -122,6 +122,9 @@ elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
     WEBLOG_ENV+="DD_DBM_PROPAGATION_MODE=full"
     CONTAINERS+=(cassandra_db mongodb postgres)
 
+elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
+    export RUNNER_ARGS="tests/apm-tracing-e2e"
+
 else # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
     export RUNNER_ARGS=$@
