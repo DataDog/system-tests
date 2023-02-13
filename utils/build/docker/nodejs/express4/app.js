@@ -95,8 +95,8 @@ app.get("/users", (req, res) => {
     user.id = 'anonymous'
   }
 
-  const ret = tracer.appsec.isUserBlocked(user)
-  if (ret) {
+  const shouldBlock = tracer.appsec.isUserBlocked(user)
+  if (shouldBlock) {
     tracer.appsec.blockRequest(req, res)
   } else {
     res.send(`Hello ${user.id}`)
