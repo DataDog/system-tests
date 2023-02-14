@@ -123,11 +123,11 @@ elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
     CONTAINERS+=(cassandra_db mongodb postgres)
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
-    export RUNNER_ARGS="tests/apm-tracing-e2e"
+    export RUNNER_ARGS="tests/apm_tracing_e2e"
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E_SINGLE_SPAN" ]; then
-    export RUNNER_ARGS="tests/apm-tracing-e2e"
-    WEBLOG_ENV+="DD_SPAN_SAMPLING_RULES='[{\"service\": \"weblog\", \"name\": \"*single_span_submitted\", \"sample_rate\": 1.0}]'"
+    export RUNNER_ARGS="tests/apm_tracing_e2e"
+    WEBLOG_ENV+="DD_SPAN_SAMPLING_RULES='[{\"service\": \"weblog\", \"name\": \"*single_span_submitted\", \"sample_rate\": 1.0, \"max_per_second\": 50}]'"
     WEBLOG_ENV+="\nDD_TRACE_SAMPLE_RATE=0"
 
 else # Let user choose the target

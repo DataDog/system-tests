@@ -23,26 +23,32 @@ class _BackendInterfaceValidator(InterfaceValidator):
         self.ready.set()
         self.timeout = 5
 
-        self.rid_to_trace_id = {}
+        # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
+        self.rid_to_library_trace_ids = {}
 
     # Called by the test setup to make sure the interface is ready.
     def wait(self):
         super().wait()
         from utils.interfaces import library
 
-        for _, _, span in library.get_spans():
-            if span.get("parent_id") in (0, None):
-                rid = get_rid_from_span(span)
-                self.rid_to_trace_id[rid] = span.get("trace_id")
+        # Map each request ID to the spans created and submitted during that request call.
+        for _, span in library.get_root_spans():
+            rid = get_rid_from_span(span)
 
-    def _get_backend_data(self, request):
+            if not self.rid_to_library_trace_ids.get(rid):
+                self.rid_to_library_trace_ids[rid] = [span["trace_id"]]
+            else:
+                self.rid_to_library_trace_ids[rid].append(span["trace_id"])
+
+    def _get_trace_ids(self, request):
         rid = get_rid_from_request(request)
 
-        if rid not in self.rid_to_trace_id:
+        if rid not in self.rid_to_library_trace_ids:
             raise Exception("There is no trace id related to this request ")
 
-        trace_id = self.rid_to_trace_id[rid]
+        return self.rid_to_library_trace_ids[rid]
 
+    def _get_backend_trace_data(self, rid, trace_id):
         path = f"/api/v1/trace/{trace_id}"
         host = "https://dd.datad0g.com"
 
@@ -59,20 +65,14 @@ class _BackendInterfaceValidator(InterfaceValidator):
             "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
         }
 
-    def _wait_for_request_trace(self, request, retries=5, sleep_interval_multiplier=2.0):
-        if retries < 1:
-            retries = 1
-
-        rid = get_rid_from_request(request)
-        logger.info(f"Waiting for a trace to become available from request {rid} with {retries} retries...")
-
+    def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier):
         sleep_interval_s = 1
         current_retry = 1
         while current_retry <= retries:
             logger.info(f"Retry {current_retry}")
             current_retry += 1
 
-            data = self._get_backend_data(request)
+            data = self._get_backend_trace_data(rid, trace_id)
 
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
@@ -88,6 +88,17 @@ class _BackendInterfaceValidator(InterfaceValidator):
             f"Backend did not provide trace after {retries} retries: {data['path']}. Status is {status_code}."
         )
 
+    def _wait_for_request_traces(self, request, retries=5, sleep_interval_multiplier=2.0):
+        rid = get_rid_from_request(request)
+        if retries < 1:
+            retries = 1
+
+        trace_ids = self._get_trace_ids(request)
+        logger.info(f"Waiting for {len(trace_ids)} traces to become available from request {rid} with {retries} retries...")
+        for trace_id in trace_ids:
+            logger.info(f"Waiting for trace {trace_id} to become available from request {rid} with {retries} retries...")
+            yield self._wait_for_trace(rid, trace_id, retries, sleep_interval_multiplier)
+
     def _extract_trace_from_backend_response(self, response):
         content_parsed = json.loads(response["content"])
         trace = content_parsed.get("trace")
@@ -95,30 +106,8 @@ class _BackendInterfaceValidator(InterfaceValidator):
             raise Exception(f"The response does not contain valid trace content: {response}")
         return trace
 
-    def assert_trace_exists(self, request):
-        data = self._wait_for_request_trace(request)
-        trace = self._extract_trace_from_backend_response(data["response"])
-        return trace
+    def assert_library_traces_exist(self, request, min_traces_len=1):
+        tracesData = self._wait_for_request_traces(request)
+        assert len(tracesData) > min_traces_len, f"We only found {len(tracesData)} traces in the library (tracers), but we expected {min_traces_len}!"
+        return [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
 
-    # The following is not used!
-    def assert_waf_attack(self, request):
-        data = self._get_backend_data(request)
-
-        status_code = data["response"]["status_code"]
-        if status_code != 200:
-            raise Exception(f"Backend did not provide trace: {data['path']}. Status is {status_code}")
-
-        trace = data["response"]["content"].get("trace", {})
-        for span in trace.get("spans", {}).values():
-            if not span["parent_id"] in (None, 0, "0"):  # only root span
-                continue
-
-            meta = span.get("meta", {})
-
-            assert "_dd.appsec.source" in meta, "'_dd.appsec.source' should be in span's meta tags"
-            assert "appsec" in meta, f"'appsec' should be in span's meta tags in {data['log_filename']}"
-
-            assert meta["_dd.appsec.source"] == "backendwaf", (
-                f"'_dd.appsec.source' values should be 'backendwaf', "
-                f"not {meta['_dd.appsec.source']} in {data['log_filename']}"
-            )

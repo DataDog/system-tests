@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -104,16 +103,20 @@ func main() {
 	})
 
 	mux.HandleFunc("/e2e_single_span", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("DD_SPAN_SAMPLING_RULES: " + os.Getenv("DD_SPAN_SAMPLING_RULES"))
-
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
+
+		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
+		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
+		// See https://github.com/DataDog/system-tests/blob/2d6ae4d5bf87d55855afd36abf36ee710e7d8b3c/utils/interfaces/_core.py#L156
+		userAgent := r.UserAgent()
+		userAgentTag := tracer.Tag("http.useragent", userAgent)
 
 		// Make a fresh root span!
 		duration, _ := time.ParseDuration("10s")
 		testTag := tracer.Tag("e2e_apm_tracing_test", "single_span")
-		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, testTag)
-		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, testTag)
+		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, testTag, userAgentTag)
+		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, testTag, userAgentTag)
 		childSpan.Finish(tracer.FinishTime(time.Now().Add(duration)))
 		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
 

@@ -107,3 +107,18 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.validate(
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )
+
+
+    def get_spans(self, request):
+        rid = get_rid_from_request(request)
+        if rid:
+            logger.debug(f"Try to found agent spans related to request {rid}")
+
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            content = data["request"]["content"]["tracerPayloads"]
+
+            for payload in content:
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        if get_rid_from_span(span) == rid:
+                            yield data, payload, chunk, span
