@@ -87,6 +87,28 @@ app.get("/make_distant_call", (req, res) => {
   });
 });
 
+app.get("/user_login_success_event", (req, res) => {
+  tracer.appsec.trackUserLoginSuccessEvent({
+    id: "system_tests_user",
+    email: "system_tests_user@system_tests_user.com",
+    name: "system_tests_user"
+  }, { metadata0: 'value0', metadata1: 'value1' });
+
+  res.send("OK");
+});
+
+app.get("/user_login_failure_event", (req, res) => {
+  tracer.appsec.trackUserLoginFailureEvent('system_tests_user', true,{ metadata0: 'value0', metadata1: 'value1' });
+
+  res.send("OK");
+});
+
+app.get("/custom_event", (req, res) => {
+  tracer.appsec.trackCustomEvent('system_tests_event', { metadata0: 'value0', metadata1: 'value1' });
+
+  res.send("OK");
+});
+
 require("./iast")(app, tracer);
 
 app.listen(7777, "0.0.0.0", () => {
