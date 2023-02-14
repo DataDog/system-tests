@@ -105,7 +105,7 @@ class InterfaceValidator:
                 if validator(data) is True:
                     return
             except Exception:
-                logger.error(f"{data['log_filename']} did not validate this test")
+                logger.error(f"{data['log_filename']} did not validate this test", exc_info=True)
                 raise
 
         if not success_by_default:
