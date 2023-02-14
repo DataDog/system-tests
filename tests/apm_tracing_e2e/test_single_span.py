@@ -11,7 +11,10 @@ from tests.apm_tracing_e2e.constants import (
 
 @rfc("https://datadoghq.atlassian.net/browse/ATI-2419?focusedCommentId=956826")
 @missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
-@missing_feature(context.weblog_variant not in ("chi"), reason="The /e2e_single_span endpoint is only implemented in Go chi at the moment.")
+@missing_feature(
+    context.weblog_variant not in ("chi"),
+    reason="The /e2e_single_span endpoint is only implemented in Go chi at the moment.",
+)
 @scenario("APM_TRACING_E2E_SINGLE_SPAN")
 class Test_SingleSpan:
     """This is a test that exercises the Single Span Ingestion Control feature.
