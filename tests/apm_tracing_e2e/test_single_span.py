@@ -43,6 +43,7 @@ class Test_SingleSpan:
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_single_spans_exist(self.req)
+        assert 1 == len(spans), _assert_msg(1, len(spans))
         _assert_single_span_event(spans[0], "parent.span.single_span_submitted", is_root=True)
 
     def setup_child_span_is_single_span(self):
@@ -62,7 +63,6 @@ class Test_SingleSpan:
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_single_spans_exist(self.req)
         assert 1 == len(spans), _assert_msg(1, len(spans))
-
         _assert_single_span_event(spans[0], "child.span.single_span_submitted", is_root=False)
 
 
