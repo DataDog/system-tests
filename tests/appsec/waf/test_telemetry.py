@@ -48,9 +48,21 @@ def _validate_metrics(payload):
     for serie in payload["series"]:
         if expected_metrics.get(serie["metric"]):
             expected_metric = expected_metrics.pop(serie["metric"])
-            assert serie["type"] == expected_metric["type"], "Metric %s. Expected %s. get %s" % (serie["metric"], expected_metric["type"], serie["type"])
-            assert len(serie["points"]) == expected_metric["num_points"], "Metric %s. Expected %s point. get %s" % (serie["metric"], expected_metric["num_points"], serie["points"])
-            assert serie["points"][0][1] >= expected_metric["point"], "Metric %s. Expected %s. get %s" % (serie["metric"], expected_metric["point"], serie["points"])
+            assert serie["type"] == expected_metric["type"], "Metric %s. Expected %s. get %s" % (
+                serie["metric"],
+                expected_metric["type"],
+                serie["type"],
+            )
+            assert len(serie["points"]) == expected_metric["num_points"], "Metric %s. Expected %s point. get %s" % (
+                serie["metric"],
+                expected_metric["num_points"],
+                serie["points"],
+            )
+            assert serie["points"][0][1] >= expected_metric["point"], "Metric %s. Expected %s. get %s" % (
+                serie["metric"],
+                expected_metric["point"],
+                serie["points"],
+            )
 
     if len(expected_metrics) > 0:
         raise AssertionError(f"Metrics %s not found in payload" % [metric for metric in expected_metrics])
