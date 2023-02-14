@@ -1,0 +1,78 @@
+name: 'Wait for a workflow to conclude' 
+
+inputs:
+  ref:
+    default: ${{ github.ref }}
+    required: false
+  head_ref:
+    default: ${{ github.head_ref }}
+    required: false
+  workflow_name:
+    required: true
+  expected_conclusion:
+    default: "success"
+    required: false
+
+runs:
+  using: composite
+  steps:
+  - name: Await conclusion of a Workflow
+    uses: actions/github-script@v6
+    with:
+      script: |
+        const workflow_name = "${{ inputs.workflow_name }}".trim()
+        const expected_conclusion = "${{ inputs.expected_conclusion }}".trim()
+        const head_ref = "${{ inputs.head_ref }}".trim().replace(/^(.+)/, "heads/$1")
+        const ref = "${{ inputs.ref }}".trim().replace(/^refs\//,"")
+
+        // head_ref is not empty only in pull_request type triggers. if its not empty, lets use it to resolve the sha
+        const ref_to_resolve = head_ref !== ""? head_ref : ref;
+
+        console.log(`ref: ${ref_to_resolve}`)
+
+        const resolved = await github.rest.git.getRef({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          ref: ref_to_resolve,
+        })
+
+        const sha = resolved.data.object.sha
+
+        const sleep_between_attempts_ms = 5000
+        const timeout_ms = 60000 // wait 1 minute for the results
+        
+        const start_time = new Date()
+
+        var success = false
+        while (true) {
+          const result = await github.rest.actions.listWorkflowRunsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            head_sha: sha,
+            status: "completed"
+          })
+          
+          if (result.data.workflow_runs !== undefined) {
+            const workflow = result.data.workflow_runs.find(e => e.name === workflow_name)
+            if (workflow !== undefined) {
+              if (expected_conclusion === workflow.conclusion) {
+                return Promise.resolve("success")
+              } else {
+                return Promise.reject(new Error(`Workflow concluded with unexpected status ${workflow.conclusion} (expecting: ${expected_conclusion}) `))
+              }
+            }
+          }
+
+          const elapsed = new Date() - start_time
+          const elapsed_s = elapsed / 1000.0
+          console.log(`(${elapsed_s}s): awaiting conclusion: "${expected_conclusion}" for workflow: ${workflow_name}`)
+
+          if (elapsed >= timeout_ms) {
+            return Promise.reject(new Error("timeout waiting for workflow conclusion"))
+          }
+
+          await new Promise(r => setTimeout(r, sleep_between_attempts_ms))
+        }
+
+        Promise.reject(new Error("unexpected results"))
+        

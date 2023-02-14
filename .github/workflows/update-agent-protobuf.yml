@@ -1,37 +1,37 @@
-name: Update agent protobuf deserializer
+# name: Update agent protobuf deserializer
 
-on:
-  workflow_dispatch: {}
-  schedule:
-    - cron:  '00 02 * * 2-6'
+# on:
+#   workflow_dispatch: {}
+#   schedule:
+#     - cron:  '00 02 * * 2-6'
 
-jobs:
-  main:
-    runs-on: ubuntu-latest
-    env:
-      GO111MODULE: off
-      GOPATH: ${{ github.workspace }}/binaries/go
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: main
-      - uses: actions/setup-go@v2
-      - run: sudo apt-get update
-      - run: sudo apt-get -y install protobuf-compiler
-      - run: go get github.com/gogo/protobuf/gogoproto
-      - run: protoc --version && go version  
-      - name: checkout DataDog/datadog-agent
-        uses: actions/checkout@v3
-        with:
-          repository: 'DataDog/datadog-agent'
-          path: 'binaries/datadog-agent'
-      - name: Generate descriptor
-        run: protoc --include_imports -Ibinaries/datadog-agent/pkg/trace/pb -I$GOPATH/src -I=$GOPATH/src/github.com/gogo/protobuf/protobuf -o utils/interfaces/_decoders/trace_payload.descriptor agent_payload.proto
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
-        with: 
-          commit-message: Update protobuf descriptors
-          branch: actions/update-protobuf-descriptors
-          title: Update protobuf descriptors
-          body: Please check locally that everything is ok before merging
+# jobs:
+#   main:
+#     runs-on: ubuntu-latest
+#     env:
+#       GO111MODULE: off
+#       GOPATH: ${{ github.workspace }}/binaries/go
+#     steps:
+#       - uses: actions/checkout@v3
+#         with:
+#           ref: main
+#       - uses: actions/setup-go@v2
+#       - run: sudo apt-get update
+#       - run: sudo apt-get -y install protobuf-compiler
+#       - run: go get github.com/gogo/protobuf/gogoproto
+#       - run: protoc --version && go version  
+#       - name: checkout DataDog/datadog-agent
+#         uses: actions/checkout@v3
+#         with:
+#           repository: 'DataDog/datadog-agent'
+#           path: 'binaries/datadog-agent'
+#       - name: Generate descriptor
+#         run: protoc --include_imports -Ibinaries/datadog-agent/pkg/trace/pb -I$GOPATH/src -I=$GOPATH/src/github.com/gogo/protobuf/protobuf -o utils/interfaces/_decoders/trace_payload.descriptor agent_payload.proto
+#       - name: Create Pull Request
+#         uses: peter-evans/create-pull-request@v3
+#         with: 
+#           commit-message: Update protobuf descriptors
+#           branch: actions/update-protobuf-descriptors
+#           title: Update protobuf descriptors
+#           body: Please check locally that everything is ok before merging
   

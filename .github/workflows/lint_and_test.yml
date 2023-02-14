@@ -1,0 +1,35 @@
+name: Lint and test
+on:
+  workflow_dispatch: {}
+  schedule:
+  - cron: 00 02 * * 2-6
+  pull_request:
+    branches:
+    - '**'
+  push:
+    branches:
+    - main
+env:
+  REGISTRY: ghcr.io
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  lint_and_test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - run: pip install -r requirements.txt
+    - run: black --check --diff .
+    - if: ${{ failure() }}
+      run: 'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/lint.md"
+
+        exit 1
+
+        '
+    - run: mkdir -p logs/docker/weblog/logs/
+    - run: PYTHONPATH="$PWD" pytest utils/test_the_test
