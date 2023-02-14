@@ -196,3 +196,12 @@ This endpoint calls the appsec event tracking SDK function used for custom event
 The generated event has the following specification:
 - Event name: `system_tests_event`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+## GET /users
+
+This endpoint calls the appsec blocking SDK functions used for blocking users. If the expected parameter matches one of
+the possible values the WAF will return the proper action.
+
+Expected query parameters:
+- `user`: user name.
+  - Possible values: `blockedUser`
