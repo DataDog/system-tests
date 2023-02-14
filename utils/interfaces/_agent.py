@@ -108,7 +108,6 @@ class AgentInterfaceValidator(InterfaceValidator):
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )
 
-
     def get_spans(self, request):
         rid = get_rid_from_request(request)
         if rid:

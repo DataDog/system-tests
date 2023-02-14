@@ -1,6 +1,12 @@
 from utils import weblog, interfaces, rfc, scenario
 from utils.tools import logger
-from tests.apm_tracing_e2e.constants import SAMPLING_PRIORITY_KEY, SINGLE_SPAN_SAMPLING_MECHANISM, SINGLE_SPAN_SAMPLING_MECHANISM_VALUE, SINGLE_SPAN_SAMPLING_RATE, SINGLE_SPAN_SAMPLING_MAX_PER_SEC
+from tests.apm_tracing_e2e.constants import (
+    SAMPLING_PRIORITY_KEY,
+    SINGLE_SPAN_SAMPLING_MECHANISM,
+    SINGLE_SPAN_SAMPLING_MECHANISM_VALUE,
+    SINGLE_SPAN_SAMPLING_RATE,
+    SINGLE_SPAN_SAMPLING_MAX_PER_SEC,
+)
 
 
 @rfc("https://datadoghq.atlassian.net/browse/ATI-2419?focusedCommentId=956826")
@@ -12,44 +18,56 @@ class Test_SingleSpan:
     Past incident: https://app.datadoghq.com/incidents/18687
     """
 
-    def setup_main(self):
-        self.reqForParent = weblog.get("/e2e_single_span?parentName=parent.span.single_span_submitted&childName=child.span")
-        self.reqForChild = weblog.get("/e2e_single_span?parentName=parent.span&childName=child.span.single_span_submitted")
+    def setup_parent_span_is_single_span(self):
+        self.req = weblog.get("/e2e_single_span?parentName=parent.span.single_span_submitted&childName=child.span")
 
-    def test_main(self):
-        spansForParent = _get_spans_submitted(self.reqForParent)
-        logger.debug(f"PARENT: {spansForParent}")
+    def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
-        assert 1 == len(spansForParent), _assert_msg(1, len(spansForParent))
+        spans = _get_spans_submitted(self.req)
+        assert 1 == len(spans), _assert_msg(1, len(spans))
 
-        # TODO - Call the backend!
-        # traceWithParent = interfaces.backend.assert_traces_exist(self.reqForParent)
+        # Assert the spans sent by the agent.
+        span = spans[0]
+        assert span["name"] == "parent.span.single_span_submitted"
+        assert span.get("parentID") is None
+        assert span["metrics"]["_dd.top_level"] == 1.0
+        _assert_single_span_metrics(span)
 
-        # span = spansForParent[0]
-        # assert span["name"] == "parent.span.single_span_submitted"
-        # assert span.get("parentID") is None
-        # assert span["metrics"][SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
-        # assert span["metrics"][SINGLE_SPAN_SAMPLING_RATE] == 1.0
-        # assert span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        # assert span["metrics"][SINGLE_SPAN_SAMPLING_MAX_PER_SEC] == 50.0
-        
+        # TODO - Assert the spans received from the backend!
+        # TODO - The `/api/v1/logs-analytics/list?type=trace` API is behind user authentication...
+        #        https://github.com/DataDog/dogweb/blob/prod/dogweb/controllers/api/logs/logs_queries.py#L290
+        # interfaces.backend.assert_single_spans_exist(self.req)
 
-        spansForChild = _get_spans_submitted(self.reqForChild)
-        logger.debug(f"CHILD: {spansForChild}")
-        assert 1 == len(spansForChild), _assert_msg(1, len(spansForChild))
+    def setup_child_span_is_single_span(self):
+        self.req = weblog.get("/e2e_single_span?parentName=parent.span&childName=child.span.single_span_submitted")
 
-        # traceWithChild = interfaces.backend.assert_traces_exist(self.reqForChild)
+    def test_child_span_is_single_span(self):
+        # Only the child should be submitted to the backend!
+        spans = _get_spans_submitted(self.req)
+        assert 1 == len(spans), _assert_msg(1, len(spans))
 
-        # span = spansForChild[0]
-        # assert span["name"] == "child.span.single_span_submitted"
-        # assert span["parentID"] is not None
-        # assert span["metrics"][SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
-        # assert span["metrics"][SINGLE_SPAN_SAMPLING_RATE] == 1.0
-        # assert span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        # assert span["metrics"][SINGLE_SPAN_SAMPLING_MAX_PER_SEC] == 50.0
+        # Assert the spans sent by the agent.
+        span = spans[0]
+        assert span["name"] == "child.span.single_span_submitted"
+        assert span["parentID"] is not None
+        _assert_single_span_metrics(span)
+
+        # TODO - Assert the spans received from the backend!
+        # TODO - The `/api/v1/logs-analytics/list?type=trace` API is behind user authentication...
+        #        https://github.com/DataDog/dogweb/blob/prod/dogweb/controllers/api/logs/logs_queries.py#L290
+        # interfaces.backend.assert_single_spans_exist(self.req)
+
+
+def _assert_single_span_metrics(span):
+    assert span["metrics"][SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
+    assert span["metrics"][SINGLE_SPAN_SAMPLING_RATE] == 1.0
+    assert span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert span["metrics"][SINGLE_SPAN_SAMPLING_MAX_PER_SEC] == 50.0
+
 
 def _get_spans_submitted(request):
     return [span for _, _, _, span in interfaces.agent.get_spans(request)]
+
 
 def _assert_msg(expected, actual):
     return f"\n\tExpected:\t{expected}\n\tActual:\t\t{actual}\n\n"
