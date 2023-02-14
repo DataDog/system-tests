@@ -114,9 +114,8 @@ func main() {
 
 		// Make a fresh root span!
 		duration, _ := time.ParseDuration("10s")
-		testTag := tracer.Tag("e2e_apm_tracing_test", "single_span")
-		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, testTag, userAgentTag)
-		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, testTag, userAgentTag)
+		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, userAgentTag)
+		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, userAgentTag)
 		childSpan.Finish(tracer.FinishTime(time.Now().Add(duration)))
 		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
 

@@ -1,4 +1,4 @@
-from utils import weblog, interfaces, rfc, scenario
+from utils import context, weblog, interfaces, rfc, scenario, missing_feature
 from utils.tools import logger
 from tests.apm_tracing_e2e.constants import (
     SAMPLING_PRIORITY_KEY,
@@ -10,12 +10,17 @@ from tests.apm_tracing_e2e.constants import (
 
 
 @rfc("https://datadoghq.atlassian.net/browse/ATI-2419?focusedCommentId=956826")
+@missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
+@missing_feature(context.weblog_variant not in ("chi"), reason="The /e2e_single_span endpoint is only implemented in Go chi at the moment.")
 @scenario("APM_TRACING_E2E_SINGLE_SPAN")
 class Test_SingleSpan:
     """This is a test that exercises the Single Span Ingestion Control feature.
     Read more about Single Span at https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms#Single-Span-Ingestion-Control
 
     Past incident: https://app.datadoghq.com/incidents/18687
+
+    The tests below depend on the `.single_span_submitted` suffix to be part of the `DD_SPAN_SAMPLING_RULES`
+    configuration defined for this scenario in `run.sh`.
     """
 
     def setup_parent_span_is_single_span(self):
@@ -33,10 +38,9 @@ class Test_SingleSpan:
         assert span["metrics"]["_dd.top_level"] == 1.0
         _assert_single_span_metrics(span)
 
-        # TODO - Assert the spans received from the backend!
-        # TODO - The `/api/v1/logs-analytics/list?type=trace` API is behind user authentication...
-        #        https://github.com/DataDog/dogweb/blob/prod/dogweb/controllers/api/logs/logs_queries.py#L290
-        # interfaces.backend.assert_single_spans_exist(self.req)
+        # Assert the spans received from the backend!
+        spans = interfaces.backend.assert_single_spans_exist(self.req)
+        _assert_single_span_event(spans[0], "parent.span.single_span_submitted", is_root=True)
 
     def setup_child_span_is_single_span(self):
         self.req = weblog.get("/e2e_single_span?parentName=parent.span&childName=child.span.single_span_submitted")
@@ -52,10 +56,24 @@ class Test_SingleSpan:
         assert span["parentID"] is not None
         _assert_single_span_metrics(span)
 
-        # TODO - Assert the spans received from the backend!
-        # TODO - The `/api/v1/logs-analytics/list?type=trace` API is behind user authentication...
-        #        https://github.com/DataDog/dogweb/blob/prod/dogweb/controllers/api/logs/logs_queries.py#L290
-        # interfaces.backend.assert_single_spans_exist(self.req)
+        # Assert the spans received from the backend!
+        spans = interfaces.backend.assert_single_spans_exist(self.req)
+        assert 1 == len(spans), _assert_msg(1, len(spans))
+
+        _assert_single_span_event(spans[0], "child.span.single_span_submitted", is_root=False)
+
+
+def _assert_single_span_event(event, name, is_root):
+    assert event["operation_name"] == name
+    assert event["single_span"] == True
+    assert event["ingestion_reason"] == "single_span"
+    parent_id = event["parent_id"]
+    if is_root:
+        assert parent_id == "0"
+    else:
+        assert (
+            parent_id != "0" and len(parent_id) > 0
+        ), f"In a child span the parent_id should be specified. Actual: {parent_id}"
 
 
 def _assert_single_span_metrics(span):

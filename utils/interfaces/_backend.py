@@ -43,59 +43,70 @@ class _BackendInterfaceValidator(InterfaceValidator):
             else:
                 self.rid_to_library_trace_ids[rid].append(span["trace_id"])
 
+    #################################
     ######### API for tests #########
+    #################################
 
     def assert_library_traces_exist(self, request, min_traces_len=1):
-        tracesData = self._wait_for_request_traces(request)
+        """Attempts to fetch all the traces that the library tracers sent to the agent.
+        It will assert that at least `min_traces_len` were received from the backend before
+        returning the list of traces.
+        """
+
+        rid = get_rid_from_request(request)
+        tracesData = self._wait_for_request_traces(rid)
         assert (
             len(tracesData) > min_traces_len
         ), f"We only found {len(tracesData)} traces in the library (tracers), but we expected {min_traces_len}!"
         return [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
 
-    def assert_single_spans_exist(self, request, limit=100):
-        path = "/api/v1/logs-analytics/list?type=trace"
-        host = DD_HOST_STAGING
+    def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
+        """Attempts to fetch single span events using the given `query_filter` as part of the search query.
+        The query should be what you would use in the `/apm/traces` page in the UI.
 
-        headers = {
-            "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
-            "Content-Type": "application/json",
-            # Needed for same-origin policy
-            "origin": host,
-            "referrer": f"{host}/apm/traces",
-        }
+        It will assert that at least `min_spans_len` were received from the backend before
+        returning the list of span events.
+        """
 
         rid = get_rid_from_request(request)
+        query_filter = f"service:weblog @single_span:true @http.useragent:*{rid}"
+        return self.assert_request_spans_exist(request, query_filter, min_spans_len, limit)
 
-        request_data = {
-            "list": {
-                "computeCount": True,
-                "indexes": "*",
-                "limit": limit,
-                "sort": {"time": {"order": "desc"}},
-                # 10 minutes in the past should be enough
-                "time": {"offset": -7200000, "from": "now-600s", "to": "now"},
-                # This query should be as specific as we can to avoid returning wrong spans
-                "search": {
-                    "query": f'env:system-tests service:weblog @e2e_apm_tracing_test:single_span @http.useragent:"{rid}"'
-                },
-            }
-        }
+    def assert_request_spans_exist(self, request, query_filter, min_spans_len=1, limit=100):
+        """Attempts to fetch span events from the Event Platform using the given `query_filter` as part of the search query.
+        The query should be what you would use in the `/apm/traces` page in the UI.
+        When a valid request is provided we will restrict the span search to span events
+        that include the request ID in their tags.
 
-        r = requests.post(f"{host}{path}", data=request_data, headers=headers, timeout=10)
+        It will assert that at least `min_spans_len` were received from the backend before
+        returning the list of span events.
+        """
 
-        data = {
-            "host": host,
-            "path": path,
-            "rid": rid,
-            "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
-        }
+        rid = get_rid_from_request(request)
+        if rid:
+            query_filter = f"{query_filter} @http.useragent:*{rid}"
 
-        logger.debug(data)
+        return self.assert_spans_exist(query_filter, min_spans_len, limit)
 
-        return data
+    def assert_spans_exist(self, query_filter, min_spans_len=1, limit=100):
+        """Attempts to fetch span events from the Event Platform using the given `query_filter` as part of the search query.
+        The query should be what you would use in the `/apm/traces` page in the UI.
 
+        It will assert that at least `min_spans_len` were received from the backend before
+        returning the list of span events.
+        """
+
+        logger.debug(f"We will attempt to fetch span events with query filter: {query_filter}")
+        data = self._wait_for_event_platform_spans(query_filter, limit)
+
+        result = data["response"]["contentJson"]["result"]
+        assert result["count"] == min_spans_len
+
+        return [item["event"] for item in result["events"]]
+
+    ############################################
     ######### Internal implementation ##########
+    ############################################
 
     def _get_trace_ids(self, request):
         rid = get_rid_from_request(request)
@@ -145,8 +156,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             f"Backend did not provide trace after {retries} retries: {data['path']}. Status is {status_code}."
         )
 
-    def _wait_for_request_traces(self, request, retries=5, sleep_interval_multiplier=2.0):
-        rid = get_rid_from_request(request)
+    def _wait_for_request_traces(self, rid, retries=5, sleep_interval_multiplier=2.0):
         if retries < 1:
             retries = 1
 
@@ -166,3 +176,73 @@ class _BackendInterfaceValidator(InterfaceValidator):
         if not trace:
             raise Exception(f"The response does not contain valid trace content: {response}")
         return trace
+
+    def _wait_for_event_platform_spans(self, query_filter, limit, retries=5, sleep_interval_multiplier=2.0):
+        if retries < 1:
+            retries = 1
+
+        logger.info(
+            f"Waiting until spans (non-empty response) become available with query '{query_filter}' with {retries} retries..."
+        )
+        sleep_interval_s = 1
+        current_retry = 1
+        while current_retry <= retries:
+            logger.info(f"Retry {current_retry}")
+            current_retry += 1
+
+            data = self._get_event_platform_spans(query_filter, limit)
+
+            # We should retry fetching from the backend as long as the response has empty data.
+            status_code = data["response"]["status_code"]
+            if status_code != 200:
+                raise Exception(f"Fetching spans from Event Platform failed: {data['path']}. Status is {status_code}.")
+
+            parsed = data["response"]["contentJson"]
+            if parsed["result"]["count"] > 0:
+                return data
+
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
+
+        # We always try once so `data` should have not be None.
+        return data
+
+    def _get_event_platform_spans(self, query_filter, limit):
+        path = "/api/v1/event-platform/analytics/list?type=trace"
+        host = DD_HOST_STAGING
+
+        headers = {
+            "DD-API-KEY": os.environ["DD_API_KEY"],
+            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+        }
+
+        request_data = {
+            "list": {
+                "search": {"query": f"env:system-tests {query_filter}",},
+                "indexes": ["trace-search"],
+                "time": {
+                    # 30 min of window should be plenty
+                    "from": "now-1800s",
+                    "to": "now",
+                },
+                "limit": limit,
+                "columns": [],
+                "computeCound": True,
+                "includeEvents": True,
+                "includeEventContents": True,
+            }
+        }
+        r = requests.post(f"{host}{path}", json=request_data, headers=headers, timeout=10)
+
+        data = {
+            "host": host,
+            "path": path,
+            "response": {
+                "status_code": r.status_code,
+                "content": r.text,
+                "contentJson": r.json(),
+                "headers": dict(r.headers),
+            },
+        }
+
+        return data

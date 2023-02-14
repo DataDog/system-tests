@@ -87,21 +87,6 @@ app.get("/make_distant_call", (req, res) => {
   });
 });
 
-app.get("/e2e_single_span",  (req, res) => {
-  const parentName = req.query.parentName;
-  const childName = req.query.childName;
-
-  // Make a fresh root span!
-  const endTime = Date.now() + 10*1000; // 10s
-  const tags = {"e2e_apm_tracing_test": "single_span"};
-  const parentSpan = tracer.startSpan(parentName, {tags});
-  const childSpan = tracer.startSpan(childName, {tags, childOf: parentSpan.context()});
-  childSpan.finish(endTime)
-  parentSpan.finish(endTime+10*1000)
-
-  res.send("OK");
-});
-
 require("./iast")(app, tracer);
 
 app.listen(7777, "0.0.0.0", () => {
