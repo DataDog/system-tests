@@ -347,16 +347,16 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
-      if: steps.build.outcome == 'success'
+      if: ${{ always() }}
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
-      if: steps.build.outcome == 'success'
+      if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_main
         path: artifact.tar.gz
     - name: Upload results CI Visibility
-      if: steps.build.outcome == 'success'
+      if: ${{ always() }}
       run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
@@ -552,16 +552,16 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
-      if: steps.build.outcome == 'success'
+      if: ${{ always() }}
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
-      if: steps.build.outcome == 'success'
+      if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_graalvm
         path: artifact.tar.gz
     - name: Upload results CI Visibility
-      if: steps.build.outcome == 'success'
+      if: ${{ always() }}
       run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
@@ -618,6 +618,7 @@ jobs:
       matrix:
         client:
         - python
+        - python_http
         - dotnet
         - golang
         - nodejs

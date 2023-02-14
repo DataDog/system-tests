@@ -91,6 +91,18 @@ func main() {
 		w.Write([]byte("Hello, identify-propagate!"))
 	})
 
+	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
+		appsec.TrackUserLoginSuccessEvent(r.Context(), "system_tests_user", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
+		appsec.TrackUserLoginFailureEvent(r.Context(), "system_tests_user", true, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
+		appsec.TrackCustomEvent(r.Context(), "system_tests_event", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
 	initDatadog()
 	go listenAndServeGRPC()
 	http.ListenAndServe(":7777", mux)

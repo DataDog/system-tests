@@ -41,7 +41,7 @@ def get_tracestate(headers):
 
 
 def get_tracecontext(headers):
-    return (get_traceparent(headers), get_tracestate(headers))
+    return get_traceparent(headers), get_tracestate(headers)
 
 
 class Traceparent(object):
