@@ -98,7 +98,7 @@ app.get("/user_login_success_event", (req, res) => {
 });
 
 app.get("/user_login_failure_event", (req, res) => {
-  tracer.appsec.trackUserLoginFailureEvent('system_tests_user', true,{ metadata0: 'value0', metadata1: 'value1' });
+  tracer.appsec.trackUserLoginFailureEvent('system_tests_user', true, { metadata0: 'value0', metadata1: 'value1' });
 
   res.send("OK");
 });
