@@ -5,7 +5,7 @@ go 1.18
 require (
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230118214457-aa4942a6cfbc
+	gopkg.in/DataDog/dd-trace-go.v1 v1.39.0-alpha.1.0.20230207220547-a05f3e0912ce
 )
 
 require (
