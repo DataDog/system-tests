@@ -81,23 +81,33 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
 });
 
 app.get("/user_login_success_event", (req: Request, res: Response) => {
+  const userId = req.query.event_user_id || "system_tests_user";
+
   tracer.appsec.trackUserLoginSuccessEvent({
-    id: "system_tests_user",
+    id: userId,
     email: "system_tests_user@system_tests_user.com",
     name: "system_tests_user"
-  }, { metadata0: 'value0', metadata1: 'value1' });
+  }, { metadata0: "value0", metadata1: "value1" });
 
   res.send("OK");
 });
 
 app.get("/user_login_failure_event", (req: Request, res: Response) => {
-  tracer.appsec.trackUserLoginFailureEvent('system_tests_user', true, { metadata0: 'value0', metadata1: 'value1' });
+  const userId = req.query.event_user_id || "system_tests_user";
+  let exists = true;
+  if (req.query && req.query.hasOwnProperty("event_user_exists")) {
+    exists = req.query.event_user_exists.toLowerCase() === "true"
+  }
+
+  tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
 
   res.send("OK");
 });
 
 app.get("/custom_event", (req: Request, res: Response) => {
-  tracer.appsec.trackCustomEvent('system_tests_event', { metadata0: 'value0', metadata1: 'value1' });
+  const eventName = req.query.event_name || "system_tests_event";
+
+  tracer.appsec.trackCustomEvent(eventName, { metadata0: "value0", metadata1: "value1" });
 
   res.send("OK");
 });
