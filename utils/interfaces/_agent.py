@@ -83,6 +83,9 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         raise Exception("No data validate this test")
 
+    def get_telemetry_data(self):
+        yield from self.get_data(path_filters="/api/v2/apmtelemetry")
+
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)
