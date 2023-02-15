@@ -22,7 +22,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Run lints
-      uses: .github/actions/lint_code/action.yaml
+      uses: ./.github/actions/lint_code
     - run: mkdir -p logs/docker/weblog/logs/
     - run: pip install -r requirements.txt
     - run: PYTHONPATH="$PWD" pytest utils/test_the_test

@@ -22,7 +22,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Run lints
-      uses: .github/actions/lint_code/action.yaml
+      uses: ./.github/actions/lint_code
   parametric:
     runs-on: ubuntu-latest
     needs:
