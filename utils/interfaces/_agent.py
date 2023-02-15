@@ -129,6 +129,6 @@ class AgentInterfaceValidator(InterfaceValidator):
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
                         if rid is None:
-                            yield data, payload, chunk, span
+                            yield data, span
                         elif get_rid_from_span(span) == rid:
-                            yield data, payload, chunk, span
+                            yield data, span
