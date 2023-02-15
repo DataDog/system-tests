@@ -94,7 +94,7 @@ class Test_StandardTagsUrl:
 
 
 @released(dotnet="2.13.0", golang="1.39.0", java="0.107.1", nodejs="2.9.0")
-@released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@released(php="0.75.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.8.0")
 @coverage.basic
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
