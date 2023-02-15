@@ -13,4 +13,4 @@ class Test_Backend:
         self.r = weblog.get("/")
 
     def test_main(self):
-        trace = interfaces.backend.assert_trace_exists(self.r)
+        trace = interfaces.backend.assert_library_traces_exist(self.r)
