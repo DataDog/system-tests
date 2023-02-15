@@ -208,11 +208,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         return data
 
     def _get_event_platform_spans(self, query_filter, limit):
-        # Example of this query can be seen in the `events-ui` internal website.
-        # https://dd.datad0g.com/internal/events-ui/queries?cols=&index_name=trace-search&limit=100&query_string=service%3Aweblog+env%3Asystem-tests+%40single_span%3Atrue&query_type=list&refresh_data=true&storage_type=online_archives&timerange=1676402037184-1676405637184l&track=trace
-        #
-        # The implementation of this API is at:
-        # https://github.com/DataDog/dogweb/blob/92718668c94c679e1e74b9ab2a9b5028f61e4ccc/dogweb/controllers/api/logs/logs_queries.py#L106-L114
+        # Example of this query can be seen in the `events-ui` internal website (see Jira ATI-2419).
         path = "/api/v1/event-platform/analytics/list?type=trace"
         host = DD_HOST_STAGING
 

@@ -9,7 +9,7 @@ from tests.apm_tracing_e2e.constants import (
 )
 
 
-@rfc("https://datadoghq.atlassian.net/browse/ATI-2419?focusedCommentId=956826")
+@rfc("ATI-2419")
 @missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
 @missing_feature(
     context.weblog_variant not in ("chi"),
@@ -18,9 +18,7 @@ from tests.apm_tracing_e2e.constants import (
 @scenario("APM_TRACING_E2E_SINGLE_SPAN")
 class Test_SingleSpan:
     """This is a test that exercises the Single Span Ingestion Control feature.
-    Read more about Single Span at https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms#Single-Span-Ingestion-Control
-
-    Past incident: https://app.datadoghq.com/incidents/18687
+    Read more about Single Span at https://docs.datadoghq.com/tracing/trace_pipeline/ingestion_mechanisms/?tab=java#single-spans
 
     The tests below depend on the `.single_span_submitted` suffix to be part of the `DD_SPAN_SAMPLING_RULES`
     configuration defined for this scenario in `run.sh`.
