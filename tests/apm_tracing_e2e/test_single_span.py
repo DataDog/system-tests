@@ -85,7 +85,7 @@ def _assert_single_span_metrics(span):
 
 
 def _get_spans_submitted(request):
-    return [span for _, _, _, span in interfaces.agent.get_spans_for_request(request)]
+    return [span for _, _, _, span in interfaces.agent.get_spans(request)]
 
 
 def _assert_msg(expected, actual):
