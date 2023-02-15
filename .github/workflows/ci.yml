@@ -21,10 +21,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Wait
-      uses: ./.github/actions/wait_for_conclusion
-      with:
-        workflow_name: "Lint and test"
+    - name: Run lints
+      uses: .github/actions/lint_code/action.yaml
   test-the-tests-main:
     runs-on: ubuntu-latest
     needs:

@@ -1,0 +1,18 @@
+name: 'Run lints for project' 
+runs:
+  using: composite
+  steps:
+  - uses: actions/setup-python@v4
+    with:
+      python-version: '3.9'
+  - run: pip install -r requirements.txt
+  - run: black --check --diff .
+  - if: ${{ failure() }}
+    run: 'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/lint.md"
+
+      exit 1
+
+      '
+  - run: mkdir -p logs/docker/weblog/logs/
+  - run: PYTHONPATH="$PWD" pytest utils/test_the_test
+  
