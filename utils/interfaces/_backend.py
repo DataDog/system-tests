@@ -48,7 +48,13 @@ class _BackendInterfaceValidator(InterfaceValidator):
     #################################
 
     def assert_library_traces_exist(self, request, min_traces_len=1):
-        """Attempts to fetch all the traces that the library tracers sent to the agent.
+        """Attempts to fetch from the backend, ALL the traces that the library tracers sent to the agent
+        during the execution of the given request.
+
+        The assosiation of the traces with a request is done through propagating the request ID (inside user agent)
+        on all the submitted traces. This is done automatically, unless you create root spans manually, which in
+        that case you need to manually propagate the user agent to the new spans.
+
         It will assert that at least `min_traces_len` were received from the backend before
         returning the list of traces.
         """
@@ -63,6 +69,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
     def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
         """Attempts to fetch single span events using the given `query_filter` as part of the search query.
         The query should be what you would use in the `/apm/traces` page in the UI.
+
+        When a valid request is provided we will restrict the single span search to span events
+        that include the request ID in their tags.
 
         It will assert that at least `min_spans_len` were received from the backend before
         returning the list of span events.
