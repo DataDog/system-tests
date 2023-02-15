@@ -108,7 +108,7 @@ class AgentInterfaceValidator(InterfaceValidator):
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )
 
-    def get_spans(self, request):
+    def get_spans_for_request(self, request):
         rid = get_rid_from_request(request)
         if rid:
             logger.debug(f"Try to found agent spans related to request {rid}")
