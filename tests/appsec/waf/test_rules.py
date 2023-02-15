@@ -53,7 +53,7 @@ class Test_HttpProtocol:
 
     def setup_http_protocol2(self):
         self.r_1 = weblog.get("/waf/", params={"key": "get e http/1"})
-        self.r_2 = weblog.get("/waf/", params={"key": "\n :"})
+        self.r_2 = weblog.get("/waf/", params={"key": "\nset-cookie:"})
 
     def test_http_protocol2(self):
         """ AppSec catches attacks by violation of HTTP protocol"""
