@@ -203,5 +203,5 @@ This endpoint calls the appsec blocking SDK functions used for blocking users. I
 the possible values the WAF will return the proper action.
 
 Expected query parameters:
-- `user`: user name.
+- `user`: user id.
   - Possible values: `blockedUser`
