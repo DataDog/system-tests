@@ -5,7 +5,7 @@ from parametric.spec.trace import find_trace_by_root
 from parametric.spec.trace import find_span_in_traces
 from parametric.spec.trace import find_span
 from parametric.spec.otel_trace import OtelSpan
-from parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE
+from parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
 from parametric.spec.otel_trace import SK_PRODUCER
 
 # todo: add prefix_library to run otel_*
@@ -129,17 +129,36 @@ def test_otel_span_end(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_set_otel_span_status(test_agent, test_library):
+def test_otel_set_span_status(test_agent, test_library):
     """
-        Verify set status logic is correct
+        This test verifies that setting the status of a span
+        behaves accordingly to the Otel API spec
+        (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
+        By checking the following:
+        1. attempts to set the value of `Unset` are ignored
+        2. description must only be used with `Error` value
+        3. setting the status to `Ok` is final and will override any
+            any prior or future status values
     """
     with test_library:
-        with test_library.start_otel_span(name="test_span") as span:
+        with test_library.start_otel_span(name="error_span") as span:
             span.set_status(OTEL_ERROR_CODE, "error_desc")
-            # error code > unset code, so status does not change
             span.set_status(OTEL_UNSET_CODE, "unset_desc")
-    traces = test_agent.wait_for_num_traces(1)
-    span = find_span_in_traces(traces, OtelSpan(name="test_span"))
+        with test_library.start_otel_span(name="ok_span") as span:
+            span.set_status(OTEL_OK_CODE, "ok_desc")
+            span.set_status(OTEL_ERROR_CODE, "error_desc")
+
+    err_spn = OtelSpan(name="error_span")
+    ok_spn = OtelSpan(name="ok_span")
+
+    traces = test_agent.wait_for_num_traces(2)
+
+    span = find_span(find_trace_by_root(traces, err_spn), err_spn)
     tags = span.get("meta")
     assert tags is not None
     assert tags.get("error.message") == "error_desc"
+
+    span = find_span(find_trace_by_root(traces, ok_spn), ok_spn)
+    tags = span.get("meta")
+    assert tags is not None
+    assert "error.message" not in tags
