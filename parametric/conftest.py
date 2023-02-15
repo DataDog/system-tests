@@ -256,9 +256,16 @@ ENV DD_TRACE_CLI_ENABLED=1
 ADD ./parametric/apps/php/composer.json .
 ADD ./parametric/apps/php/composer.lock .
 ADD ./parametric/apps/php/server.php .
-RUN curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php
-RUN curl -LO https://output.circle-artifacts.com/output/job/66a59769-7785-4db4-af6c-36a905218db1/artifacts/0/dd-library-php-1.0.0-nightly-aarch64-linux-gnu.tar.gz
-RUN php datadog-setup.php --php-bin=all --file=dd-library-php-1.0.0-nightly-aarch64-linux-gnu.tar.gz
+ADD ./parametric/apps/php/install.sh .
+# ADD ./binaries/datadog-php-tracer-*.tar.gz .
+RUN ./install.sh
+# RUN curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php
+# RUN curl -LO https://output.circle-artifacts.com/output/job/66a59769-7785-4db4-af6c-36a905218db1/artifacts/0/dd-library-php-1.0.0-nightly-aarch64-linux-gnu.tar.gz
+# ADD ./utils/scripts/load-binary.sh .
+# RUN ./load-binary.sh php
+# RUN curl -LO https://output.circle-artifacts.com/output/job/66a59769-7785-4db4-af6c-36a905218db1/artifacts/0/dd-library-php-1.0.0-nightly-x86_64-linux-gnu.tar.gz
+# RUN curl -LO https://raw.githubusercontent.com/DataDog/dd-trace-php/master/datadog-setup.php
+# RUN php datadog-setup.php --php-bin=all --file=$(find . -maxdepth 1 -name 'datadog-php-tracer-*.tar.gz')
 RUN composer install
 """,
         container_cmd=["php", "server.php"],
