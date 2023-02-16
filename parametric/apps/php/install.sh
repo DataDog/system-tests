@@ -2,7 +2,7 @@
 
 # This script installs the PHP library
 # It first looks at the /binaries directory to see if there is a file matching "datadog-php-tracer-*.tar.gz"
-# If there is no package in /binaries then the binaries are pulled from
+# If there is no package in /binaries then the binaries are pulled from the specified release
 
 DDTRACE_VERSION=0.84.0
 PKG=$(find /binaries -maxdepth 1 -name 'datadog-php-tracer-*.tar.gz')
@@ -20,11 +20,12 @@ if [ "$PKG" == "" ]; then
   else
     ARCH=x86_64
   fi
-  curl -LO https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/datadog-setup.php
-  curl -LO https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/dd-library-php-${DDTRACE_VERSION}-${ARCH}-linux-gnu.tar.gz
-  # curl -LO https://output.circle-artifacts.com/output/job/66a59769-7785-4db4-af6c-36a905218db1/artifacts/0/dd-library-php-1.0.0-nightly-${ARCH}-linux-gnu.tar.gz
-  # curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php
-  PKG=dd-library-php-${DDTRACE_VERSION}-${ARCH}-linux-gnu.tar.gz
+  # curl -LO https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/datadog-setup.php
+  # curl -LO https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/dd-library-php-${DDTRACE_VERSION}-${ARCH}-linux-gnu.tar.gz
+  curl -LO https://output.circle-artifacts.com/output/job/66a59769-7785-4db4-af6c-36a905218db1/artifacts/0/dd-library-php-1.0.0-nightly-${ARCH}-linux-gnu.tar.gz
+  curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php
+  PKG=dd-library-php-1.0.0-nightly-${ARCH}-linux-gnu.tar.gz
+  # PKG=dd-library-php-${DDTRACE_VERSION}-${ARCH}-linux-gnu.tar.gz
   SETUP=datadog-setup.php
 fi
 echo "Installing php package $PKG with setup script $SETUP"
