@@ -740,7 +740,13 @@
           "properties": {
                   "request_type": { "const": "app-heartbeat" }
           }
-        }
+        },
+		{
+			"type": "object",
+			"properties": {
+				"request_type": { "const": "app-closing" }
+			}
+		  }
       ]
     },
     "TelemetryV2": {
