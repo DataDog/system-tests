@@ -5,10 +5,10 @@
 # If there is no package in /binaries then the binaries are pulled from the specified release
 
 DDTRACE_VERSION=0.84.0
-PKG=$(find /binaries -maxdepth 1 -name 'datadog-php-tracer-*.tar.gz')
+PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-gnu.tar.gz')
 SETUP=/binaries/datadog-setup.php
 
-if [ "$PKG" != "" ] && [ ! -f "$SETUP_FILE" ]; then
+if [ "$PKG" != "" ] && [ ! -f "$SETUP" ]; then
   echo "local install failed: package located in /binaries but datadog-setup.php not present, please include it"
   exit 1
 fi
