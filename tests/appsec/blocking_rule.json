@@ -5,6 +5,31 @@
   },
   "rules": [
     {
+      "id": "block-users",
+      "name": "Block User Addresses",
+      "tags": {
+        "type": "block_user",
+        "category": "security_response"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "usr.id"
+              }
+            ],
+            "data": "blocked_users"
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "arachni_rule",
       "name": "Arachni",
       "tags": {
@@ -335,6 +360,18 @@
         "status_code": 301,
         "location": "/you-have-been-blocked"
       }
+    }
+  ],
+  "rules_data": [
+    {
+      "id": "blocked_users",
+      "type": "data_with_expiration",
+      "data": [
+        {
+          "value": "blockedUser",
+          "expiration": 0
+        }
+      ]
     }
   ]
 }
