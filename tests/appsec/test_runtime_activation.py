@@ -11,7 +11,9 @@ from utils import weblog, context, coverage, interfaces, released, irrelevant, s
 
 
 @scenario("APPSEC_RUNTIME_ACTIVATION")
-@released(java="0.115.0", cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.9.0", golang="?")
+@released(
+    java="0.115.0", cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.9.0", golang="?"
+)
 @bug(
     context.library == "java" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",
