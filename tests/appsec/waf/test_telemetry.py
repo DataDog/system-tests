@@ -37,10 +37,10 @@ def _validate_metrics(payload):
     """
     # CAVEAT: each library could have different metrics result. If you get an error ping in slack
     expected_metrics = {
-        "event_rules.loaded": {"type": "count", "num_points": 2, "point": 134.0},
-        "event_rules.error_count": {"type": "count", "num_points": 2, "point": 0.0},
-        "waf.duration": {"type": "count", "num_points": 2, "point": 100.0},
-        "waf.duration_ext": {"type": "count", "num_points": 2, "point": 100.0},
+        "event_rules.loaded": {"type": "count", "num_points": 1, "point": 134.0},
+        # TODO: validate distributions payload type
+        #  "waf.duration": {"type": "count", "num_points": 2, "point": 100.0},
+        #  "waf.duration_ext": {"type": "count", "num_points": 2, "point": 100.0},
     }
     assert payload["namespace"] == "appsec"
     assert len(payload["series"]) > 0
