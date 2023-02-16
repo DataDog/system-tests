@@ -244,7 +244,6 @@ class Test_Telemetry:
                 validate_top_level_keys(content)
                 validate_event_payloads(content)
 
-
     @bug(
         library="dotnet",
         reason="""
