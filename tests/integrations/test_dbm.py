@@ -6,18 +6,33 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 
 
 @released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
-@missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
+@missing_feature(
+    context.library in ["python", "nodejs", "dotnet"] and context.weblog_variant != "flask-poc",
+    reason="Missing on weblog",
+)
 @scenario("INTEGRATIONS")
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
 
     def setup_trace_payload(self):
-        self.requests = [
-            weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "execute"}),
-            weblog.get("/dbm", params={"integration": "psycopg", "cursor_method": "executemany"}),
-        ]
+        self.library_name = context.library
+        self.requests = []
+
+        if self.library_name == "python":
+            self.requests = [
+                weblog.get("/dbm", params={"integration": "psycopg", "operation": "execute"}),
+                weblog.get("/dbm", params={"integration": "psycopg", "operation": "executemany"}),
+            ]
+        elif self.library_name == "nodejs":
+            # self.requests = [  ........ ]
+            pass
+        elif self.library_name == "dotnet":
+            # self.requests = [  ........ ]
+            pass
 
     def test_trace_payload(self):
+        assert self.requests, "Requests were not submit for {}. Please disable this test for this library "
+        "or ensure the setup method to submits a request which generates DBM metadata data".format(self.library_name)
 
         for r in self.requests:
             assert r.status_code == 200

@@ -165,7 +165,7 @@ is executed successfully.
 Expected query params:
   - `integration`: Name of DBM supported library
     - Possible Values: `psycopg`
-  - `cursor_method`: Method used to execute database statements
+  - `operation`: Method used to execute database statements
     - Possible Values: `execute`, `executemany`
 
 
