@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -120,6 +122,26 @@ func main() {
 			name = q
 		}
 		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/e2e_single_span", func(w http.ResponseWriter, r *http.Request) {
+		parentName := r.URL.Query().Get("parentName")
+		childName := r.URL.Query().Get("childName")
+
+		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
+		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
+		// See https://github.com/DataDog/system-tests/blob/2d6ae4d5bf87d55855afd36abf36ee710e7d8b3c/utils/interfaces/_core.py#L156
+		userAgent := r.UserAgent()
+		userAgentTag := tracer.Tag("http.useragent", userAgent)
+
+		// Make a fresh root span!
+		duration, _ := time.ParseDuration("10s")
+		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, userAgentTag)
+		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, userAgentTag)
+		childSpan.Finish(tracer.FinishTime(time.Now().Add(duration)))
+		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
+
+		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {

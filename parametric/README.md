@@ -38,7 +38,7 @@ The following dependencies are required to run the tests locally:
 - Docker
 - Python >= 3.7 (for Windows users, Python 3.9 seems to run best without issues)
 
-then, create a Python virtual environment and install the Python dependencies:
+then, create a Python virtual environment and install the Python dependencies from the parametric tests directory:
 
 ```sh
 python -m venv venv
