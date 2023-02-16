@@ -4,9 +4,17 @@ name: Testing the test
   workflow_dispatch: {}
   schedule:
   - cron: 00 02 * * 2-6
+  
   pull_request:
     branches:
     - '**'
+    types:
+    - opened
+    - reopened
+    - synchronize
+    - labeled
+    - unlabeled
+    
   push:
     branches:
     - main
