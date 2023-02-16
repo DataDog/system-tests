@@ -441,7 +441,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
         for tag in headers4["x-datadog-tags"].split(","):
             index = tag.index("=")
             key = tag[:index]
-            val = tag[index:]
+            val = tag[index + 1:]
 
             assert key.startswith("_dd.p.")
             assert "t." + key[6:] + ":" + val.replace("=", ":") in dd_items4
