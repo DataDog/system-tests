@@ -50,4 +50,4 @@ sed -i s/80/7777/ /etc/apache2/ports.conf
 /install_ddtrace.sh 1
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
-echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/php.ini
+grep datadog.trace.request_init_hook /etc/php/98-ddtrace.ini >> /etc/php/php.ini

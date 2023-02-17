@@ -87,6 +87,22 @@ app.get("/make_distant_call", (req, res) => {
   });
 });
 
+app.get("/users", (req, res) => {
+  let user = {}
+  if (req.query['user']) {
+    user.id = req.query['user']
+  } else {
+    user.id = 'anonymous'
+  }
+
+  const shouldBlock = tracer.appsec.isUserBlocked(user)
+  if (shouldBlock) {
+    tracer.appsec.blockRequest(req, res)
+  } else {
+    res.send(`Hello ${user.id}`)
+  }
+});
+
 require("./iast")(app, tracer);
 
 app.listen(7777, "0.0.0.0", () => {

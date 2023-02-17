@@ -17,7 +17,7 @@ class Test_OneVariableInstallation:
     """Installation with 1 env variable"""
 
 
-@released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="?")
+@released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="1.8.0")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
@@ -25,6 +25,7 @@ class Test_StaticRuleSet:
     """Appsec loads rules from a static rules file"""
 
     @missing_feature(library="golang", reason="standard logs not implemented")
+    @missing_feature(library="ruby", reason="standard logs not implemented")
     @missing_feature(library="dotnet", reason="Rules file is not parsed")
     @missing_feature(library="php", reason="Rules file is not parsed")
     @missing_feature(library="nodejs", reason="Rules file is not parsed")
