@@ -403,6 +403,7 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
 @enable_datadog_tracecontext()
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("php", "Legacy behaviour: Fixed order instead of order of definition")
 def test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library):
     with test_library:
         # 1) No headers
