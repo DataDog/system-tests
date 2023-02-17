@@ -1,0 +1,19 @@
+name: 'Run lints for project' 
+runs:
+  using: composite
+  steps:
+  - uses: actions/setup-python@v4
+    with:
+      python-version: '3.9'
+# TODO update to black 22+
+  - run: pip install black==19.10b0 click==7.1.2 
+    shell: bash
+  - run: black --check --diff .
+    shell: bash
+  - if: ${{ failure() }}
+    shell: bash
+    run: 'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/lint.md"
+
+      exit 1
+
+      '
