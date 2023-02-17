@@ -30,6 +30,13 @@ func main() {
 		}
 		ctx.Writer.Write([]byte("Hello, WAF!\n"))
 	})
+	r.Any("/users", func(ctx *gin.Context) {
+		userId := ctx.Query("user")
+		if appsec.SetUser(ctx.Request.Context(), ctx.Query("user")) != nil {
+			return
+		}
+		ctx.Writer.Write([]byte("Hello, " + userId))
+	})
 	r.Any("/waf/*allpaths", func(ctx *gin.Context) {
 		ctx.Writer.Write([]byte("Hello, WAF!\n"))
 	})
