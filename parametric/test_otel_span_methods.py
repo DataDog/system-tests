@@ -1,14 +1,13 @@
 import time
+
 import pytest
 
-from parametric.spec.trace import find_trace_by_root
-from parametric.spec.trace import find_span_in_traces
-from parametric.spec.trace import find_span
-from parametric.spec.otel_trace import OtelSpan
 from parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
+from parametric.spec.otel_trace import OtelSpan
 from parametric.spec.otel_trace import SK_PRODUCER
-
-# todo: add prefix_library to run otel_*
+from parametric.spec.trace import find_span
+from parametric.spec.trace import find_trace_by_root
+from parametric.utils.test_agent import get_span
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -27,18 +26,17 @@ def test_otel_start_span(test_agent, test_library):
     with test_library:
         duration_s = int(2 * 1000000)
         start_time = int(time.time())
-        starting_attributes = {"start_attr_key": "start_attr_val"}
         with test_library.start_otel_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True, attributes=starting_attributes,
+                "operation",
+                span_kind=SK_PRODUCER,
+                timestamp=start_time,
+                new_root=True,
+                attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
             parent.finish(timestamp=start_time + duration_s)
     duration_ns = duration_s / (1e-9)
 
-    traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, OtelSpan(name="operation"))
-    assert len(trace) == 1
-
-    root_span = find_span(trace, OtelSpan(name="operation"))
+    root_span = get_span(test_agent)
     assert root_span["meta"]["env"] == "otel_env"
     assert root_span["service"] == "otel_serv"
     assert root_span["name"] == "operation"
@@ -51,14 +49,17 @@ def test_otel_start_span(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_otel_set_attributes(test_agent, test_library):
+def test_otel_set_attributes_different_types(test_agent, test_library):
+    """
+        - Set attributes of multiple types for an otel span
+    """
     """
         - Set attributes of multiple types for an otel span
     """
     parent_start_time = int(time.time())
     with test_library:
         with test_library.start_otel_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
+                "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
         ) as parent:
             parent.set_attributes({"key": ["val1", "val2"]})
             parent.set_attributes({"key2": [1]})
@@ -83,53 +84,81 @@ def test_otel_set_attributes(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_otel_span_end(test_agent, test_library):
+def test_otel_span_is_finished(test_agent, test_library):
     """
-    Test functionality of ending a span. After ending:
-        - operations on that span become noop
-        - span.is_recording() is false
-        - child spans are still running and can be ended later
-        - still possible to start child spans from parent context
+    Test functionality of ending a span.
+        - before ending - span.is_recording() is true
+        - after ending - span.is_recording() is false
     """
     with test_library:
         # start parent
         with test_library.start_otel_span(name="parent") as parent:
-            pid = parent.span_id
-            # start first child
-            with test_library.start_otel_span(name="child1", parent_id=pid) as child_1:
-                parent.finish()
-                parent.set_name("grandparent")  # should have no affect
-
-                # start second child after parent has been ended
-                with test_library.start_otel_span(name="child2", parent_id=pid) as child_2:
-                    child_1.set_attributes({"key": "value"})
-                    child_2.set_attributes({"k2": "v2"})
-
-                    assert child_1.is_recording()
-                    assert child_2.is_recording()
-                    assert not parent.is_recording()
-
-                    child_1.finish()
-                    child_2.finish()
-
-    traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, OtelSpan(name="parent"))
-    assert len(trace) == 3
-
-    root_span = find_span(trace, OtelSpan(name="parent"))
-    assert root_span["name"] == "parent"
-
-    c1 = find_span(trace, OtelSpan(name="child1"))
-    c2 = find_span(trace, OtelSpan(name="child2"))
-    assert "value" in c1["meta"]["key"]
-    assert "v2" in c2["meta"]["k2"]
+            assert parent.is_recording()
+            parent.finish()
+            assert not parent.is_recording()
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_otel_set_span_status(test_agent, test_library):
+def test_otel_span_finished_end_options(test_agent, test_library):
+    """
+    Test functionality of ending a span with end options.
+    After finishing the span, finishing the span with different end options has no effect
+    """
+    start_time = int(time.time())
+    duration = 1000
+    with test_library:
+        with test_library.start_otel_span(name="operation", timestamp=start_time) as s:
+            assert s.is_recording()
+            s.finish(timestamp=start_time + duration)
+            assert not s.is_recording()
+            s.finish(timestamp=start_time + duration * 2)
+
+    s = get_span(test_agent)
+    assert s.get("name") == "operation"
+    assert s.get("duration") != 2 * 1000 * 1e9
+    assert s.get("start") == start_time * 1e9
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+def test_otel_span_end(test_agent, test_library):
+    """
+    Test functionality of ending a span. After ending:
+        - operations on that span become noop
+        - child spans are still running and can be ended later
+        - still possible to start child spans from parent context
+    """
+    with test_library:
+        with test_library.start_otel_span(name="parent") as parent:
+            parent.finish()
+            # setting attributes after finish has no effect
+            parent.set_name("new_name")
+            parent.set_attributes({"after_finish": "true"})  # should have no affect
+            with test_library.start_otel_span(name="child", parent_id=parent.span_id) as child:
+                child.finish()
+
+    trace = find_trace_by_root(test_agent.wait_for_num_traces(1), OtelSpan(name="parent"))
+    assert len(trace) == 2
+
+    parent_span = find_span(trace, OtelSpan(name="parent"))
+    assert parent_span["name"] == "parent"
+    assert parent_span["meta"].get("after_finish") is None
+
+    child = find_span(trace, OtelSpan(name="child"))
+    assert child["name"] == "child"
+    assert child["parent_id"] == parent_span["span_id"]
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+def test_otel_set_span_status_error(test_agent, test_library):
     """
         This test verifies that setting the status of a span
         behaves accordingly to the Otel API spec
@@ -137,28 +166,69 @@ def test_otel_set_span_status(test_agent, test_library):
         By checking the following:
         1. attempts to set the value of `Unset` are ignored
         2. description must only be used with `Error` value
-        3. setting the status to `Ok` is final and will override any
-            any prior or future status values
+
     """
     with test_library:
-        with test_library.start_otel_span(name="error_span") as span:
-            span.set_status(OTEL_ERROR_CODE, "error_desc")
-            span.set_status(OTEL_UNSET_CODE, "unset_desc")
+        with test_library.start_otel_span(name="error_span") as s:
+            s.set_status(OTEL_ERROR_CODE, "error_desc")
+            s.set_status(OTEL_UNSET_CODE, "unset_desc")
+
+    s = get_span(test_agent)
+    assert s.get("meta").get("error.message") == "error_desc"
+    assert s.get("name") == "error_span"
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+def test_otel_set_span_status_ok(test_agent, test_library):
+    """
+        This test verifies that setting the status of a span
+        behaves accordingly to the Otel API spec
+        (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
+        By checking the following:
+        1. attempts to set the value of `Unset` are ignored
+        3. setting the status to `Ok` is final and will override any
+            prior or future status values
+    """
+    with test_library:
         with test_library.start_otel_span(name="ok_span") as span:
             span.set_status(OTEL_OK_CODE, "ok_desc")
             span.set_status(OTEL_ERROR_CODE, "error_desc")
 
-    err_spn = OtelSpan(name="error_span")
-    ok_spn = OtelSpan(name="ok_span")
+    span = get_span(test_agent)
+    assert span.get("meta").get("error.message") is None
+    assert span.get("name") == "ok_span"
 
-    traces = test_agent.wait_for_num_traces(2)
 
-    span = find_span(find_trace_by_root(traces, err_spn), err_spn)
-    tags = span.get("meta")
-    assert tags is not None
-    assert tags.get("error.message") == "error_desc"
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+def test_otel_get_span_context(test_agent, test_library):
+    """
+        This test verifies that setting the status of a span
+        behaves accordingly to the Otel API spec
+        (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
+        By checking the following:
+        1. attempts to set the value of `Unset` are ignored
+        3. setting the status to `Ok` is final and will override any
+            prior or future status values
+    """
+    with test_library:
+        with test_library.start_otel_span(name="operation", parent_id="7890123456789012", new_root=False) as span:
+            context = span.span_context()
+            print(context)
+            print(span)
+            assert context.get("trace_id") == '1'
+            assert context.get("span_id") == span.span_id
+            assert context.get("trace_flags") == span.span_id
+            assert context.get("trace_state") == "dd=s:1;t.dm:-1"
+            assert context.get("remote") is True
 
-    span = find_span(find_trace_by_root(traces, ok_spn), ok_spn)
-    tags = span.get("meta")
-    assert tags is not None
-    assert "error.message" not in tags
+
+    span = get_span(test_agent)
+    print(span)
+    assert span.get("meta").get("error.message") is None
+    assert span.get("name") == "ok_span"
