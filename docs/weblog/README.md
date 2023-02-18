@@ -1,6 +1,6 @@
 # Weblog
 
-A weblog is a web app that system uses to test the library. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
+A weblog is a web app that system uses to test the library. It mimics what would be a real instrumented HTTP application. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
 
 ## Disclaimer
 
@@ -196,3 +196,12 @@ This endpoint calls the appsec event tracking SDK function used for custom event
 The generated event has the following specification:
 - Event name: `system_tests_event`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+## GET /users
+
+This endpoint calls the appsec blocking SDK functions used for blocking users. If the expected parameter matches one of
+the possible values the WAF will return the proper action.
+
+Expected query parameters:
+- `user`: user id.
+  - Possible values: `blockedUser`

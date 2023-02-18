@@ -4,16 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"go.opentelemetry.io/otel"
-	"google.golang.org/grpc"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"log"
 	"net"
 	"os"
 	"strconv"
 
+	"go.opentelemetry.io/otel"
 	ot_api "go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 	ot "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type apmClientServer struct {

@@ -12,6 +12,7 @@ from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.appsec_iast import _AppSecIastValidator
+from utils.interfaces._library.appsec_iast import _AppSecIastSourceValidator
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecisionValidator,
@@ -153,8 +154,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
     ############################################################
 
     def validate_telemetry(self, validator, success_by_default=False):
+        def validator_skip_onboarding_event(data):
+            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
+                return None
+            return validator(data)
+
         self.validate(
-            validator, path_filters="/telemetry/proxy/api/v2/apmtelemetry", success_by_default=success_by_default
+            validator_skip_onboarding_event,
+            path_filters="/telemetry/proxy/api/v2/apmtelemetry",
+            success_by_default=success_by_default,
         )
 
     def validate_appsec(self, request=None, validator=None, success_by_default=False, legacy_validator=None):
@@ -304,6 +312,15 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         if not success:
             raise Exception("Can't find anything to validate this test")
+
+    def expect_iast_sources(self, request, name=None, origin=None, value=None, source_count=None):
+        validator = _AppSecIastSourceValidator(name=name, origin=origin, value=value, source_count=source_count)
+
+        for _, _, iast_data in self.get_iast_events(request=request):
+            if validator(sources=iast_data.sources):
+                return
+
+        raise Exception("No data validates this tests")
 
     def expect_iast_vulnerabilities(
         self,

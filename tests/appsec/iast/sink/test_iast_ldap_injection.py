@@ -11,7 +11,8 @@ if context.library == "cpp":
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.7.0", "*": "?"})
 class TestIastLDAPInjection:
     """Verify IAST LDAP Injection"""
 

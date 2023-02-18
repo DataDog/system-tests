@@ -145,8 +145,7 @@ def rc_check_request(data, expected, caching):
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
-@released(php="?", python="1.7.0rc1.dev", ruby="?", nodejs="3.9.0")
-@bug(library="python")
+@released(php="?", python="1.7.4", ruby="?", nodejs="3.9.0")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -157,7 +156,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
 
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
-    @bug(context.library >= "java@1.4.0" and context.appsec_rules_file is not None, reason="APPSEC-7877")
+    @bug(
+        context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
+        reason="ASM_FEATURES was not subscribed when a custom rules file was present",
+    )
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -219,7 +221,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
     request_number = 0
 
-    @bug(context.library >= "java@1.4.0" and context.appsec_rules_file is not None, reason="APPSEC-7877")
+    @irrelevant(
+        context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
+        reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
+    )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """

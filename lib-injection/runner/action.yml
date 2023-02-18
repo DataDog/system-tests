@@ -60,8 +60,8 @@ runs:
         run: cd system-tests && tar -czvf ../artifact.tar.gz $(ls | grep logs)
 
       - name: Upload lib injection logs
-        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # 2.3.1
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # 3.1.2
         if: ${{ always() }}
         with:
-          name: library-injection_${{ env.TEST_LIBRARY }}_${{ matrix.weblog-variant }}_${{ matrix.lib-injection-connection }}_${{ matrix.lib-injection-use-admission-controller }}_${{ env.DOCKER_IMAGE_TAG}}
+          name: ${{ env.MODE }}-lib-injection_${{ env.TEST_LIBRARY }}_${{ matrix.weblog-variant }}_${{ matrix.lib-injection-connection }}_${{ matrix.lib-injection-use-admission-controller }}_${{ env.DOCKER_IMAGE_TAG}}
           path: artifact.tar.gz

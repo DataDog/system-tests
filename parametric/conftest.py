@@ -6,10 +6,9 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Callable, Dict, Generator, List, TextIO, Tuple, TypedDict
+from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, TypedDict, Union
 import urllib.parse
 
-import grpc
 import requests
 import pytest
 
@@ -18,6 +17,9 @@ from parametric.protos import apm_test_client_pb2_grpc
 from parametric.spec.trace import V06StatsPayload
 from parametric.spec.trace import Trace
 from parametric.spec.trace import decode_v06_stats
+from parametric._library_client import APMLibraryClientGRPC
+from parametric._library_client import APMLibraryClientHTTP
+from parametric._library_client import APMLibrary
 
 
 class AgentRequest(TypedDict):
@@ -64,13 +66,16 @@ def _request_token(request):
 
 @dataclasses.dataclass
 class APMLibraryTestServer:
+    # The library of the interface.
     lang: str
+    # The interface that this test server implements.
+    protocol: Union[Literal["grpc"], Literal["http"]]
     container_name: str
     container_tag: str
     container_img: str
     container_cmd: List[str]
     container_build_dir: str
-    port: str = os.getenv("APM_GRPC_SERVER_PORT", "50052")
+    port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
@@ -88,6 +93,7 @@ def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
+        protocol="grpc",
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
@@ -105,6 +111,29 @@ RUN python3.9 -m pip install %s
     )
 
 
+def python_http_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    python_dir = os.path.join(os.path.dirname(__file__), "apps", "python_http")
+    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
+    return APMLibraryTestServer(
+        lang="python",
+        protocol="http",
+        container_name="python-test-library-http",
+        container_tag="python-test-library",
+        container_img="""
+FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
+WORKDIR /client
+RUN pyenv global 3.9.11
+RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+RUN python3.9 -m pip install %s
+"""
+        % (python_package,),
+        container_cmd="python3.9 -m apm_test_client".split(" "),
+        container_build_dir=python_dir,
+        volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
+        env=env,
+    )
+
+
 def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("apps", "nodejs")
     nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
@@ -112,6 +141,7 @@ def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
+        protocol="grpc",
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
@@ -142,6 +172,7 @@ def golang_library_factory(env: Dict[str, str]):
     go_reldir = os.path.join("parametric", go_appdir)
     return APMLibraryTestServer(
         lang="golang",
+        protocol="grpc",
         container_name="go-test-library",
         container_tag="go118-test-library",
         container_img=f"""
@@ -165,6 +196,7 @@ def dotnet_library_factory(env: Dict[str, str]):
     dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
     server = APMLibraryTestServer(
         lang="dotnet",
+        protocol="grpc",
         container_name="dotnet-test-client",
         container_tag="dotnet6_0-test-client",
         container_img=f"""
@@ -190,6 +222,7 @@ def java_library_factory(env: Dict[str, str]):
     java_reldir = os.path.join("parametric", java_appdir)
     return APMLibraryTestServer(
         lang="java",
+        protocol="grpc",
         container_name="java-test-client",
         container_tag="java8-test-client",
         container_img=f"""
@@ -215,9 +248,10 @@ _libs = {
     "java": java_library_factory,
     "nodejs": node_library_factory,
     "python": python_library_factory,
+    "python_http": python_http_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python,python_http").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -732,8 +766,11 @@ def test_server_timeout() -> int:
 
 @pytest.fixture
 def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
-    channel = grpc.insecure_channel("localhost:%s" % test_server.port)
-    grpc.channel_ready_future(channel).result(timeout=test_server_timeout)
-    client = apm_test_client_pb2_grpc.APMClientStub(channel)
+    if test_server.protocol == "grpc":
+        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
+    elif test_server.protocol == "http":
+        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
+    else:
+        raise ValueError("interface %s not supported" % test_server.protocol)
     tracer = APMLibrary(client)
     yield tracer
