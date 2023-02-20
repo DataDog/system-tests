@@ -328,6 +328,11 @@ jobs:
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_WAF_TELEMETRY scenario
+      if: steps.build.outcome == 'success'
+      run: ./run.sh APPSEC_WAF_TELEMETRY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh SAMPLING
@@ -526,6 +531,11 @@ jobs:
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_WAF_TELEMETRY scenario
+      if: steps.build.outcome == 'success'
+      run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario

@@ -123,6 +123,9 @@ elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
     WEBLOG_ENV+="DD_DBM_PROPAGATION_MODE=full"
     CONTAINERS+=(cassandra_db mongodb postgres)
 
+elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_WAF_TELEMETRY" ]; then
+    WEBLOG_ENV+="DD_INSTRUMENTATION_TELEMETRY_ENABLED=true\n"
+
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
     export RUNNER_ARGS="tests/apm_tracing_e2e"
 
