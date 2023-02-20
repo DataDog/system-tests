@@ -341,7 +341,7 @@ class Test_JavaCodeInjection:
 
     def test_java_code_injection(self):
         """AppSec catches java code injections"""
-        interfaces.library.assert_waf_attack(self.r_1, rules.java_code_injection.crs_944_100)
+        interfaces.library.assert_waf_attack(self.r_1, rules.java_code_injection)
         interfaces.library.assert_waf_attack(self.r_2, rules.java_code_injection.crs_944_110)
         interfaces.library.assert_waf_attack(self.r_3, rules.java_code_injection.crs_944_130)
 
