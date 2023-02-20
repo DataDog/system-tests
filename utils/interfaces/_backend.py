@@ -60,11 +60,12 @@ class _BackendInterfaceValidator(InterfaceValidator):
         """
 
         rid = get_rid_from_request(request)
-        tracesData = self._wait_for_request_traces(rid)
+        tracesData = list(self._wait_for_request_traces(rid))
+        traces = [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
         assert (
-            len(tracesData) > min_traces_len
-        ), f"We only found {len(tracesData)} traces in the library (tracers), but we expected {min_traces_len}!"
-        return [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
+            len(traces) >= min_traces_len
+        ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
+        return traces
 
     def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
         """Attempts to fetch single span events using the given `query_filter` as part of the search query.
@@ -109,7 +110,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         data = self._wait_for_event_platform_spans(query_filter, limit)
 
         result = data["response"]["contentJson"]["result"]
-        assert result["count"] == min_spans_len
+        assert result["count"] >= min_spans_len
 
         return [item["event"] for item in result["events"]]
 
@@ -117,9 +118,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
     ######### Internal implementation ##########
     ############################################
 
-    def _get_trace_ids(self, request):
-        rid = get_rid_from_request(request)
-
+    def _get_trace_ids(self, rid):
         if rid not in self.rid_to_library_trace_ids:
             raise Exception("There is no trace id related to this request ")
 
@@ -169,7 +168,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         if retries < 1:
             retries = 1
 
-        trace_ids = self._get_trace_ids(request)
+        trace_ids = self._get_trace_ids(rid)
         logger.info(
             f"Waiting for {len(trace_ids)} traces to become available from request {rid} with {retries} retries..."
         )
