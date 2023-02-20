@@ -370,11 +370,12 @@ class Test_BodyJson:
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python=PYTHON_RELEASE_GA_1_1, ruby="?")
+@released(golang="1.37.0", dotnet="2.8.0", nodejs="2.2.0", php="?", python=PYTHON_RELEASE_GA_1_1)
 @released(java={"vertx3": "?", "ratpack": "0.99.0", "*": "0.95.1"})
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@irrelevant(reason="unsupported by framework", library="ruby")
 @coverage.basic
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""

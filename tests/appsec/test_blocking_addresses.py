@@ -5,7 +5,7 @@
 from utils import weblog, context, coverage, interfaces, released, scenario, missing_feature
 
 
-@released(cpp="?", dotnet="?", php="?", python="?", ruby="?", nodejs="?", golang="?")
+@released(cpp="?", dotnet="?", php="?", python="?", nodejs="?", golang="?")
 @coverage.basic
 @scenario("APPSEC_BLOCKING")
 @released(
@@ -27,6 +27,7 @@ class Test_BlockingAddresses:
     def setup_request_method(self):
         self.rm_req = weblog.request("OPTIONS")
 
+    @released(ruby="?")
     def test_request_method(self):
         """can block on server.request.method"""
 
@@ -36,6 +37,7 @@ class Test_BlockingAddresses:
     def setup_request_uri(self):
         self.ruri_req = weblog.get("/waf/foo.git")
 
+    @released(ruby="1.0.0")
     def test_request_uri(self):
         """can block on server.request.uri.raw"""
 
@@ -46,6 +48,7 @@ class Test_BlockingAddresses:
         self.pp_req = weblog.get("/params/AiKfOeRcvG45")
 
     @missing_feature(library="java", reason="When supported, path parameter detection happens on subsequent WAF run")
+    @released(ruby="1.0.0")
     def test_path_params(self):
         """can block on server.request.path_params"""
 
@@ -55,6 +58,7 @@ class Test_BlockingAddresses:
     def setup_request_query(self):
         self.rq_req = weblog.get("/waf", params={"foo": "xtrace"})
 
+    @released(ruby="1.0.0")
     def test_request_query(self):
         """can block on server.request.query"""
 
@@ -64,6 +68,7 @@ class Test_BlockingAddresses:
     def setup_cookies(self):
         self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
 
+    @released(ruby="1.0.0")
     def test_cookies(self):
         """can block on server.request.cookies"""
 
@@ -74,6 +79,7 @@ class Test_BlockingAddresses:
         self.rbr_req = weblog.post("/waf", data="asldhkuqwgervf")
 
     @missing_feature(context.library == "java", reason="Either happens on a subsequent run or body is not read")
+    @released(ruby="?")
     def test_request_body_raw(self):
         """can block on server.request.body.raw"""
 
@@ -84,6 +90,7 @@ class Test_BlockingAddresses:
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @released(ruby="1.0.0")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
 
@@ -94,6 +101,7 @@ class Test_BlockingAddresses:
         self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @released(ruby="1.0.0")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
@@ -104,6 +112,7 @@ class Test_BlockingAddresses:
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @released(ruby="1.10.0")
     def test_response_status(self):
         """can block on server.response.status"""
 
@@ -114,6 +123,7 @@ class Test_BlockingAddresses:
         self.rsh_req = weblog.get(path="/headers")
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @released(ruby="?")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 
