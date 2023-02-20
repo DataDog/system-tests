@@ -2,10 +2,10 @@ import time
 
 import pytest
 
+from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.otel_trace import SK_PRODUCER
 from parametric.spec.tracecontext import get_tracecontext
 from parametric.utils.test_agent import get_span
-from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -68,6 +68,8 @@ def test_otel_span_with_w3c_headers(test_agent, test_library):
     traceparent2, tracestate2 = get_tracecontext(headers)
     print(traceparent2, tracestate2)
     assert headers["x-datadog-sampling-priority"] == "-1"
+    span = get_span(test_agent)
+    assert span.span_id == 1229782938247303441
     # assert int(b3_trace_id, base=16) == span.get("trace_id")
     # sampled2 = str(traceparent2).split("-")[3]
     # dd_items2 = tracestate2["dd"].split(";")

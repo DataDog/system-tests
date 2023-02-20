@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant
 from utils.tools import logger
+from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
 @released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
@@ -10,6 +11,8 @@ from utils.tools import logger
 @missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
@@ -19,16 +22,36 @@ class Test_Telemetry:
 
     app_started_count = 0
 
+    def validate_library_telemetry_data(self, validator, success_by_default=False):
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+
+        if len(telemetry_data) == 0:
+            if not success_by_default:
+                raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            validator(data)
+
+    def validate_agent_telemetry_data(self, validator, success_by_default=False):
+        telemetry_data = list(interfaces.agent.get_telemetry_data())
+
+        if len(telemetry_data) == 0:
+            if not success_by_default:
+                raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            validator(data)
+
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
         def validator(data):
-            repsonse_code = data["response"]["status_code"]
-            assert 200 <= repsonse_code < 300, f"Got response code {repsonse_code}"
+            response_code = data["response"]["status_code"]
+            assert 200 <= response_code < 300, f"Got response code {response_code}"
 
-        interfaces.library.validate_telemetry(validator, success_by_default=True)
-        interfaces.agent.validate_telemetry(validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator)
+        self.validate_agent_telemetry_data(validator)
 
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
@@ -36,12 +59,21 @@ class Test_Telemetry:
     )
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
-        interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["dd-agent-hostname", "dd-agent-env"],
+
+        def not_onboarding_event(data):
+            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
+
+        header_presence_validator = HeadersPresenceValidator(
+            request_headers=["dd-agent-hostname", "dd-agent-env"],
+            response_headers=(),
+            check_condition=not_onboarding_event,
         )
-        interfaces.agent.assert_headers_match(
-            path_filter="/api/v2/apmtelemetry", request_headers={"via": r"trace-agent 7\..+"},
+        header_match_validator = HeadersMatchValidator(
+            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event,
         )
+
+        self.validate_agent_telemetry_data(header_presence_validator)
+        self.validate_agent_telemetry_data(header_match_validator)
 
     @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
@@ -53,8 +85,44 @@ class Test_Telemetry:
     @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
-        interfaces.library.assert_seq_ids_are_roughly_sequential()
-        interfaces.library.assert_no_skipped_seq_ids()
+
+        MAX_OUT_OF_ORDER_LAG = 0.1  # s
+
+        max_seq_id = 0
+        received_max_time = None
+        seq_ids = []
+
+        fmt = "%Y-%m-%dT%H:%M:%S.%f"
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            if 200 <= data["response"]["status_code"] < 300:
+                seq_id = data["request"]["content"]["seq_id"]
+                seq_ids.append((seq_id, data["log_filename"]))
+                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+            if seq_id > max_seq_id:
+                max_seq_id = seq_id
+                received_max_time = curr_message_time
+            else:
+                if received_max_time is not None and (curr_message_time - received_max_time) > MAX_OUT_OF_ORDER_LAG:
+                    raise Exception(
+                        f"Received message with seq_id {seq_id} to far more than"
+                        f"100ms after message with seq_id {max_seq_id}"
+                    )
+
+        seq_ids.sort()
+        for i in range(len(seq_ids) - 1):
+            diff = seq_ids[i + 1][0] - seq_ids[i][0]
+            if diff == 0:
+                raise Exception(
+                    f"Detected 2 telemetry messages with same seq_id {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
+                )
+
+            if diff > 1:
+                raise Exception(f"Detected non conscutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @bug(library="python", reason="To be explained")
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -65,7 +133,7 @@ class Test_Telemetry:
         def validator(data):
             return data["request"]["content"].get("request_type") == "app-started"
 
-        interfaces.library.validate_telemetry(validator=validator)
+        self.validate_library_telemetry_data(validator)
 
     @missing_feature(library="python")
     def test_app_started_sent_only_once(self):
@@ -76,7 +144,7 @@ class Test_Telemetry:
                 self.app_started_count += 1
                 assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator)
 
     def test_telemetry_messages_valid(self):
         """Telemetry messages additional validation"""
@@ -84,15 +152,15 @@ class Test_Telemetry:
         def validate_integration_changes(data):
             content = data["request"]["content"]
             if content.get("request_type") == "app-integrations-change":
-                assert content["payload"]["integrations"], "Integration changes must mot be empty"
+                assert content["payload"]["integrations"], "Integrations changes must not be empty"
 
         def validate_dependencies_changes(data):
             content = data["request"]["content"]
             if content["request_type"] == "app-dependencies-loaded":
-                assert content["payload"]["dependencies"], "dependencies changes must mot be empty"
+                assert content["payload"]["dependencies"], "Dependencies changes must not be empty"
 
-        interfaces.library.validate_telemetry(validator=validate_integration_changes, success_by_default=True)
-        interfaces.library.validate_telemetry(validator=validate_dependencies_changes, success_by_default=True)
+        self.validate_library_telemetry_data(validate_integration_changes)
+        self.validate_library_telemetry_data(validate_dependencies_changes)
 
     @bug(
         library="dotnet",
@@ -112,16 +180,19 @@ class Test_Telemetry:
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
+        def not_onboarding_event(data):
+            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
+
         def save_data(data, container):
-            # payloads are identifed by their seq_id/runtime_id
-            key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
-            container[key] = data
+            # payloads are identifed by their tracer_time/runtime_id
+            if not_onboarding_event(data):
+                key = data["request"]["content"]["tracer_time"], data["request"]["content"]["runtime_id"]
+                container[key] = data
 
-        # save all data from lib to agent
-        interfaces.library.validate_telemetry(lambda data: save_data(data, self.library_requests), True)
-
-        # save all data from agent to backend
-        interfaces.agent.validate_telemetry(lambda data: save_data(data, self.agent_requests), True)
+        self.validate_library_telemetry_data(
+            lambda data: save_data(data, self.library_requests), success_by_default=False
+        )
+        self.validate_agent_telemetry_data(lambda data: save_data(data, self.agent_requests), success_by_default=False)
 
         # At the end, check that all data are consistent
         for key, agent_data in self.agent_requests.items():
@@ -156,7 +227,7 @@ class Test_Telemetry:
 
         if len(self.library_requests) != 0:
             for s, r in self.library_requests:
-                logger.error(f"seq_id: {s}, runtime_id: {r}")
+                logger.error(f"tracer_time: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
@@ -175,7 +246,7 @@ class Test_Telemetry:
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator)
 
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
@@ -185,7 +256,11 @@ class Test_Telemetry:
         ALLOWED_INTERVALS = 2
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
-        for data in interfaces.library.get_telemetry_data():
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time != -1:
                 delta = curr_message_time - prev_message_time

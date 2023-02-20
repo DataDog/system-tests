@@ -14,8 +14,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-
-  lib-injection-tests:
+  manual-lib-injection-tests:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,12 +30,6 @@ jobs:
 
         - library: python
           weblog-variant: dd-lib-python-init-test-django
-
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django-gunicorn
-
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django-uvicorn
 
         lib-injection-connection: 
           - uds
@@ -60,8 +53,8 @@ jobs:
       DOCKER_IMAGE_TAG: ${{ matrix.version }}
       DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
       BUILDX_PLATFORMS: linux/amd64
+      MODE: manual
     steps:
-
       - name: lib-injection test runner
         id: lib-injection-test-runner
         uses: DataDog/system-tests/lib-injection/runner@main
@@ -69,4 +62,44 @@ jobs:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          test-script: ./lib-injection/run-lib-injection.sh
+          test-script: ./lib-injection/run-manual-lib-injection.sh
+
+  auto-lib-injection-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        variant:
+        - library: java
+          weblog-variant: dd-lib-java-init-test-app
+        - library: nodejs
+          weblog-variant: sample-app
+        - library: python
+          weblog-variant: dd-lib-python-init-test-django
+        test-case: 
+          - TestCase1
+          - TestCase2
+          - TestCase3
+          - TestCase4
+          - TestCase5
+      fail-fast: false
+    env:
+      TEST_LIBRARY: ${{ matrix.variant.library }}
+      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
+      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
+      DOCKER_IMAGE_TAG: latest
+      DOCKER_IMAGE_WEBLOG_TAG: ${{ github.sha }}
+      BUILDX_PLATFORMS: linux/amd64
+      MODE: auto-${{ matrix.test-case }}
+      TEST_CASE: ${{ matrix.test-case }}
+    steps:
+      - name: lib-injection test runner
+        id: lib-injection-test-runner
+        uses: DataDog/system-tests/lib-injection/runner@main
+        with:
+          docker-registry: ghcr.io
+          docker-registry-username: ${{ github.actor }}
+          docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          test-script: ./lib-injection/run-auto-lib-injection.sh

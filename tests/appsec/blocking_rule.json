@@ -5,6 +5,31 @@
   },
   "rules": [
     {
+      "id": "block-users",
+      "name": "Block User Addresses",
+      "tags": {
+        "type": "block_user",
+        "category": "security_response"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "usr.id"
+              }
+            ],
+            "data": "blocked_users"
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "arachni_rule",
       "name": "Arachni",
       "tags": {
@@ -27,17 +52,326 @@
           "operator": "match_regex"
         }
       ],
-      "on_match": ["block_request"]
+      "on_match": ["block"]
+    },
+    {
+      "id": "canary_rule1",
+      "name": "Canary 1",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^Canary\\/v1"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "on_match": ["block1"]
+    },
+    {
+      "id": "canary_rule2",
+      "name": "Canary 2",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^Canary\\/v2"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "on_match": [
+        "block2"
+      ]
+    },
+    {
+      "id": "tst-037-009",
+      "name": "Test block on response header",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000008",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.response.headers.no_cookies",
+                "key_path": [
+                  "content-language"
+                ]
+              }
+            ],
+            "regex": "en-us"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-006",
+      "name": "Test block on response code",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000006",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.method"
+              }
+            ],
+            "regex": "OPTIONS"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-001",
+      "name": "Test block on query",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000001",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "xtrace"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-002",
+      "name": "Test block on uri",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000002",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "\\.git"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-003",
+      "name": "Test block on body raw",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000003",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.body.raw"
+              }
+            ],
+            "regex": "asldhkuqwgervf"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-004",
+      "name": "Test block on body",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000003",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.body"
+              }
+            ],
+            "regex": "bsldhkuqwgervf"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-007",
+      "name": "Test block on path params",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000007",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.path_params"
+              }
+            ],
+            "regex": "AiKfOeRcvG45"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-008",
+      "name": "Test block on cookies",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000008",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              }
+            ],
+            "regex": "jdfoSDGFkivRG_234"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-005",
+      "name": "Test block on response code",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000005",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.response.status"
+              }
+            ],
+            "regex": "418"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
     }
   ],
   "actions": [
     {
-      "id": "block_request",
+      "id": "block1",
       "type": "block_request",
       "parameters": {
-        "status_code": 403,
+        "status_code": 401,
         "type": "auto"
       }
+    },
+    {
+      "id": "block2",
+      "type": "redirect_request",
+      "parameters": {
+        "status_code": 301,
+        "location": "/you-have-been-blocked"
+      }
+    }
+  ],
+  "rules_data": [
+    {
+      "id": "blocked_users",
+      "type": "data_with_expiration",
+      "data": [
+        {
+          "value": "blockedUser",
+          "expiration": 0
+        }
+      ]
     }
   ]
 }
