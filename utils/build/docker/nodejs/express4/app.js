@@ -117,6 +117,7 @@ app.get("/custom_event", (req, res) => {
   tracer.appsec.trackCustomEvent(eventName, { metadata0: "value0", metadata1: "value1" });
 
   res.send("OK");
+});
 
 app.get("/users", (req, res) => {
   let user = {}
