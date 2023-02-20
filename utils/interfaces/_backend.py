@@ -107,7 +107,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         data = self._wait_for_event_platform_spans(query_filter, limit)
 
         result = data["response"]["contentJson"]["result"]
-        assert result["count"] >= min_spans_len
+        assert result["count"] >= min_spans_len, f"Did not have the expected number of spans ({min_spans_len}): {data}"
 
         return [item["event"] for item in result["events"]]
 
