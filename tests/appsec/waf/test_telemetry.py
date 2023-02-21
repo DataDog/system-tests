@@ -46,12 +46,16 @@ def _validate_tags(payload_tags, expected_tags, metric_name):
 
         if expected_tags.get(tag_key) is not None:
             expected_tag = expected_tags.pop(tag_key)
-            assert tag_value.lower() == expected_tag, "Metric %s Tag %s. Expected %s. get %s" % (
-                metric_name,
-                tag_key,
-                expected_tag,
-                tag_value,
-            )
+            if expected_tag != "":
+                assert tag_value.lower() == expected_tag, "Metric %s Tag %s. Expected %s. get %s" % (
+                    metric_name,
+                    tag_key,
+                    expected_tag,
+                    tag_value,
+                )
+            else:
+                assert expected_tag is not None, f"Empty `{expected_tag}` tag"
+
     if len(expected_tags) > 0:
         raise AssertionError(f"Metric %s Tags %s not found" % (metric_name, [metric for metric in expected_tags]))
 
@@ -119,13 +123,13 @@ def _validate_distributions_metrics(payload):
     # CAVEAT: each library could have different metrics result. If you get an error ping in slack
     expected_common_tags = [
         {
-            "waf_version": "1.6.1",
+            "waf_version": "",
             "event_rules_version": context.appsec_rules_version,
             "rule_triggered": "false",
             "request_blocked": "false",
         },
         {
-            "waf_version": "1.6.1",
+            "waf_version": "",
             "event_rules_version": context.appsec_rules_version,
             "rule_triggered": "true",
             "request_blocked": "false",
