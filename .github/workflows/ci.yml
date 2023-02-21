@@ -24,11 +24,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  debug-pr-labels:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: echo "github.event.action>>>>>>>> ${{ github.event.action }}"
   check-pr-labels:
     runs-on: ubuntu-latest 
     steps:
@@ -36,7 +31,6 @@ jobs:
         if: github.event.action == 'opened'
         with:
           labels: run-default-scenario
-
   lint_and_test:
     runs-on: ubuntu-latest
     needs:
@@ -352,7 +346,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_WAF_TELEMETRY scenario
-      if: steps.build.outcome == 'success'
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
