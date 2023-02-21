@@ -77,5 +77,6 @@ You have to make to sure to authenticate before pulling the images.
 1. Create a Github token. The token has to have package read and write perimssions. You can create the token using this link: https://github.com/settings/tokens/new?scopes=write:packages
 2. Make sure to enable SSO for the new token.
 3. Authenticate docker:
-    3.1 `docker login GITHUBUSERNAME`
+    3.1 `docker login ghcr.io`
+    3.2 paste your Github username
     3.2 paste the token string from step 1.

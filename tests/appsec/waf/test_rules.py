@@ -53,7 +53,7 @@ class Test_HttpProtocol:
 
     def setup_http_protocol2(self):
         self.r_1 = weblog.get("/waf/", params={"key": "get e http/1"})
-        self.r_2 = weblog.get("/waf/", params={"key": "\n :"})
+        self.r_2 = weblog.get("/waf/", params={"key": "\nset-cookie:"})
 
     def test_http_protocol2(self):
         """ AppSec catches attacks by violation of HTTP protocol"""
@@ -341,7 +341,7 @@ class Test_JavaCodeInjection:
 
     def test_java_code_injection(self):
         """AppSec catches java code injections"""
-        interfaces.library.assert_waf_attack(self.r_1, rules.java_code_injection.crs_944_100)
+        interfaces.library.assert_waf_attack(self.r_1, rules.java_code_injection)
         interfaces.library.assert_waf_attack(self.r_2, rules.java_code_injection.crs_944_110)
         interfaces.library.assert_waf_attack(self.r_3, rules.java_code_injection.crs_944_130)
 

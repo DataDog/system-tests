@@ -12,18 +12,24 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="1.47.0")
+@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="?", golang="1.47.0")
 @released(
     java={
         "spring-boot": "0.110.0",
         "sprint-boot-jetty": "0.111.0",
         "spring-boot-undertow": "0.111.0",
         "spring-boot-openliberty": "0.115.0",
+        "ratpack": "1.7.0",
+        "jersey-grizzly2": "1.7.0",
+        "resteasy-netty3": "1.7.0",
+        "vertx3": "1.7.0",
         "*": "?",
     }
 )
-@irrelevant(context.appsec_rules_file == "")
-@bug(context.weblog_variant == "spring-boot-undertow" and context.appsec_rules_version >= "1.4.2")
+@irrelevant(
+    context.library == "java" and context.appsec_rules_file is not None,
+    reason="No Remote Config sub with custom rules file",
+)
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenario("APPSEC_IP_BLOCKING")
@@ -33,8 +39,6 @@ class Test_AppSecIPBlocking:
     request_number = 0
     remote_config_is_sent = False
 
-    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot-openliberty")
-    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot")
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
 
@@ -78,10 +82,19 @@ class Test_AppSecIPBlocking:
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
 
-    @bug(context.library == "java@0.110.0", reason="default action not implemented")
-    @bug(context.library <= "java@0.114.0" and context.weblog_variant == "spring-boot-openliberty")
-    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot-openliberty")
-    @bug(context.library >= "java@1.1.0" and context.weblog_variant == "spring-boot")
+    @released(
+        java={
+            "spring-boot": "0.111.0",
+            "spring-boot-jetty": "0.111.0",
+            "spring-boot-undertow": "0.111.0",
+            "spring-boot-openliberty": "0.115.0",
+            "ratpack": "1.7.0",
+            "jersey-grizzly2": "1.7.0",
+            "resteasy-netty3": "1.7.0",
+            "vertx3": "1.7.0",
+            "*": "?",
+        }
+    )
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 
