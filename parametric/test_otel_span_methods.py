@@ -82,6 +82,26 @@ def test_otel_span_end(test_agent, test_library):
     Test functionality of ending a span. After ending:
         - operations on that span become noop
         - span.is_recording() is false
+    """
+    with test_library:
+        # start parent
+        with test_library.start_otel_span(name="operation") as span:
+            span.finish()
+            span.set_name("finished_operation")  # should have no affect
+            assert not span.is_recording()
+
+    span = get_span(test_agent)
+    assert span["name"] == "operation"
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+def test_otel_start_child_span(test_agent, test_library):
+    """
+    Test functionality of starting a child span from parent:
+        Even if a parent is ended:
         - child spans are still running and can be ended later
         - still possible to start child spans from parent context
     """
@@ -92,8 +112,6 @@ def test_otel_span_end(test_agent, test_library):
             # start first child
             with test_library.start_otel_span(name="child1", parent_id=pid) as child_1:
                 parent.finish()
-                parent.set_name("grandparent")  # should have no affect
-
                 # start second child after parent has been ended
                 with test_library.start_otel_span(name="child2", parent_id=pid) as child_2:
                     child_1.set_attributes({"key": "value"})
@@ -101,17 +119,12 @@ def test_otel_span_end(test_agent, test_library):
 
                     assert child_1.is_recording()
                     assert child_2.is_recording()
-                    assert not parent.is_recording()
-
                     child_1.finish()
                     child_2.finish()
 
     traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, OtelSpan(name="parent"))
     assert len(trace) == 3
-
-    root_span = find_span(trace, OtelSpan(name="parent"))
-    assert root_span["name"] == "parent"
 
     c1 = find_span(trace, OtelSpan(name="child1"))
     c2 = find_span(trace, OtelSpan(name="child2"))
@@ -131,8 +144,6 @@ def test_otel_set_span_status_error(test_agent, test_library):
         By checking the following:
         1. attempts to set the value of `Unset` are ignored
         2. description must only be used with `Error` value
-        3. setting the status to `Ok` is final and will override any
-            any prior or future status values
     """
     with test_library:
         with test_library.start_otel_span(name="error_span") as span:
@@ -153,10 +164,7 @@ def test_otel_set_span_status_ok(test_agent, test_library):
         This test verifies that setting the status of a span
         behaves accordingly to the Otel API spec
         (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
-        By checking the following:
-        1. attempts to set the value of `Unset` are ignored
-        2. description must only be used with `Error` value
-        3. setting the status to `Ok` is final and will override any
+        By checking that setting the status to `Ok` is final and will override any
             any prior or future status values
     """
     with test_library:
@@ -167,4 +175,3 @@ def test_otel_set_span_status_ok(test_agent, test_library):
     span = get_span(test_agent)
     assert span.get("meta").get("error.message") is None
     assert span.get("name") == "ok_span"
-
