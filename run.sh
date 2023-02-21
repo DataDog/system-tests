@@ -138,11 +138,11 @@ else # Let user choose the target
     export SYSTEMTESTS_LOG_FOLDER=logs
 fi
 
-# Clean logs/ folder
-rm -rf $SYSTEMTESTS_LOG_FOLDER
-
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
+
+# Clean logs/ folder
+rm -rf $SYSTEMTESTS_LOG_FOLDER
 
 for interface in ${interfaces[@]}
 do
@@ -150,6 +150,8 @@ do
 done
 
 mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/runner
+mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs
+chmod -R 777 $SYSTEMTESTS_LOG_FOLDER
 
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
 # But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
