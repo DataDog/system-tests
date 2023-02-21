@@ -14,7 +14,7 @@ from parametric.spec.otel_trace import OtelSpan
 @pytest.mark.skip_library("java", "Not implemented")
 def test_otel_simple_trace(test_agent, test_library):
     """
-        Perform two traces
+        Perform a simple trace that starts a parent and child span
     """
     with test_library:
         with test_library.start_otel_span("root_one", new_root=True,) as parent:

@@ -2,8 +2,8 @@ import time
 import pytest
 
 from parametric.spec.trace import find_trace_by_root
-from parametric.spec.trace import find_span_in_traces
 from parametric.spec.trace import find_span
+from parametric.utils.test_agent import get_span
 from parametric.spec.otel_trace import OtelSpan
 from parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
 from parametric.spec.otel_trace import SK_PRODUCER
@@ -30,21 +30,19 @@ def test_otel_start_span(test_agent, test_library):
         starting_attributes = {"start_attr_key": "start_attr_val"}
         with test_library.start_otel_span(
             "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True, attributes=starting_attributes,
-        ) as parent:
-            parent.finish(timestamp=start_time + duration_s)
+        ) as span:
+            span.finish(timestamp=start_time + duration_s)
     duration_ns = duration_s / (1e-9)
 
-    traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, OtelSpan(name="operation"))
-    assert len(trace) == 1
+    span = get_span(test_agent)
 
-    root_span = find_span(trace, OtelSpan(name="operation"))
-    assert root_span["meta"]["env"] == "otel_env"
-    assert root_span["service"] == "otel_serv"
-    assert root_span["name"] == "operation"
-    assert root_span["resource"] == "operation"
-    assert root_span["meta"]["start_attr_key"] == "start_attr_val"
-    assert root_span["duration"] == duration_ns
+    assert span["name"] == "operation"
+    assert span["service"] == "otel_serv"
+    assert span["meta"]["env"] == "otel_env"
+    assert span["service"] == "otel_serv"
+    assert span["resource"] == "operation"
+    assert span["meta"]["start_attr_key"] == "start_attr_val"
+    assert span["duration"] == duration_ns
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -55,28 +53,24 @@ def test_otel_set_attributes(test_agent, test_library):
     """
         - Set attributes of multiple types for an otel span
     """
-    parent_start_time = int(time.time())
+    start_time = int(time.time())
     with test_library:
         with test_library.start_otel_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
-        ) as parent:
-            parent.set_attributes({"key": ["val1", "val2"]})
-            parent.set_attributes({"key2": [1]})
-            parent.set_attributes({"pi": 3.14, "hi": "bye"})
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True,
+        ) as span:
+            span.set_attributes({"key": ["val1", "val2"]})
+            span.set_attributes({"key2": [1]})
+            span.set_attributes({"pi": 3.14, "hi": "bye"})
 
-    traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, OtelSpan(name="operation"))
-    assert len(trace) == 1
+    span = get_span(test_agent)
 
-    root_span = find_span(trace, OtelSpan(name="operation"))
-
-    assert root_span["name"] == "operation"
-    assert root_span["resource"] == "operation"
-    assert "val2" in root_span["meta"]["key"]
-    assert "val1" in root_span["meta"]["key"]
-    assert root_span["metrics"]["key2"] == 1
-    assert root_span["metrics"]["pi"] == 3.14
-    assert root_span["meta"]["hi"] == "bye"
+    assert span["name"] == "operation"
+    assert span["resource"] == "operation"
+    assert "val2" in span["meta"]["key"]
+    assert "val1" in span["meta"]["key"]
+    assert span["metrics"]["key2"] == 1
+    assert span["metrics"]["pi"] == 3.14
+    assert span["meta"]["hi"] == "bye"
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
