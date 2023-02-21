@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 const tracer = require('dd-trace').init({ debug: true });
 
 const app = require('express')();
+var axios = require('axios');
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
@@ -53,6 +54,62 @@ app.get('/identify', (req: Request, res: Response) => {
 
 app.get('/status', (req: Request, res: Response) => {
   res.status(parseInt('' + req.query.code)).send('OK');
+});
+
+app.get("/make_distant_call", (req: Request, res: Response) => {
+  const url = req.query.url;
+  console.log(url);
+
+  axios.get(url)
+  .then((response: Response) => {
+    res.json({
+      url: url,
+      status_code: response.statusCode,
+      request_headers: null,
+      response_headers: null,
+    });
+  })
+  .catch((error: Error) => {
+    console.log(error);
+    res.json({
+      url: url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null,
+    });
+  });
+});
+
+app.get("/user_login_success_event", (req: Request, res: Response) => {
+  const userId = req.query.event_user_id || "system_tests_user";
+
+  tracer.appsec.trackUserLoginSuccessEvent({
+    id: userId,
+    email: "system_tests_user@system_tests_user.com",
+    name: "system_tests_user"
+  }, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
+app.get("/user_login_failure_event", (req: Request, res: Response) => {
+  const userId = req.query.event_user_id || "system_tests_user";
+  let exists = true;
+  if (req.query && req.query.hasOwnProperty("event_user_exists")) {
+    exists = (req.query.event_user_exists + "").toLowerCase() === "true"
+  }
+
+  tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
+app.get("/custom_event", (req: Request, res: Response) => {
+  const eventName = req.query.event_name || "system_tests_event";
+
+  tracer.appsec.trackCustomEvent(eventName, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
 });
 
 app.listen(7777, '0.0.0.0', () => {

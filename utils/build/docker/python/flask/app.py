@@ -71,10 +71,8 @@ def status_code():
 
 @app.route("/make_distant_call")
 def make_distant_call():
-    # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
     url = flask_request.args["url"]
-    # url = "http://weblog:7777"
     response = requests.get(url)
 
     result = {

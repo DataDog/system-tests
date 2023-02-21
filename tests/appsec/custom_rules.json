@@ -3,8 +3,87 @@
   "metadata": {
     "rules_version": "1.2.6"
   },
+  "exclusions": [
+    {
+      "id": 1,
+      "rules_target": [
+        {
+          "tags": {
+            "type": "path-exclusion-flow"
+          }
+        }
+      ],
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query",
+                "key_path": ["activate_exclusion"]
+              }
+            ],
+            "regex": "true"
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "address": "server.request.query",
+          "key_path": ["excluded_key"]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "rules_target": [
+        {
+          "rule_id": "easy-to-match-rule-bbbb",
+          "category": "testing-type-b"
+        }
+      ],
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query",
+                "key_path": [
+                  "activate_exclusion"
+                ]
+              }
+            ],
+            "regex": "true"
+          }
+        }
+      ]
+    }
+  ],
   "rules": [
-
+    {
+      "id": "rule-for-path-exclusion",
+      "name": "rule-for-path-exclusion",
+      "tags": {
+        "type": "path-exclusion-flow"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query",
+                "key_path": [
+                  "excluded_key"
+                ]
+              }
+            ],
+            "regex": "true"
+          }
+        }
+      ]
+    },
     {
       "id": "crs-930-120",
       "name": "OS File Access Attempt",

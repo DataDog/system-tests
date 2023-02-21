@@ -1,11 +1,13 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	muxtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -52,6 +54,21 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
+		if url := r.URL.Query().Get("url"); url != "" {
+
+			client := httptrace.WrapClient(http.DefaultClient)
+			req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+			_, err := client.Do(req)
+
+			if err != nil {
+				log.Fatalln(err)
+				w.WriteHeader(500)
+			}
+		}
+		w.Write([]byte("OK"))
+	})
+
 	mux.HandleFunc("/headers/", headers)
 	mux.HandleFunc("/headers", headers)
 
@@ -72,6 +89,40 @@ func main() {
 			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
+	})
+
+	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
+		uquery := r.URL.Query()
+		uid := "system_tests_user"
+		if q := uquery.Get("event_user_id"); q != "" {
+			uid = q
+		}
+		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
+		uquery := r.URL.Query()
+		uid := "system_tests_user"
+		if q := uquery.Get("event_user_id"); q != "" {
+			uid = q
+		}
+		exists := true
+		if q := uquery.Get("event_user_exists"); q != "" {
+			parsed, err := strconv.ParseBool(q)
+			if err != nil {
+				exists = parsed
+			}
+		}
+		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
+		uquery := r.URL.Query()
+		name := "system_tests_event"
+		if q := uquery.Get("event_name"); q != "" {
+			name = q
+		}
+		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	initDatadog()

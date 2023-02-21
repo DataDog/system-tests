@@ -83,6 +83,9 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         raise Exception("No data validate this test")
 
+    def get_telemetry_data(self):
+        yield from self.get_data(path_filters="/api/v2/apmtelemetry")
+
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)
@@ -92,9 +95,43 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.validate(validator, path_filters=path_filter, success_by_default=True)
 
     def validate_telemetry(self, validator=None, success_by_default=False):
-        self.validate(validator=validator, success_by_default=success_by_default, path_filters="/api/v2/apmtelemetry")
+        def validator_skip_onboarding_event(data):
+            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
+                return None
+            return validator(data)
+
+        self.validate(
+            validator=validator_skip_onboarding_event,
+            success_by_default=success_by_default,
+            path_filters="/api/v2/apmtelemetry",
+        )
 
     def add_traces_validation(self, validator, success_by_default=False):
         self.validate(
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )
+
+    def get_spans(self, request=None):
+        """Attempts to fetch the spans the agent will submit to the backend.
+
+        When a valid request is given, then we filter the spans to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        rid = get_rid_from_request(request)
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            if "tracerPayloads" not in data["request"]["content"]:
+                raise Exception("Trace property is missing in agent payload")
+
+            content = data["request"]["content"]["tracerPayloads"]
+
+            for payload in content:
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        if rid is None:
+                            yield data, span
+                        elif get_rid_from_span(span) == rid:
+                            yield data, span

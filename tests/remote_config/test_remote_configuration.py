@@ -65,73 +65,87 @@ class RemoteConfigurationFieldsBasicTests:
 
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
+    def setup_tracer_update_sequence(self):
+        # default polling interval for tracers is very low (5 seconds)
+        # TODO configure the polling interval to a lower value instead of increasing the timeout
+        interfaces.library.timeout = 100
+
 
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
 
-    # verify that the tracer properly updated the TUF targets version,
-    # if it's not included we assume it to be 0 in the agent.
-    # Our test suite will always emit SOMETHING for this
-    expected_targets_version = expected["client"]["state"]["targets_version"]
-    targets_version = client_state.get("targets_version", 0)
-    assert (
-        targets_version == expected_targets_version
-    ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
+    try:
+        # verify that the tracer properly updated the TUF targets version,
+        # if it's not included we assume it to be 0 in the agent.
+        # Our test suite will always emit SOMETHING for this
+        expected_targets_version = expected["client"]["state"]["targets_version"]
+        targets_version = client_state.get("targets_version", 0)
+        assert (
+            targets_version == expected_targets_version
+        ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
 
-    # verify that the tracer is properly storing and reporting on its config state
-    expected_config_states = client_state.get("config_states")
-    config_states = client_state.get("config_states")
-    if expected_config_states is None and config_states is not None:
-        raise Exception("client is not expected to have stored config but is reporting stored configs")
+        # verify that the tracer is properly storing and reporting on its config state
+        expected_config_states = client_state.get("config_states")
+        config_states = client_state.get("config_states")
+        if expected_config_states is None and config_states is not None:
+            raise Exception("client is not expected to have stored config but is reporting stored configs")
 
-    if expected_config_states is not None and config_states is None:
-        raise Exception("client is expected to have stored confis but isn't reporting any")
+        if expected_config_states is not None and config_states is None:
+            raise Exception("client is expected to have stored confis but isn't reporting any")
 
-    if config_states is not None:
-        assert len(config_states) == len(expected_config_states), "client reporting more or less configs than expected"
-        for state in expected_config_states:
-            if state not in config_states:
-                raise ValidationError(f"Config {state} should be in config_states property", extra_info=content)
+        if config_states is not None:
+            assert len(config_states) == len(
+                expected_config_states
+            ), "client reporting more or less configs than expected"
+            for state in expected_config_states:
+                if state not in config_states:
+                    raise ValidationError(f"Config {state} should be in config_states property", extra_info=content)
 
-    if not caching:
-        # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
-        assert not content.get(
-            "cached_target_files", []
-        ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
-    else:
-        expected_cached_target_files = expected.get("cached_target_files")
-        cached_target_files = content.get("cached_target_files")
+        if not caching:
+            # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
+            assert not content.get(
+                "cached_target_files", []
+            ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+        else:
+            expected_cached_target_files = expected.get("cached_target_files")
+            cached_target_files = content.get("cached_target_files")
 
-        if expected_cached_target_files is None and cached_target_files is not None and len(cached_target_files) != 0:
-            raise Exception(
-                f"client is not expected to have cached config but is reporting cached config: {cached_target_files}"
-            )
+            if (
+                expected_cached_target_files is None
+                and cached_target_files is not None
+                and len(cached_target_files) != 0
+            ):
+                raise Exception(
+                    f"client is not expected to have cached config but is reporting cached config: {cached_target_files}"
+                )
 
-        if expected_cached_target_files is not None and cached_target_files is None:
-            raise Exception(
-                "client is expected to have cached config but did not include the cached_target_files field"
-            )
+            if expected_cached_target_files is not None and cached_target_files is None:
+                raise Exception(
+                    "client is expected to have cached config but did not include the cached_target_files field"
+                )
 
-        if expected_cached_target_files is not None:
-            # Make sure the client reported all of the expected files
-            for file in expected_cached_target_files:
-                if file not in cached_target_files:
-                    raise ValidationError(
-                        f"{file} should be in cached_target_files property: {cached_target_files}", extra_info=content
-                    )
+            if expected_cached_target_files is not None:
+                # Make sure the client reported all of the expected files
+                for file in expected_cached_target_files:
+                    if file not in cached_target_files:
+                        raise ValidationError(
+                            f"{file} should be in cached_target_files property: {cached_target_files}",
+                            extra_info=content,
+                        )
 
-            # Make sure the client isn't reporting any extra cached files
-            for file in cached_target_files:
-                if file not in expected_cached_target_files:
-                    raise ValidationError(f"{file} should not be in cached_target_files", extra_info=content)
+                # Make sure the client isn't reporting any extra cached files
+                for file in cached_target_files:
+                    if file not in expected_cached_target_files:
+                        raise ValidationError(f"{file} should not be in cached_target_files", extra_info=content)
+    except Exception as e:
+        e.args += (expected.get("test_description", "No description"),)
+        raise e
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="0.115.0")
-@released(php="?", python="1.7.0rc1.dev", ruby="?", nodejs="3.9.0")
-@bug(library="dotnet")
-@bug(library="python")
+@released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
+@released(php_appsec="0.7.0", python="1.7.4", ruby="?", nodejs="3.9.0")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -141,14 +155,11 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
     request_number = 0
 
-    def setup_tracer_update_sequence(self):
-        if context.library == "nodejs":
-            # time out for nodejs is very low (5 seconds)
-            # we need a longer timeout for this test
-            interfaces.library.timeout = 100
-
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
-    @bug(context.library >= "java@1.1.0", reason="?")
+    @bug(
+        context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
+        reason="ASM_FEATURES was not subscribed when a custom rules file was present",
+    )
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -168,7 +179,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="0.113.0", php="?", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -200,8 +211,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="0.115.0", php="?", python="?", ruby="?", nodejs="?")
-@bug(library="dotnet")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -211,7 +221,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
     request_number = 0
 
-    @bug(context.library >= "java@1.1.0", reason="?")
+    @irrelevant(
+        context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
+        reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
+    )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
@@ -232,15 +245,17 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="0.115.0", php="?", python="1.6.0rc1", ruby="?", nodejs="3.9.0")
+@released(
+    cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1", ruby="?", nodejs="3.9.0"
+)
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
-@irrelevant(library="java", reason="cache is implemented (APPSEC-6720)")
+@irrelevant(library="java", reason="cache is implemented")
+@irrelevant(library="golang", reason="cache is implemented")
+@irrelevant(library="php", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -266,12 +281,9 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
-@bug(library="dotnet")
-@irrelevant(library="java", reason="cache is implemented")
+@irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -298,12 +310,9 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
-@bug(library="dotnet")
-@irrelevant(library="java", reason="cache is implemented")
+@irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 

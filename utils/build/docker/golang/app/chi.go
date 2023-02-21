@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -50,6 +54,20 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
+		if url := r.URL.Query().Get("url"); url != "" {
+			client := httptrace.WrapClient(http.DefaultClient)
+			req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+			_, err := client.Do(req)
+
+			if err != nil {
+				log.Fatalln(err)
+				w.WriteHeader(500)
+			}
+		}
+		w.Write([]byte("OK"))
+	})
+
 	mux.HandleFunc("/headers/", headers)
 	mux.HandleFunc("/headers", headers)
 
@@ -70,6 +88,60 @@ func main() {
 			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
+	})
+
+	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
+		uquery := r.URL.Query()
+		uid := "system_tests_user"
+		if q := uquery.Get("event_user_id"); q != "" {
+			uid = q
+		}
+		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
+		uquery := r.URL.Query()
+		uid := "system_tests_user"
+		if q := uquery.Get("event_user_id"); q != "" {
+			uid = q
+		}
+		exists := true
+		if q := uquery.Get("event_user_exists"); q != "" {
+			parsed, err := strconv.ParseBool(q)
+			if err != nil {
+				exists = parsed
+			}
+		}
+		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
+		uquery := r.URL.Query()
+		name := "system_tests_event"
+		if q := uquery.Get("event_name"); q != "" {
+			name = q
+		}
+		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/e2e_single_span", func(w http.ResponseWriter, r *http.Request) {
+		parentName := r.URL.Query().Get("parentName")
+		childName := r.URL.Query().Get("childName")
+
+		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
+		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
+		// See https://github.com/DataDog/system-tests/blob/2d6ae4d5bf87d55855afd36abf36ee710e7d8b3c/utils/interfaces/_core.py#L156
+		userAgent := r.UserAgent()
+		userAgentTag := tracer.Tag("http.useragent", userAgent)
+
+		// Make a fresh root span!
+		duration, _ := time.ParseDuration("10s")
+		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, userAgentTag)
+		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, userAgentTag)
+		childSpan.Finish(tracer.FinishTime(time.Now().Add(duration)))
+		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
+
+		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {

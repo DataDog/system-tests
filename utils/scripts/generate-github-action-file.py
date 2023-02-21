@@ -1,40 +1,8 @@
 from copy import deepcopy
 import yaml
 
-scenarios_sets = (
-    (
-        "DEFAULT",
-        "PROFILING",
-        "CGROUP",
-        "TRACE_PROPAGATION_STYLE_W3C",
-        "INTEGRATIONS",
-        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT",
-        "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
-        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-    ),
-    (
-        "APPSEC_MISSING_RULES",
-        "APPSEC_CORRUPTED_RULES",
-        "APPSEC_CUSTOM_RULES",
-        "APPSEC_RULES_MONITORING_WITH_ERRORS",
-        "APPSEC_BLOCKING",
-        "APPSEC_DISABLED",
-        "APPSEC_LOW_WAF_TIMEOUT",
-        "APPSEC_CUSTOM_OBFUSCATION",
-        "APPSEC_RATE_LIMITER",
-        "APPSEC_IP_BLOCKING",
-        "APPSEC_RUNTIME_ACTIVATION",
-        "SAMPLING",
-        # "APPSEC_UNSUPPORTED",
-    ),
-)
 
-php_versions = ("7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1")
+php_versions = ("7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2")
 rails_versions = ("32", "40", "41", "42", "50", "51", "52", "60", "61", "70")
 
 
@@ -73,10 +41,13 @@ variants_graalvm = build_variant_array("java", ["spring-boot-native", "spring-bo
 
 
 class Job:
-    def __init__(self, name, needs=None, env=None):
+    def __init__(self, name, needs=None, env=None, large_runner=False):
         self.name = name
         self.data = {}
-        self.data["runs-on"] = "ubuntu-latest"
+        if large_runner:
+            self.data["runs-on"] = {"labels": "ubuntu-latest-16-cores", "group": "APM Larger Runners"}
+        else:
+            self.data["runs-on"] = "ubuntu-latest"
         if needs is not None:
             self.data["needs"] = needs
         if env is not None:
@@ -124,12 +95,23 @@ class Job:
         return step
 
     def add_step(
-        self, name=None, run=None, uses=None, if_condition=None, env=None, with_statement=None, add_gh_token=False
+        self,
+        name=None,
+        run=None,
+        uses=None,
+        if_condition=None,
+        env=None,
+        with_statement=None,
+        add_gh_token=False,
+        step_id=None,
     ):
         result = {}
 
         if name:
             result["name"] = name
+
+        if step_id:
+            result["id"] = step_id
 
         if if_condition is not None:
             result["if"] = if_condition
@@ -182,10 +164,10 @@ def add_lint_job(workflow):
     return add_job(workflow, job)
 
 
-def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False):
+def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large_runner=False):
 
     name = f"test-the-tests-{i}"
-    job = Job(name, needs=[job.name for job in needs])
+    job = Job(name, needs=[job.name for job in needs], large_runner=large_runner)
 
     job.data["strategy"] = {
         "matrix": {"variant": variants, "version": ["prod", "dev"]},
@@ -263,17 +245,24 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False):
         )
 
     else:
-        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh")
+        job.add_step("Build", "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh", step_id="build")
+
+    build_is_success = "steps.build.outcome == 'success'" if not use_cache else None
 
     for scenario in scenarios:
+
         step = job.add_step(
-            f"Run {scenario} scenario", f"./run.sh {scenario}", env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"}
+            f"Run {scenario} scenario",
+            f"./run.sh {scenario}",
+            env={"DD_API_KEY": "${{ secrets.DD_API_KEY }}"},
+            if_condition=build_is_success,
         )
 
         if scenario == "TRACE_PROPAGATION_STYLE_W3C":  # TODO: fix weblog to allow this value for old tracer
             step["if"] = "${{ matrix.variant.library != 'python' }}"  # TODO
 
     job.add_step("Compress logs", "tar -czvf artifact.tar.gz $(ls | grep logs)", if_condition="${{ always() }}")
+
     job.add_upload_artifact(
         name="logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_" + str(i),
         path="artifact.tar.gz",
@@ -343,7 +332,10 @@ def add_fuzzer_job(workflow, needs):
 def add_parametric_job(workflow, needs):
     job = Job("parametric", needs=[job.name for job in needs])
 
-    job.data["strategy"] = {"matrix": {"client": ["python", "dotnet", "golang", "nodejs"]}, "fail-fast": False}
+    job.data["strategy"] = {
+        "matrix": {"client": ["python", "python_http", "dotnet", "golang", "nodejs"]},
+        "fail-fast": False,
+    }
 
     job.add_checkout()
     job.add_step(uses="actions/setup-python@v4", with_statement={"python-version": "3.9"})
@@ -374,21 +366,53 @@ def main():
     }
     result["env"] = {"REGISTRY": "ghcr.io"}
 
+    result["concurrency"] = {"group": "${{ github.workflow }}-${{ github.ref }}", "cancel-in-progress": True}
+
     lint_job = add_lint_job(result)
 
     main_jobs = []
 
-    for i, scenarios in enumerate(scenarios_sets):
-        main_jobs.append(add_main_job(i, result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))
+    scenarios = (
+        "DEFAULT",
+        "PROFILING",
+        "CGROUP",
+        "TRACE_PROPAGATION_STYLE_W3C",
+        "INTEGRATIONS",
+        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT",
+        "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
+        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
+        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
+        "APPSEC_MISSING_RULES",
+        "APPSEC_CORRUPTED_RULES",
+        "APPSEC_CUSTOM_RULES",
+        "APPSEC_RULES_MONITORING_WITH_ERRORS",
+        "APPSEC_BLOCKING",
+        "APPSEC_DISABLED",
+        "APPSEC_LOW_WAF_TIMEOUT",
+        "APPSEC_CUSTOM_OBFUSCATION",
+        "APPSEC_RATE_LIMITER",
+        "APPSEC_IP_BLOCKING",
+        "APPSEC_RUNTIME_ACTIVATION",
+        "APPSEC_WAF_TELEMETRY",
+        "SAMPLING",
+        # "APPSEC_UNSUPPORTED",
+    )
+
+    main_jobs.append(add_main_job("main", result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))
 
     main_jobs.append(
         add_main_job(
             "graalvm",
             result,
             needs=[lint_job],
-            scenarios=scenarios_sets[0],
+            scenarios=scenarios,
             variants=deepcopy(variants_graalvm),
-            use_cache=True,
+            use_cache=False,
+            large_runner=True,
         )
     )
     add_ci_dashboard_job(result, main_jobs)

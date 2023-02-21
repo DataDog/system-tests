@@ -1,8 +1,17 @@
 import os
+import signal
+import sys
 
 from django.core.asgi import get_asgi_application
 from django.http import HttpResponse
 from django.urls import path
+
+
+def handle_sigterm(signo, sf):
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 
 filepath, extension = os.path.splitext(__file__)

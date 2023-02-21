@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -8,6 +9,7 @@ import (
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -48,6 +50,21 @@ func main() {
 		return c.String(rCode, "OK")
 	})
 
+	r.Any("/make_distant_call", func(c echo.Context) error {
+		if url := c.Request().URL.Query().Get("url"); url != "" {
+
+			client := httptrace.WrapClient(http.DefaultClient)
+			req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
+			_, err := client.Do(req)
+
+			if err != nil {
+				log.Fatalln(err)
+				return c.String(500, "KO")
+			}
+		}
+		return c.String(200, "OK")
+	})
+
 	r.Any("/headers/", headers)
 	r.Any("/headers", headers)
 
@@ -68,6 +85,40 @@ func main() {
 			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		return c.String(http.StatusOK, "Hello, identify-propagate!")
+	})
+
+	r.GET("/user_login_success_event", func(ctx echo.Context) error {
+		uid := "system_tests_user"
+		if q := ctx.QueryParam("event_user_id"); q != "" {
+			uid = q
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
+	r.GET("/user_login_failure_event", func(ctx echo.Context) error {
+		uid := "system_tests_user"
+		if q := ctx.QueryParam("event_user_id"); q != "" {
+			uid = q
+		}
+		exists := true
+		if q := ctx.QueryParam("event_user_exists"); q != "" {
+			parsed, err := strconv.ParseBool(q)
+			if err != nil {
+				exists = parsed
+			}
+		}
+		appsec.TrackUserLoginFailureEvent(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
+	r.GET("/custom_event", func(ctx echo.Context) error {
+		name := "system_tests_event"
+		if q := ctx.QueryParam("event_name"); q != "" {
+			name = q
+		}
+		appsec.TrackCustomEvent(ctx.Request().Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
 	})
 
 	initDatadog()

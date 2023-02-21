@@ -41,6 +41,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import org.springframework.web.servlet.view.RedirectView;
+
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -54,6 +57,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -295,6 +300,63 @@ public class App {
         BasicConfigurator.configure();  
         logger.info("Hello world");  
         return "Enabled Integration\n";
+    }
+
+    @RequestMapping("/make_distant_call")
+    DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
+        URL urlObject = new URL(url);
+
+        HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
+        con.setRequestMethod("GET");
+
+        // Save request headers
+        HashMap<String, String> request_headers = new HashMap<String, String>();
+        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
+            if (header.getKey() == null) {
+                continue;
+            }
+
+            request_headers.put(header.getKey(), header.getValue().get(0));
+        }
+
+        // Save response headers and status code
+        int status_code = con.getResponseCode();
+        HashMap<String, String> response_headers = new HashMap<String, String>();
+        for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
+            if (header.getKey() == null) {
+                continue;
+            }
+
+            response_headers.put(header.getKey(), header.getValue().get(0));
+        }
+
+        DistantCallResponse result = new DistantCallResponse();
+        result.url = url;
+        result.status_code = status_code;
+        result.request_headers = request_headers;
+        result.response_headers = response_headers;
+
+        return result;
+    }
+
+    public static final class DistantCallResponse {
+        public String url;
+        public int status_code;
+        public HashMap<String, String> request_headers;
+        public HashMap<String, String> response_headers;
+    }
+
+    @RequestMapping("/experimental/redirect")
+    RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        if (redirect == null) {
+            return new RedirectView("https://datadoghq.com");
+        }
+        return new RedirectView("https://" + redirect);
     }
 
     @EventListener(ApplicationReadyEvent.class)
