@@ -605,7 +605,7 @@
 					"$ref": "#/$defs/Error"
 				}
 			},
-			"required": ["enabled"]
+			"$comment": "enabled should be a required field, but currently not implemented by python"
 		},
 		"RemoteConfig": {
 			"type": "object",

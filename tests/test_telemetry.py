@@ -170,6 +170,12 @@ class Test_Telemetry:
             Some configurations do not have values.
         """,
     )
+    @bug(
+        library="python",
+        reason="""
+            Enablement for products is not sent.
+        """,
+    )
     def test_telemetry_v1_messages_valid(self):
         """Telemetry messages additional validation"""
 
@@ -194,6 +200,13 @@ class Test_Telemetry:
 
                 assert dependency_id not in seen_dependencies, "Dependency payload must not contain duplicates"
                 seen_dependencies.add(dependency_id)
+
+        def validate_products(products):
+            products_list = ["appsec", "profiler", "dynamic_instrumentation"]
+            for product in products:
+                for product_key in products_list:
+                    if product.get(product_key):
+                        assert product[product_key]["enabled"] is not None, "enabled field must not be empty"
 
         def validate_configuration(configurations):
             for configuration in configurations:
@@ -230,6 +243,8 @@ class Test_Telemetry:
                 validate_dependencies(payload["integrations"], track_integration_w_version=True)
             if payload.get("configuration"):
                 validate_configuration(payload["configuration"])
+            if payload.get("products"):
+                validate_products(payload["products"])
 
         def validate_event_payloads(content):
             if content.get("request_type") == "app-started":
