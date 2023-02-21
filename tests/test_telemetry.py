@@ -5,7 +5,7 @@ from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
-@released(dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="ruby")
@@ -82,7 +82,6 @@ class Test_Telemetry:
             path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
         )
 
-    @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -124,7 +123,6 @@ class Test_Telemetry:
             if diff > 1:
                 raise Exception(f"Detected non conscutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
-    @bug(library="python", reason="To be explained")
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_app_started(self):
@@ -135,7 +133,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @missing_feature(library="python")
     def test_app_started_sent_only_once(self):
         """Request type app-started is not sent twice"""
 
