@@ -185,19 +185,6 @@ public class App {
         return "hi HTTP";
     }
 
-    @RequestMapping("/trace/redirect")
-    RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        if (redirect == null) {
-            return new RedirectView("https://datadoghq.com");
-        }
-        return new RedirectView("https://" + redirect);
-    }
-
     @RequestMapping("/trace/cassandra")
     String traceCassandra() {
         final Span span = GlobalTracer.get().activeSpan();
@@ -345,6 +332,19 @@ public class App {
         public int status_code;
         public HashMap<String, String> request_headers;
         public HashMap<String, String> response_headers;
+    }
+
+    @RequestMapping("/experimental/redirect")
+    RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        if (redirect == null) {
+            return new RedirectView("https://datadoghq.com");
+        }
+        return new RedirectView("https://" + redirect);
     }
 
     @EventListener(ApplicationReadyEvent.class)
