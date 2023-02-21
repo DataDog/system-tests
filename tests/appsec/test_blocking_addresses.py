@@ -48,6 +48,7 @@ class Test_BlockingAddresses:
         self.pp_req = weblog.get("/params/AiKfOeRcvG45")
 
     @missing_feature(library="java", reason="When supported, path parameter detection happens on subsequent WAF run")
+    @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @released(ruby="1.0.0")
     def test_path_params(self):
         """can block on server.request.path_params"""
