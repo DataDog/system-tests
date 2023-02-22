@@ -1,7 +1,6 @@
 import contextlib
-import urllib.parse
 import time
-
+import urllib.parse
 from typing import Generator
 from typing import List
 from typing import Optional
@@ -24,14 +23,14 @@ class StartSpanResponse(TypedDict):
 
 class APMLibraryClient:
     def trace_start_span(
-        self,
-        name: str,
-        service: str,
-        resource: str,
-        parent_id: int,
-        typestr: str,
-        origin: str,
-        http_headers: List[Tuple[str, str]],
+            self,
+            name: str,
+            service: str,
+            resource: str,
+            parent_id: int,
+            typestr: str,
+            origin: str,
+            http_headers: List[Tuple[str, str]],
     ) -> StartSpanResponse:
         raise NotImplementedError
 
@@ -50,7 +49,19 @@ class APMLibraryClient:
     def finish_span(self, span_id: int) -> None:
         raise NotImplementedError
 
-    def otel_end_span(self, span_id: int) -> None:
+    def otel_end_span(self, span_id: int, timestamp: int) -> None:
+        raise NotImplementedError
+
+    def otel_set_attributes(self, span_id: int, attributes) -> None:
+        raise NotImplementedError
+
+    def otel_set_name(self, span_id: int, name: str) -> None:
+        raise NotImplementedError
+
+    def otel_set_status(self, span_id: int, code: int, description: str) -> None:
+        raise NotImplementedError
+
+    def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
     def get_otel_span_context(self, span_id: int):
@@ -73,112 +84,6 @@ class APMLibraryClient:
 
     def trace_stop(self) -> None:
         raise NotImplementedError
-
-
-# class _TestSpan:
-#     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub, span_id: int):
-#         self._client = client
-#         self.span_id = span_id
-#
-#     def set_meta(self, key: str, val: str):
-#         self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=self.span_id, key=key, value=val,))
-#
-#     def set_metric(self, key: str, val: float):
-#         self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=self.span_id, key=key, value=val,))
-#
-#     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
-#         self._client.SpanSetError(
-#             pb.SpanSetErrorArgs(span_id=self.span_id, type=typestr, message=message, stack=stack,)
-#         )
-#
-#     def finish(self):
-#         self._client.FinishSpan(pb.FinishSpanArgs(id=self.span_id,))
-
-
-class _TestOtelSpan:
-    def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub, span_id: int):
-        self._client = client
-        self.span_id = span_id
-
-    def set_attributes(self, attributes):
-        self._client.OtelSetAttributes(pb.OtelSetAttributesArgs(span_id=self.span_id, attributes=attributes))
-
-    def set_name(self, name):
-        self._client.OtelSetName(pb.OtelSetNameArgs(span_id=self.span_id, name=name))
-
-    def finish(self):
-        self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=self.span_id))
-
-    def is_recording(self):
-        self._client.OtelIsRecording(pb.OtelIsRecordingArgs(id=self.span_id))
-
-    def span_context(self):
-        self._client.OtelSpanContext(pb.OtelSpanContextArgs(id=self.span_id))
-
-
-# class APMLibrary:
-#     def __init__(self, client: apm_test_client_pb2_grpc.APMClientStub):
-#         self._client = client
-#         self._client.StartTracer(pb.StartTracerArgs())
-#
-#     def __enter__(self):
-#         pass
-#
-#     def __exit__(self, exc_type, exc_val, exc_tb):
-#         # Only attempt a flush if there was no exception raised.
-#         if exc_type is None:
-#             self.flush()
-#
-#     DistributedHTTPHeaders = {}
-#
-#     @contextlib.contextmanager
-#     def start_span(
-#             self,
-#             name: str,
-#             service: str = "",
-#             resource: str = "",
-#             parent_id: int = 0,
-#             typestr: str = "",
-#             origin: str = "",
-#             http_headers: DistributedHTTPHeaders = None,
-#     ) -> Generator[_TestSpan, None, None]:
-#         resp = self._client.StartSpan(
-#             pb.StartSpanArgs(
-#                 name=name,
-#                 service=service,
-#                 resource=resource,
-#                 parent_id=parent_id,
-#                 type=typestr,
-#                 origin=origin,
-#                 http_headers=http_headers,
-#             )
-#         )
-#         span = _TestSpan(self._client, resp.span_id)
-#         yield span
-#         span.finish()
-#
-#     @contextlib.contextmanager
-#     def start_otel_span(
-#             self, name: str, service: str = "", resource: str = "", new_root: bool = True, parent_id: int = 0,
-#     ) -> Generator[_TestOtelSpan, None, None]:
-#         resp = self._client.OtelStartSpan(pb.OtelStartSpanArgs(name=name, new_root=new_root, parent_id=parent_id))
-#         span = _TestOtelSpan(self._client, resp.span_id)
-#         yield span
-#         span.finish()
-#
-#     def flush_otel(self):
-#         self._client.OtelFlushSpans(pb.OtelFlushSpansArgs())
-#         self._client.OtelFlushTraceStats(pb.OtelFlushTraceStatsArgs())
-#
-#     def flush(self):
-#         self._client.FlushSpans(pb.FlushSpansArgs())
-#         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
-#
-#     def inject_headers(self, span_id):
-#         return self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
-#
-#     def stop(self):
-#         return self._client.StopTracer(pb.StopTracerArgs())
 
 
 class APMLibraryClientHTTP(APMLibraryClient):
@@ -206,14 +111,14 @@ class APMLibraryClientHTTP(APMLibraryClient):
         return urllib.parse.urljoin(self._base_url, path)
 
     def trace_start_span(
-        self,
-        name: str,
-        service: str,
-        resource: str,
-        parent_id: int,
-        typestr: str,
-        origin: str,
-        http_headers: Optional[List[Tuple[str, str]]],
+            self,
+            name: str,
+            service: str,
+            resource: str,
+            parent_id: int,
+            typestr: str,
+            origin: str,
+            http_headers: Optional[List[Tuple[str, str]]],
     ):
         resp = self._session.post(
             self._url("/trace/span/start"),
@@ -228,17 +133,17 @@ class APMLibraryClientHTTP(APMLibraryClient):
             },
         )
         resp_json = resp.json()
-        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
+        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"], )
 
     def finish_span(self, span_id: int) -> None:
-        self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
+        self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id, })
         return None
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
-        self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
+        self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value, })
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
-        self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value,})
+        self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value, })
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
@@ -247,7 +152,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         )
 
     def trace_inject_headers(self, span_id):
-        resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
+        resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id}, )
         return resp.json()["http_headers"]
 
     def trace_flush(self) -> None:
@@ -279,21 +184,19 @@ class _TestOtelSpan:
         self.span_id = span_id
 
     def set_attributes(self, attributes):
-        self._client.OtelSetAttributes(
-            pb.OtelSetAttributesArgs(span_id=self.span_id, attributes=convert_to_proto(attributes))
-        )
+        self._client.otel_set_attributes(self.span_id, attributes)
 
     def set_name(self, name):
-        self._client.OtelSetName(pb.OtelSetNameArgs(span_id=self.span_id, name=name))
+        self._client.otel_set_name(self.span_id, name)
 
     def set_status(self, code, description):
-        self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=self.span_id, code=code, description=description))
+        self._client.otel_set_status(self.span_id, code, description)
 
-    def finish(self):
-        self._client.otel_end_span(self.span_id)
+    def otel_end_span(self, timestamp: int = 0):
+        self._client.otel_end_span(self.span_id, timestamp)
 
     def is_recording(self) -> bool:
-        return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=self.span_id)).is_recording
+        return self._client.otel_is_recording(self.span_id)
 
     def span_context(self) -> OtelSpanContext:
         sctx = self._client.get_otel_span_context(self.span_id)
@@ -318,14 +221,14 @@ class APMLibraryClientGRPC:
         return self
 
     def trace_start_span(
-        self,
-        name: str,
-        service: str,
-        resource: str,
-        parent_id: int,
-        typestr: str,
-        origin: str,
-        http_headers: List[Tuple[str, str]],
+            self,
+            name: str,
+            service: str,
+            resource: str,
+            parent_id: int,
+            typestr: str,
+            origin: str,
+            http_headers: List[Tuple[str, str]],
     ):
         distributed_message = pb.DistributedHTTPHeaders()
         for key, value in http_headers:
@@ -382,17 +285,17 @@ class APMLibraryClientGRPC:
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
-        resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
+        resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id, ))
         return [(k, v) for k, v in resp.http_headers.http_headers.items()]
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
 
     def span_set_meta(self, span_id: int, key: str, val: str):
-        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=val,))
+        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=val, ))
 
     def span_set_metric(self, span_id: int, key: str, val: float):
-        self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=span_id, key=key, value=val,))
+        self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=span_id, key=key, value=val, ))
 
     def span_set_error(self, span_id: int, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(pb.SpanSetErrorArgs(span_id=span_id, type=typestr, message=message, stack=stack))
@@ -400,8 +303,21 @@ class APMLibraryClientGRPC:
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))
 
-    def otel_end_span(self, span_id: int):
-        self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=span_id))
+    def otel_end_span(self, span_id: int, timestamp):
+        self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=span_id, timestamp=timestamp))
+
+    def otel_set_attributes(self, span_id: int, attributes):
+        self._client.OtelSetAttributes(
+            pb.OtelSetAttributesArgs(span_id=span_id, attributes=convert_to_proto(attributes)))
+
+    def otel_set_name(self, span_id: int, name: str):
+        self._client.OtelSetName(pb.OtelSetNameArgs(span_id=span_id, name=name))
+
+    def otel_set_status(self, span_id: int, code: int, description: str):
+        self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
+
+    def otel_is_recording(self, span_id: int) -> bool:
+        return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=span_id)).is_recording
 
     def get_otel_span_context(self, span_id: int):
         return self._client.OtelSpanContext(pb.OtelSpanContextArgs(span_id=span_id))
@@ -422,14 +338,14 @@ class APMLibrary:
 
     @contextlib.contextmanager
     def start_span(
-        self,
-        name: str,
-        service: str = "",
-        resource: str = "",
-        parent_id: int = 0,
-        typestr: str = "",
-        origin: str = "",
-        http_headers: Optional[List[Tuple[str, str]]] = None,
+            self,
+            name: str,
+            service: str = "",
+            resource: str = "",
+            parent_id: int = 0,
+            typestr: str = "",
+            origin: str = "",
+            http_headers: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
             name=name,
@@ -466,7 +382,7 @@ class APMLibrary:
         )
         span = _TestOtelSpan(self._client, resp["span_id"])
         yield span
-        span.finish()
+
         return {
             "span_id": resp["span_id"],
             "trace_id": resp["trace_id"],
