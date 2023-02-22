@@ -11,19 +11,11 @@ from iast import (
     weak_cipher_secure_algorithm,
 )
 import psycopg2
-import logging
-logging.basicConfig(level=logging.DEBUG)  # JJJ remove
 
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
     set_user = lambda *args, **kwargs: None
-
-# try:
-from ddtrace.appsec.trace_utils import block_request_if_user_blocked, should_block_user
-# except ImportError:
-    # block_request_if_user_blocked = lambda *args, **kwargs: None
-    # is_user_blocked = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
     host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
