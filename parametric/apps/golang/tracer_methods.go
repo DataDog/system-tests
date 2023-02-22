@@ -31,7 +31,6 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 		}
 	}
 	span := tracer.StartSpan(args.Name, opts...)
-
 	if args.GetOrigin() != "" {
 		span.SetTag("_dd.origin", *args.Origin)
 	}
@@ -96,6 +95,7 @@ func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeaders
 		}
 	}
 	headers := tracer.TextMapCarrier(map[string]string{})
+
 	err := tracer.Inject(span.Context(), headers)
 	if err != nil {
 		fmt.Println("error while injecting")
