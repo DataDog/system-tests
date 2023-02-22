@@ -11,11 +11,19 @@ from iast import (
     weak_cipher_secure_algorithm,
 )
 import psycopg2
+import logging
+logging.basicConfig(level=logging.DEBUG)  # JJJ remove
 
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
     set_user = lambda *args, **kwargs: None
+
+# try:
+from ddtrace.appsec.trace_utils import block_request_if_user_blocked, should_block_user
+# except ImportError:
+    # block_request_if_user_blocked = lambda *args, **kwargs: None
+    # is_user_blocked = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
     host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
@@ -111,6 +119,22 @@ def identify_propagate():
         propagate=True,
     )
     return Response("OK")
+
+
+@app.route("/users")
+def users():
+    user = flask_request.args.get("user")
+    set_user(
+        tracer,
+        user_id=user,
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+    )
+    return Response("OK")
+
 
 
 @app.route("/dbm")
