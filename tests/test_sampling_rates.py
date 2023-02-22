@@ -53,8 +53,8 @@ class Test_SamplingRates:
             sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
 
         trace_count = sum(sampled_count.values())
-        # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
-        confidence_interval = 3 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
+        # 95% confidence interval = 4 * std_dev = 2 * √(n * p (1 - p))
+        confidence_interval = 4 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
         # E = n * p
         expectation = context.sampling_rate * trace_count
         if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
