@@ -25,7 +25,10 @@ class Test_SingleSpan:
     """
 
     def setup_parent_span_is_single_span(self):
-        self.req = weblog.get("/e2e_single_span?parentName=parent.span.single_span_submitted&childName=child.span")
+        self.req = weblog.get(
+            "/e2e_single_span",
+            {"shouldIndex": 1, "parentName": "parent.span.single_span_submitted", "childName": "child.span"},
+        )
 
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
@@ -45,7 +48,10 @@ class Test_SingleSpan:
         _assert_single_span_event(spans[0], "parent.span.single_span_submitted", is_root=True)
 
     def setup_child_span_is_single_span(self):
-        self.req = weblog.get("/e2e_single_span?parentName=parent.span&childName=child.span.single_span_submitted")
+        self.req = weblog.get(
+            "/e2e_single_span",
+            {"shouldIndex": 1, "parentName": "parent.span", "childName": "child.span.single_span_submitted"},
+        )
 
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!

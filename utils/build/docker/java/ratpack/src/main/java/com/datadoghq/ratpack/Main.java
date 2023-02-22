@@ -19,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.List;
+import ratpack.util.MultiValueMap;
 
 /**
  * Main class.
@@ -34,6 +35,15 @@ public class Main {
         } catch (IOException e) {
             throw new UndeclaredThrowableException(e);
         }
+    }
+
+
+    private static final Map<String, String> METADATA = createMetadata();
+    private static final Map<String, String> createMetadata() {
+        HashMap<String, String> h = new HashMap<>();
+        h.put("metadata0", "value0");
+        h.put("metadata1", "value1");
+        return h;
     }
 
     public static void main(String[] args) throws Exception {
@@ -113,6 +123,29 @@ public class Main {
                             String codeParam = ctx.getRequest().getQueryParams().get("code");
                             int code = Integer.parseInt(codeParam);
                             ctx.getResponse().status(code).send();
+                        })
+                        .get("user_login_success_event", ctx -> {
+                            MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                            datadog.trace.api.GlobalTracer.getEventTracker()
+                                    .trackLoginSuccessEvent(
+                                            qp.getOrDefault("event_user_id", "system_tests_user"), METADATA);
+                            ctx.getResponse().send("ok");
+                        })
+                        .get("user_login_failure_event", ctx -> {
+                            MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                            datadog.trace.api.GlobalTracer.getEventTracker()
+                                    .trackLoginFailureEvent(
+                                            qp.getOrDefault("event_user_id", "system_tests_user"),
+                                            Boolean.parseBoolean(qp.getOrDefault("event_user_exists", "true")),
+                                            METADATA);
+                            ctx.getResponse().send("ok");
+                        })
+                        .get("custom_event", ctx -> {
+                            MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                            datadog.trace.api.GlobalTracer.getEventTracker()
+                                    .trackLoginSuccessEvent(
+                                            qp.getOrDefault("event_name", "system_tests_event"), METADATA);
+                            ctx.getResponse().send("ok");
                         })
                 )
         );
