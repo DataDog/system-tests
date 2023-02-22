@@ -106,6 +106,42 @@ public class App {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
+    private static final Map<String, String> METADATA = createMetadata();
+    private static final Map<String, String> createMetadata() {
+        HashMap<String, String> h = new HashMap<>();
+        h.put("metadata0", "value0");
+        h.put("metadata1", "value1");
+        return h;
+    }
+
+    @GetMapping("/user_login_success_event")
+    public String userLoginSuccess(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginSuccessEvent(userId, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/user_login_failure_event")
+    public String userLoginFailure(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId,
+            @RequestParam(value = "event_user_exists", defaultValue = "true") boolean eventUserExists) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginFailureEvent(userId, eventUserExists, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/custom_event")
+    public String customEvent(
+            @RequestParam(value = "event_name", defaultValue = "system_tests_event") String eventName) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackCustomEvent(eventName, METADATA);
+
+        return "ok";
+    }
+
     @JacksonXmlRootElement
     public static class XmlObject {
         public XmlObject() {}
