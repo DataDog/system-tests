@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-
+	"fmt"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -21,9 +21,18 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	if args.Type != nil {
 		opts = append(opts, tracer.SpanType(*args.Type))
 	}
+
+	if args.GetHttpHeaders() != nil && len(args.HttpHeaders.HttpHeaders) != 0 {
+		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(args.HttpHeaders.HttpHeaders))
+		if err != nil {
+			fmt.Println("failed in StartSpan", err, args.HttpHeaders.HttpHeaders)
+		} else {
+			opts = append(opts, tracer.ChildOf(sctx))
+		}
+	}
 	span := tracer.StartSpan(args.Name, opts...)
 
-	if args.Origin != nil {
+	if args.GetOrigin() != "" {
 		span.SetTag("_dd.origin", *args.Origin)
 	}
 	s.spans[span.Context().SpanID()] = span
@@ -78,6 +87,22 @@ func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorAr
 }
 
 func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {
-	//TODO implement me
-	panic("implement me")
+	var span tracer.Span
+	span, ok := s.spans[args.SpanId]
+	if !ok {
+		span, ok = s.otelSpans[args.SpanId].(tracer.Span)
+		if !ok {
+			return nil, fmt.Errorf("no spans found with span_id %v", args.SpanId)
+		}
+	}
+	headers := tracer.TextMapCarrier(map[string]string{})
+	err := tracer.Inject(span.Context(), headers)
+	if err != nil {
+		fmt.Println("error while injecting")
+	}
+	distr := map[string]string{}
+	for k, v := range headers {
+		distr[k] = v
+	}
+	return &InjectHeadersReturn{HttpHeaders: &DistributedHTTPHeaders{HttpHeaders: distr}}, nil
 }

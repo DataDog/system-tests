@@ -69,7 +69,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     trace = find_trace_by_root(traces, OtelSpan(name="operation"))
     assert len(trace) == 1
 
-    root_span = find_span(trace, OtelSpan(name="operation"))
+    root_span = get_span(test_agent)
 
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
@@ -217,18 +217,9 @@ def test_otel_get_span_context(test_agent, test_library):
             prior or future status values
     """
     with test_library:
-        with test_library.start_otel_span(name="operation", parent_id="7890123456789012", new_root=False) as span:
-            context = span.span_context()
-            print(context)
-            print(span)
-            assert context.get("trace_id") == '1'
-            assert context.get("span_id") == span.span_id
-            assert context.get("trace_flags") == span.span_id
-            assert context.get("trace_state") == "dd=s:1;t.dm:-1"
-            assert context.get("remote") is True
-
-
-    span = get_span(test_agent)
-    print(span)
-    assert span.get("meta").get("error.message") is None
-    assert span.get("name") == "ok_span"
+        with test_library.start_otel_span(name="operation", new_root=True) as parent:
+            with test_library.start_otel_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
+                context = span.span_context()
+                assert context.get("trace_id") == f'{parent.span_id:0x}'.ljust(32, '0')
+                assert context.get("span_id") == f'{span.span_id:0x}'.rjust(16, '0')
+                assert context.get("trace_flags") == '00'

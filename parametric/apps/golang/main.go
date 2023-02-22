@@ -20,7 +20,7 @@ import (
 type apmClientServer struct {
 	UnimplementedAPMClientServer
 	spans     map[uint64]tracer.Span
-	otelSpans map[string]ot_api.Span
+	otelSpans map[uint64]ot_api.Span
 	tp        *ot.TracerProvider
 	tracer    ot_api.Tracer
 }
@@ -42,7 +42,7 @@ func (s *apmClientServer) StartTracer(ctx context.Context, args *StartTracerArgs
 func newServer() *apmClientServer {
 	s := &apmClientServer{
 		spans:     make(map[uint64]tracer.Span),
-		otelSpans: make(map[string]ot_api.Span),
+		otelSpans: make(map[uint64]ot_api.Span),
 	}
 	return s
 }

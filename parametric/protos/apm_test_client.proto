@@ -94,12 +94,13 @@ message FlushTraceStatsReturn {}
 message OtelStartSpanArgs {
   string name = 1;
   optional bool new_root = 2;
-  optional string parent_id = 3;
+  optional uint64 parent_id = 3;
   optional uint64 span_kind = 9;
   optional string service = 4;
   optional string resource = 5;
   optional string type = 6;
   optional int64 timestamp = 7;
+  optional DistributedHTTPHeaders http_headers = 10;
   Attributes attributes = 8;
 }
 
@@ -108,11 +109,11 @@ message OtelStartSpanArgs {
 //}
 
 message OtelStartSpanReturn {
-  string span_id = 1;
-  string trace_id = 2;
+  uint64 span_id = 1;
+  uint64 trace_id = 2;
 }
 message OtelEndSpanArgs {
-  string id = 1;
+  uint64 id = 1;
   optional int64 timestamp = 2;
 }
 message OtelEndSpanReturn {}
@@ -145,14 +146,14 @@ message OtelStartTracerArgs {
 message OtelStartTracerReturn {}
 
 message OtelIsRecordingArgs {
-  string span_id = 1;
+  uint64 span_id = 1;
 }
 message OtelIsRecordingReturn {
   bool is_recording = 1;
 }
 
 message OtelSpanContextArgs {
-  string span_id = 1;
+  uint64 span_id = 1;
 }
 message OtelSpanContextReturn {
   string span_id = 1;
@@ -163,20 +164,20 @@ message OtelSpanContextReturn {
 }
 
 message OtelSetStatusArgs {
-  string span_id = 1;
+  uint64 span_id = 1;
   string code = 2;
   string description = 3;
 }
 message OtelSetStatusReturn {}
 
 message OtelSetNameArgs {
-  string span_id = 1;
+  uint64 span_id = 1;
   string name = 2;
 }
 message OtelSetNameReturn {}
 
 message OtelSetAttributesArgs {
-  string span_id = 1;
+  uint64 span_id = 1;
   Attributes attributes = 2;
 }
 message OtelSetAttributesReturn {}

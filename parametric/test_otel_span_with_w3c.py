@@ -2,9 +2,8 @@ import time
 
 import pytest
 
-from parametric.protos.apm_test_client_pb2 import DistributedHTTPHeaders
 from parametric.spec.otel_trace import SK_PRODUCER
-from parametric.spec.tracecontext import get_tracecontext
+from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from parametric.utils.test_agent import get_span
 
 
@@ -43,39 +42,22 @@ def test_otel_start_span(test_agent, test_library):
     assert root_span["duration"] == duration_ns
 
 
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
 def test_otel_span_with_w3c_headers(test_agent, test_library):
-    # 2) x-datadog-sampling-priority <= 0
-    distributed_message = DistributedHTTPHeaders()
-    for key, value in [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]:
-        distributed_message.http_headers[key] = value
 
-    with test_library.start_span(
-            name="name", service="service", resource="resource", http_headers=distributed_message
-    ) as span:
-        headers = test_library.inject_headers(span.span_id).http_headers.http_headers
-        # 2) x-datadog-sampling-priority <= 0
-        # headers2 = make_single_request_and_get_inject_headers(
-        #     test_library,
-        #     [
-        #         ["x-datadog-trace-id", "7890123456789012"],
-        #         ["x-datadog-parent-id", "1234567890123456"],
-        #         ["x-datadog-sampling-priority", "-1"],
-        #     ],
-        # )
+    with test_library:
+        with test_library.start_otel_span(
+                name="name",
+                http_headers=[["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"]], ) as span:
+            context = span.span_context()
+            assert context.get("trace_flags") == '01'
+            assert context.get("trace_id") == '00000000075bcd150000000000000000'
 
-    # Result: SamplingPriority = headers['x-datadog-sampling-priority'], Sampled = 0
-
-    traceparent2, tracestate2 = get_tracecontext(headers)
-    print(traceparent2, tracestate2)
-    assert headers["x-datadog-sampling-priority"] == "-1"
     span = get_span(test_agent)
-    assert span.span_id == 1229782938247303441
-    # assert int(b3_trace_id, base=16) == span.get("trace_id")
-    # sampled2 = str(traceparent2).split("-")[3]
-    # dd_items2 = tracestate2["dd"].split(";")
-    # root_span = get_span(test_agent)
-    # assert root_span["meta"]["env"] == "otel_env"
-    # assert "traceparent" in headers
-    # assert sampled2 == "00"
-    # assert "tracestate" in headers
-    # assert "s:-1" in dd_items2
+    assert span.get("trace_id") == 123456789
+    assert span.get("parent_id") == 987654321
+    assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
+    assert span["meta"].get(ORIGIN) is None
