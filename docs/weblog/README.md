@@ -211,3 +211,8 @@ the possible values the WAF will return the proper action.
 Expected query parameters:
 - `user`: user id.
   - Possible values: `blockedUser`
+
+## GET /load_dependency
+
+This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that 
+the `dependencies-loaded` event is appropriately triggered.
