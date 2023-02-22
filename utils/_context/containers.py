@@ -88,7 +88,14 @@ class TestedContainer:
         if not self._container:
             return
 
-        self._container.remove(force=True)
+        try:
+            self._container.remove(force=True)
+        except:
+            # Sometimes, the container does not exists.
+            # We can safely ignore this, because if it's another issue
+            # it will be killed at startup
+            
+            pass
 
 
 agent_container = TestedContainer(

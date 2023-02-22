@@ -122,7 +122,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             agent_container.start,
             _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=1),
             weblog_container.start,
-            _HealthCheck("http://weblog:7777", 120),
+            _HealthCheck("http://weblog:7777", 60),
             _wait_for_app_readiness,
         ]
 
@@ -134,8 +134,11 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             warmup()
 
     def collect_logs(self):
-        agent_container.save_logs()
-        weblog_container.save_logs()
+        try:
+            agent_container.save_logs()
+            weblog_container.save_logs()
+        except:
+            logger.exception("Fail to save logs")
 
     def close_targets(self):
         agent_container.remove()
@@ -178,7 +181,7 @@ class _HealthCheck:
 
         for i in range(self.retries + 1):
             try:
-                r = requests.get(self.url, timeout=3)
+                r = requests.get(self.url, timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
                 if r.status_code == 200:
                     return
