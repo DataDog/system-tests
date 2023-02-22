@@ -397,6 +397,7 @@ def main():
         "APPSEC_RATE_LIMITER",
         "APPSEC_IP_BLOCKING",
         "APPSEC_RUNTIME_ACTIVATION",
+        "APPSEC_WAF_TELEMETRY",
         "SAMPLING",
         # "APPSEC_UNSUPPORTED",
     )

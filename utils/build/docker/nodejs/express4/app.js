@@ -87,6 +87,38 @@ app.get("/make_distant_call", (req, res) => {
   });
 });
 
+app.get("/user_login_success_event", (req, res) => {
+  const userId = req.query.event_user_id || "system_tests_user";
+
+  tracer.appsec.trackUserLoginSuccessEvent({
+    id: userId,
+    email: "system_tests_user@system_tests_user.com",
+    name: "system_tests_user"
+  }, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
+app.get("/user_login_failure_event", (req, res) => {
+  const userId = req.query.event_user_id || "system_tests_user";
+  let exists = true;
+  if (req.query && req.query.hasOwnProperty("event_user_exists")) {
+    exists = req.query.event_user_exists.toLowerCase() === "true"
+  }
+
+  tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
+app.get("/custom_event", (req, res) => {
+  const eventName = req.query.event_name || "system_tests_event";
+
+  tracer.appsec.trackCustomEvent(eventName, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
 app.get("/users", (req, res) => {
   let user = {}
   if (req.query['user']) {

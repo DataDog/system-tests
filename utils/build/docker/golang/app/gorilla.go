@@ -1,13 +1,13 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
-	"log"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	muxtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -92,15 +92,37 @@ func main() {
 	})
 
 	mux.HandleFunc("/user_login_success_event", func(w http.ResponseWriter, r *http.Request) {
-		appsec.TrackUserLoginSuccessEvent(r.Context(), "system_tests_user", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		uquery := r.URL.Query()
+		uid := "system_tests_user"
+		if q := uquery.Get("event_user_id"); q != "" {
+			uid = q
+		}
+		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
-		appsec.TrackUserLoginFailureEvent(r.Context(), "system_tests_user", true, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		uquery := r.URL.Query()
+		uid := "system_tests_user"
+		if q := uquery.Get("event_user_id"); q != "" {
+			uid = q
+		}
+		exists := true
+		if q := uquery.Get("event_user_exists"); q != "" {
+			parsed, err := strconv.ParseBool(q)
+			if err != nil {
+				exists = parsed
+			}
+		}
+		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
-		appsec.TrackCustomEvent(r.Context(), "system_tests_event", map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		uquery := r.URL.Query()
+		name := "system_tests_event"
+		if q := uquery.Get("event_name"); q != "" {
+			name = q
+		}
+		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	initDatadog()

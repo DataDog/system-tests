@@ -442,3 +442,87 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
             pass
     span = find_span_in_traces(test_agent.wait_for_num_traces(1), Span(name="web.request"))
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
+
+
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.parametrize(
+    "library_env",
+    [
+        {
+            "DD_SPAN_SAMPLING_RULES": json.dumps(
+                [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
+            ),
+            "DD_TRACE_SAMPLE_RATE": 0,
+        }
+    ],
+)
+def test_root_span_selected_by_sss014(test_agent, test_library):
+    """Single spans selected by SSS must be kept and shouldn't affect child span sampling priority.
+    
+    We're essentially testing to make sure that the span sampling rule keeps selected spans regardless of the trace sampling decision
+    and doesn't affect child spans that are dropped by the tracer sampling mechanism.
+    """
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+                pass
+
+    traces = test_agent.wait_for_num_traces(1, clear=True)
+
+    parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
+    child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
+
+    # the trace should be dropped, so the parent span priority is set to -1
+    assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
+
+    # child span should be dropped by defined trace sampling rules
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+
+    assert child_span["meta"].get("_dd.p.dm") is None
+
+
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.parametrize(
+    "library_env",
+    [
+        {
+            "DD_SPAN_SAMPLING_RULES": json.dumps(
+                [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
+            ),
+            "DD_TRACE_SAMPLE_RATE": 0,
+        }
+    ],
+)
+def test_child_span_selected_by_sss015(test_agent, test_library):
+    """Single spans selected by SSS must be kept even if its parent has been dropped.
+    
+    We're essentially testing to make sure that the span sampling rule keeps selected spans despite of the trace sampling decision
+    and doesn't affect parent spans that are dropped by the tracer sampling mechanism.
+    """
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+                pass
+
+    traces = test_agent.wait_for_num_traces(1, clear=True)
+
+    parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
+    child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
+
+    # root span should be dropped by defined trace sampling rules
+    assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+
+    # child span should be kept by defined the SSS rules
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50

@@ -18,8 +18,8 @@ import static com.datadoghq.client.ApmTestClient.SpanSetMetricArgs;
 import static com.datadoghq.client.ApmTestClient.SpanSetMetricReturn;
 import static com.datadoghq.client.ApmTestClient.StartSpanArgs;
 import static com.datadoghq.client.ApmTestClient.StartSpanReturn;
-import static com.datadoghq.client.ApmTestClient.StopTracerArgs;
-import static com.datadoghq.client.ApmTestClient.StopTracerReturn;
+//import static com.datadoghq.client.ApmTestClient.StopTracerArgs;
+//import static com.datadoghq.client.ApmTestClient.StopTracerReturn;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 
 import com.datadoghq.client.APMClientGrpc;
@@ -182,12 +182,12 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
         responseObserver.onCompleted();
     }
 
-    @Override
-    public void stopTracer(StopTracerArgs request, StreamObserver<StopTracerReturn> responseObserver) {
-        this.tracer.close();
-        responseObserver.onNext(StopTracerReturn.newBuilder().build());
-        responseObserver.onCompleted();
-    }
+//    @Override
+//    public void stopTracer(StopTracerArgs request, StreamObserver<StopTracerReturn> responseObserver) {
+//        this.tracer.close();
+//        responseObserver.onNext(StopTracerReturn.newBuilder().build());
+//        responseObserver.onCompleted();
+//    }
 
     private Span getSpan(long spanId, StreamObserver<?> responseObserver) {
         Span span = this.spans.get(spanId);
