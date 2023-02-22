@@ -37,6 +37,7 @@ class Test_Main:
             self.requests.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
             self.request_count += 1
 
+    @bug(context.library > "nodejs@3.1.4.1", reason="_sampling_priority_v1 is missing")
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
