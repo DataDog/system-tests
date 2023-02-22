@@ -38,6 +38,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import org.springframework.web.servlet.view.RedirectView;
+
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -101,6 +104,42 @@ public class App {
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
+    private static final Map<String, String> METADATA = createMetadata();
+    private static final Map<String, String> createMetadata() {
+        HashMap<String, String> h = new HashMap<>();
+        h.put("metadata0", "value0");
+        h.put("metadata1", "value1");
+        return h;
+    }
+
+    @GetMapping("/user_login_success_event")
+    public String userLoginSuccess(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginSuccessEvent(userId, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/user_login_failure_event")
+    public String userLoginFailure(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId,
+            @RequestParam(value = "event_user_exists", defaultValue = "true") boolean eventUserExists) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginFailureEvent(userId, eventUserExists, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/custom_event")
+    public String customEvent(
+            @RequestParam(value = "event_name", defaultValue = "system_tests_event") String eventName) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackCustomEvent(eventName, METADATA);
+
+        return "ok";
     }
 
     @JacksonXmlRootElement
@@ -329,6 +368,19 @@ public class App {
         public int status_code;
         public HashMap<String, String> request_headers;
         public HashMap<String, String> response_headers;
+    }
+
+    @RequestMapping("/experimental/redirect")
+    RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        if (redirect == null) {
+            return new RedirectView("https://datadoghq.com");
+        }
+        return new RedirectView("https://" + redirect);
     }
 
     @EventListener(ApplicationReadyEvent.class)
