@@ -12,6 +12,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -128,16 +129,22 @@ func main() {
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
 
+		tags := []ddtrace.StartSpanOption{}
+
 		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
 		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
 		// See https://github.com/DataDog/system-tests/blob/2d6ae4d5bf87d55855afd36abf36ee710e7d8b3c/utils/interfaces/_core.py#L156
 		userAgent := r.UserAgent()
-		userAgentTag := tracer.Tag("http.useragent", userAgent)
+		tags = append(tags, tracer.Tag("http.useragent", userAgent))
+
+		if r.URL.Query().Get("shouldIndex") == "1" {
+			tags = append(tags, forceSpanIndexingTags()...)
+		}
 
 		// Make a fresh root span!
 		duration, _ := time.ParseDuration("10s")
-		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, userAgentTag)
-		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, userAgentTag)
+		parentSpan, parentCtx := tracer.StartSpanFromContext(context.Background(), parentName, tags...)
+		childSpan, _ := tracer.StartSpanFromContext(parentCtx, childName, tags...)
 		childSpan.Finish(tracer.FinishTime(time.Now().Add(duration)))
 		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
 
