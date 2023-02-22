@@ -76,6 +76,42 @@ public class MyResource {
         return Response.status(code).build();
     }
 
+    private static final Map<String, String> METADATA = createMetadata();
+    private static final Map<String, String> createMetadata() {
+        HashMap<String, String> h = new HashMap<>();
+        h.put("metadata0", "value0");
+        h.put("metadata1", "value1");
+        return h;
+    }
+
+    @GET
+    @Path("/user_login_success_event")
+    public String userLoginSuccess(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginSuccessEvent(userId, METADATA);
+
+        return "ok";
+    }
+
+    @GET
+    @Path("/user_login_failure_event")
+    public String userLoginFailure(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId,
+                                   @DefaultValue("true") @QueryParam("event_user_exists") boolean eventUserExists) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginFailureEvent(userId, eventUserExists, METADATA);
+
+        return "ok";
+    }
+
+    @GET
+    @Path("/custom_event")
+    public String customEvent(@DefaultValue("system_tests_event") @QueryParam("event_name") String eventName) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackCustomEvent(eventName, METADATA);
+
+        return "ok";
+    }
+
     @XmlRootElement(name = "string")
     public static class XmlObject {
         @XmlValue
