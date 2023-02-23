@@ -58,6 +58,20 @@ def identify(request):
     return HttpResponse("OK")
 
 
+def users(request):
+    user_id = request.GET["user"]
+    set_user(
+        tracer,
+        user_id=user_id,
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+    )
+    return HttpResponse("OK")
+
+
 def identify_propagate(request):
     set_user(
         tracer,
@@ -128,6 +142,7 @@ urlpatterns = [
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
+    path("users", users),
     path("identify-propagate", identify_propagate),
     path("iast/insecure_hashing/multiple_hash", view_weak_hash_multiple_hash),
     path("iast/insecure_hashing/test_secure_algorithm", view_weak_hash_secure_algorithm),
