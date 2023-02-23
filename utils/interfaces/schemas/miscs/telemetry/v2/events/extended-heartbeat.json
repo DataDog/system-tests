@@ -8,20 +8,20 @@
         "dependencies": {
             "type": "array",
             "items": {
-                "$ref": "#/$defs/Dependency"
+                "$ref": "../../common/dependency.json"
             }
         },
         "integrations": {
             "type": "array",
             "items": {
-                "$ref": "#/$defs/Integration"
+                "$ref": "../../common/integration.json"
             }
         },
         "configuration": {
-            "$ref": "#/$defs/Configuration"
+            "$ref": "../objects/configuration.json"
         },
         "additional_payload": {
-            "$ref": "#/$defs/Configuration"
+            "$ref": "../objects/configuration.json"
         }
     }
 }

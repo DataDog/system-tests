@@ -5,12 +5,45 @@
 	"$ref": "#/$defs/Telemetry",
 	"$defs": {
 		"Telemetry": {
-			"oneOf": [
+			"allOf": [
 				{
-					"$ref": "../../../../../miscs/telemetry/v1/telemetry_request.json"
+					"if": {
+						"properties": {
+							"api_version": {
+								"const": "v1"
+							}
+						}
+					},
+					"then": {
+						"$ref": "../../../../../miscs/telemetry/v1/telemetry_request.json"
+					}
 				},
 				{
-					"$ref": "../../../../../miscs/telemetry/v2/telemetry_request.json"
+					"if": {
+						"properties": {
+							"api_version": {
+								"const": "v2"
+							}
+						}
+					},
+					"then": {
+						"$ref": "../../../../../miscs/telemetry/v2/telemetry_request.json"
+					}
+				},
+				{
+					"if": {
+						"not": {
+							"properties": {
+								"api_version": {
+									"enum": [
+										"v1",
+										"v2"
+									]
+								}
+							}
+						}
+					},
+					"then": false
 				}
 			]
 		}

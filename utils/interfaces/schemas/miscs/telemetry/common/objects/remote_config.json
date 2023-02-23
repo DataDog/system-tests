@@ -12,7 +12,7 @@
             "type": "boolean"
         },
         "error": {
-            "$ref": "#/$defs/Error"
+            "$ref": "./error.json"
         }
     },
     "required": ["enabled"]

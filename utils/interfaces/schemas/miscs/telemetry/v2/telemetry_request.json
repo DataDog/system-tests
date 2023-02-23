@@ -8,48 +8,72 @@
             "$ref": "../objects/header.json"
         },
         "payload" : {
-            "oneOf": [
+            "allOf": [
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "app-started"
-                        },
-                        "payload": {
-                            "$ref": "../events/app-started.json"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "app-started"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "payload": {
+                                "$ref": "../events/app-started.json"
+                            }
                         }
                     }
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "app-extended-heartbeat"
-                        },
-                        "payload": {
-                            "$ref": "#/$defs/ExtendedHeartbeat"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "app-extended-heartbeat"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "payload": {
+                                "$ref": "../events/extended-heartbeat.json"
+                            }
                         }
                     }
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "app-integrations-change"
-                        },
-                        "payload": {
-                            "$ref": "../common/events/integrations-change.json"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "app-integrations-change"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "payload": {
+                                "$ref": "../common/events/integrations-change.json"
+                            }
                         }
                     }
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "app-dependencies-loaded"
-                        },
-                        "payload": {
-                            "$ref": "../common/events/dependencies-loaded.json"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "app-dependencies-loaded"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "payload": {
+                                "$ref": "../common/events/dependencies-loaded.json"
+                            }
                         }
                     }
                 },
@@ -60,7 +84,7 @@
                             "const": "app-client-configuration-change"
                         },
                         "payload": {
-                            "$ref": "#/$defs/ClientConfigurationChange"
+                            "$ref": "../events/client-configuration-change.json"
                         }
                     }
                 },
@@ -71,18 +95,24 @@
                             "const": "app-product-change"
                         },
                         "payload": {
-                            "$ref": "#/$defs/ProductChange"
+                            "$ref": "../events/product-change.json"
                         }
                     }
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "generate-metrics"
-                        },
-                        "payload": {
-                            "$ref": "../common/events/generate-metrics.json"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "generate-metrics"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "payload": {
+                                "$ref": "../common/events/generate-metrics.json"
+                            }
                         }
                     }
                 },
@@ -103,27 +133,63 @@
                     }
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "apm-onboarding-event"
-                        },
-                        "payload": {
-                            "$ref": "../common/events/apm-onboarding.json"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "apm-onboarding-event"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "payload": {
+                                "$ref": "../common/events/apm-onboarding.json"
+                            }
                         }
                     }
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "message-batch"
-                        },
-                        "payload": {
-                            "$ref": "#/$defs/MessageBatch"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "message-batch"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "payload": {
+                                "$ref": "../events/message-batch.json"
+                            }
                         }
                     }
-                }
+                },
+                {
+					"if": {
+						"not": {
+							"properties": {
+								"request_type": {
+									"enum": [
+										"app-started",
+                                        "app-extended-heartbeat",
+										"app-integrations-change",
+                                        "app-dependencies-loaded",
+                                        "app-product-change",
+                                        "app-client-configuration-change",
+                                        "generate-metrics",
+                                        "app-heartbeat",
+                                        "app-closing",
+                                        "apm-onboarding-event",
+                                        "message-batch"
+									]
+								}
+							}
+						}
+					},
+					"then": false
+				}
             ]
         }
     }

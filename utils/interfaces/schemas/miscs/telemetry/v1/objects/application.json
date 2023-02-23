@@ -33,7 +33,7 @@
             "type": "string"
         },
         "products": {
-            "$ref": "#/$defs/Products"
+            "$ref": "../../common/objects/products.json"
         }
     },
     "required": [

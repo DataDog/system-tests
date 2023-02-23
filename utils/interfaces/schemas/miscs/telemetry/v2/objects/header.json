@@ -9,10 +9,10 @@
             "const": "v2"
         },
         "application": {
-            "$ref": "#/$defs/ApplicationV2"
+            "$ref": "./application.json"
         },
         "host": {
-            "$ref": "#/$defs/HostV2"
+            "$ref": "./host.json"
         },
         "runtime_id": {
             "type": "string"

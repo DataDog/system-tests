@@ -8,11 +8,11 @@
         "conf_key_values": {
             "type": "array",
             "items": {
-                "$ref": "#/$defs/ConfigurationV2"
+                "$ref": "../objects/configuration.json"
             }
         },
         "remote_config": {
-            "$ref": "#/$defs/RemoteConfig"
+            "$ref": "../objects/remote_config.json"
         }
     },
     "required": [

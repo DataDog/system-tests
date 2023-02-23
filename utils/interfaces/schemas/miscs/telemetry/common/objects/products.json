@@ -6,13 +6,13 @@
     "type": "object",
     "properties": {
         "appsec": {
-            "$ref": "#/$defs/Product"
+            "$ref": "./product.json"
         },
         "profiler": {
-            "$ref": "#/$defs/Product"
+            "$ref": "./product.json"
         },
         "dynamic_instrumentation": {
-            "$ref": "#/$defs/Product"
+            "$ref": "./product.json"
         }
     }
 }
