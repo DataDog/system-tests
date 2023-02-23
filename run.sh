@@ -120,7 +120,7 @@ elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
     WEBLOG_ENV+="DD_DBM_PROPAGATION_MODE=full"
-    CONTAINERS+=(cassandra_db mongodb postgres)
+    CONTAINERS+=(cassandra_db mongodb postgres mysql)
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
     export RUNNER_ARGS="tests/apm-tracing-e2e"

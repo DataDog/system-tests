@@ -110,3 +110,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mysql:
+    container_name: mysql
+    image: mysql/mysql-server:8.0
+    environment:
+    - MYSQL_DATABASE=world
+    - MYSQL_ROOT_PASSWORD=mysqldb
+    - MYSQL_USER=mysqldb
+    - MYSQL_PASSWORD=mysqldb
+    ports:
+    - "127.0.0.1:3307:3306"

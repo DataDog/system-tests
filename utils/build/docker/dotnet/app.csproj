@@ -10,6 +10,7 @@
 		<DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="MySql.Data" Version="8.0.32" />
 		<PackageReference Include="System.Data.SqlClient" />
 		<Reference Include="Datadog.Trace">
 			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>

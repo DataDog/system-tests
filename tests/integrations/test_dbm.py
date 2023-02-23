@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenario
 
 
-@released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", php="?", ruby="?")
 @missing_feature(
     context.library in ["python", "nodejs", "dotnet"] and context.weblog_variant != "flask-poc",
     reason="Missing on weblog",
@@ -23,12 +23,10 @@ class Test_Dbm:
                 weblog.get("/dbm", params={"integration": "psycopg", "operation": "execute"}),
                 weblog.get("/dbm", params={"integration": "psycopg", "operation": "executemany"}),
             ]
-        elif self.library_name == "nodejs":
-            # self.requests = [  ........ ]
-            pass
         elif self.library_name == "dotnet":
-            # self.requests = [  ........ ]
-            pass
+            self.requests = [
+                weblog.get("/dbm", params={"integration": "mysql"}),
+            ]
 
     def test_trace_payload(self):
         assert self.requests, "Requests were not submit for {}. Please disable this test for this library "
