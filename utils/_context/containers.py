@@ -94,7 +94,7 @@ class TestedContainer:
             # Sometimes, the container does not exists.
             # We can safely ignore this, because if it's another issue
             # it will be killed at startup
-            
+
             pass
 
 
