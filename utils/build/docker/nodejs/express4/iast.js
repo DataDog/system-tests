@@ -1,5 +1,5 @@
 const { Client, Pool } = require('pg')
-const { readFileSync } = require('fs')
+const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto');
 const { execSync } = require('child_process')
@@ -108,7 +108,7 @@ function init (app, tracer) {
   app.post('/iast/path_traversal/test_insecure', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
-    const stats = fs.statSync(req.body.path)
+    const stats = statSync(req.body.path)
     res.send(JSON.stringify(stats))
   });
 
