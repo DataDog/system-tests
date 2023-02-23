@@ -113,10 +113,10 @@ elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_WAF_TELEMETRY" ]; then
     echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
-    export RUNNER_ARGS="tests/apm_tracing_e2e"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E_SINGLE_SPAN" ]; then
-    export RUNNER_ARGS="tests/apm_tracing_e2e"
+    echo
 
 else # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
