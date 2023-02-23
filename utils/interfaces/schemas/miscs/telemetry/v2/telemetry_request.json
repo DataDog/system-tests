@@ -117,20 +117,26 @@
                     }
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "app-heartbeat"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "app-heartbeat"
+                            }
                         }
-                    }
+                    },
+                    "then": true
                 },
                 {
-                    "type": "object",
-                    "properties": {
-                        "request_type": {
-                            "const": "app-closing"
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "request_type": {
+                                "const": "app-closing"
+                            }
                         }
-                    }
+                    },
+                    "then": true
                 },
                 {
                     "if": {
