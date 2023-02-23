@@ -45,9 +45,14 @@ class Test_Main:
         trace_count = 0
 
         for r in self.requests:
-            for _, _, span, _ in interfaces.library.get_appsec_events(request=r):
+            for data, _, span, _ in interfaces.library.get_appsec_events(request=r):
                 # the logic is to set MANUAL_KEEP not on all traces
                 # then the sampling mechism drop, or not the traces
+
+                assert (
+                    "_sampling_priority_v1" in span["metrics"]
+                ), f"_sampling_priority_v1 is missing in span {span['span_id']} in {data['log_filename']}"
+
                 if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
                     trace_count += 1
 
