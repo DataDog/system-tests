@@ -128,7 +128,6 @@ def users():
     return Response("OK")
 
 
-
 @app.route("/dbm")
 def dbm():
     integration = flask_request.args.get("integration")
