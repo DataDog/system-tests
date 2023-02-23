@@ -28,6 +28,10 @@
         }
     },
     "required": [
-        "hostname"
+        "hostname",
+        "os",
+        "kernel_name",
+        "kernel_release",
+        "kernel_version"
     ]
 }
