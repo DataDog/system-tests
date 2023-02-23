@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/v1/objects/header.json",
+    "description": "V1 Header",
+    "title": "Instrumentation Telemetry V1 Header",
+    "type": "object",
+    "properties": {
+        "api_version": {
+            "const": "v1"
+        },
+        "application": {
+            "$ref": "#/$defs/Application"
+        },
+        "host": {
+            "$ref": "#/$defs/Host"
+        },
+        "runtime_id": {
+            "type": "string"
+        },
+        "seq_id": {
+            "type": "integer",
+            "format": "uint64"
+        },
+        "tracer_time": {
+            "type": "integer",
+            "format": "uint64"
+        }
+    },
+    "$comment": "api_version tracer_time runtime_id seq_id application host are required, but currently disabled because of the agent"
+}

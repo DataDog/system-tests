@@ -1,0 +1,132 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/v2/telemetry_request.json",
+    "description": "Instrumentation telemetry schema",
+    "type": "object",
+    "properties": {
+        "header" : {
+            "$ref": "../objects/header.json"
+        },
+        "payload" : {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-started"
+                        },
+                        "payload": {
+                            "$ref": "../events/app-started.json"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-extended-heartbeat"
+                        },
+                        "payload": {
+                            "$ref": "#/$defs/ExtendedHeartbeat"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-integrations-change"
+                        },
+                        "payload": {
+                            "$ref": "../common/events/integrations-change.json"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-dependencies-loaded"
+                        },
+                        "payload": {
+                            "$ref": "../common/events/dependencies-loaded.json"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-client-configuration-change"
+                        },
+                        "payload": {
+                            "$ref": "#/$defs/ClientConfigurationChange"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-product-change"
+                        },
+                        "payload": {
+                            "$ref": "#/$defs/ProductChange"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "generate-metrics"
+                        },
+                        "payload": {
+                            "$ref": "../common/events/generate-metrics.json"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-heartbeat"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "app-closing"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "apm-onboarding-event"
+                        },
+                        "payload": {
+                            "$ref": "../common/events/apm-onboarding.json"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "request_type": {
+                            "const": "message-batch"
+                        },
+                        "payload": {
+                            "$ref": "#/$defs/MessageBatch"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+   
+   

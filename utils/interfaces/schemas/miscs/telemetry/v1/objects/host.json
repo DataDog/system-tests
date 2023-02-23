@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/v1/objects/host.json",
+    "description": "V1 Host",
+    "title": "Instrumentation Telemetry V1 Host",
+    "type": "object",
+    "properties": {
+        "hostname": {
+            "type": "string"
+        },
+        "os": {
+            "type": "string"
+        },
+        "os_version": {
+            "type": "string"
+        },
+        "architecture": {
+            "type": "string"
+        },
+        "kernel_name": {
+            "type": "string"
+        },
+        "kernel_release": {
+            "type": "string"
+        },
+        "kernel_version": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "hostname"
+    ]
+}

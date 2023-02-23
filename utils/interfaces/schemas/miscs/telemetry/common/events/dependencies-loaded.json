@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/common/events/dependencies-loaded.json",
+    "description": "dependencies-loaded schema",
+    "title": "dependencies-loaded",
+    "type": "object",
+    "properties": {
+        "dependencies": {
+            "type": "array",
+            "items": {
+                "$ref": "../objects/dependency.json"
+            }
+        }
+    },
+    "required": ["dependencies"]
+}

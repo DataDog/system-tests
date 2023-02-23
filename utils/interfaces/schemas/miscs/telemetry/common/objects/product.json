@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/common/objects/product.json",
+    "description": "Product Object",
+    "title": "Instrumentation Telemetry Product",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string"
+        },
+        "enabled": {
+            "type": "boolean"
+        },
+        "error": {
+            "$ref": "#/$defs/Error"
+        }
+    },
+    "required": ["enabled"]
+}

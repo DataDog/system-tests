@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/common/objects/error.json",
+    "description": "Error Object",
+    "title": "Instrumentation Telemetry Error",
+    "type": "object",
+    "properties": {
+        "code": {
+            "type": "integer"
+        },
+        "message": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "code",
+        "message"
+    ]
+}

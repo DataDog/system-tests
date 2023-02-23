@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/v2/events/client-configuration-change.json",
+    "description": "client-configuration-change v2 schema",
+    "title": "client-configuration-change v2",
+    "type": "object",
+    "properties": {
+        "conf_key_values": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ConfigurationV2"
+            }
+        },
+        "remote_config": {
+            "$ref": "#/$defs/RemoteConfig"
+        }
+    },
+    "required": [
+        "conf_key_values"
+    ]
+}

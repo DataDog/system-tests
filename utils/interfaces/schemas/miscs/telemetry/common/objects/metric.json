@@ -1,0 +1,113 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/common/objects/metric.json",
+    "description": "Metric Object",
+    "title": "Instrumentation Telemetry Metric",
+    "type": "object",
+    "oneOf": [
+        {
+            "type": "object",
+            "properties": {
+                "common": {
+                    "type": "boolean"
+                },
+                "metric": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "integer",
+                                    "format": "uint64"
+                                },
+                                {
+                                    "type": "number",
+                                    "format": "double"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "description": "Metric type variant",
+                    "type": "string",
+                    "enum": [
+                        "gauge",
+                        "count",
+                        "rate"
+                    ],
+                    "example": "gauge"
+                },
+                "interval": {
+                    "description": "Set for gauge and rate metric types",
+                    "type": "number",
+                    "format": "double"
+                }
+            },
+            "required": [
+                "metric",
+                "points"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "common": {
+                    "type": "boolean"
+                },
+                "metric": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "integer",
+                                    "format": "uint64"
+                                },
+                                {
+                                    "type": "number",
+                                    "format": "double"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "description": "Metric type variant",
+                    "type": "string",
+                    "enum": [
+                        "gauge"
+                    ],
+                    "example": "gauge"
+                }
+            },
+            "required": [
+                "metric",
+                "points",
+                "tags",
+                "common",
+                "type"
+            ]
+        }
+    ]
+}
