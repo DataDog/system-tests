@@ -198,12 +198,13 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             self.weblog_env["DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED"] = "true"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES":
             self.proxy_state = '{"mock_remote_config_backend": "ASM_FEATURES"}'
-            self.weblog_env["DD_APPSEC_ENABLED"] = "false"
+            del self.weblog_env["DD_APPSEC_ENABLED"]
             self.weblog_env["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING":
             self.proxy_state = '{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
             self.weblog_env["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] = "1"
-            self.weblog_env["DD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED"] = "true"
+            self.weblog_env["DD_DEBUGGER_ENABLED"]="1"
+            self.weblog_env["DD_REMOTE_CONFIG_ENABLED"] = "true"
             self.weblog_env["DD_INTERNAL_RCM_POLL_INTERVAL"] = "1000"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD":
             self.proxy_state = '{"mock_remote_config_backend": "ASM_DD"}'
@@ -299,6 +300,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             "libddwaf_version": str(self.libddwaf_version),
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
+            "scenario": self.scenario
         }
 
         if self.library == "php":
