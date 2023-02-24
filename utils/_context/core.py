@@ -10,6 +10,7 @@ import time
 import pytest
 import requests
 
+from utils._context.containers import agent_container, weblog_container, postgres_db, cassandra_db, mongo_db
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
@@ -96,13 +97,32 @@ class _Context:  # pylint: disable=too-many-instance-attributes
     def uds_mode(self):
         return self.uds_socket is not None
 
+    @property
+    def required_containers(self):
+        result = []
+
+        if self.scenario in ("INTEGRATIONS",):
+            result.append(mongo_db)
+            result.append(cassandra_db)
+            result.append(postgres_db)
+        elif self.scenario in ("DEFAULT",):
+            result.append(postgres_db)
+
+        return result
+
     def execute_warmups(self):
 
         agent_port = os.environ["SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT"]
+        warmups = []
 
-        warmups = [
-            _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=15),
-            _HealthCheck("http://weblog:7777", 120),
+        for container in self.required_containers:
+            warmups.append(container.start)
+
+        warmups += [
+            agent_container.start,
+            _HealthCheck(f"http://agent:{agent_port}/info", 60, start_period=1),
+            weblog_container.start,
+            _HealthCheck("http://weblog:7777", 60),
             _wait_for_app_readiness,
         ]
 
@@ -111,11 +131,21 @@ class _Context:  # pylint: disable=too-many-instance-attributes
 
         for warmup in warmups:
             logger.info(f"Executing warmup {warmup}")
-            try:
-                warmup()
-            except Exception as e:
-                logger.exception(f"Error while executing {warmup}")
-                pytest.exit(f"{warmup} failed: {e}", 1)
+            warmup()
+
+    def collect_logs(self):
+        try:
+            agent_container.save_logs()
+            weblog_container.save_logs()
+        except:
+            logger.exception("Fail to save logs")
+
+    def close_targets(self):
+        agent_container.remove()
+        weblog_container.remove()
+
+        for container in self.required_containers:
+            container.remove()
 
     def serialize(self):
         result = {
@@ -151,7 +181,7 @@ class _HealthCheck:
 
         for i in range(self.retries + 1):
             try:
-                r = requests.get(self.url, timeout=3)
+                r = requests.get(self.url, timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
                 if r.status_code == 200:
                     return

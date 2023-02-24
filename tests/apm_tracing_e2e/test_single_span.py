@@ -12,7 +12,7 @@ from tests.apm_tracing_e2e.constants import (
 @rfc("ATI-2419")
 @missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
 @missing_feature(
-    context.weblog_variant not in ("chi"),
+    context.weblog_variant not in ("chi", "spring-boot"),
     reason="The /e2e_single_span endpoint is only implemented in Go chi at the moment.",
 )
 @scenario("APM_TRACING_E2E_SINGLE_SPAN")
@@ -25,7 +25,10 @@ class Test_SingleSpan:
     """
 
     def setup_parent_span_is_single_span(self):
-        self.req = weblog.get("/e2e_single_span?parentName=parent.span.single_span_submitted&childName=child.span")
+        self.req = weblog.get(
+            "/e2e_single_span",
+            {"shouldIndex": 1, "parentName": "parent.span.single_span_submitted", "childName": "child.span"},
+        )
 
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
@@ -45,7 +48,10 @@ class Test_SingleSpan:
         _assert_single_span_event(spans[0], "parent.span.single_span_submitted", is_root=True)
 
     def setup_child_span_is_single_span(self):
-        self.req = weblog.get("/e2e_single_span?parentName=parent.span&childName=child.span.single_span_submitted")
+        self.req = weblog.get(
+            "/e2e_single_span",
+            {"shouldIndex": 1, "parentName": "parent.span", "childName": "child.span.single_span_submitted"},
+        )
 
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!
