@@ -8,7 +8,7 @@
         "dependencies": {
             "type": "array",
             "items": {
-                "$ref": "../objects/dependency.json"
+                "$ref": "/miscs/telemetry/common/objects/dependency.json"
             }
         }
     },

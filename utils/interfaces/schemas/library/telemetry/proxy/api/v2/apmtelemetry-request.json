@@ -1,51 +1,38 @@
 {
-	"$schema": "http://json-schema.org/draft-07/schema",
-	"$id": "/library/telemetry/proxy/api/v2/apmtelemetry-request.json",
-	"description": "Instrumentation telemetry schema",
-	"$ref": "#/$defs/Telemetry",
-	"$defs": {
-		"Telemetry": {
-			"allOf": [
-				{
-					"if": {
-						"properties": {
-							"api_version": {
-								"const": "v1"
-							}
-						}
-					},
-					"then": {
-						"$ref": "../../../../../miscs/telemetry/v1/telemetry_request.json"
-					}
-				},
-				{
-					"if": {
-						"properties": {
-							"api_version": {
-								"const": "v2"
-							}
-						}
-					},
-					"then": {
-						"$ref": "../../../../../miscs/telemetry/v2/telemetry_request.json"
-					}
-				},
-				{
-					"if": {
-						"not": {
-							"properties": {
-								"api_version": {
-									"enum": [
-										"v1",
-										"v2"
-									]
-								}
-							}
-						}
-					},
-					"then": false
-				}
-			]
-		}
-	}
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/library/telemetry/proxy/api/v2/apmtelemetry-request.json",
+  "description": "Instrumentation telemetry schema",
+  "allOf": [
+    {
+      "properties": {
+        "api_version": {
+          "enum": ["v1", "v2"]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "api_version": {
+            "const": "v1"
+          }
+        }
+      },
+      "then": {
+        "$ref": "/miscs/telemetry/v1/telemetry_request.json"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "api_version": {
+            "const": "v2"
+          }
+        }
+      },
+      "then": {
+        "$ref": "/miscs/telemetry/v2/telemetry_request.json"
+      }
+    }
+  ]
 }

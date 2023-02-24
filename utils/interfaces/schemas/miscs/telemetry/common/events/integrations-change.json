@@ -8,7 +8,7 @@
         "integrations": {
             "type": "array",
             "items": {
-                "$ref": "../objects/integration.json"
+                "$ref": "/miscs/telemetry/common/objects/integration.json"
             }
         }
     },

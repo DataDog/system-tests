@@ -1,21 +1,16 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/common/objects/apm_onboarding_header.json",
-    "description": "APM Onboarding Header Object",
-    "title": "Instrumentation Telemetry APM Onboarding Header",
-    "type": "object",
-    "properties": {
-        "api_version": {
-            "enum": [
-                "v1",
-                "v2"
-            ]
-        },
-        "runtime_id": {
-            "type": "string"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/objects/apm_onboarding_header.json",
+  "description": "APM Onboarding Header Object",
+  "title": "Instrumentation Telemetry APM Onboarding Header",
+  "type": "object",
+  "properties": {
+    "api_version": {
+      "enum": ["v1", "v2"]
     },
-    "required": [
-        "api_version"
-    ]
+    "runtime_id": {
+      "type": "string"
+    }
+  },
+  "required": ["api_version"]
 }

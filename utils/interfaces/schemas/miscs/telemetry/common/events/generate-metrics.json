@@ -11,7 +11,7 @@
         "series": {
             "type": "array",
             "items": {
-                "$ref": "../objects/metric.json"
+                "$ref": "/miscs/telemetry/common/objects/metric.json"
             }
         }
     },

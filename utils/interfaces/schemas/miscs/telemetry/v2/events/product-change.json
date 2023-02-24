@@ -1,17 +1,13 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/v2/events/product-change.json",
-    "description": "product-change v2 schema",
-    "title": "product-change v2",
-    "type": "object",
-    "properties": {
-        "products": {
-            "$ref": "../../common/objects/products.json"
-        }
-    },
-    "required": [
-        "products"
-    ]
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/events/product-change.json",
+  "description": "product-change v2 schema",
+  "title": "product-change v2",
+  "type": "object",
+  "properties": {
+    "products": {
+      "$ref": "/miscs/telemetry/common/objects/products.json"
+    }
+  },
+  "required": ["products"]
 }
-
-

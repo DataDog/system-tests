@@ -1,37 +1,37 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/v2/objects/header.json",
-    "description": "V2 Header",
-    "title": "Instrumentation Telemetry V2 Header",
-    "type": "object",
-    "properties": {
-        "api_version": {
-            "const": "v2"
-        },
-        "application": {
-            "$ref": "./application.json"
-        },
-        "host": {
-            "$ref": "./host.json"
-        },
-        "runtime_id": {
-            "type": "string"
-        },
-        "seq_id": {
-            "type": "integer",
-            "format": "uint64"
-        },
-        "tracer_time": {
-            "type": "integer",
-            "format": "uint64"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/objects/header.json",
+  "description": "V2 Header",
+  "title": "Instrumentation Telemetry V2 Header",
+  "type": "object",
+  "properties": {
+    "api_version": {
+      "const": "v2"
     },
-    "required": [
-        "api_version",
-        "tracer_time",
-        "runtime_id",
-        "seq_id",
-        "application",
-        "host"
-    ]
+    "application": {
+      "$ref": "./application.json"
+    },
+    "host": {
+      "$ref": "./host.json"
+    },
+    "runtime_id": {
+      "type": "string"
+    },
+    "seq_id": {
+      "type": "integer",
+      "format": "uint64"
+    },
+    "tracer_time": {
+      "type": "integer",
+      "format": "uint64"
+    }
+  },
+  "required": [
+    "api_version",
+    "tracer_time",
+    "runtime_id",
+    "seq_id",
+    "application",
+    "host"
+  ]
 }

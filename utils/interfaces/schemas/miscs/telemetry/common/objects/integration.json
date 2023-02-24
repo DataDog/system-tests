@@ -1,31 +1,28 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/common/objects/integration.json",
-    "description": "Integration Object",
-    "title": "Instrumentation Telemetry Integration",
-    "type": "object",
-    "properties": {
-        "auto_enabled": {
-            "type": "boolean"
-        },
-        "compatible": {
-            "type": "boolean"
-        },
-        "enabled": {
-            "type": "boolean"
-        },
-        "error": {
-            "type": "string"
-        },
-        "name": {
-            "type": "string"
-        },
-        "version": {
-            "type": "string"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/objects/integration.json",
+  "description": "Integration Object",
+  "title": "Instrumentation Telemetry Integration",
+  "type": "object",
+  "properties": {
+    "auto_enabled": {
+      "type": "boolean"
     },
-    "required": [
-        "name",
-        "enabled"
-    ]
+    "compatible": {
+      "type": "boolean"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "error": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": ["name", "enabled"]
 }

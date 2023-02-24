@@ -1,21 +1,19 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/v2/events/client-configuration-change.json",
-    "description": "client-configuration-change v2 schema",
-    "title": "client-configuration-change v2",
-    "type": "object",
-    "properties": {
-        "conf_key_values": {
-            "type": "array",
-            "items": {
-                "$ref": "../objects/configuration.json"
-            }
-        },
-        "remote_config": {
-            "$ref": "../objects/remote_config.json"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/events/client-configuration-change.json",
+  "description": "client-configuration-change v2 schema",
+  "title": "client-configuration-change v2",
+  "type": "object",
+  "properties": {
+    "conf_key_values": {
+      "type": "array",
+      "items": {
+        "$ref": "/miscs/telemetryv2//objects/configuration.json"
+      }
     },
-    "required": [
-        "conf_key_values"
-    ]
+    "remote_config": {
+      "$ref": "/miscs/telemetryv2/objects/remote_config.json"
+    }
+  },
+  "required": ["conf_key_values"]
 }

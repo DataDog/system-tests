@@ -1,21 +1,19 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/common/objects/dependency.json",
-    "description": "Dependency Object",
-    "title": "Instrumentation Telemetry Dependency",
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string"
-        },
-        "hash": {
-            "type": "string"
-        },
-        "version": {
-            "type": "string"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/objects/dependency.json",
+  "description": "Dependency Object",
+  "title": "Instrumentation Telemetry Dependency",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
     },
-    "required": [
-        "name"
-    ]
+    "hash": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": ["name"]
 }

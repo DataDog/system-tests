@@ -1,65 +1,63 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/common/events/apm-onboarding.json",
-    "description": "apm-onboarding schema",
-    "title": "apm-onboarding",
-    "type": "object",
-    "properties": {
-        "event_name": {
-            "enum": [
-                "agent.startup.errors",
-                "agent.startup.success",
-                "agent.trace.success"
-            ]
-        },
-        "tags": {
-            "type": "object",
-            "properties": {
-                "env": {
-                    "type": "string"
-                },
-                "lib_language": {
-                    "type": "string"
-                },
-                "lib_version": {
-                    "type": "string"
-                },
-                "service_name": {
-                    "type": "string"
-                },
-                "product": {
-                    "type": "string"
-                },
-                "connection": {
-                    "type": "string"
-                },
-                "agent_platform": {
-                    "type": "string"
-                },
-                "agent_version": {
-                    "type": "string"
-                },
-                "agent_hostname": {
-                    "type": "string"
-                },
-                "script_version": {
-                    "type": "string"
-                }
-            }
-        },
-        "error": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/events/apm-onboarding.json",
+  "description": "apm-onboarding schema",
+  "title": "apm-onboarding",
+  "type": "object",
+  "properties": {
+    "event_name": {
+      "enum": [
+        "agent.startup.errors",
+        "agent.startup.success",
+        "agent.trace.success"
+      ]
     },
-    "required": [
-        "tags"
-    ]
+    "tags": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "type": "string"
+        },
+        "lib_language": {
+          "type": "string"
+        },
+        "lib_version": {
+          "type": "string"
+        },
+        "service_name": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "connection": {
+          "type": "string"
+        },
+        "agent_platform": {
+          "type": "string"
+        },
+        "agent_version": {
+          "type": "string"
+        },
+        "agent_hostname": {
+          "type": "string"
+        },
+        "script_version": {
+          "type": "string"
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": ["tags"]
 }

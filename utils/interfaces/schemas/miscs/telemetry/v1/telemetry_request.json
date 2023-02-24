@@ -1,142 +1,129 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/v1/telemetry_request.json",
-    "description": "Instrumentation telemetry schema",
-    "type": "object",
-    "properties": {
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v1/telemetry_request.json",
+  "description": "Instrumentation telemetry schema",
+  "type": "object",
+  "allOf": [
+    {
+      "properties": {
         "header": {
-            "$ref": "../objects/header.json"
+          "$ref": "/miscs/telemetry/v1/objects/header.json"
         },
-        "payload": {
-            "allOf": [
-                {
-                    "if": {
-                        "type": "object",
-                        "properties": {
-                            "request_type": {
-                                "const": "app-started"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "payload": {
-                                "$ref": "../events/app-started.json"
-                            }
-                        }
-                    }
-                },
-                {
-                    "if": {
-                        "type": "object",
-                        "properties": {
-                            "request_type": {
-                                "const": "app-integrations-change"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "payload": {
-                                "$ref": "../common/events/integrations-change.json"
-                            }
-                        }
-                    }
-                },
-                {
-                    "if": {
-                        "type": "object",
-                        "properties": {
-                            "request_type": {
-                                "const": "app-dependencies-loaded"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "payload": {
-                                "$ref": "../common/events/dependencies-loaded.json"
-                            }
-                        }
-                    }
-                },
-                {
-                    "if": {
-                        "type": "object",
-                        "properties": {
-                            "request_type": {
-                                "const": "generate-metrics"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "payload": {
-                                "$ref": "../common/events/generate-metrics.json"
-                            }
-                        }
-                    }
-                },
-                {
-                    "if": {
-                        "type": "object",
-                        "properties": {
-                            "request_type": {
-                                "const": "app-heartbeat"
-                            }
-                        }
-                    },
-                    "then": true
-                },
-                {
-                    "if": {
-                        "type": "object",
-                        "properties": {
-                            "request_type": {
-                                "const": "app-closing"
-                            }
-                        }
-                    },
-                    "then": true
-                },
-                {
-                    "if": {
-                        "type": "object",
-                        "properties": {
-                            "request_type": {
-                                "const": "apm-onboarding-event"
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "payload": {
-                                "$ref": "../common/events/apm-onboarding.json"
-                            }
-                        }
-                    }
-                },
-                {
-					"if": {
-						"not": {
-							"properties": {
-								"request_type": {
-									"enum": [
-										"app-started",
-										"app-integrations-change",
-                                        "app-dependencies-loaded",
-                                        "generate-metrics",
-                                        "app-heartbeat",
-                                        "app-closing",
-                                        "apm-onboarding-event"
-									]
-								}
-							}
-						}
-					},
-					"then": false
-				}
-            ]
+        "request_type": {
+          "enum": [
+            "app-started",
+            "app-integrations-change",
+            "app-dependencies-loaded",
+            "generate-metrics",
+            "app-heartbeat",
+            "app-closing",
+            "apm-onboarding-event"
+          ]
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-started"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "/miscs/telemetry/v1/events/app-started.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-integrations-change"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/integrations-change.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "app-dependencies-loaded"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/dependencies-loaded.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "generate-metrics"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/generate-metrics.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "app-heartbeat"
+          }
+        }
+      },
+      "then": true
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "app-closing"
+          }
+        }
+      },
+      "then": true
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "apm-onboarding-event"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/apm-onboarding.json"
+          }
+        }
+      }
     }
+  ]
 }

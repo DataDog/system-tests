@@ -1,33 +1,24 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/v2/objects/configuration.json",
-    "description": "V2 Configuration Object",
-    "title": "Instrumentation Telemetry V2 Configuration",
-    "properties": {
-        "name": {
-            "type": "string"
-        },
-        "value": {
-            "type": [
-                "number",
-                "boolean",
-                "string",
-                "null"
-            ]
-        },
-        "origin": {
-            "type": "string"
-        },
-        "error": {
-            "$ref": "../../common/error.json"
-        },
-        "is_overridden": {
-            "type": "boolean"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/objects/configuration.json",
+  "description": "V2 Configuration Object",
+  "title": "Instrumentation Telemetry V2 Configuration",
+  "properties": {
+    "name": {
+      "type": "string"
     },
-    "required": [
-        "name",
-        "value",
-        "origin"
-    ]
+    "value": {
+      "type": ["number", "boolean", "string", "null"]
+    },
+    "origin": {
+      "type": "string"
+    },
+    "error": {
+      "$ref": "/miscs/telemetry/common/error.json"
+    },
+    "is_overridden": {
+      "type": "boolean"
+    }
+  },
+  "required": ["name", "value", "origin"]
 }

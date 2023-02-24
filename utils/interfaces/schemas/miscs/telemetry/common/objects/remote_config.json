@@ -1,19 +1,19 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/common/objects/remote_config.json",
-    "description": "Remote Config Object",
-    "title": "Instrumentation Telemetry Remote Config",
-    "type": "object",
-    "properties": {
-        "user_enabled": {
-            "type": "string"
-        },
-        "configs_received": {
-            "type": "boolean"
-        },
-        "error": {
-            "$ref": "./error.json"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/objects/remote_config.json",
+  "description": "Remote Config Object",
+  "title": "Instrumentation Telemetry Remote Config",
+  "type": "object",
+  "properties": {
+    "user_enabled": {
+      "type": "string"
     },
-    "required": ["enabled"]
+    "configs_received": {
+      "type": "boolean"
+    },
+    "error": {
+      "$ref": "./error.json"
+    }
+  },
+  "required": ["enabled"]
 }
