@@ -4,33 +4,14 @@
   "description": "Metric Object",
   "title": "Instrumentation Telemetry Metric",
   "type": "object",
-  "oneOf": [
+  "allOf": [
     {
-      "type": "object",
       "properties": {
         "common": {
           "type": "boolean"
         },
         "metric": {
           "type": "string"
-        },
-        "points": {
-          "type": "array",
-          "items": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "type": "integer",
-                  "format": "uint64"
-                },
-                {
-                  "type": "number",
-                  "format": "double"
-                }
-              ]
-            }
-          }
         },
         "tags": {
           "type": "array",
@@ -40,59 +21,50 @@
         },
         "type": {
           "description": "Metric type variant",
-          "type": "string",
           "enum": ["gauge", "count", "rate"],
           "example": "gauge"
         },
-        "interval": {
-          "description": "Set for gauge and rate metric types",
-          "type": "number",
-          "format": "double"
-        }
-      },
-      "required": ["metric", "points"]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "common": {
-          "type": "boolean"
-        },
-        "metric": {
-          "type": "string"
-        },
         "points": {
           "type": "array",
           "items": {
             "type": "array",
             "items": {
-              "oneOf": [
-                {
-                  "type": "integer",
-                  "format": "uint64"
-                },
-                {
-                  "type": "number",
-                  "format": "double"
-                }
-              ]
+              "type": "number"
             }
           }
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": ["gauge", "count", "rate"]
           }
-        },
-        "type": {
-          "description": "Metric type variant",
-          "type": "string",
-          "enum": ["gauge", "count"],
-          "example": "gauge"
         }
       },
-      "required": ["metric", "points", "tags", "common", "type"]
+      "then": {
+        "properties": {
+          "interval": {
+            "description": "Set for gauge and rate metric types",
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": ["metric", "points"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "gauge"
+          }
+        }
+      },
+      "then": {
+        "required": ["metric", "points", "tags", "common", "type"]
+      }
     }
   ]
 }
