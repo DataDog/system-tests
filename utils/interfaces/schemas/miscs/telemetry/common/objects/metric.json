@@ -32,6 +32,11 @@
               "type": "number"
             }
           }
+        },
+        "interval": {
+          "description": "Set for gauge and rate metric types",
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -39,18 +44,23 @@
       "if": {
         "properties": {
           "type": {
-            "enum": ["gauge", "count", "rate"]
+            "enum": ["gauge", "rate"]
           }
         }
       },
       "then": {
+        "required": ["metric", "points", "interval"]
+      }
+    },
+    {
+      "if": {
         "properties": {
-          "interval": {
-            "description": "Set for gauge and rate metric types",
-            "type": "number",
-            "format": "double"
+          "type": {
+            "const": "count"
           }
-        },
+        }
+      },
+      "then": {
         "required": ["metric", "points"]
       }
     },
