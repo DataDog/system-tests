@@ -21,7 +21,7 @@
             "$ref": "/miscs/telemetry/v1/objects/configuration.json"
         },
         "additional_payload": {
-            "$ref": "/miscs/telemetry/v1//objects/configuration.json"
+            "$ref": "/miscs/telemetry/v1/objects/configuration.json"
         }
     },
     "required": ["integrations", "dependencies"]
