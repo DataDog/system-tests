@@ -11,6 +11,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="MySql.Data" Version="8.0.32" />
+		<PackageReference Include="Npgsql" Version="7.0.2" />
 		<PackageReference Include="System.Data.SqlClient" />
 		<Reference Include="Datadog.Trace">
 			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>

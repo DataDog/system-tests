@@ -5,9 +5,9 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenario
 
 
-@released(cpp="?", golang="?", java="?", nodejs="?", php="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.24.0", php="?", ruby="?")
 @missing_feature(
-    context.library in ["python", "nodejs", "dotnet"] and context.weblog_variant != "flask-poc",
+    context.library in ["python", "nodejs"] and context.weblog_variant != "flask-poc",
     reason="Missing on weblog",
 )
 @scenario("INTEGRATIONS")
@@ -26,6 +26,7 @@ class Test_Dbm:
         elif self.library_name == "dotnet":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "mysql"}),
+                weblog.get("/dbm", params={"integration": "npgsql"})
             ]
 
     def test_trace_payload(self):
@@ -40,8 +41,3 @@ class Test_Dbm:
 
                 meta = span.get("meta", {})
                 assert "_dd.dbm_trace_injected" in meta
-
-    def test_dbm_payload(self):
-        # TODO: Add schema for validation of dbm payload agent/backend
-        # TODO: Add check for dbm payload agent/backend ensure that the expected trace data
-        pass

@@ -115,9 +115,9 @@ services:
     container_name: mysql
     image: mysql/mysql-server:8.0
     environment:
-    - MYSQL_DATABASE=world
-    - MYSQL_ROOT_PASSWORD=mysqldb
-    - MYSQL_USER=mysqldb
-    - MYSQL_PASSWORD=mysqldb
+      - MYSQL_DATABASE=world
+      - MYSQL_ROOT_PASSWORD=mysqldb
+      - MYSQL_USER=mysqldb
+      - MYSQL_PASSWORD=mysqldb
     ports:
-    - "127.0.0.1:3307:3306"
+      - 3306:3306
