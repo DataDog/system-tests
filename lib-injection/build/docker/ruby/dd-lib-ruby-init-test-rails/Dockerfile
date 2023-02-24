@@ -40,7 +40,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Add files
-COPY . /app
+COPY ../lib_injection_rails_app /app
 # Install gems
 RUN bundle install
 
