@@ -42,6 +42,31 @@ class Test_Telemetry:
         for data in telemetry_data:
             validator(data)
 
+    def test_telemetry_message_data_size(self):
+        "Test telemetry message data size"
+
+        def validator(data):
+            if sys.getsizeof(data)/1000000 >= 5:
+                raise Exception(
+                        f"Received message size is more than 5MB")
+
+        self.validate_library_telemetry_data(validator)
+        self.validate_agent_telemetry_data(validator)
+
+    def test_telemetry_message_data_dependency_count(self):
+        "Test telemetry message data dependency size"
+
+        def validator(data):
+            content = data["request"]["content"]
+            dependencies = content["payload"]["dependencies"]
+
+            if len(dependencies) > 2000:
+                raise Exception(
+                        f"Received message dependency count is more than 2000")
+
+        self.validate_library_telemetry_data(validator)
+        self.validate_agent_telemetry_data(validator)
+
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
@@ -53,6 +78,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
+    
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
         reason="Version reporting of trace agent is broken in 7.36.x release",
@@ -242,6 +268,19 @@ class Test_Telemetry:
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
+
+        self.validate_library_telemetry_data(validator)
+
+    def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
+        weblog.get("/load_dependency")
+
+    def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
+        "Test app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"
+        def validator(data):
+            TELEMETRY_DEPENDENCY_COLLECTION_ENABLED = bool(context.weblog_image.env.get("DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED"))
+            if TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is False:
+                if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
+                    raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
         self.validate_library_telemetry_data(validator)
 
