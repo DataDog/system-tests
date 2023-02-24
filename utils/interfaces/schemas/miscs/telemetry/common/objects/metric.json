@@ -88,7 +88,7 @@
         "type": {
           "description": "Metric type variant",
           "type": "string",
-          "enum": ["gauge"],
+          "enum": ["gauge", "count"],
           "example": "gauge"
         }
       },
