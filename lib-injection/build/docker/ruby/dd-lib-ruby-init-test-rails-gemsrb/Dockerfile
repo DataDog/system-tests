@@ -52,5 +52,5 @@ RUN bundle install
 # Set entrypoint
 ENTRYPOINT ["/bin/bash", "-c"]
 
-CMD ["bin/rails server -b 0.0.0.0 -p 18080"]
+CMD ["bundle exec rails server -b 0.0.0.0 -p 18080"]
 
