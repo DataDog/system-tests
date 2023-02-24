@@ -44,6 +44,7 @@ COPY lib_injection_rails_app /app
 
 # Replace Gemfile with gems.rb
 RUN mv Gemfile gems.rb && mv Gemfile.lock gems.locked
+ENV BUNDLE_GEMFILE gems.rb
 
 # Install gems
 RUN bundle install
