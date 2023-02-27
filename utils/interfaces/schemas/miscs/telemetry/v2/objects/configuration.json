@@ -3,22 +3,34 @@
   "$id": "/miscs/telemetry/v2/objects/configuration.json",
   "description": "V2 Configuration Object",
   "title": "Instrumentation Telemetry V2 Configuration",
-  "properties": {
-    "name": {
-      "type": "string"
+  "type": "array",
+  "items": {
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "value": {
+        "type": [
+          "number",
+          "boolean",
+          "string",
+          "null"
+        ]
+      },
+      "origin": {
+        "type": "string"
+      },
+      "error": {
+        "$ref": "/miscs/telemetry/common/error.json"
+      },
+      "is_overridden": {
+        "type": "boolean"
+      }
     },
-    "value": {
-      "type": ["number", "boolean", "string", "null"]
-    },
-    "origin": {
-      "type": "string"
-    },
-    "error": {
-      "$ref": "/miscs/telemetry/common/error.json"
-    },
-    "is_overridden": {
-      "type": "boolean"
-    }
-  },
-  "required": ["name", "value", "origin"]
+    "required": [
+      "name",
+      "value",
+      "origin"
+    ]
+  }
 }

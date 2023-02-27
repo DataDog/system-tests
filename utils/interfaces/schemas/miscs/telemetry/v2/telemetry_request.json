@@ -8,6 +8,21 @@
         "header": {
           "$ref": "/miscs/telemetry/v2/objects/header.json"
         }
+      },
+      "request_type": {
+        "enum": [
+          "app-started",
+          "app-extended-heartbeat",
+          "app-integrations-change",
+          "app-dependencies-loaded",
+          "app-client-configuration-change",
+          "app-product-change",
+          "generate-metrics",
+          "app-heartbeat",
+          "app-closing",
+          "apm-onboarding-event",
+          "message-batch"
+        ]
       }
     },
     {
