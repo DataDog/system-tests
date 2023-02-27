@@ -1,16 +1,18 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import re
 
 import pytest
 
-from utils import weblog, context, coverage, interfaces, released
+from utils import weblog, context, coverage, interfaces, released, irrelevant
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="?", golang="1.47.0", java="?", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
+@released(dotnet="?", golang="1.47.0", java="1.7.0", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
+@irrelevant(re.fullmatch(r"spring-.+native", context.weblog_variant), reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UserLoginSuccessEvent:
     """Success test for User Login Event SDK for AppSec"""

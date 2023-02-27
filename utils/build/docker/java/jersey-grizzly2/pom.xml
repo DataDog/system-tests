@@ -59,6 +59,11 @@
             <artifactId>opentracing-util</artifactId>
             <version>0.33.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.datadoghq</groupId>
+            <artifactId>dd-trace-api</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
 
     <build>

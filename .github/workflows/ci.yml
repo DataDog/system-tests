@@ -191,8 +191,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
-    - name: Pull images
-      run: docker-compose pull cassandra_db mongodb postgres
+    - name: Pull mongo image
+      run: docker pull mongo:latest
+    - name: Pull cassandra image
+      run: docker pull cassandra:latest
+    - name: Pull postgres image
+      run: docker pull postgres:latest
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -396,8 +400,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
-    - name: Pull images
-      run: docker-compose pull cassandra_db mongodb postgres
+    - name: Pull mongo image
+      run: docker pull mongo:latest
+    - name: Pull cassandra image
+      run: docker pull cassandra:latest
+    - name: Pull postgres image
+      run: docker pull postgres:latest
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -561,16 +569,16 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
-      if: ${{ always() }}
+      if: steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
-      if: ${{ always() }}
+      if: steps.build.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_graalvm
         path: artifact.tar.gz
     - name: Upload results CI Visibility
-      if: ${{ always() }}
+      if: steps.build.outcome == 'success'
       run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
