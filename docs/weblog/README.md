@@ -176,23 +176,53 @@ Supported Libraries:
 
 This endpoint calls the appsec event tracking SDK function used for user login success.
 
-The generated event has the following specification:
+By default, the generated event has the following specification:
 - User ID: `system_tests_user`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+Values can be changed with the query params called `event_user_id`.
 
 ## GET /user_login_failure_event
 
 This endpoint calls the appsec event tracking SDK function used for user login failure.
 
-The generated event has the following specification:
+By default, the generated event has the following specification:
 - User ID: `system_tests_user`
 - Exists: `true`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+Values can be changed with the query params called `event_user_id` and `event_user_exists`.
 
 ## GET /custom_event
 
 This endpoint calls the appsec event tracking SDK function used for custom events.
 
-The generated event has the following specification:
+By default, the generated event has the following specification:
 - Event name: `system_tests_event`
 - Metadata: `{metadata0: value0, metadata1: value1}`
+
+Values can be changed with the query params called `event_name`.
+
+## GET /users
+
+This endpoint calls the appsec blocking SDK functions used for blocking users. If the expected parameter matches one of
+the possible values the WAF will return the proper action.
+
+Expected query parameters:
+- `user`: user id.
+  - Possible values: `blockedUser`
+
+## GET /e2e_single_span
+
+This endpoint will create two spans, a parent span (which is a root-span), and a child span.
+The spans created are not sub-spans of the main root span automatically created by system-tests, but 
+they will have the same `user-agent` containing the request ID in order to allow assertions on them.
+
+The following query parameters are required:
+- `parentName`: The name of the parent span (root-span).
+- `childName`: The name of the child span (the parent of this span is the root-span identified by `parentName`).
+
+The following query parameters are optional:
+- `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
+
+This endpoint is used for the Single Spans tests (`test_single_span.py`).

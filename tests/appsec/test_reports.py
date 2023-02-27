@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import socket
+
 import pytest
 
 from utils import (
@@ -78,7 +80,8 @@ class Test_HttpClientIP:
         headers = {"User-Agent": "Arachni/v1"}
         self.r = weblog.get("/waf/", headers=headers, stream=True)
         try:
-            self.actual_remote_ip = self.r.raw._connection.sock.getsockname()[0]  # pylint: disable=protected-access
+            s = socket.fromfd(self.r.raw.fileno(), socket.AF_INET, socket.SOCK_STREAM)
+            self.actual_remote_ip = s.getsockname()[0]
             self.r.close()
         except:
             self.actual_remote_ip = None

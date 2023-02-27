@@ -113,6 +113,21 @@ def identify_propagate():
     return Response("OK")
 
 
+@app.route("/users")
+def users():
+    user = flask_request.args.get("user")
+    set_user(
+        tracer,
+        user_id=user,
+        email="usr.email",
+        name="usr.name",
+        session_id="usr.session_id",
+        role="usr.role",
+        scope="usr.scope",
+    )
+    return Response("OK")
+
+
 @app.route("/dbm")
 def dbm():
     integration = flask_request.args.get("integration")
