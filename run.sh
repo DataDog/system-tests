@@ -16,12 +16,12 @@ if [ -z "${DD_API_KEY:-}" ]; then
     exit 1
 fi
 
-CONTAINERS=(weblog agent runner)
 interfaces=(agent library backend)
 WEBLOG_ENV="DD_APPSEC_ENABLED=true\n"
 WEBLOG_ENV+="DD_TELEMETRY_HEARTBEAT_INTERVAL=2\n"
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
+export HOST_PWD=$(pwd)
 
 export DD_AGENT_HOST=runner
 export RUNNER_ARGS="tests/"
@@ -29,7 +29,6 @@ export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]
 
 if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export SYSTEMTESTS_LOG_FOLDER=logs
-    # CONTAINERS+=(postgres)
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
     WEBLOG_ENV+="DD_TRACE_SAMPLE_RATE=0.5"
@@ -124,7 +123,6 @@ elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
     WEBLOG_ENV+="DD_DBM_PROPAGATION_MODE=full"
-    CONTAINERS+=(cassandra_db mongodb postgres)
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_WAF_TELEMETRY" ]; then
     WEBLOG_ENV+="DD_INSTRUMENTATION_TELEMETRY_ENABLED=true\n"
@@ -134,30 +132,29 @@ elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E_SINGLE_SPAN" ]; then
     export RUNNER_ARGS="tests/apm_tracing_e2e"
-    WEBLOG_ENV+="DD_SPAN_SAMPLING_RULES='[{\"service\": \"weblog\", \"name\": \"*single_span_submitted\", \"sample_rate\": 1.0, \"max_per_second\": 50}]'"
+    WEBLOG_ENV+="DD_SPAN_SAMPLING_RULES=[{\"service\": \"weblog\", \"name\": \"*single_span_submitted\", \"sample_rate\": 1.0, \"max_per_second\": 50}]"
     WEBLOG_ENV+="\nDD_TRACE_SAMPLE_RATE=0"
 
 else # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
     export RUNNER_ARGS=$@
     export SYSTEMTESTS_LOG_FOLDER=logs
-    CONTAINERS+=(postgres)
 fi
-
-# Clean logs/ folder
-rm -rf $SYSTEMTESTS_LOG_FOLDER
 
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
+
+# Clean logs/ folder
+rm -rf $SYSTEMTESTS_LOG_FOLDER
 
 for interface in ${interfaces[@]}
 do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/interfaces/$interface
 done
-for CONTAINER in ${CONTAINERS[@]}
-do
-    mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/$CONTAINER
-done
+
+mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/runner
+mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs
+chmod -R 777 $SYSTEMTESTS_LOG_FOLDER
 
 # Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
 # But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
@@ -170,30 +167,9 @@ echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-echo "Starting containers in background"
-
-if docker-compose up -d --force-recreate ${CONTAINERS[*]}; then
-    echo "Containers started"
-else
-    echo "Some container failed to started"
-    docker ps --filter "health=unhealthy"
-    docker ps --quiet --filter "health=unhealthy" | xargs -n1 docker logs
-
-    exit 1
-fi
-
-export container_log_folder="unset"
-# Save docker logs
-for CONTAINER in ${CONTAINERS[@]}
-do
-    container_log_folder="${SYSTEMTESTS_LOG_FOLDER}/docker/${CONTAINER}"
-    docker-compose logs --no-color --no-log-prefix -f $CONTAINER > $container_log_folder/stdout.log &
-done
-
-echo "Outputting runner logs."
-
-# Show output. Trick: The process will end when runner ends
-docker-compose logs -f runner
+export WEBLOG_ENV
+docker-compose up --force-recreate runner
+docker-compose logs runner > $SYSTEMTESTS_LOG_FOLDER/docker/runner/stdout.log
 
 # Getting runner exit code.
 EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
