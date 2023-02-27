@@ -203,7 +203,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING":
             self.proxy_state = '{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
             self.weblog_env["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] = "1"
-            self.weblog_env["DD_DEBUGGER_ENABLED"]="1"
+            self.weblog_env["DD_DEBUGGER_ENABLED"] = "1"
             self.weblog_env["DD_REMOTE_CONFIG_ENABLED"] = "true"
             self.weblog_env["DD_INTERNAL_RCM_POLL_INTERVAL"] = "1000"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD":
@@ -222,7 +222,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         elif self.scenario == "APM_TRACING_E2E_SINGLE_SPAN":
             self.weblog_env[
                 "DD_SPAN_SAMPLING_RULES"
-            ] = '\'[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]\''
+            ] = '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]'
             self.weblog_env["DD_TRACE_SAMPLE_RATE"] = "0"
 
     @property
@@ -300,7 +300,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             "libddwaf_version": str(self.libddwaf_version),
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
-            "scenario": self.scenario
+            "scenario": self.scenario,
         }
 
         if self.library == "php":

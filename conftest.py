@@ -30,7 +30,7 @@ def pytest_sessionstart(session):
         logger.debug(info)
         terminal.write_line(info)
 
-    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are not running test_the_test
+    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means that we are not running test_the_test
 
         if not session.config.option.collectonly:
             start_proxy(context.proxy_state)
