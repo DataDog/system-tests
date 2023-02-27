@@ -218,6 +218,7 @@ def java_library_factory(env: Dict[str, str]):
     java_appdir = os.path.join("apps", "java")
     java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
     java_reldir = os.path.join("parametric", java_appdir)
+    protofile = os.path.join("parametric", "protos", "apm_test_client.proto")
     return APMLibraryTestServer(
         lang="java",
         protocol="grpc",
@@ -230,6 +231,7 @@ COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
 COPY {java_reldir}/run.sh .
+COPY {protofile} src/main/proto/
 COPY binaries /binaries
 RUN bash build.sh
 """,
