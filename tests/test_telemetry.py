@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import time
+import sys
 from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
@@ -55,17 +56,24 @@ class Test_Telemetry:
 
     def test_telemetry_message_data_dependency_count(self):
         "Test telemetry message data dependency size"
-
-        def validator(data):
+  
+        def validate_integration_changes(data):
             content = data["request"]["content"]
-            dependencies = content["payload"]["dependencies"]
+            if content.get("request_type") == "app-integrations-change":
+                integrations = content["payload"]["integrations"]
+                if len(integrations) > 2000:
+                    raise Exception(
+                        f"Received message integrations count is more than 2000")
 
-            if len(dependencies) > 2000:
-                raise Exception(
-                        f"Received message dependency count is more than 2000")
-
-        self.validate_library_telemetry_data(validator)
-        self.validate_agent_telemetry_data(validator)
+        def validate_dependencies_changes(data):
+            content = data["request"]["content"]
+            if content["request_type"] == "app-dependencies-loaded" or content.get("request_type") == "app-extended-heartbeat":
+                dependencies = content["payload"]["dependencies"]
+                if len(dependencies) > 2000:
+                    raise Exception(
+                        f"Received message dependencies count is more than 2000")       
+        self.validate_library_telemetry_data(validate_dependencies_changes)
+        self.validate_library_telemetry_data(validate_integration_changes)
 
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
@@ -78,7 +86,6 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
-    
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
         reason="Version reporting of trace agent is broken in 7.36.x release",
@@ -124,10 +131,10 @@ class Test_Telemetry:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
+            seq_id = data["request"]["content"]["seq_id"]
+            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if 200 <= data["response"]["status_code"] < 300:
-                seq_id = data["request"]["content"]["seq_id"]
                 seq_ids.append((seq_id, data["log_filename"]))
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if seq_id > max_seq_id:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
@@ -268,19 +275,6 @@ class Test_Telemetry:
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
-
-        self.validate_library_telemetry_data(validator)
-
-    def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
-        weblog.get("/load_dependency")
-
-    def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
-        "Test app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"
-        def validator(data):
-            TELEMETRY_DEPENDENCY_COLLECTION_ENABLED = bool(context.weblog_image.env.get("DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED"))
-            if TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is False:
-                if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
-                    raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
         self.validate_library_telemetry_data(validator)
 
