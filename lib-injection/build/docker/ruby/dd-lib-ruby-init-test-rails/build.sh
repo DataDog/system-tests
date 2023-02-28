@@ -5,7 +5,9 @@ if [ -z "${BUILDX_PLATFORMS}" ] ; then
 fi
 
 cp -r ../lib_injection_rails_app .
+cp ../.dockerignore .
 
 docker buildx build --platform ${BUILDX_PLATFORMS} --tag ${LIBRARY_INJECTION_TEST_APP_IMAGE} --push .
 
+rm .dockerignore
 rm -rf lib_injection_rails_app
