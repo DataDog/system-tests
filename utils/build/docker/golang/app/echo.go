@@ -32,6 +32,15 @@ func main() {
 	r.Any("/waf", waf)
 	r.Any("/waf/", waf)
 
+	r.Any("/users", func(c echo.Context) error {
+		userID := c.QueryParam("user")
+		if err := appsec.SetUser(c.Request().Context(), userID); err != nil {
+			return err
+		}
+
+		return c.String(http.StatusOK, "Hello, "+userID)
+	})
+
 	r.Any("/sample_rate_route/:i", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
