@@ -5,6 +5,7 @@ from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 import sys
 
+
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
@@ -46,23 +47,21 @@ class Test_Telemetry:
         "Test telemetry message data size"
 
         def validator(data):
-            if sys.getsizeof(data)/1000000 >= 5:
-                raise Exception(
-                        f"Received message size is more than 5MB")
+            if sys.getsizeof(data) / 1000000 >= 5:
+                raise Exception(f"Received message size is more than 5MB")
 
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
     def test_telemetry_message_data_dependency_count(self):
         "Test telemetry message data dependency size"
-        
+
         def validator(data):
             content = data["request"]["content"]
             dependencies = content["payload"]["dependencies"]
 
             if len(dependencies) > 2000:
-                raise Exception(
-                        f"Received message dependency count is more than 2000")
+                raise Exception(f"Received message dependency count is more than 2000")
 
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
