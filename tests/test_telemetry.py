@@ -106,7 +106,9 @@ class Test_Telemetry:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
             else:
-                if received_max_time is not None and (curr_message_time - received_max_time) > MAX_OUT_OF_ORDER_LAG:
+                if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                    seconds=MAX_OUT_OF_ORDER_LAG
+                ):
                     raise Exception(
                         f"Received message with seq_id {seq_id} to far more than"
                         f"100ms after message with seq_id {max_seq_id}"
@@ -263,7 +265,6 @@ class Test_Telemetry:
                 delta = curr_message_time - prev_message_time
                 if delta > timedelta(seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL):
                     raise Exception(
-                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: "
-                        "{TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
+                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
                     )
             prev_message_time = curr_message_time
