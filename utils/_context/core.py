@@ -192,7 +192,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             self.proxy_state = '{"mock_remote_config_backend": "ASM_DATA"}'
         elif self.scenario == "APPSEC_RUNTIME_ACTIVATION":
             self.proxy_state = '{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
-            self.weblog_env["DD_APPSEC_ENABLED"] = "false"
+            del self.weblog_env["DD_APPSEC_ENABLED"]
             self.weblog_env["DD_RC_TARGETS_KEY_ID"] = "TEST_KEY_ID"
             self.weblog_env["DD_RC_TARGETS_KEY"] = "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c"
             self.weblog_env["DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED"] = "true"
