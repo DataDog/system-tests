@@ -11,6 +11,10 @@
     "hash": {
       "type": "string"
     },
+    "type": {
+      "enum": ["SharedSystemLibrary", "PlatformStandard"],
+      "example": "SharedSystemLibrary"
+    },
     "version": {
       "type": "string"
     }
