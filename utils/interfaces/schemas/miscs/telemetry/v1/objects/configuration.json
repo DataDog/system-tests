@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v1/objects/configuration.json",
+  "description": "V1 Configuration Object",
+  "title": "Instrumentation Telemetry V1 Configuration",
+  "type": "array",
+  "items": {
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "value": {
+        "type": ["number", "boolean", "string", "null"]
+      }
+    },
+    "required": ["name", "value"]
+  }
+}

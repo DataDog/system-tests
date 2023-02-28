@@ -154,7 +154,7 @@ def _create_junit_testsuite_context(testsuite_props):
         testsuite_props,
         "property",
         name="dd_tags[systest.suite.context.sampling_rate]",
-        value=str(context.sampling_rate or ""),
+        value=str(context.tracer_sampling_rate or ""),
     )
     ET.SubElement(
         testsuite_props,
