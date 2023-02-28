@@ -33,7 +33,7 @@ class Test_SingleSpan:
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
         spans = _get_spans_submitted(self.req)
-        assert 1 == len(spans), _assert_msg(1, len(spans))
+        assert 1 == len(spans), _assert_msg(1, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the spans sent by the agent.
         span = spans[0]
@@ -56,7 +56,7 @@ class Test_SingleSpan:
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!
         spans = _get_spans_submitted(self.req)
-        assert 1 == len(spans), _assert_msg(1, len(spans))
+        assert 1 == len(spans), _assert_msg(1, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the spans sent by the agent.
         span = spans[0]
@@ -94,5 +94,5 @@ def _get_spans_submitted(request):
     return [span for _, span in interfaces.agent.get_spans(request)]
 
 
-def _assert_msg(expected, actual):
-    return f"\n\tExpected:\t{expected}\n\tActual:\t\t{actual}\n\n"
+def _assert_msg(expected, actual, msg=None):
+    return f"{msg or ''}\n\tExpected:\t{expected}\n\tActual:\t\t{actual}\n\n"

@@ -239,7 +239,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
     def _get_event_platform_spans(self, query_filter, limit):
         # Example of this query can be seen in the `events-ui` internal website (see Jira ATI-2419).
         host = self._get_dd_site_api_host()
-        path = "/api/v1/event-platform/analytics/list?type=trace"
+        path = "/api/unstable/event-platform/analytics/list?type=trace"
 
         headers = {
             "DD-API-KEY": os.environ["DD_API_KEY"],
@@ -264,13 +264,19 @@ class _BackendInterfaceValidator(InterfaceValidator):
         }
         r = requests.post(f"{host}{path}", json=request_data, headers=headers, timeout=10)
 
+        contentJson = None
+        try:
+            contentJson = r.json()
+        except:
+            pass
+
         data = {
             "host": host,
             "path": path,
             "response": {
                 "status_code": r.status_code,
                 "content": r.text,
-                "contentJson": r.json(),
+                "contentJson": contentJson,
                 "headers": dict(r.headers),
             },
         }
