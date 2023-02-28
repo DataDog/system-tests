@@ -72,6 +72,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
                             break
 
     def get_spans(self, request=None):
+        """
+        Iterate over all spans reported by the tracer to the agent.
+        If request is not None, only span trigered by this request will be returned.
+        """
         rid = get_rid_from_request(request)
 
         if rid:
