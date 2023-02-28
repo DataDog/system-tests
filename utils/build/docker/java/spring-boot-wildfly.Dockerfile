@@ -20,11 +20,13 @@ WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT-bootable.jar .
+COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT-bootable.jar /app/app.jar
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
-ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+COPY ./utils/build/docker/java/app.sh /app/app.sh
+RUN chmod +x /app/app.sh
 
-RUN echo "#!/bin/bash\njava -Xmx362m  -javaagent:/app/dd-java-agent.jar -jar /app/myproject-0.0.1-SNAPSHOT-bootable.jar  -Djboss.http.port=7777 -b=0.0.0.0" > app.sh
-RUN chmod +x app.sh
-CMD [ "./app.sh" ]
+ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV APP_EXTRA_ARGS="-Djboss.http.port=7777 -b=0.0.0.0"
+
+CMD [ "/app/app.sh" ]
