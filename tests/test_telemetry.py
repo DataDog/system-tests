@@ -44,7 +44,7 @@ class Test_Telemetry:
             validator(data)
 
     def test_telemetry_message_data_size(self):
-        "Test telemetry message data size"
+        """Test telemetry message data size"""
 
         def validator(data):
             if sys.getsizeof(data) / 1000000 >= 5:
@@ -54,7 +54,7 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(validator)
 
     def test_telemetry_message_data_dependency_count(self):
-        "Test telemetry message data dependency size"
+        """Test telemetry message data dependency size"""
 
         def validate_integration_changes(data):
             content = data["request"]["content"]
