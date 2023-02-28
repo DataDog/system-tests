@@ -5,7 +5,6 @@ from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 import sys
 
-
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
@@ -44,24 +43,26 @@ class Test_Telemetry:
             validator(data)
 
     def test_telemetry_message_data_size(self):
-        "Test telemetry message data size"
+        """Test telemetry message data size"""
 
         def validator(data):
-            if sys.getsizeof(data) / 1000000 >= 5:
-                raise Exception(f"Received message size is more than 5MB")
+            if sys.getsizeof(data)/1000000 >= 5:
+                raise Exception(
+                        f"Received message size is more than 5MB")
 
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
     def test_telemetry_message_data_dependency_count(self):
-        "Test telemetry message data dependency size"
-
+        """Test telemetry message data dependency size"""
+        
         def validator(data):
             content = data["request"]["content"]
             dependencies = content["payload"]["dependencies"]
 
             if len(dependencies) > 2000:
-                raise Exception(f"Received message dependency count is more than 2000")
+                raise Exception(
+                        f"Received message dependency count is more than 2000")
 
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
@@ -130,9 +131,7 @@ class Test_Telemetry:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
             else:
-                if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
-                    seconds=MAX_OUT_OF_ORDER_LAG
-                ):
+                if received_max_time is not None and (curr_message_time - received_max_time) > MAX_OUT_OF_ORDER_LAG:
                     raise Exception(
                         f"Received message with seq_id {seq_id} to far more than"
                         f"100ms after message with seq_id {max_seq_id}"
