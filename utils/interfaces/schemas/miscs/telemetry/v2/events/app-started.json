@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/events/app-started.json",
+  "description": "app-started v2 schema",
+  "title": "app-started v2",
+  "type": "object",
+  "properties": {
+    "configuration": {
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
+    },
+    "remote_config": {
+      "$ref": "/miscs/telemetry/common/objects/remote_config.json"
+    },
+    "error": {
+      "$ref": "/miscs/telemetry/common/objects/error.json"
+    },
+    "additional_payload": {
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
+    }
+  },
+  "required": ["configuration"],
+  "not": { "required": ["dependencies", "integrations"] }
+}
