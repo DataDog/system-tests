@@ -59,15 +59,6 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         )
         self.weblog_variant = self.weblog_image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if "DD_TRACE_SAMPLE_RATE" in self.weblog_image.env:
-            sampling_rate = self.weblog_image.env["DD_TRACE_SAMPLE_RATE"]
-            try:
-                self.sampling_rate = float(sampling_rate)
-            except:
-                pytest.exit(f"DD_TRACE_SAMPLE_RATE should be a float, not {sampling_rate}")
-        else:
-            self.sampling_rate = None
-
         if self.library == "php":
             self.php_appsec = Version(self.weblog_image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
         else:
@@ -238,6 +229,13 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         return os.environ.get("DD_TRACE_AGENT_PORT", 8126)
 
     @property
+    def tracer_sampling_rate(self):
+        if "DD_TRACE_SAMPLE_RATE" not in self.weblog_env:
+            return None
+
+        return float(self.weblog_env["DD_TRACE_SAMPLE_RATE"])
+
+    @property
     def required_containers(self):
         result = []
 
@@ -296,7 +294,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             "library": self.library.serialize(),
             "weblog_variant": self.weblog_variant,
             "dd_site": self.dd_site,
-            "sampling_rate": self.sampling_rate,
+            "sampling_rate": self.tracer_sampling_rate,
             "libddwaf_version": str(self.libddwaf_version),
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
