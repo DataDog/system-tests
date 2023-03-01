@@ -1,6 +1,7 @@
 .idea
 .env
 __pycache__
+binaries/*
 !binaries/README.md
 
 venv
