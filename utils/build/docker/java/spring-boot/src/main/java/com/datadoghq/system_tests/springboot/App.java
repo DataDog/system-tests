@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +36,8 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.LogManager;  
 import org.apache.log4j.Logger;  
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import org.apache.http.impl.client.CloseableHttpClient;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -109,6 +112,42 @@ public class App {
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
+    private static final Map<String, String> METADATA = createMetadata();
+    private static final Map<String, String> createMetadata() {
+        HashMap<String, String> h = new HashMap<>();
+        h.put("metadata0", "value0");
+        h.put("metadata1", "value1");
+        return h;
+    }
+
+    @GetMapping("/user_login_success_event")
+    public String userLoginSuccess(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginSuccessEvent(userId, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/user_login_failure_event")
+    public String userLoginFailure(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId,
+            @RequestParam(value = "event_user_exists", defaultValue = "true") boolean eventUserExists) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginFailureEvent(userId, eventUserExists, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/custom_event")
+    public String customEvent(
+            @RequestParam(value = "event_name", defaultValue = "system_tests_event") String eventName) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackCustomEvent(eventName, METADATA);
+
+        return "ok";
     }
 
     @JacksonXmlRootElement
@@ -359,12 +398,42 @@ public class App {
         return new RedirectView("https://" + redirect);
     }
 
+    @RequestMapping("/e2e_single_span")
+    String e2eSingleSpan(@RequestHeader(required = true, name = "User-Agent") String userAgent,
+                         @RequestParam(required = true, name="parentName") String parentName,
+                         @RequestParam(required = true, name="childName") String childName,
+                         @RequestParam(required = false, name="shouldIndex") int shouldIndex) {
+        // We want the parentSpan to be a true root-span (parentId==0).
+        Span parentSpan = GlobalTracer.get().buildSpan(parentName).ignoreActiveSpan().withTag("http.useragent", userAgent).start();
+        Span childSpan = GlobalTracer.get().buildSpan(childName).withTag("http.useragent", userAgent).asChildOf(parentSpan).start();
+
+        if (shouldIndex == 1) {
+            // Simulate a retention filter (see https://github.com/DataDog/system-tests/pull/898).
+            parentSpan.setTag("_dd.filter.kept", 1);
+            parentSpan.setTag("_dd.filter.id", "system_tests_e2e");
+            childSpan.setTag("_dd.filter.kept", 1);
+            childSpan.setTag("_dd.filter.id", "system_tests_e2e");
+        }
+
+        long nowMicros = System.currentTimeMillis() * 1000;
+        long tenSecMicros = 10_000_000;
+        childSpan.finish(nowMicros + tenSecMicros);
+        parentSpan.finish(nowMicros + 2*tenSecMicros);
+
+        return "OK";
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     @Trace
     public void init() {
         new AppReadyHandler(this).start();
     }
 
+    @RequestMapping("/load_dependency")
+    public String loadDep() throws ClassNotFoundException {
+        Class<?> klass = this.getClass().getClassLoader().loadClass("org.apache.http.client.HttpClient");
+        return "Loaded Dependency\n".concat(klass.toString());
+    }
 
 
     @Bean

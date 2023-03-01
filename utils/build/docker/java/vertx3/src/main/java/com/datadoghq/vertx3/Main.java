@@ -10,6 +10,8 @@ import io.vertx.ext.web.handler.BodyHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.LogManager;
 
 public class Main {
@@ -77,9 +79,52 @@ public class Main {
                     int code = Integer.parseInt(codeString);
                     ctx.response().setStatusCode(code).end();
                 });
+        router.get("/user_login_success_event")
+                .handler(ctx -> {
+                    String event_user_id = ctx.request().getParam("event_user_id");
+                    if (event_user_id == null) {
+                        event_user_id = "system_tests_user";
+                    }
+                    datadog.trace.api.GlobalTracer.getEventTracker()
+                            .trackLoginSuccessEvent(
+                                    event_user_id, METADATA);
+                    ctx.response().end("ok");
+                });
+        router.get("/user_login_failure_event")
+                .handler(ctx -> {
+                    String event_user_id = ctx.request().getParam("event_user_id");
+                    if (event_user_id == null) {
+                        event_user_id = "system_tests_user";
+                    }
+                    String event_user_exists = ctx.request().getParam("event_user_exists");
+                    if (event_user_exists == null) {
+                        event_user_exists = "true";
+                    }
+                    datadog.trace.api.GlobalTracer.getEventTracker()
+                            .trackLoginFailureEvent(
+                                    event_user_id, Boolean.parseBoolean(event_user_exists), METADATA);
+                    ctx.response().end("ok");
+                });
+        router.get("/custom_event")
+                .handler(ctx -> {
+                    String event_name = ctx.request().getParam("event_name");
+                    if (event_name == null) {
+                        event_name = "system_tests_event";
+                    }
+                    datadog.trace.api.GlobalTracer.getEventTracker()
+                            .trackCustomEvent(event_name, METADATA);
+                    ctx.response().end("ok");
+                });
 
         server.requestHandler(router::accept).listen(7777);
     }
 
+    private static final Map<String, String> METADATA = createMetadata();
+    private static final Map<String, String> createMetadata() {
+        HashMap<String, String> h = new HashMap<>();
+        h.put("metadata0", "value0");
+        h.put("metadata1", "value1");
+        return h;
+    }
 
 }

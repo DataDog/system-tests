@@ -211,3 +211,23 @@ the possible values the WAF will return the proper action.
 Expected query parameters:
 - `user`: user id.
   - Possible values: `blockedUser`
+
+## GET /load_dependency
+
+This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that 
+the `dependencies-loaded` event is appropriately triggered.
+
+## GET /e2e_single_span
+
+This endpoint will create two spans, a parent span (which is a root-span), and a child span.
+The spans created are not sub-spans of the main root span automatically created by system-tests, but 
+they will have the same `user-agent` containing the request ID in order to allow assertions on them.
+
+The following query parameters are required:
+- `parentName`: The name of the parent span (root-span).
+- `childName`: The name of the child span (the parent of this span is the root-span identified by `parentName`).
+
+The following query parameters are optional:
+- `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
+
+This endpoint is used for the Single Spans tests (`test_single_span.py`).

@@ -96,3 +96,21 @@ class SchemaValidator:
                     logger.error(f"* {message}")
 
                 raise Exception(f"Schema is invalid in {data['log_filename']}")
+
+        logger.debug(f"{data['log_filename']} schema validation ok")
+
+
+def _main():
+    for interface in ("agent", "library"):
+        validator = SchemaValidator(interface)
+        path = f"logs/interfaces/{interface}"
+        files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+        for file in files:
+            data = json.load(open(os.path.join(path, file), encoding="utf-8"))
+
+            if "request" in data and data["request"]["length"] != 0:
+                validator(data)
+
+
+if __name__ == "__main__":
+    _main()

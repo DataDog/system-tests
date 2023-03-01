@@ -80,6 +80,12 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
   });
 });
 
+app.get('/load_dependency', (req: Request, res: Response) => {
+  console.log('Load dependency endpoint');
+  var glob = require("glob")
+  res.send("Loaded a dependency")
+ }); 
+
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
 

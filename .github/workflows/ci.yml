@@ -24,17 +24,17 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  add-pr-labels:
-    runs-on: ubuntu-latest
-    if: github.event.action == 'opened'
+  check-pr-labels:
+    runs-on: ubuntu-latest 
     steps:
-      - uses: actions/checkout@v2
       - uses: actions-ecosystem/action-add-labels@v1
+        if: github.event.action == 'opened'
         with:
           labels: run-default-scenario
-
   lint_and_test:
     runs-on: ubuntu-latest
+    needs:
+    - check-pr-labels
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -191,8 +191,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
-    - name: Pull images
-      run: docker-compose pull cassandra_db mongodb postgres
+    - name: Pull mongo image
+      run: docker pull mongo:latest
+    - name: Pull cassandra image
+      run: docker pull cassandra:latest
+    - name: Pull postgres image
+      run: docker pull postgres:latest
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -346,7 +350,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_WAF_TELEMETRY scenario
-      if: steps.build.outcome == 'success'
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -396,8 +400,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
-    - name: Pull images
-      run: docker-compose pull cassandra_db mongodb postgres
+    - name: Pull mongo image
+      run: docker pull mongo:latest
+    - name: Pull cassandra image
+      run: docker pull cassandra:latest
+    - name: Pull postgres image
+      run: docker pull postgres:latest
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -561,16 +569,16 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
-      if: ${{ always() }}
+      if: steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
-      if: ${{ always() }}
+      if: steps.build.outcome == 'success'
       uses: actions/upload-artifact@v3
       with:
         name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_graalvm
         path: artifact.tar.gz
     - name: Upload results CI Visibility
-      if: ${{ always() }}
+      if: steps.build.outcome == 'success'
       run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}

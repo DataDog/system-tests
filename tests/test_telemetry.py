@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+import time
 from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
@@ -82,6 +82,19 @@ class Test_Telemetry:
             path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
         )
 
+    def test_telemetry_message_required_headers(self):
+        """Test telemetry messages contain required headers"""
+
+        def not_onboarding_event(data):
+            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
+
+        interfaces.agent.assert_headers_presence(
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-api-key", "dd-telemetry-api-version", "dd-telemetry-request-type"],
+            check_condition=not_onboarding_event,
+        )
+
+    @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -106,7 +119,9 @@ class Test_Telemetry:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
             else:
-                if received_max_time is not None and (curr_message_time - received_max_time) > MAX_OUT_OF_ORDER_LAG:
+                if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                    seconds=MAX_OUT_OF_ORDER_LAG
+                ):
                     raise Exception(
                         f"Received message with seq_id {seq_id} to far more than"
                         f"100ms after message with seq_id {max_seq_id}"
@@ -142,22 +157,6 @@ class Test_Telemetry:
                 assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
 
         self.validate_library_telemetry_data(validator)
-
-    def test_telemetry_messages_valid(self):
-        """Telemetry messages additional validation"""
-
-        def validate_integration_changes(data):
-            content = data["request"]["content"]
-            if content.get("request_type") == "app-integrations-change":
-                assert content["payload"]["integrations"], "Integrations changes must not be empty"
-
-        def validate_dependencies_changes(data):
-            content = data["request"]["content"]
-            if content["request_type"] == "app-dependencies-loaded":
-                assert content["payload"]["dependencies"], "Dependencies changes must not be empty"
-
-        self.validate_library_telemetry_data(validate_integration_changes)
-        self.validate_library_telemetry_data(validate_dependencies_changes)
 
     @bug(
         library="dotnet",
@@ -245,6 +244,9 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
+    def setup_app_heartbeat(self):
+        time.sleep(20)
+
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -263,10 +265,100 @@ class Test_Telemetry:
                 delta = curr_message_time - prev_message_time
                 if delta > timedelta(seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL):
                     raise Exception(
-                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: "
-                        "{TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
+                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
                     )
             prev_message_time = curr_message_time
+
+    def setup_app_dependencies_loaded(self):
+        weblog.get("/load_dependency")
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="python")
+    @irrelevant(library="ruby")
+    @bug(
+        library="java",
+        reason="""
+        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
+        """,
+    )
+    def test_app_dependencies_loaded(self):
+        """test app-dependencies-loaded requests"""
+
+        test_loaded_dependencies = {
+            "dotnet": {"NodaTime": False},
+            "nodejs": {"glob": False},
+            "java": {"httpclient": False},
+        }
+
+        test_defined_dependencies = {
+            "dotnet": {},
+            "nodejs": {
+                "body-parser": False,
+                "cookie-parser": False,
+                "express": False,
+                "express-xml-bodyparser": False,
+                "pg": False,
+                "glob": False,
+            },
+            "java": {
+                "spring-boot-starter-json": False,
+                "spring-boot-starter-jdbc": False,
+                "jackson-dataformat-xml": False,
+                "dd-trace-api": False,
+                "opentracing-api": False,
+                "opentracing-util": False,
+                "postgresql": False,
+                "java-driver-core": False,
+                "metrics-core": False,
+                "mongo-java-driver": False,
+                "ognl": False,
+                "protobuf-java": False,
+                "grpc-netty-shaded": False,
+                "grpc-protobuf": False,
+                "grpc-stub": False,
+                "jaxb-api": False,
+                "bcprov-jdk15on": False,
+                "hsqldb": False,
+                "spring-boot-starter-security": False,
+                "spring-ldap-core": False,
+                "spring-security-ldap": False,
+                "unboundid-ldapsdk": False,
+                "httpclient": False,
+            },
+        }
+
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
+        seen_defined_dependencies = test_defined_dependencies[context.library.library]
+
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-started":
+                if "dependencies" in content["payload"]:
+                    for dependency in content["payload"]["dependencies"]:
+                        dependency_id = dependency["name"]  # +dep["version"]
+                        if dependency_id in seen_loaded_dependencies:
+                            raise Exception("Loaded dependency should not be in app-started")
+                        if dependency_id not in seen_defined_dependencies:
+                            continue
+                        seen_defined_dependencies[dependency_id] = True
+            elif content.get("request_type") == "app-dependencies-loaded":
+                for dependency in content["payload"]["dependencies"]:
+                    dependency_id = dependency["name"]  # +dependency["version"]
+                    if seen_loaded_dependencies.get(dependency_id) is True:
+                        raise Exception(
+                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
+                        )
+                    if dependency_id in seen_defined_dependencies:
+                        seen_defined_dependencies[dependency_id] = True
+                    if dependency_id in seen_loaded_dependencies:
+                        seen_loaded_dependencies[dependency_id] = True
+
+        for dependency, seen in seen_loaded_dependencies.items():
+            if not seen:
+                raise Exception(dependency + " not recieved in app-dependencies-loaded message")
 
     def setup_app_integrations_change(self):
         self.r = weblog.get("/enable_integration")

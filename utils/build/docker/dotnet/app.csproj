@@ -13,6 +13,7 @@
 		<PackageReference Include="System.Data.SqlClient" />
 		<PackageReference Include="NLog" Version="5.1.1" />
 		<PackageReference Include="NLog.Web.AspNetCore" Version="5.1.1" />   
+		<PackageReference Include="NodaTime" Version="3.1.6"/>
 		<Reference Include="Datadog.Trace">
 			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
 		</Reference>

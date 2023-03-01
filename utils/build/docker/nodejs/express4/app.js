@@ -66,7 +66,6 @@ app.get("/status", (req, res) => {
 app.get("/make_distant_call", (req, res) => {
   const url = req.query.url;
   console.log(url);
-
   axios.get(url)
   .then(response => {
     res.json({
@@ -137,7 +136,13 @@ app.get("/users", (req, res) => {
 
 require("./iast")(app, tracer);
 
-app.listen(7777, "0.0.0.0", () => {
-  tracer.trace("init.service", () => {});
-  console.log("listening");
+app.get('/load_dependency', (req, res) => {
+  console.log('Load dependency endpoint');
+  var glob = require("glob")
+  res.send("Loaded a dependency")
+ }); 
+
+app.listen(7777, '0.0.0.0', () => {
+  tracer.trace('init.service', () => {});
+  console.log('listening');
 });
