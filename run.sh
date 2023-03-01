@@ -34,11 +34,15 @@ else
     export SYSTEMTESTS_LOG_FOLDER=logs
 fi
 
+export HOST_PWD=$(pwd)
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 
 # Clean logs/ folder
 rm -rf $SYSTEMTESTS_LOG_FOLDER
+
+interfaces=(agent library backend)
+
 
 for interface in ${interfaces[@]}
 do
