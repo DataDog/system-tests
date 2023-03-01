@@ -17,7 +17,7 @@ if [ -z "${DD_API_KEY:-}" ]; then
 fi
 
 FIRST_ARGUMENT=${1:-DEFAULT}
-if [[ $FIRST_ARGUMENT =~ ^[A-Z_]+$ ]]; then
+if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
     export SYSTEMTESTS_SCENARIO=$FIRST_ARGUMENT
     export RUNNER_ARGS="tests/"
 

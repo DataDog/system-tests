@@ -153,6 +153,8 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             pass  # nothing to do
         elif self.scenario == "CGROUP":
             pass  # nothing to do
+        elif self.scenario == "CUSTOM":
+            pass  # nothing to do
         elif self.scenario == "SAMPLING":
             self.weblog_env["DD_TRACE_SAMPLE_RATE"] = "0.5"
         elif self.scenario == "APPSEC_MISSING_RULES":
