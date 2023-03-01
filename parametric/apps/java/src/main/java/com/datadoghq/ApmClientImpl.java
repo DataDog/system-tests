@@ -193,7 +193,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
         Span span = this.spans.get(spanId);
         if (span == null) {
             String message = "Span " + spanId + " does not exist.";
-            LOGGER.warning(message);
+            LOGGER.warn(message);
             responseObserver.onError(new IllegalArgumentException(message));
             return null;
         }
