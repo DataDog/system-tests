@@ -20,7 +20,6 @@ services:
       - DD_SITE=${DD_SITE:-datad0g.com}
       # - DD_URL=https://app.datad0g.com
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
-      - DD_AGENT_HOST
       - DD_TRACE_AGENT_PORT=8126
     volumes:
       - ./scenarios/:/app/scenarios/:ro
