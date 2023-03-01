@@ -131,7 +131,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         """ returns the default weblog environment """
 
         result = {
-            "DD_AGENT_HOST": os.environ.get("DD_AGENT_HOST", "runner"),
+            "DD_AGENT_HOST": "runner",
             "DD_TRACE_AGENT_PORT": self.agent_port,
             "DD_APPSEC_ENABLED": "true",
             "DD_TELEMETRY_HEARTBEAT_INTERVAL": "2",
@@ -215,6 +215,8 @@ class _Context:  # pylint: disable=too-many-instance-attributes
                 "DD_SPAN_SAMPLING_RULES"
             ] = '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]'
             self.weblog_env["DD_TRACE_SAMPLE_RATE"] = "0"
+        else:
+            raise ValueError(f"The scenario {self.scenario} does not exists")
 
     @property
     def host_log_folder(self):
