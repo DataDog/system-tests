@@ -14,7 +14,7 @@ RUN mvn -Dmaven.repo.local=/maven -Pwildfly package
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-FROM adoptopenjdk:11-jre-hotspot
+FROM eclipse-temurin:11-jre
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
