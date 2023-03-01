@@ -147,7 +147,13 @@ class _Context:  # pylint: disable=too-many-instance-attributes
     def _init_scenario(self):
         self.weblog_env["SYSTEMTESTS_SCENARIO"] = self.scenario
 
-        if self.scenario == "SAMPLING":
+        if self.scenario == "DEFAULT":
+            pass  # nothing to do
+        elif self.scenario == "PROFILING":
+            pass  # nothing to do
+        elif self.scenario == "CGROUP":
+            pass  # nothing to do
+        elif self.scenario == "SAMPLING":
             self.weblog_env["DD_TRACE_SAMPLE_RATE"] = "0.5"
         elif self.scenario == "APPSEC_MISSING_RULES":
             self.weblog_env["DD_APPSEC_RULES"] = "/donotexists"
