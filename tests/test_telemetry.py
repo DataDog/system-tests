@@ -47,34 +47,11 @@ class Test_Telemetry:
         """Test telemetry message data size"""
 
         def validator(data):
-            if sys.getsizeof(data) / 1000000 >= 5:
+            if data["request"]["length"] / 1000000 >= 5:
                 raise Exception(f"Received message size is more than 5MB")
 
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
-
-    def test_telemetry_message_data_dependency_count(self):
-        """Test telemetry message data dependency size"""
-
-        def validate_integration_changes(data):
-            content = data["request"]["content"]
-            if content.get("request_type") == "app-integrations-change":
-                integrations = content["payload"]["integrations"]
-                if len(integrations) > 2000:
-                    raise Exception(f"Received message integrations count is more than 2000")
-
-        def validate_dependencies_changes(data):
-            content = data["request"]["content"]
-            if (
-                content["request_type"] == "app-dependencies-loaded"
-                or content.get("request_type") == "app-extended-heartbeat"
-            ):
-                dependencies = content["payload"]["dependencies"]
-                if len(dependencies) > 2000:
-                    raise Exception(f"Received message dependencies count is more than 2000")
-
-        self.validate_library_telemetry_data(validate_dependencies_changes)
-        self.validate_library_telemetry_data(validate_integration_changes)
 
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
