@@ -34,6 +34,7 @@ jobs:
         - python_http
         - dotnet
         - golang
+        - java
         - nodejs
       fail-fast: false
     steps:
