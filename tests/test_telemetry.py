@@ -116,6 +116,19 @@ class Test_Telemetry:
             path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
         )
 
+    def test_telemetry_message_required_headers(self):
+        """Test telemetry messages contain required headers"""
+
+        def not_onboarding_event(data):
+            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
+
+        interfaces.agent.assert_headers_presence(
+            path_filter="/api/v2/apmtelemetry",
+            request_headers=["dd-api-key", "dd-telemetry-api-version", "dd-telemetry-request-type"],
+            check_condition=not_onboarding_event,
+        )
+
+    @missing_feature(library="python")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -140,7 +153,9 @@ class Test_Telemetry:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
             else:
-                if received_max_time is not None and (curr_message_time - received_max_time) > MAX_OUT_OF_ORDER_LAG:
+                if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                    seconds=MAX_OUT_OF_ORDER_LAG
+                ):
                     raise Exception(
                         f"Received message with seq_id {seq_id} to far more than"
                         f"100ms after message with seq_id {max_seq_id}"
@@ -176,22 +191,6 @@ class Test_Telemetry:
                 assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
 
         self.validate_library_telemetry_data(validator)
-
-    def test_telemetry_messages_valid(self):
-        """Telemetry messages additional validation"""
-
-        def validate_integration_changes(data):
-            content = data["request"]["content"]
-            if content.get("request_type") == "app-integrations-change":
-                assert content["payload"]["integrations"], "Integrations changes must not be empty"
-
-        def validate_dependencies_changes(data):
-            content = data["request"]["content"]
-            if content["request_type"] == "app-dependencies-loaded":
-                assert content["payload"]["dependencies"], "Dependencies changes must not be empty"
-
-        self.validate_library_telemetry_data(validate_integration_changes)
-        self.validate_library_telemetry_data(validate_dependencies_changes)
 
     @bug(
         library="dotnet",
@@ -300,8 +299,7 @@ class Test_Telemetry:
                 delta = curr_message_time - prev_message_time
                 if delta > timedelta(seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL):
                     raise Exception(
-                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: "
-                        "{TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
+                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
                     )
             prev_message_time = curr_message_time
 

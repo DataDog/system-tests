@@ -17,8 +17,6 @@ if [ -z "${DD_API_KEY:-}" ]; then
 fi
 
 interfaces=(agent library backend)
-WEBLOG_ENV="DD_APPSEC_ENABLED=true\n"
-WEBLOG_ENV+="DD_TELEMETRY_HEARTBEAT_INTERVAL=2\n"
 
 export SYSTEMTESTS_SCENARIO=${1:-DEFAULT}
 export HOST_PWD=$(pwd)
@@ -31,22 +29,22 @@ if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then  # Most common use case
     export SYSTEMTESTS_LOG_FOLDER=logs
 
 elif [ $SYSTEMTESTS_SCENARIO = "SAMPLING" ]; then
-    WEBLOG_ENV+="DD_TRACE_SAMPLE_RATE=0.5"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_MISSING_RULES" ]; then
-    WEBLOG_ENV+="DD_APPSEC_RULES=/donotexists"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CORRUPTED_RULES" ]; then
-    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_corrupted_rules.yml"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_RULES" ]; then
-    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules.json"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_BLOCKING" ]; then
-    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_blocking_rule.json"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RULES_MONITORING_WITH_ERRORS" ]; then
-    WEBLOG_ENV+="DD_APPSEC_RULES=/appsec_custom_rules_with_errors.json"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "PROFILING" ]; then
     # big timeout
@@ -64,76 +62,64 @@ elif [ $SYSTEMTESTS_SCENARIO = "CGROUP" ]; then
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_DISABLED" ]; then
     # disable appsec
-    WEBLOG_ENV="DD_APPSEC_ENABLED=false"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_LOW_WAF_TIMEOUT" ]; then
-    # disable appsec
-    WEBLOG_ENV+="DD_APPSEC_WAF_TIMEOUT=1"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_CUSTOM_OBFUSCATION" ]; then
-    WEBLOG_ENV+="DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP=hide-key\nDD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP=.*hide_value"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RATE_LIMITER" ]; then
-    WEBLOG_ENV+="DD_APPSEC_TRACE_RATE_LIMIT=1"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_SHORT" ]; then
-    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
-    WEBLOG_ENV+="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1,header-tag2"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "LIBRARY_CONF_CUSTOM_HEADERS_LONG" ]; then
-    DD_TRACE_HEADER_TAGS=$(docker run system_tests/weblog env | grep DD_TRACE_HEADER_TAGS | cut -d'=' -f2)
-    WEBLOG_ENV+="DD_TRACE_HEADER_TAGS=$DD_TRACE_HEADER_TAGS,header-tag1:custom.header-tag1,header-tag2:custom.header-tag2"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_IP_BLOCKING" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_DATA"}'
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_RUNTIME_ACTIVATION" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
-    # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
-    WEBLOG_ENV="DD_RC_TARGETS_KEY_ID=TEST_KEY_ID\nDD_RC_TARGETS_KEY=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c\nDD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED=true"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES"}'
-    # Override WEBLOG_ENV to remove DD_APPSEC_ENABLED=true
-    WEBLOG_ENV="DD_REMOTE_CONFIGURATION_ENABLED=true"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
-    WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true\nDD_INTERNAL_RCM_POLL_INTERVAL=1000"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD"}'
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"}'
-    WEBLOG_ENV="DD_REMOTE_CONFIGURATION_ENABLED=true"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APP_DEPENDENCY_LOADED_NOT_SENT" ]; then
     WEBLOG_ENV="DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED=true"
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
-    WEBLOG_ENV+="DD_DYNAMIC_INSTRUMENTATION_ENABLED=1\nDD_DEBUGGER_ENABLED=1\nDD_REMOTE_CONFIG_ENABLED=true"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE" ]; then
-    export SYSTEMTESTS_PROXY_STATE='{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "TRACE_PROPAGATION_STYLE_W3C" ]; then
-    WEBLOG_ENV+="DD_TRACE_PROPAGATION_STYLE_INJECT=W3C\nDD_TRACE_PROPAGATION_STYLE_EXTRACT=W3C"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "INTEGRATIONS" ]; then
-    WEBLOG_ENV+="DD_DBM_PROPAGATION_MODE=full"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APPSEC_WAF_TELEMETRY" ]; then
-    WEBLOG_ENV+="DD_INSTRUMENTATION_TELEMETRY_ENABLED=true\n"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E" ]; then
-    export RUNNER_ARGS="tests/apm_tracing_e2e"
+    echo
 
 elif [ $SYSTEMTESTS_SCENARIO = "APM_TRACING_E2E_SINGLE_SPAN" ]; then
-    export RUNNER_ARGS="tests/apm_tracing_e2e"
-    WEBLOG_ENV+="DD_SPAN_SAMPLING_RULES=[{\"service\": \"weblog\", \"name\": \"*single_span_submitted\", \"sample_rate\": 1.0, \"max_per_second\": 50}]"
-    WEBLOG_ENV+="\nDD_TRACE_SAMPLE_RATE=0"
+    echo
 
 else # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
@@ -156,18 +142,12 @@ mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/runner
 mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs
 chmod -R 777 $SYSTEMTESTS_LOG_FOLDER
 
-# Image should be ready to be used, so a lot of env is set in set-system-tests-weblog-env.Dockerfile
-# But some var need to be overwritten by some scenarios. We use this trick because optionnaly set
-# them in the docker-compose.yml is not possible
-echo -e ${WEBLOG_ENV:-} > $SYSTEMTESTS_LOG_FOLDER/.weblog.env
-
 echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
 echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
 
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-export WEBLOG_ENV
 docker-compose up --force-recreate runner
 docker-compose logs runner > $SYSTEMTESTS_LOG_FOLDER/docker/runner/stdout.log
 

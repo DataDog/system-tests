@@ -1,7 +1,6 @@
 .idea
 .env
 __pycache__
-binaries/*
 !binaries/README.md
 
 venv
@@ -26,6 +25,7 @@ bld/
 [Ll]og/
 dist/
 
+!lib-injection/build/docker/ruby/lib_injection_rails_app/bin
 !utils/build/docker/ruby/rails52/bin
 /utils/build/docker/dotnet/.vs/app/*
 /utils/build/docker/dotnet/app.csproj.user

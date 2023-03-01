@@ -38,6 +38,14 @@ func main() {
 		w.Write([]byte("Hello, WAF!\n"))
 	})
 
+	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		userId := r.URL.Query().Get("user")
+		if err := appsec.SetUser(r.Context(), userId); err != nil {
+			return
+		}
+		w.Write([]byte("Hello, user!"))
+	})
+
 	mux.HandleFunc("/sample_rate_route/{i}", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})

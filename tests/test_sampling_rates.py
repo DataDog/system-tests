@@ -25,7 +25,7 @@ class Test_SamplingRates:
 
     def test_sampling_rate_is_set(self):
         """Should fail if the test is misconfigured"""
-        if context.sampling_rate is None:
+        if context.tracer_sampling_rate is None:
             raise Exception("Sampling rate should be set on tracer with an env var for this scenario to be meaningful")
 
     def setup_sampling_rates(self):
@@ -55,12 +55,14 @@ class Test_SamplingRates:
 
         trace_count = sum(sampled_count.values())
         # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
-        confidence_interval = 3 * (trace_count * context.sampling_rate * (1.0 - context.sampling_rate)) ** (1 / 2)
+        confidence_interval = 3 * (
+            trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)
+        ) ** (1 / 2)
         # E = n * p
-        expectation = context.sampling_rate * trace_count
+        expectation = context.tracer_sampling_rate * trace_count
         if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
             raise Exception(
-                f"Sampling rate is set to {context.sampling_rate}, "
+                f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
                 f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
                 f"wich is outside of the confidence interval of +-{confidence_interval}\n"
@@ -113,7 +115,7 @@ class Test_SamplingDecisions:
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        interfaces.library.assert_sampling_decision_respected(context.sampling_rate)
+        interfaces.library.assert_sampling_decision_respected(context.tracer_sampling_rate)
 
     def setup_sampling_decision_added(self):
 

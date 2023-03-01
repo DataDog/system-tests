@@ -30,10 +30,10 @@ def pytest_sessionstart(session):
         logger.debug(info)
         terminal.write_line(info)
 
-    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
+    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means that we are not running test_the_test
 
         if not session.config.option.collectonly:
-            start_proxy()
+            start_proxy(context.proxy_state)
 
         terminal.write_sep("=", "Tested components", bold=True)
         print_info(f"Library: {context.library}")
@@ -119,9 +119,7 @@ def pytest_collection_modifyitems(session, config, items):
 
         return None
 
-    scenario = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
-
-    if scenario == "CUSTOM":
+    if context.scenario == "CUSTOM":
         # user has specifed which test to run, do nothing
         return
 
@@ -131,12 +129,12 @@ def pytest_collection_modifyitems(session, config, items):
     for item in items:
         declared_scenario = get_declared_scenario(item)
 
-        if declared_scenario == scenario or declared_scenario is None and scenario == "DEFAULT":
-            logger.info(f"{item.nodeid} is included in scenario {scenario}")
+        if declared_scenario == context.scenario or declared_scenario is None and context.scenario == "DEFAULT":
+            logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
             _collect_item_metadata(item)
         else:
-            logger.debug(f"{item.nodeid} is not included in scenario {scenario}")
+            logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
 
     items[:] = selected
@@ -270,7 +268,6 @@ def pytest_sessionfinish(session, exitstatus):
 
     if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
         # TODO : shutdown proxy
-        # data_collector.join(timeout=10)
         ...
 
 
