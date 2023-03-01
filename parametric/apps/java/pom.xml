@@ -14,7 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <dd-trace.version>1.8.0</dd-trace.version>
+    <dd-trace.version>1.9.0</dd-trace.version>
     <opentracing.version>0.32.0</opentracing.version>
     <gprc.version>1.47.0</gprc.version>
     <slf4j.version>1.7.30</slf4j.version>
