@@ -363,6 +363,22 @@ class Test_Telemetry:
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         weblog.get("/load_dependency")
 
+
+    @bug(
+        library="dotnet",
+        reason="""
+            DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag is not implemented yet.        """,
+    )
+    @bug(
+        library="nodejs",
+        reason="""
+            DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag is not implemented yet.        """,
+    )
+    @bug(
+        library="java",
+        reason="""
+            DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag is not implemented yet.        """,
+    )
     def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         """Test app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"""
 
