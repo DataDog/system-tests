@@ -400,9 +400,7 @@ class Test_Telemetry:
                         integration_id = integration["name"]
                         if integration_id in seen_enabled_integrations:
                             # DOTNET sets auto_enabled true when an integration runs
-                            if (
-                                content.get("application").get("language_name") != "dotnet"
-                            ):
+                            if content.get("application").get("language_name") != "dotnet":
                                 seen_enabled_integrations[integration_id] = True
                             elif integration.get("auto_enabled") is True:
                                 seen_enabled_integrations[integration_id] = True
