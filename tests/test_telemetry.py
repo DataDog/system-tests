@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import time
-import sys
 from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
