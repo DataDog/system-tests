@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant
+import time
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -244,6 +244,9 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
+    def setup_app_heartbeat(self):
+        time.sleep(20)
+
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -265,3 +268,94 @@ class Test_Telemetry:
                         f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
                     )
             prev_message_time = curr_message_time
+
+    def setup_app_dependencies_loaded(self):
+        weblog.get("/load_dependency")
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="python")
+    @irrelevant(library="ruby")
+    @bug(
+        library="java",
+        reason="""
+        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
+        """,
+    )
+    def test_app_dependencies_loaded(self):
+        """test app-dependencies-loaded requests"""
+
+        test_loaded_dependencies = {
+            "dotnet": {"NodaTime": False},
+            "nodejs": {"glob": False},
+            "java": {"httpclient": False},
+        }
+
+        test_defined_dependencies = {
+            "dotnet": {},
+            "nodejs": {
+                "body-parser": False,
+                "cookie-parser": False,
+                "express": False,
+                "express-xml-bodyparser": False,
+                "pg": False,
+                "glob": False,
+            },
+            "java": {
+                "spring-boot-starter-json": False,
+                "spring-boot-starter-jdbc": False,
+                "jackson-dataformat-xml": False,
+                "dd-trace-api": False,
+                "opentracing-api": False,
+                "opentracing-util": False,
+                "postgresql": False,
+                "java-driver-core": False,
+                "metrics-core": False,
+                "mongo-java-driver": False,
+                "ognl": False,
+                "protobuf-java": False,
+                "grpc-netty-shaded": False,
+                "grpc-protobuf": False,
+                "grpc-stub": False,
+                "jaxb-api": False,
+                "bcprov-jdk15on": False,
+                "hsqldb": False,
+                "spring-boot-starter-security": False,
+                "spring-ldap-core": False,
+                "spring-security-ldap": False,
+                "unboundid-ldapsdk": False,
+                "httpclient": False,
+            },
+        }
+
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
+        seen_defined_dependencies = test_defined_dependencies[context.library.library]
+
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-started":
+                if "dependencies" in content["payload"]:
+                    for dependency in content["payload"]["dependencies"]:
+                        dependency_id = dependency["name"]  # +dep["version"]
+                        if dependency_id in seen_loaded_dependencies:
+                            raise Exception("Loaded dependency should not be in app-started")
+                        if dependency_id not in seen_defined_dependencies:
+                            continue
+                        seen_defined_dependencies[dependency_id] = True
+            elif content.get("request_type") == "app-dependencies-loaded":
+                for dependency in content["payload"]["dependencies"]:
+                    dependency_id = dependency["name"]  # +dependency["version"]
+                    if seen_loaded_dependencies.get(dependency_id) is True:
+                        raise Exception(
+                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
+                        )
+                    if dependency_id in seen_defined_dependencies:
+                        seen_defined_dependencies[dependency_id] = True
+                    if dependency_id in seen_loaded_dependencies:
+                        seen_loaded_dependencies[dependency_id] = True
+
+        for dependency, seen in seen_loaded_dependencies.items():
+            if not seen:
+                raise Exception(dependency + " not recieved in app-dependencies-loaded message")
