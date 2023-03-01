@@ -199,6 +199,8 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             self.proxy_state = '{"mock_remote_config_backend": "ASM_FEATURES"}'
             del self.weblog_env["DD_APPSEC_ENABLED"]
             self.weblog_env["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
+        elif self.scenario == "APP_DEPENDENCY_LOADED_NOT_SENT":
+            self.weblog_env["DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED"] = "false"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING":
             self.proxy_state = '{"mock_remote_config_backend": "LIVE_DEBUGGING"}'
             self.weblog_env["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] = "1"

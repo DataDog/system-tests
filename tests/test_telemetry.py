@@ -111,10 +111,10 @@ class Test_Telemetry:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
+            seq_id = data["request"]["content"]["seq_id"]
+            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if 200 <= data["response"]["status_code"] < 300:
-                seq_id = data["request"]["content"]["seq_id"]
                 seq_ids.append((seq_id, data["log_filename"]))
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if seq_id > max_seq_id:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
@@ -359,3 +359,19 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
+            
+    def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
+       weblog.get("/load_dependency")
+
+
+    def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
+       """Test app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"""
+       def validator(data):
+           TELEMETRY_DEPENDENCY_COLLECTION_ENABLED = bool(context.weblog_image.env.get("DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED"))
+           if TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is False:
+               if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
+                   raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
+
+
+       self.validate_library_telemetry_data(validator)
+
