@@ -218,6 +218,8 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             self.weblog_env["DD_REMOTE_CONFIG_ENABLED"] = "true"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE":
             self.proxy_state = '{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
+        elif self.scenario == "APM_TRACING_E2E":
+            pass  # nothing to do
         elif self.scenario == "APM_TRACING_E2E_SINGLE_SPAN":
             self.weblog_env[
                 "DD_SPAN_SAMPLING_RULES"
