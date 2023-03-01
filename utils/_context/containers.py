@@ -157,3 +157,8 @@ postgres_db = TestedContainer(
         "./utils/build/docker/postgres-init-db.sh": {"bind": "/docker-entrypoint-initdb.d/init_db.sh", "mode": "ro",}
     },
 )
+mysql_db = TestedContainer(
+    image_name="mysql/mysql-server:8.0",
+    name="mysqldb",
+    environment={"MYSQL_DATABASE": "world", "MYSQL_USER": "mysqldb", "MYSQL_ROOT_PASSWORD": "mysqldb", "MYSQL_PASSWORD": "mysqldb"},
+)

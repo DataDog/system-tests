@@ -188,6 +188,7 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
     job.add_step("Pull mongo image", run="docker pull mongo:latest")
     job.add_step("Pull cassandra image", run="docker pull cassandra:latest")
     job.add_step("Pull postgres image", run="docker pull postgres:latest")
+    job.add_step("Pull mysql image", run="docker pull mysql/mysql-server:8.0")
     job.add_step(
         "Load WAF rules",
         "./utils/scripts/load-binary.sh waf_rule_set",

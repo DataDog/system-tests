@@ -197,6 +197,8 @@ jobs:
       run: docker pull cassandra:latest
     - name: Pull postgres image
       run: docker pull postgres:latest
+    - name: Pull mysql image
+      run: docker pull mysql/mysql-server:8.0
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -406,6 +408,8 @@ jobs:
       run: docker pull cassandra:latest
     - name: Pull postgres image
       run: docker pull postgres:latest
+    - name: Pull mysql image
+      run: docker pull mysql/mysql-server:8.0
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set

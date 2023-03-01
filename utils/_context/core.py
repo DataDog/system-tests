@@ -10,7 +10,7 @@ import time
 import pytest
 import requests
 
-from utils._context.containers import agent_container, weblog_container, postgres_db, cassandra_db, mongo_db
+from utils._context.containers import agent_container, weblog_container, postgres_db, cassandra_db, mongo_db, mysql_db
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
@@ -105,6 +105,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             result.append(mongo_db)
             result.append(cassandra_db)
             result.append(postgres_db)
+            result.append(mysql_db)
         elif self.scenario in ("DEFAULT",):
             result.append(postgres_db)
 
