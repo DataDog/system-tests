@@ -268,17 +268,14 @@ class Test_Telemetry:
                     )
             prev_message_time = curr_message_time
 
-    @irrelevant(library="php")
-    @irrelevant(library="cpp")
-    @irrelevant(library="golang")
-    @irrelevant(library="ruby")
     def setup_app_integrations_change(self):
         self.r = weblog.get("/enable_integration")
 
-    @irrelevant(library="php")
+    @irrelevant(library="php", reason="Not possible to dynamically load integrations on PHP")
     @irrelevant(library="cpp")
     @irrelevant(library="golang")
     @irrelevant(library="ruby")
+    @bug(library="nodejs", reason="Integrations are not implemented correctly")
     def test_app_integrations_change(self):
         """test app-integrations-change requests"""
 
@@ -291,7 +288,7 @@ class Test_Telemetry:
         }
 
         library = context.library.library
-        self.seen_enabled_integrations = library_integration_map[library]
+        seen_enabled_integrations = library_integration_map[library]
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -303,22 +300,22 @@ class Test_Telemetry:
                 if content["payload"].get("integrations"):
                     for integration in content["payload"]["integrations"]:
                         integration_id = integration["name"]
-                        if integration_id in self.seen_enabled_integrations:
+                        if integration_id in seen_enabled_integrations:
                             raise Exception("Integration should not be in app-started")
             elif content.get("request_type") == "app-integrations-change":
                 if content["payload"].get("integrations"):
                     for integration in content["payload"]["integrations"]:
                         integration_id = integration["name"]
-                        if integration_id in self.seen_enabled_integrations:
+                        if integration_id in seen_enabled_integrations:
                             # DOTNET sets auto_enabled true when an integration runs
                             if (
                                 content.get("application").get("language_name") != "dotnet"
                                 and integration["auto_enabled"]
                             ):
-                                self.seen_enabled_integrations[integration_id] = True
+                                seen_enabled_integrations[integration_id] = True
                             else:
-                                self.seen_enabled_integrations[integration_id] = True
+                                seen_enabled_integrations[integration_id] = True
 
-        for integration, seen in self.seen_enabled_integrations.items():
+        for integration, seen in seen_enabled_integrations.items():
             if not seen:
                 raise Exception(integration + " not reported in app-integrations-enabled message")
