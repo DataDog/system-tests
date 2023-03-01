@@ -363,7 +363,6 @@ class Test_Telemetry:
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         weblog.get("/load_dependency")
 
-
     @bug(
         library="dotnet",
         reason="""
