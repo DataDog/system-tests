@@ -41,9 +41,9 @@ with open("utils/proxy/rc_mocked_responses_asm_dd_nocache.json", encoding="utf-8
 
 
 class _RequestLogger:
-    def __init__(self) -> None:
+    def __init__(self, state) -> None:
         self.dd_api_key = os.environ["DD_API_KEY"]
-        self.state = json.loads(os.environ.get("SYSTEMTESTS_PROXY_STATE", "") or "{}")
+        self.state = json.loads(state or "{}")
 
         # for config backend mock
         self.config_request_count = defaultdict(int)
@@ -161,7 +161,7 @@ def _start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
     loop.run_forever()
 
 
-def start_proxy() -> None:
+def start_proxy(state) -> None:
     loop = asyncio.new_event_loop()
 
     thread = threading.Thread(target=_start_background_loop, args=(loop,), daemon=True)
@@ -172,7 +172,7 @@ def start_proxy() -> None:
     proxy.addons.add(*default_addons())
     # proxy.addons.add(keepserving.KeepServing())
     proxy.addons.add(errorcheck.ErrorCheck())
-    proxy.addons.add(_RequestLogger())
+    proxy.addons.add(_RequestLogger(state))
 
     asyncio.run_coroutine_threadsafe(proxy.run(), loop)
 
@@ -181,5 +181,5 @@ if __name__ == "__main__":
 
     import time
 
-    start_proxy()
+    start_proxy(None)
     time.sleep(1000)

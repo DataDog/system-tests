@@ -12,7 +12,6 @@ services:
       - system-tests_default
     environment:
       - HOST_PWD
-      - WEBLOG_ENV
       - PYTHONDONTWRITEBYTECODE=1  # prevent root ownership issues
       - DD_API_KEY
       - DD_APPLICATION_KEY=${DD_APPLICATION_KEY:-}
@@ -20,9 +19,7 @@ services:
       - PYTHONPATH=/app
       - DD_SITE=${DD_SITE:-datad0g.com}
       # - DD_URL=https://app.datad0g.com
-      - SYSTEM_TESTS_AGENT_DD_APM_RECEIVER_PORT=8126 # need to know where is the agent
       - SYSTEMTESTS_SCENARIO=${SYSTEMTESTS_SCENARIO:-DEFAULT}
-      - SYSTEMTESTS_PROXY_STATE=${SYSTEMTESTS_PROXY_STATE:-}
       - DD_AGENT_HOST
       - DD_TRACE_AGENT_PORT=8126
     volumes:
