@@ -19,7 +19,10 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidator,
     _DistributedTracesDeterministicSamplingDecisisonValidator,
 )
-from utils.interfaces._library.telemetry import _SeqIdLatencyValidation, _NoSkippedSeqId
+from utils.interfaces._library.telemetry import (
+    _SeqIdLatencyValidation,
+    _NoSkippedSeqId,
+)
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils.interfaces._profiling import _ProfilingFieldValidator
