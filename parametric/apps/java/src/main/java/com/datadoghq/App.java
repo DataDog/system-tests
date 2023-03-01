@@ -1,18 +1,17 @@
 package com.datadoghq;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
 
 import datadog.opentracing.DDTracer;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.opentracing.util.GlobalTracer;
 import java.io.IOException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class App {
-    static final Logger LOGGER = Logger.getLogger(App.class.getName());
+    static final Logger LOGGER = LoggerFactory.getLogger(App.class.getName());
     private static final int CLIENT_SERVER_PORT = Integer.parseInt(System.getenv("APM_TEST_CLIENT_SERVER_PORT"));
     private final DDTracer tracer;
 
@@ -25,9 +24,9 @@ public class App {
         try {
             new App();
         } catch (ReflectiveOperationException e) {
-            LOGGER.log(SEVERE, "Failed to get internal logger API.", e);
+            LOGGER.error("Failed to get internal logger API.", e);
         } catch (IOException e) {
-            LOGGER.log(SEVERE, "Failed to start gRPC server.", e);
+            LOGGER.error("Failed to start gRPC server.", e);
         }
     }
 
@@ -56,7 +55,7 @@ public class App {
         try {
             server.awaitTermination();
         } catch (InterruptedException e) {
-            LOGGER.log(WARNING, "Failed to wait for server termination.", e);
+            LOGGER.warn("Failed to wait for server termination.", e);
         }
     }
 

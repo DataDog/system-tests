@@ -39,6 +39,6 @@ COPY --from=build /app/target/myproject .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 
-RUN echo "#!/bin/bash\n/app/myproject --server.port=7777" > app.sh
+RUN echo "#!/bin/bash\nexec /app/myproject --server.port=7777" > app.sh
 RUN chmod +x app.sh
-CMD [ "./app.sh" ]
+CMD [ "/app/app.sh" ]

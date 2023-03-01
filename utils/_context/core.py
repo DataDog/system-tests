@@ -131,7 +131,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
         """ returns the default weblog environment """
 
         result = {
-            "DD_AGENT_HOST": os.environ.get("DD_AGENT_HOST", "runner"),
+            "DD_AGENT_HOST": "runner",
             "DD_TRACE_AGENT_PORT": self.agent_port,
             "DD_APPSEC_ENABLED": "true",
             "DD_TELEMETRY_HEARTBEAT_INTERVAL": "2",
@@ -147,7 +147,15 @@ class _Context:  # pylint: disable=too-many-instance-attributes
     def _init_scenario(self):
         self.weblog_env["SYSTEMTESTS_SCENARIO"] = self.scenario
 
-        if self.scenario == "SAMPLING":
+        if self.scenario == "DEFAULT":
+            pass  # nothing to do
+        elif self.scenario == "PROFILING":
+            pass  # nothing to do
+        elif self.scenario == "CGROUP":
+            pass  # nothing to do
+        elif self.scenario == "CUSTOM":
+            pass  # nothing to do
+        elif self.scenario == "SAMPLING":
             self.weblog_env["DD_TRACE_SAMPLE_RATE"] = "0.5"
         elif self.scenario == "APPSEC_MISSING_RULES":
             self.weblog_env["DD_APPSEC_RULES"] = "/donotexists"
@@ -210,11 +218,15 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             self.weblog_env["DD_REMOTE_CONFIG_ENABLED"] = "true"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE":
             self.proxy_state = '{"mock_remote_config_backend": "ASM_DD_NO_CACHE"}'
+        elif self.scenario == "APM_TRACING_E2E":
+            pass  # nothing to do
         elif self.scenario == "APM_TRACING_E2E_SINGLE_SPAN":
             self.weblog_env[
                 "DD_SPAN_SAMPLING_RULES"
             ] = '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]'
             self.weblog_env["DD_TRACE_SAMPLE_RATE"] = "0"
+        else:
+            raise ValueError(f"The scenario {self.scenario} does not exists")
 
     @property
     def host_log_folder(self):
