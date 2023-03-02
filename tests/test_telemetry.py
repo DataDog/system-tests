@@ -359,3 +359,34 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
+            
+    def setup_app_product_change(self):
+        weblog.get("/enable_product")
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="python")
+    @irrelevant(library="ruby") 
+    @irrelevant(library="java") 
+    def test_app_product_change(self):
+
+        def validator(data):
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-product-change":
+                products = content["payload"]["products"]
+                if len(products) > 0:
+                    version = products["appsec"]["version"]
+                    enabled = products["appsec"] ["enabled"]
+                    assert version == "0.1", f"Product appsec version is {version}"
+                    assert enabled == True, f"Product appsec enabled flag is {enabled}"
+            else:
+                raise Exception("app-product-change is not emited when product change is enabled")
+            self.validate_library_telemetry_data(validator)
+
+                    
+            
+
+
+
+
