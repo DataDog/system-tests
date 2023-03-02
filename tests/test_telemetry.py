@@ -374,9 +374,9 @@ class Test_Telemetry:
             content = data["request"]["content"]
             if content.get("request_type") == "app-product-change":
                 products = content["payload"]["products"]
-                if len(products) > 0:
-                    version = products["appsec"]["version"]
-                    enabled = products["appsec"]["enabled"]
+                for prod in products > 0:
+                    version = prod["appsec"]["version"]
+                    enabled = prod["appsec"]["enabled"]
                     assert version == "0.1", f"Product appsec version is {version}"
                     assert enabled == True, f"Product appsec enabled flag is {enabled}"
             else:
