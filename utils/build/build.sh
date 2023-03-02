@@ -20,16 +20,16 @@ readonly ALIAS_CACHE_TO="W" #write cache
 readonly DEFAULT_TEST_LIBRARY=nodejs
 readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
 
-declare -A DEFAULT_WEBLOG_VARIANTS=(
-    [nodejs]=express4
-    [python]=flask-poc
-    [ruby]=rails70
-    [golang]=net-http
-    [java]=spring-boot
-    [php]=apache-mod-8.0
-    [dotnet]=poc
-    [cpp]=nginx
-)
+# Define default weblog variants.
+# XXX: Avoid associative arrays for Bash 3 compatibility.
+readonly DEFAULT_nodejs=express4
+readonly DEFAULT_python=flask-poc
+readonly DEFAULT_ruby=rails70
+readonly DEFAULT_golang=net-http
+readonly DEFAULT_java=spring-boot
+readonly DEFAULT_php=apache-mod-8.0
+readonly DEFAULT_dotnet=poc
+readonly DEFAULT_cpp=nginx
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -82,7 +82,8 @@ list-weblogs() {
 }
 
 default-weblog() {
-    echo "${DEFAULT_WEBLOG_VARIANTS[${TEST_LIBRARY}]}"
+    local var="DEFAULT_${TEST_LIBRARY}"
+    echo -n "${!var}"
 }
 
 build() {
@@ -241,7 +242,7 @@ if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     exit 1
 fi
 
-WEBLOG_VARIANT="${WEBLOG_VARIANT:-${DEFAULT_WEBLOG_VARIANTS[${TEST_LIBRARY}]}}"
+WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
 if [[ ! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" ]]; then
     echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
