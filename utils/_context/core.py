@@ -211,6 +211,8 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             self.proxy_state = '{"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"}'
             self.weblog_env["DD_APPSEC_ENABLED"] = "false"
             self.weblog_env["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
+        elif self.scenario == "APP_CLIENT_CONFIGURATION_CHANGE_ENVIROMENT_VARIABLE":
+            self.weblog_env["DD_TRACE_PARTIAL_FLUSH_ENABLED"] = "true"
         elif self.scenario == "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE":
             self.proxy_state = '{"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"}'
             self.weblog_env["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] = "1"

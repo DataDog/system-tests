@@ -359,3 +359,29 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
+
+    def setup_app_client_configuration(self):
+        weblog.get("/enable_configuration")
+
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="python")
+    @irrelevant(library="ruby")
+    @irrelevant(library="java")
+    def test_app_product_change(self):
+        def validator(data):
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-client-configuration":
+                configurations = content["payload"]["conf_key_values"]
+                for conf in configurations:
+                    name = conf["name"]
+                    value = conf["value"]
+                    origin = conf["origin"]
+                    assert name == "DD_TRACE_PARTIAL_FLUSH_ENABLED", f"Configuration name is {name}"
+                    assert value == "True", f"Configuration name is {value}"
+                    assert origin == "json", f"Configuration origin is {origin}"
+            else:
+                raise Exception("app-client-configuration is not emitted when client configutration is enabled")
+
+        self.validate_library_telemetry_data(validator)
