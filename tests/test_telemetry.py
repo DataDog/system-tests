@@ -363,13 +363,24 @@ class Test_Telemetry:
     def setup_app_client_configuration(self):
         weblog.get("/enable_configuration")
 
-    @irrelevant(library="php")
-    @irrelevant(library="cpp")
-    @irrelevant(library="golang")
-    @irrelevant(library="python")
-    @irrelevant(library="ruby")
-    @irrelevant(library="java")
+    @bug(
+        library="dotnet",
+        reason="""
+            weblog GET/enable_configuration and app-client-configuration event is not implemented yet.        """,
+    )
+    @bug(
+        library="nodejs",
+        reason="""
+            weblog GET/enable_configuration and app-client-configuration event is not implemented yet.         """,
+    )
+    @bug(
+        library="java",
+        reason="""
+            weblog GET/enable_configuration and app-client-configuration event is not implemented yet.         """,
+    )
     def test_app_product_change(self):
+        """Assert that app-product-change event is emitted when a product is enabled """
+
         def validator(data):
             content = data["request"]["content"]
             if content.get("request_type") == "app-client-configuration":
