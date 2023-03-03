@@ -111,10 +111,10 @@ class Test_Telemetry:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
+            seq_id = data["request"]["content"]["seq_id"]
+            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if 200 <= data["response"]["status_code"] < 300:
-                seq_id = data["request"]["content"]["seq_id"]
                 seq_ids.append((seq_id, data["log_filename"]))
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if seq_id > max_seq_id:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
@@ -359,3 +359,42 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
+
+    def test_app_started_product_info(self):
+        """Assert that product information is accurately reported by telemetry"""
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-started":
+                content = data["request"]["content"]
+                if content.get("request_type") == "app-product-change":
+                    products = content["payload"]["products"]
+                    try:
+                        products["appsec"]
+                    except KeyError:
+                        raise Exception(
+                            "Product information is not accurately reported by telemetry on app-started event"
+                        )
+
+            self.validate_library_telemetry_data(validator)
+
+    def test_app_started_client_configuration(self):
+        """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
+        configurationMap = map(
+            "DD_AGENT_HOST", "DD_TRACE_AGENT_PORT", "DD_APPSEC_ENABLED", "DD_TELEMETRY_HEARTBEAT_INTERVAL"
+        )
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-started":
+                content = data["request"]["content"]
+                if content.get("request_type") == "app-client-configuration":
+                    cnt = 0
+                    configurations = content["payload"]["conf_key_values"]
+                    for c in configurations:
+                        if c["value"] in configurationMap:
+                            cnt += 1
+                    if cnt != len(configurationMap):
+                        raise Exception(
+                            "Client Configuration information is not accurately reported by telemetry on app-started event"
+                        )
+
+        self.validate_library_telemetry_data(validator)
