@@ -46,7 +46,7 @@ But, obviously, testing validated versions of components is not really interesti
 ## Ruby library
 
 * Create an file `ruby-load-from-bundle-add` in `binaries/`, the content will be installed by `bundle add`. Content example:
-  * `ddtrace --git "https://github.com/Datadog/dd-trace-rb" --branch "master"`
+  * `gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'`
 2. Clone the dd-trace-rb repo inside `binaries`
 
 ## WAF rule set
