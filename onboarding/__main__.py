@@ -100,19 +100,17 @@ def infraestructure_provision():
                             subnet_id=subnet_id,
                             key_name=keyName,
                             ami=ec2_data["ami_id"],
-                            tags={
-                                "Name": ec2_name,
-                            }
+                            tags={"Name": ec2_name,},
                         )
 
                         connection = command.remote.ConnectionArgs(
-                            host=server.private_ip,
-                            user=ec2_data["user"],
-                            private_key=private_key_pem,
+                            host=server.private_ip, user=ec2_data["user"], private_key=private_key_pem,
                         )
 
                         # Install agent
-                        agent_installer = remote_install( connection, "agent-installer_" + ec2_name, agent_instalations["install"], server, True)
+                        agent_installer = remote_install(
+                            connection, "agent-installer_" + ec2_name, agent_instalations["install"], server, True
+                        )
 
                         # Install autoinjection
                         autoinjection_installer = remote_install(
