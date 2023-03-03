@@ -96,13 +96,13 @@ def infraestructure_provision():
                         server = aws.ec2.Instance(
                             ec2_name,
                             instance_type=instance_type,
-                            vpc_security_group_ids=vpc_security_group_ids,  # reference security group from above
+                            vpc_security_group_ids=vpc_security_group_ids,
                             subnet_id=subnet_id,
                             key_name=keyName,
                             ami=ec2_data["ami_id"],
                             tags={
                                 "Name": ec2_name,
-                            },
+                            }
                         )
 
                         connection = command.remote.ConnectionArgs(
