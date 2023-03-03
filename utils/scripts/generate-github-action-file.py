@@ -336,7 +336,7 @@ def add_parametric_job(workflow, needs):
     job = Job("parametric", needs=[job.name for job in needs])
 
     job.data["strategy"] = {
-        "matrix": {"client": ["python", "python_http", "dotnet", "golang", "nodejs"]},
+        "matrix": {"client": ["python", "python_http", "dotnet", "golang", "java", "nodejs"]},
         "fail-fast": False,
     }
 

@@ -7,8 +7,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 
 @released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.24.0", php="?", ruby="?")
 @missing_feature(
-    context.library in ["python", "nodejs"] and context.weblog_variant != "flask-poc",
-    reason="Missing on weblog",
+    context.library in ["python", "nodejs"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )
 @scenario("INTEGRATIONS")
 class Test_Dbm:
@@ -26,7 +25,7 @@ class Test_Dbm:
         elif self.library_name == "dotnet":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "npgsql"})
+                weblog.get("/dbm", params={"integration": "npgsql"}),
             ]
 
     def test_trace_payload(self):

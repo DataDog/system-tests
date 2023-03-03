@@ -46,7 +46,7 @@ def main():
 
     logger = get_logger(use_stdout=True)
 
-    start_proxy()
+    start_proxy(state=None)
 
     Fuzzer(
         corpus=args.corpus,

@@ -19,7 +19,10 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidator,
     _DistributedTracesDeterministicSamplingDecisisonValidator,
 )
-from utils.interfaces._library.telemetry import _SeqIdLatencyValidation, _NoSkippedSeqId
+from utils.interfaces._library.telemetry import (
+    _SeqIdLatencyValidation,
+    _NoSkippedSeqId,
+)
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils.interfaces._profiling import _ProfilingFieldValidator
@@ -72,6 +75,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
                             break
 
     def get_spans(self, request=None):
+        """
+        Iterate over all spans reported by the tracer to the agent.
+        If request is not None, only span trigered by this request will be returned.
+        """
         rid = get_rid_from_request(request)
 
         if rid:

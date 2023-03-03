@@ -13,6 +13,7 @@
 		<PackageReference Include="MySql.Data" Version="8.0.30" />
 		<PackageReference Include="Npgsql" Version="4.0.10" />
 		<PackageReference Include="System.Data.SqlClient" />
+		<PackageReference Include="NodaTime" Version="3.1.6"/>
 		<Reference Include="Datadog.Trace">
 			<HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
 		</Reference>

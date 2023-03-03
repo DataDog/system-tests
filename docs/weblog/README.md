@@ -212,6 +212,11 @@ Expected query parameters:
 - `user`: user id.
   - Possible values: `blockedUser`
 
+## GET /load_dependency
+
+This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that 
+the `dependencies-loaded` event is appropriately triggered.
+
 ## GET /e2e_single_span
 
 This endpoint will create two spans, a parent span (which is a root-span), and a child span.

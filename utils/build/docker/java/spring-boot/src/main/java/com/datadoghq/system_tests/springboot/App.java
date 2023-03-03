@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -415,6 +417,11 @@ public class App {
         new AppReadyHandler(this).start();
     }
 
+    @RequestMapping("/load_dependency")
+    public String loadDep() throws ClassNotFoundException {
+        Class<?> klass = this.getClass().getClassLoader().loadClass("org.apache.http.client.HttpClient");
+        return "Loaded Dependency\n".concat(klass.toString());
+    }
 
 
     @Bean
