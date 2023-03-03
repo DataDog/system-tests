@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "START RUN APP"
+
+sudo sed -i "s/MY_USER/$(whoami)/g" test-app-java.service 
+sudo cp test-app-java.service /etc/systemd/system/test-app-java.service
+sudo systemctl daemon-reload
+sudo systemctl enable test-app-java.service
+sudo systemctl start test-app-java.service
+sudo systemctl status test-app-java.service
+
+echo "RUN DONE"

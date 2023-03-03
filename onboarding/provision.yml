@@ -1,0 +1,80 @@
+ami:
+- name: ubuntu-x86
+  ami_id: ami-0557a15b87f6559cf
+  user: ubuntu
+  os_type: linux
+  os_branch: deb
+
+- name: amazon-linux-x86
+  ami_id: ami-0dfcb1ef8550277af
+  user: ec2-user
+  os_type: linux
+  os_branch: rpm
+
+agent:
+  - env: dev
+    install:
+      - os_type: linux
+        command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+  - env: prod
+    install:
+      - os_type: linux
+        command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+autoinjection:
+  - java: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_branch: deb
+          command: |
+            curl -s https://packagecloud.io/install/repositories/randomanderson/autoinject_test/script.deb.sh | os=any dist=any sudo -E bash
+            sudo apt-get install datadog-apm-inject datadog-apm-library-java
+            dd-host-install
+        - os_type: linux
+          os_branch: rpm
+          copy_files:
+            - name: copy-dd-repo
+              local_path: autoinjection/dd.repo
+              remote_path: dd.repo
+          command: |
+            sudo cp dd.repo /etc/yum.repo.d/dd.repo
+            sudo yum makecache
+            sudo yum -y install datadog-apm-inject datadog-apm-library-java
+            dd-host-install
+
+language-variants:
+  - java: 
+    - name: OpenJDK11
+      version: 11
+      install: 
+        - os_type: linux
+          os_branch: deb
+          command: sudo apt-get -y install openjdk-11-jdk
+        - os_type: linux
+          os_branch: rpm
+          command: sudo amazon-linux-extras install java-openjdk11
+
+weblogs:
+  - java: 
+    - name: test-app-java
+      supported-language-versions:
+        - 11
+      local-script: weblog/java/test-app-java/test-app-java_build.sh
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-service
+              local_path: weblog/java/test-app-java/test-app-java.service
+              remote_path: test-app-java.service
+
+            - name: copy-run-weblog-script
+              local_path: weblog/java/test-app-java/test-app-java_run.sh
+              remote_path: test-app-java_run.sh
+
+            - name: copy-binary
+              local_path: ../lib-injection/build/docker/java/dd-lib-java-init-test-app/build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar 
+              remote_path: k8s-lib-injection-app-0.0.1-SNAPSHOT.jar  
+
+          command: sh test-app-java_run.sh
