@@ -112,9 +112,7 @@ def infraestructure_provision():
                         )
 
                         # Install agent
-                        agent_installer = remote_install(
-                            connection, "agent-installer_" + ec2_name, agent_instalations["install"], server, True
-                        )
+                        agent_installer = remote_install( connection, "agent-installer_" + ec2_name, agent_instalations["install"], server, True)
 
                         # Install autoinjection
                         autoinjection_installer = remote_install(
