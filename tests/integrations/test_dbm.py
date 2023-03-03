@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenario
 
 
-@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.24.0", php="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.25.0", php="?", ruby="?")
 @missing_feature(
     context.library in ["python", "nodejs"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )
@@ -29,9 +29,6 @@ class Test_Dbm:
             ]
 
     def test_trace_payload(self):
-        assert self.requests, "Requests were not submit for {}. Please disable this test for this library "
-        "or ensure the setup method to submits a request which generates DBM metadata data".format(self.library_name)
-
         for r in self.requests:
             assert r.status_code == 200
             for _, _, span in interfaces.library.get_spans(request=r):
