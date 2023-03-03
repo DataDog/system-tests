@@ -2,6 +2,7 @@ import pytest
 import pulumi
 import json
 
+
 def pytest_generate_tests(metafunc):
     private_ips = []
     with open("pulumi.output.json", "r") as f:

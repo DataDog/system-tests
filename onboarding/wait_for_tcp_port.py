@@ -22,7 +22,7 @@ import socket
 import time
 
 
-def wait_for_port(port: int, host: str = 'localhost', timeout: float = 5.0):
+def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0):
     """Wait until a port starts accepting TCP connections.
     Args:
         port: Port number.
@@ -39,5 +39,6 @@ def wait_for_port(port: int, host: str = 'localhost', timeout: float = 5.0):
         except OSError as ex:
             time.sleep(0.01)
             if time.perf_counter() - start_time >= timeout:
-                raise TimeoutError('Waited too long for the port {} on host {} to start accepting '
-                                   'connections.'.format(port, host)) from ex
+                raise TimeoutError(
+                    "Waited too long for the port {} on host {} to start accepting " "connections.".format(port, host)
+                ) from ex

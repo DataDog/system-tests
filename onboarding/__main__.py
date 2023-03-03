@@ -17,14 +17,14 @@ import os
 config_infra = pulumi.Config("ddinfra")
 config_agent = pulumi.Config("ddagent")
 
-#Load AWS Configuration
+# Load AWS Configuration
 keyName = config_infra.get("aws/defaultKeyPairName")
 subnet_id = config_infra.get("aws/subnet_id")
 vpc_security_group_ids = config_infra.get("aws/vpc_security_group_ids").split(",")
 privateKeyPath = config_infra.get("aws/defaultPrivateKeyPath")
 instance_type = config_infra.get("aws/instance_type")
 
-#Load DD agent Configuration
+# Load DD agent Configuration
 dd_api_key = config_agent.require("apiKey")
 dd_app_key = config_agent.require("appKey")
 dd_site = config_agent.require("site")
@@ -39,7 +39,7 @@ def remote_install(connection, command_identifier, install_info, depends_on, add
         command_exec = "DD_API_KEY=" + dd_api_key + " DD_SITE=" + dd_site + " " + install_info["command"]
     else:
         command_exec = install_info["command"]
-        
+
     if "copy_files" in install_info:
         for file_to_copy in install_info["copy_files"]:
             cmd_cp_webapp = command.remote.CopyFile(

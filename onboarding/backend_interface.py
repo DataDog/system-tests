@@ -2,13 +2,14 @@ import requests
 import time
 import os
 
+
 def _query_for_trace_id(trace_id):
     path = f"/api/v1/trace/{trace_id}"
     host = "https://dd.datadoghq.com"
 
     headers = {
-        "DD-API-KEY": os.getenv('DD_API_KEY'),
-        "DD-APPLICATION-KEY": os.getenv('DD_APP_KEY'),
+        "DD-API-KEY": os.getenv("DD_API_KEY"),
+        "DD-APPLICATION-KEY": os.getenv("DD_APP_KEY"),
     }
     r = requests.get(f"{host}{path}", headers=headers, timeout=10)
 
