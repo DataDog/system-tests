@@ -49,137 +49,179 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     @Override
     public void startSpan(StartSpanArgs request, StreamObserver<StartSpanReturn> responseObserver) {
         LOGGER.info("Creating span: " + request.toString());
-        // Build span from request
-        Tracer.SpanBuilder builder = this.tracer.buildSpan(request.getName());
-        if (request.hasService()) {
-            builder.withTag(DDTags.SERVICE_NAME, request.getService());
-        }
-        if (request.hasParentId() && request.getParentId() > 0) {
-            Span parentSpan = getSpan(request.getParentId(), responseObserver);
-            if (parentSpan == null) {
-                return;
+        try {
+            // Build span from request
+            Tracer.SpanBuilder builder = this.tracer.buildSpan(request.getName());
+            if (request.hasService()) {
+                builder.withTag(DDTags.SERVICE_NAME, request.getService());
             }
-            builder.asChildOf(parentSpan);
+            long parentId = request.hasParentId() ? request.getParentId() : 0;
+            if (parentId != 0) { // The parent id can be negative since we have a long representing uint64
+                Span parentSpan = getSpan(parentId, responseObserver);
+                if (parentSpan == null) {
+                    return;
+                }
+                builder.asChildOf(parentSpan);
+            }
+            if (request.hasResource()) {
+                builder.withTag(DDTags.RESOURCE_NAME, request.getResource());
+            }
+            if (request.hasType()) {
+                builder.withTag(DDTags.SPAN_TYPE, request.getType());
+            }
+            if (request.hasOrigin()) {
+                builder.withTag(DDTags.ORIGIN_KEY, request.getOrigin());
+            }
+            // Extract headers from request to add them to span.
+            DistributedHTTPHeaders httpHeaders = request.hasHttpHeaders() ? request.getHttpHeaders() : null;
+            if (httpHeaders != null && httpHeaders.getHttpHeadersCount() > 0) {
+                SpanContext context = tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(httpHeaders));
+                builder.asChildOf(context);
+            }
+            Span span = builder.start();
+            // Store span
+            long spanId = DDSpanId.from(span.context().toSpanId());
+            long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
+            this.spans.put(spanId, span);
+            // Complete request
+            responseObserver.onNext(StartSpanReturn.newBuilder()
+                    .setSpanId(spanId)
+                    .setTraceId(traceId)
+                    .build()
+            );
+            responseObserver.onCompleted();
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
         }
-        if (request.hasResource()) {
-            builder.withTag(DDTags.RESOURCE_NAME, request.getResource());
-        }
-        if (request.hasType()) {
-            builder.withTag(DDTags.SPAN_TYPE, request.getType());
-        }
-        if (request.hasOrigin()) {
-            builder.withTag(DDTags.ORIGIN_KEY, request.getOrigin());
-        }
-        // Extract headers from request to add them to span.
-        if (request.hasHttpHeaders()) {
-            SpanContext context = tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(request.getHttpHeaders()));
-            builder.asChildOf(context);
-        }
-        Span span = builder.start();
-        // Store span
-        long spanId = DDSpanId.from(span.context().toSpanId());
-        long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
-        this.spans.put(spanId, span);
-        // Complete request
-        responseObserver.onNext(StartSpanReturn.newBuilder()
-                .setSpanId(spanId)
-                .setTraceId(traceId)
-                .build()
-        );
-        responseObserver.onCompleted();
     }
 
     @Override
     public void injectHeaders(InjectHeadersArgs request, StreamObserver<InjectHeadersReturn> responseObserver) {
         LOGGER.info("Inject headers: " + request.toString());
-        Span span = getSpan(request.getSpanId(), responseObserver);
-        if (span != null) {
-            // Get context from span and inject it to carrier
-            SpanContext context = span.context();
-            TextMapAdapter carrier = TextMapAdapter.empty();
-            this.tracer.inject(context, TEXT_MAP, carrier);
-            // Copy carrier content to protobuf response
-            DistributedHTTPHeaders.Builder headerBuilder = DistributedHTTPHeaders.newBuilder();
-            for (Map.Entry<String, String> header : carrier) {
-                headerBuilder.putHttpHeaders(header.getKey(), header.getValue());
+        try {
+            Span span = getSpan(request.getSpanId(), responseObserver);
+            if (span != null) {
+                // Get context from span and inject it to carrier
+                SpanContext context = span.context();
+                TextMapAdapter carrier = TextMapAdapter.empty();
+                this.tracer.inject(context, TEXT_MAP, carrier);
+                // Copy carrier content to protobuf response
+                DistributedHTTPHeaders.Builder headerBuilder = DistributedHTTPHeaders.newBuilder();
+                for (Map.Entry<String, String> header : carrier) {
+                    headerBuilder.putHttpHeaders(header.getKey(), header.getValue());
+                }
+                // Complete request
+                responseObserver.onNext(InjectHeadersReturn.newBuilder()
+                        .setHttpHeaders(headerBuilder.build())
+                        .build()
+                );
+                responseObserver.onCompleted();
             }
-            // Complete request
-            responseObserver.onNext(InjectHeadersReturn.newBuilder()
-                    .setHttpHeaders(headerBuilder.build())
-                    .build()
-            );
-            responseObserver.onCompleted();
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
         }
     }
 
     @Override
     public void finishSpan(FinishSpanArgs request, StreamObserver<FinishSpanReturn> responseObserver) {
         LOGGER.info("Finishing span: " + request.toString());
-        Span span = getSpan(request.getId(), responseObserver);
-        if (span != null) {
-            span.finish();
-            responseObserver.onNext(FinishSpanReturn.newBuilder().build());
-            responseObserver.onCompleted();
+        try {
+            Span span = getSpan(request.getId(), responseObserver);
+            if (span != null) {
+                span.finish();
+                responseObserver.onNext(FinishSpanReturn.newBuilder().build());
+                responseObserver.onCompleted();
+            }
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
         }
     }
 
     @Override
     public void spanSetMeta(SpanSetMetaArgs request, StreamObserver<SpanSetMetaReturn> responseObserver) {
         LOGGER.info("Setting meta span: " + request.toString());
-        Span span = getSpan(request.getSpanId(), responseObserver);
-        if (span != null) {
-            span.setTag(request.getKey(), request.getValue());
-            responseObserver.onNext(SpanSetMetaReturn.newBuilder().build());
-            responseObserver.onCompleted();
+        try {
+            Span span = getSpan(request.getSpanId(), responseObserver);
+            if (span != null) {
+                span.setTag(request.getKey(), request.getValue());
+                responseObserver.onNext(SpanSetMetaReturn.newBuilder().build());
+                responseObserver.onCompleted();
+            }
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
         }
     }
 
     @Override
     public void spanSetMetric(SpanSetMetricArgs request, StreamObserver<SpanSetMetricReturn> responseObserver) {
         LOGGER.info("Setting span metric: " + request.toString());
-        Span span = getSpan(request.getSpanId(), responseObserver);
-        if (span != null) {
-            span.setTag(request.getKey(), request.getValue());
-            responseObserver.onNext(SpanSetMetricReturn.newBuilder().build());
-            responseObserver.onCompleted();
+        try {
+            Span span = getSpan(request.getSpanId(), responseObserver);
+            if (span != null) {
+                span.setTag(request.getKey(), request.getValue());
+                responseObserver.onNext(SpanSetMetricReturn.newBuilder().build());
+                responseObserver.onCompleted();
+            }
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
         }
     }
 
     @Override
     public void spanSetError(SpanSetErrorArgs request, StreamObserver<SpanSetErrorReturn> responseObserver) {
         LOGGER.info("Setting span error: " + request.toString());
-        Span span = getSpan(request.getSpanId(), responseObserver);
-        if (span != null) {
-            span.setTag(Tags.ERROR, true);
-            if (request.hasType()) {
-                span.setTag(DDTags.ERROR_TYPE, request.getType());
+        try {
+            Span span = getSpan(request.getSpanId(), responseObserver);
+            if (span != null) {
+                span.setTag(Tags.ERROR, true);
+                if (request.hasType()) {
+                    span.setTag(DDTags.ERROR_TYPE, request.getType());
+                }
+                if (request.hasMessage()) {
+                    span.setTag(DDTags.ERROR_MSG, request.getMessage());
+                }
+                if (request.hasMessage()) {
+                    span.setTag(DDTags.ERROR_STACK, request.getStack());
+                }
+                responseObserver.onNext(SpanSetErrorReturn.newBuilder().build());
+                responseObserver.onCompleted();
             }
-            if (request.hasMessage()) {
-                span.setTag(DDTags.ERROR_MSG, request.getMessage());
-            }
-            if (request.hasMessage()) {
-                span.setTag(DDTags.ERROR_STACK, request.getStack());
-            }
-            responseObserver.onNext(SpanSetErrorReturn.newBuilder().build());
-            responseObserver.onCompleted();
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
         }
     }
 
     @Override
     public void flushSpans(FlushSpansArgs request, StreamObserver<FlushSpansReturn> responseObserver) {
         LOGGER.info("Flushing span: " + request.toString());
-        ((InternalTracer) this.tracer).flush();
-        this.spans.clear();
-        responseObserver.onNext(FlushSpansReturn.newBuilder().build());
-        responseObserver.onCompleted();
+        try {
+            ((InternalTracer) this.tracer).flush();
+            this.spans.clear();
+            responseObserver.onNext(FlushSpansReturn.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
+        }
     }
 
     @Override
     public void flushTraceStats(FlushTraceStatsArgs request, StreamObserver<FlushTraceStatsReturn> responseObserver) {
         LOGGER.info("Flushing trace stats: " + request.toString());
-        ((InternalTracer) this.tracer).flushMetrics();
-        responseObserver.onNext(FlushTraceStatsReturn.newBuilder().build());
-        responseObserver.onCompleted();
+        try {
+            ((InternalTracer) this.tracer).flushMetrics();
+            responseObserver.onNext(FlushTraceStatsReturn.newBuilder().build());
+            responseObserver.onCompleted();
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
+        }
     }
 
 //    @Override
