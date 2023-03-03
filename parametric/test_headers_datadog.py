@@ -7,6 +7,7 @@ from parametric.utils.test_agent import get_span
 
 
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("java", "Issue: java splits origin at the first ,")
 def test_distributed_headers_extract_datadog_D001(test_agent, test_library):
     """Ensure that Datadog distributed tracing headers are extracted
     and activated properly.

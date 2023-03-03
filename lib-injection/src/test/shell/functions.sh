@@ -47,6 +47,7 @@ fi
 # TODO: homogenize the names of things. nodejs or js? python or py? Source of problems!!!!
  [[ $TEST_LIBRARY = nodejs ]] && init_image_repo_alias=js || init_image_repo_alias=$TEST_LIBRARY
  [[ $init_image_repo_alias = python ]] && init_image_repo_alias=py
+ [[ $init_image_repo_alias = ruby ]] && init_image_repo_alias=rb
  [[ $TEST_LIBRARY = nodejs ]] && init_image_alias=js || init_image_alias=$TEST_LIBRARY
 
 

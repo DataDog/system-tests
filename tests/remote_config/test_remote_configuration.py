@@ -33,9 +33,45 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 class RemoteConfigurationFieldsBasicTests:
     """ Misc tests on fields and values on remote configuration requests """
 
+    @bug(context.library < "golang@1.36.0")
+    @bug(context.library < "java@0.93.0")
+    @bug(context.library >= "dotnet@2.24.0")
+    @bug(context.library >= "nodejs@3.14.1")
     def test_schemas(self):
         """ Test all library schemas """
         interfaces.library.assert_schemas()
+
+    def test_non_regression(self):
+        """ Non-regression test on shemas """
+
+        # Never skip this test. As a full respect of shemas may be hard, this test ensure that
+        # at least the part that was ok stays ok.
+
+        allowed_errors = None
+        if context.library == "golang":
+            allowed_errors = (
+                r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
+                r"'protocol_version' is a required property on instance ",
+            )
+        elif context.library == "java":
+            # pylint: disable=line-too-long
+            allowed_errors = (
+                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
+                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
+                r"'idempotency_key' is a required property on instance ",
+            )
+        elif context.library == "dotnet":
+            allowed_errors = (
+                # value is missing in configuration object in telemetry payloads
+                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+            )
+        elif context.library == "nodejs":
+            allowed_errors = (
+                # value is missing in configuration object in telemetry payloads
+                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
+            )
+
+        interfaces.library.assert_schemas(allowed_errors=allowed_errors)
 
     def test_client_state_errors(self):
         """ Ensure that the Client State error is consistent """
@@ -145,7 +181,7 @@ def rc_check_request(data, expected, caching):
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
-@released(php="?", python="1.7.4", ruby="?", nodejs="3.9.0")
+@released(php_appsec="0.7.0", python="1.7.4", ruby="?", nodejs="3.9.0")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -221,6 +257,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
     request_number = 0
 
+    @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="?")
     @irrelevant(
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
@@ -245,12 +282,15 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php="?", python="1.6.0rc1", ruby="?", nodejs="3.9.0")
+@released(
+    cpp="?", golang="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="1.6.0rc1", ruby="?", nodejs="3.9.0"
+)
 @irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="python", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="java", reason="cache is implemented")
 @irrelevant(library="golang", reason="cache is implemented")
+@irrelevant(library="php", reason="cache is implemented")
 @coverage.basic
 @scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):

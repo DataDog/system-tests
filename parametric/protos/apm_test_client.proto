@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option java_package = "com.datadoghq.client";
+
 // Interface of APM clients to be used for shared testing.
 service APMClient {
   rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}

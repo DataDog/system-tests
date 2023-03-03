@@ -32,7 +32,7 @@ class Test_HeaderTagsShortFormat:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
+        tag_conf = context.weblog_env["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
@@ -55,7 +55,7 @@ class Test_HeaderTagsLongFormat:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = context.weblog_image.env["DD_TRACE_HEADER_TAGS"]
+        tag_conf = context.weblog_env["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms

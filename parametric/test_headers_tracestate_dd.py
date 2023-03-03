@@ -10,8 +10,8 @@ parametrize = pytest.mark.parametrize
 
 def temporary_enable_propagationstyle_default() -> Any:
     env = {
-        "DD_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
-        "DD_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
+        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
+        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
     }
     return parametrize("library_env", [env])
 
@@ -19,6 +19,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "Issue: We need to prefer the traceparent sampled flag to fix headers4 test case")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("java", "Issue: tracecontext is not available yet")
 def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -192,6 +193,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "The origin transformation has changed slightly")
 @pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("java", "Issue: tracecontext is not available yet")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -327,6 +329,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     "False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map"
     "BUG: header[4,5]: w3cTraceID shouldn't be present",
 )
+@pytest.mark.skip_library("java", "Issue: tracecontext is not merged  yet, dm is reset on priority override")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -446,7 +449,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             val = tag[index:]
 
             assert key.startswith("_dd.p.")
-            assert "t." + key[6:] + ":" + val.replace("=", ":") in dd_items4
+            assert "t." + key[6:] + val.replace("=", ":") in dd_items4
 
     # 5) tracestate[dd] is populated with well-known propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
