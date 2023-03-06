@@ -68,7 +68,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "/miscs/telemetry/v2/common/events/integrations-change.json"
+            "$ref": "/miscs/telemetry/common/events/integrations-change.json"
           }
         }
       }
@@ -84,7 +84,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "/miscs/telemetry/v2/common/events/dependencies-loaded.json"
+            "$ref": "/miscs/telemetry/common/events/dependencies-loaded.json"
           }
         }
       }
@@ -120,7 +120,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "/miscs/telemetry/v2/common/events/generate-metrics.json"
+            "$ref": "/miscs/telemetry/common/events/generate-metrics.json"
           }
         }
       }
@@ -137,7 +137,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "/miscs/telemetry/v2/common/events/apm-onboarding.json"
+            "$ref": "/miscs/telemetry/common/events/apm-onboarding.json"
           }
         }
       }
