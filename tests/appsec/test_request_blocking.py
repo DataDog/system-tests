@@ -35,7 +35,7 @@ class Test_AppSecRequestBlocking:
                 return False
 
             for s in state["config_states"]:
-                if s["id"] != "ASM-base" or s["apply_error"] or s["apply_state"] != 2:
+                if s["id"] != "ASM-base" or s.get("apply_error") or s.get("apply_state", 0) != 2:
                     logger.info(f"rc request contains an error or wrong config:\n{state}")
                     return False
 
