@@ -11,7 +11,7 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-@released(dotnet="?", golang="1.47.0", java="1.7.0", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
+@released(dotnet="?", golang="1.47.0", java="1.8.0", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
 @irrelevant(re.fullmatch(r"spring-.+native", context.weblog_variant), reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UserLoginSuccessEvent:
@@ -47,7 +47,7 @@ class Test_UserLoginSuccessEvent:
         interfaces.library.validate_spans(self.r, validate_user_login_success_tags)
 
 
-@released(dotnet="?", golang="1.47.0", java="?", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
+@released(dotnet="?", golang="1.47.0", java="1.8.0", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
 @coverage.basic
 class Test_UserLoginFailureEvent:
     """Failure test for User Login Event SDK for AppSec"""
@@ -83,7 +83,7 @@ class Test_UserLoginFailureEvent:
         interfaces.library.validate_spans(self.r, validate_user_login_failure_tags)
 
 
-@released(dotnet="?", golang="1.47.0", java="?", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
+@released(dotnet="?", golang="1.47.0", java="1.8.0", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
 @coverage.basic
 class Test_CustomEvent:
     """Test for Custom Event SDK for AppSec"""
