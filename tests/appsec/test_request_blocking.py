@@ -10,7 +10,7 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@released(java="1.9.0")
+@released(java="1.9.0", dotnet="2.25.0")
 @coverage.basic
 @scenario("APPSEC_REQUEST_BLOCKING")
 class Test_AppSecRequestBlocking:
@@ -29,19 +29,28 @@ class Test_AppSecRequestBlocking:
                 self.request_number += 1
                 return False
 
-            # Make sure the tracer applied the configuration
-            assert data["request"]["content"]["client"]["state"]["config_states"] == [
-                {"apply_state": 2, "id": "datadog/2/ASM/ASM-base/config", "product": "ASM", "version": 1},
-            ]
-            assert not data["request"]["content"]["client"]["state"]["has_error"]
+            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+            if len(state.get("config_states", [])) == 0 or state["has_error"]:
+                logger.info(f"rc request contains an error or no configs:\n{state}")
+                return False
+
+            for s in state["config_states"]:
+                if s["id"] != "ASM-base" or s["apply_error"] or s["apply_state"] != 2:
+                    logger.info(f"rc request contains an error or wrong config:\n{state}")
+                    return False
+
             return True
 
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
-        self.blocked_requests = weblog.get(headers={"random-key": "acunetix-user-agreement"})
+        self.blocked_requests1 = weblog.get(headers={"user-agent": "Arachni/v1"})
+        self.blocked_requests2 = weblog.get(headers={"random-key": "acunetix-user-agreement"})
 
     def test_request_blocking(self):
         """test requests are blocked by rules in blocking mode"""
 
-        assert self.blocked_requests.status_code == 403
-        interfaces.library.assert_waf_attack(self.blocked_requests, rule="crs-913-110")
+        assert self.blocked_requests1.status_code == 403
+        interfaces.library.assert_waf_attack(self.blocked_requests1, rule="ua0-600-12x")
+
+        assert self.blocked_requests2.status_code == 403
+        interfaces.library.assert_waf_attack(self.blocked_requests2, rule="crs-913-110")
