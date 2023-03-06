@@ -344,6 +344,11 @@ jobs:
       run: ./run.sh APPSEC_IP_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_REQUEST_BLOCKING scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh APPSEC_REQUEST_BLOCKING
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
