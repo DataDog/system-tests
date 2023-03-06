@@ -370,15 +370,21 @@ class Test_Telemetry:
     @irrelevant(library="ruby")
     @irrelevant(library="java")
     def test_app_product_change(self):
+        """Test product change data when product is enabled"""
+
         def validator(data):
             content = data["request"]["content"]
             if content.get("request_type") == "app-product-change":
                 products = content["payload"]["products"]
                 for prod in products > 0:
-                    version = prod["appsec"]["version"]
-                    enabled = prod["appsec"]["enabled"]
-                    assert version == "0.1", f"Product appsec version is {version}"
-                    assert enabled == True, f"Product appsec enabled flag is {enabled}"
+                    appsecEnabled = prod["appsec"]["enabled"]
+                    assert appsecEnabled == True, f"Product appsec enabled flag is {appsecEnabled}"
+                    profilerEnabled = prod["profiler"]["enabled"]
+                    assert profilerEnabled == True, f"Product appsec enabled flag is {profilerEnabled}"
+                    dynamicInstrumentationEnabled = prod["dynamic_instrumentation"]["enabled"]
+                    assert (
+                        dynamicInstrumentationEnabled == False
+                    ), f"Product appsec enabled flag is {dynamicInstrumentationEnabled}"
             else:
                 raise Exception("app-product-change is not emited when product change is enabled")
             self.validate_library_telemetry_data(validator)
