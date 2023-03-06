@@ -48,6 +48,7 @@ class Test_UserLoginSuccessEvent:
 
 
 @released(dotnet="?", golang="1.47.0", java="1.8.0", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
+@irrelevant(re.fullmatch(r"spring-.+native", context.weblog_variant), reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UserLoginFailureEvent:
     """Failure test for User Login Event SDK for AppSec"""
@@ -84,6 +85,7 @@ class Test_UserLoginFailureEvent:
 
 
 @released(dotnet="?", golang="1.47.0", java="1.8.0", nodejs="?", php_appsec="0.6.0", python="?", ruby="1.9.0")
+@irrelevant(re.fullmatch(r"spring-.+native", context.weblog_variant), reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_CustomEvent:
     """Test for Custom Event SDK for AppSec"""
