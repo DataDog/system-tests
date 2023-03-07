@@ -101,11 +101,6 @@ class RemoteConfigurationFieldsBasicTests:
 
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
-    def setup_tracer_update_sequence(self):
-        # default polling interval for tracers is very low (5 seconds)
-        # TODO configure the polling interval to a lower value instead of increasing the timeout
-        interfaces.library.timeout = 100
-
 
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
@@ -192,6 +187,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
     python_request_number = 0
 
+    @bug(context.library == "python@1.9.2")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, weblog, interfaces, released, irrelevant, scenario
+from utils import context, coverage, weblog, interfaces, released, irrelevant, scenario, scenarios
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag
@@ -32,7 +32,7 @@ class Test_HeaderTagsShortFormat:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = context.weblog_env["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_headers_short.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
@@ -55,7 +55,7 @@ class Test_HeaderTagsLongFormat:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = context.weblog_env["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_headers_long.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
