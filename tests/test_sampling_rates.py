@@ -5,7 +5,7 @@
 import time
 from random import randint
 
-from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenario
+from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenarios
 
 USER_REJECT = -1
 AUTO_REJECT = 0
@@ -16,7 +16,7 @@ USER_KEEP = 2
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
 @bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
 @bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
-@scenario("SAMPLING")
+@scenarios.sampling
 class Test_SamplingRates:
     """Rate at which traces are sampled is the actual sample rate"""
 
@@ -86,7 +86,7 @@ class Test_SamplingRates:
 
 
 @released(php="0.71.0")
-@scenario("SAMPLING")
+@scenarios.sampling
 class Test_SamplingDecisions:
     """Sampling configuration"""
 
