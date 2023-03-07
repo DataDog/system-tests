@@ -31,7 +31,7 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		otelOpts = append(otelOpts, ot_api.WithNewRoot())
 	}
 	if t := args.GetTimestamp(); t != 0 {
-		tm := time.Unix(t, 0)
+		tm := time.UnixMicro(t)
 		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
 	}
 	if args.GetAttributes() != nil {
@@ -109,7 +109,7 @@ func (s *apmClientServer) OtelEndSpan(ctx context.Context, args *OtelEndSpanArgs
 	}
 	endOpts := []ot_api.SpanEndOption{}
 	if t := args.GetTimestamp(); t != 0 {
-		tm := time.Unix(t, 0)
+		tm := time.UnixMicro(t)
 		endOpts = append(endOpts, ot_api.WithTimestamp(tm))
 	}
 	span.End(endOpts...)

@@ -14,6 +14,7 @@ from parametric.utils.test_agent import get_span
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
+@pytest.mark.skip_library("golang", 'Protocol message Attributes has no "start_attr_key" field')
 def test_otel_start_span(test_agent, test_library):
     """
         - Start/end a span with start and end options
@@ -94,7 +95,7 @@ def test_otel_span_is_finished(test_agent, test_library):
         # start parent
         with test_library.start_otel_span(name="parent") as parent:
             assert parent.is_recording()
-            parent.otel_end_span(time.time())
+            parent.otel_end_span()
             assert not parent.is_recording()
 
 
@@ -107,8 +108,8 @@ def test_otel_span_finished_end_options(test_agent, test_library):
     Test functionality of ending a span with end options.
     After finishing the span, finishing the span with different end options has no effect
     """
-    start_time = int(time.time())
-    duration = 1000
+    start_time = time.time_ns()
+    duration = 1e09
     with test_library:
         with test_library.start_otel_span(name="operation", timestamp=start_time) as s:
             assert s.is_recording()
@@ -118,8 +119,8 @@ def test_otel_span_finished_end_options(test_agent, test_library):
 
     s = get_span(test_agent)
     assert s.get("name") == "operation"
-    assert s.get("duration") != 2 * 1000 * 1e9
-    assert s.get("start") == start_time * 1e9
+    assert s.get("start") == start_time
+    assert s.get("duration") == duration
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
