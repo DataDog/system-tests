@@ -20,13 +20,13 @@ FIRST_ARGUMENT=${1:-DEFAULT}
 if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
     export SYSTEMTESTS_SCENARIO=$FIRST_ARGUMENT
     export RUNNER_ARGS="tests/"
-export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
 
     if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then
         export SYSTEMTESTS_LOG_FOLDER=logs
     else
         export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
     fi
+
 else
     # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
