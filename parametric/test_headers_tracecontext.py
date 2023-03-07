@@ -368,7 +368,6 @@ def test_traceparent_parent_id_too_short(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
 def test_traceparent_trace_flags_illegal_characters(test_agent, test_library):
     """
     harness sends an invalid traceparent with illegal characters in trace_flags
