@@ -251,7 +251,7 @@ class Test_Telemetry:
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
         prev_message_time = -1
-        TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
+        TELEMETRY_HEARTBEAT_INTERVAL = context.telemetry_heartbeat_interval
         ALLOWED_INTERVALS = 2
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 

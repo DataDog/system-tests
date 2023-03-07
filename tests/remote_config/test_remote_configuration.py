@@ -101,11 +101,6 @@ class RemoteConfigurationFieldsBasicTests:
 
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
-    def setup_tracer_update_sequence(self):
-        # default polling interval for tracers is very low (5 seconds)
-        # TODO configure the polling interval to a lower value instead of increasing the timeout
-        interfaces.library.timeout = 100
-
 
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
