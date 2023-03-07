@@ -383,6 +383,12 @@ class Test_Telemetry:
             Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Python
         """,
     )
+    @bug(
+        library="dotnet",
+        reason="""
+            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Dotnet
+        """,
+    )
     def test_message_batch_event_order(self):
         eventslist = []
         for data in interfaces.library.get_telemetry_data():
