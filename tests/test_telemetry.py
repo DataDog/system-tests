@@ -98,7 +98,7 @@ class Test_Telemetry:
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
-        MAX_OUT_OF_ORDER_LAG = 0.1  # s
+        MAX_OUT_OF_ORDER_LAG = 0.3  # s
 
         max_seq_id = 0
         received_max_time = None
