@@ -378,6 +378,11 @@ class Test_Telemetry:
         reason="""
             weblog GET/enable_product and app-product-change event is not implemented yet.         """,
     )
+    @bug(
+        library="python",
+        reason="""
+            weblog GET/enable_product and app-product-change event is not implemented yet.         """,
+    )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
