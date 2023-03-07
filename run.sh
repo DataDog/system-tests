@@ -19,11 +19,11 @@ fi
 FIRST_ARGUMENT=${1:-DEFAULT}
 if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
     export SYSTEMTESTS_SCENARIO=$FIRST_ARGUMENT
-export RUNNER_ARGS="tests/"
+    export RUNNER_ARGS="tests/"
 export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
 
     if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then
-    export SYSTEMTESTS_LOG_FOLDER=logs
+        export SYSTEMTESTS_LOG_FOLDER=logs
     else
         export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
     fi
@@ -35,6 +35,7 @@ else
 fi
 
 export HOST_PWD=$(pwd)
+
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 
@@ -42,8 +43,6 @@ find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 rm -rf $SYSTEMTESTS_LOG_FOLDER
 
 interfaces=(agent library backend)
-
-
 for interface in ${interfaces[@]}
 do
     mkdir -p $SYSTEMTESTS_LOG_FOLDER/interfaces/$interface
