@@ -143,7 +143,7 @@ public class Main {
                         .get("custom_event", ctx -> {
                             MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
                             datadog.trace.api.GlobalTracer.getEventTracker()
-                                    .trackLoginSuccessEvent(
+                                    .trackCustomEvent(
                                             qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                             ctx.getResponse().send("ok");
                         })
