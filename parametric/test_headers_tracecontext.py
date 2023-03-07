@@ -105,7 +105,6 @@ def test_traceparent_header_name(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("dotnet", "Bug: Header search is currently case-sensitive")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_traceparent_header_name_valid_casing(test_agent, test_library):
     """
@@ -508,7 +507,6 @@ def test_tracestate_header_name(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_header_name_valid_casing(test_agent, test_library):
     """
