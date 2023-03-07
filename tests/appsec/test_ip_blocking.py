@@ -31,7 +31,6 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
     reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
-@bug(library="php")
 @coverage.basic
 @scenario("APPSEC_IP_BLOCKING")
 class Test_AppSecIPBlocking:

@@ -189,6 +189,7 @@ class _Context:  # pylint: disable=too-many-instance-attributes
             self.weblog_env["DD_INSTRUMENTATION_TELEMETRY_ENABLED"] = "true"
         elif self.scenario == "APPSEC_IP_BLOCKING":
             self.proxy_state = '{"mock_remote_config_backend": "ASM_DATA"}'
+            self.weblog_env["DD_APPSEC_RULES"] = None
         elif self.scenario == "APPSEC_RUNTIME_ACTIVATION":
             self.proxy_state = '{"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"}'
             del self.weblog_env["DD_APPSEC_ENABLED"]
