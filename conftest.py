@@ -7,7 +7,7 @@ import json
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context, interfaces
-from utils.proxy.core import start_proxy
+from utils._context._scenarios import current_scenario
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
@@ -24,35 +24,11 @@ _rfcs = {}
 
 # Called at the very begening
 def pytest_sessionstart(session):
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
-    def print_info(info):
-        logger.debug(info)
-        terminal.write_line(info)
+    if session.config.option.collectonly:
+        return
 
-    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means that we are not running test_the_test
-
-        if not session.config.option.collectonly:
-            start_proxy(context.proxy_state)
-
-        terminal.write_sep("=", "Tested components", bold=True)
-        print_info(f"Library: {context.library}")
-        print_info(f"Agent: {context.agent_version}")
-        if context.library == "php":
-            print_info(f"AppSec: {context.php_appsec}")
-
-        if context.libddwaf_version:
-            print_info(f"libddwaf: {context.libddwaf_version}")
-
-        if context.appsec_rules_file:
-            print_info(f"AppSec rules version: {context.appsec_rules_version}")
-
-        if context.uds_mode:
-            print_info(f"UDS socket: {context.uds_socket}")
-
-        print_info(f"Weblog variant: {context.weblog_variant}")
-        print_info(f"Backend: {context.dd_site}")
-        print_info(f"Scenario: {context.scenario}")
+    current_scenario.session_start(session)
 
 
 # called when each test item is collected
@@ -117,6 +93,10 @@ def pytest_collection_modifyitems(session, config, items):
             if marker.name == "scenario":
                 return marker.args[0]
 
+        for marker in item.parent.parent.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
         return None
 
     if context.scenario == "CUSTOM":
@@ -163,7 +143,7 @@ def pytest_collection_finish(session):
     terminal.write_line("Executing weblog warmup...")
 
     try:
-        context.execute_warmups()
+        current_scenario.execute_warmups()
 
         last_file = ""
         for item in session.items:
@@ -202,29 +182,30 @@ def pytest_collection_finish(session):
 
         terminal.write("\n\n")
 
-        _wait_interface(interfaces.library, session)
-        _wait_interface(interfaces.agent, session)
-        _wait_interface(interfaces.backend, session)
+        if current_scenario.use_interfaces:
+            _wait_interface(interfaces.library, session, current_scenario.library_interface_timeout)
+            _wait_interface(interfaces.agent, session, current_scenario.agent_interface_timeout)
+            _wait_interface(interfaces.backend, session, 5)
 
-        context.collect_logs()
+            current_scenario.collect_logs()
 
-        _wait_interface(interfaces.library_stdout, session)
-        _wait_interface(interfaces.library_dotnet_managed, session)
-        _wait_interface(interfaces.agent_stdout, session)
+            _wait_interface(interfaces.library_stdout, session, 0)
+            _wait_interface(interfaces.library_dotnet_managed, session, 0)
+            _wait_interface(interfaces.agent_stdout, session, 0)
 
     except:
-        context.collect_logs()
+        current_scenario.collect_logs()
         raise
     finally:
-        context.close_targets()
+        current_scenario.close_targets()
 
 
-def _wait_interface(interface, session):
+def _wait_interface(interface, session, timeout):
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-    terminal.write_sep("-", f"Wait for {interface} ({interface.timeout}s)")
+    terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
     terminal.flush()
 
-    interface.wait()
+    interface.wait(timeout)
 
 
 def pytest_json_modifyreport(json_report):
@@ -278,5 +259,12 @@ def _pytest_junit_modifyreport():
     with open(json_report_path, encoding="utf-8") as f:
         json_report = json.load(f)
         junit_modifyreport(
-            json_report, junit_report_path, _skip_reasons, _docs, _rfcs, _coverages, _release_versions,
+            json_report,
+            junit_report_path,
+            _skip_reasons,
+            _docs,
+            _rfcs,
+            _coverages,
+            _release_versions,
+            junit_properties=current_scenario.get_junit_properties(),
         )

@@ -6,7 +6,7 @@ import threading
 from datetime import datetime
 
 from mitmproxy import master, options
-from mitmproxy.addons import errorcheck, keepserving, default_addons
+from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError
 
 from utils import interfaces
@@ -43,7 +43,7 @@ with open("utils/proxy/rc_mocked_responses_asm_dd_nocache.json", encoding="utf-8
 class _RequestLogger:
     def __init__(self, state) -> None:
         self.dd_api_key = os.environ["DD_API_KEY"]
-        self.state = json.loads(state or "{}")
+        self.state = state
 
         # for config backend mock
         self.config_request_count = defaultdict(int)
@@ -172,7 +172,7 @@ def start_proxy(state) -> None:
     proxy.addons.add(*default_addons())
     # proxy.addons.add(keepserving.KeepServing())
     proxy.addons.add(errorcheck.ErrorCheck())
-    proxy.addons.add(_RequestLogger(state))
+    proxy.addons.add(_RequestLogger(state or {}))
 
     asyncio.run_coroutine_threadsafe(proxy.run(), loop)
 
