@@ -387,4 +387,5 @@ class Test_Telemetry:
                     ), f"Product appsec enabled flag is {dynamicInstrumentationEnabled}"
             else:
                 raise Exception("app-product-change is not emited when product change is enabled")
-            self.validate_library_telemetry_data(validator)
+
+        self.validate_library_telemetry_data(validator)
