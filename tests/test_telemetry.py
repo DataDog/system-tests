@@ -363,12 +363,21 @@ class Test_Telemetry:
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 
-    @irrelevant(library="php")
-    @irrelevant(library="cpp")
-    @irrelevant(library="golang")
-    @irrelevant(library="python")
-    @irrelevant(library="ruby")
-    @irrelevant(library="java")
+    @bug(
+        library="dotnet",
+        reason="""
+            weblog GET/enable_product and app-product-change event is not implemented yet.        """,
+    )
+    @bug(
+        library="nodejs",
+        reason="""
+            weblog GET/enable_product and app-product-change event is not implemented yet.         """,
+    )
+    @bug(
+        library="java",
+        reason="""
+            weblog GET/enable_product and app-product-change event is not implemented yet.         """,
+    )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
