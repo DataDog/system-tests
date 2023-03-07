@@ -17,7 +17,7 @@ class Test_Library:
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "dotnet@2.24.0")
-    @bug(context.library >= "nodejs@3.14.1")
+    @bug(context.library >= "nodejs@2.27.1")
     def test_full(self):
         interfaces.library.assert_schemas()
 
@@ -64,7 +64,7 @@ class Test_Agent:
     @bug(context.library < "golang@1.36.0")
     @bug(context.library < "java@0.93.0")
     @bug(context.library >= "dotnet@2.24.0")
-    @bug(context.library >= "nodejs@3.14.1")
+    @bug(context.library >= "nodejs@2.27.1")
     def test_full(self):
         interfaces.agent.assert_schemas()
 

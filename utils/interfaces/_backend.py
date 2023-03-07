@@ -256,8 +256,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
                 },
                 "limit": limit,
                 "columns": [],
-                "computeCound": True,
-                "includeEvents": True,
+                "computeCount": True,
                 "includeEventContents": True,
             }
         }
