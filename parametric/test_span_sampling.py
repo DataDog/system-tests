@@ -528,7 +528,6 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
 
-@pytest.mark.skip_library("golang", "The Go tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
@@ -540,7 +539,8 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
                 [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
             ),
             "DD_TRACE_SAMPLE_RATE": 0,
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy on the tracer side
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
+            "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
         }
     ],
 )
@@ -551,12 +551,13 @@ def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_act
     We're essentially testing to make sure that the child unsampled span is dropped on the tracer side because of
     the activate dropping policy.
     """
-    # the first trace is expected to be kept by the tracer despite of the active dropping policy because
-    # its resource/operation/error combination hasn't been seen before
+    assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+
     with test_library:
         with test_library.start_span(name="parent", service="webserver"):
             pass
 
+    # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
     test_agent.wait_for_num_traces(1, clear=True)
 
     # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
@@ -578,9 +579,6 @@ def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_act
     assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
 
-@pytest.mark.skip_library(
-    "golang", "The Go tracer sends the full trace to the agent anyways.",
-)
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
@@ -592,7 +590,8 @@ def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_act
                 [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
             ),
             "DD_TRACE_SAMPLE_RATE": 0,
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy on the tracer side
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
+            "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
         }
     ],
 )
@@ -603,12 +602,14 @@ def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_act
     We're essentially testing to make sure that the root unsampled span is dropped on the tracer side because of
     the activate dropping policy.
     """
-    # the first trace is expected to be kept by the tracer despite of the active dropping policy because
-    # its resource/operation/error combination hasn't been seen before
-    with test_library:
-        with test_library.start_span(name="parent", service="webserver"):
-            pass
+    assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+                pass
+
+    # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
     test_agent.wait_for_num_traces(1, clear=True)
 
     # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
@@ -630,12 +631,7 @@ def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_act
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
 
-@pytest.mark.skip_library(
-    "golang", "The Go tracer sends the full trace to the agent anyways.",
-)
-@pytest.mark.skip_library(
-    "dotnet", "The .NET tracer sends the full trace to the agent anyways.",
-)
+@pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.parametrize(
@@ -643,7 +639,8 @@ def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_act
     [
         {
             "DD_TRACE_SAMPLE_RATE": 0,
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy on the tracer side
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
+            "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
         }
     ],
 )
@@ -654,13 +651,19 @@ def test_entire_trace_dropped_when_dropping_policy_is_active018(test_agent, test
     We're essentially testing to make sure that the entire unsampled trace is dropped on the tracer side because of
     the activate dropping policy.
     """
-    # the first trace is expected to be kept by the tracer despite of the active dropping policy because
-    # its resource/operation/error combination hasn't been seen before
+    assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+
     with test_library:
         with test_library.start_span(name="parent", service="webserver"):
             pass
 
-    test_agent.wait_for_num_traces(1, clear=True)
+    if test_library.lang == "java":
+        # Java Tracer is expected to keep the first trace despite of the active dropping policy because
+        # its resource/operation/error combination hasn't been seen before
+        test_agent.wait_for_num_traces(1, clear=True)
+    elif test_library.lang == "golang":
+        # Go Tracer is expected to drop the very fist p0s
+        test_agent.wait_for_num_traces(0, clear=True)
 
     # the second similar trace is expected to be dropped on the Tracer side
     with test_library:

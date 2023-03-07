@@ -666,5 +666,5 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
         client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
     else:
         raise ValueError("interface %s not supported" % test_server.protocol)
-    tracer = APMLibrary(client)
+    tracer = APMLibrary(client, test_server.lang)
     yield tracer
