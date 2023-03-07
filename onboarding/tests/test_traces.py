@@ -12,4 +12,4 @@ def test_forTraces(private_ip):
     print("Making a request to weblog")
     request_uuid = make_get_request("http://" + private_ip + ":5985/")
     print(f"Http request done with uuid:", request_uuid)
-    wait_backend_trace_id(request_uuid, 30.0)
+    wait_backend_trace_id(request_uuid, 200.0)

@@ -64,6 +64,20 @@ def remote_install(connection, command_identifier, install_info, depends_on, add
     return cmd_exec_install
 
 
+def build_local_weblog(ec2_name, weblog_instalations, depends):
+    logging.info("Building weblog application: " + weblog_instalations["name"])
+    if "local-script" in weblog_instalations:
+        webapp_build = command.local.Command(
+            "build-weblog_" + ec2_name,
+            create="sh " + weblog_instalations["local-script"],
+            opts=pulumi.ResourceOptions(depends_on=[depends]),
+        )
+        webapp_build.stdout.apply(lambda outputlog: logging.info(outputlog))
+        return webapp_build
+    else:
+        return depends
+
+
 def infraestructure_provision():
     for ec2_data in ec2_instances_data():
         os_type = ec2_data["os_type"]
@@ -129,21 +143,10 @@ def infraestructure_provision():
                         )
 
                         # Build weblog app
-                        logging.info("Building weblog application: " + weblog_instalations["name"])
-
-                        webapp_build = command.local.Command(
-                            "build-weblog_" + ec2_name,
-                            create="sh " + weblog_instalations["local-script"],
-                            opts=pulumi.ResourceOptions(depends_on=[lang_variant_installer]),
-                        )
-
-                        webapp_build.stdout.apply(lambda outputlog: logging.info(outputlog))
-
-                        # Run weblog app
+                        webapp_build = build_local_weblog(ec2_name, weblog_instalations, lang_variant_installer)
                         weblog_runner = remote_install(
                             connection, "run-weblog_" + ec2_name, weblog_instalations["install"], webapp_build
                         )
-
                         pulumi.export("privateIp_" + ec2_name, server.private_ip)
 
 

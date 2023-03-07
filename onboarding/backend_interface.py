@@ -26,6 +26,4 @@ def wait_backend_trace_id(trace_id, timeout: float = 5.0):
             print("trace found!")
             break
         if time.perf_counter() - start_time >= timeout:
-            raise TimeoutError(
-                "Waited too long for the port {} on host {} to start accepting " "connections.".format(trace_id)
-            )
+            raise TimeoutError("Backend timeout")
