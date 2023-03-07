@@ -13,7 +13,6 @@ import json
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -38,7 +37,6 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}]), "DD_TRACE_SAMPLE_RATE": 0}],
@@ -56,7 +54,6 @@ def test_special_glob_characters_span_sampling_sss002(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -82,7 +79,6 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
 )
@@ -101,7 +97,6 @@ def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent,
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]), "DD_TRACE_SAMPLE_RATE": 0}]
 )
@@ -120,7 +115,6 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -155,7 +149,6 @@ def test_multi_rule_keep_drop_span_sampling_sss006(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -190,7 +183,6 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
 @pytest.mark.parametrize(
     "library_env",
@@ -245,7 +237,6 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -310,7 +301,6 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -348,7 +338,6 @@ def test_single_rule_always_keep_span_sampling_sss011(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
 
-@pytest.mark.skip_library("nodejs", "Issue: Test is flaky, please investigate.")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -377,7 +366,6 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
 @pytest.mark.parametrize(
     "library_env",
@@ -444,7 +432,6 @@ def test_multi_rule_independent_rate_limiters_sss013(test_agent, test_library):
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
 
 
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.parametrize(
     "library_env",
@@ -487,7 +474,6 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     assert child_span["meta"].get("_dd.p.dm") is None
 
 
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.parametrize(
     "library_env",
