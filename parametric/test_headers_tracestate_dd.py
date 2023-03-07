@@ -17,7 +17,6 @@ def temporary_enable_propagationstyle_default() -> Any:
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Issue: We need to prefer the traceparent sampled flag to fix headers4 test case")
 def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -189,7 +188,6 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "The origin transformation has changed slightly")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
