@@ -359,3 +359,20 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
+
+    def setup_message_batch_event_order(self):
+        weblog.get("/load_dependency")
+        weblog.get("/enable_integration")
+        weblog.get("/enable_product")
+
+    def test_message_batch_event_order(self):
+        eventslist = []
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            eventslist.append(content.get("request_type"))
+
+        assert (
+            eventslist[0] == "app-dependencies-loaded"
+            and eventslist[1] == "app-integrations-change"
+            and eventslist[2] == "app-product-change"
+        ), "Events in message-batch are not in chronological order of event triggered"
