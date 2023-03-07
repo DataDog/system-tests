@@ -26,7 +26,6 @@ if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
     else
         export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
     fi
-
 else
     # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
