@@ -365,6 +365,24 @@ class Test_Telemetry:
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
+    @bug(
+        library="java",
+        reason="""
+            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Java
+        """,
+    )
+    @bug(
+        library="nodejs",
+        reason="""
+            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Nodejs
+        """,
+    )
+    @bug(
+        library="python",
+        reason="""
+            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Python
+        """,
+    )
     def test_message_batch_event_order(self):
         eventslist = []
         for data in interfaces.library.get_telemetry_data():
