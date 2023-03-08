@@ -10,7 +10,20 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@released(java="1.9.0", dotnet="2.25.0")
+@released(cpp="?", dotnet="2.25.0", php_appsec="?", python="1.10.0", ruby="?", nodejs="?", golang="?")
+@released(
+    java={
+        "spring-boot": "1.9.0",
+        "sprint-boot-jetty": "1.9.0",
+        "spring-boot-undertow": "1.9.0",
+        "spring-boot-openliberty": "1.9.0",
+        "ratpack": "1.9.0",
+        "jersey-grizzly2": "1.9.0",
+        "resteasy-netty3": "1.9.0",
+        "vertx3": "1.9.0",
+        "*": "?",
+    }
+)
 @coverage.basic
 @scenarios.appsec_request_blocking
 class Test_AppSecRequestBlocking:
