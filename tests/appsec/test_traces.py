@@ -14,7 +14,7 @@ from utils import (
     released,
     rfc,
     missing_feature,
-    scenario,
+    scenarios,
 )
 
 if context.library == "cpp":
@@ -283,7 +283,7 @@ class Test_AppSecObfuscator:
             params={"pwd": f'{self.SECRET_VALUE_WITH_SENSITIVE_KEY} o:3:"d":3:{{}}'},
         )
 
-    @scenario("APPSEC_CUSTOM_RULES")
+    @scenarios.appsec_custom_rules
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -306,7 +306,7 @@ class Test_AppSecObfuscator:
         }
         self.r_cookies_custom = weblog.get("/waf/", cookies=cookies)
 
-    @scenario("APPSEC_CUSTOM_RULES")
+    @scenarios.appsec_custom_rules
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
         """
         Specific obfuscation test for the cookies which often contain sensitive data and are

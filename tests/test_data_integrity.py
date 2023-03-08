@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, interfaces, context, bug, rfc, scenario
+from utils import weblog, interfaces, context, bug, rfc, scenarios
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
@@ -86,7 +86,7 @@ class Test_TraceHeaders:
         logger.info(f"cgroup: weblog container id is {self.weblog_container_id}")
 
     @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
-    @scenario("CGROUP")
+    @scenarios.cgroup
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
