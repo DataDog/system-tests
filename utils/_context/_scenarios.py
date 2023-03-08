@@ -17,6 +17,8 @@ class _Scenario:
         # handles @scenarios.scenario_name
         pytest.mark.scenario(self.name)(test_method)
 
+        return test_method
+
     def session_start(self, session):
         # called at the very begning of the process
         pass
@@ -288,12 +290,16 @@ class CgroupScenario(EndToEndScenario):
 
 class scenarios:
     empty_scenario = _Scenario("EMPTY_SCENARIO")
+    todo = _Scenario("TODO")  # scenario that skips tests not yest executed
     test_the_test = TestTheTestScenario("TEST_THE_TEST")
 
     default = EndToEndScenario("DEFAULT", include_postgres_db=True)
     cgroup = CgroupScenario("CGROUP")
     custom = EndToEndScenario("CUSTOM")
     sleep = EndToEndScenario("SLEEP")
+
+    # scenario for weblog arch that does not support Appsec
+    appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
