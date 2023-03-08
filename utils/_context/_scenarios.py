@@ -340,7 +340,15 @@ class scenarios:
     appsec_waf_telemetry = EndToEndScenario(
         "APPSEC_WAF_TELEMETRY", weblog_env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true"}
     )
-    appsec_ip_blocking = EndToEndScenario("APPSEC_IP_BLOCKING", proxy_state={"mock_remote_config_backend": "ASM_DATA"})
+    # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+    # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
+    # So, we set  DD_APPSEC_RULES to None to enable loading rules from remote config.
+    # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
+    appsec_ip_blocking = EndToEndScenario(
+        "APPSEC_IP_BLOCKING",
+        proxy_state={"mock_remote_config_backend": "ASM_DATA"},
+        weblog_env={"DD_APPSEC_RULES": None},
+    )
 
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
