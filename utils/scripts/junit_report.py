@@ -1,15 +1,16 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import os
+
 import xml.etree.ElementTree as ET
 from operator import attrgetter
 
-from utils import context
 from utils.tools import logger
 
 
-def junit_modifyreport(json_report, junit_report_path, _skip_reasons, _docs, _rfcs, _coverages, _release_versions):
+def junit_modifyreport(
+    json_report, junit_report_path, _skip_reasons, _docs, _rfcs, _coverages, _release_versions, junit_properties
+):
     """Add extra information to auto generated JUnit xml file"""
 
     # Open XML Junit report
@@ -70,7 +71,7 @@ def junit_modifyreport(json_report, junit_report_path, _skip_reasons, _docs, _rf
         # testsuite.set("name", os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO"))
         # New properties node to add our custom tags
         ts_props = ET.SubElement(testsuite, "properties")
-        _create_junit_testsuite_context(ts_props)
+        _create_junit_testsuite_context(ts_props, junit_properties)
         _create_junit_testsuite_summary(ts_props, json_report["summary"])
         # I must to order tags: suite level tags works if they come up in the file before the testcase elements.
         # This is because we need to parse the XMLs incrementally we don't load all the tests in memory or
@@ -127,53 +128,9 @@ def _create_testcase_results(
         logger.error(f"Not found in Junit xml report. Test class:{testclass_name} and test case name:{testcase_name}")
 
 
-def _create_junit_testsuite_context(testsuite_props):
-
-    ET.SubElement(
-        testsuite_props, "property", name="dd_tags[systest.suite.context.agent]", value=str(context.agent_version or "")
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.library.name]",
-        value=str(context.library.library or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.library.version]",
-        value=str(context.library.version or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.weblog_variant]",
-        value=str(context.weblog_variant or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.sampling_rate]",
-        value=str(context.tracer_sampling_rate or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.libddwaf_version]",
-        value=str(context.libddwaf_version or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.appsec_rules_file]",
-        value=str(context.appsec_rules_file or ""),
-    )
-    ET.SubElement(
-        testsuite_props,
-        "property",
-        name="dd_tags[systest.suite.context.scenario]",
-        value=os.environ.get("SYSTEMTESTS_SCENARIO", ""),
-    )
+def _create_junit_testsuite_context(testsuite_props, junit_properties):
+    for key, value in junit_properties.items():
+        ET.SubElement(testsuite_props, "property", name=key, value=str(value or ""))
 
 
 def _create_junit_testsuite_summary(testsuite_props, summary_json):
