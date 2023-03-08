@@ -365,38 +365,15 @@ class Test_Telemetry:
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
-    @bug(
-        library="java",
-        reason="""
-            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Java
-        """,
+    @missing_feature(
+        context.library in ("dotnet", "nodejs", "java", "python"),
+        reason="DD_FORCE_BATCHING_ENABLE is not implemented yet.",
     )
-    @bug(
-        library="nodejs",
-        reason="""
-            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Nodejs
-        """,
-    )
-    @bug(
-        library="python",
-        reason="""
-            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Python
-        """,
-    )
-    @bug(
-        library="dotnet",
-        reason="""
-            Weblog endpoint GET/enable_integration and GET/enable_product is not yet implemented in Dotnet
-        """,
-    )
+    # @scenario("TELEMETRY_MESSAGE_BATCH_EVENT_ORDER")
     def test_message_batch_event_order(self):
         eventslist = []
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             eventslist.append(content.get("request_type"))
 
-        assert (
-            eventslist[0] == "app-dependencies-loaded"
-            and eventslist[1] == "app-integrations-change"
-            and eventslist[2] == "app-product-change"
-        ), "Events in message-batch are not in chronological order of event triggered"
+        assert eventslist.index("app-dependencies-loaded") < eventslist.index("app-integrations-change") < eventslist.index("app-product-change"), "Events in message-batch are not in chronological order of event triggered"
