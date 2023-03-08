@@ -1,4 +1,4 @@
-from utils import interfaces, released, rfc, weblog, scenario, context
+from utils import interfaces, released, rfc, weblog, scenarios, context
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -70,7 +70,7 @@ def _validate_metrics(payload):
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
 @released(python="?", cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
-@scenario("APPSEC_WAF_TELEMETRY")
+@scenarios.appsec_waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
 

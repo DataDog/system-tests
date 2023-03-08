@@ -1,11 +1,9 @@
-import pytest
-
-from utils import released, coverage, interfaces, scenario, weblog
+from utils import released, coverage, interfaces, scenarios, weblog
 
 
 @released(cpp="?", dotnet="?", golang="1.48.0", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @coverage.basic
-@scenario("APPSEC_BLOCKING")
+@scenarios.appsec_blocking
 class Test_UserBlocking:
     def setup_nonblocking_test(self):
         self.r_nonblock = weblog.get("/users", params={"user": "regularUser"})
