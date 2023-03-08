@@ -364,7 +364,7 @@ class Test_Telemetry:
         weblog.get("/enable_product")
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "pyton"),
+        context.library in ("dotnet", "nodejs", "java", "python"),
         reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
     )
     def test_app_product_change(self):
