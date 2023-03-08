@@ -185,7 +185,7 @@ def pytest_collection_finish(session):
         if current_scenario.use_interfaces:
             _wait_interface(interfaces.library, session, current_scenario.library_interface_timeout)
             _wait_interface(interfaces.agent, session, current_scenario.agent_interface_timeout)
-            _wait_interface(interfaces.backend, session, 5)
+            _wait_interface(interfaces.backend, session, current_scenario.backend_interface_timeout)
 
             current_scenario.collect_logs()
 
