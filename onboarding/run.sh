@@ -35,7 +35,7 @@ pulumi stack output --json > pulumi.output.json
 export DD_APP_KEY=$(pulumi config get ddagent:appKey)
 export DD_API_KEY=$(pulumi config get ddagent:apiKey) 
 PARENT_DIR=$(dirname $PWD)
-venv/bin/pytest -s -c $PWD/conftest.py tests/test_traces.py 
+venv/bin/pytest -s -c $PWD/conftest.py tests/test_traces.py --json-report
 ###venv/bin/python -m pytest -s -c $PWD/conftest.py $ARGS
 
 # .:: Destroy infraestructure ::.

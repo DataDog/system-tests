@@ -4,7 +4,8 @@ from backend_interface import *
 from wait_for_tcp_port import *
 
 
-def test_forTraces(private_ip):
+def test_forTraces(machine_desc):
+    private_ip = machine_desc["private_ip"]
     print("TEST FOR TRACES:" + private_ip)
     print("Waiting for weblog available")
     wait_for_port(5985, private_ip, 60.0)
