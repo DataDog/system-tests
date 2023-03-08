@@ -389,6 +389,7 @@ class scenarios:
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         proxy_state={"mock_remote_config_backend": "ASM_DD"},
+        weblog_env={"DD_APPSEC_RULES": None},
         library_interface_timeout=100,
     )
 
