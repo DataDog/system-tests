@@ -9,7 +9,8 @@
       "type": "array",
       "items": {
         "$ref": "/miscs/telemetry/common/dependency.json"
-      }
+      },
+      "maxItems": 2000
     },
     "integrations": {
       "type": "array",

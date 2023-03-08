@@ -162,8 +162,7 @@ class Test_StandardTagsRoute:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @released(dotnet="?", golang="1.46.0", java="0.114.0")
-@released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="?")
-@bug(library="ruby", reason="APPSEC-7946")
+@released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="1.11.0")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
