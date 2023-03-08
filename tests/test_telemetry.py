@@ -388,4 +388,8 @@ class Test_Telemetry:
             content = data["request"]["content"]
             eventslist.append(content.get("request_type"))
 
-        assert eventslist.index("app-dependencies-loaded") < eventslist.index("app-integrations-change") < eventslist.index("app-product-change"),"Events in message-batch are not in chronological order of event triggered"
+        assert (
+            eventslist.index("app-dependencies-loaded")
+            < eventslist.index("app-integrations-change")
+            < eventslist.index("app-product-change")
+        ), "Events in message-batch are not in chronological order of event triggered"
