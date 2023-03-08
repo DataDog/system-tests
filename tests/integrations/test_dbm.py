@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, released, scenario
+from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
 
 @released(cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
 @missing_feature(context.library == "python" and context.weblog_variant != "flask-poc", reason="Missing on weblog")
-@scenario("INTEGRATIONS")
+@scenarios.integrations
 class Test_Dbm:
     """Verify behavior of DBM propagation"""
 

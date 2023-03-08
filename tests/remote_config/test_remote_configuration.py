@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from utils import (
     ValidationError,
-    scenario,
+    scenarios,
     context,
     coverage,
     interfaces,
@@ -178,7 +178,7 @@ def rc_check_request(data, expected, caching):
 @released(cpp="?", dotnet="2.15.0", golang="1.44.1", java="1.4.0")
 @released(php_appsec="0.7.0", python="1.7.4", ruby="?", nodejs="3.9.0")
 @coverage.basic
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES")
+@scenarios.remote_config_mocked_backend_asm_features
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
@@ -222,7 +222,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING")
+@scenarios.remote_config_mocked_backend_live_debugging
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
@@ -254,7 +254,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php="?", python="?", ruby="?", nodejs="?")
 @coverage.basic
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD")
+@scenarios.remote_config_mocked_backend_asm_dd
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
@@ -297,7 +297,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @irrelevant(library="golang", reason="cache is implemented")
 @irrelevant(library="php", reason="cache is implemented")
 @coverage.basic
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE")
+@scenarios.remote_config_mocked_backend_asm_features_nocache
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -325,7 +325,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE")
+@scenarios.remote_config_mocked_backend_live_debugging_nocache
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
@@ -354,7 +354,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
-@scenario("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE")
+@scenarios.remote_config_mocked_backend_asm_dd_nocache
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 

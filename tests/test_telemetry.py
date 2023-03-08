@@ -42,6 +42,16 @@ class Test_Telemetry:
         for data in telemetry_data:
             validator(data)
 
+    def test_telemetry_message_data_size(self):
+        """Test telemetry message data size"""
+
+        def validator(data):
+            if data["request"]["length"] / 1000000 >= 5:
+                raise Exception(f"Received message size is more than 5MB")
+
+        self.validate_library_telemetry_data(validator)
+        self.validate_agent_telemetry_data(validator)
+
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
