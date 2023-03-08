@@ -72,8 +72,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self):
-        super().wait()
+    def wait(self, timeout):
+        super().wait(timeout)
 
         for log_line in self._read():
 
