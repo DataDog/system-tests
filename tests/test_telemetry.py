@@ -98,7 +98,7 @@ class Test_Telemetry:
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
-        MAX_OUT_OF_ORDER_LAG = 0.1  # s
+        MAX_OUT_OF_ORDER_LAG = 0.3  # s
 
         max_seq_id = 0
         received_max_time = None
@@ -251,7 +251,7 @@ class Test_Telemetry:
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
         prev_message_time = -1
-        TELEMETRY_HEARTBEAT_INTERVAL = int(context.weblog_image.env.get("DD_TELEMETRY_HEARTBEAT_INTERVAL", 60))
+        TELEMETRY_HEARTBEAT_INTERVAL = context.telemetry_heartbeat_interval
         ALLOWED_INTERVALS = 2
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 

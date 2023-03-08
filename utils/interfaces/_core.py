@@ -32,8 +32,6 @@ class InterfaceValidator:
         self._lock = threading.RLock()
         self._data_list = []
 
-        self.timeout = 0
-
         self.accept_data = True
 
     def __repr__(self):
@@ -42,8 +40,8 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self):
-        time.sleep(self.timeout)
+    def wait(self, timeout):
+        time.sleep(timeout)
         self.accept_data = False
 
     # data collector thread domain

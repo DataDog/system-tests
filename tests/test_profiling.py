@@ -10,6 +10,7 @@ TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"
 
 
 @irrelevant(context.library != "cpp", reason="This can probably be added to other profilers")
+@scenario("PROFILING")
 class Test_Profile:
     """ Basic testing of profiling """
 

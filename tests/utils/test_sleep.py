@@ -6,7 +6,7 @@ import time
 from utils import scenario
 
 
-@scenario("THERE WILL NEVER BE A SCENARIO FOR THIS ONE")
+@scenario("SLEEP")
 class Test_Sleep:
     def setup_sleep(self):
         """Sleep forever to allow you to perform some manual testing"""
