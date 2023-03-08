@@ -21,14 +21,13 @@ class _BackendInterfaceValidator(InterfaceValidator):
         super().__init__("backend")
         self.ready = threading.Event()
         self.ready.set()
-        self.timeout = 5
 
         # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
         self.rid_to_library_trace_ids = {}
 
     # Called by the test setup to make sure the interface is ready.
-    def wait(self):
-        super().wait()
+    def wait(self, timeout):
+        super().wait(timeout)
         from utils.interfaces import library
 
         # Map each request ID to the spans created and submitted during that request call.
@@ -257,8 +256,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
                 },
                 "limit": limit,
                 "columns": [],
-                "computeCound": True,
-                "includeEvents": True,
+                "computeCount": True,
                 "includeEventContents": True,
             }
         }

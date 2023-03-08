@@ -26,7 +26,7 @@ class Servicer {
             parent.origin = request.origin;
         }
 
-        const { http_headers } = request.http_headers || {};
+        const { http_headers = {} } = request.http_headers || {};
         // Node.js HTTP headers are automatically lower-cased, simulate that here.
         const convertedHeaders = {};
         for (const [key, value] of Object.entries(http_headers)) {
@@ -36,10 +36,12 @@ class Servicer {
         if (extracted !== null) parent = extracted;
 
         const span = tracer.startSpan(request.name, {
-            service: request.service,
             type: request.type,
             resource: request.resource,
             childOf: parent,
+            tags: {
+                service: request.service
+            }
         });
 
         const ctx = span.context();

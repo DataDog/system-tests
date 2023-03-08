@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenario, weblog, rfc
+from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -125,7 +125,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
     }
 )
 @coverage.basic
-@scenario("APPSEC_BLOCKING")
+@scenarios.appsec_blocking
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 
@@ -230,7 +230,7 @@ class Test_Blocking:
 )
 @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @coverage.basic
-@scenario("APPSEC_BLOCKING")
+@scenarios.appsec_blocking
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
 
