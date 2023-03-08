@@ -42,6 +42,16 @@ class Test_Telemetry:
         for data in telemetry_data:
             validator(data)
 
+    def test_telemetry_message_data_size(self):
+        """Test telemetry message data size"""
+
+        def validator(data):
+            if data["request"]["length"] / 1000000 >= 5:
+                raise Exception(f"Received message size is more than 5MB")
+
+        self.validate_library_telemetry_data(validator)
+        self.validate_agent_telemetry_data(validator)
+
     @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
@@ -111,10 +121,10 @@ class Test_Telemetry:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
+            seq_id = data["request"]["content"]["seq_id"]
+            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if 200 <= data["response"]["status_code"] < 300:
-                seq_id = data["request"]["content"]["seq_id"]
                 seq_ids.append((seq_id, data["log_filename"]))
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if seq_id > max_seq_id:
                 max_seq_id = seq_id
                 received_max_time = curr_message_time
