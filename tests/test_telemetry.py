@@ -363,25 +363,9 @@ class Test_Telemetry:
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 
-    @bug(
-        library="dotnet",
-        reason="""
-            weblog GET/enable_product and app-product-change event is not implemented yet.        """,
-    )
-    @bug(
-        library="nodejs",
-        reason="""
-            weblog GET/enable_product and app-product-change event is not implemented yet.         """,
-    )
-    @bug(
-        library="java",
-        reason="""
-            weblog GET/enable_product and app-product-change event is not implemented yet.         """,
-    )
-    @bug(
-        library="python",
-        reason="""
-            weblog GET/enable_product and app-product-change event is not implemented yet.         """,
+    @missing_feature(
+        context.library in ("dotnet", "nodejs", "java", "pyton"),
+        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
     )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
