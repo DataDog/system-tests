@@ -366,14 +366,11 @@ class Test_Telemetry:
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
-                if content.get("request_type") == "app-product-change":
-                    products = content["payload"]["products"]
-                    try:
-                        products["appsec"]
-                    except KeyError:
-                        raise Exception(
-                            "Product information is not accurately reported by telemetry on app-started event"
-                        )
+                products = content["payload"]["products"]
+                try:
+                    products["appsec"]
+                except KeyError:
+                    raise Exception("Product information is not accurately reported by telemetry on app-started event")
 
             self.validate_library_telemetry_data(validator)
 
@@ -386,15 +383,14 @@ class Test_Telemetry:
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
-                if content.get("request_type") == "app-client-configuration":
-                    cnt = 0
-                    configurations = content["payload"]["conf_key_values"]
-                    for c in configurations:
-                        if c["value"] in configurationMap:
-                            cnt += 1
-                    if cnt != len(configurationMap):
-                        raise Exception(
-                            "Client Configuration information is not accurately reported by telemetry on app-started event"
-                        )
+                cnt = 0
+                configurations = content["payload"]["conf_key_values"]
+                for c in configurations:
+                    if c["value"] in configurationMap:
+                        cnt += 1
+                if cnt != len(configurationMap):
+                    raise Exception(
+                        "Client Configuration information is not accurately reported by telemetry on app-started event"
+                    )
 
         self.validate_library_telemetry_data(validator)
