@@ -9,7 +9,8 @@
             "type": "array",
             "items": {
                 "$ref": "/miscs/telemetry/common/objects/dependency.json"
-            }
+            },
+            "maxItems": 2000
         }
     },
     "required": ["dependencies"]

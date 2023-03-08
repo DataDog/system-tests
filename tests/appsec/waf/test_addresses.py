@@ -17,7 +17,7 @@ from utils import (
     missing_feature,
     released,
     rfc,
-    scenario,
+    scenarios,
 )
 
 if context.library == "cpp":
@@ -241,7 +241,7 @@ class Test_Cookies:
     def setup_cookies_custom_rules(self):
         self.r_ccr = weblog.get("/waf/", cookies={"attack": ".htaccess"})
 
-    @scenario("APPSEC_CUSTOM_RULES")
+    @scenarios.appsec_custom_rules
     def test_cookies_custom_rules(self):
         """Appsec WAF detects attackes in cookies"""
         interfaces.library.assert_waf_attack(self.r_ccr, pattern=".htaccess", address="server.request.cookies")
@@ -256,7 +256,7 @@ class Test_Cookies:
     )
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
-    @scenario("APPSEC_CUSTOM_RULES")
+    @scenarios.appsec_custom_rules
     def test_cookies_with_semicolon_custom_rules(self):
         """Cookie with pattern containing a semicolon"""
         interfaces.library.assert_waf_attack(self.r_cwsccr, pattern=";shutdown--", address="server.request.cookies")
@@ -265,7 +265,7 @@ class Test_Cookies:
         self.r_cwscr_2 = weblog.get("/waf/", cookies={"x-attack": "var_dump ()"})
 
     @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
-    @scenario("APPSEC_CUSTOM_RULES")
+    @scenarios.appsec_custom_rules
     def test_cookies_with_spaces_custom_rules(self):
         """Cookie with pattern containing a space"""
         interfaces.library.assert_waf_attack(self.r_cwscr_2, pattern="var_dump ()", address="server.request.cookies")
@@ -277,7 +277,7 @@ class Test_Cookies:
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
     @bug(context.library < "java@0.96.0")
-    @scenario("APPSEC_CUSTOM_RULES")
+    @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
         interfaces.library.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
