@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios
+
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -379,11 +380,12 @@ class Test_Telemetry:
         context.library in ("dotnet", "nodejs", "java", "python"),
         reason="DD_FORCE_BATCHING_ENABLE is not implemented yet.",
     )
-    # @scenario("TELEMETRY_MESSAGE_BATCH_EVENT_ORDER")
+    @scenarios.telemetry_message_batch_event_order
     def test_message_batch_event_order(self):
+        """Test that the events in message-batch are in chronological order"""
         eventslist = []
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             eventslist.append(content.get("request_type"))
 
-        assert eventslist.index("app-dependencies-loaded") < eventslist.index("app-integrations-change") < eventslist.index("app-product-change"), "Events in message-batch are not in chronological order of event triggered"
+        assert eventslist.index("app-dependencies-loaded") < eventslist.index("app-integrations-change") < eventslist.index("app-product-change"),"Events in message-batch are not in chronological order of event triggered"
