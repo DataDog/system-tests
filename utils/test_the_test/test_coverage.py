@@ -1,6 +1,8 @@
-from utils import context, coverage
+import pytest
+from utils import coverage
 
-context.execute_warmups = lambda *args, **kwargs: None
+
+pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
 @coverage.not_testable

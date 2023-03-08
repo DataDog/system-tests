@@ -3,10 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 import time
-from utils import scenario
+from utils import scenarios
 
 
-@scenario("THERE WILL NEVER BE A SCENARIO FOR THIS ONE")
+@scenarios.sleep
 class Test_Sleep:
     def setup_sleep(self):
         """Sleep forever to allow you to perform some manual testing"""

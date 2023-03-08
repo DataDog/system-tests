@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenario
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
 
 @released(java="1.9.0", dotnet="2.25.0")
 @coverage.basic
-@scenario("APPSEC_REQUEST_BLOCKING")
+@scenarios.appsec_request_blocking
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 

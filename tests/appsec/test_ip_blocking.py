@@ -4,7 +4,7 @@
 import json
 
 from tests.remote_config.test_remote_configuration import rc_check_request
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenario
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") as f:
@@ -33,7 +33,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 @bug(context.weblog_variant == "uds-echo")
 @bug(library="php")
 @coverage.basic
-@scenario("APPSEC_IP_BLOCKING")
+@scenarios.appsec_ip_blocking
 class Test_AppSecIPBlocking:
     """A library should block requests from blocked IP addresses."""
 

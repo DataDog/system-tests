@@ -42,7 +42,7 @@ jobs:
       uses: ./.github/actions/lint_code
     - run: mkdir -p logs/docker/weblog/logs/
     - run: pip install -r requirements.txt
-    - run: PYTHONPATH="$PWD" pytest utils/test_the_test
+    - run: PYTHONPATH="$PWD" SYSTEMTESTS_SCENARIO=TEST_THE_TEST pytest utils/test_the_test
   test-the-tests-main:
     runs-on: ubuntu-latest
     needs:
