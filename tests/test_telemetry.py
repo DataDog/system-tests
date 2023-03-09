@@ -364,26 +364,33 @@ class Test_Telemetry:
         weblog.get("/enable_product")
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python"),
+        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp", "php", "ruby"),
         reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
     )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
-        def validator(data):
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        app_product_change_event_found = False
+        for data in telemetry_data:
             content = data["request"]["content"]
             if content.get("request_type") == "app-product-change":
+                app_product_change_event_found = True
                 products = content["payload"]["products"]
-                for prod in products > 0:
-                    appsecEnabled = prod["appsec"]["enabled"]
-                    assert appsecEnabled == True, f"Product appsec enabled flag is {appsecEnabled}"
-                    profilerEnabled = prod["profiler"]["enabled"]
-                    assert profilerEnabled == True, f"Product appsec enabled flag is {profilerEnabled}"
-                    dynamicInstrumentationEnabled = prod["dynamic_instrumentation"]["enabled"]
+                for prod in products:
+                    appsec_enabled = prod["appsec"]["enabled"]
                     assert (
-                        dynamicInstrumentationEnabled == False
-                    ), f"Product appsec enabled flag is {dynamicInstrumentationEnabled}"
-            else:
-                raise Exception("app-product-change is not emited when product change is enabled")
+                        appsec_enabled is True
+                    ), f"Product appsec Product profiler enabled was expected to be True, found False"
+                    profiler_enabled = prod["profiler"]["enabled"]
+                    assert profiler_enabled is True, f"Product profiler enabled was expected to be True, found False"
+                    dynamic_instrumentation_enabled = prod["dynamic_instrumentation"]["enabled"]
+                    assert (
+                        dynamic_instrumentation_enabled is False
+                    ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
 
-        self.validate_library_telemetry_data(validator)
+        if app_product_change_event_found is False:
+            raise Exception("app-product-change is not emited when product change is enabled")
