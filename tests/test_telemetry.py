@@ -377,12 +377,11 @@ class Test_Telemetry:
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
                 products = content["payload"]["products"]
-                try:
-                    products["appsec"]
-                except KeyError:
-                    raise Exception("Product information is not accurately reported by telemetry on app-started event")
+                assert (
+                    "appsec" in products
+                ), "Product information is not accurately reported by telemetry on app-started event"
 
-            self.validate_library_telemetry_data(validator)
+        self.validate_library_telemetry_data(validator)
 
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
@@ -395,8 +394,8 @@ class Test_Telemetry:
                 content = data["request"]["content"]
                 cnt = 0
                 configurations = content["payload"]["conf_key_values"]
-                for c in configurations:
-                    if c["value"] in configurationMap:
+                for cnf in configurations:
+                    if cnf["value"] in configurationMap:
                         cnt += 1
                 if cnt != len(configurationMap):
                     raise Exception(
