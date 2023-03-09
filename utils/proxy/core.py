@@ -6,7 +6,7 @@ import threading
 from datetime import datetime
 
 from mitmproxy import master, options
-from mitmproxy.addons import errorcheck, keepserving, default_addons
+from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError
 
 from utils import interfaces
@@ -30,6 +30,9 @@ with open("utils/proxy/rc_mocked_responses_asm_dd.json", encoding="utf-8") as f:
 with open("utils/proxy/rc_mocked_responses_asm_data.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM_DATA = json.load(f)
 
+with open("utils/proxy/rc_mocked_responses_asm.json", encoding="utf-8") as f:
+    RC_MOCKED_RESPONSES_ASM = json.load(f)
+
 with open("utils/proxy/rc_mocked_responses_live_debugging_nocache.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE = json.load(f)
 
@@ -39,11 +42,14 @@ with open("utils/proxy/rc_mocked_responses_asm_features_nocache.json", encoding=
 with open("utils/proxy/rc_mocked_responses_asm_dd_nocache.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE = json.load(f)
 
+with open("utils/proxy/rc_mocked_responses_asm_nocache.json", encoding="utf-8") as f:
+    RC_MOCKED_RESPONSES_ASM_NO_CACHE = json.load(f)
+
 
 class _RequestLogger:
     def __init__(self, state) -> None:
         self.dd_api_key = os.environ["DD_API_KEY"]
-        self.state = json.loads(state or "{}")
+        self.state = state
 
         # for config backend mock
         self.config_request_count = defaultdict(int)
@@ -123,12 +129,16 @@ class _RequestLogger:
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD)
         elif self.state.get("mock_remote_config_backend") == "ASM_DATA":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DATA)
+        elif self.state.get("mock_remote_config_backend") == "ASM":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM)
         elif self.state.get("mock_remote_config_backend") == "ASM_FEATURES_NO_CACHE":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_FEATURES_NO_CACHE)
         elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING_NO_CACHE":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE)
         elif self.state.get("mock_remote_config_backend") == "ASM_DD_NO_CACHE":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE)
+        elif self.state.get("mock_remote_config_backend") == "ASM_NO_CACHE":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_NO_CACHE)
 
     def _modify_response_rc(self, flow, mocked_responses):
         if flow.request.host != "agent":
@@ -172,7 +182,7 @@ def start_proxy(state) -> None:
     proxy.addons.add(*default_addons())
     # proxy.addons.add(keepserving.KeepServing())
     proxy.addons.add(errorcheck.ErrorCheck())
-    proxy.addons.add(_RequestLogger(state))
+    proxy.addons.add(_RequestLogger(state or {}))
 
     asyncio.run_coroutine_threadsafe(proxy.run(), loop)
 

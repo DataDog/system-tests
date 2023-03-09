@@ -165,7 +165,7 @@ if [ "$TARGET" = "java" ]; then
     OWNER=DataDog
     REPO=dd-trace-java
 
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
+    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build_lib" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
