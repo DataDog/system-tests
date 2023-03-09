@@ -318,6 +318,16 @@ class scenarios:
         weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
     )
 
+    # Telemetry Scenarion
+    telemetry_app_started_appsec_disabled = EndToEndScenario(
+        "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_PROFILING_ENABLED": "false",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
+        },
+    )
+
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario("APPSEC_MISSING_RULES", appsec_rules="/donotexists")
     appsec_corrupted_rules = EndToEndScenario("APPSEC_CORRUPTED_RULES", appsec_rules="/appsec_corrupted_rules.yml")
