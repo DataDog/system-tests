@@ -28,11 +28,11 @@ def test_otel_start_span(test_agent, test_library):
         duration_s = int(2 * 1000000)
         start_time = int(time.time())
         with test_library.start_otel_span(
-                "operation",
-                span_kind=SK_PRODUCER,
-                timestamp=start_time,
-                new_root=True,
-                attributes={"start_attr_key": "start_attr_val"},
+            "operation",
+            span_kind=SK_PRODUCER,
+            timestamp=start_time,
+            new_root=True,
+            attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
             parent.otel_end_span(timestamp=start_time + duration_s)
     duration_ns = duration_s / (1e-9)
@@ -60,7 +60,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     parent_start_time = int(time.time())
     with test_library:
         with test_library.start_otel_span(
-                "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
+            "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
         ) as parent:
             parent.set_attributes({"key": ["val1", "val2"]})
             parent.set_attributes({"key2": [1]})
@@ -225,6 +225,6 @@ def test_otel_get_span_context(test_agent, test_library):
             with test_library.start_otel_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
                 span.otel_end_span()
                 context = span.span_context()
-                assert context.get("trace_id") == f'{parent.span_id:0x}'.ljust(32, '0')
-                assert context.get("span_id") == f'{span.span_id:0x}'.rjust(16, '0')
-                assert context.get("trace_flags") == '00'
+                assert context.get("trace_id") == f"{parent.span_id:0x}".ljust(32, "0")
+                assert context.get("span_id") == f"{span.span_id:0x}".rjust(16, "0")
+                assert context.get("trace_flags") == "00"

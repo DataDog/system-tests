@@ -24,11 +24,11 @@ def test_otel_start_span(test_agent, test_library):
         duration_s = int(2 * 1000000)
         start_time = int(time.time())
         with test_library.start_otel_span(
-                "operation",
-                span_kind=SK_PRODUCER,
-                timestamp=start_time,
-                new_root=True,
-                attributes={"start_attr_key": "start_attr_val"},
+            "operation",
+            span_kind=SK_PRODUCER,
+            timestamp=start_time,
+            new_root=True,
+            attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
             parent.finish(timestamp=start_time + duration_s)
     duration_ns = duration_s / (1e-9)
@@ -50,11 +50,11 @@ def test_otel_span_with_w3c_headers(test_agent, test_library):
 
     with test_library:
         with test_library.start_otel_span(
-                name="name",
-                http_headers=[["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"]], ) as span:
+            name="name", http_headers=[["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"]],
+        ) as span:
             context = span.span_context()
-            assert context.get("trace_flags") == '01'
-            assert context.get("trace_id") == '00000000075bcd150000000000000000'
+            assert context.get("trace_flags") == "01"
+            assert context.get("trace_id") == "00000000075bcd150000000000000000"
 
     span = get_span(test_agent)
     assert span.get("trace_id") == 123456789
