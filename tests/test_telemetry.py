@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -370,6 +370,20 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
 
+    @scenarios.telemetry_app_started_appsec_disabled
+    def test_app_started_product_disabled(self):
+        """Assert that product information is accurately reported by telemetry"""
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-started":
+                content = data["request"]["content"]
+                products = content["payload"]["products"]
+                assert (
+                    "appsec" not in products
+                ), "Apssec product information is present telemetry data on app-started event when appsec is diabled"
+
+        self.validate_library_telemetry_data(validator)
+
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         weblog.get("/enable_product")
 
@@ -390,6 +404,10 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
+    @missing_feature(
+        context.library in ("dotnet", "nodejs", "java", "golang", "python"),
+        reason="Configurations are not implemented yet. ",
+    )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         configurationMap = map(
