@@ -8,7 +8,7 @@ from utils import context, interfaces, missing_feature, bug, released, scenarios
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
 class TestProductDisabled:
-    @scenarios.telemetry_app_started_appsec_disabled
+    @scenarios.telemetry_app_started_products_disabled
     def test_app_started_product_disabled(self):
         """Assert that product informations are not reported when products are disabled in telemetry"""
 
