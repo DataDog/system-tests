@@ -401,7 +401,7 @@ def docker_run(
     # Run the docker container
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
     if r.returncode != 0:
-        #TODO remove me before merging this probably, idk maybe not who knows
+        # TODO remove me before merging this probably, idk maybe not who knows
         with open(log_file.name) as f:
             for line in f:
                 print(line)

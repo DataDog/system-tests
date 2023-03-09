@@ -21,8 +21,9 @@ def test_otel_start_span(test_agent, test_library):
 
     # entering test_otel_library starts the tracer with the above options
     with test_library:
-        duration_s = int(2 * 1000000)
+        duration_us = int(2 * 1_000_000)
         start_time = int(time.time())
+        print("ABOUT TO START OTEL SPAN")
         with test_library.start_otel_span(
             "operation",
             span_kind=SK_PRODUCER,
@@ -30,8 +31,8 @@ def test_otel_start_span(test_agent, test_library):
             new_root=True,
             attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
-            parent.finish(timestamp=start_time + duration_s)
-    duration_ns = duration_s / (1e-9)
+            parent.otel_end_span(timestamp=start_time + duration_us)
+    duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd
 
     root_span = get_span(test_agent)
     assert root_span["meta"]["env"] == "otel_env"
@@ -47,7 +48,6 @@ def test_otel_start_span(test_agent, test_library):
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
 def test_otel_span_with_w3c_headers(test_agent, test_library):
-
     with test_library:
         with test_library.start_otel_span(
             name="name", http_headers=[["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"]],

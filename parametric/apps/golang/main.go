@@ -26,6 +26,7 @@ type apmClientServer struct {
 }
 
 func (s *apmClientServer) StartTracer(ctx context.Context, args *StartTracerArgs) (*StartTracerReturn, error) {
+	fmt.Printf("STARTING TRACER NOW: got args with env %s\n", args.Env)
 	options := []tracer.StartOption{}
 	if serv := args.GetService(); serv != "" {
 		options = append(options, tracer.WithService(serv))

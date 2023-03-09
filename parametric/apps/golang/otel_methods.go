@@ -31,7 +31,6 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		otelOpts = append(otelOpts, ot_api.WithNewRoot())
 	}
 	if t := args.GetTimestamp(); t != 0 {
-		print("I GOT A TIMESTAPM")
 		tm := time.UnixMicro(t)
 		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
 	}

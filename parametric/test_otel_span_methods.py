@@ -38,6 +38,7 @@ def test_otel_start_span(test_agent, test_library):
     duration_ns = duration_s / (1e-9)
 
     root_span = get_span(test_agent)
+    print("ROOOOOOOOOOOOOOOOOOOOOOT", root_span)
     assert root_span["meta"]["env"] == "otel_env"
     assert root_span["service"] == "otel_serv"
     assert root_span["name"] == "operation"
@@ -108,8 +109,8 @@ def test_otel_span_finished_end_options(test_agent, test_library):
     Test functionality of ending a span with end options.
     After finishing the span, finishing the span with different end options has no effect
     """
-    start_time: int = 12345 #round(time.time() * 1_000_000)
-    duration: int = int(1e09)
+    start_time: int = 12345
+    duration: int = 6789
     with test_library:
         with test_library.start_otel_span(name="operation", timestamp=start_time) as s:
             assert s.is_recording()
@@ -119,8 +120,8 @@ def test_otel_span_finished_end_options(test_agent, test_library):
 
     s = get_span(test_agent)
     assert s.get("name") == "operation"
-    assert s.get("start") == start_time
-    assert s.get("duration") == duration
+    assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
+    assert s.get("duration") == duration * 1_000
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")

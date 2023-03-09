@@ -22,6 +22,9 @@ class StartSpanResponse(TypedDict):
 
 
 class APMLibraryClient:
+    def start_tracer(self, env: str, service: str):
+        raise NotImplementedError
+
     def trace_start_span(
         self,
         name: str,
@@ -211,11 +214,12 @@ class _TestOtelSpan:
 
 class APMLibraryClientGRPC:
     def __init__(self, url: str, timeout: int):
+        self.otel_service = None
+        self.otel_env = None
         channel = grpc.insecure_channel(url)
         grpc.channel_ready_future(channel).result(timeout=timeout)
         client = apm_test_client_pb2_grpc.APMClientStub(channel)
         self._client = client
-        self._client.StartTracer(pb.StartTracerArgs())
 
     def __enter__(self) -> "APMLibrary":
         return self
@@ -271,7 +275,7 @@ class APMLibraryClientGRPC:
                 timestamp=timestamp,
                 span_kind=span_kind,
                 parent_id=parent_id,
-                attributes=attributes,
+                attributes=convert_to_proto(attributes),
                 http_headers=distributed_message,
             )
         )
@@ -323,13 +327,20 @@ class APMLibraryClientGRPC:
     def get_otel_span_context(self, span_id: int):
         return self._client.OtelSpanContext(pb.OtelSpanContextArgs(span_id=span_id))
 
+    def start_tracer(self, env: str, service: str):
+        return self._client.StartTracer(pb.StartTracerArgs(env=env, service=service))
+
 
 class APMLibrary:
     def __init__(self, client: APMLibraryClient):
+        self.otel_service = None
+        self.otel_env = None
         self._client = client
         # self._client.StartTracer(pb.StartTracerArgs())
 
     def __enter__(self) -> "APMLibrary":
+        print("Is this where we actually enter tho")
+        self._client.start_tracer(env=self.otel_env, service=self.otel_service)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
