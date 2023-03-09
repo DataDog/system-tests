@@ -1,4 +1,4 @@
-from utils import context, weblog, interfaces, rfc, scenario, missing_feature
+from utils import context, weblog, interfaces, rfc, scenarios, missing_feature
 from utils.tools import logger
 from tests.apm_tracing_e2e.constants import (
     SAMPLING_PRIORITY_KEY,
@@ -15,7 +15,7 @@ from tests.apm_tracing_e2e.constants import (
     context.weblog_variant not in ("chi", "spring-boot"),
     reason="The /e2e_single_span endpoint is only implemented in Go chi at the moment.",
 )
-@scenario("APM_TRACING_E2E_SINGLE_SPAN")
+@scenarios.apm_tracing_e2e_single_span
 class Test_SingleSpan:
     """This is a test that exercises the Single Span Ingestion Control feature.
     Read more about Single Span at https://docs.datadoghq.com/tracing/trace_pipeline/ingestion_mechanisms/?tab=java#single-spans
