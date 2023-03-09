@@ -13,7 +13,15 @@ if context.library == "cpp":
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.1.0", "spring-boot-jetty": "1.1.0", "spring-boot-openliberty": "1.1.0", "resteasy-netty3": "1.11.0", "*": "?"})
+@released(
+    java={
+        "spring-boot": "1.1.0",
+        "spring-boot-jetty": "1.1.0",
+        "spring-boot-openliberty": "1.1.0",
+        "resteasy-netty3": "1.11.0",
+        "*": "?",
+    }
+)
 @released(nodejs={"express4": "3.11.0", "*": "?"})
 class TestIastCommandInjection:
     """Verify IAST features"""
