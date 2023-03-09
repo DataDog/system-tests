@@ -54,6 +54,7 @@ def test_otel_span_with_w3c_headers(test_agent, test_library):
         ) as span:
             context = span.span_context()
             assert context.get("trace_flags") == "01"
+            # TODO is this assertion right?
             assert context.get("trace_id") == "00000000075bcd150000000000000000"
 
     span = get_span(test_agent)
