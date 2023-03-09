@@ -370,6 +370,13 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
 
+    def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
+        weblog.get("/enable_product")
+
+    @missing_feature(
+        context.library in ("dotnet", "nodejs", "java", "golang", "python"),
+        reason="Weblog endpoint GET /enable_product is not implemented yet. ",
+    )
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -393,7 +400,7 @@ class Test_Telemetry:
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
                 cnt = 0
-                configurations = content["payload"]["conf_key_values"]
+                configurations = content["payload"]["configurations"]
                 for cnf in configurations:
                     if cnf["value"] in configurationMap:
                         cnt += 1
