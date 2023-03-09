@@ -405,7 +405,8 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
 
     @missing_feature(
-        context.library in ("python"), reason="Configurations are not implemented yet. ",
+        context.library in ("python"),
+        reason="Configurations are not implemented yet. ",
     )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
