@@ -405,7 +405,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "golang", "python"),
+        context.library in ("python"),
         reason="Configurations are not implemented yet. ",
     )
     def test_app_started_client_configuration(self):
