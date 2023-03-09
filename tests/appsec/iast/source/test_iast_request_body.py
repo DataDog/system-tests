@@ -13,7 +13,7 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.7.0", "resteasy-netty3": "1.11.0", "*": "?"})
+@released(java={"spring-boot": "1.7.0", "*": "?"})
 @released(nodejs="?")
 class TestRequestCookieName:
     """Verify that request json body is tainted"""
