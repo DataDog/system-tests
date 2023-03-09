@@ -3,25 +3,26 @@ ami:
   ami_id: ami-0557a15b87f6559cf
   user: ubuntu
   os_type: linux
-  os_branch: deb
+  os_distro: deb
 
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
   os_type: linux
-  os_branch: deb
+  os_distro: deb
 
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
   user: ec2-user
   os_type: linux
-  os_branch: rpm
+  os_distro: rpm
 
 - name: amazon-linux-dotnet
   ami_id: ami-005b11f8b84489615
   user: ec2-user
-  os_type: linux_TODO
-  os_branch: rpm
+  os_type: linux
+  os_distro: rpm
+  os_branch: amazon-netcore6
 
 agent:
   - env: dev
@@ -39,14 +40,14 @@ autoinjection:
     - env: dev
       install: 
         - os_type: linux
-          os_branch: deb
+          os_distro: deb
           command: |
             curl -s https://packagecloud.io/install/repositories/randomanderson/autoinject_test/script.deb.sh | os=any dist=any sudo -E bash
             sudo apt-get install datadog-apm-inject datadog-apm-library-java
             dd-host-install
 
         - os_type: linux
-          os_branch: rpm
+          os_distro: rpm
           copy_files:
             - name: copy-dd-repo
               local_path: autoinjection/dd.repo
@@ -60,14 +61,14 @@ autoinjection:
     - env: dev
       install: 
         - os_type: linux
-          os_branch: deb
+          os_distro: deb
           command: |
             curl -s https://packagecloud.io/install/repositories/randomanderson/autoinject_test/script.deb.sh | os=any dist=any sudo -E bash
             sudo apt-get install datadog-apm-inject datadog-apm-library-js
             dd-host-install
 
         - os_type: linux
-          os_branch: rpm
+          os_distro: rpm
           copy_files:
             - name: copy-dd-repo
               local_path: autoinjection/dd.repo
@@ -82,7 +83,7 @@ autoinjection:
       install: 
 
         - os_type: linux
-          os_branch: rpm
+          os_distro: rpm
           copy_files:
             - name: copy-dd-repo
               local_path: autoinjection/dd.repo
@@ -98,10 +99,10 @@ language-variants:
       version: 11
       install: 
         - os_type: linux
-          os_branch: deb
+          os_distro: deb
           command: sudo apt-get -y install openjdk-11-jdk-headless
         - os_type: linux
-          os_branch: rpm
+          os_distro: rpm
           command: sudo amazon-linux-extras install java-openjdk11
 
   - nodejs:
@@ -109,10 +110,10 @@ language-variants:
       version: 16
       install: 
         - os_type: linux
-          os_branch: deb
+          os_distro: deb
           command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs
         - os_type: linux
-          os_branch: rpm
+          os_distro: rpm
           command: curl -sL https://rpm.nodesource.com/setup_16.x | sudo bash - && sudo yum install -y nodejs       
 
   - dotnet:
@@ -120,7 +121,8 @@ language-variants:
       version: 6
       install: 
         - os_type: linux
-          os_branch: rpm
+          os_distro: rpm
+          os_branch: amazon-netcore6
           command: dotnet --info  
 
 
@@ -188,8 +190,9 @@ weblogs:
         - 6
       local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_build.sh
       install: 
-        - os_type: linux_TODO_TODO
-          os_branch: rpm
+        - os_type: linux
+          os_distro: rpm
+          os_branch: amazon-netcore6
           copy_files:
             - name: copy-dotnet-app
               local_path: test-app-dotnet.tar

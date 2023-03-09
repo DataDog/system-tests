@@ -81,17 +81,21 @@ def build_local_weblog(ec2_name, weblog_instalations, depends):
 def infraestructure_provision():
     for ec2_data in ec2_instances_data():
         os_type = ec2_data["os_type"]
-        os_branch = ec2_data["os_branch"]
+        os_distro = ec2_data["os_distro"]
+        os_branch = ec2_data.get("os_branch", None)
+
         # for every different agent instalation
-        for agent_instalations in ec2_agent_install_data(os_type, os_branch):
+        for agent_instalations in ec2_agent_install_data(os_type, os_distro, os_branch):
             # for every different autoinjection software (by language, by os and by env)
-            for autoinjection_instalations in ec2_autoinjection_install_data(os_type, os_branch):
+            for autoinjection_instalations in ec2_autoinjection_install_data(os_type, os_distro, os_branch):
                 language = autoinjection_instalations["language"]
                 # for every different language variants
-                for language_variants_instalations in ec2_language_variants_install_data(language, os_type, os_branch):
+                for language_variants_instalations in ec2_language_variants_install_data(
+                    language, os_type, os_distro, os_branch
+                ):
                     # for every weblog supported for every language variant
                     for weblog_instalations in ec2_weblogs_install_data(
-                        language, language_variants_instalations["version"], os_type, os_branch
+                        language, language_variants_instalations["version"], os_type, os_distro, os_branch
                     ):
                         ec2_name = (
                             ec2_data["name"]
