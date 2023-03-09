@@ -401,6 +401,10 @@ def docker_run(
     # Run the docker container
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
     if r.returncode != 0:
+        #TODO remove me before merging this probably, idk maybe not who knows
+        with open(log_file.name) as f:
+            for line in f:
+                print(line)
         pytest.fail(
             "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file),
             pytrace=False,

@@ -108,8 +108,8 @@ def test_otel_span_finished_end_options(test_agent, test_library):
     Test functionality of ending a span with end options.
     After finishing the span, finishing the span with different end options has no effect
     """
-    start_time = time.time_ns()
-    duration = 1e09
+    start_time: int = 12345 #round(time.time() * 1_000_000)
+    duration: int = int(1e09)
     with test_library:
         with test_library.start_otel_span(name="operation", timestamp=start_time) as s:
             assert s.is_recording()

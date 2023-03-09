@@ -31,6 +31,7 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		otelOpts = append(otelOpts, ot_api.WithNewRoot())
 	}
 	if t := args.GetTimestamp(); t != 0 {
+		print("I GOT A TIMESTAPM")
 		tm := time.UnixMicro(t)
 		otelOpts = append(otelOpts, ot_api.WithTimestamp(tm))
 	}
@@ -94,7 +95,7 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 			ddOpts = append(ddOpts, tracer.ChildOf(sctx))
 		}
 	}
-	_, span := s.tracer.Start(otel.ContextWithStartOptions(pCtx, ddOpts...), args.Name)
+	_, span := s.tracer.Start(otel.ContextWithStartOptions(pCtx, ddOpts...), args.Name, otelOpts...)
 	s.otelSpans[hex2int(span.SpanContext().SpanID().String())] = span
 	return &OtelStartSpanReturn{
 		SpanId:  hex2int(span.SpanContext().SpanID().String()),

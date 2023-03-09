@@ -303,7 +303,7 @@ class APMLibraryClientGRPC:
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))
 
-    def otel_end_span(self, span_id: int, timestamp):
+    def otel_end_span(self, span_id: int, timestamp: int):
         self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=span_id, timestamp=timestamp))
 
     def otel_set_attributes(self, span_id: int, attributes):

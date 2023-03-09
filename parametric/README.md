@@ -33,6 +33,8 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
+Make sure you're in the `parametric` directory before running these commands.
+
 The following dependencies are required to run the tests locally:
 
 - Docker
