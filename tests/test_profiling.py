@@ -3,13 +3,14 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, context, interfaces, bug, scenario, irrelevant
+from utils import weblog, context, interfaces, bug, scenarios, irrelevant
 
 
 TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"
 
 
 @irrelevant(context.library != "cpp", reason="This can probably be added to other profilers")
+@scenarios.profiling
 class Test_Profile:
     """ Basic testing of profiling """
 
@@ -35,7 +36,7 @@ class Test_Profile:
 @bug(library="php", reason="Need to understand how to activate profiling")
 @bug(library="python", reason="Need to understand how to activate profiling")
 @bug(library="ruby", reason="Need to understand how to activate profiling")
-@scenario("PROFILING")
+@scenarios.profiling
 class Test_Basic:
     """ Basic testing of profiling """
 

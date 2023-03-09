@@ -1,8 +1,5 @@
 from time import time
-import xml.etree.ElementTree as ET
-import json
 
-from utils import context
 
 # TODO: movethis test logic in test class
 class _SeqIdLatencyValidation:

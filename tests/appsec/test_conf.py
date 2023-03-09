@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, context, coverage, interfaces, released, missing_feature, irrelevant, rfc, scenario
+from utils import weblog, context, coverage, interfaces, released, missing_feature, irrelevant, rfc, scenarios
 from tests.constants import PYTHON_RELEASE_GA_1_1
 from .waf.utils import rules
 
@@ -118,7 +118,7 @@ class Test_ConfigurationVariables:
         context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
         reason="Conf is done in weblog instead of library",
     )
-    @scenario("APPSEC_DISABLED")
+    @scenarios.appsec_disabled
     def test_disabled(self):
         """ test DD_APPSEC_ENABLED = false """
         interfaces.library.assert_no_appsec_event(self.r_disabled)
@@ -126,7 +126,7 @@ class Test_ConfigurationVariables:
     def setup_appsec_rules(self):
         self.r_appsec_rules = weblog.get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
 
-    @scenario("APPSEC_CUSTOM_RULES")
+    @scenarios.appsec_custom_rules
     def test_appsec_rules(self):
         """ test DD_APPSEC_RULES = custom rules file """
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
@@ -138,7 +138,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
-    @scenario("APPSEC_LOW_WAF_TIMEOUT")
+    @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
@@ -148,7 +148,7 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
-    @scenario("APPSEC_CUSTOM_OBFUSCATION")
+    @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
 
@@ -166,7 +166,7 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
-    @scenario("APPSEC_CUSTOM_OBFUSCATION")
+    @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
         """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
 

@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, scenario, missing_feature, irrelevant
+from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, irrelevant
 
 
 @released(cpp="?", dotnet="?", php="?", python="?", nodejs="?", golang="?", ruby="1.0.0")
 @coverage.basic
-@scenario("APPSEC_BLOCKING")
+@scenarios.appsec_blocking
 @released(
     java={
         "spring-boot": "0.110.0",

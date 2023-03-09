@@ -22,7 +22,6 @@ class AgentInterfaceValidator(InterfaceValidator):
     def __init__(self):
         super().__init__("agent")
         self.ready = threading.Event()
-        self.timeout = 5
 
     def append_data(self, data):
         data = super().append_data(data)
@@ -85,7 +84,6 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
 
     def profiling_assert_field(self, field_name, content_pattern=None):
-        self.timeout = 160
         self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
     def validate_appsec(self, request, validator):
