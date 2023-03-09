@@ -354,7 +354,11 @@ class scenarios:
         proxy_state={"mock_remote_config_backend": "ASM_DATA"},
         weblog_env={"DD_APPSEC_RULES": None},
     )
-
+    appsec_request_blocking = EndToEndScenario(
+        "APPSEC_REQUEST_BLOCKING",
+        proxy_state={"mock_remote_config_backend": "ASM"},
+        weblog_env={"DD_APPSEC_RULES": None},
+    )
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         proxy_state={"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"},
