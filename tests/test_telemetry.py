@@ -404,7 +404,7 @@ class Test_Telemetry:
                 for cnf in configurations:
                     if cnf["value"] in configurationMap:
                         cnt += 1
-                if cnt != len(configurationMap):
+                if cnt != len(list(configurationMap)):
                     raise Exception(
                         "Client Configuration information is not accurately reported by telemetry on app-started event"
                     )
