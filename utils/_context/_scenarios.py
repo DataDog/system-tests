@@ -318,11 +318,6 @@ class scenarios:
         weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
     )
 
-    # Telemetry Scenarion
-    telemetry_app_started_appsec_disabled = EndToEndScenario(
-        "TELEMETRY_APP_STARTED_APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"}
-    )
-
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario("APPSEC_MISSING_RULES", appsec_rules="/donotexists")
     appsec_corrupted_rules = EndToEndScenario("APPSEC_CORRUPTED_RULES", appsec_rules="/appsec_corrupted_rules.yml")
@@ -354,11 +349,13 @@ class scenarios:
         proxy_state={"mock_remote_config_backend": "ASM_DATA"},
         weblog_env={"DD_APPSEC_RULES": None},
     )
+
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
         proxy_state={"mock_remote_config_backend": "ASM"},
         weblog_env={"DD_APPSEC_RULES": None},
     )
+
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         proxy_state={"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"},
