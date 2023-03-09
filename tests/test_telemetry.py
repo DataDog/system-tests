@@ -377,6 +377,18 @@ class Test_Telemetry:
     @irrelevant(library="cpp")
     @irrelevant(library="golang")
     @irrelevant(library="ruby")
+    @irrelevant(
+        library="java", weblog_variant="jersey-grizzly2", reason="/enable_integration not implemented",
+    )
+    @irrelevant(
+        library="java", weblog_variant="ratpack", reason="/enable_integration not implemented",
+    )
+    @irrelevant(
+        library="java", weblog_variant="resteasy-netty3", reason="/enable_integration not implemented",
+    )
+    @irrelevant(
+        library="java", weblog_variant="vertx3", reason="/enable_integration not implemented",
+    )
     @bug(library="nodejs", reason="Integrations are not implemented correctly")
     def test_app_integrations_change(self):
         """test app-integrations-change requests"""
