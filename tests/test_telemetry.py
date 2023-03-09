@@ -374,7 +374,7 @@ class Test_Telemetry:
         weblog.get("/load_dependency")
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "java"),
+        context.library in ("dotnet", "nodejs", "java", "golang", "python"),
         reason="DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag is not implemented yet. ",
     )
     @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
