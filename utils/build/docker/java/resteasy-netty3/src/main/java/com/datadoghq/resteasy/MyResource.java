@@ -200,7 +200,6 @@ public class MyResource {
         public HashMap<String, String> response_headers;
     }
 
-    //javi
     @GET
     @Path("/iast/insecure_hashing/deduplicate")
     public String removeDuplicates() throws NoSuchAlgorithmException {
