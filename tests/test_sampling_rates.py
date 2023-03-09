@@ -40,7 +40,6 @@ class Test_SamplingRates:
             weblog.get(p)
 
     @bug(library="python", reason="When stats are activated, all traces are emitted")
-    @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -129,7 +128,6 @@ class Test_SamplingDecisions:
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
     @bug(library="ruby", reason="Unknown reason")
-    @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
         interfaces.library.assert_sampling_decisions_added(self.traces)
