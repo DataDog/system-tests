@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -369,20 +369,3 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
-
-    def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
-        weblog.get("/load_dependency")
-
-    @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "golang", "python"),
-        reason="DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag is not implemented yet. ",
-    )
-    @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
-    def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
-        """Test app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"""
-
-        def validator(data):
-            if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
-
-        self.validate_library_telemetry_data(validator)
