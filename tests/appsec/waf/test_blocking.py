@@ -137,7 +137,7 @@ class Test_Blocking:
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
         assert re.match("^application/json", self.r_na.headers.get("content-type", "")) is not None
-        if self.r_na.text[-1] == '\n':
+        if self.r_na.text[-1] == "\n":
             self.r_na.text = self.r_na.text[:-1]
 
         assert (
