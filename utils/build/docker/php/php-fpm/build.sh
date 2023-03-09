@@ -28,6 +28,8 @@ cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 cp /tmp/php/php-fpm/entrypoint.sh /
 
+chmod 644 /var/www/html/*.php
+
 a2enmod rewrite
 
 a2enconf php$PHP_VERSION-fpm

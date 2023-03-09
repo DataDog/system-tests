@@ -1,7 +1,7 @@
 from utils import released, coverage, interfaces, scenarios, weblog
 
 
-@released(cpp="?", dotnet="?", golang="1.48.0", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(cpp="?", dotnet="?", golang="1.48.0", java="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_UserBlocking:
