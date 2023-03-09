@@ -21,7 +21,7 @@
         "type": "string"
       },
       "error": {
-        "$ref": "/miscs/telemetry/common/error.json"
+        "$ref": "/miscs/telemetry/common/objects/error.json"
       },
       "is_overridden": {
         "type": "boolean"
