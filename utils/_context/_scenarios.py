@@ -319,7 +319,7 @@ class scenarios:
     )
 
     # Telemetry Scenarion
-    telemetry_app_started_appsec_disabled = EndToEndScenario(
+    telemetry_app_started_products_disabled = EndToEndScenario(
         "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
