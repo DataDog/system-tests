@@ -7,7 +7,7 @@ import json
 import pytest
 
 from tests.constants import PYTHON_RELEASE_GA_1_1
-from utils import weblog, context, interfaces, released, irrelevant, coverage, scenario, missing_feature
+from utils import weblog, context, interfaces, released, irrelevant, coverage, scenarios, missing_feature
 
 
 if context.library == "cpp":
@@ -174,7 +174,7 @@ class Test_Monitoring:
     def setup_waf_monitoring_errors(self):
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
-    @scenario("APPSEC_RULES_MONITORING_WITH_ERRORS")
+    @scenarios.appsec_rules_monitoring_with_errors
     def test_waf_monitoring_errors(self):
         """
         Some WAF monitoring span tags and metrics are expected to be sent at

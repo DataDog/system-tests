@@ -8,20 +8,21 @@
     "dependencies": {
       "type": "array",
       "items": {
-        "$ref": "/miscs/telemetry/common/dependency.json"
+        "$ref": "/miscs/telemetry/common/objects/dependency.json",
+        "maxItems": 2000
       }
     },
     "integrations": {
       "type": "array",
       "items": {
-        "$ref": "/miscs/telemetry/common/integration.json"
+        "$ref": "/miscs/telemetry/common/objects/integration.json"
       }
     },
     "configuration": {
-      "$ref": "/miscs/telemetry/objects/configuration.json"
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
     },
     "additional_payload": {
-      "$ref": "/miscs/telemetry/objects/configuration.json"
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
     }
   }
 }

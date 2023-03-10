@@ -8,11 +8,11 @@
     "conf_key_values": {
       "type": "array",
       "items": {
-        "$ref": "/miscs/telemetryv2//objects/configuration.json"
+        "$ref": "/miscs/telemetry/v2/objects/configuration.json"
       }
     },
     "remote_config": {
-      "$ref": "/miscs/telemetryv2/objects/remote_config.json"
+      "$ref": "/miscs/telemetry/common/objects/remote_config.json"
     }
   },
   "required": ["conf_key_values"]
