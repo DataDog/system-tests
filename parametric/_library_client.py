@@ -88,6 +88,9 @@ class APMLibraryClient:
     def trace_stop(self) -> None:
         raise NotImplementedError
 
+    def flush_otel(self, timeout: int) -> bool:
+        raise NotImplementedError
+
 
 class APMLibraryClientHTTP(APMLibraryClient):
     def __init__(self, url: str, timeout: int):
@@ -288,6 +291,9 @@ class APMLibraryClientGRPC:
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
+    def flush_otel(self, timeout: int) -> bool:
+        return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
+
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
         return [(k, v) for k, v in resp.http_headers.http_headers.items()]
@@ -402,6 +408,9 @@ class APMLibrary:
 
     def flush(self):
         self._client.trace_flush()
+
+    def flush_otel(self, timeout_sec: int) -> bool:
+        return self._client.flush_otel(timeout_sec)
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)

@@ -21,9 +21,13 @@ def test_otel_simple_trace(test_agent, test_library):
             parent.set_attributes({"parent_k1": "parent_v1"})
             with test_library.start_otel_span(name="child", parent_id=parent.span_id) as child:
                 assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
+                child.otel_end_span()
+            parent.otel_end_span()
         with test_library.start_otel_span("root_two", new_root=True) as parent:
             with test_library.start_otel_span(name="child", parent_id=parent.span_id) as child:
                 assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
+                child.otel_end_span()
+            parent.otel_end_span()
 
     traces = test_agent.wait_for_num_traces(2)
     trace_one = find_trace_by_root(traces, OtelSpan(name="root_one"))
@@ -56,7 +60,7 @@ def test_force_flush_otel(test_agent, test_library):
     """
     with test_library:
         with test_library.start_otel_span(name="test_span") as span:
-            pass
+            span.otel_end_span()  # TODO: it seems like this happens automagically for the non-otel tests how?
         # force flush with 5 second time out
         flushed = test_library.flush_otel(5)
         assert flushed, "ForceFlush error"
