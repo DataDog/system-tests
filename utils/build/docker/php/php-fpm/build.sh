@@ -5,6 +5,7 @@ set -e
 PHP_VERSION=$1
 PHP_MAJOR_VERSION=`echo $PHP_VERSION | cut -d. -f1`
 
+
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata publicsuffix
 
@@ -15,10 +16,11 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	rm -rf /usr/sbin/policy-rc.d
 
 
+add-apt-repository ppa:ondrej/apache2 -y
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl
+apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2
 
 find /var/www/html -mindepth 1 -delete
 
