@@ -429,6 +429,7 @@ class Test_ProductsDisabled:
                     "products" not in content["payload"]
                 ), "Product information is present telemetry data on app-started event when all products are diabled"
 
+
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @scenarios.telemetry_message_batch_event_order
 class Test_ForceBatchingEnabled:
