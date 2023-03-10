@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios
+
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -369,3 +370,27 @@ class Test_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
+
+
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@scenarios.telemetry_message_batch_event_order
+class Test_ForceBatchingEnabled:
+    """ Tests on DD_FORCE_BATCHING_ENABLE environment variable """
+
+    def setup_message_batch_event_order(self):
+        weblog.get("/load_dependency")
+        weblog.get("/enable_integration")
+        weblog.get("/enable_product")
+
+    def test_message_batch_event_order(self):
+        """Test that the events in message-batch are in chronological order"""
+        eventslist = []
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            eventslist.append(content.get("request_type"))
+
+        assert (
+            eventslist.index("app-dependencies-loaded")
+            < eventslist.index("app-integrations-change")
+            < eventslist.index("app-product-change")
+        ), "Events in message-batch are not in chronological order of event triggered"
