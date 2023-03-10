@@ -411,6 +411,7 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
+
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @scenarios.telemetry_message_batch_event_order
 class Test_ForceBatchingEnabled:
