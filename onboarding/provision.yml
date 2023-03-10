@@ -8,33 +8,30 @@ ami:
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux
+  os_type: linux_TRUTU
   os_distro: deb
 
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
   user: ec2-user
-  os_type: linux
+  os_type: linux_TRUTRU
   os_distro: rpm
 
 - name: amazon-linux-dotnet
   ami_id: ami-005b11f8b84489615
   user: ec2-user
-  os_type: linux
+  os_type: linux_TRUTRU
   os_distro: rpm
   os_branch: amazon-netcore6
 
 agent:
-  - env: dev
-    install:
-      - os_type: linux
-        command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
   - env: prod
     install:
-      - os_type: linux985
+      - os_type: linux
         command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-
+        #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+        
 autoinjection:
   - java: 
     - env: dev
@@ -42,8 +39,10 @@ autoinjection:
         - os_type: linux
           os_distro: deb
           command: |
-            curl -s https://packagecloud.io/install/repositories/randomanderson/autoinject_test/script.deb.sh | os=any dist=any sudo -E bash
-            sudo apt-get install datadog-apm-inject datadog-apm-library-java
+            sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datad0g.com beta 7" > datadog-beta.list
+            sudo cp datadog-beta.list /etc/apt/sources.list.d/
+            sudo apt-get update
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
             dd-host-install
 
         - os_type: linux
@@ -56,6 +55,17 @@ autoinjection:
             sudo cp dd.repo /etc/yum.repo.d/dd.repo
             sudo yum makecache
             sudo yum -y install datadog-apm-inject datadog-apm-library-java
+            dd-host-install
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datadoghq.com stable 7" > datadog-stable.list
+            sudo cp datadog-stable.list /etc/apt/sources.list.d/
+            sudo apt-get update
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
             dd-host-install
   - nodejs: 
     - env: dev
@@ -152,7 +162,7 @@ weblogs:
       supported-language-versions:
         - 11
       install: 
-        - os_type: linux
+        - os_type: linux_TATAA
           copy_files:
             - name: copy-service
               local_path: weblog/java/wildfly/wildfly.service
@@ -168,7 +178,7 @@ weblogs:
       supported-language-versions:
         - 16
       install: 
-        - os_type: linux
+        - os_type: linux_TOTOTOT
           copy_files:
             - name: copy-service
               local_path: weblog/nodejs/test-app-nodejs/test-app-nodejs.service
@@ -190,7 +200,7 @@ weblogs:
         - 6
       local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_build.sh
       install: 
-        - os_type: linux
+        - os_type: linux_TITITIT
           os_distro: rpm
           os_branch: amazon-netcore6
           copy_files:
