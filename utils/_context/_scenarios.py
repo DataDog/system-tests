@@ -318,7 +318,7 @@ class scenarios:
         weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
     )
 
-    # Telemetry Scenarion
+    # Telemetry Scenario
     telemetry_app_started_products_disabled = EndToEndScenario(
         "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
         weblog_env={
