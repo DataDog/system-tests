@@ -329,6 +329,7 @@ class scenarios:
             "DD_PROFILING_ENABLED": "false",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
         },
+    )
     telemetry_message_batch_event_order = EndToEndScenario(
         "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
     )
