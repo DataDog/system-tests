@@ -30,18 +30,6 @@ class AgentInterfaceValidator(InterfaceValidator):
 
         return data
 
-    def get_spans(self):
-        """Iterate over all spans sent by the agent to the backend"""
-
-        for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                raise Exception("Trace property is missing in agent payload")
-
-            for payload in data["request"]["content"]["tracerPayloads"]:
-                for trace in payload["chunks"]:
-                    for span in trace["spans"]:
-                        yield data, span
-
     def get_appsec_data(self, request):
 
         rid = get_rid_from_request(request)
