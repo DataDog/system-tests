@@ -338,7 +338,8 @@ class scenarios:
     appsec_rate_limiter = EndToEndScenario("APPSEC_RATE_LIMITER", weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1"})
 
     appsec_waf_telemetry = EndToEndScenario(
-        "APPSEC_WAF_TELEMETRY", weblog_env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true"}
+        "APPSEC_WAF_TELEMETRY",
+        weblog_env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true", "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0"},
     )
     # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
     # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
