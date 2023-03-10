@@ -47,7 +47,7 @@ class Test_Main:
             for _, _, span, _ in interfaces.library.get_appsec_events(request=r):
                 # the logic is to set MANUAL_KEEP not on all traces
                 # then the sampling mechism drop, or not the traces
-                if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
+                if span["metrics"].get("_sampling_priority_v1") == MANUAL_KEEP:
                     trace_count += 1
 
         message = f"sent {self.request_count} in 10 s. Expecting to see 10 events but saw {trace_count} events"
