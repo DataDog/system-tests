@@ -386,6 +386,7 @@ class Test_DpendencyEnable:
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
+
 @scenarios.telemetry_message_batch_event_order
 class Test_ForceBatchingEnabled:
     """ Tests on DD_FORCE_BATCHING_ENABLE environment variable """
