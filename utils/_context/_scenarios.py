@@ -90,6 +90,7 @@ class EndToEndScenario(_Scenario):
         additional_trace_header_tags=(),
         library_interface_timeout=None,
         agent_interface_timeout=None,
+        backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -141,6 +142,8 @@ class EndToEndScenario(_Scenario):
             self.agent_interface_timeout = 5
         else:
             self.agent_interface_timeout = agent_interface_timeout
+
+        self.backend_interface_timeout = backend_interface_timeout
 
         if library_interface_timeout is not None:
             self.library_interface_timeout = library_interface_timeout
@@ -436,13 +439,14 @@ class scenarios:
     )
 
     # APM tracing end-to-end scenarios
-    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E")
+    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5)
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
             "DD_SPAN_SAMPLING_RULES": '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]',
             "DD_TRACE_SAMPLE_RATE": "0",
         },
+        backend_interface_timeout=5,
     )
 
     library_conf_custom_headers_short = EndToEndScenario(
