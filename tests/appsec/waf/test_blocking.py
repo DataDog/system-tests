@@ -137,11 +137,8 @@ class Test_Blocking:
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
         assert re.match("^application/json", self.r_na.headers.get("content-type", "")) is not None
-        if self.r_na.text[-1] == "\n":
-            self.r_na.text = self.r_na.text[:-1]
-
         assert (
-            self.r_na.text == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
+            self.r_na.text.rstrip() == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
             'this page. Please contact the customer service team. Security provided by Datadog."}]}'
         )
 
