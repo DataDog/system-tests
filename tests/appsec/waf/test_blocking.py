@@ -130,7 +130,7 @@ class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 
     def setup_no_accept(self):
-        self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1 noaccept"})
+        self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
     def test_no_accept(self):
