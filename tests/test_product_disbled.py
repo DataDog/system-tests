@@ -19,13 +19,6 @@ class TestProductDisabled:
         for data in telemetry_data:
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
-                products = content["payload"]["products"]
                 assert (
-                    "appsec" not in products
-                ), "Apssec product information is present telemetry data on app-started event when appsec is diabled"
-                assert (
-                    "profiler" not in products
-                ), "Profiler product information is present telemetry data on app-started event when appsec is diabled"
-                assert (
-                    "dynamic_instrumentation" not in products
-                ), "Dynamic Instrumentation product information is present telemetry data on app-started event when appsec is diabled"
+                    "products" not in content["payload"]
+                ), "Product information is present telemetry data on app-started event when all products are diabled"
