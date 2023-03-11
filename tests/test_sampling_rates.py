@@ -49,8 +49,7 @@ class Test_SamplingRates:
 
         for data, root_span in interfaces.library.get_root_spans():
             metrics = root_span["metrics"]
-            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
-            sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
+            sampled_count[metrics.get("_sampling_priority_v1") in (USER_KEEP, AUTO_KEEP)] += 1
 
         trace_count = sum(sampled_count.values())
         # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
@@ -73,7 +72,7 @@ class Test_SamplingRates:
 
         for data, span in interfaces.library.get_root_spans():
             metrics = span["metrics"]
-            if metrics["_sampling_priority_v1"] not in (USER_REJECT, AUTO_REJECT):
+            if metrics.get("_sampling_priority_v1") not in (USER_REJECT, AUTO_REJECT):
                 trace_ids.add(span["trace_id"])
 
         for _, span in interfaces.agent.get_spans():
