@@ -15,7 +15,13 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", python="1.7.0", ruby="?")
 @released(nodejs={"express4": "3.6.0", "*": "?"})
 @released(
-    java={"spring-boot": "0.108.0", "spring-boot-jetty": "0.108.0", "spring-boot-openliberty": "0.108.0", "*": "?"},
+    java={
+        "spring-boot": "0.108.0",
+        "spring-boot-jetty": "0.108.0",
+        "spring-boot-openliberty": "0.108.0",
+        "resteasy-netty3": "1.11.0",
+        "*": "?",
+    },
 )
 class TestIastWeakCipher:
     """Verify IAST WEAK CIPHER feature"""
