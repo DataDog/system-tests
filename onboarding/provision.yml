@@ -8,21 +8,22 @@ ami:
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux_TRUTU
+  os_type: linux
   os_distro: deb
 
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
   user: ec2-user
-  os_type: linux_TRUTRU
+  os_type: linux
   os_distro: rpm
 
 - name: amazon-linux-dotnet
   ami_id: ami-005b11f8b84489615
   user: ec2-user
-  os_type: linux_TRUTRU
+  os_type: linux
   os_distro: rpm
   os_branch: amazon-netcore6
+
 
 agent:
 
@@ -31,7 +32,7 @@ agent:
       - os_type: linux
         command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
         #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-        
+
 autoinjection:
   - java: 
     - env: dev
@@ -48,13 +49,13 @@ autoinjection:
         - os_type: linux
           os_distro: rpm
           copy_files:
-            - name: copy-dd-repo
-              local_path: autoinjection/dd.repo
-              remote_path: dd.repo
+            - name: copy-datadog-staging-repo
+              local_path: autoinjection/datadog-staging.repo
+              remote_path: datadog-staging.repo
           command: |
-            sudo cp dd.repo /etc/yum.repo.d/dd.repo
-            sudo yum makecache
-            sudo yum -y install datadog-apm-inject datadog-apm-library-java
+            sudo cp datadog-staging.repo /etc/yum.repos.d/
+            sudo yum -y makecache
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
             dd-host-install
 
     - env: prod
@@ -67,6 +68,19 @@ autoinjection:
             sudo apt-get update
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
             dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-datadog-stable-repo
+              local_path: autoinjection/datadog-stable.repo
+              remote_path: datadog-stable.repo
+          command: |
+            sudo cp datadog-stable.repo /etc/yum.repos.d/
+            sudo yum -y makecache
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
+            dd-host-install
+
   - nodejs: 
     - env: dev
       install: 
@@ -111,6 +125,7 @@ language-variants:
         - os_type: linux
           os_distro: deb
           command: sudo apt-get -y install openjdk-11-jdk-headless
+
         - os_type: linux
           os_distro: rpm
           command: sudo amazon-linux-extras install java-openjdk11
@@ -162,7 +177,7 @@ weblogs:
       supported-language-versions:
         - 11
       install: 
-        - os_type: linux_TATAA
+        - os_type: linux
           copy_files:
             - name: copy-service
               local_path: weblog/java/wildfly/wildfly.service
@@ -178,7 +193,7 @@ weblogs:
       supported-language-versions:
         - 16
       install: 
-        - os_type: linux_TOTOTOT
+        - os_type: linux
           copy_files:
             - name: copy-service
               local_path: weblog/nodejs/test-app-nodejs/test-app-nodejs.service
@@ -200,7 +215,7 @@ weblogs:
         - 6
       local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_build.sh
       install: 
-        - os_type: linux_TITITIT
+        - os_type: linux
           os_distro: rpm
           os_branch: amazon-netcore6
           copy_files:
