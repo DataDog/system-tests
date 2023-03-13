@@ -1,7 +1,7 @@
 from utils import scenarios, released, weblog, interfaces, missing_feature, context
 
 
-@released(java="1.6.0", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?", cpp="?")
+@released(java="1.6.0", dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?", cpp="?")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_custom_rules
