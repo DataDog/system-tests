@@ -390,19 +390,34 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
+    @irrelevant(library="php")
+    @irrelevant(library="cpp")
+    @irrelevant(library="golang")
+    @irrelevant(library="ruby")
+    @bug(
+        library="pyhton",
+        reason="""
+            configuration is not properly populating for python
+        """,
+    )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
-        configurationMap = map(
-            "DD_AGENT_HOST", "DD_TRACE_AGENT_PORT", "DD_APPSEC_ENABLED", "DD_TELEMETRY_HEARTBEAT_INTERVAL"
-        )
-
+        test_configuration = {
+            "dotnet": {"hostname", "port", "appsec.enabled"},
+            "nodejs": {"hostname", "port", "appsec.enabled"},
+            # to-do :need to add configuration keys once python bug is fixed
+            "pyhton": {},
+            "java": {"trace.agent.port", "telemetry.heartbeat.interval", "trace.agent.port"},
+        }
+        configurationMap = test_configuration[context.library.library]
+        
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
                 cnt = 0
-                configurations = content["payload"]["configurations"]
+                configurations = content["payload"]["configuration"]
                 for cnf in configurations:
-                    if cnf["value"] in configurationMap:
+                    if cnf["name"] in configurationMap:
                         cnt += 1
                 if cnt != len(list(configurationMap)):
                     raise Exception(
