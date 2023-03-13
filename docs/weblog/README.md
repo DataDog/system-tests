@@ -215,7 +215,12 @@ Expected query parameters:
 ## GET /load_dependency
 
 This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that 
-the `dependencies-loaded` event is appropriately triggered.
+the `app-dependencies-loaded` event is appropriately triggered.
+
+## GET /enable_integration
+
+This endpoint loads an integration in applicable languages. It's mainly used for telemetry tests to verify that 
+the `app-integrations-change` event is appropriately triggered.
 
 ## GET /e2e_single_span
 
