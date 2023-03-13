@@ -9,6 +9,7 @@ from provision_parser import (
     ec2_autoinjection_install_data,
     ec2_language_variants_install_data,
     ec2_weblogs_install_data,
+    ec2_prepare_repos_install_data,
 )
 import logging
 import os
@@ -124,10 +125,18 @@ def infraestructure_provision():
                         connection = command.remote.ConnectionArgs(
                             host=server.private_ip, user=ec2_data["user"], private_key=private_key_pem,
                         )
-
+                        # Prepare repositories
+                        prepare_repos_install = ec2_prepare_repos_install_data(os_type, os_distro)
+                        prepare_reos_installer = remote_install(
+                            connection, "prepare-repos-installer_" + ec2_name, prepare_repos_install["install"], server
+                        )
                         # Install agent
                         agent_installer = remote_install(
-                            connection, "agent-installer_" + ec2_name, agent_instalations["install"], server, True
+                            connection,
+                            "agent-installer_" + ec2_name,
+                            agent_instalations["install"],
+                            prepare_reos_installer,
+                            True,
                         )
 
                         # Install autoinjection

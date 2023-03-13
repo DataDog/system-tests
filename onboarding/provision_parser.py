@@ -34,6 +34,15 @@ def ec2_language_variants_install_data(language, os_type, os_distro, os_branch):
             yield filtered_language_variants_data
 
 
+def ec2_prepare_repos_install_data(os_type, os_distro):
+    config_data = _load_provision()
+    filteredInstalations = _filter_install_data(
+        config_data["prepare-repos"], os_type, os_distro, os_branch=None, exact_match=False
+    )
+    config_data["prepare-repos"]["install"] = filteredInstalations[0]
+    return config_data["prepare-repos"]
+
+
 def ec2_weblogs_install_data(language, support_version, os_type, os_distro, os_branch):
     config_data = _load_provision()
     for language_weblog_data in config_data["weblogs"]:
