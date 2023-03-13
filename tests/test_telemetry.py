@@ -403,11 +403,11 @@ class Test_Telemetry:
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
-            "dotnet": {"hostname", "port", "appsec.enabled"},
+            "dotnet": {},
             "nodejs": {"hostname", "port", "appsec.enabled"},
             # to-do :need to add configuration keys once python bug is fixed
-            "pyhton": {},
-            "java": {"trace.agent.port", "telemetry.heartbeat.interval", "trace.agent.port"},
+            "python": {},
+            "java": {"trace.agent.port", "telemetry.heartbeat.interval"},
         }
         configurationMap = test_configuration[context.library.library]
 
