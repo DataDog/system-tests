@@ -106,6 +106,8 @@ def test_b3single_propagation_D004(test_agent, test_library):
     check_128_bit_trace_id(b3[0:32], trace_id, dd_p_tid)
 
 
+@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
+@pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": False,}],
@@ -171,6 +173,8 @@ def test_b3multi_propagation_D007(test_agent, test_library):
     check_128_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
 
+@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
+@pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": False,}],
 )
