@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -430,3 +430,43 @@ class Test_Telemetry:
         for integration, seen in seen_enabled_integrations.items():
             if not seen:
                 raise Exception(integration + " not reported in app-integrations-enabled message")
+
+
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
+class Test_DpendencyEnable:
+    """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
+
+    def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
+        weblog.get("/load_dependency")
+
+    def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
+        """app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"""
+
+        for data in interfaces.library.get_telemetry_data():
+            if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
+                raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
+
+
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@scenarios.telemetry_message_batch_event_order
+class Test_ForceBatchingEnabled:
+    """ Tests on DD_FORCE_BATCHING_ENABLE environment variable """
+
+    def setup_message_batch_event_order(self):
+        weblog.get("/load_dependency")
+        weblog.get("/enable_integration")
+        weblog.get("/enable_product")
+
+    def test_message_batch_event_order(self):
+        """Test that the events in message-batch are in chronological order"""
+        eventslist = []
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            eventslist.append(content.get("request_type"))
+
+        assert (
+            eventslist.index("app-dependencies-loaded")
+            < eventslist.index("app-integrations-change")
+            < eventslist.index("app-product-change")
+        ), "Events in message-batch are not in chronological order of event triggered"

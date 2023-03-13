@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @released(dotnet="2.7.0", golang="1.37.0", java="?", nodejs="2.4.0")
-@released(php="0.72.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
+@released(php="0.85.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.0.0")
 @coverage.basic
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""
