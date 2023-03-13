@@ -410,7 +410,7 @@ class Test_Telemetry:
             "java": {"trace.agent.port", "telemetry.heartbeat.interval", "trace.agent.port"},
         }
         configurationMap = test_configuration[context.library.library]
-        
+
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
