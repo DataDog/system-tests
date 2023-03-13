@@ -77,11 +77,7 @@ func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeaders
 	}
 	distr := []*HeaderTuple{}
 	for k, v := range headers {
-		var headerTuple = &HeaderTuple{
-			Key: k,
-			Value: v,
-		}
-		distr = append(distr, headerTuple)
+		distr = append(distr, &HeaderTuple{Key: k, Value: v})
 	}
 	return &InjectHeadersReturn{HttpHeaders: &DistributedHTTPHeaders{HttpHeaders: distr}}, nil
 }
