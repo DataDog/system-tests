@@ -25,7 +25,12 @@ message StartSpanArgs {
 }
 
 message DistributedHTTPHeaders {
-    map<string, string> http_headers = 9;
+  repeated HeaderTuple http_headers = 9;
+}
+
+message HeaderTuple {
+  string key = 1;
+  string value = 2;
 }
 
 message StartSpanReturn {
