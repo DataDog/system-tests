@@ -398,10 +398,10 @@ class Test_ForceBatchingEnabled:
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @scenarios.telemetry_log_generation_disabled
-class Test_Log_Genration:
+class Test_Log_Generation:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
 
-    def test_log_genration_disabled(self):
+    def test_log_generation_disabled(self):
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
         if len(telemetry_data) == 0:
@@ -418,7 +418,7 @@ class Test_Log_Genration:
 class Test_Metric_Generation:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
-    def test_metric_genration_disabled(self):
+    def test_metric_generation_disabled(self):
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
         if len(telemetry_data) == 0:
