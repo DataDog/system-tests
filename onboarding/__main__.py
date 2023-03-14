@@ -123,13 +123,18 @@ def infraestructure_provision():
                         )
 
                         connection = command.remote.ConnectionArgs(
-                            host=server.private_ip, user=ec2_data["user"], private_key=private_key_pem,
+                            host=server.private_ip,
+                            user=ec2_data["user"],
+                            private_key=private_key_pem,
+                            dial_error_limit=-1,
                         )
+
                         # Prepare repositories
                         prepare_repos_install = ec2_prepare_repos_install_data(os_type, os_distro)
                         prepare_reos_installer = remote_install(
                             connection, "prepare-repos-installer_" + ec2_name, prepare_repos_install["install"], server
                         )
+
                         # Install agent
                         agent_installer = remote_install(
                             connection,

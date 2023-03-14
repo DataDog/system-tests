@@ -175,6 +175,7 @@ language-variants:
 
 weblogs:
   - java: 
+
     - name: test-app-java
       supported-language-versions:
         - 11

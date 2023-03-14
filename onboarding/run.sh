@@ -26,6 +26,7 @@ aws-vault exec sandbox-account-admin -- pulumi up --yes \
     -c ddinfra:aws/defaultPrivateKeyPath=$AWS_PRIVATE_KEY_PATH \
     -c ddinfra:aws/instance_type=$AWS_INSTANCE_TYPE \
     -C . -s dev
+#For Verbose add those params to pulumi up:--logtostderr --logflow -v=9
 
 echo "Export private IPs "
 pulumi stack output --json > pulumi.output.json 
