@@ -2,7 +2,7 @@ import os
 import time
 import pytest
 
-from utils._context.containers import TestedContainer, WeblogContainer, AgentContainer
+from utils._context.containers import TestedContainer, WeblogContainer, AgentContainer, create_network
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
@@ -97,7 +97,7 @@ class EndToEndScenario(_Scenario):
     ) -> None:
         super().__init__(name, use_interfaces=True)
 
-        self.agent_container = AgentContainer()
+        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder)
         self.weblog_container = WeblogContainer(
             self.host_log_folder,
             environment=weblog_env,
@@ -118,6 +118,7 @@ class EndToEndScenario(_Scenario):
                 TestedContainer(
                     image_name="postgres:latest",
                     name="postgres",
+                    host_log_folder=self.host_log_folder,
                     user="postgres",
                     environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
                     volumes={
@@ -131,11 +132,21 @@ class EndToEndScenario(_Scenario):
 
         if include_mongo_db:
             self._required_containers.append(
-                TestedContainer(image_name="mongo:latest", name="mongodb", allow_old_container=True)
+                TestedContainer(
+                    image_name="mongo:latest",
+                    name="mongodb",
+                    host_log_folder=self.host_log_folder,
+                    allow_old_container=True,
+                )
             )
         if include_cassandra_db:
             self._required_containers.append(
-                TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
+                TestedContainer(
+                    image_name="cassandra:latest",
+                    name="cassandra_db",
+                    host_log_folder=self.host_log_folder,
+                    allow_old_container=True,
+                )
             )
 
         if agent_interface_timeout is None:
@@ -170,7 +181,9 @@ class EndToEndScenario(_Scenario):
             logger.debug(info)
             terminal.write_line(info)
 
-        terminal.write_sep("=", "Tested components", bold=True)
+        terminal.write_sep("=", "Test context", bold=True)
+        print_info(f"Scenario: {self.name}")
+        print_info(f"Logs folder: ./{self.host_log_folder}")
         print_info(f"Library: {self.library}")
         print_info(f"Agent: {self.agent_version}")
         if self.library == "php":
@@ -187,12 +200,11 @@ class EndToEndScenario(_Scenario):
 
         print_info(f"Weblog variant: {self.weblog_container.weblog_variant}")
         print_info(f"Backend: {self.agent_container.dd_site}")
-        print_info(f"Scenario: {self.name}")
 
     def _get_warmups(self):
         from utils.proxy.core import start_proxy  # prevent circular import
 
-        warmups = [lambda: start_proxy(self.proxy_state)]
+        warmups = [create_network, lambda: start_proxy(self.proxy_state)]
 
         for container in self._required_containers:
             warmups.append(container.start)

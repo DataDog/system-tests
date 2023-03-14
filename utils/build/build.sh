@@ -122,7 +122,15 @@ build() {
         echo "-----------------------"
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
-            docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
+            if [ ! -d "venv/" ] 
+            then
+                echo "Build virtual env"
+                python3 -m venv venv
+            fi
+
+            source venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
 
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then

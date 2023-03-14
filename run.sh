@@ -51,21 +51,8 @@ mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/runner
 mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs
 chmod -R 777 $SYSTEMTESTS_LOG_FOLDER
 
-echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
-echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
-
 docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
 docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
 
-docker-compose up --force-recreate runner
-docker-compose logs runner > $SYSTEMTESTS_LOG_FOLDER/docker/runner/stdout.log
-
-# Getting runner exit code.
-EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
-
-# Stop all containers
-docker-compose down --remove-orphans
-
-# Exit with runner's status
-echo "Exiting with ${EXIT_CODE}"
-exit $EXIT_CODE
+source venv/bin/activate
+pytest $RUNNER_ARGS

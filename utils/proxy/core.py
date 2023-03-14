@@ -3,6 +3,7 @@ from collections import defaultdict
 import json
 import os
 import threading
+import platform
 from datetime import datetime
 
 from mitmproxy import master, options
@@ -71,8 +72,9 @@ class _RequestLogger:
         return content
 
     def request(self, flow):
-        if flow.request.host in ("runner", "localhost"):  # localhost because on UDS mode, UDS socket is redirected
-            flow.request.host, flow.request.port = "agent", 8126
+        # localhost because on UDS mode, UDS socket is redirected
+        if flow.request.host in ("runner", "localhost", "host.docker.internal", "host-gateway"):
+            flow.request.host, flow.request.port = "localhost", 8127
             flow.request.scheme = "http"
 
     def response(self, flow):
@@ -108,7 +110,7 @@ class _RequestLogger:
         if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
             payload["response"] = None
 
-        if flow.request.host == "agent":
+        if flow.request.host == "localhost":
             interface = interfaces.library
         else:
             interface = interfaces.agent
@@ -177,7 +179,12 @@ def start_proxy(state) -> None:
     thread = threading.Thread(target=_start_background_loop, args=(loop,), daemon=True)
     thread.start()
 
-    opts = options.Options(listen_host="0.0.0.0", listen_port=8126, confdir="utils/proxy/.mitmproxy")
+    if platform.system() == "Darwin":
+        listen_host = "127.0.0.1"  # on mac, we can listen only localhost, and it saves a click
+    else:
+        listen_host = "0.0.0.0"
+
+    opts = options.Options(listen_host=listen_host, listen_port=8126, confdir="utils/proxy/.mitmproxy")
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     # proxy.addons.add(keepserving.KeepServing())
