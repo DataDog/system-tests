@@ -2,7 +2,6 @@ import os
 import json
 from pathlib import Path
 import time
-
 import docker
 from docker.models.containers import Container
 import pytest
@@ -12,6 +11,18 @@ from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
 _client = docker.DockerClient()
+
+_NETWORK_NAME = "system-tests_default"
+_HOST_DOMAIN = "host.docker.internal"
+
+
+def create_network():
+    for _ in _client.networks.list(names=[_NETWORK_NAME,]):
+        logger.debug(f"Network {_NETWORK_NAME} still exists")
+        return
+
+    logger.debug(f"Create network {_NETWORK_NAME}")
+    _client.networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 class _HealthCheck:
@@ -48,19 +59,22 @@ class _HealthCheck:
 class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
-    def __init__(self, name, image_name, allow_old_container=False, healthcheck=None, **kwargs) -> None:
+    def __init__(
+        self, name, image_name, host_log_folder, allow_old_container=False, healthcheck=None, **kwargs
+    ) -> None:
         self.name = name
         self.container_name = f"system-tests-{name}"
         self.image_name = image_name
         self.allow_old_container = allow_old_container
         self.healthcheck = healthcheck
+        self.host_log_folder = host_log_folder
 
         self.kwargs = kwargs
         self._container = None
 
     @property
     def log_folder_path(self):
-        return f"/app/logs/docker/{self.name}"
+        return f"./{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
         for container in _client.containers.list(all=True, filters={"name": self.container_name}):
@@ -87,10 +101,11 @@ class TestedContainer:
         self._container = _client.containers.run(
             image=self.image_name,
             name=self.container_name,
+            hostname=self.name,
             # auto_remove=True,
             detach=True,
-            hostname=self.name,
-            network="system-tests_default",
+            network=_NETWORK_NAME,
+            extra_hosts={"host.docker.internal": "host-gateway"},
             **self.kwargs,
         )
 
@@ -157,19 +172,23 @@ class ImageInfo:
 
 
 class AgentContainer(TestedContainer):
-    def __init__(self) -> None:
+    def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="system_tests/agent",
             name="agent",
+            host_log_folder=host_log_folder,
             environment={
                 "DD_API_KEY": os.environ.get("DD_API_KEY", "please-set-DD_API_KEY"),
                 "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
                 "DD_SITE": self.dd_site,
                 "DD_APM_RECEIVER_PORT": self.agent_port,
-                "DD_DOGSTATSD_PORT": "8125",  # TODO : move this in agent build ?
+                "DD_DOGSTATSD_PORT": "8125",
+                "DD_PROXY_HTTPS": f"http://{_HOST_DOMAIN}:8126",
+                "DD_PROXY_HTTP": f"http://{_HOST_DOMAIN}:8126",
             },
-            healthcheck=_HealthCheck(f"http://agent:{self.agent_port}/info", 60, start_period=1),
+            healthcheck=_HealthCheck(f"http://localhost:{self.agent_port}/info", 60, start_period=1),
+            ports={f"{self.agent_port}/tcp": ("127.0.0.1", self.agent_port)},
         )
 
         self.image_info = ImageInfo("agent")
@@ -187,7 +206,7 @@ class AgentContainer(TestedContainer):
 
     @property
     def agent_port(self):
-        return 8126
+        return 8127
 
 
 class WeblogContainer(TestedContainer):
@@ -257,7 +276,7 @@ class WeblogContainer(TestedContainer):
             self.appsec_rules_file = self.image_info.env.get("DD_APPSEC_RULES", None)
 
         # set the tracer to send data to runner (it will forward them to the agent)
-        base_environment["DD_AGENT_HOST"] = "runner"
+        base_environment["DD_AGENT_HOST"] = _HOST_DOMAIN
         base_environment["DD_TRACE_AGENT_PORT"] = 8126
 
         environment = base_environment | (environment or {})
@@ -265,12 +284,14 @@ class WeblogContainer(TestedContainer):
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
+            host_log_folder=host_log_folder,
             environment=environment,
             volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck=_HealthCheck("http://weblog:7777", 60),
+            healthcheck=_HealthCheck("http://localhost:7777", 60),
+            ports={"7777/tcp": ("127.0.0.1", 7777), "7778/tcp": ("127.0.0.1", 7778)},
         )
 
     @property

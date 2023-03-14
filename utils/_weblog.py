@@ -34,7 +34,7 @@ class _GrpcQuery:
 
 
 class _Weblog:
-    _grpc_target = "weblog:7778"
+    _grpc_target = "localhost:7778"
 
     def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self.request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
@@ -53,7 +53,7 @@ class _Weblog:
         data=None,
         headers=None,
         stream=None,
-        domain="weblog",
+        domain="localhost",
         port=7777,
         allow_redirects=True,
         **kwargs,

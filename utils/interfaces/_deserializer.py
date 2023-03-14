@@ -74,7 +74,13 @@ def deserialize_http_message(path, message, data, interface, key):
     content_type = None if content_type is None else content_type.lower()
 
     if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
-        return json.loads(data)
+        if len(data) == 0:
+            return None
+        else:
+            try:
+                return json.loads(data)
+            except:
+                return data
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
         return json.loads(data)
