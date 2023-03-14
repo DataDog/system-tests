@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, context, coverage, interfaces, released, bug, missing_feature, scenario
+from utils import weblog, context, coverage, interfaces, released, bug, missing_feature, scenarios
 
 
 if context.library == "cpp":
@@ -15,7 +15,7 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 
 @released(java="0.93.0", php_appsec="0.3.0", ruby="1.0.0.beta2")
 @coverage.basic
-@scenario("APPSEC_CORRUPTED_RULES")
+@scenarios.appsec_corrupted_rules
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_CorruptedRules:
@@ -43,7 +43,7 @@ class Test_CorruptedRules:
 
 @released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="1.0.0.beta2")
 @coverage.basic
-@scenario("APPSEC_MISSING_RULES")
+@scenarios.appsec_missing_rules
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_MissingRules:
@@ -79,7 +79,7 @@ class Test_MissingRules:
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
-@scenario("APPSEC_CUSTOM_RULES")
+@scenarios.appsec_custom_rules
 class Test_ConfRuleSet:
     """AppSec support env var DD_APPSEC_RULES"""
 
@@ -111,7 +111,7 @@ class Test_ConfRuleSet:
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
-@scenario("APPSEC_CUSTOM_RULES")
+@scenarios.appsec_custom_rules
 class Test_NoLimitOnWafRules:
     """ Serialize WAF rules without limiting their sizes """
 

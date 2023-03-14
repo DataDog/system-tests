@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, scenario, missing_feature, irrelevant
+from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, irrelevant
 
 
-@released(cpp="?", dotnet="?", php="?", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(cpp="?", dotnet="?", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
 @coverage.basic
-@scenario("APPSEC_BLOCKING")
+@scenarios.appsec_blocking
 @released(
     java={
         "spring-boot": "0.110.0",
@@ -77,6 +77,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "java", reason="Either happens on a subsequent run or body is not read")
     @missing_feature(context.library == "ruby")
+    @missing_feature(context.library == "php", reason="Raw body not enabled by default")
     def test_request_body_raw(self):
         """can block on server.request.body.raw"""
 
@@ -119,6 +120,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby")
+    @missing_feature(context.library == "php", reason="Headers already sent at this stage")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 

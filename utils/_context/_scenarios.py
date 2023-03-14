@@ -17,6 +17,8 @@ class _Scenario:
         # handles @scenarios.scenario_name
         pytest.mark.scenario(self.name)(test_method)
 
+        return test_method
+
     def session_start(self, session):
         # called at the very begning of the process
         pass
@@ -88,6 +90,7 @@ class EndToEndScenario(_Scenario):
         additional_trace_header_tags=(),
         library_interface_timeout=None,
         agent_interface_timeout=None,
+        backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -139,6 +142,8 @@ class EndToEndScenario(_Scenario):
             self.agent_interface_timeout = 5
         else:
             self.agent_interface_timeout = agent_interface_timeout
+
+        self.backend_interface_timeout = backend_interface_timeout
 
         if library_interface_timeout is not None:
             self.library_interface_timeout = library_interface_timeout
@@ -288,12 +293,16 @@ class CgroupScenario(EndToEndScenario):
 
 class scenarios:
     empty_scenario = _Scenario("EMPTY_SCENARIO")
+    todo = _Scenario("TODO")  # scenario that skips tests not yest executed
     test_the_test = TestTheTestScenario("TEST_THE_TEST")
 
     default = EndToEndScenario("DEFAULT", include_postgres_db=True)
     cgroup = CgroupScenario("CGROUP")
     custom = EndToEndScenario("CUSTOM")
     sleep = EndToEndScenario("SLEEP")
+
+    # scenario for weblog arch that does not support Appsec
+    appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
@@ -310,6 +319,16 @@ class scenarios:
     trace_propagation_style_w3c = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
+    )
+    # Telemetry scenarios
+    telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
+        "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
+        weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
+    )
+
+    # Telemetry scenarios
+    telemetry_message_batch_event_order = EndToEndScenario(
+        "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
     )
 
     # ASM scenarios
@@ -332,9 +351,24 @@ class scenarios:
     appsec_rate_limiter = EndToEndScenario("APPSEC_RATE_LIMITER", weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1"})
 
     appsec_waf_telemetry = EndToEndScenario(
-        "APPSEC_WAF_TELEMETRY", weblog_env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true"}
+        "APPSEC_WAF_TELEMETRY",
+        weblog_env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true", "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0"},
     )
-    appsec_ip_blocking = EndToEndScenario("APPSEC_IP_BLOCKING", proxy_state={"mock_remote_config_backend": "ASM_DATA"})
+    # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+    # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
+    # So, we set  DD_APPSEC_RULES to None to enable loading rules from remote config.
+    # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
+    appsec_ip_blocking = EndToEndScenario(
+        "APPSEC_IP_BLOCKING",
+        proxy_state={"mock_remote_config_backend": "ASM_DATA"},
+        weblog_env={"DD_APPSEC_RULES": None},
+    )
+
+    appsec_request_blocking = EndToEndScenario(
+        "APPSEC_REQUEST_BLOCKING",
+        proxy_state={"mock_remote_config_backend": "ASM"},
+        weblog_env={"DD_APPSEC_RULES": None},
+    )
 
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
@@ -372,9 +406,14 @@ class scenarios:
         library_interface_timeout=100,
     )
 
+    # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+    # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
+    # So, we set  DD_APPSEC_RULES to None to enable loading rules from remote config.
+    # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         proxy_state={"mock_remote_config_backend": "ASM_DD"},
+        weblog_env={"DD_APPSEC_RULES": None},
         library_interface_timeout=100,
     )
 
@@ -410,13 +449,14 @@ class scenarios:
     )
 
     # APM tracing end-to-end scenarios
-    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E")
+    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5)
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
             "DD_SPAN_SAMPLING_RULES": '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]',
             "DD_TRACE_SAMPLE_RATE": "0",
         },
+        backend_interface_timeout=5,
     )
 
     library_conf_custom_headers_short = EndToEndScenario(

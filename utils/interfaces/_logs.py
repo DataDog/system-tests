@@ -279,7 +279,7 @@ class Test:
         # i.assert_presence(r".*")
 
         i = _AgentStdout()
-        i.wait()
+        i.wait(0)
         i.assert_presence(r"FIPS mode is disabled")
 
 

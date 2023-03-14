@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, weblog, interfaces, released, irrelevant, scenario, scenarios
+from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag
@@ -23,7 +23,7 @@ class Test_HeaderTags:
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
 @coverage.basic
-@scenario("LIBRARY_CONF_CUSTOM_HEADERS_SHORT")
+@scenarios.library_conf_custom_headers_short
 class Test_HeaderTagsShortFormat:
     """Validates that the short, header name only, format for specifying headers correctly tags spans"""
 
@@ -46,7 +46,7 @@ class Test_HeaderTagsShortFormat:
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
-@scenario("LIBRARY_CONF_CUSTOM_HEADERS_LONG")
+@scenarios.library_conf_custom_headers_long
 class Test_HeaderTagsLongFormat:
     """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
 

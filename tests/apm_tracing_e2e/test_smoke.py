@@ -1,8 +1,8 @@
-from utils import weblog, interfaces, rfc, scenario
+from utils import weblog, interfaces, rfc, scenarios
 
 
 @rfc("https://docs.google.com/document/d/1MtSlvPCKWM4x4amOYAvlKVbJjd0b0oUXxxlX-lo8KN8/edit#")
-@scenario("APM_TRACING_E2E")
+@scenarios.apm_tracing_e2e
 class Test_Backend:
     """This is a smoke test that exercises the full flow of APM Tracing.
     It includes trace submission, the trace flowing through the backend processing,
