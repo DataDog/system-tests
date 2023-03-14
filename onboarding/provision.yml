@@ -2,7 +2,7 @@ ami:
 - name: ubuntu-x86-22.04
   ami_id: ami-0557a15b87f6559cf
   user: ubuntu
-  os_type: linux
+  os_type: linux-zzzz
   os_distro: deb
 
 - name: ubuntu-x86-18.04
@@ -43,9 +43,9 @@ prepare-repos:
             curl https://keys.datadoghq.com/DATADOG_APT_KEY_382E94DE.public | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import --batch
             curl https://keys.datadoghq.com/DATADOG_APT_KEY_F14F620E.public | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import --batch
 
-            sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-beta.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-            sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-stable.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-
+            #sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-beta.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+            #sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-stable.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+            sudo apt-get update 
         - os_type: linux
           os_distro: rpm
           copy_files:

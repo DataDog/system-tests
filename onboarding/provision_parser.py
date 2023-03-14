@@ -87,7 +87,9 @@ def _filter_install_data(data, os_type, os_distro, os_branch, exact_match=False)
     # Filter by type
     if not filteredInstalations:
         filteredInstalations = [
-            agent_data_install for agent_data_install in data["install"] if agent_data_install["os_type"] == os_type
+            agent_data_install
+            for agent_data_install in data["install"]
+            if agent_data_install["os_type"] == os_type and "os_distro" not in agent_data_install
         ]
 
     # Only one instalation
