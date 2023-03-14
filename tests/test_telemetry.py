@@ -395,7 +395,7 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="ruby")
     @bug(
-        library="pyhton",
+        library="python",
         reason="""
             configuration is not properly populating for python
         """,
