@@ -320,6 +320,11 @@ class scenarios:
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
     )
+    # Telemetry scenarios
+    telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
+        "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
+        weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
+    )
 
     # Telemetry Scenario
     telemetry_app_started_products_disabled = EndToEndScenario(

@@ -364,6 +364,14 @@ jobs:
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
+    - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
       if: ${{ always() }}
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
