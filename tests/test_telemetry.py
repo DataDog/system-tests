@@ -295,6 +295,7 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
+    @bug(library="dotnet", reason="NodaTime not recieved in app-dependencies-loaded message")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
