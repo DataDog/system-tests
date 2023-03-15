@@ -2,6 +2,7 @@ package com.datadoghq;
 
 import static com.datadoghq.App.LOGGER;
 import static com.datadoghq.client.ApmTestClient.DistributedHTTPHeaders;
+import static com.datadoghq.client.ApmTestClient.HeaderTuple;
 import static com.datadoghq.client.ApmTestClient.FinishSpanArgs;
 import static com.datadoghq.client.ApmTestClient.FinishSpanReturn;
 import static com.datadoghq.client.ApmTestClient.FlushSpansArgs;
@@ -33,9 +34,14 @@ import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.TextMap;
 import io.opentracing.tag.Tags;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     private final Tracer tracer;
@@ -109,7 +115,10 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
                 // Copy carrier content to protobuf response
                 DistributedHTTPHeaders.Builder headerBuilder = DistributedHTTPHeaders.newBuilder();
                 for (Map.Entry<String, String> header : carrier) {
-                    headerBuilder.putHttpHeaders(header.getKey(), header.getValue());
+                    headerBuilder.addHttpHeaders(HeaderTuple.newBuilder()
+                        .setKey(header.getKey())
+                        .setValue(header.getValue())
+                    );
                 }
                 // Complete request
                 responseObserver.onNext(InjectHeadersReturn.newBuilder()
@@ -243,28 +252,31 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     }
 
     private static class TextMapAdapter implements TextMap {
-        private final Map<String, String> map;
+        private final List<Map.Entry<String, String>> entries;
 
         private static TextMapAdapter empty() {
-            return new TextMapAdapter(new HashMap<>());
+            return new TextMapAdapter(new ArrayList<>());
         }
 
         private static TextMapAdapter fromRequest(DistributedHTTPHeaders headers) {
-            return new TextMapAdapter(headers.getHttpHeadersMap());
+            return new TextMapAdapter(headers.getHttpHeadersList()
+                            .stream()
+                            .map(headerTuple -> new AbstractMap.SimpleEntry<>(headerTuple.getKey(), headerTuple.getValue()))
+                            .collect(Collectors.toList()));
         }
 
-        private TextMapAdapter(Map<String, String> map) {
-            this.map = map;
+        private TextMapAdapter(List<Map.Entry<String, String>> entries) {
+            this.entries = entries;
         }
 
         @Override
         public Iterator<Map.Entry<String, String>> iterator() {
-            return map.entrySet().iterator();
+            return entries.iterator();
         }
 
         @Override
         public void put(String key, String value) {
-            map.put(key, value);
+            entries.add(new AbstractMap.SimpleEntry<>(key, value));
         }
     }
 }
