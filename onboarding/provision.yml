@@ -2,7 +2,7 @@ ami:
 - name: ubuntu-x86-22.04
   ami_id: ami-0557a15b87f6559cf
   user: ubuntu
-  os_type: linux-zzzz
+  os_type: linux
   os_distro: deb
 
 - name: ubuntu-x86-18.04
@@ -14,7 +14,7 @@ ami:
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
   user: ec2-user
-  os_type: linux
+  os_type: linux-123
   os_distro: rpm
 
 - name: amazon-linux-dotnet
@@ -29,6 +29,11 @@ prepare-repos:
         - os_type: linux
           os_distro: deb
           command: |
+            #I have to launch apt-get update before add datadog repositories. 
+            #Problems with Ubuntu 22 if I launch update after add datadog repositories
+            #Problem executing scripts APT::Update::Post-Invoke-Success 'if /usr/bin/test -w /var/lib/command-not-found/ -a -e /usr/lib/cnf-update-db; then /usr/lib/cnf-update-db > /dev/null; fi'
+            [[ $(cat /etc/os-release) == *"22.04"* ]] && sudo apt-get update
+
             #Staging beta repository
             sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datad0g.com beta 7" > datadog-beta.list
             sudo cp datadog-beta.list /etc/apt/sources.list.d/
@@ -43,9 +48,10 @@ prepare-repos:
             curl https://keys.datadoghq.com/DATADOG_APT_KEY_382E94DE.public | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import --batch
             curl https://keys.datadoghq.com/DATADOG_APT_KEY_F14F620E.public | sudo gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import --batch
 
-            #sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-beta.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-            #sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-stable.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-            sudo apt-get update 
+            sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-beta.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || true
+            sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/datadog-stable.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || true
+            [[ $(cat /etc/os-release) == *"18.04"* ]] && sudo apt-get update
+            echo "Repositories configured successfully!"
         - os_type: linux
           os_distro: rpm
           copy_files:
