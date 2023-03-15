@@ -390,14 +390,14 @@ class Test_Telemetry:
             if content.get("request_type") == "app-product-change":
                 app_product_change_event_found = True
                 products = content["payload"]["products"]
-                for prod in products:
-                    appsec_enabled = prod["appsec"]["enabled"]
+                for product in products:
+                    appsec_enabled = product["appsec"]["enabled"]
+                    profiler_enabled = product["profiler"]["enabled"]
+                    dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
                     assert (
                         appsec_enabled is True
                     ), f"Product appsec Product profiler enabled was expected to be True, found False"
-                    profiler_enabled = prod["profiler"]["enabled"]
                     assert profiler_enabled is True, f"Product profiler enabled was expected to be True, found False"
-                    dynamic_instrumentation_enabled = prod["dynamic_instrumentation"]["enabled"]
                     assert (
                         dynamic_instrumentation_enabled is False
                     ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
