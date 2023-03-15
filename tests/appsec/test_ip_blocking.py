@@ -54,8 +54,8 @@ class Test_AppSecIPBlocking:
         interfaces.library.validate_remote_configuration(validator=validate)
 
     def setup_blocked_ips(self):
-        NOT_BLOCKED_IP = "42.42.42.3"
-        BLOCKED_IPS = ["42.42.42.1", "42.42.42.2"]
+        NOT_BLOCKED_IPS = ["42.42.42.3", "42.42.43.1"]
+        BLOCKED_IPS = ["42.42.42.1", "42.42.42.2", "42.42.43.2"]
 
         def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":
@@ -79,7 +79,7 @@ class Test_AppSecIPBlocking:
         interfaces.library.wait_for(remote_config_asm_payload, timeout=30)
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
-        self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
+        self.not_blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in NOT_BLOCKED_IPS]
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
 
     @released(
@@ -102,5 +102,6 @@ class Test_AppSecIPBlocking:
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-001")
 
-        assert self.not_blocked_request.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.not_blocked_request)
+        for r in self.not_blocked_requests:
+            assert r.status_code == 200
+            interfaces.library.assert_no_appsec_event(r)
