@@ -14,7 +14,7 @@ ami:
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
   user: ec2-user
-  os_type: linux-123
+  os_type: linux
   os_distro: rpm
 
 - name: amazon-linux-dotnet
