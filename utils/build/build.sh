@@ -109,11 +109,11 @@ build() {
 
     # Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
     ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
-    DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}"
 
-    if [ "$ARCH" = "arm64" ]; then
-        DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}"
-    fi
+    case $ARCH in
+    arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
+    *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
+    esac
 
     # Build images
     for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
