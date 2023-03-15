@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios
+from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios, flaky
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -257,6 +257,7 @@ class Test_Telemetry:
     def setup_app_heartbeat(self):
         time.sleep(20)
 
+    @flaky(True, reason="The test is way too flaky")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -294,6 +295,7 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
+    @bug(library="dotnet", reason="NodaTime not recieved in app-dependencies-loaded message")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
