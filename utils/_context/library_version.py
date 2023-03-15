@@ -126,6 +126,7 @@ class Version(version_module.Version):
             version = re.sub(r"(.*) - Meta.*", r"\1", version)
             version = re.sub(r"Agent (.*)", r"\1", version)
             version = re.sub("\x1b\\[\\d+m", "", version)  # remove color pattern from terminal
+            version = re.sub(r"[a-zA-Z\-]*$", "", version)  # remove any lable post version
 
             pattern = AGENT_VERSION_PATTERN
 

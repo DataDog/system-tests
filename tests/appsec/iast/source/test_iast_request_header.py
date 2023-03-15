@@ -14,7 +14,15 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.5.0", "spring-boot-jetty": "1.5.0", "spring-boot-openliberty": "1.5.0", "*": "?"})
+@released(
+    java={
+        "spring-boot": "1.5.0",
+        "spring-boot-jetty": "1.5.0",
+        "spring-boot-openliberty": "1.5.0",
+        "resteasy-netty3": "1.11.0",
+        "*": "?",
+    }
+)
 @released(nodejs="?")
 class TestRequestHeader:
     """Verify that request headers are tainted"""
