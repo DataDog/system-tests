@@ -375,27 +375,24 @@ class Test_Telemetry:
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         weblog.get("/enable_product")
 
-    @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "golang", "python"),
-        reason="Weblog endpoint GET /enable_product is not implemented yet. ",
-    )
+    @missing_feature(context.library == "golang", reason="Telemetry is not implemented yet. ")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
-                products = content["payload"]["products"]
+                products = content["application"]["products"]
                 assert (
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
         self.validate_library_telemetry_data(validator)
 
-    @irrelevant(library="php")
     @irrelevant(library="cpp")
-    @irrelevant(library="golang")
-    @irrelevant(library="ruby")
+    @missing_feature(
+        context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
+    )
     @bug(
         library="python",
         reason="""
@@ -406,10 +403,10 @@ class Test_Telemetry:
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
             "dotnet": {},
-            "nodejs": {"hostname", "port", "appsec.enabled"},
+            "nodejs": {"hostname": "runner", "port": 8126, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "java": {"trace.agent.port", "telemetry.heartbeat.interval"},
+            "java": {"trace.agent.port": 8126, "telemetry.heartbeat.interval": 2},
         }
         configurationMap = test_configuration[context.library.library]
 
@@ -418,13 +415,29 @@ class Test_Telemetry:
                 content = data["request"]["content"]
                 cnt = 0
                 configurations = content["payload"]["configuration"]
+                configurations_present = []
                 for cnf in configurations:
                     if cnf["name"] in configurationMap:
-                        cnt += 1
-                if cnt != len(list(configurationMap)):
-                    raise Exception(
-                        "Client Configuration information is not accurately reported by telemetry on app-started event"
-                    )
+                        configuaration_name = cnf["name"]
+                        expected_value = str(configurationMap.get(cnf["name"]))
+                        configuaration_value = str(cnf["value"])
+                        if configuaration_value != expected_value:
+                            raise Exception(
+                                "Client Configuration "
+                                + configuaration_name
+                                + " excpected value is "
+                                + str(expected_value)
+                                + " but found "
+                                + str(configuaration_value)
+                            )
+                        configurations_present.append(configuaration_name)
+                for cnf in configurationMap:
+                    if cnf not in configurations_present:
+                        raise Exception(
+                            "Client Configuration information is not accuratelyreported, "
+                            + cnf
+                            + "is not present in configuration on app-started event"
+                        )
 
         self.validate_library_telemetry_data(validator)
 
