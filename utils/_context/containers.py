@@ -207,14 +207,14 @@ class WeblogContainer(TestedContainer):
 
         self.uds_socket = self.image_info.env.get("DD_APM_RECEIVER_SOCKET", None)
 
-        self.library = LibraryVersion(
+        self.library_version = LibraryVersion(
             self.image_info.env.get("SYSTEM_TESTS_LIBRARY", None),
             self.image_info.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
         )
 
         self.weblog_variant = self.image_info.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if self.library == "php":
+        if self.library_version.library == "php":
             self.php_appsec = Version(self.image_info.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
         else:
             self.php_appsec = None
@@ -237,9 +237,9 @@ class WeblogContainer(TestedContainer):
         if appsec_enabled:
             base_environment["DD_APPSEC_ENABLED"] = "true"
 
-        if self.library in ("cpp", "dotnet", "java", "python"):
+        if self.library_version.library in ("cpp", "dotnet", "java", "python"):
             base_environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
-        elif self.library in ("golang", "nodejs", "php", "ruby"):
+        elif self.library_version.library in ("golang", "nodejs", "php", "ruby"):
             base_environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:
             base_environment["DD_TRACE_HEADER_TAGS"] = ""

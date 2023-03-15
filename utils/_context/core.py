@@ -33,8 +33,8 @@ class _Context:
         return current_scenario.weblog_container.uds_socket
 
     @property
-    def library(self):
-        return current_scenario.library
+    def library_version(self):
+        return current_scenario.library_version
 
     @property
     def weblog_variant(self):
@@ -67,7 +67,7 @@ class _Context:
     def serialize(self):
         result = {
             "agent": str(self.agent_version),
-            "library": self.library.serialize(),
+            "library": self.library_version.serialize(),
             "weblog_variant": self.weblog_variant,
             "dd_site": self.dd_site,
             "sampling_rate": self.tracer_sampling_rate,
@@ -77,7 +77,7 @@ class _Context:
             "scenario": self.scenario,
         }
 
-        if self.library == "php":
+        if self.library_version.library == "php":
             result["php_appsec"] = self.php_appsec
 
         return result

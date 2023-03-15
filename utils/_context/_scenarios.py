@@ -44,7 +44,7 @@ class _Scenario:
         return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}"
 
     @property
-    def library(self):
+    def library_version(self):
         return None
 
     @property
@@ -68,7 +68,7 @@ class _Scenario:
 
 class TestTheTestScenario(_Scenario):
     @property
-    def library(self):
+    def library_version(self):
         return LibraryVersion("java", "0.66.0")
 
     @property
@@ -148,16 +148,16 @@ class EndToEndScenario(_Scenario):
         if library_interface_timeout is not None:
             self.library_interface_timeout = library_interface_timeout
         else:
-            if self.weblog_container.library == "java":
+            if self.weblog_container.library_version.library == "java":
                 self.library_interface_timeout = 80
-            elif self.weblog_container.library.library in ("golang",):
+            elif self.weblog_container.library_version.library in ("golang",):
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs",):
+            elif self.weblog_container.library_version.library in ("nodejs",):
                 self.library_interface_timeout = 5
-            elif self.weblog_container.library.library in ("php",):
+            elif self.weblog_container.library_version.library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("python",):
+            elif self.weblog_container.library_version.library in ("python",):
                 self.library_interface_timeout = 25
             else:
                 self.library_interface_timeout = 40
@@ -171,9 +171,9 @@ class EndToEndScenario(_Scenario):
             terminal.write_line(info)
 
         terminal.write_sep("=", "Tested components", bold=True)
-        print_info(f"Library: {self.library}")
+        print_info(f"Library: {self.library_version}")
         print_info(f"Agent: {self.agent_version}")
-        if self.library == "php":
+        if self.library_version.library == "php":
             print_info(f"AppSec: {self.weblog_container.php_appsec}")
 
         if self.weblog_container.libddwaf_version:
@@ -234,8 +234,8 @@ class EndToEndScenario(_Scenario):
             container.remove()
 
     @property
-    def library(self):
-        return self.weblog_container.library
+    def library_version(self):
+        return self.weblog_container.library_version
 
     @property
     def agent_version(self):
@@ -253,8 +253,8 @@ class EndToEndScenario(_Scenario):
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.library
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.library.name]"] = self.library_version.library
+        result["dd_tags[systest.suite.context.library.version]"] = self.library_version.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
         result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
         result["dd_tags[systest.suite.context.libddwaf_version]"] = self.weblog_container.libddwaf_version
