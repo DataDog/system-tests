@@ -325,8 +325,6 @@ class scenarios:
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
     )
-
-    # Telemetry Scenario
     telemetry_app_started_products_disabled = EndToEndScenario(
         "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
         weblog_env={
