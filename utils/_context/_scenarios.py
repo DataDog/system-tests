@@ -197,11 +197,10 @@ class EndToEndScenario(_Scenario):
         for container in self._required_containers:
             warmups.append(container.start)
 
-        warmups += [
-            self.agent_container.start,
-            self.weblog_container.start,
-            EndToEndScenario._wait_for_app_readiness,
-        ]
+        warmups += [self.agent_container.start, self.weblog_container.start]
+        # TODO: Support Agent ingestion path in OTel tests
+        if self.weblog_container.library != "java_otel":
+            warmups += [EndToEndScenario._wait_for_app_readiness]
 
         return warmups
 
@@ -463,6 +462,28 @@ class scenarios:
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
+    )
+
+    # OpenTelemetry tracing end-to-end scenarios
+    otel_tracing_e2e_w3c = EndToEndScenario(
+        "OTEL_TRACING_E2E_W3C",
+        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
+    )
+    otel_tracing_e2e_b3 = EndToEndScenario(
+        "OTEL_TRACING_E2E_B3",
+        weblog_env={
+            "DD_API_KEY": os.environ.get("DD_API_KEY"),
+            "DD_SITE": os.environ.get("DD_SITE"),
+            "OTEL_PROPAGATORS": "b3",
+        },
+    )
+    otel_tracing_e2e_b3_multi = EndToEndScenario(
+        "OTEL_TRACING_E2E_B3_MULTI",
+        weblog_env={
+            "DD_API_KEY": os.environ.get("DD_API_KEY"),
+            "DD_SITE": os.environ.get("DD_SITE"),
+            "OTEL_PROPAGATORS": "b3multi",
+        },
     )
 
     library_conf_custom_headers_short = EndToEndScenario(
