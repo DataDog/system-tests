@@ -344,6 +344,11 @@ jobs:
       run: ./run.sh APPSEC_IP_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_REQUEST_BLOCKING scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh APPSEC_REQUEST_BLOCKING
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
@@ -357,6 +362,11 @@ jobs:
     - name: Run SAMPLING scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh SAMPLING
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
@@ -566,6 +576,21 @@ jobs:
     - name: Run SAMPLING scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh SAMPLING
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_MESSAGE_BATCH_EVENT_ORDER scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs

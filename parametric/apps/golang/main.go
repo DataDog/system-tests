@@ -35,9 +35,18 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	}
 
 	if args.GetHttpHeaders() != nil && len(args.HttpHeaders.HttpHeaders) != 0 {
-		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(args.HttpHeaders.HttpHeaders))
+		headers := map[string]string{}
+		for _, headerTuple := range args.HttpHeaders.HttpHeaders {
+			k := headerTuple.GetKey()
+			v := headerTuple.GetValue()
+			if k != "" && v != "" {
+				headers[k] = v
+			}
+		}
+
+		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
 		if err != nil {
-			fmt.Println("failed in StartSpan", err, args.HttpHeaders.HttpHeaders)
+			fmt.Println("failed in StartSpan", err, headers)
 		} else {
 			opts = append(opts, tracer.ChildOf(sctx))
 		}
@@ -66,9 +75,9 @@ func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeaders
 	if err != nil {
 		fmt.Println("error while injecting")
 	}
-	distr := map[string]string{}
+	distr := []*HeaderTuple{}
 	for k, v := range headers {
-		distr[k] = v
+		distr = append(distr, &HeaderTuple{Key: k, Value: v})
 	}
 	return &InjectHeadersReturn{HttpHeaders: &DistributedHTTPHeaders{HttpHeaders: distr}}, nil
 }
@@ -95,11 +104,6 @@ func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs)
 	tracer.Flush()
 	s.spans = make(map[uint64]tracer.Span)
 	return &FlushTraceStatsReturn{}, nil
-}
-
-func (s *apmClientServer) StopTracer(context.Context, *StopTracerArgs) (*StopTracerReturn, error) {
-	tracer.Stop()
-	return &StopTracerReturn{}, nil
 }
 
 func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorArgs) (*SpanSetErrorReturn, error) {
