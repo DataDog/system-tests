@@ -21,7 +21,7 @@ class Test_HeaderTags:
 
 
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
+@released(dotnet="2.1.0", golang="?", java="1.10.0", nodejs="3.15.0", php="0.74.0", python="?", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_short
 class Test_HeaderTagsShortFormat:
@@ -34,15 +34,20 @@ class Test_HeaderTagsShortFormat:
     def test_trace_header_tags(self):
         tag_conf = scenarios.library_conf_custom_headers_short.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
+        # full_tag_config_list = ["header-tag1", "header-tag2"]
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
+        # tag_config_list = ["header-tag2"]
         tag_config_list = full_tag_config_list[1::]
 
+        # tags = {http.request.headers.header-tag2 : header-val2}
         tags = {"http.request.headers." + tag: self.headers[tag] for tag in tag_config_list}
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
+# MTOFF: Confirmed that these tests split at the first colon
+# Next, test input with whitespacing as tests don't specify -- specifically around the first colon
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
@@ -50,17 +55,49 @@ class Test_HeaderTagsShortFormat:
 class Test_HeaderTagsLongFormat:
     """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
 
+    #send request with headers listed in self.headers
     def setup_trace_header_tags(self):
         self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
+        # DD_TRACE_HEADER_TAGS= header-tag1:custom.header-tag1, header-tag2:custom.header-tag2
         tag_conf = scenarios.library_conf_custom_headers_long.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
 
+        # full_tag_config_list = ["header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"]
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
+        # tag_config_list = ["header-tag2:custom.header-tag2"]
         tag_config_list = full_tag_config_list[1::]
 
+        # tags = {custom.header-tag2: self.headers[header-tag2]}
+        # tags = {custom.header-tag2: header-val2}
         tags = {item.split(":")[1]: self.headers[item.split(":")[0]] for item in tag_config_list}
+        interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
+@irrelevant(library="cpp")
+@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
+@coverage.basic
+@scenarios.library_conf_custom_headers_long
+class Test_HeaderTagsNormalization:
+    """Validates that the short, header : tag name, format for specifying headers correctly tags spans"""
+
+    #send request with headers listed in self.headers
+    def setup_trace_header_tags(self):
+        self.headers = {"header-tag1": "header-val1", "header-tag2": "header-val2"}
+        self.r = weblog.get("/waf", headers=self.headers)
+
+    def test_trace_header_tags(self):
+        # DD_TRACE_HEADER_TAGS=" header-tag1:custom.header-tag1, header-tag2:custom.header-tag2"
+        tag_conf = scenarios.library_conf_custom_headers_norm.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
+
+        # full_tag_config_list = ["header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"]
+        full_tag_config_list = tag_conf.split(",")
+        # skip the first item, as this required to make the tests work on some platforms
+        # tag_config_list = ["header-tag2:custom.header-tag2"]
+        tag_config_list = full_tag_config_list[1::]
+
+        # tags = {custom.header-tag2: self.headers[header-tag2]}
+        # tags = {custom.header-tag2: header-val2}
+        tags = {(item.split(":")[1]).strip: (self.headers[item.split(":")[0]]).strip for item in tag_config_list}
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
