@@ -123,9 +123,7 @@ def infraestructure_provision(provision_parser):
                             + "__weblog-"
                             + weblog_instalations["name"]
                         )
-                        print(ec2_name)
-                        if 1 == 1:
-                            continue
+
                         server = aws.ec2.Instance(
                             ec2_name,
                             instance_type=instance_type,

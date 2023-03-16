@@ -1,5 +1,6 @@
 import yaml
 from yaml.loader import SafeLoader
+from yamlinclude import YamlIncludeConstructor
 
 
 class Provision_parser:
@@ -124,8 +125,9 @@ class Provision_parser:
         return filtered_data
 
     def _load_provision(self):
+        YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
         # Open the file and load the file
         provision_file = "provision_" + self.provision_filter.provision_scenario + ".yml"
         with open(provision_file) as f:
-            config_data = yaml.load(f, Loader=SafeLoader)
+            config_data = yaml.load(f, Loader=yaml.FullLoader)
         return config_data
