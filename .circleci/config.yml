@@ -13,7 +13,7 @@ jobs:
           name: versions
           command: |
             docker --version
-            python --version
+            python3 --version
 
       - run:
           name: Build
