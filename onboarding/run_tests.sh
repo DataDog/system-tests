@@ -2,6 +2,7 @@
 set -e
 
 ARGS=$*
+FILTER_PROVISION_SCENARIO="host"
 
 # ..:: Params ::..
 while [[ "$#" -gt 0 ]]; do
@@ -12,6 +13,11 @@ while [[ "$#" -gt 0 ]]; do
         -s|--dd-site) DD_SITE="$2"; shift ;;
         -pk|--private-key-path) AWS_PRIVATE_KEY_PATH="$2"; shift ;;
         -it|--instance-type) AWS_INSTANCE_TYPE="$2"; shift ;;
+        -fl|--filter-language) FILTER_LANGUAGE="$2"; shift ;;
+        -fe|--filter-env) FILTER_ENV="$2"; shift ;;
+        -fod|--filter-os-distro) FILTER_OS_DISTRO="$2"; shift ;;
+        -fw|--filter-weblog) FILTER_WEBLOG="$2"; shift ;;
+        -fp|--filter-provision-scenario) FILTER_PROVISION_SCENARIO="$2"; shift ;;
         *) cat README.md; exit 1 ;;
     esac
     shift
@@ -26,6 +32,11 @@ aws-vault exec sandbox-account-admin -- pulumi up --yes \
     -c ddagent:site=$DD_SITE \
     -c ddinfra:aws/defaultPrivateKeyPath=$AWS_PRIVATE_KEY_PATH \
     -c ddinfra:aws/instance_type=$AWS_INSTANCE_TYPE \
+    -c ddfilter:language=$FILTER_LANGUAGE \
+    -c ddfilter:env=$FILTER_ENV \
+    -c ddfilter:os_distro=$FILTER_OS_DISTRO \
+    -c ddfilter:weblog=$FILTER_WEBLOG \
+    -c ddfilter:provision_scenario=$FILTER_PROVISION_SCENARIO \
     -C . -s dev
 #For Verbose add those params to pulumi up:--logtostderr --logflow -v=9
 

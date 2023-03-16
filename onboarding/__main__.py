@@ -3,20 +3,14 @@ import pulumi
 import pulumi_aws as aws
 
 import pulumi_command as command
-from provision_parser import (
-    ec2_instances_data,
-    ec2_agent_install_data,
-    ec2_autoinjection_install_data,
-    ec2_language_variants_install_data,
-    ec2_weblogs_install_data,
-    ec2_prepare_repos_install_data,
-)
 import logging
 import os
-
+from provision_filter import Provision_filter
+from provision_parser import Provision_parser
 
 config_infra = pulumi.Config("ddinfra")
 config_agent = pulumi.Config("ddagent")
+
 
 # Load AWS Configuration
 keyName = config_infra.get("aws/defaultKeyPairName")
@@ -33,6 +27,22 @@ dd_site = config_agent.require("site")
 
 private_key_pem = (lambda path: open(path).read())(privateKeyPath)
 logging.basicConfig(filename="pulumi.log", level=logging.INFO)  # TODO one log file for each vm
+
+
+def load_filter():
+    config_filter = pulumi.Config("ddfilter")
+    provision_scenario = config_filter.get("provision_scenario")
+    language = config_filter.get("language")
+    env = config_filter.get("env")
+    os_distro = config_filter.get("os_distro")
+    weblog = config_filter.get("weblog")
+    print(f"Filter-> Provision scenario:", provision_scenario)
+    print(f"Filter-> Language:", language)
+    print(f"Filter-> Autoinjection env:", env)
+    print(f"Filter-> OS distro:", os_distro)
+    print(f"Filter-> weblog:", weblog)
+
+    return Provision_filter(provision_scenario, language, env, os_distro, weblog)
 
 
 def remote_install(connection, command_identifier, install_info, depends_on, add_dd_keys=False):
@@ -79,23 +89,25 @@ def build_local_weblog(ec2_name, weblog_instalations, depends):
         return depends
 
 
-def infraestructure_provision():
-    for ec2_data in ec2_instances_data():
+def infraestructure_provision(provision_parser):
+    for ec2_data in provision_parser.ec2_instances_data():
         os_type = ec2_data["os_type"]
         os_distro = ec2_data["os_distro"]
         os_branch = ec2_data.get("os_branch", None)
 
         # for every different agent instalation
-        for agent_instalations in ec2_agent_install_data(os_type, os_distro, os_branch):
+        for agent_instalations in provision_parser.ec2_agent_install_data(os_type, os_distro, os_branch):
             # for every different autoinjection software (by language, by os and by env)
-            for autoinjection_instalations in ec2_autoinjection_install_data(os_type, os_distro, os_branch):
+            for autoinjection_instalations in provision_parser.ec2_autoinjection_install_data(
+                os_type, os_distro, os_branch
+            ):
                 language = autoinjection_instalations["language"]
                 # for every different language variants
-                for language_variants_instalations in ec2_language_variants_install_data(
+                for language_variants_instalations in provision_parser.ec2_language_variants_install_data(
                     language, os_type, os_distro, os_branch
                 ):
                     # for every weblog supported for every language variant
-                    for weblog_instalations in ec2_weblogs_install_data(
+                    for weblog_instalations in provision_parser.ec2_weblogs_install_data(
                         language, language_variants_instalations["version"], os_type, os_distro, os_branch
                     ):
                         ec2_name = (
@@ -111,7 +123,9 @@ def infraestructure_provision():
                             + "__weblog-"
                             + weblog_instalations["name"]
                         )
-
+                        print(ec2_name)
+                        if 1 == 1:
+                            continue
                         server = aws.ec2.Instance(
                             ec2_name,
                             instance_type=instance_type,
@@ -130,7 +144,7 @@ def infraestructure_provision():
                         )
 
                         # Prepare repositories
-                        prepare_repos_install = ec2_prepare_repos_install_data(os_type, os_distro)
+                        prepare_repos_install = provision_parser.ec2_prepare_repos_install_data(os_type, os_distro)
                         prepare_reos_installer = remote_install(
                             connection, "prepare-repos-installer_" + ec2_name, prepare_repos_install["install"], server
                         )
@@ -168,4 +182,6 @@ def infraestructure_provision():
                         pulumi.export("privateIp_" + ec2_name, server.private_ip)
 
 
-infraestructure_provision()
+provision_filter = load_filter()
+provision_parser = Provision_parser(provision_filter)
+infraestructure_provision(provision_parser)
