@@ -145,3 +145,28 @@ class AgentInterfaceValidator(InterfaceValidator):
                             yield data, span
                         elif get_rid_from_span(span) == rid:
                             yield data, span
+
+    def get_dsm_checkpoints(self, request=None):
+        """Attempts to fetch the checkpoints the agent will submit to the DSM backend.
+
+        When a valid request is given, then we filter the spans to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        rid = get_rid_from_request(request)
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data in self.get_data(path_filters="/api/v0.1/pipeline_stats"):
+            if "tracerPayloads" not in data["request"]["content"]:
+                raise Exception("Trace property is missing in agent payload")
+
+            content = data["request"]["content"]["tracerPayloads"]
+
+            for payload in content:
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        if rid is None:
+                            yield data, span
+                        elif get_rid_from_span(span) == rid:
+                            yield data, span

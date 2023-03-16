@@ -172,6 +172,15 @@ Expected query params:
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
 
+## GET /dsm
+
+This endpoint executes database queries for DSM supported libraries. A 200 response is returned if the query
+is executed successfully.
+
+Expected query params:
+  - `integration`: Name of messaging tech
+    - Possible Values: `kafka`, `rabbitmq`, `grpc`, `http`
+
 ## GET /user_login_success_event
 
 This endpoint calls the appsec event tracking SDK function used for user login success.

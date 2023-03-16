@@ -93,6 +93,7 @@ class EndToEndScenario(_Scenario):
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
+        include_kafka=False,
     ) -> None:
         super().__init__(name, use_interfaces=True)
 
@@ -136,6 +137,41 @@ class EndToEndScenario(_Scenario):
             self._required_containers.append(
                 TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
             )
+        if include_kafka:
+            self._required_containers.append(
+                TestedContainer(
+                    image_name="bitnami/kafka:latest",
+                    name="kafka",
+                    environment={
+                        "KAFKA_LISTENERS": "PLAINTEXT://:9092",
+                        "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
+                        "ALLOW_PLAINTEXT_LISTENER": "yes",
+                        "KAFKA_ADVERTISED_HOST_NAME": "kafka",
+                        "KAFKA_ADVERTISED_PORT": "9092",
+                        "KAFKA_PORT": "9092",
+                        "KAFKA_BROKER_ID": "1",
+                        "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+                    },
+                    allow_old_container=True,
+                    healthcheck={
+                        "test": ["CMD-SHELL", "test -f /bitnami/kafka/data/__cluster_metadata-0"],
+                        "interval": 0,
+                        "timeout": 0,
+                        "retries": 5,
+                        "start_period": 0
+                    }
+                )
+            )
+            self._required_containers.append(
+                TestedContainer(
+                    image_name="bitnami/zookeeper:latest",
+                    name="zookeeper",
+                    environment={
+                        "ALLOW_ANONYMOUS_LOGIN": "yes",
+                    },
+                    allow_old_container=True
+                )
+            )
 
         if agent_interface_timeout is None:
             self.agent_interface_timeout = 5
@@ -146,7 +182,7 @@ class EndToEndScenario(_Scenario):
             self.library_interface_timeout = library_interface_timeout
         else:
             if self.weblog_container.library == "java":
-                self.library_interface_timeout = 80
+                self.library_interface_timeout = 400
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("nodejs",):
@@ -307,6 +343,7 @@ class scenarios:
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
+        include_kafka=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
