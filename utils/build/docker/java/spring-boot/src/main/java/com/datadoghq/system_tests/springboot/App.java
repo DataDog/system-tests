@@ -15,6 +15,7 @@ import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
 import ognl.OgnlException;
 import org.bson.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -24,6 +25,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,6 +62,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -68,6 +72,9 @@ import static com.mongodb.client.model.Filters.eq;
 @EnableAutoConfiguration
 @ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
+
+    @Autowired
+    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
@@ -257,10 +264,20 @@ public class App {
     String publishToKafka() {
         System.out.println("GET /dsm");
         System.out.println(kafkaProducer);
-        System.out.println("HELLO");
-        kafkaProducer.sendMessage("hello world!");
-        System.out.println("HELLO");
-        return "hi dsm";
+        try {
+            String response = kafkaProducer.sendMessage("hello world!");
+            System.out.println("successfully produced message: ");
+            System.out.println(response);
+            return "ok";
+        } catch (Exception e) {
+            System.out.println("Failed to produce message...");
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace();
+            e.printStackTrace(pw);
+            System.out.println(sw.toString());
+            return "failed";
+        }
     }
 
     @RequestMapping("/trace/ognl")
@@ -426,7 +443,9 @@ public class App {
     @EventListener(ApplicationReadyEvent.class)
     @Trace
     public void init() {
-        new AppReadyHandler(this).start();
+        System.out.println("Initializing app");
+        System.out.println("kafkaListenerEndpointRegistry: " + kafkaListenerEndpointRegistry);
+        new AppReadyHandler(this, kafkaListenerEndpointRegistry).start();
     }
 
     @RequestMapping("/load_dependency")

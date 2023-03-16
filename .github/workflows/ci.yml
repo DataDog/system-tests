@@ -363,6 +363,11 @@ jobs:
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DSM scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh DSM
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
       if: ${{ always() }}
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
@@ -574,6 +579,11 @@ jobs:
     - name: Run SAMPLING scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh SAMPLING
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DSM scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
+      run: ./run.sh DSM
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs

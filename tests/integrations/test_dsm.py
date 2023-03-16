@@ -6,15 +6,15 @@ from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 
 
 @missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
-@scenarios.integrations
+@scenarios.dsm
 class Test_Dsm:
     """ Verify that a cassandra span is created """
 
     def setup_main(self):
         print("setting up dsm test")
         self.r = weblog.get("/dsm")
-        print(self.r)
 
     def test_main(self):
         print("running dsm test")
-        interfaces.library.assert_trace_exists(self.r, span_type="cassandra")
+        print(self.r)
+        assert(self.r.content == "ok")

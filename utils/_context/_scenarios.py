@@ -137,7 +137,10 @@ class EndToEndScenario(_Scenario):
             self._required_containers.append(
                 TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
             )
+
+        print("Building scenario")
         if include_kafka:
+            print("Starting up Kafka")
             self._required_containers.append(
                 TestedContainer(
                     image_name="bitnami/kafka:latest",
@@ -152,14 +155,7 @@ class EndToEndScenario(_Scenario):
                         "KAFKA_BROKER_ID": "1",
                         "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
                     },
-                    allow_old_container=True,
-                    healthcheck={
-                        "test": ["CMD-SHELL", "test -f /bitnami/kafka/data/__cluster_metadata-0"],
-                        "interval": 0,
-                        "timeout": 0,
-                        "retries": 5,
-                        "start_period": 0
-                    }
+                    allow_old_container=True
                 )
             )
             self._required_containers.append(
@@ -182,7 +178,7 @@ class EndToEndScenario(_Scenario):
             self.library_interface_timeout = library_interface_timeout
         else:
             if self.weblog_container.library == "java":
-                self.library_interface_timeout = 400
+                self.library_interface_timeout = 80
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("nodejs",):
@@ -336,6 +332,11 @@ class scenarios:
 
     # scenario for weblog arch that does not support Appsec
     appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
+
+    dsm = EndToEndScenario(
+        "DSM",
+        include_kafka=True
+    )
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",

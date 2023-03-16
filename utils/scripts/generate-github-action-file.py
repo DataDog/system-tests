@@ -404,6 +404,7 @@ def main():
         "APPSEC_WAF_TELEMETRY",
         "SAMPLING",
         # "APPSEC_UNSUPPORTED",
+        "DSM",
     )
 
     main_jobs.append(add_main_job("main", result, needs=[lint_job], scenarios=scenarios, variants=deepcopy(variants)))

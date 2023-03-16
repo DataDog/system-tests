@@ -26,18 +26,20 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 
 public class AppReadyHandler extends Thread{
   App app = null;
+  KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry = null;
 
-  @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
-  AppReadyHandler(App app){
+  AppReadyHandler(App app, KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry){
     this.app = app;
+    this.kafkaListenerEndpointRegistry = kafkaListenerEndpointRegistry;
   }
 
   public void run(){
@@ -79,18 +81,20 @@ public class AppReadyHandler extends Thread{
     app.kafkaProducer = new ProducerService(kafkaTemplate);
 
     boolean successInit = false;
-    int retry = 1000;
+    int retry = 20;
     while (!successInit && retry-- > 0)
     {
       try {
-        TimeUnit.MILLISECONDS.sleep(500);
+        TimeUnit.MILLISECONDS.sleep(2000);
         kafkaListenerEndpointRegistry.getListenerContainer("assigned_listener_id").start();
         successInit = true;
+        System.out.println("Successfully started Kafka listener...");
       } catch (Exception ignored) {
         System.out.println("Awaiting kafka consumer setup...");
-        if (retry < 10) {
-            ignored.printStackTrace();
-        }
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ignored.printStackTrace(pw);
+        System.out.println(sw.toString());
       }
     }
     if (!successInit) {
@@ -138,7 +142,6 @@ class CassandraConnector {
   }
 }
 
-@Configuration
 class KafkaHelper {
     public static ProducerFactory<String, String> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -177,16 +180,22 @@ class ProducerService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendMessage(String message) {
+    public String sendMessage(String message) throws Exception {
         System.out.println(String.format("Publishing message: %s", message));
         System.out.println(kafkaTemplate);
         logger.info(String.format("Publishing message: %s", message));
-        this.kafkaTemplate.send("dsm-system-tests-queue", message);
+        ListenableFuture<SendResult<String, String>> future = this.kafkaTemplate.send("dsm-system-tests-queue", message);
+        return future.get().toString();
     }
 }
 
+@Service
 class ConsumerService {
     private static final Logger logger = LoggerFactory.getLogger(ConsumerService.class);
+
+    public ConsumerService() {
+        System.out.println("[HELLO] Creating Consumer");
+    }
 
     @KafkaListener(
         id = "assigned_listener_id",
