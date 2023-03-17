@@ -1,0 +1,69 @@
+ami:
+- name: ubuntu-x86-22.04
+  ami_id: ami-0557a15b87f6559cf
+  user: ubuntu
+  os_type: linux
+  os_distro: deb
+
+prepare-repos:
+  install: !include provision_prepare_repos.yml
+
+agent:
+
+  - env: prod
+    install:
+      - os_type: linux
+        command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+        #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+autoinjection:
+  - java: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker_config.yaml
+              remote_path: docker_config.yaml
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+language-variants:
+  - java: 
+    - name: OpenJDK11
+      version: 11
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: sudo apt-get -y install openjdk-11-jdk-headless
+  
+
+
+weblogs:
+  - java: 
+
+    - name: test-app-java
+      supported-language-versions:
+        - 11
+      local-script: weblog/java/test-app-java/test-app-java_docker_build.sh
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/java/test-app-java/test-app-java_docker_run.sh
+              remote_path: test-app-java_docker_run.sh
+            - name: copy-docker-file
+              local_path: weblog/java/test-app-java/Dockerfile
+              remote_path: Dockerfile
+            - name: copy-entrypoint-docker
+              local_path: weblog/java/test-app-java/docker_entrypoint_docker.sh
+              remote_path: docker_entrypoint_docker.sh
+            - name: copy-java-app
+              local_path: test-app-java.tar
+              remote_path: test-app-java.tar
+          command: sh test-app-java_docker_run.sh
