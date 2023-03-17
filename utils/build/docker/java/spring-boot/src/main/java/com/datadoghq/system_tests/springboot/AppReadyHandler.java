@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -26,20 +25,25 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import java.util.Properties;
+import java.time.Duration;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 public class AppReadyHandler extends Thread{
   App app = null;
-  KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry = null;
 
-  AppReadyHandler(App app, KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry){
+  AppReadyHandler(App app){
     this.app = app;
-    this.kafkaListenerEndpointRegistry = kafkaListenerEndpointRegistry;
   }
 
   public void run(){
@@ -48,7 +52,8 @@ public class AppReadyHandler extends Thread{
 
   public void init() {
     System.out.println("Trying to start Kafka");
-    initKafka();
+    app.kafka = new KafkaConnector();
+    app.kafka.setup();
     System.out.println("Trying to start cassandra");
     app.cassandra = new CassandraConnector();
     app.cassandra.setup();
@@ -74,33 +79,57 @@ public class AppReadyHandler extends Thread{
         .append("title", "Wingsuit")
         .append("subject", "Flying like a bird made of cloth who just left a perfectly working airplane"));
   }
+}
 
-   void initKafka() {
-    ProducerFactory<String, String> producerFactory = KafkaHelper.producerFactory();
-    KafkaTemplate kafkaTemplate = new KafkaTemplate<>(producerFactory);
-    app.kafkaProducer = new ProducerService(kafkaTemplate);
+class KafkaConnector {
+    private KafkaTemplate kafkaTemplate;
 
-    boolean successInit = false;
-    int retry = 20;
-    while (!successInit && retry-- > 0)
-    {
-      try {
-        TimeUnit.MILLISECONDS.sleep(2000);
-        kafkaListenerEndpointRegistry.getListenerContainer("assigned_listener_id").start();
-        successInit = true;
-        System.out.println("Successfully started Kafka listener...");
-      } catch (Exception ignored) {
-        System.out.println("Awaiting kafka consumer setup...");
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        ignored.printStackTrace(pw);
-        System.out.println(sw.toString());
-      }
+    public void setup() {
+        ProducerFactory<String, String> producerFactory = KafkaHelper.producerFactory();
+        this.kafkaTemplate = new KafkaTemplate<>(producerFactory);
+        try {
+            this.startConsumingMessages();
+        } catch (Exception e) {
+            System.out.println("Fail to set up consumer");
+            e.printStackTrace();
+        }
     }
-    if (!successInit) {
-        System.out.println("Kafka consumer setup failed");
+
+    public void produceMessage(String message) throws Exception {
+        Thread thread = new Thread("KafkaProduce") {
+            public void run() {
+                System.out.println(String.format("Publishing message: %s", message));
+                kafkaTemplate.send("dsm-system-tests-queue", message);
+            }
+        };
+        thread.start();
     }
-  }
+
+    // Ideally we should be able to use @Component and @KafkaListener to auto consume messages, but I wasn't able
+    // to get it to work. Can look into this as a follow up.
+    public void startConsumingMessages() throws Exception {
+        Thread thread = new Thread("KafkaConsume") {
+            public void run() {
+                Properties props = new Properties();
+                props.setProperty("bootstrap.servers", "kafka:9092");
+                props.setProperty("group.id", "testgroup1");
+                props.setProperty("enable.auto.commit", "false");
+                props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+                props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+                props.setProperty("auto.offset.reset", "earliest");
+                KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+                consumer.subscribe(Arrays.asList("dsm-system-tests-queue"));
+                while (true) {
+                    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
+                    for (ConsumerRecord<String, String> record : records) {
+                        System.out.println("got record! " + record.value() + " from " + record.topic());
+                    }
+                }
+            }
+        };
+        thread.start();
+        System.out.println("Started Kafka consumer sthread");
+    }
 }
 
 class CassandraConnector {
@@ -159,6 +188,7 @@ class KafkaHelper {
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "dsm-system-tests-group");
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
@@ -168,42 +198,5 @@ class KafkaHelper {
         factory.setConsumerFactory(consumerFactory());
 
         return factory;
-    }
-}
-
-class ProducerService {
-    private static final Logger logger = LoggerFactory.getLogger(ProducerService.class);
-
-    private final KafkaTemplate<String, String> kafkaTemplate;
-
-    public ProducerService(KafkaTemplate<String, String> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
-
-    public String sendMessage(String message) throws Exception {
-        System.out.println(String.format("Publishing message: %s", message));
-        System.out.println(kafkaTemplate);
-        logger.info(String.format("Publishing message: %s", message));
-        ListenableFuture<SendResult<String, String>> future = this.kafkaTemplate.send("dsm-system-tests-queue", message);
-        return future.get().toString();
-    }
-}
-
-@Service
-class ConsumerService {
-    private static final Logger logger = LoggerFactory.getLogger(ConsumerService.class);
-
-    public ConsumerService() {
-        System.out.println("[HELLO] Creating Consumer");
-    }
-
-    @KafkaListener(
-        id = "assigned_listener_id",
-        topics = "dsm-system-tests-queue",
-        groupId = "dsm-system-tests-group",
-        autoStartup = "false")
-    public void consume(String message) {
-        System.out.println(String.format("Consumed message: %s", message));
-        logger.info(String.format("Consumed message: %s", message));
     }
 }

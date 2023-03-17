@@ -2,7 +2,6 @@ package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
-import com.datadoghq.system_tests.springboot.ProducerService;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -36,6 +35,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -64,6 +66,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.util.Properties;
+import java.time.Duration;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -78,7 +82,7 @@ public class App {
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
-    ProducerService kafkaProducer;
+    KafkaConnector kafka;
 
     @RequestMapping("/")
     String home() {
@@ -262,22 +266,14 @@ public class App {
 
     @RequestMapping("/dsm")
     String publishToKafka() {
-        System.out.println("GET /dsm");
-        System.out.println(kafkaProducer);
         try {
-            String response = kafkaProducer.sendMessage("hello world!");
-            System.out.println("successfully produced message: ");
-            System.out.println(response);
-            return "ok";
+            kafka.produceMessage("hello world!");
         } catch (Exception e) {
-            System.out.println("Failed to produce message...");
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
+            System.out.println("Failed to start producing message...");
             e.printStackTrace();
-            e.printStackTrace(pw);
-            System.out.println(sw.toString());
-            return "failed";
+            return "failed to start producing message";
         }
+        return "ok";
     }
 
     @RequestMapping("/trace/ognl")
@@ -443,9 +439,7 @@ public class App {
     @EventListener(ApplicationReadyEvent.class)
     @Trace
     public void init() {
-        System.out.println("Initializing app");
-        System.out.println("kafkaListenerEndpointRegistry: " + kafkaListenerEndpointRegistry);
-        new AppReadyHandler(this, kafkaListenerEndpointRegistry).start();
+        new AppReadyHandler(this).start();
     }
 
     @RequestMapping("/load_dependency")
