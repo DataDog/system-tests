@@ -1,5 +1,5 @@
 #!/bin/bash
-
+rm pulumi.log || true
 ./run_tests.sh "$@"
 
 # .:: Destroy infraestructure ::.
