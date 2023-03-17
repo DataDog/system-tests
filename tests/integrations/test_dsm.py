@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 
 
-@missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
+@missing_feature(condition=context.library != "java" and context.library != "golang", reason="Endpoint is not implemented on weblog")
 @scenarios.dsm
 class Test_Dsm:
     """ Verify DSM stats points """
