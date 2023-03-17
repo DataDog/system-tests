@@ -15,6 +15,9 @@ from utils.tools import logger
 SIMPLE_TYPES = (bool, int, float, type(None))
 
 
+BACKEND_LOCAL_PORT = 11111
+
+
 with open("utils/proxy/rc_mocked_responses_live_debugging.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_LIVE_DEBUGGING = json.load(f)
 
@@ -49,6 +52,8 @@ with open("utils/proxy/rc_mocked_responses_asm_nocache.json", encoding="utf-8") 
 class _RequestLogger:
     def __init__(self, state) -> None:
         self.dd_api_key = os.environ["DD_API_KEY"]
+        self.dd_application_key = os.environ.get("DD_APPLICATION_KEY")
+        self.dd_app_key = os.environ.get("DD_APP_KEY")
         self.state = state
 
         # for config backend mock
@@ -56,7 +61,12 @@ class _RequestLogger:
 
     def _scrub(self, content):
         if isinstance(content, str):
-            return content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
+            content = content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
+            if self.dd_app_key:
+                content = content.replace(self.dd_app_key, "{redacted-by-system-tests-proxy}")
+            if self.dd_application_key:
+                content = content.replace(self.dd_application_key, "{redacted-by-system-tests-proxy}")
+            return content
 
         if isinstance(content, (list, set, tuple)):
             return [self._scrub(item) for item in content]
@@ -108,8 +118,12 @@ class _RequestLogger:
         if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
             payload["response"] = None
 
+        dd_site_url = get_dd_site_api_host()
+
         if flow.request.host == "agent":
             interface = interfaces.library
+        elif f"https://{flow.request.host}" == dd_site_url:
+            interface = interfaces.backend
         else:
             interface = interfaces.agent
 
@@ -185,6 +199,47 @@ def start_proxy(state) -> None:
     proxy.addons.add(_RequestLogger(state or {}))
 
     asyncio.run_coroutine_threadsafe(proxy.run(), loop)
+
+
+def start_backend_proxy(state=None) -> None:
+    loop = asyncio.new_event_loop()
+
+    thread = threading.Thread(target=_start_background_loop, args=(loop,), daemon=True)
+    thread.start()
+
+    dd_site_url = get_dd_site_api_host()
+    opts = options.Options(mode=[f"reverse:{dd_site_url}"], listen_host="0.0.0.0", listen_port=BACKEND_LOCAL_PORT, confdir="utils/proxy/.mitmproxy")
+    proxy = master.Master(opts, event_loop=loop)
+    proxy.addons.add(*default_addons())
+    proxy.addons.add(errorcheck.ErrorCheck())
+    proxy.addons.add(_RequestLogger(state or {}))
+
+    asyncio.run_coroutine_threadsafe(proxy.run(), loop)
+
+
+def get_dd_site_api_host():
+    # https://docs.datadoghq.com/getting_started/site/#access-the-datadog-site
+    # DD_SITE => API HOST
+    # datad0g.com       => dd.datad0g.com
+    # datadoghq.com     => app.datadoghq.com
+    # datadoghq.eu      => app.datadoghq.eu
+    # ddog-gov.com      => app.ddog-gov.com
+    # XYZ.datadoghq.com => XYZ.datadoghq.com
+
+    dd_site = os.environ["DD_SITE"]
+    dd_site_to_app = {
+        "datad0g.com": "https://dd.datad0g.com",
+        "datadoghq.com": "https://app.datadoghq.com",
+        "datadoghq.eu": "https://app.datadoghq.eu",
+        "ddog-gov.com": "https://app.ddog-gov.com",
+        "us3.datadoghq.com": "https://us3.datadoghq.com",
+        "us5.datadoghq.com": "https://us5.datadoghq.com",
+    }
+    dd_app_url = dd_site_to_app.get(dd_site)
+    assert dd_app_url is not None, f"We could not resolve a proper Datadog API URL given DD_SITE[{dd_site}]!"
+
+    logger.debug(f"Using Datadog API URL[{dd_app_url}] as resolved from DD_SITE[{dd_site}].")
+    return dd_app_url
 
 
 if __name__ == "__main__":
