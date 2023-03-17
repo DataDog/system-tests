@@ -17,6 +17,8 @@ cp -rf /tmp/php/common/*.php /var/www/html/
 cp -rf /tmp/php/common/install_ddtrace.sh /
 cp -rf /tmp/php/common/php.ini /etc/php/
 
+chmod 644 /var/www/html/*.php
+
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
