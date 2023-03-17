@@ -208,7 +208,12 @@ def start_backend_proxy(state=None) -> None:
     thread.start()
 
     dd_site_url = get_dd_site_api_host()
-    opts = options.Options(mode=[f"reverse:{dd_site_url}"], listen_host="0.0.0.0", listen_port=BACKEND_LOCAL_PORT, confdir="utils/proxy/.mitmproxy")
+    opts = options.Options(
+        mode=[f"reverse:{dd_site_url}"],
+        listen_host="0.0.0.0",
+        listen_port=BACKEND_LOCAL_PORT,
+        confdir="utils/proxy/.mitmproxy",
+    )
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())
