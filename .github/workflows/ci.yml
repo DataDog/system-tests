@@ -588,6 +588,15 @@ jobs:
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
       if: steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)

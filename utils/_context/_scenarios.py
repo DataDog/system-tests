@@ -336,6 +336,12 @@ class scenarios:
     telemetry_message_batch_event_order = EndToEndScenario(
         "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
     )
+    telemetry_log_generation_disabled = EndToEndScenario(
+        "TELEMETRY_LOG_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
+    )
+    telemetry_metric_generation_disabled = EndToEndScenario(
+        "TELEMETRY_METRIC_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",},
+    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario("APPSEC_MISSING_RULES", appsec_rules="/donotexists")
