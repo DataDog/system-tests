@@ -187,7 +187,19 @@ jobs:
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}
       WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+      ENABLE_TRACING: true
     steps:
+    - run: |
+        mkdir -p ../libdatadog/
+        cd ../libdatadog/
+        IMG="ghcr.io/pawelchcki/libdatadog/experiment/sidecar:latest" bash -c 'docker pull $IMG; docker save $IMG | tar -xOf - --wildcards \*/layer.tar | tar xf -'
+        echo "LD_PRELOAD=$(pwd)/libsidecar.so" >> $GITHUB_ENV
+    - run: |
+        bash -c "sleep 20" &
+        echo "DD_EXEC_T_SPAN_ID=$DD_EXEC_T_SPAN_ID" >> $GITHUB_ENV
+        echo "DD_EXEC_T_TRACE_ID=$DD_EXEC_T_TRACE_ID" >> $GITHUB_ENV
+      env:
+        DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
     - name: Checkout
       uses: actions/checkout@v3
     - run: mkdir logs && touch logs/.weblog.env
