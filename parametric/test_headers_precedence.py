@@ -30,6 +30,7 @@ def enable_datadog_tracecontext() -> Any:
 
 
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     with test_library:
         # 1) No headers
@@ -173,6 +174,7 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
 
 @enable_tracecontext()
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_library):
     with test_library:
         # 1) No headers
@@ -404,6 +406,7 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     "run, thus not retrieving / overwriting the headers",
 )
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library):
     with test_library:
         # 1) No headers

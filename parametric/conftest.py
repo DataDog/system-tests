@@ -249,6 +249,38 @@ RUN bash build.sh
     )
 
 
+def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    ruby_appdir = os.path.join("apps", "ruby")
+    ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
+
+    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    ruby_reldir = os.path.join("parametric", ruby_appdir).replace("\\", "/")
+    shutil.copyfile(
+        os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+        os.path.join(ruby_appdir, "apm_test_client.proto"),
+    )
+    return APMLibraryTestServer(
+        lang="ruby",
+        protocol="grpc",
+        container_name="ruby-test-client",
+        container_tag="ruby-test-client",
+        container_img=f"""
+            FROM ruby:3.2.1-bullseye
+            WORKDIR /client
+            COPY {ruby_reldir}/Gemfile /client/
+            COPY {ruby_reldir}/install_dependencies.sh /client/
+            RUN sh install_dependencies.sh # Cache dependencies before copying application code
+            COPY {ruby_reldir}/apm_test_client.proto /client/
+            COPY {ruby_reldir}/generate_proto.sh /client/
+            RUN sh generate_proto.sh
+            COPY {ruby_reldir}/server.rb /client/
+            """,
+        container_cmd=["bundle", "exec", "ruby", "server.rb"],
+        container_build_dir=ruby_dir,
+        env=env,
+    )
+
+
 _libs = {
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
@@ -256,9 +288,10 @@ _libs = {
     "nodejs": node_library_factory,
     "python": python_library_factory,
     "python_http": python_http_library_factory,
+    "ruby": ruby_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python,python_http").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python,python_http,ruby").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -411,7 +444,7 @@ def docker_run(
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
     if r.returncode != 0:
         pytest.fail(
-            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file),
+            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.read()),
             pytrace=False,
         )
 

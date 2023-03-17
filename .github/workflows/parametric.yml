@@ -36,6 +36,7 @@ jobs:
         - golang
         - java
         - nodejs
+        - ruby
       fail-fast: false
     steps:
     - name: Checkout

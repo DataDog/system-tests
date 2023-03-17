@@ -192,6 +192,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 @temporary_enable_propagationstyle_default()
 @pytest.mark.skip_library("dotnet", "The origin transformation has changed slightly")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not available yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -327,6 +328,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     "BUG: header[4,5]: w3cTraceID shouldn't be present",
 )
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged  yet, dm is reset on priority override")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
