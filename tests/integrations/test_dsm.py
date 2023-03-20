@@ -5,35 +5,78 @@
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 
 
-@missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
+@missing_feature(condition=context.library != "java", reason="Full Kafka instrumentation only on Java")
 @scenarios.dsm
-class Test_Dsm:
-    """ Verify DSM stats points """
+class Test_DsmKafka:
+    """ Verify DSM stats points for Kafka """
 
-    def setup_main(self):
+    def setup_dsm_kafka(self):
         print("setting up dsm test")
         self.r = weblog.get("/dsm")
 
-    def test_main(self):
+    def test_dsm_kafka(self):
+        assert(str(self.r.content, 'UTF-8') == "ok")
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+
+        expected_kafka_out = DsmStatsPoint(
+            4463699290244539355, 0, ['direction:out', 'topic:dsm-system-tests-queue', 'type:kafka'])
+        expected_kafka_in= DsmStatsPoint(
+            3735318893869752335, 4463699290244539355, [
+                'direction:in', 'group:testgroup1', 'partition:0', 'topic:dsm-system-tests-queue', 'type:kafka'])
+
+        assert(expected_kafka_out in checkpoints)
+        assert(expected_kafka_in in checkpoints)
+
+@missing_feature(condition=context.library != "dotnet", reason="Missing partition tag only on dotnet")
+@scenarios.dsm
+class Test_DsmKafkaNoPartitionTag:
+    """ Verify DSM stats points for Kafka """
+
+    def setup_dsm_kafka(self):
+        print("setting up dsm test")
+        self.r = weblog.get("/dsm")
+
+    def test_dsm_kafka(self):
+        assert(str(self.r.content, 'UTF-8') == "ok")
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+
+        expected_kafka_out = DsmStatsPoint(
+            4463699290244539355, 0, ['direction:out', 'topic:dsm-system-tests-queue', 'type:kafka'])
+        expected_kafka_in= DsmStatsPoint(
+            3735318893869752335, 4463699290244539355, [
+                'direction:in', 'group:testgroup1', 'topic:dsm-system-tests-queue', 'type:kafka'])
+
+        assert(expected_kafka_out in checkpoints)
+        assert(expected_kafka_in in checkpoints)
+
+@missing_feature(
+    condition=context.library != "java",
+    reason="HTTP instrumentation only on Java")
+@scenarios.dsm
+class Test_DsmHttp:
+    def setup_dsm_http(self):
+        print("setting up dsm test")
+        self.r = weblog.get("/dsm")
+
+    def test_dsm_http(self):
         assert(str(self.r.content, 'UTF-8') == "ok")
 
-        checkpoints = interfaces.agent.get_dsm_checkpoints1(self.r)
-        print(checkpoints)
-        points_set = set()
-        for data in checkpoints:
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        expected_http = DsmStatsPoint(
+            3883033147046472598, 0, ['direction:in', 'type:http'])
+
+        assert(expected_http in checkpoints)
+
+class DsmHelper:
+    @staticmethod
+    def parse_dsm_checkpoints(dsm_data):
+        checkpoints = set()
+        for data in dsm_data:
             for stats_bucket in data["request"]["content"]["Stats"]:
                 for stats_point in stats_bucket["Stats"]:
                     point = DsmStatsPoint(stats_point["Hash"], stats_point["ParentHash"], stats_point["EdgeTags"])
-                    points_set.add(point)
-
-        expected_stats_point1 = DsmStatsPoint(3883033147046472598, 0, ['direction:in', 'type:http'])
-        expected_stats_point2 = DsmStatsPoint(4463699290244539355, 0, ['direction:out', 'topic:dsm-system-tests-queue', 'type:kafka'])
-        expected_stats_point3 = DsmStatsPoint(3735318893869752335, 4463699290244539355, ['direction:in', 'group:testgroup1', 'partition:0', 'topic:dsm-system-tests-queue', 'type:kafka'])
-
-        assert(len(points_set) == 3)
-        assert(expected_stats_point1 in points_set)
-        assert(expected_stats_point2 in points_set)
-        assert(expected_stats_point3 in points_set)
+                    checkpoints.add(point)
+        return checkpoints
 
 class DsmStatsPoint:
     def __init__(self, self_hash, parent_hash, sorted_tags):
