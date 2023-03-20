@@ -323,13 +323,12 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Issue: headers5 is not capturing t.dm")
 @pytest.mark.skip_library(
     "golang",
     "False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map"
     "BUG: header[4,5]: w3cTraceID shouldn't be present",
 )
-@pytest.mark.skip_library("java", "Issue: tracecontext is not merged  yet, dm is reset on priority override")
+@pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -374,24 +373,6 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             [
                 ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                 ["tracestate", "foo=1,dd=s:-1"],
-            ],
-        )
-
-        # 5) tracestate[dd] is populated with well-known propagated tags
-        headers5 = make_single_request_and_get_inject_headers(
-            test_library,
-            [
-                ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"],
-            ],
-        )
-
-        # 6) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
-        headers6 = make_single_request_and_get_inject_headers(
-            test_library,
-            [
-                ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost"],
             ],
         )
 
@@ -451,32 +432,139 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             assert key.startswith("_dd.p.")
             assert "t." + key[6:] + val.replace("=", ":") in dd_items4
 
-    # 5) tracestate[dd] is populated with well-known propagated tags
+
+@temporary_enable_propagationstyle_default()
+@pytest.mark.skip_library("dotnet", "Issue: Traceparent doesn't override sampling decision")
+@pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("nodejs", "Issue: the decision maker is removed. Is that allowed behavior?")
+def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(test_agent, test_library):
+    """
+    harness sends a request with both tracestate and traceparent
+    expects a valid traceparent from the output header with the same trace_id
+    expects the tracestate to be inherited
+    expects the decision maker to be passed through as DEFAULT
+    """
+    with test_library:
+        # 1) tracestate[dd] is populated with well-known propagated tags
+        headers1 = make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ["tracestate", "foo=1,dd=s:0;t.dm:-0;t.usr.id:baz64~~"],
+            ],
+        )
+
+        # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
+        headers2 = make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ["tracestate", "foo=1,dd=s:0;t.dm:-0;t.usr.id:baz64~~;t.url:http://localhost"],
+            ],
+        )
+
+    # 1) tracestate[dd] is populated with well-known propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
     #         and "=" is replaced with ":"
-    dd_tags5 = headers5["x-datadog-tags"].split(",")
-    assert "_dd.p.dm=-4" in dd_tags5
-    assert "_dd.p.usr.id=baz64==" in dd_tags5
+    #         and dm=-0 is kept as dm=-0
+    assert headers1["x-datadog-sampling-priority"] == "1"
+    dd_tags1 = headers1["x-datadog-tags"].split(",")
+    assert "_dd.p.dm=-0" in dd_tags1
+    assert "_dd.p.usr.id=baz64==" in dd_tags1
 
-    traceparent5, tracestate5 = get_tracecontext(headers5)
-    dd_items5 = tracestate5["dd"].split(";")
-    assert "traceparent" in headers5
-    assert "tracestate" in headers5
-    assert "t.dm:-4" in dd_items5
-    assert "t.usr.id:baz64~~" in dd_items5
+    traceparent1, tracestate1 = get_tracecontext(headers1)
+    dd_items1 = tracestate1["dd"].split(";")
+    assert "traceparent" in headers1
+    assert "tracestate" in headers1
+    assert "s:1" in dd_items1
+    assert "t.dm:-0" in dd_items1
+    assert "t.usr.id:baz64~~" in dd_items1
 
-    # 6) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
+    # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
     # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
     #         and "=" is replaced with ":"
-    dd_tags6 = headers6["x-datadog-tags"].split(",")
-    assert "_dd.p.dm=-4" in dd_tags6
-    assert "_dd.p.usr.id=baz64==" in dd_tags6
-    assert "_dd.p.url=http://localhost" in dd_tags6
+    #         and dm=-0 is kept as dm=-0
+    assert headers2["x-datadog-sampling-priority"] == "1"
+    dd_tags2 = headers2["x-datadog-tags"].split(",")
+    assert "_dd.p.dm=-0" in dd_tags2
+    assert "_dd.p.usr.id=baz64==" in dd_tags2
+    assert "_dd.p.url=http://localhost" in dd_tags2
 
-    traceparent6, tracestate6 = get_tracecontext(headers6)
-    dd_items6 = tracestate6["dd"].split(";")
-    assert "traceparent" in headers6
-    assert "tracestate" in headers6
-    assert "t.dm:-4" in dd_items6
-    assert "t.usr.id:baz64~~" in dd_items6
-    assert "t.url:http://localhost" in dd_items6
+    traceparent2, tracestate2 = get_tracecontext(headers2)
+    dd_items2 = tracestate2["dd"].split(";")
+    assert "traceparent" in headers2
+    assert "tracestate" in headers2
+    assert "s:1" in dd_items1
+    assert "t.dm:-0" in dd_items2
+    assert "t.usr.id:baz64~~" in dd_items2
+    assert "t.url:http://localhost" in dd_items2
+
+
+@temporary_enable_propagationstyle_default()
+@pytest.mark.skip_library("dotnet", "Issue: Does not reset dm to DEFAULT")
+@pytest.mark.skip_library("golang", "Issue: Does not reset dm to DEFAULT")
+@pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("nodejs", "Issue: Does not reset dm to DEFAULT")
+@pytest.mark.skip_library("python", "Issue: Does not reset dm to DEFAULT")
+@pytest.mark.skip_library("python_http", "Issue: Does not reset dm to DEFAULT")
+def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(test_agent, test_library):
+    """
+    harness sends a request with both tracestate and traceparent
+    expects a valid traceparent from the output header with the same trace_id
+    expects the tracestate to be inherited
+    expects the decision maker to be reset to DEFAULT
+    """
+    with test_library:
+        # 1) tracestate[dd] is populated with well-known propagated tags
+        headers1 = make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"],
+            ],
+        )
+
+        # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
+        headers2 = make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost"],
+            ],
+        )
+
+    # 1) tracestate[dd] is populated with well-known propagated tags
+    # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
+    #         and "=" is replaced with ":"
+    #         and dm=-4 is reset to dm=-0
+    assert headers1["x-datadog-sampling-priority"] == "1"
+    dd_tags1 = headers1["x-datadog-tags"].split(",")
+    assert "_dd.p.dm=-0" in dd_tags1
+    assert "_dd.p.usr.id=baz64==" in dd_tags1
+
+    traceparent1, tracestate1 = get_tracecontext(headers1)
+    dd_items1 = tracestate1["dd"].split(";")
+    assert "traceparent" in headers1
+    assert "tracestate" in headers1
+    assert "s:1" in dd_items1
+    assert "t.dm:-0" in dd_items1
+    assert "t.usr.id:baz64~~" in dd_items1
+
+    # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
+    # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
+    #         and "=" is replaced with ":"
+    #         and dm=-4 is reset to dm=-0
+    assert headers2["x-datadog-sampling-priority"] == "1"
+    dd_tags2 = headers2["x-datadog-tags"].split(",")
+    assert "_dd.p.dm=-0" in dd_tags2
+    assert "_dd.p.usr.id=baz64==" in dd_tags2
+    assert "_dd.p.url=http://localhost" in dd_tags2
+
+    traceparent2, tracestate2 = get_tracecontext(headers2)
+    dd_items2 = tracestate2["dd"].split(";")
+    assert "traceparent" in headers2
+    assert "tracestate" in headers2
+    assert "s:1" in dd_items2
+    assert "t.dm:-0" in dd_items2
+    assert "t.usr.id:baz64~~" in dd_items2
+    assert "t.url:http://localhost" in dd_items2
