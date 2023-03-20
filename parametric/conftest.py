@@ -269,10 +269,10 @@ def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
             WORKDIR /client
             COPY {ruby_reldir}/Gemfile /client/
             COPY {ruby_reldir}/install_dependencies.sh /client/
-            RUN sh install_dependencies.sh # Cache dependencies before copying application code
+            RUN bash install_dependencies.sh # Cache dependencies before copying application code
             COPY {ruby_reldir}/apm_test_client.proto /client/
             COPY {ruby_reldir}/generate_proto.sh /client/
-            RUN sh generate_proto.sh
+            RUN bash generate_proto.sh
             COPY {ruby_reldir}/server.rb /client/
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
