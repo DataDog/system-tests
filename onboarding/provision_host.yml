@@ -148,7 +148,7 @@ weblogs:
     - name: test-app-java
       supported-language-versions:
         - 11
-      local-script: weblog/java/test-app-java/test-app-java_build.sh
+      local-script: weblog/java/test-app-java/test-app-java_docker_build.sh
       install: 
         - os_type: linux
           copy_files:
