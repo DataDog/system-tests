@@ -5,6 +5,12 @@ ami:
   os_type: linux
   os_distro: deb
 
+- name: ubuntu-x86-18.04
+  ami_id: ami-0263e4deb427da90e
+  user: ubuntu
+  os_type: linux
+  os_distro: deb-66
+
 prepare-repos:
   install: !include provision_prepare_repos.yml
 
@@ -33,6 +39,37 @@ autoinjection:
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 
+  - nodejs: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker_config.yaml
+              remote_path: docker_config.yaml
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+  - dotnet: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker_config.yaml
+              remote_path: docker_config.yaml
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 language-variants:
   - java: 
     - name: OpenJDK11
@@ -41,7 +78,18 @@ language-variants:
         - os_type: linux
           os_distro: deb
           command: sudo apt-get -y install openjdk-11-jdk-headless
-  
+  - nodejs: 
+    - name: NodeJs
+      version: 0
+      install: 
+        - os_type: linux
+          command: echo "Nodejs will run on container"
+  - dotnet: 
+    - name: Dotnet
+      version: 0
+      install: 
+        - os_type: linux
+          command: echo "Dotnet will run on container"
 
 
 weblogs:
@@ -67,3 +115,37 @@ weblogs:
               local_path: test-app-java.tar
               remote_path: test-app-java.tar
           command: sh test-app-java_docker_run.sh
+
+  - nodejs: 
+    - name: test-app-nodejs
+      supported-language-versions:
+        - 0
+      local-script: weblog/nodejs/test-app-nodejs/test-app-nodejs_local_build.sh
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/nodejs/test-app-nodejs/test-app-nodejs_docker_run.sh
+              remote_path: test-app-nodejs_docker_run.sh
+            - name: copy-nodejs-app
+              local_path: test-app-nodejs.tar
+              remote_path: test-app-nodejs.tar
+
+          command: sh test-app-nodejs_docker_run.sh
+
+  - dotnet: 
+    - name: test-app-dotnet
+      supported-language-versions:
+        - 0
+      local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_local_build.sh
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/dotnet/test-app-dotnet/test-app-dotnet_docker_run.sh
+              remote_path: test-app-dotnet_docker_run.sh
+            - name: copy-dotnet-app
+              local_path: test-app-dotnet.tar
+              remote_path: test-app-dotnet.tar
+
+          command: sh test-app-dotnet_docker_run.sh

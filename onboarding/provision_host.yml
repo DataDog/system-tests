@@ -205,7 +205,7 @@ weblogs:
     - name: test-app-dotnet
       supported-language-versions:
         - 6
-      local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_build.sh
+      local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_local_build.sh
       install: 
         - os_type: linux
           os_distro: rpm
