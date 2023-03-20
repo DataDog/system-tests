@@ -106,7 +106,7 @@ The output of the query should be written to the body of the response.
 
 ## `GET /status`
 
-The endpoint must accept a query string parameter `code`, which should be an integer. This parameter should be come the status code of the response message.
+The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message.
 
 ## \[All HTTP verbs\] /waf
 

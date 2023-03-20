@@ -40,9 +40,9 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self, timeout):
+    def wait(self, timeout, stop_accepting_data=True):
         time.sleep(timeout)
-        self.accept_data = False
+        self.accept_data = not stop_accepting_data
 
     # data collector thread domain
     def append_data(self, data):
