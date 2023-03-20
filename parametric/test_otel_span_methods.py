@@ -14,7 +14,6 @@ from parametric.utils.test_agent import get_span
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-@pytest.mark.skip_library("golang", 'Protocol message Attributes has no "start_attr_key" field')
 def test_otel_start_span(test_agent, test_library):
     """
         - Start/end a span with start and end options
@@ -25,8 +24,8 @@ def test_otel_start_span(test_agent, test_library):
 
     # entering test_otel_library starts the tracer with the above options
     with test_library:
-        duration_s = int(2 * 1000000)
-        start_time = int(time.time())
+        duration: int = 6789
+        start_time: int = 12345
         with test_library.start_otel_span(
             "operation",
             span_kind=SK_PRODUCER,
@@ -34,17 +33,15 @@ def test_otel_start_span(test_agent, test_library):
             new_root=True,
             attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
-            parent.otel_end_span(timestamp=start_time + duration_s)
-    duration_ns = duration_s / (1e-9)
+            parent.otel_end_span(timestamp=start_time + duration)
 
     root_span = get_span(test_agent)
-    print("ROOOOOOOOOOOOOOOOOOOOOOT", root_span)
     assert root_span["meta"]["env"] == "otel_env"
     assert root_span["service"] == "otel_serv"
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
     assert root_span["meta"]["start_attr_key"] == "start_attr_val"
-    assert root_span["duration"] == duration_ns
+    assert root_span["duration"] == duration * 1_000 # OTEL expects microseconds but we convert it to ns internally
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -209,7 +206,6 @@ def test_otel_set_span_status_ok(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 def test_otel_get_span_context(test_agent, test_library):
     """
         This test verifies that setting the status of a span
@@ -226,6 +222,6 @@ def test_otel_get_span_context(test_agent, test_library):
             with test_library.start_otel_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
                 span.otel_end_span()
                 context = span.span_context()
-                assert context.get("trace_id") == f"{parent.span_id:0x}".ljust(32, "0")
+                assert context.get("trace_id") == f"{parent.span_id:0x}".rjust(32, "0")
                 assert context.get("span_id") == f"{span.span_id:0x}".rjust(16, "0")
-                assert context.get("trace_flags") == "00"
+                assert context.get("trace_flags") == "01"
