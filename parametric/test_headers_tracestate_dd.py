@@ -225,7 +225,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
             [
                 ["x-datadog-trace-id", "7890123456789012"],
                 ["x-datadog-parent-id", "1234567890123456"],
-                ["x-datadog-origin", "synthetics~;,=web"],
+                ["x-datadog-origin", "synthetics~;=web,z"],
             ],
         )
 
@@ -280,13 +280,16 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     # all invalid characters including '~', must be replaced with '_',
     # and after that '=' must be replaced with `~`
     # Result: Origin set to header value, where invalid characters replaced by '_'
-    assert headers3["x-datadog-origin"] == "synthetics~;,=web"
+    origin = headers3["x-datadog-origin"]
+    # allow implementations to split origin at the first ','
+    assert origin == "synthetics~;=web,z" or origin == "synthetics~;=web"
 
     traceparent3, tracestate3 = get_tracecontext(headers3)
     dd_items3 = tracestate3["dd"].split(";")
     assert "traceparent" in headers3
     assert "tracestate" in headers3
-    assert "o:synthetics___~web" in dd_items3
+    # allow implementations to split origin at the first ','
+    assert "o:synthetics__~web_z" in dd_items3 or "o:synthetics__~web" in dd_items3
 
     # 4) tracestate[dd][o] is not present
     # Result: Origin is not set
