@@ -17,6 +17,8 @@ CLIENTS_ENABLED=ruby ./run.sh -k test_metrics_msgpack_serialization_TS001
 
 # Debugging the Ruby server
 
+The server runs on Ruby 3.2.1.
+
 To debug the server locally, run:
 ```sh
 bundle install
