@@ -5,9 +5,8 @@
 import random
 import argparse
 
-from utils.proxy.core import start_proxy
+from utils._context.containers import WeblogContainer, AgentContainer
 from utils.tools import get_logger
-
 from scenarios.fuzzer.core import Fuzzer
 
 
@@ -31,7 +30,7 @@ def main():
     parser.add_argument("--port", "-p", type=str, help="Port to request", default="7777")
     parser.add_argument("--seed", "-s", type=str, help="seed for random", default=None)
     parser.add_argument("--max_time", "-t", type=int, help="Max time in seconds", default=None)
-    parser.add_argument("--url", "-u", type=str, help="URL to request", default="http://weblog")
+    parser.add_argument("--url", "-u", type=str, help="URL to request", default="http://localhost")
     parser.add_argument("--debug", help="Enable asyncio debug mode", action="store_true")
     parser.add_argument("--no-mutation", help="disable mutation", action="store_true")
     parser.add_argument("--slack_channel", help="Set slack channel", default=None)
@@ -46,7 +45,8 @@ def main():
 
     logger = get_logger(use_stdout=True)
 
-    start_proxy(state=None)
+    AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False).start()
+    WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False).start()
 
     Fuzzer(
         corpus=args.corpus,

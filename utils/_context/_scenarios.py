@@ -199,7 +199,7 @@ class EndToEndScenario(_Scenario):
         terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
         def print_info(info):
-            logger.debug(info)
+            logger.info(info)
             terminal.write_line(info)
 
         terminal.write_sep("=", "Test context", bold=True)
