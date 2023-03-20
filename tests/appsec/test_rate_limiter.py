@@ -4,7 +4,7 @@
 
 import datetime
 import pytest
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenario, missing_feature
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenarios, missing_feature
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -16,7 +16,7 @@ if context.library == "cpp":
     context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427",
 )
 @coverage.basic
-@scenario("APPSEC_RATE_LIMITER")
+@scenarios.appsec_rate_limiter
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Main:

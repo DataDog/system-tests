@@ -26,7 +26,6 @@ def temporary_enable_optin_tracecontext() -> Any:
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_both_traceparent_and_tracestate_missing(test_agent, test_library):
     """
@@ -38,7 +37,6 @@ def test_both_traceparent_and_tracestate_missing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_included_tracestate_missing(test_agent, test_library):
     """
@@ -55,9 +53,6 @@ def test_traceparent_included_tracestate_missing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library(
-    "dotnet", "Bug: The .NET Tracer accepts one of the traceparent headers instead of discarding the headers",
-)
 @pytest.mark.skip_library(
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -90,7 +85,6 @@ def test_traceparent_duplicated(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_header_name(test_agent, test_library):
     """
@@ -112,7 +106,6 @@ def test_traceparent_header_name(test_agent, test_library):
 
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Bug: Header search is currently case-sensitive")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_header_name_valid_casing(test_agent, test_library):
     """
@@ -138,7 +131,6 @@ def test_traceparent_header_name_valid_casing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_version_0x00(test_agent, test_library):
     """
@@ -160,7 +152,6 @@ def test_traceparent_version_0x00(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library(
     "golang",
     "Bug: See https://www.w3.org/TR/trace-context/#versioning-of-traceparent for corrections . 1) We currently assert that version must be two valid hex digits, except for 'ff' 2) We assert the length of the traceparent is exactly equal to 55",
@@ -192,7 +183,6 @@ def test_traceparent_version_0xcc(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_version_0xff(test_agent, test_library):
     """
@@ -208,7 +198,6 @@ def test_traceparent_version_0xff(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_version_illegal_characters(test_agent, test_library):
     """
@@ -229,7 +218,6 @@ def test_traceparent_version_illegal_characters(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_version_too_long(test_agent, test_library):
     """
@@ -250,7 +238,6 @@ def test_traceparent_version_too_long(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_version_too_short(test_agent, test_library):
     """
@@ -266,7 +253,6 @@ def test_traceparent_version_too_short(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_trace_id_all_zero(test_agent, test_library):
     """
@@ -282,7 +268,6 @@ def test_traceparent_trace_id_all_zero(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_trace_id_illegal_characters(test_agent, test_library):
     """
@@ -303,7 +288,6 @@ def test_traceparent_trace_id_illegal_characters(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_trace_id_too_long(test_agent, test_library):
     """
@@ -321,7 +305,6 @@ def test_traceparent_trace_id_too_long(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_trace_id_too_short(test_agent, test_library):
     """
@@ -337,7 +320,6 @@ def test_traceparent_trace_id_too_short(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_parent_id_all_zero(test_agent, test_library):
     """
@@ -353,7 +335,6 @@ def test_traceparent_parent_id_all_zero(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_parent_id_illegal_characters(test_agent, test_library):
     """
@@ -374,7 +355,6 @@ def test_traceparent_parent_id_illegal_characters(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_parent_id_too_long(test_agent, test_library):
     """
@@ -390,7 +370,6 @@ def test_traceparent_parent_id_too_long(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_parent_id_too_short(test_agent, test_library):
     """
@@ -407,7 +386,6 @@ def test_traceparent_parent_id_too_short(test_agent, test_library):
 
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Latest release does not implement new configuration")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_trace_flags_illegal_characters(test_agent, test_library):
     """
@@ -428,7 +406,6 @@ def test_traceparent_trace_flags_illegal_characters(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_trace_flags_too_long(test_agent, test_library):
     """
@@ -444,7 +421,6 @@ def test_traceparent_trace_flags_too_long(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_trace_flags_too_short(test_agent, test_library):
     """
@@ -460,7 +436,6 @@ def test_traceparent_trace_flags_too_short(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_ows_handling(test_agent, test_library):
     """
@@ -496,7 +471,6 @@ def test_traceparent_ows_handling(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_tracestate_included_traceparent_missing(test_agent, test_library):
     """
@@ -514,7 +488,6 @@ def test_tracestate_included_traceparent_missing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_tracestate_included_traceparent_included(test_agent, test_library):
     """
@@ -537,7 +510,6 @@ def test_tracestate_included_traceparent_included(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_tracestate_header_name(test_agent, test_library):
     """
@@ -561,7 +533,6 @@ def test_tracestate_header_name(test_agent, test_library):
 
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_tracestate_header_name_valid_casing(test_agent, test_library):
     """
@@ -590,7 +561,6 @@ def test_tracestate_header_name_valid_casing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library(
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -644,7 +614,6 @@ def test_tracestate_empty_header(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library(
     "golang",
     "golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -687,7 +656,6 @@ def test_tracestate_multiple_headers_different_keys(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_tracestate_duplicated_keys(test_agent, test_library):
     """
@@ -744,7 +712,6 @@ def test_tracestate_duplicated_keys(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_tracestate_all_allowed_characters(test_agent, test_library):
     """
@@ -788,7 +755,6 @@ def test_tracestate_all_allowed_characters(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 @pytest.mark.skip_library(
     "python",
     "\t is an invalid character and is not supported in tracestate. We should update this test use spaces instead",

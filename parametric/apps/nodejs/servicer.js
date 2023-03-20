@@ -26,24 +26,23 @@ class Servicer {
             parent.origin = request.origin;
         }
 
-        const { http_headers } = request.http_headers || {};
+        const http_headers = request.http_headers.http_headers || [];
         // Node.js HTTP headers are automatically lower-cased, simulate that here.
         const convertedHeaders = {};
-        for (const [key, value] of Object.entries(http_headers)) {
+        for (const { key, value } of http_headers) {
             convertedHeaders[key.toLowerCase()] = value;
         }
         const extracted = tracer.extract('http_headers', convertedHeaders);
         if (extracted !== null) parent = extracted;
 
         const span = tracer.startSpan(request.name, {
-            service: request.service,
             type: request.type,
             resource: request.resource,
             childOf: parent,
+            tags: {
+                service: request.service
+            }
         });
-
-        const ctx = span.context();
-        console.log('StartSpan', http_headers, ctx.toTraceparent(), ctx._tags);
 
         this.spans[span.context().toSpanId()] = span;
 
@@ -56,12 +55,13 @@ class Servicer {
     InjectHeaders = (call, callback) => {
         const { request } = call;
         const span = this.spans[request.span_id];
-        const http_headers = {};
+        const http_headersDict = {};
+        const http_headers = [];
 
-        tracer.inject(span, 'http_headers', http_headers);
-
-        const ctx = span._spanContext
-        console.log('InjectHeaders', http_headers, ctx.toTraceparent(), ctx._tags)
+        tracer.inject(span, 'http_headers', http_headersDict);
+        for (const [key, value] of Object.entries(http_headersDict)) {
+            http_headers.push({key: key, value: value});
+        }
 
         return callback(null, {
             http_headers: { http_headers }
