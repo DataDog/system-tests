@@ -345,7 +345,6 @@ class APMLibrary:
         # self._client.StartTracer(pb.StartTracerArgs())
 
     def __enter__(self) -> "APMLibrary":
-        print("Is this where we actually enter tho")
         self._client.start_tracer(env=self.otel_env, service=self.otel_service)
         return self
 

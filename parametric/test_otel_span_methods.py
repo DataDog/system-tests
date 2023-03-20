@@ -41,7 +41,7 @@ def test_otel_start_span(test_agent, test_library):
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
     assert root_span["meta"]["start_attr_key"] == "start_attr_val"
-    assert root_span["duration"] == duration * 1_000 # OTEL expects microseconds but we convert it to ns internally
+    assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")

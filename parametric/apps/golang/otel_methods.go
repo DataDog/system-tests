@@ -211,7 +211,6 @@ func (s *apmClientServer) OtelSpanContext(ctx context.Context, args *OtelSpanCon
 		fmt.Printf("SpanContext call failed, span with id=%s not found", args.SpanId)
 	}
 	sctx := span.SpanContext()
-	fmt.Printf("WE GOT A SPAN CONTEXTTTTTTTTTTTTTTTTTTTT %v\n", sctx)
 	return &OtelSpanContextReturn{
 		SpanId:     sctx.SpanID().String(),
 		TraceId:    sctx.TraceID().String(),
