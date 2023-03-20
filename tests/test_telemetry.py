@@ -415,6 +415,7 @@ class Test_Telemetry:
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ProductsDisabled:
     """Assert that product informations are not reported when products are disabled in telemetry"""
 
