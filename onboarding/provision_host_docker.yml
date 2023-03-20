@@ -2,14 +2,14 @@ ami:
 - name: ubuntu-x86-22.04
   ami_id: ami-0557a15b87f6559cf
   user: ubuntu
-  os_type: linux
-  os_distro: deb
+  os_type: linux_44
+  os_distro: deb_44
 
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
   os_type: linux
-  os_distro: deb-66
+  os_distro: deb
 
 prepare-repos:
   install: !include provision_prepare_repos.yml
@@ -39,6 +39,38 @@ autoinjection:
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 
+        - os_type: linux
+          os_distro: rpm
+          command: |    
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker_config.yaml
+              remote_path: docker_config.yaml
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - nodejs: 
     - env: dev
       install: 
@@ -55,6 +87,38 @@ autoinjection:
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker_config.yaml
+              remote_path: docker_config.yaml
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - dotnet: 
     - env: dev
       install: 
@@ -68,6 +132,39 @@ autoinjection:
             curl -fsSL https://get.docker.com -o get-docker.sh
             sudo sh ./get-docker.sh
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker_config.yaml
+              remote_path: docker_config.yaml
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh ./get-docker.sh
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 language-variants:
