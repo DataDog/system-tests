@@ -190,9 +190,9 @@ class EndToEndScenario(_Scenario):
         print_info(f"Scenario: {self.name}")
 
     def _get_warmups(self):
-        from utils.proxy.core import start_proxy  # prevent circular import
+        from utils.proxy.core import start_proxy, start_backend_proxy  # prevent circular import
 
-        warmups = [lambda: start_proxy(self.proxy_state)]
+        warmups = [lambda: start_proxy(self.proxy_state), lambda: start_backend_proxy()]
 
         for container in self._required_containers:
             warmups.append(container.start)
