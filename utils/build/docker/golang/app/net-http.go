@@ -1,7 +1,6 @@
 package main
 
 import (
-    "context"
 	"log"
 	"net/http"
 	"strconv"
@@ -9,8 +8,6 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	dsmkafka "github.com/DataDog/data-streams-go/integrations/kafka"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 func main() {
@@ -135,20 +132,6 @@ func main() {
 			name = q
 		}
 		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
-	})
-
-	mux.HandleFunc("/dsm", func(w http.ResponseWriter, r *http.Request) {
-	    ctx := context.Background()
-
-        topic := "my-topic"
-        msg := kafka.Message{
-            TopicPartition: kafka.TopicPartition{
-                Topic:     &topic,
-                Partition: kafka.PartitionAny,
-            },
-        }
-		ctx = dsmkafka.TraceKafkaProduce(ctx, &msg)
-		w.Write([]byte("ok"))
 	})
 
 	initDatadog()
