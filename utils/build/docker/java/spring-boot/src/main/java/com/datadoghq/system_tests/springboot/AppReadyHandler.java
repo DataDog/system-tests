@@ -52,8 +52,8 @@ public class AppReadyHandler extends Thread{
 
   public void init() {
     System.out.println("Trying to start Kafka");
-    //app.kafka = new KafkaConnector();
-    //app.kafka.setup();
+    app.kafka = new KafkaConnector();
+    app.kafka.setup();
     System.out.println("Trying to start cassandra");
     app.cassandra = new CassandraConnector();
     app.cassandra.setup();

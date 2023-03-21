@@ -1,6 +1,6 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
-# Copyright 2021 Datadog, Inc.
+# Copyright 2023 Datadog, Inc.
 
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 
@@ -11,8 +11,7 @@ class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
     def setup_dsm_kafka(self):
-        print("setting up dsm test")
-        self.r = weblog.get("/dsm")
+        self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_kafka(self):
         assert str(self.r.content, "UTF-8") == "ok"
@@ -37,8 +36,7 @@ class Test_DsmKafkaNoPartitionTag:
     """ Verify DSM stats points for Kafka """
 
     def setup_dsm_kafka(self):
-        print("setting up dsm test")
-        self.r = weblog.get("/dsm")
+        self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_kafka(self):
         assert str(self.r.content, "UTF-8") == "ok"
@@ -61,8 +59,9 @@ class Test_DsmKafkaNoPartitionTag:
 @scenarios.dsm
 class Test_DsmHttp:
     def setup_dsm_http(self):
-        print("setting up dsm test")
-        self.r = weblog.get("/dsm")
+        # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
+        # and will be instrumented as such
+        self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_http(self):
         assert str(self.r.content, "UTF-8") == "ok"

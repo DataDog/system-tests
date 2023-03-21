@@ -174,12 +174,13 @@ Supported Libraries:
 
 ## GET /dsm
 
-This endpoint executes database queries for DSM supported libraries. A 200 response is returned if the query
-is executed successfully.
+This endpoint executes database queries for DSM supported libraries. A 200 response with message "ok" is returned
+if the produce and consume calls for the specified tech are started successfully. Otherwise, error messages will
+be returned.
 
 Expected query params:
   - `integration`: Name of messaging tech
-    - Possible Values: `kafka`, `rabbitmq`, `grpc`, `http`
+    - Possible Values: `kafka`
 
 ## GET /user_login_success_event
 

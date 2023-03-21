@@ -265,15 +265,19 @@ public class App {
     }
 
     @RequestMapping("/dsm")
-    String publishToKafka() {
-        try {
-            kafka.produceMessage("hello world!");
-        } catch (Exception e) {
-            System.out.println("Failed to start producing message...");
-            e.printStackTrace();
-            return "failed to start producing message";
+    String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
+        if ("kafka".equals(integration)) {
+            try {
+                kafka.produceMessage("hello world!");
+            } catch (Exception e) {
+                System.out.println("Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            return "ok";
+        } else {
+            return "unknown integration: " + integration;
         }
-        return "ok";
     }
 
     @RequestMapping("/trace/ognl")
