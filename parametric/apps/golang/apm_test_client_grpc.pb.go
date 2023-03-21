@@ -39,7 +39,6 @@ type APMClientClient interface {
 	OtelSetAttributes(ctx context.Context, in *OtelSetAttributesArgs, opts ...grpc.CallOption) (*OtelSetAttributesReturn, error)
 	OtelFlushSpans(ctx context.Context, in *OtelFlushSpansArgs, opts ...grpc.CallOption) (*OtelFlushSpansReturn, error)
 	OtelFlushTraceStats(ctx context.Context, in *OtelFlushTraceStatsArgs, opts ...grpc.CallOption) (*OtelFlushTraceStatsReturn, error)
-	StartTracer(ctx context.Context, in *StartTracerArgs, opts ...grpc.CallOption) (*StartTracerReturn, error)
 	StopTracer(ctx context.Context, in *StopTracerArgs, opts ...grpc.CallOption) (*StopTracerReturn, error)
 }
 
@@ -204,15 +203,6 @@ func (c *aPMClientClient) OtelFlushTraceStats(ctx context.Context, in *OtelFlush
 	return out, nil
 }
 
-func (c *aPMClientClient) StartTracer(ctx context.Context, in *StartTracerArgs, opts ...grpc.CallOption) (*StartTracerReturn, error) {
-	out := new(StartTracerReturn)
-	err := c.cc.Invoke(ctx, "/APMClient/StartTracer", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *aPMClientClient) StopTracer(ctx context.Context, in *StopTracerArgs, opts ...grpc.CallOption) (*StopTracerReturn, error) {
 	out := new(StopTracerReturn)
 	err := c.cc.Invoke(ctx, "/APMClient/StopTracer", in, out, opts...)
@@ -243,7 +233,6 @@ type APMClientServer interface {
 	OtelSetAttributes(context.Context, *OtelSetAttributesArgs) (*OtelSetAttributesReturn, error)
 	OtelFlushSpans(context.Context, *OtelFlushSpansArgs) (*OtelFlushSpansReturn, error)
 	OtelFlushTraceStats(context.Context, *OtelFlushTraceStatsArgs) (*OtelFlushTraceStatsReturn, error)
-	StartTracer(context.Context, *StartTracerArgs) (*StartTracerReturn, error)
 	StopTracer(context.Context, *StopTracerArgs) (*StopTracerReturn, error)
 	mustEmbedUnimplementedAPMClientServer()
 }
@@ -302,9 +291,6 @@ func (UnimplementedAPMClientServer) OtelFlushSpans(context.Context, *OtelFlushSp
 }
 func (UnimplementedAPMClientServer) OtelFlushTraceStats(context.Context, *OtelFlushTraceStatsArgs) (*OtelFlushTraceStatsReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OtelFlushTraceStats not implemented")
-}
-func (UnimplementedAPMClientServer) StartTracer(context.Context, *StartTracerArgs) (*StartTracerReturn, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartTracer not implemented")
 }
 func (UnimplementedAPMClientServer) StopTracer(context.Context, *StopTracerArgs) (*StopTracerReturn, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopTracer not implemented")
@@ -628,24 +614,6 @@ func _APMClient_OtelFlushTraceStats_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APMClient_StartTracer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartTracerArgs)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(APMClientServer).StartTracer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/APMClient/StartTracer",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APMClientServer).StartTracer(ctx, req.(*StartTracerArgs))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _APMClient_StopTracer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StopTracerArgs)
 	if err := dec(in); err != nil {
@@ -738,10 +706,6 @@ var APMClient_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OtelFlushTraceStats",
 			Handler:    _APMClient_OtelFlushTraceStats_Handler,
-		},
-		{
-			MethodName: "StartTracer",
-			Handler:    _APMClient_StartTracer_Handler,
 		},
 		{
 			MethodName: "StopTracer",

@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cprotos/apm_test_client.proto\"\x8a\x02\n\rStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x07service\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x15\n\x08resource\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x11\n\x04type\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x13\n\x06origin\x18\x06 \x01(\tH\x04\x88\x01\x01\x12\x32\n\x0chttp_headers\x18\x07 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x05\x88\x01\x01\x42\n\n\x08_serviceB\x0c\n\n_parent_idB\x0b\n\t_resourceB\x07\n\x05_typeB\t\n\x07_originB\x0f\n\r_http_headers\"<\n\x16\x44istributedHTTPHeaders\x12\"\n\x0chttp_headers\x18\t \x03(\x0b\x32\x0c.HeaderTuple\")\n\x0bHeaderTuple\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"4\n\x0fStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"$\n\x11InjectHeadersArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\"Z\n\x13InjectHeadersReturn\x12\x32\n\x0chttp_headers\x18\x01 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x00\x88\x01\x01\x42\x0f\n\r_http_headers\"\x1c\n\x0e\x46inishSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\"\x12\n\x10\x46inishSpanReturn\">\n\x0fSpanSetMetaArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\t\"\x13\n\x11SpanSetMetaReturn\"@\n\x11SpanSetMetricArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\"\x15\n\x13SpanSetMetricReturn\"\x7f\n\x10SpanSetErrorArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x11\n\x04type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07message\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05stack\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x07\n\x05_typeB\n\n\x08_messageB\x08\n\x06_stack\"\x14\n\x12SpanSetErrorReturn\"\x10\n\x0e\x46lushSpansArgs\"\x12\n\x10\x46lushSpansReturn\"\x15\n\x13\x46lushTraceStatsArgs\"\x17\n\x15\x46lushTraceStatsReturn\"\xff\x02\n\x11OtelStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x15\n\x08new_root\x18\x02 \x01(\x08H\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x16\n\tspan_kind\x18\t \x01(\x04H\x02\x88\x01\x01\x12\x14\n\x07service\x18\x04 \x01(\tH\x03\x88\x01\x01\x12\x15\n\x08resource\x18\x05 \x01(\tH\x04\x88\x01\x01\x12\x11\n\x04type\x18\x06 \x01(\tH\x05\x88\x01\x01\x12\x16\n\ttimestamp\x18\x07 \x01(\x03H\x06\x88\x01\x01\x12\x32\n\x0chttp_headers\x18\n \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x07\x88\x01\x01\x12\x1f\n\nattributes\x18\x08 \x01(\x0b\x32\x0b.AttributesB\x0b\n\t_new_rootB\x0c\n\n_parent_idB\x0c\n\n_span_kindB\n\n\x08_serviceB\x0b\n\t_resourceB\x07\n\x05_typeB\x0c\n\n_timestampB\x0f\n\r_http_headers\"8\n\x13OtelStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"C\n\x0fOtelEndSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\x12\x16\n\ttimestamp\x18\x02 \x01(\x03H\x00\x88\x01\x01\x42\x0c\n\n_timestamp\"\x13\n\x11OtelEndSpanReturn\"%\n\x12OtelForceFlushArgs\x12\x0f\n\x07seconds\x18\x01 \x01(\r\"\'\n\x14OtelForceFlushReturn\x12\x0f\n\x07success\x18\x01 \x01(\x08\"%\n\x12OtelFlushSpansArgs\x12\x0f\n\x07seconds\x18\x01 \x01(\r\"\'\n\x14OtelFlushSpansReturn\x12\x0f\n\x07success\x18\x01 \x01(\x08\"\x19\n\x17OtelFlushTraceStatsArgs\"\x1b\n\x19OtelFlushTraceStatsReturn\"\x14\n\x12OtelStopTracerArgs\"\x16\n\x14OtelStopTracerReturn\"A\n\x13OtelStartTracerArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0b\n\x03\x65nv\x18\x02 \x01(\t\x12\x0f\n\x07service\x18\x03 \x01(\t\"\x17\n\x15OtelStartTracerReturn\"&\n\x13OtelIsRecordingArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\"-\n\x15OtelIsRecordingReturn\x12\x14\n\x0cis_recording\x18\x01 \x01(\x08\"&\n\x13OtelSpanContextArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\"t\n\x15OtelSpanContextReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\t\x12\x10\n\x08trace_id\x18\x02 \x01(\t\x12\x13\n\x0btrace_flags\x18\x03 \x01(\t\x12\x13\n\x0btrace_state\x18\x04 \x01(\t\x12\x0e\n\x06remote\x18\x05 \x01(\x08\"G\n\x11OtelSetStatusArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\"\x15\n\x13OtelSetStatusReturn\"0\n\x0fOtelSetNameArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\"\x13\n\x11OtelSetNameReturn\"I\n\x15OtelSetAttributesArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x1f\n\nattributes\x18\x02 \x01(\x0b\x32\x0b.Attributes\"\x19\n\x17OtelSetAttributesReturn\"r\n\nAttributes\x12*\n\x08key_vals\x18\x03 \x03(\x0b\x32\x18.Attributes.KeyValsEntry\x1a\x38\n\x0cKeyValsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x17\n\x05value\x18\x02 \x01(\x0b\x32\x08.ListVal:\x02\x38\x01\" \n\x07ListVal\x12\x15\n\x03val\x18\x01 \x03(\x0b\x32\x08.AttrVal\"g\n\x07\x41ttrVal\x12\x12\n\x08\x62ool_val\x18\x01 \x01(\x08H\x00\x12\x14\n\nstring_val\x18\x02 \x01(\tH\x00\x12\x14\n\ndouble_val\x18\x03 \x01(\x01H\x00\x12\x15\n\x0binteger_val\x18\x04 \x01(\x03H\x00\x42\x05\n\x03val\"\x10\n\x0eStopTracerArgs\"\x12\n\x10StopTracerReturn\"=\n\x0fStartTracerArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0b\n\x03\x65nv\x18\x02 \x01(\t\x12\x0f\n\x07service\x18\x03 \x01(\t\"\x13\n\x11StartTracerReturn2\x83\t\n\tAPMClient\x12/\n\tStartSpan\x12\x0e.StartSpanArgs\x1a\x10.StartSpanReturn\"\x00\x12\x32\n\nFinishSpan\x12\x0f.FinishSpanArgs\x1a\x11.FinishSpanReturn\"\x00\x12\x35\n\x0bSpanSetMeta\x12\x10.SpanSetMetaArgs\x1a\x12.SpanSetMetaReturn\"\x00\x12;\n\rSpanSetMetric\x12\x12.SpanSetMetricArgs\x1a\x14.SpanSetMetricReturn\"\x00\x12\x38\n\x0cSpanSetError\x12\x11.SpanSetErrorArgs\x1a\x13.SpanSetErrorReturn\"\x00\x12;\n\rInjectHeaders\x12\x12.InjectHeadersArgs\x1a\x14.InjectHeadersReturn\"\x00\x12\x32\n\nFlushSpans\x12\x0f.FlushSpansArgs\x1a\x11.FlushSpansReturn\"\x00\x12\x41\n\x0f\x46lushTraceStats\x12\x14.FlushTraceStatsArgs\x1a\x16.FlushTraceStatsReturn\"\x00\x12;\n\rOtelStartSpan\x12\x12.OtelStartSpanArgs\x1a\x14.OtelStartSpanReturn\"\x00\x12\x35\n\x0bOtelEndSpan\x12\x10.OtelEndSpanArgs\x1a\x12.OtelEndSpanReturn\"\x00\x12\x41\n\x0fOtelIsRecording\x12\x14.OtelIsRecordingArgs\x1a\x16.OtelIsRecordingReturn\"\x00\x12\x41\n\x0fOtelSpanContext\x12\x14.OtelSpanContextArgs\x1a\x16.OtelSpanContextReturn\"\x00\x12;\n\rOtelSetStatus\x12\x12.OtelSetStatusArgs\x1a\x14.OtelSetStatusReturn\"\x00\x12\x35\n\x0bOtelSetName\x12\x10.OtelSetNameArgs\x1a\x12.OtelSetNameReturn\"\x00\x12G\n\x11OtelSetAttributes\x12\x16.OtelSetAttributesArgs\x1a\x18.OtelSetAttributesReturn\"\x00\x12>\n\x0eOtelFlushSpans\x12\x13.OtelFlushSpansArgs\x1a\x15.OtelFlushSpansReturn\"\x00\x12M\n\x13OtelFlushTraceStats\x12\x18.OtelFlushTraceStatsArgs\x1a\x1a.OtelFlushTraceStatsReturn\"\x00\x12\x35\n\x0bStartTracer\x12\x10.StartTracerArgs\x1a\x12.StartTracerReturn\"\x00\x12\x32\n\nStopTracer\x12\x0f.StopTracerArgs\x1a\x11.StopTracerReturn\"\x00\x42\x16\n\x14\x63om.datadoghq.clientb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cprotos/apm_test_client.proto\"\x8a\x02\n\rStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x07service\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x15\n\x08resource\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x11\n\x04type\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x13\n\x06origin\x18\x06 \x01(\tH\x04\x88\x01\x01\x12\x32\n\x0chttp_headers\x18\x07 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x05\x88\x01\x01\x42\n\n\x08_serviceB\x0c\n\n_parent_idB\x0b\n\t_resourceB\x07\n\x05_typeB\t\n\x07_originB\x0f\n\r_http_headers\"<\n\x16\x44istributedHTTPHeaders\x12\"\n\x0chttp_headers\x18\t \x03(\x0b\x32\x0c.HeaderTuple\")\n\x0bHeaderTuple\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"4\n\x0fStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"$\n\x11InjectHeadersArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\"Z\n\x13InjectHeadersReturn\x12\x32\n\x0chttp_headers\x18\x01 \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x00\x88\x01\x01\x42\x0f\n\r_http_headers\"\x1c\n\x0e\x46inishSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\"\x12\n\x10\x46inishSpanReturn\">\n\x0fSpanSetMetaArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\t\"\x13\n\x11SpanSetMetaReturn\"@\n\x11SpanSetMetricArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x02\"\x15\n\x13SpanSetMetricReturn\"\x7f\n\x10SpanSetErrorArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x11\n\x04type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x14\n\x07message\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05stack\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x07\n\x05_typeB\n\n\x08_messageB\x08\n\x06_stack\"\x14\n\x12SpanSetErrorReturn\"\x10\n\x0e\x46lushSpansArgs\"\x12\n\x10\x46lushSpansReturn\"\x15\n\x13\x46lushTraceStatsArgs\"\x17\n\x15\x46lushTraceStatsReturn\"\xff\x02\n\x11OtelStartSpanArgs\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x15\n\x08new_root\x18\x02 \x01(\x08H\x00\x88\x01\x01\x12\x16\n\tparent_id\x18\x03 \x01(\x04H\x01\x88\x01\x01\x12\x16\n\tspan_kind\x18\t \x01(\x04H\x02\x88\x01\x01\x12\x14\n\x07service\x18\x04 \x01(\tH\x03\x88\x01\x01\x12\x15\n\x08resource\x18\x05 \x01(\tH\x04\x88\x01\x01\x12\x11\n\x04type\x18\x06 \x01(\tH\x05\x88\x01\x01\x12\x16\n\ttimestamp\x18\x07 \x01(\x03H\x06\x88\x01\x01\x12\x32\n\x0chttp_headers\x18\n \x01(\x0b\x32\x17.DistributedHTTPHeadersH\x07\x88\x01\x01\x12\x1f\n\nattributes\x18\x08 \x01(\x0b\x32\x0b.AttributesB\x0b\n\t_new_rootB\x0c\n\n_parent_idB\x0c\n\n_span_kindB\n\n\x08_serviceB\x0b\n\t_resourceB\x07\n\x05_typeB\x0c\n\n_timestampB\x0f\n\r_http_headers\"8\n\x13OtelStartSpanReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x10\n\x08trace_id\x18\x02 \x01(\x04\"C\n\x0fOtelEndSpanArgs\x12\n\n\x02id\x18\x01 \x01(\x04\x12\x16\n\ttimestamp\x18\x02 \x01(\x03H\x00\x88\x01\x01\x42\x0c\n\n_timestamp\"\x13\n\x11OtelEndSpanReturn\"%\n\x12OtelForceFlushArgs\x12\x0f\n\x07seconds\x18\x01 \x01(\r\"\'\n\x14OtelForceFlushReturn\x12\x0f\n\x07success\x18\x01 \x01(\x08\"%\n\x12OtelFlushSpansArgs\x12\x0f\n\x07seconds\x18\x01 \x01(\r\"\'\n\x14OtelFlushSpansReturn\x12\x0f\n\x07success\x18\x01 \x01(\x08\"\x19\n\x17OtelFlushTraceStatsArgs\"\x1b\n\x19OtelFlushTraceStatsReturn\"\x14\n\x12OtelStopTracerArgs\"\x16\n\x14OtelStopTracerReturn\"&\n\x13OtelIsRecordingArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\"-\n\x15OtelIsRecordingReturn\x12\x14\n\x0cis_recording\x18\x01 \x01(\x08\"&\n\x13OtelSpanContextArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\"t\n\x15OtelSpanContextReturn\x12\x0f\n\x07span_id\x18\x01 \x01(\t\x12\x10\n\x08trace_id\x18\x02 \x01(\t\x12\x13\n\x0btrace_flags\x18\x03 \x01(\t\x12\x13\n\x0btrace_state\x18\x04 \x01(\t\x12\x0e\n\x06remote\x18\x05 \x01(\x08\"G\n\x11OtelSetStatusArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\"\x15\n\x13OtelSetStatusReturn\"0\n\x0fOtelSetNameArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\"\x13\n\x11OtelSetNameReturn\"I\n\x15OtelSetAttributesArgs\x12\x0f\n\x07span_id\x18\x01 \x01(\x04\x12\x1f\n\nattributes\x18\x02 \x01(\x0b\x32\x0b.Attributes\"\x19\n\x17OtelSetAttributesReturn\"r\n\nAttributes\x12*\n\x08key_vals\x18\x03 \x03(\x0b\x32\x18.Attributes.KeyValsEntry\x1a\x38\n\x0cKeyValsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x17\n\x05value\x18\x02 \x01(\x0b\x32\x08.ListVal:\x02\x38\x01\" \n\x07ListVal\x12\x15\n\x03val\x18\x01 \x03(\x0b\x32\x08.AttrVal\"g\n\x07\x41ttrVal\x12\x12\n\x08\x62ool_val\x18\x01 \x01(\x08H\x00\x12\x14\n\nstring_val\x18\x02 \x01(\tH\x00\x12\x14\n\ndouble_val\x18\x03 \x01(\x01H\x00\x12\x15\n\x0binteger_val\x18\x04 \x01(\x03H\x00\x42\x05\n\x03val\"\x10\n\x0eStopTracerArgs\"\x12\n\x10StopTracerReturn2\xcc\x08\n\tAPMClient\x12/\n\tStartSpan\x12\x0e.StartSpanArgs\x1a\x10.StartSpanReturn\"\x00\x12\x32\n\nFinishSpan\x12\x0f.FinishSpanArgs\x1a\x11.FinishSpanReturn\"\x00\x12\x35\n\x0bSpanSetMeta\x12\x10.SpanSetMetaArgs\x1a\x12.SpanSetMetaReturn\"\x00\x12;\n\rSpanSetMetric\x12\x12.SpanSetMetricArgs\x1a\x14.SpanSetMetricReturn\"\x00\x12\x38\n\x0cSpanSetError\x12\x11.SpanSetErrorArgs\x1a\x13.SpanSetErrorReturn\"\x00\x12;\n\rInjectHeaders\x12\x12.InjectHeadersArgs\x1a\x14.InjectHeadersReturn\"\x00\x12\x32\n\nFlushSpans\x12\x0f.FlushSpansArgs\x1a\x11.FlushSpansReturn\"\x00\x12\x41\n\x0f\x46lushTraceStats\x12\x14.FlushTraceStatsArgs\x1a\x16.FlushTraceStatsReturn\"\x00\x12;\n\rOtelStartSpan\x12\x12.OtelStartSpanArgs\x1a\x14.OtelStartSpanReturn\"\x00\x12\x35\n\x0bOtelEndSpan\x12\x10.OtelEndSpanArgs\x1a\x12.OtelEndSpanReturn\"\x00\x12\x41\n\x0fOtelIsRecording\x12\x14.OtelIsRecordingArgs\x1a\x16.OtelIsRecordingReturn\"\x00\x12\x41\n\x0fOtelSpanContext\x12\x14.OtelSpanContextArgs\x1a\x16.OtelSpanContextReturn\"\x00\x12;\n\rOtelSetStatus\x12\x12.OtelSetStatusArgs\x1a\x14.OtelSetStatusReturn\"\x00\x12\x35\n\x0bOtelSetName\x12\x10.OtelSetNameArgs\x1a\x12.OtelSetNameReturn\"\x00\x12G\n\x11OtelSetAttributes\x12\x16.OtelSetAttributesArgs\x1a\x18.OtelSetAttributesReturn\"\x00\x12>\n\x0eOtelFlushSpans\x12\x13.OtelFlushSpansArgs\x1a\x15.OtelFlushSpansReturn\"\x00\x12M\n\x13OtelFlushTraceStats\x12\x18.OtelFlushTraceStatsArgs\x1a\x1a.OtelFlushTraceStatsReturn\"\x00\x12\x32\n\nStopTracer\x12\x0f.StopTracerArgs\x1a\x11.StopTracerReturn\"\x00\x42\x16\n\x14\x63om.datadoghq.clientb\x06proto3')
 
 
 
@@ -48,8 +48,6 @@ _OTELFLUSHTRACESTATSARGS = DESCRIPTOR.message_types_by_name['OtelFlushTraceStats
 _OTELFLUSHTRACESTATSRETURN = DESCRIPTOR.message_types_by_name['OtelFlushTraceStatsReturn']
 _OTELSTOPTRACERARGS = DESCRIPTOR.message_types_by_name['OtelStopTracerArgs']
 _OTELSTOPTRACERRETURN = DESCRIPTOR.message_types_by_name['OtelStopTracerReturn']
-_OTELSTARTTRACERARGS = DESCRIPTOR.message_types_by_name['OtelStartTracerArgs']
-_OTELSTARTTRACERRETURN = DESCRIPTOR.message_types_by_name['OtelStartTracerReturn']
 _OTELISRECORDINGARGS = DESCRIPTOR.message_types_by_name['OtelIsRecordingArgs']
 _OTELISRECORDINGRETURN = DESCRIPTOR.message_types_by_name['OtelIsRecordingReturn']
 _OTELSPANCONTEXTARGS = DESCRIPTOR.message_types_by_name['OtelSpanContextArgs']
@@ -66,8 +64,6 @@ _LISTVAL = DESCRIPTOR.message_types_by_name['ListVal']
 _ATTRVAL = DESCRIPTOR.message_types_by_name['AttrVal']
 _STOPTRACERARGS = DESCRIPTOR.message_types_by_name['StopTracerArgs']
 _STOPTRACERRETURN = DESCRIPTOR.message_types_by_name['StopTracerReturn']
-_STARTTRACERARGS = DESCRIPTOR.message_types_by_name['StartTracerArgs']
-_STARTTRACERRETURN = DESCRIPTOR.message_types_by_name['StartTracerReturn']
 StartSpanArgs = _reflection.GeneratedProtocolMessageType('StartSpanArgs', (_message.Message,), {
   'DESCRIPTOR' : _STARTSPANARGS,
   '__module__' : 'protos.apm_test_client_pb2'
@@ -278,20 +274,6 @@ OtelStopTracerReturn = _reflection.GeneratedProtocolMessageType('OtelStopTracerR
   })
 _sym_db.RegisterMessage(OtelStopTracerReturn)
 
-OtelStartTracerArgs = _reflection.GeneratedProtocolMessageType('OtelStartTracerArgs', (_message.Message,), {
-  'DESCRIPTOR' : _OTELSTARTTRACERARGS,
-  '__module__' : 'protos.apm_test_client_pb2'
-  # @@protoc_insertion_point(class_scope:OtelStartTracerArgs)
-  })
-_sym_db.RegisterMessage(OtelStartTracerArgs)
-
-OtelStartTracerReturn = _reflection.GeneratedProtocolMessageType('OtelStartTracerReturn', (_message.Message,), {
-  'DESCRIPTOR' : _OTELSTARTTRACERRETURN,
-  '__module__' : 'protos.apm_test_client_pb2'
-  # @@protoc_insertion_point(class_scope:OtelStartTracerReturn)
-  })
-_sym_db.RegisterMessage(OtelStartTracerReturn)
-
 OtelIsRecordingArgs = _reflection.GeneratedProtocolMessageType('OtelIsRecordingArgs', (_message.Message,), {
   'DESCRIPTOR' : _OTELISRECORDINGARGS,
   '__module__' : 'protos.apm_test_client_pb2'
@@ -405,20 +387,6 @@ StopTracerReturn = _reflection.GeneratedProtocolMessageType('StopTracerReturn', 
   })
 _sym_db.RegisterMessage(StopTracerReturn)
 
-StartTracerArgs = _reflection.GeneratedProtocolMessageType('StartTracerArgs', (_message.Message,), {
-  'DESCRIPTOR' : _STARTTRACERARGS,
-  '__module__' : 'protos.apm_test_client_pb2'
-  # @@protoc_insertion_point(class_scope:StartTracerArgs)
-  })
-_sym_db.RegisterMessage(StartTracerArgs)
-
-StartTracerReturn = _reflection.GeneratedProtocolMessageType('StartTracerReturn', (_message.Message,), {
-  'DESCRIPTOR' : _STARTTRACERRETURN,
-  '__module__' : 'protos.apm_test_client_pb2'
-  # @@protoc_insertion_point(class_scope:StartTracerReturn)
-  })
-_sym_db.RegisterMessage(StartTracerReturn)
-
 _APMCLIENT = DESCRIPTOR.services_by_name['APMClient']
 if _descriptor._USE_C_DESCRIPTORS == False:
 
@@ -486,46 +454,38 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _OTELSTOPTRACERARGS._serialized_end=1821
   _OTELSTOPTRACERRETURN._serialized_start=1823
   _OTELSTOPTRACERRETURN._serialized_end=1845
-  _OTELSTARTTRACERARGS._serialized_start=1847
-  _OTELSTARTTRACERARGS._serialized_end=1912
-  _OTELSTARTTRACERRETURN._serialized_start=1914
-  _OTELSTARTTRACERRETURN._serialized_end=1937
-  _OTELISRECORDINGARGS._serialized_start=1939
-  _OTELISRECORDINGARGS._serialized_end=1977
-  _OTELISRECORDINGRETURN._serialized_start=1979
-  _OTELISRECORDINGRETURN._serialized_end=2024
-  _OTELSPANCONTEXTARGS._serialized_start=2026
-  _OTELSPANCONTEXTARGS._serialized_end=2064
-  _OTELSPANCONTEXTRETURN._serialized_start=2066
-  _OTELSPANCONTEXTRETURN._serialized_end=2182
-  _OTELSETSTATUSARGS._serialized_start=2184
-  _OTELSETSTATUSARGS._serialized_end=2255
-  _OTELSETSTATUSRETURN._serialized_start=2257
-  _OTELSETSTATUSRETURN._serialized_end=2278
-  _OTELSETNAMEARGS._serialized_start=2280
-  _OTELSETNAMEARGS._serialized_end=2328
-  _OTELSETNAMERETURN._serialized_start=2330
-  _OTELSETNAMERETURN._serialized_end=2349
-  _OTELSETATTRIBUTESARGS._serialized_start=2351
-  _OTELSETATTRIBUTESARGS._serialized_end=2424
-  _OTELSETATTRIBUTESRETURN._serialized_start=2426
-  _OTELSETATTRIBUTESRETURN._serialized_end=2451
-  _ATTRIBUTES._serialized_start=2453
-  _ATTRIBUTES._serialized_end=2567
-  _ATTRIBUTES_KEYVALSENTRY._serialized_start=2511
-  _ATTRIBUTES_KEYVALSENTRY._serialized_end=2567
-  _LISTVAL._serialized_start=2569
-  _LISTVAL._serialized_end=2601
-  _ATTRVAL._serialized_start=2603
-  _ATTRVAL._serialized_end=2706
-  _STOPTRACERARGS._serialized_start=2708
-  _STOPTRACERARGS._serialized_end=2724
-  _STOPTRACERRETURN._serialized_start=2726
-  _STOPTRACERRETURN._serialized_end=2744
-  _STARTTRACERARGS._serialized_start=2746
-  _STARTTRACERARGS._serialized_end=2807
-  _STARTTRACERRETURN._serialized_start=2809
-  _STARTTRACERRETURN._serialized_end=2828
-  _APMCLIENT._serialized_start=2831
-  _APMCLIENT._serialized_end=3986
+  _OTELISRECORDINGARGS._serialized_start=1847
+  _OTELISRECORDINGARGS._serialized_end=1885
+  _OTELISRECORDINGRETURN._serialized_start=1887
+  _OTELISRECORDINGRETURN._serialized_end=1932
+  _OTELSPANCONTEXTARGS._serialized_start=1934
+  _OTELSPANCONTEXTARGS._serialized_end=1972
+  _OTELSPANCONTEXTRETURN._serialized_start=1974
+  _OTELSPANCONTEXTRETURN._serialized_end=2090
+  _OTELSETSTATUSARGS._serialized_start=2092
+  _OTELSETSTATUSARGS._serialized_end=2163
+  _OTELSETSTATUSRETURN._serialized_start=2165
+  _OTELSETSTATUSRETURN._serialized_end=2186
+  _OTELSETNAMEARGS._serialized_start=2188
+  _OTELSETNAMEARGS._serialized_end=2236
+  _OTELSETNAMERETURN._serialized_start=2238
+  _OTELSETNAMERETURN._serialized_end=2257
+  _OTELSETATTRIBUTESARGS._serialized_start=2259
+  _OTELSETATTRIBUTESARGS._serialized_end=2332
+  _OTELSETATTRIBUTESRETURN._serialized_start=2334
+  _OTELSETATTRIBUTESRETURN._serialized_end=2359
+  _ATTRIBUTES._serialized_start=2361
+  _ATTRIBUTES._serialized_end=2475
+  _ATTRIBUTES_KEYVALSENTRY._serialized_start=2419
+  _ATTRIBUTES_KEYVALSENTRY._serialized_end=2475
+  _LISTVAL._serialized_start=2477
+  _LISTVAL._serialized_end=2509
+  _ATTRVAL._serialized_start=2511
+  _ATTRVAL._serialized_end=2614
+  _STOPTRACERARGS._serialized_start=2616
+  _STOPTRACERARGS._serialized_end=2632
+  _STOPTRACERRETURN._serialized_start=2634
+  _STOPTRACERRETURN._serialized_end=2652
+  _APMCLIENT._serialized_start=2655
+  _APMCLIENT._serialized_end=3755
 # @@protoc_insertion_point(module_scope)

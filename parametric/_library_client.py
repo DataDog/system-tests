@@ -22,9 +22,6 @@ class StartSpanResponse(TypedDict):
 
 
 class APMLibraryClient:
-    def start_tracer(self, env: str, service: str):
-        raise NotImplementedError
-
     def trace_start_span(
         self,
         name: str,
@@ -217,8 +214,6 @@ class _TestOtelSpan:
 
 class APMLibraryClientGRPC:
     def __init__(self, url: str, timeout: int):
-        self.otel_service = None
-        self.otel_env = None
         channel = grpc.insecure_channel(url)
         grpc.channel_ready_future(channel).result(timeout=timeout)
         client = apm_test_client_pb2_grpc.APMClientStub(channel)
@@ -332,9 +327,6 @@ class APMLibraryClientGRPC:
 
     def get_otel_span_context(self, span_id: int):
         return self._client.OtelSpanContext(pb.OtelSpanContextArgs(span_id=span_id))
-
-    def start_tracer(self, env: str, service: str):
-        return self._client.StartTracer(pb.StartTracerArgs(env=env, service=service))
 
 
 class APMLibrary:

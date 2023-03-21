@@ -100,11 +100,6 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.OtelFlushTraceStatsArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.OtelFlushTraceStatsReturn.FromString,
                 )
-        self.StartTracer = channel.unary_unary(
-                '/APMClient/StartTracer',
-                request_serializer=protos_dot_apm__test__client__pb2.StartTracerArgs.SerializeToString,
-                response_deserializer=protos_dot_apm__test__client__pb2.StartTracerReturn.FromString,
-                )
         self.StopTracer = channel.unary_unary(
                 '/APMClient/StopTracer',
                 request_serializer=protos_dot_apm__test__client__pb2.StopTracerArgs.SerializeToString,
@@ -218,12 +213,6 @@ class APMClientServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def StartTracer(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def StopTracer(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -317,11 +306,6 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.OtelFlushTraceStats,
                     request_deserializer=protos_dot_apm__test__client__pb2.OtelFlushTraceStatsArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.OtelFlushTraceStatsReturn.SerializeToString,
-            ),
-            'StartTracer': grpc.unary_unary_rpc_method_handler(
-                    servicer.StartTracer,
-                    request_deserializer=protos_dot_apm__test__client__pb2.StartTracerArgs.FromString,
-                    response_serializer=protos_dot_apm__test__client__pb2.StartTracerReturn.SerializeToString,
             ),
             'StopTracer': grpc.unary_unary_rpc_method_handler(
                     servicer.StopTracer,
@@ -625,23 +609,6 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/OtelFlushTraceStats',
             protos_dot_apm__test__client__pb2.OtelFlushTraceStatsArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.OtelFlushTraceStatsReturn.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def StartTracer(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/APMClient/StartTracer',
-            protos_dot_apm__test__client__pb2.StartTracerArgs.SerializeToString,
-            protos_dot_apm__test__client__pb2.StartTracerReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

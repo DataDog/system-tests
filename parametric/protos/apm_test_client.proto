@@ -23,7 +23,6 @@ service APMClient {
   rpc OtelFlushSpans(OtelFlushSpansArgs) returns (OtelFlushSpansReturn) {}
   rpc OtelFlushTraceStats(OtelFlushTraceStatsArgs) returns (OtelFlushTraceStatsReturn) {}
 
-  rpc StartTracer(StartTracerArgs) returns (StartTracerReturn) {}
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 
@@ -111,10 +110,6 @@ message OtelStartSpanArgs {
   Attributes attributes = 8;
 }
 
-//message DistributedHTTPHeaders {
-//    map<string, string> http_headers = 9;
-//}
-
 message OtelStartSpanReturn {
   uint64 span_id = 1;
   uint64 trace_id = 2;
@@ -144,13 +139,6 @@ message OtelFlushTraceStatsReturn {}
 
 message OtelStopTracerArgs {}
 message OtelStopTracerReturn {}
-
-message OtelStartTracerArgs {
-  string name = 1;
-  string env = 2;
-  string service = 3;
-}
-message OtelStartTracerReturn {}
 
 message OtelIsRecordingArgs {
   uint64 span_id = 1;
@@ -208,10 +196,3 @@ message AttrVal {
 
 message StopTracerArgs {}
 message StopTracerReturn {}
-
-message StartTracerArgs {
-  string name = 1;
-  string env = 2;
-  string service = 3;
-}
-message StartTracerReturn {}

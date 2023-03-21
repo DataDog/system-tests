@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -23,20 +22,6 @@ type apmClientServer struct {
 	otelSpans map[uint64]ot_api.Span
 	tp        *ot.TracerProvider
 	tracer    ot_api.Tracer
-}
-
-func (s *apmClientServer) StartTracer(ctx context.Context, args *StartTracerArgs) (*StartTracerReturn, error) {
-	options := []tracer.StartOption{}
-	if serv := args.GetService(); serv != "" {
-		options = append(options, tracer.WithService(serv))
-	}
-	if env := args.GetEnv(); env != "" {
-		options = append(options, tracer.WithEnv(env))
-	}
-	s.tp = ot.NewTracerProvider(options...)
-	otel.SetTracerProvider(s.tp)
-	s.tracer = s.tp.Tracer("")
-	return &StartTracerReturn{}, nil
 }
 
 func newServer() *apmClientServer {
