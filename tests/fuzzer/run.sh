@@ -17,4 +17,4 @@ if [ -z "${DD_API_KEY:-}" ]; then
 fi
 
 source venv/bin/activate
-PYTHONPATH=. python scenarios/fuzzer/main.py -t 60
+PYTHONPATH=. python tests/fuzzer/main.py -t 60

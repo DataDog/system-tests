@@ -14,7 +14,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Send a bunch of requests to an url.")
 
-    parser.add_argument("corpus", nargs="?", type=str, help="Base corpus", default="scenarios/fuzzer/corpus")
+    parser.add_argument("corpus", nargs="?", type=str, help="Base corpus", default="tests/fuzzer/corpus")
 
     parser.add_argument(
         "--concurrent", "-c", type=int, help="How many concurrent requests run", default=8,

@@ -625,7 +625,7 @@ jobs:
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
     runs-on: ubuntu-latest
-    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
     needs:
     - lint_and_test
     env:
@@ -641,6 +641,7 @@ jobs:
         python tests/perfs/process.py
   fuzzer:
     runs-on: ubuntu-latest
+    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
     needs:
     - lint_and_test
     env:
@@ -651,4 +652,4 @@ jobs:
     - name: Build
       run: ./build.sh golang
     - name: Run
-      run: ./scenarios/fuzzer/run.sh
+      run: ./tests/fuzzer/run.sh

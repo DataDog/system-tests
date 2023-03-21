@@ -2,7 +2,7 @@ Fuzz agents!
 
 ```
 ./build.sh
-scenarios/fuzzer/run.sh
+./tests/fuzzer/run.sh
 ```
 
 
