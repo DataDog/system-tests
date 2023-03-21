@@ -82,11 +82,13 @@ public class AppReadyHandler extends Thread{
 }
 
 class KafkaConnector {
+    public static final String BOOTSTRAP_SERVERS = "kafka:9092";
+    public static final String CONSUMER_GROUP = "testgroup1";
+    public static final String TOPIC = "dsm-system-tests-queue";
     private KafkaTemplate kafkaTemplate;
 
     public void setup() {
-        ProducerFactory<String, String> producerFactory = KafkaHelper.producerFactory();
-        this.kafkaTemplate = new KafkaTemplate<>(producerFactory);
+        this.kafkaTemplate = createKafkaTemplateForProducer();
         try {
             this.startConsumingMessages();
         } catch (Exception e) {
@@ -95,11 +97,31 @@ class KafkaConnector {
         }
     }
 
+    private static KafkaTemplate<String, String> createKafkaTemplateForProducer() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        ProducerFactory<String, String> producerFactory = new DefaultKafkaProducerFactory<>(props);
+        return new KafkaTemplate<String, String>(producerFactory);
+    }
+
+    private static KafkaConsumer<String, String> createKafkaConsumer() {
+        Properties props = new Properties();
+        props.setProperty("bootstrap.servers", BOOTSTRAP_SERVERS);
+        props.setProperty("group.id", CONSUMER_GROUP);
+        props.setProperty("enable.auto.commit", "false");
+        props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.setProperty("auto.offset.reset", "earliest");
+        return new KafkaConsumer<String, String>(props);
+    }
+
     public void produceMessage(String message) throws Exception {
         Thread thread = new Thread("KafkaProduce") {
             public void run() {
                 System.out.println(String.format("Publishing message: %s", message));
-                kafkaTemplate.send("dsm-system-tests-queue", message);
+                kafkaTemplate.send(TOPIC, message);
             }
         };
         thread.start();
@@ -110,15 +132,8 @@ class KafkaConnector {
     public void startConsumingMessages() throws Exception {
         Thread thread = new Thread("KafkaConsume") {
             public void run() {
-                Properties props = new Properties();
-                props.setProperty("bootstrap.servers", "kafka:9092");
-                props.setProperty("group.id", "testgroup1");
-                props.setProperty("enable.auto.commit", "false");
-                props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-                props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-                props.setProperty("auto.offset.reset", "earliest");
-                KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-                consumer.subscribe(Arrays.asList("dsm-system-tests-queue"));
+                KafkaConsumer<String, String> consumer = createKafkaConsumer();
+                consumer.subscribe(Arrays.asList(TOPIC));
                 while (true) {
                     ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
                     for (ConsumerRecord<String, String> record : records) {
@@ -128,7 +143,7 @@ class KafkaConnector {
             }
         };
         thread.start();
-        System.out.println("Started Kafka consumer sthread");
+        System.out.println("Started Kafka consumer thread");
     }
 }
 
@@ -169,34 +184,4 @@ class CassandraConnector {
   public CqlSession getSession() {
     return this.session;
   }
-}
-
-class KafkaHelper {
-    public static ProducerFactory<String, String> producerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-
-        return new DefaultKafkaProducerFactory<>(configProps);
-    }
-
-    public ConsumerFactory<String, String> consumerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "dsm-system-tests-group");
-        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-        return new DefaultKafkaConsumerFactory<>(configProps);
-    }
-
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-
-        return factory;
-    }
 }
