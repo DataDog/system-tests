@@ -191,31 +191,17 @@ def start_proxy(state) -> None:
     thread = threading.Thread(target=_start_background_loop, args=(loop,), daemon=True)
     thread.start()
 
-    opts = options.Options(listen_host="0.0.0.0", listen_port=8126, confdir="utils/proxy/.mitmproxy")
+    dd_site_url = get_dd_site_api_host()
+    modes = [
+        # Used for tracer/agents
+        "regular",
+        # Used for the interaction with the backend API
+        f"reverse:{dd_site_url}@{BACKEND_LOCAL_PORT}",
+    ]
+    opts = options.Options(mode=modes, listen_host="0.0.0.0", listen_port=8126, confdir="utils/proxy/.mitmproxy")
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     # proxy.addons.add(keepserving.KeepServing())
-    proxy.addons.add(errorcheck.ErrorCheck())
-    proxy.addons.add(_RequestLogger(state or {}))
-
-    asyncio.run_coroutine_threadsafe(proxy.run(), loop)
-
-
-def start_backend_proxy(state=None) -> None:
-    loop = asyncio.new_event_loop()
-
-    thread = threading.Thread(target=_start_background_loop, args=(loop,), daemon=True)
-    thread.start()
-
-    dd_site_url = get_dd_site_api_host()
-    opts = options.Options(
-        mode=[f"reverse:{dd_site_url}"],
-        listen_host="0.0.0.0",
-        listen_port=BACKEND_LOCAL_PORT,
-        confdir="utils/proxy/.mitmproxy",
-    )
-    proxy = master.Master(opts, event_loop=loop)
-    proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())
     proxy.addons.add(_RequestLogger(state or {}))
 
