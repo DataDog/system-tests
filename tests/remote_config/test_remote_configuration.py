@@ -33,6 +33,8 @@ class Test_Agent:
     """ misc test on agent/remote config features"""
 
     @missing_feature(library="nodejs", reason="nodejs tracer does not call /info")
+    @irrelevant(library="cpp")
+    @scenarios.remote_config_mocked_backend_asm_dd
     def test_agent_provide_config_endpoint(self):
         """ Check that agent exposes /v0.7/config endpoint """
         for data in interfaces.library.get_data("/info"):
