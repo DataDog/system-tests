@@ -5,10 +5,10 @@ from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
+@bug(context.library <= "ruby@1.10.1", reason="Mishandling DD_INSTRUMENTATION_TELEMETRY_ENABLED activation. Fixed in https://github.com/DataDog/dd-trace-rb/pull/2710.")
 @missing_feature(library="cpp")
-@missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(library="golang", reason="Implemented but not merged in master")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -408,7 +408,7 @@ class Test_Telemetry:
             raise Exception("app-product-change is not emited when product change is enabled")
 
 
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="ruby")
