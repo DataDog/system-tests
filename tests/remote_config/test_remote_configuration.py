@@ -101,6 +101,14 @@ class RemoteConfigurationFieldsBasicTests:
 
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
+    def test_agent_provide_config_endpoint(self):
+        for data in interfaces.library.get_data("/info"):
+            for endpoint in data["response"]["content"]["endpoints"]:
+                if endpoint == "/v0.7/config":
+                    return
+
+        raise ValueError("Agent did not provide /v0.7/config endpoint")
+
 
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
