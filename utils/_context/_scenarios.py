@@ -341,7 +341,6 @@ class scenarios:
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
-        include_kafka=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
