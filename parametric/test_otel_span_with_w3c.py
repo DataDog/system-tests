@@ -11,19 +11,13 @@ from parametric.utils.test_agent import get_span
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_otel_start_span(test_agent, test_library):
+def test_otel_start_span_with_w3c(test_agent, test_library):
     """
         - Start/end a span with start and end options
-        - Start a tracer with options
     """
-    test_library.otel_env = "otel_env"
-    test_library.otel_service = "otel_serv"
-
-    # entering test_otel_library starts the tracer with the above options
     with test_library:
         duration_us = int(2 * 1_000_000)
         start_time = int(time.time())
-        print("ABOUT TO START OTEL SPAN")
         with test_library.start_otel_span(
             "operation",
             span_kind=SK_PRODUCER,
@@ -35,8 +29,6 @@ def test_otel_start_span(test_agent, test_library):
     duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd
 
     root_span = get_span(test_agent)
-    assert root_span["meta"]["env"] == "otel_env"
-    assert root_span["service"] == "otel_serv"
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
     assert root_span["meta"]["start_attr_key"] == "start_attr_val"

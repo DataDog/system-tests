@@ -269,7 +269,7 @@ class APMLibraryClientGRPC:
     ):
         distributed_message = pb.DistributedHTTPHeaders()
         for key, value in http_headers:
-            distributed_message.http_headers[key] = value
+            distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
         resp = self._client.OtelStartSpan(
             pb.OtelStartSpanArgs(
@@ -339,13 +339,9 @@ class APMLibraryClientGRPC:
 
 class APMLibrary:
     def __init__(self, client: APMLibraryClient):
-        self.otel_service = None
-        self.otel_env = None
         self._client = client
-        # self._client.StartTracer(pb.StartTracerArgs())
 
     def __enter__(self) -> "APMLibrary":
-        self._client.start_tracer(env=self.otel_env, service=self.otel_service)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

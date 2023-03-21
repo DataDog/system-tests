@@ -17,12 +17,8 @@ from parametric.utils.test_agent import get_span
 def test_otel_start_span(test_agent, test_library):
     """
         - Start/end a span with start and end options
-        - Start a tracer with options
     """
-    test_library.otel_env = "otel_env"
-    test_library.otel_service = "otel_serv"
 
-    # entering test_otel_library starts the tracer with the above options
     with test_library:
         duration: int = 6789
         start_time: int = 12345
@@ -36,8 +32,6 @@ def test_otel_start_span(test_agent, test_library):
             parent.otel_end_span(timestamp=start_time + duration)
 
     root_span = get_span(test_agent)
-    assert root_span["meta"]["env"] == "otel_env"
-    assert root_span["service"] == "otel_serv"
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
     assert root_span["meta"]["start_attr_key"] == "start_attr_val"

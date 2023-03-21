@@ -87,7 +87,15 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		}
 	}
 	if args.GetHttpHeaders() != nil && len(args.HttpHeaders.HttpHeaders) != 0 {
-		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(args.HttpHeaders.HttpHeaders))
+		headers := map[string]string{}
+		for _, headerTuple := range args.HttpHeaders.HttpHeaders {
+			k := headerTuple.GetKey()
+			v := headerTuple.GetValue()
+			if k != "" && v != "" {
+				headers[k] = v
+			}
+		}
+		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
 		if err != nil {
 			fmt.Println("failed in StartSpan", err, args.HttpHeaders.HttpHeaders)
 		} else {
@@ -113,7 +121,6 @@ func (s *apmClientServer) OtelEndSpan(ctx context.Context, args *OtelEndSpanArgs
 		endOpts = append(endOpts, ot_api.WithTimestamp(tm))
 	}
 	span.End(endOpts...)
-
 	return &OtelEndSpanReturn{}, nil
 }
 

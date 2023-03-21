@@ -44,11 +44,19 @@ func newServer() *apmClientServer {
 		spans:     make(map[uint64]tracer.Span),
 		otelSpans: make(map[uint64]ot_api.Span),
 	}
+	s.tp = ot.NewTracerProvider()
+	otel.SetTracerProvider(s.tp)
+	s.tracer = s.tp.Tracer("")
 	return s
 }
 
 func main() {
 	flag.Parse()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Print("encountered unexpected panic", err)
+		}
+	}()
 	port, err := strconv.Atoi(os.Getenv("APM_TEST_CLIENT_SERVER_PORT"))
 	if err != nil {
 		log.Fatalf("failed to convert port to integer: %v", err)
