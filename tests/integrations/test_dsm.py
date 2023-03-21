@@ -15,17 +15,21 @@ class Test_DsmKafka:
         self.r = weblog.get("/dsm")
 
     def test_dsm_kafka(self):
-        assert(str(self.r.content, 'UTF-8') == "ok")
+        assert str(self.r.content, "UTF-8") == "ok"
         checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
 
         expected_kafka_out = DsmStatsPoint(
-            4463699290244539355, 0, ['direction:out', 'topic:dsm-system-tests-queue', 'type:kafka'])
-        expected_kafka_in= DsmStatsPoint(
-            3735318893869752335, 4463699290244539355, [
-                'direction:in', 'group:testgroup1', 'partition:0', 'topic:dsm-system-tests-queue', 'type:kafka'])
+            4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
+        )
+        expected_kafka_in = DsmStatsPoint(
+            3735318893869752335,
+            4463699290244539355,
+            ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
+        )
 
-        assert(expected_kafka_out in checkpoints)
-        assert(expected_kafka_in in checkpoints)
+        assert expected_kafka_out in checkpoints
+        assert expected_kafka_in in checkpoints
+
 
 @missing_feature(condition=context.library != "dotnet", reason="Missing partition tag only on dotnet")
 @scenarios.dsm
@@ -37,21 +41,23 @@ class Test_DsmKafkaNoPartitionTag:
         self.r = weblog.get("/dsm")
 
     def test_dsm_kafka(self):
-        assert(str(self.r.content, 'UTF-8') == "ok")
+        assert str(self.r.content, "UTF-8") == "ok"
         checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
 
         expected_kafka_out = DsmStatsPoint(
-            4463699290244539355, 0, ['direction:out', 'topic:dsm-system-tests-queue', 'type:kafka'])
-        expected_kafka_in= DsmStatsPoint(
-            3735318893869752335, 4463699290244539355, [
-                'direction:in', 'group:testgroup1', 'topic:dsm-system-tests-queue', 'type:kafka'])
+            4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
+        )
+        expected_kafka_in = DsmStatsPoint(
+            3735318893869752335,
+            4463699290244539355,
+            ["direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"],
+        )
 
-        assert(expected_kafka_out in checkpoints)
-        assert(expected_kafka_in in checkpoints)
+        assert expected_kafka_out in checkpoints
+        assert expected_kafka_in in checkpoints
 
-@missing_feature(
-    condition=context.library != "java",
-    reason="HTTP instrumentation only on Java")
+
+@missing_feature(condition=context.library != "java", reason="HTTP instrumentation only on Java")
 @scenarios.dsm
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -59,13 +65,13 @@ class Test_DsmHttp:
         self.r = weblog.get("/dsm")
 
     def test_dsm_http(self):
-        assert(str(self.r.content, 'UTF-8') == "ok")
+        assert str(self.r.content, "UTF-8") == "ok"
 
         checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
-        expected_http = DsmStatsPoint(
-            3883033147046472598, 0, ['direction:in', 'type:http'])
+        expected_http = DsmStatsPoint(3883033147046472598, 0, ["direction:in", "type:http"])
 
-        assert(expected_http in checkpoints)
+        assert expected_http in checkpoints
+
 
 class DsmHelper:
     @staticmethod
@@ -78,6 +84,7 @@ class DsmHelper:
                     checkpoints.add(point)
         return checkpoints
 
+
 class DsmStatsPoint:
     def __init__(self, self_hash, parent_hash, sorted_tags):
         self.self_hash = self_hash
@@ -89,16 +96,43 @@ class DsmStatsPoint:
         return hash((self.self_hash, self.parent_hash, self.sorted_tags))
 
     def __eq__(self, other):
-        return (self.self_hash, self.parent_hash, self.sorted_tags) == (other.self_hash, other.parent_hash, other.sorted_tags)
+        return (self.self_hash, self.parent_hash, self.sorted_tags) == (
+            other.self_hash,
+            other.parent_hash,
+            other.sorted_tags,
+        )
 
     def __ne__(self, other):
         # Not strictly necessary, but to avoid having both x==y and x!=y
         # True at the same time
-        return not(self == other)
+        return not (self == other)
 
     def __str__(self):
-        return "hash: " + str(self.self_hash) + ", parentHash: " + str(self.parent_hash) + ", tags: " + str(self.sorted_tags)
+        return (
+            "hash: "
+            + str(self.self_hash)
+            + ", parentHash: "
+            + str(self.parent_hash)
+            + ", tags: "
+            + str(self.sorted_tags)
+        )
+
     def __unicode__(self):
-        return "hash: " + str(self.self_hash) + ", parentHash: " + str(self.parent_hash) + ", tags: " + str(self.sorted_tags)
+        return (
+            "hash: "
+            + str(self.self_hash)
+            + ", parentHash: "
+            + str(self.parent_hash)
+            + ", tags: "
+            + str(self.sorted_tags)
+        )
+
     def __repr__(self):
-        return "hash: " + str(self.self_hash) + ", parentHash: " + str(self.parent_hash) + ", tags: " + str(self.sorted_tags)
+        return (
+            "hash: "
+            + str(self.self_hash)
+            + ", parentHash: "
+            + str(self.parent_hash)
+            + ", tags: "
+            + str(self.sorted_tags)
+        )

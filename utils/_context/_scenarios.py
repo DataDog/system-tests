@@ -155,17 +155,15 @@ class EndToEndScenario(_Scenario):
                         "KAFKA_BROKER_ID": "1",
                         "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
                     },
-                    allow_old_container=True
+                    allow_old_container=True,
                 )
             )
             self._required_containers.append(
                 TestedContainer(
                     image_name="bitnami/zookeeper:latest",
                     name="zookeeper",
-                    environment={
-                        "ALLOW_ANONYMOUS_LOGIN": "yes",
-                    },
-                    allow_old_container=True
+                    environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
+                    allow_old_container=True,
                 )
             )
 
@@ -333,10 +331,7 @@ class scenarios:
     # scenario for weblog arch that does not support Appsec
     appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
-    dsm = EndToEndScenario(
-        "DSM",
-        include_kafka=True
-    )
+    dsm = EndToEndScenario("DSM", include_kafka=True)
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
