@@ -12,7 +12,7 @@ RUN apt-get update && apt-get -y install jq
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 
-RUN go build -v -tags "dynamic,appsec" -o weblog ./net-http.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
+RUN go build -v -tags "dynamic" -o weblog ./net-http.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
 
 RUN echo "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
