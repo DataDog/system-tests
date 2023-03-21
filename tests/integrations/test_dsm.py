@@ -6,6 +6,10 @@ from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 
 
 @missing_feature(condition=context.library != "java", reason="Full Kafka instrumentation only on Java")
+@missing_feature(
+    context.weblog_variant not in ("spring-boot"),
+    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
+)
 @scenarios.dsm
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -56,6 +60,10 @@ class Test_DsmKafkaNoPartitionTag:
 
 
 @missing_feature(condition=context.library != "java", reason="HTTP instrumentation only on Java")
+@missing_feature(
+    context.weblog_variant not in ("spring-boot"),
+    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
+)
 @scenarios.dsm
 class Test_DsmHttp:
     def setup_dsm_http(self):
