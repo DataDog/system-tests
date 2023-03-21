@@ -191,7 +191,7 @@ build() {
             # Special logic to turn off DD_DATA_STREAMS_ENABLED for spring-boot-native right now
             # as having it turned on seems to break other existing tests due to a reflection issue
             # in a library we use.
-            if [ "${WEBLOG_VARIANT}" = "spring-boot-native" ]; then
+            if [ "${WEBLOG_VARIANT}" = "spring-boot-native" ]  || [ "${WEBLOG_VARIANT}" = "spring-boot-3-native" ]; then
                 DD_DATA_STREAMS_ENABLED="false"
             else
                 DD_DATA_STREAMS_ENABLED="true"
