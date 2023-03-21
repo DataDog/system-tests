@@ -139,7 +139,6 @@ class EndToEndScenario(_Scenario):
                 TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
             )
 
-        print("Building scenario")
         if include_kafka:
             self._required_containers.append(
                 TestedContainer(
