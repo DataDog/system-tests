@@ -35,9 +35,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -64,10 +61,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-import java.util.Properties;
-import java.time.Duration;
 
 import static com.mongodb.client.model.Filters.eq;
 
