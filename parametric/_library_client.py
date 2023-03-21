@@ -169,7 +169,7 @@ class APMLibraryClientGRPC:
     ):
         distributed_message = pb.DistributedHTTPHeaders()
         for key, value in http_headers:
-            distributed_message.http_headers[key] = value
+            distributed_message.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
         resp = self._client.StartSpan(
             pb.StartSpanArgs(
@@ -193,7 +193,7 @@ class APMLibraryClientGRPC:
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
-        return [(k, v) for k, v in resp.http_headers.http_headers.items()]
+        return [(header_tuple.key, header_tuple.value) for header_tuple in resp.http_headers.http_headers]
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())

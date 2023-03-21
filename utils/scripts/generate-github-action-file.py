@@ -402,6 +402,7 @@ def main():
         "APPSEC_IP_BLOCKING",
         "APPSEC_RUNTIME_ACTIVATION",
         "APPSEC_WAF_TELEMETRY",
+        "APPSEC_REQUEST_BLOCKING",
         "SAMPLING",
         # "APPSEC_UNSUPPORTED",
         "DSM",
