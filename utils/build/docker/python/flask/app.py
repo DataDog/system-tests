@@ -19,7 +19,11 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres",
+    port="5433",
+    user="system_tests_user",
+    password="system_tests",
+    dbname="system_tests",
 )
 
 app = Flask(__name__)
@@ -71,7 +75,6 @@ def status_code():
 
 @app.route("/make_distant_call")
 def make_distant_call():
-
     url = flask_request.args["url"]
     response = requests.get(url)
 
@@ -194,11 +197,7 @@ _TRACK_USER = "system_tests_user"
 
 @app.route("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(
-        tracer,
-        user_id=_TRACK_USER,
-        metadata=_TRACK_METADATA
-    )
+    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
     return Response("OK")
 
 
@@ -218,9 +217,5 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 @app.route("/custom_event")
 def track_custom_event():
-    appsec_trace_utils.track_custom_event(
-        tracer,
-        event_name=_TRACK_CUSTOM_EVENT_NAME,
-        metadata=_TRACK_METADATA
-    )
+    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return Response("OK")

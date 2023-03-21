@@ -4,9 +4,14 @@ from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.http import HttpResponse, JsonResponse
 from django.urls import path
-from iast import (weak_cipher, weak_cipher_secure_algorithm, weak_hash,
-                  weak_hash_duplicates, weak_hash_multiple,
-                  weak_hash_secure_algorithm)
+from iast import (
+    weak_cipher,
+    weak_cipher_secure_algorithm,
+    weak_hash,
+    weak_hash_duplicates,
+    weak_hash_multiple,
+    weak_hash_secure_algorithm,
+)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -135,11 +140,7 @@ _TRACK_USER = "system_tests_user"
 
 
 def track_user_login_success_event(request):
-    appsec_trace_utils.track_user_login_success_event(
-        tracer,
-        user_id=_TRACK_USER,
-        metadata=_TRACK_METADATA
-    )
+    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
@@ -157,11 +158,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
 def track_custom_event(request):
-    appsec_trace_utils.track_custom_event(
-        tracer,
-        event_name=_TRACK_CUSTOM_EVENT_NAME,
-        metadata=_TRACK_METADATA
-    )
+    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
