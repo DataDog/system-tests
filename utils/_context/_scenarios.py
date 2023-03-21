@@ -94,6 +94,7 @@ class EndToEndScenario(_Scenario):
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
+        _use_backend_proxy=False,  # TODO: use only on proxy and remove this
     ) -> None:
         super().__init__(name, use_interfaces=True)
 
@@ -107,6 +108,7 @@ class EndToEndScenario(_Scenario):
             additional_trace_header_tags=additional_trace_header_tags,
         )
         self.proxy_state = proxy_state
+        self._use_backend_proxy = _use_backend_proxy
         self.include_postgres_db = include_postgres_db
 
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
@@ -192,7 +194,10 @@ class EndToEndScenario(_Scenario):
     def _get_warmups(self):
         from utils.proxy.core import start_proxy, start_backend_proxy  # prevent circular import
 
-        warmups = [lambda: start_proxy(self.proxy_state), lambda: start_backend_proxy()]
+        warmups = [lambda: start_proxy(self.proxy_state)]
+
+        if self._use_backend_proxy:
+            warmups.append(start_backend_proxy)
 
         for container in self._required_containers:
             warmups.append(container.start)
@@ -455,7 +460,7 @@ class scenarios:
     )
 
     # APM tracing end-to-end scenarios
-    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5)
+    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, _use_backend_proxy=True)
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
@@ -463,6 +468,7 @@ class scenarios:
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
+        _use_backend_proxy=True,
     )
 
     library_conf_custom_headers_short = EndToEndScenario(
