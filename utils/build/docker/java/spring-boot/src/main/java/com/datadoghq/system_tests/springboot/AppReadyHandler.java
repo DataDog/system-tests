@@ -6,8 +6,6 @@ import com.mongodb.client.MongoCollection;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AppReadyHandler extends Thread{
   App app = null;
@@ -46,6 +44,7 @@ public class AppReadyHandler extends Thread{
         .append("title", "Wingsuit")
         .append("subject", "Flying like a bird made of cloth who just left a perfectly working airplane"));
   }
+
 }
 
 class CassandraConnector {

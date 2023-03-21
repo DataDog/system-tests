@@ -15,7 +15,6 @@ import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
 import ognl.OgnlException;
 import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -25,7 +24,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,12 +69,8 @@ import static com.mongodb.client.model.Filters.eq;
 @ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
 
-    @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
     CassandraConnector cassandra;
     MongoClient mongoClient;
-    KafkaConnector kafka;
 
     @RequestMapping("/")
     String home() {
