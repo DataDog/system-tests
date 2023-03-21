@@ -91,7 +91,7 @@ class Fuzzer:
         self.max_tasks = max_tasks
         self.max_time = max_time
         self.max_datetime = None  # will be set later
-        self.sem = Semaphore(max_tasks, loop=self.loop)
+        self.sem = Semaphore(max_tasks)
 
         self.dump_on_status = dump_on_status
         self.enable_response_dump = False
