@@ -152,10 +152,6 @@ def test_traceparent_version_0x00(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library(
-    "golang",
-    "Bug: See https://www.w3.org/TR/trace-context/#versioning-of-traceparent for corrections . 1) We currently assert that version must be two valid hex digits, except for 'ff' 2) We assert the length of the traceparent is exactly equal to 55",
-)
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_version_0xcc(test_agent, test_library):
     """
