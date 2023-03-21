@@ -146,15 +146,6 @@ def dbm():
     return Response(f"Integration is not supported: {integration}", 406)
 
 
-@app.route("/dsm")
-def dsm():
-    integration = flask_request.args.get("integration")
-    if integration == "kafka":
-        return Response("OK")
-
-    return Response(f"Integration is not supported: {integration}", 406)
-
-
 @app.route("/iast/insecure_hashing/multiple_hash")
 def view_weak_hash_multiple_hash():
     weak_hash_multiple()
