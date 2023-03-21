@@ -5,7 +5,7 @@
 import random
 import argparse
 
-from utils._context.containers import WeblogContainer, AgentContainer
+from utils._context.containers import WeblogContainer, AgentContainer, create_network
 from utils.tools import get_logger
 from scenarios.fuzzer.core import Fuzzer
 
@@ -45,6 +45,7 @@ def main():
 
     logger = get_logger(use_stdout=True)
 
+    create_network()
     AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False).start()
     WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False).start()
 

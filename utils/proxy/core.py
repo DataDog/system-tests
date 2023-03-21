@@ -226,7 +226,7 @@ def get_dd_site_api_host():
     # ddog-gov.com      => app.ddog-gov.com
     # XYZ.datadoghq.com => XYZ.datadoghq.com
 
-    dd_site = os.environ["DD_SITE"]
+    dd_site = os.environ.get("DD_SITE", "datad0g.com")
     dd_site_to_app = {
         "datad0g.com": "https://dd.datad0g.com",
         "datadoghq.com": "https://app.datadoghq.com",
