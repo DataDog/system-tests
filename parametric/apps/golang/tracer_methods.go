@@ -23,9 +23,18 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*
 	}
 
 	if args.GetHttpHeaders() != nil && len(args.HttpHeaders.HttpHeaders) != 0 {
-		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(args.HttpHeaders.HttpHeaders))
+		headers := map[string]string{}
+		for _, headerTuple := range args.HttpHeaders.HttpHeaders {
+			k := headerTuple.GetKey()
+			v := headerTuple.GetValue()
+			if k != "" && v != "" {
+				headers[k] = v
+			}
+		}
+
+		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
 		if err != nil {
-			fmt.Println("failed in StartSpan", err, args.HttpHeaders.HttpHeaders)
+			fmt.Println("failed in StartSpan", err, headers)
 		} else {
 			opts = append(opts, tracer.ChildOf(sctx))
 		}
@@ -86,23 +95,15 @@ func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorAr
 }
 
 func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {
-	var span tracer.Span
-	span, ok := s.spans[args.SpanId]
-	if !ok {
-		span, ok = s.otelSpans[args.SpanId].(tracer.Span)
-		if !ok {
-			return nil, fmt.Errorf("no spans found with span_id %v", args.SpanId)
-		}
-	}
+	span := s.spans[args.SpanId]
 	headers := tracer.TextMapCarrier(map[string]string{})
-
 	err := tracer.Inject(span.Context(), headers)
 	if err != nil {
 		fmt.Println("error while injecting")
 	}
-	distr := map[string]string{}
+	distr := []*HeaderTuple{}
 	for k, v := range headers {
-		distr[k] = v
+		distr = append(distr, &HeaderTuple{Key: k, Value: v})
 	}
 	return &InjectHeadersReturn{HttpHeaders: &DistributedHTTPHeaders{HttpHeaders: distr}}, nil
 }

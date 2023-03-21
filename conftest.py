@@ -7,10 +7,11 @@ import json
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context, interfaces
-from utils.proxy.core import start_proxy
+from utils._context._scenarios import current_scenario
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
+
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -23,35 +24,11 @@ _rfcs = {}
 
 # Called at the very begening
 def pytest_sessionstart(session):
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
-    def print_info(info):
-        logger.debug(info)
-        terminal.write_line(info)
+    if session.config.option.collectonly:
+        return
 
-    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
-
-        if not session.config.option.collectonly:
-            start_proxy()
-
-        terminal.write_sep("=", "Tested components", bold=True)
-        print_info(f"Library: {context.library}")
-        print_info(f"Agent: {context.agent_version}")
-        if context.library == "php":
-            print_info(f"AppSec: {context.php_appsec}")
-
-        if context.libddwaf_version:
-            print_info(f"libddwaf: {context.libddwaf_version}")
-
-        if context.appsec_rules_file:
-            print_info(f"AppSec rules version: {context.appsec_rules_version}")
-
-        if context.uds_mode:
-            print_info(f"UDS socket: {context.uds_socket}")
-
-        print_info(f"Weblog variant: {context.weblog_variant}")
-        print_info(f"Backend: {context.dd_site}")
-        print_info(f"Scenario: {context.scenario}")
+    current_scenario.session_start(session)
 
 
 # called when each test item is collected
@@ -116,11 +93,13 @@ def pytest_collection_modifyitems(session, config, items):
             if marker.name == "scenario":
                 return marker.args[0]
 
+        for marker in item.parent.parent.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
         return None
 
-    scenario = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
-
-    if scenario == "CUSTOM":
+    if context.scenario == "CUSTOM":
         # user has specifed which test to run, do nothing
         return
 
@@ -130,12 +109,12 @@ def pytest_collection_modifyitems(session, config, items):
     for item in items:
         declared_scenario = get_declared_scenario(item)
 
-        if declared_scenario == scenario or declared_scenario is None and scenario == "DEFAULT":
-            logger.info(f"{item.nodeid} is included in scenario {scenario}")
+        if declared_scenario == context.scenario or declared_scenario is None and context.scenario == "DEFAULT":
+            logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
             _collect_item_metadata(item)
         else:
-            logger.debug(f"{item.nodeid} is not included in scenario {scenario}")
+            logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
 
     items[:] = selected
@@ -162,59 +141,71 @@ def pytest_collection_finish(session):
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     terminal.write_line("Executing weblog warmup...")
-    context.execute_warmups()
 
-    last_file = ""
-    for item in session.items:
+    try:
+        current_scenario.execute_warmups()
 
-        if _item_is_skipped(item):
-            continue
+        last_file = ""
+        for item in session.items:
 
-        if not item.instance:  # item is a method bounded to a class
-            continue
+            if _item_is_skipped(item):
+                continue
 
-        # the test metohd name is like test_xxxx
-        # we replace the test_ by setup_, and call it if it exists
+            if not item.instance:  # item is a method bounded to a class
+                continue
 
-        setup_method_name = f"setup_{item.name[5:]}"
+            # the test metohd name is like test_xxxx
+            # we replace the test_ by setup_, and call it if it exists
 
-        if not hasattr(item.instance, setup_method_name):
-            continue
+            setup_method_name = f"setup_{item.name[5:]}"
 
-        if last_file != item.location[0]:
-            if len(last_file) == 0:
-                terminal.write_sep("-", "Tests setup", bold=True)
+            if not hasattr(item.instance, setup_method_name):
+                continue
 
-            terminal.write(f"\n{item.location[0]} ")
-            last_file = item.location[0]
+            if last_file != item.location[0]:
+                if len(last_file) == 0:
+                    terminal.write_sep("-", "Tests setup", bold=True)
 
-        setup_method = getattr(item.instance, setup_method_name)
-        logger.debug(f"Call {setup_method} for {item}")
-        try:
-            setup_method()
-        except Exception:
-            logger.exception("Unexpected failure during setup method call")
-            terminal.write("x", bold=True, red=True)
-            raise
-        else:
-            terminal.write(".", bold=True, green=True)
+                terminal.write(f"\n{item.location[0]} ")
+                last_file = item.location[0]
 
-    terminal.write("\n\n")
+            setup_method = getattr(item.instance, setup_method_name)
+            logger.debug(f"Call {setup_method} for {item}")
+            try:
+                setup_method()
+            except Exception:
+                logger.exception("Unexpected failure during setup method call")
+                terminal.write("x", bold=True, red=True)
+                raise
+            else:
+                terminal.write(".", bold=True, green=True)
 
-    _wait_interface(interfaces.library, session)
-    _wait_interface(interfaces.library_stdout, session)
-    _wait_interface(interfaces.library_dotnet_managed, session)
-    _wait_interface(interfaces.agent, session)
-    _wait_interface(interfaces.agent_stdout, session)
-    _wait_interface(interfaces.backend, session)
+        terminal.write("\n\n")
+
+        if current_scenario.use_interfaces:
+            _wait_interface(interfaces.library, session, current_scenario.library_interface_timeout)
+            _wait_interface(interfaces.agent, session, current_scenario.agent_interface_timeout)
+            _wait_interface(interfaces.backend, session, current_scenario.backend_interface_timeout)
+
+            current_scenario.collect_logs()
+
+            _wait_interface(interfaces.library_stdout, session, 0)
+            _wait_interface(interfaces.library_dotnet_managed, session, 0)
+            _wait_interface(interfaces.agent_stdout, session, 0)
+
+    except:
+        current_scenario.collect_logs()
+        raise
+    finally:
+        current_scenario.close_targets()
 
 
-def _wait_interface(interface, session):
+def _wait_interface(interface, session, timeout):
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-    terminal.write_sep("-", f"Wait for {interface} ({interface.timeout}s)")
+    terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
     terminal.flush()
 
-    interface.wait()
+    interface.wait(timeout)
 
 
 def pytest_json_modifyreport(json_report):
@@ -258,7 +249,6 @@ def pytest_sessionfinish(session, exitstatus):
 
     if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
         # TODO : shutdown proxy
-        # data_collector.join(timeout=10)
         ...
 
 
@@ -269,5 +259,12 @@ def _pytest_junit_modifyreport():
     with open(json_report_path, encoding="utf-8") as f:
         json_report = json.load(f)
         junit_modifyreport(
-            json_report, junit_report_path, _skip_reasons, _docs, _rfcs, _coverages, _release_versions,
+            json_report,
+            junit_report_path,
+            _skip_reasons,
+            _docs,
+            _rfcs,
+            _coverages,
+            _release_versions,
+            junit_properties=current_scenario.get_junit_properties(),
         )

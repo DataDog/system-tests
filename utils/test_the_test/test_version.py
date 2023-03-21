@@ -1,7 +1,8 @@
+import pytest
 from utils._context.library_version import LibraryVersion, Version
-from utils import context
 
-context.execute_warmups = lambda *args, **kwargs: None
+
+pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
 def test_version_comparizon():
@@ -73,6 +74,9 @@ def test_version_serialization():
 
     v = Version("3.0.0pre0", "nodejs")
     assert v == "3.0.0pre0"
+
+    v = Version("7.43.1-beta-cache-hit-ratio", "agent")
+    assert v == "7.43.1"
 
 
 def test_agent_version():

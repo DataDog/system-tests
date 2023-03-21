@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, irrelevant, scenario, missing_feature, bug
+from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, bug
 
 
 # dd.rc.targets.key.id=TEST_KEY_ID
@@ -10,8 +10,10 @@ from utils import weblog, context, coverage, interfaces, released, irrelevant, s
 # private key: a78bd01afe0dc0baa6904e1b65448a6bbe160e07f7fc375c3bcb3ec08f008cc5
 
 
-@scenario("APPSEC_RUNTIME_ACTIVATION")
-@released(java="0.115.0", cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="3.9.0", golang="?")
+@scenarios.appsec_runtime_activation
+@released(
+    java="0.115.0", cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.9.0", golang="?"
+)
 @bug(
     context.library == "java" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",

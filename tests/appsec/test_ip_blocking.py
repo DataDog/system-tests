@@ -4,7 +4,7 @@
 import json
 
 from tests.remote_config.test_remote_configuration import rc_check_request
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenario
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") as f:
@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", php="?", python="?", ruby="?", nodejs="?", golang="1.47.0")
+@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="?", golang="1.47.0")
 @released(
     java={
         "spring-boot": "0.110.0",
@@ -32,7 +32,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 )
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
-@scenario("APPSEC_IP_BLOCKING")
+@scenarios.appsec_ip_blocking
 class Test_AppSecIPBlocking:
     """A library should block requests from blocked IP addresses."""
 

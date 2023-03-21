@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/events/extended-heartbeat.json",
+  "description": "extended-heartbeat v2 schema",
+  "title": "extended-heartbeat v2",
+  "type": "object",
+  "properties": {
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "/miscs/telemetry/common/objects/dependency.json",
+        "maxItems": 2000
+      }
+    },
+    "integrations": {
+      "type": "array",
+      "items": {
+        "$ref": "/miscs/telemetry/common/objects/integration.json"
+      }
+    },
+    "configuration": {
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
+    },
+    "additional_payload": {
+      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
+    }
+  }
+}

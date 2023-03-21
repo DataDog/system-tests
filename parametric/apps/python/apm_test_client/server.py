@@ -34,7 +34,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
             )
 
         if request.http_headers.ByteSize() > 0:
-            headers = dict(request.http_headers.http_headers)
+            headers = {}
+            for header_tuple in request.http_headers.http_headers:
+                headers[header_tuple.key] = header_tuple.value
             parent = HTTPPropagator.extract(headers)
 
         span = ddtrace.tracer.start_span(
@@ -54,7 +56,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         HTTPPropagator.inject(ctx, headers)
         distrib_headers = apm_test_client_pb2.DistributedHTTPHeaders()
         for k, v in headers.items():
-            distrib_headers.http_headers[k] = v
+            distrib_headers.http_headers.append(apm_test_client_pb2.HeaderTuple(key=k, value=v))
 
         return apm_test_client_pb2.InjectHeadersReturn(http_headers=distrib_headers,)
 

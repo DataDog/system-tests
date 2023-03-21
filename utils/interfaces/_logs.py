@@ -72,8 +72,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self):
-        super().wait()
+    def wait(self, timeout):
+        super().wait(timeout)
 
         for log_line in self._read():
 
@@ -158,7 +158,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
             self._parsers.append(re.compile(p("message", r".*")))
 
     def _get_files(self):
-        return ["logs/docker/weblog/stdout.log"]
+        return ["logs/docker/weblog/stdout.log", "logs/docker/weblog/stderr.log"]
 
     def _clean_line(self, line):
         if line.startswith("weblog_1         | "):
@@ -279,7 +279,7 @@ class Test:
         # i.assert_presence(r".*")
 
         i = _AgentStdout()
-        i.wait()
+        i.wait(0)
         i.assert_presence(r"FIPS mode is disabled")
 
 

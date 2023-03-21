@@ -66,7 +66,6 @@ app.get("/status", (req, res) => {
 app.get("/make_distant_call", (req, res) => {
   const url = req.query.url;
   console.log(url);
-
   axios.get(url)
   .then(response => {
     res.json({
@@ -87,6 +86,38 @@ app.get("/make_distant_call", (req, res) => {
   });
 });
 
+app.get("/user_login_success_event", (req, res) => {
+  const userId = req.query.event_user_id || "system_tests_user";
+
+  tracer.appsec.trackUserLoginSuccessEvent({
+    id: userId,
+    email: "system_tests_user@system_tests_user.com",
+    name: "system_tests_user"
+  }, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
+app.get("/user_login_failure_event", (req, res) => {
+  const userId = req.query.event_user_id || "system_tests_user";
+  let exists = true;
+  if (req.query && req.query.hasOwnProperty("event_user_exists")) {
+    exists = req.query.event_user_exists.toLowerCase() === "true"
+  }
+
+  tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
+app.get("/custom_event", (req, res) => {
+  const eventName = req.query.event_name || "system_tests_event";
+
+  tracer.appsec.trackCustomEvent(eventName, { metadata0: "value0", metadata1: "value1" });
+
+  res.send("OK");
+});
+
 app.get("/users", (req, res) => {
   let user = {}
   if (req.query['user']) {
@@ -105,7 +136,13 @@ app.get("/users", (req, res) => {
 
 require("./iast")(app, tracer);
 
-app.listen(7777, "0.0.0.0", () => {
-  tracer.trace("init.service", () => {});
-  console.log("listening");
+app.get('/load_dependency', (req, res) => {
+  console.log('Load dependency endpoint');
+  var glob = require("glob")
+  res.send("Loaded a dependency")
+ }); 
+
+app.listen(7777, '0.0.0.0', () => {
+  tracer.trace('init.service', () => {});
+  console.log('listening');
 });

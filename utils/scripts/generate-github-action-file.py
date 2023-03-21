@@ -185,7 +185,9 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
 
     job.add_checkout()
     job.add_step(run="mkdir logs && touch logs/.weblog.env")
-    job.add_step("Pull images", run="docker-compose pull cassandra_db mongodb postgres")
+    job.add_step("Pull mongo image", run="docker pull mongo:latest")
+    job.add_step("Pull cassandra image", run="docker pull cassandra:latest")
+    job.add_step("Pull postgres image", run="docker pull postgres:latest")
     job.add_step(
         "Load WAF rules",
         "./utils/scripts/load-binary.sh waf_rule_set",
@@ -333,7 +335,7 @@ def add_parametric_job(workflow, needs):
     job = Job("parametric", needs=[job.name for job in needs])
 
     job.data["strategy"] = {
-        "matrix": {"client": ["python", "python_http", "dotnet", "golang", "nodejs"]},
+        "matrix": {"client": ["python", "python_http", "dotnet", "golang", "java", "nodejs"]},
         "fail-fast": False,
     }
 
@@ -397,6 +399,8 @@ def main():
         "APPSEC_RATE_LIMITER",
         "APPSEC_IP_BLOCKING",
         "APPSEC_RUNTIME_ACTIVATION",
+        "APPSEC_WAF_TELEMETRY",
+        "APPSEC_REQUEST_BLOCKING",
         "SAMPLING",
         # "APPSEC_UNSUPPORTED",
     )

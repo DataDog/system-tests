@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/v1/events/app-started.json",
+    "description": "app-started v1 schema",
+    "title": "app-started v1",
+    "type": "object",
+    "properties": {
+        "dependencies": {
+            "type": "array",
+            "items": {
+                "$ref": "/miscs/telemetry/common/objects/dependency.json"
+            }
+        },
+        "integrations": {
+            "type": "array",
+            "items": {
+                "$ref": "/miscs/telemetry/common/objects/integration.json"
+            }
+        },
+        "configuration": {
+            "$ref": "/miscs/telemetry/v1/objects/configuration.json"
+        },
+        "additional_payload": {
+            "$ref": "/miscs/telemetry/v1/objects/configuration.json"
+        }
+    },
+    "required": ["integrations", "dependencies"]
+}

@@ -12,9 +12,7 @@ import time
 
 from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
 from utils.tools import logger
-
-
-DD_HOST_STAGING = "https://dd.datad0g.com"
+from utils.proxy.core import BACKEND_LOCAL_PORT
 
 
 class _BackendInterfaceValidator(InterfaceValidator):
@@ -24,14 +22,14 @@ class _BackendInterfaceValidator(InterfaceValidator):
         super().__init__("backend")
         self.ready = threading.Event()
         self.ready.set()
-        self.timeout = 5
 
         # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
         self.rid_to_library_trace_ids = {}
 
     # Called by the test setup to make sure the interface is ready.
-    def wait(self):
-        super().wait()
+    def wait(self, timeout):
+        super().wait(timeout, stop_accepting_data=False)
+
         from utils.interfaces import library
 
         # Map each request ID to the spans created and submitted during that request call.
@@ -60,11 +58,12 @@ class _BackendInterfaceValidator(InterfaceValidator):
         """
 
         rid = get_rid_from_request(request)
-        tracesData = self._wait_for_request_traces(rid)
+        tracesData = list(self._wait_for_request_traces(rid))
+        traces = [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
         assert (
-            len(tracesData) > min_traces_len
-        ), f"We only found {len(tracesData)} traces in the library (tracers), but we expected {min_traces_len}!"
-        return [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
+            len(traces) >= min_traces_len
+        ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
+        return traces
 
     def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
         """Attempts to fetch single span events using the given `query_filter` as part of the search query.
@@ -109,7 +108,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         data = self._wait_for_event_platform_spans(query_filter, limit)
 
         result = data["response"]["contentJson"]["result"]
-        assert result["count"] == min_spans_len
+        assert result["count"] >= min_spans_len, f"Did not have the expected number of spans ({min_spans_len}): {data}"
 
         return [item["event"] for item in result["events"]]
 
@@ -117,21 +116,22 @@ class _BackendInterfaceValidator(InterfaceValidator):
     ######### Internal implementation ##########
     ############################################
 
-    def _get_trace_ids(self, request):
-        rid = get_rid_from_request(request)
-
+    def _get_trace_ids(self, rid):
         if rid not in self.rid_to_library_trace_ids:
             raise Exception("There is no trace id related to this request ")
 
         return self.rid_to_library_trace_ids[rid]
 
     def _get_backend_trace_data(self, rid, trace_id):
+        # We use `localhost` as host since we run a proxy that forwards the requests to the right
+        # backend DD_SITE domain, and logs the request/response as well.
+        # More details in `utils.proxy.core.get_dd_site_api_host()`.
+        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
         path = f"/api/v1/trace/{trace_id}"
-        host = DD_HOST_STAGING
 
         headers = {
             "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
         }
         r = requests.get(f"{host}{path}", headers=headers, timeout=10)
 
@@ -169,7 +169,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         if retries < 1:
             retries = 1
 
-        trace_ids = self._get_trace_ids(request)
+        trace_ids = self._get_trace_ids(rid)
         logger.info(
             f"Waiting for {len(trace_ids)} traces to become available from request {rid} with {retries} retries..."
         )
@@ -218,12 +218,15 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     def _get_event_platform_spans(self, query_filter, limit):
         # Example of this query can be seen in the `events-ui` internal website (see Jira ATI-2419).
-        path = "/api/v1/event-platform/analytics/list?type=trace"
-        host = DD_HOST_STAGING
+        # We use `localhost` as host since we run a proxy that forwards the requests to the right
+        # backend DD_SITE domain, and logs the request/response as well.
+        # More details in `utils.proxy.core.get_dd_site_api_host()`.
+        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
+        path = "/api/unstable/event-platform/analytics/list?type=trace"
 
         headers = {
             "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
         }
 
         request_data = {
@@ -237,12 +240,17 @@ class _BackendInterfaceValidator(InterfaceValidator):
                 },
                 "limit": limit,
                 "columns": [],
-                "computeCound": True,
-                "includeEvents": True,
+                "computeCount": True,
                 "includeEventContents": True,
             }
         }
         r = requests.post(f"{host}{path}", json=request_data, headers=headers, timeout=10)
+
+        contentJson = None
+        try:
+            contentJson = r.json()
+        except:
+            pass
 
         data = {
             "host": host,
@@ -250,7 +258,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             "response": {
                 "status_code": r.status_code,
                 "content": r.text,
-                "contentJson": r.json(),
+                "contentJson": contentJson,
                 "headers": dict(r.headers),
             },
         }

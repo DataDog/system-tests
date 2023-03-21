@@ -22,7 +22,6 @@ def enable_b3() -> Any:
 
 
 @enable_b3()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3_extract_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are extracted
     and activated properly.
@@ -40,7 +39,6 @@ def test_headers_b3_extract_valid(test_agent, test_library):
 
 
 @enable_b3()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3 distributed tracing headers are not extracted.
     """
@@ -55,7 +53,7 @@ def test_headers_b3_extract_invalid(test_agent, test_library):
 
 @enable_b3()
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("java", "Issue: Java doesn't pad the span-id to length of 16 lower-hex characters")
 def test_headers_b3_inject_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are injected properly.
     """
@@ -77,7 +75,7 @@ def test_headers_b3_inject_valid(test_agent, test_library):
 
 @enable_b3()
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("java", "Issue: Java doesn't pad the span-id to length of 16 lower-hex characters")
 def test_headers_b3multi_propagate_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are extracted
     and injected properly.
@@ -102,7 +100,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
 
 @enable_b3()
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("java", "Issue: Java doesn't pad the span-id to length of 16 lower-hex characters")
 def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     """Ensure that invalid b3 distributed tracing headers are not extracted
     and the new span context is injected properly.
