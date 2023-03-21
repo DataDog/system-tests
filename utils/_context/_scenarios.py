@@ -141,7 +141,6 @@ class EndToEndScenario(_Scenario):
 
         print("Building scenario")
         if include_kafka:
-            print("Starting up Kafka")
             self._required_containers.append(
                 TestedContainer(
                     image_name="bitnami/kafka:latest",
