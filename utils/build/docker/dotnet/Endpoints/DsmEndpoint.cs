@@ -15,13 +15,17 @@ namespace weblog
         {
             routeBuilder.MapGet("/dsm", async context =>
             {
-                Console.WriteLine("Hello World! Received dsm call");
-                Thread producerThread = new Thread(Producer.DoWork);
-                Thread consumerThread = new Thread(Consumer.DoWork);
-                producerThread.Start();
-                consumerThread.Start();
-                Console.WriteLine("Done with DSM call");
-                await context.Response.WriteAsync("ok");
+                var integration = context.Request.Query["integration"];
+                Console.WriteLine("Hello World! Received dsm call with integration " + integration);
+                if ("kafka".Equals(integration)) {
+                    Thread producerThread = new Thread(Producer.DoWork);
+                    Thread consumerThread = new Thread(Consumer.DoWork);
+                    producerThread.Start();
+                    consumerThread.Start();
+                    await context.Response.WriteAsync("ok");
+                } else {
+                    await context.Response.WriteAsync("unknown integration: " + integration);
+                }
             });
         }
     }
