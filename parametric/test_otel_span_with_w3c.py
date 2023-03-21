@@ -39,6 +39,7 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
+@pytest.mark.skip_library("golang", "Not implemented - waiting for 128bit work")
 def test_otel_span_with_w3c_headers(test_agent, test_library):
     with test_library:
         with test_library.start_otel_span(
