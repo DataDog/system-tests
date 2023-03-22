@@ -17,10 +17,10 @@ from yarl import URL
 
 from utils import context
 
-from scenarios.fuzzer.corpus import get_corpus
-from scenarios.fuzzer.request_mutator import get_mutator
-from scenarios.fuzzer.request_generators import RequestGenerator
-from scenarios.fuzzer.tools.metrics import (
+from tests.fuzzer.corpus import get_corpus
+from tests.fuzzer.request_mutator import get_mutator
+from tests.fuzzer.request_generators import RequestGenerator
+from tests.fuzzer.tools.metrics import (
     AccumulatedMetric,
     PerformanceMetric,
     Metric,
