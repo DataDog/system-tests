@@ -479,11 +479,13 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     # child span should be dropped by defined trace sampling rules
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+    if "metrics" in child_span:
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    assert child_span["meta"].get("_dd.p.dm") is None
+    if "meta" in child_span:
+        assert child_span["meta"].get("_dd.p.dm") is None
 
 
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
