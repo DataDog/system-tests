@@ -480,3 +480,37 @@ class Test_ForceBatchingEnabled:
             < eventslist.index("app-integrations-change")
             < eventslist.index("app-product-change")
         ), "Events in message-batch are not in chronological order of event triggered"
+
+
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@scenarios.telemetry_log_generation_disabled
+class Test_Log_Generation:
+    """Assert that logs are not reported when logs generation is disabled in telemetry"""
+
+    def test_log_generation_disabled(self):
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            if data["request"]["content"].get("request_type") == "logs":
+                content = data["request"]["content"]
+                raise Exception(" Logs event is sent when log generation is disabled")
+
+
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@scenarios.telemetry_metric_generation_disabled
+class Test_Metric_Generation:
+    """Assert that metrics are not reported when metric generation is disabled in telemetry"""
+
+    def test_metric_generation_disabled(self):
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            if data["request"]["content"].get("request_type") == "generate-metrics":
+                content = data["request"]["content"]
+                raise Exception("Metric genrate event is sent when metric generation is disabled")
