@@ -192,6 +192,7 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
+@pytest.mark.skip_library("php", "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -311,6 +312,7 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
 @pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("php", "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -379,6 +381,7 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
+@pytest.mark.skip_library("php", "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)")
 @pytest.mark.parametrize(
     "library_env",
     [

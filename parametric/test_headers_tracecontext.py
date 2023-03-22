@@ -790,6 +790,7 @@ def test_tracestate_all_allowed_characters(test_agent, test_library):
     "python",
     "\t is an invalid character and is not supported in tracestate. We should update this test use spaces instead",
 )
+@pytest.mark.skip_library("php", "PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)")
 def test_tracestate_ows_handling(test_agent, test_library):
     """
     harness sends a request with a valid tracestate header with OWS
