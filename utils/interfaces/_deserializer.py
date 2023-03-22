@@ -70,23 +70,26 @@ def deserialize_http_message(path, message, data, interface, key):
     if not isinstance(data, (str, bytes)):
         return data
 
+    def json_load():
+        if len(data) == 0:
+            return None
+
+        elif message.get("length") == 0:
+            return None
+
+        return json.loads(data)
+
     content_type = get_header_value("content-type", message["headers"])
     content_type = None if content_type is None else content_type.lower()
 
     if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
-        if len(data) == 0:
-            return None
-        else:
-            try:
-                return json.loads(data)
-            except:
-                return data
+        return json_load()
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
-        return json.loads(data)
+        return json_load()
 
     if interface == "library" and key == "response" and path == "/info":
-        return json.loads(data)
+        return json_load()
 
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack"):
         result = msgpack.unpackb(data, unicode_errors="replace", strict_map_key=False)
