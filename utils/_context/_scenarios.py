@@ -355,7 +355,7 @@ class CgroupScenario(EndToEndScenario):
         filename = f"{self.host_log_folder}/docker/weblog/logs/weblog.cgroup"
         while attempt < max_attempts and not os.path.exists(filename):
 
-            logger.debug("logs/docker/weblog/logs/weblog.cgroup is missing, wait")
+            logger.debug(f"{filename} is missing, wait")
             time.sleep(1)
             attempt += 1
 

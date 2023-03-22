@@ -22,6 +22,16 @@ _release_versions = {}
 _coverages = {}
 _rfcs = {}
 
+
+_JSON_REPORT_FILE = f"{current_scenario.host_log_folder}/report.json"
+_XML_REPORT_FILE = f"{current_scenario.host_log_folder}/reportJunit.xml"
+
+
+def pytest_configure(config):
+    config.option.json_report_file = _JSON_REPORT_FILE
+    config.option.xmlpath = _XML_REPORT_FILE
+
+
 # Called at the very begening
 def pytest_sessionstart(session):
 
@@ -217,7 +227,7 @@ def pytest_sessionfinish(session, exitstatus):
 
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-        open("logs/known_versions.json", "w", encoding="utf-8"),
+        open(f"{current_scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
         indent=2,
     )
 
@@ -229,14 +239,12 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def _pytest_junit_modifyreport():
-    json_report_path = "logs/report.json"
-    junit_report_path = "logs/reportJunit.xml"
 
-    with open(json_report_path, encoding="utf-8") as f:
+    with open(_JSON_REPORT_FILE, encoding="utf-8") as f:
         json_report = json.load(f)
         junit_modifyreport(
             json_report,
-            junit_report_path,
+            _XML_REPORT_FILE,
             _skip_reasons,
             _docs,
             _rfcs,

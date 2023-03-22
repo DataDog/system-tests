@@ -10,6 +10,7 @@ import re
 import time
 
 from utils.tools import logger
+from utils._context._scenarios import current_scenario
 from ._deserializer import deserialize
 
 
@@ -53,7 +54,9 @@ class InterfaceValidator:
             count = self.message_counter
             self.message_counter += 1
 
-        log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
+        log_foldename = f"{current_scenario.host_log_folder}/interfaces/{self.name}"
+        log_filename = f"{log_foldename}/{count:03d}_{data['path'].replace('/', '_')}.json"
+
         data["log_filename"] = log_filename
         logger.debug(f"{self.name}'s interface receive data on {data['host']}{data['path']}: {log_filename}")
 

@@ -16,6 +16,7 @@ from jsonschema import Draft7Validator, RefResolver
 from jsonschema.validators import extend
 
 from utils.tools import logger
+from utils._context._scenarios import current_scenario
 
 
 def _is_bytes_or_string(_checker, instance):
@@ -95,7 +96,7 @@ class SchemaValidator:
                 for message in messages:
                     logger.error(f"* {message}")
 
-                raise Exception(f"Schema is invalid in {data['log_filename']}")
+                raise ValueError(f"Schema is invalid in {data['log_filename']}")
 
         logger.debug(f"{data['log_filename']} schema validation ok")
 
@@ -103,7 +104,7 @@ class SchemaValidator:
 def _main():
     for interface in ("agent", "library"):
         validator = SchemaValidator(interface)
-        path = f"logs/interfaces/{interface}"
+        path = f"{current_scenario.host_log_folder}/interfaces/{interface}"
         files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
         for file in files:
             data = json.load(open(os.path.join(path, file), encoding="utf-8"))

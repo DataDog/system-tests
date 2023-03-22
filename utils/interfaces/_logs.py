@@ -9,6 +9,7 @@ import re
 import os
 
 from utils._context.core import context
+from utils._context._scenarios import current_scenario
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator
 
@@ -158,7 +159,10 @@ class _LibraryStdout(_LogsInterfaceValidator):
             self._parsers.append(re.compile(p("message", r".*")))
 
     def _get_files(self):
-        return ["logs/docker/weblog/stdout.log", "logs/docker/weblog/stderr.log"]
+        return [
+            f"{current_scenario.host_log_folder}/docker/weblog/stdout.log",
+            f"{current_scenario.host_log_folder}/docker/weblog/stderr.log",
+        ]
 
     def _clean_line(self, line):
         if line.startswith("weblog_1         | "):
@@ -196,12 +200,12 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         result = []
 
         try:
-            files = os.listdir("logs/docker/weblog/logs/")
+            files = os.listdir(f"{current_scenario.host_log_folder}/docker/weblog/logs/")
         except FileNotFoundError:
             files = []
 
         for f in files:
-            filename = os.path.join("logs/docker/weblog/logs/", f)
+            filename = os.path.join(f"{current_scenario.host_log_folder}/docker/weblog/logs/", f)
 
             if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
                 result.append(filename)
@@ -224,7 +228,7 @@ class _AgentStdout(_LogsInterfaceValidator):
         self._parsers.append(re.compile(message))  # fall back
 
     def _get_files(self):
-        return ["logs/docker/agent/stdout.log"]
+        return [f"{current_scenario.host_log_folder}/docker/agent/stdout.log"]
 
 
 ########################################################
