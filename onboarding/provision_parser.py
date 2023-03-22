@@ -53,6 +53,16 @@ class Provision_parser:
         config_data["prepare-repos"]["install"] = filteredInstalations[0]
         return config_data["prepare-repos"]
 
+    def ec2_prepare_docker_install_data(self, os_type, os_distro):
+        config_data = self._load_provision()
+        if "prepare-docker" not in config_data:
+            return {"install": None}
+        filteredInstalations = self._filter_install_data(
+            config_data["prepare-docker"], os_type, os_distro, os_branch=None, exact_match=False
+        )
+        config_data["prepare-docker"]["install"] = filteredInstalations[0]
+        return config_data["prepare-docker"]
+
     def ec2_weblogs_install_data(self, language, support_version, os_type, os_distro, os_branch):
         config_data = self._load_provision()
         for language_weblog_data in config_data["weblogs"]:

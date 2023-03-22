@@ -46,6 +46,8 @@ def load_filter():
 
 
 def remote_install(connection, command_identifier, install_info, depends_on, add_dd_keys=False):
+    if install_info is None:
+        return depends_on
     if add_dd_keys:
         command_exec = "DD_API_KEY=" + dd_api_key + " DD_SITE=" + dd_site + " " + install_info["command"]
     else:
@@ -143,8 +145,17 @@ def infraestructure_provision(provision_parser):
 
                         # Prepare repositories
                         prepare_repos_install = provision_parser.ec2_prepare_repos_install_data(os_type, os_distro)
-                        prepare_reos_installer = remote_install(
+                        prepare_repos_installer = remote_install(
                             connection, "prepare-repos-installer_" + ec2_name, prepare_repos_install["install"], server
+                        )
+
+                        # Prepare docker installation if we need
+                        prepare_docker_install = provision_parser.ec2_prepare_docker_install_data(os_type, os_distro)
+                        prepare_docker_installer = remote_install(
+                            connection,
+                            "prepare-docker-installer_" + ec2_name,
+                            prepare_docker_install["install"],
+                            prepare_repos_installer,
                         )
 
                         # Install agent
@@ -152,7 +163,7 @@ def infraestructure_provision(provision_parser):
                             connection,
                             "agent-installer_" + ec2_name,
                             agent_instalations["install"],
-                            prepare_reos_installer,
+                            prepare_docker_installer,
                             True,
                         )
 
@@ -175,7 +186,7 @@ def infraestructure_provision(provision_parser):
                         # Build weblog app
                         webapp_build = build_local_weblog(ec2_name, weblog_instalations, lang_variant_installer)
                         weblog_runner = remote_install(
-                            connection, "run-weblog_" + ec2_name, weblog_instalations["install"], webapp_build
+                            connection, "run-weblog_" + ec2_name, weblog_instalations["install"], webapp_build, True
                         )
                         pulumi.export("privateIp_" + ec2_name, server.private_ip)
 
