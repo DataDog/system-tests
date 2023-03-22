@@ -87,6 +87,11 @@ class _RequestLogger:
             flow.request.host, flow.request.port = "localhost", 8127
             flow.request.scheme = "http"
 
+    @staticmethod
+    def request_is_from_tracer(request):
+        # as now, only the tracer use the proxy as a reverse proxy
+        return request.host == "localhost"
+
     def response(self, flow):
         self._modify_response(flow)
 
@@ -122,7 +127,7 @@ class _RequestLogger:
 
         dd_site_url = get_dd_site_api_host()
 
-        if flow.request.host == "localhost":
+        if self.request_is_from_tracer(flow.request):
             interface = interfaces.library
         elif f"https://{flow.request.host}" == dd_site_url:
             interface = interfaces.backend
@@ -157,7 +162,7 @@ class _RequestLogger:
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_NO_CACHE)
 
     def _modify_response_rc(self, flow, mocked_responses):
-        if flow.request.host != "agent":
+        if not self.request_is_from_tracer(flow.request):
             return  # modify only tracer/agent flow
 
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
