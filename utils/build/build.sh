@@ -188,15 +188,6 @@ build() {
             SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
 
-            # Special logic to turn off DD_DATA_STREAMS_ENABLED for spring-boot-native right now
-            # as having it turned on seems to break other existing tests due to a reflection issue
-            # in a library we use.
-            if [ "${WEBLOG_VARIANT}" = "spring-boot-native" ]  || [ "${WEBLOG_VARIANT}" = "spring-boot-3-native" ]; then
-                DD_DATA_STREAMS_ENABLED="false"
-            else
-                DD_DATA_STREAMS_ENABLED="true"
-            fi
-
             docker build \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
@@ -206,7 +197,6 @@ build() {
                 --build-arg SYSTEM_TESTS_PHP_APPSEC_VERSION="$SYSTEM_TESTS_PHP_APPSEC_VERSION" \
                 --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
                 --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
-                --build-arg DD_DATA_STREAMS_ENABLED="$DD_DATA_STREAMS_ENABLED" \
                 -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
                 -t system_tests/weblog \
                 .

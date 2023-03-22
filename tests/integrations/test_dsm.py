@@ -19,7 +19,7 @@ class Test_DsmKafka:
 
     def test_dsm_kafka(self):
         assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
 
         expected_kafka_out = DsmStatsPoint(
             4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
@@ -44,7 +44,7 @@ class Test_DsmKafkaNoPartitionTag:
 
     def test_dsm_kafka(self):
         assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
 
         expected_kafka_out = DsmStatsPoint(
             4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
@@ -74,7 +74,7 @@ class Test_DsmHttp:
     def test_dsm_http(self):
         assert str(self.r.content, "UTF-8") == "ok"
 
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
         expected_http = DsmStatsPoint(3883033147046472598, 0, ["direction:in", "type:http"])
 
         assert expected_http in checkpoints

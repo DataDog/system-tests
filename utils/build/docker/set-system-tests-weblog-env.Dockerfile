@@ -14,12 +14,6 @@ ENV DD_TRACE_COMPUTE_STATS=true
 
 ENV SOME_SECRET_ENV=leaked-env-var
 
-# Special setup for DD_DATA_STREAMS_ENABLED
-# until we figure out the issue with enabling
-# data streams on spring-boot-native
-ARG DD_DATA_STREAMS_ENABLED
-ENV DD_DATA_STREAMS_ENABLED=$DD_DATA_STREAMS_ENABLED
-
 # 10 seconds
 ENV DD_APPSEC_WAF_TIMEOUT=10000000
 ENV DD_APPSEC_TRACE_RATE_LIMIT=10000
