@@ -95,6 +95,7 @@ class EndToEndScenario(_Scenario):
         include_cassandra_db=False,
         include_mongo_db=False,
         include_kafka=False,
+        include_rabbitmq=False,
     ) -> None:
         super().__init__(name, use_interfaces=True)
 
@@ -162,6 +163,15 @@ class EndToEndScenario(_Scenario):
                     image_name="bitnami/zookeeper:latest",
                     name="zookeeper",
                     environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
+                    allow_old_container=True,
+                )
+            )
+
+        if include_rabbitmq:
+            self._required_containers.append(
+                TestedContainer(
+                    image_name="rabbitmq:3-management-alpine",
+                    name="rabbitmq",
                     allow_old_container=True,
                 )
             )
@@ -332,7 +342,7 @@ class scenarios:
     # scenario for weblog arch that does not support Appsec
     appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
-    dsm = EndToEndScenario("DSM", include_kafka=True)
+    dsm = EndToEndScenario("DSM", include_kafka=True, include_rabbitmq=True)
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",

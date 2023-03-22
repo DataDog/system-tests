@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -270,10 +271,19 @@ public class App {
                 e.printStackTrace();
                 return "failed to start consuming message";
             }
-            return "ok";
+        } else if ("rabbitmq".equals(integration)) {
+            RabbitmqConnector rabbitmq = new RabbitmqConnector();
+            try {
+                rabbitmq.startProducingMessage("hello world!");
+            } catch (Exception e) {
+                System.out.println("Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
         } else {
             return "unknown integration: " + integration;
         }
+        return "ok";
     }
 
     @RequestMapping("/trace/ognl")
