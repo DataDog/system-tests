@@ -459,7 +459,9 @@ class scenarios:
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS", appsec_rules="/appsec_custom_rules_with_errors.json"
     )
-    appsec_disabled = EndToEndScenario("APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"})
+    appsec_disabled = EndToEndScenario(
+        "APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"}, appsec_enabled=False
+    )
     appsec_low_waf_timeout = EndToEndScenario("APPSEC_LOW_WAF_TIMEOUT", weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"})
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
