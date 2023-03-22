@@ -7,7 +7,7 @@ import argparse
 
 from utils._context.containers import WeblogContainer, AgentContainer, create_network
 from utils.tools import get_logger
-from scenarios.fuzzer.core import Fuzzer
+from tests.fuzzer.core import Fuzzer
 
 
 def main():
