@@ -189,7 +189,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - run: mkdir logs && touch logs/.weblog.env
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Pull mongo image
       run: docker pull mongo:latest
     - name: Pull cassandra image
@@ -408,7 +411,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - run: mkdir logs && touch logs/.weblog.env
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Pull mongo image
       run: docker pull mongo:latest
     - name: Pull cassandra image
@@ -633,6 +639,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Run
       run: ./tests/perfs/run.sh golang
     - name: Display
@@ -649,6 +659,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Build
       run: ./build.sh golang
     - name: Run
