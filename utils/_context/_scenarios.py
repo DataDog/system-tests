@@ -332,14 +332,13 @@ class scenarios:
     # scenario for weblog arch that does not support Appsec
     appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
-    dsm = EndToEndScenario("DSM", include_kafka=True)
-
     integrations = EndToEndScenario(
         "INTEGRATIONS",
         weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
+        include_kafka=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)

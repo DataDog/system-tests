@@ -10,7 +10,7 @@ from utils import weblog, interfaces, context, bug, missing_feature, scenarios
     context.weblog_variant not in ("spring-boot"),
     reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
 )
-@scenarios.dsm
+@scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
@@ -35,7 +35,7 @@ class Test_DsmKafka:
 
 
 @missing_feature(condition=context.library != "dotnet", reason="Missing partition tag only on dotnet")
-@scenarios.dsm
+@scenarios.integrations
 class Test_DsmKafkaNoPartitionTag:
     """ Verify DSM stats points for Kafka """
 
@@ -64,7 +64,7 @@ class Test_DsmKafkaNoPartitionTag:
     context.weblog_variant not in ("spring-boot"),
     reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
 )
-@scenarios.dsm
+@scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
