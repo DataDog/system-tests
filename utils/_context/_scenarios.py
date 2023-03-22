@@ -345,15 +345,15 @@ class CgroupScenario(EndToEndScenario):
 
     def _get_warmups(self):
         warmups = super()._get_warmups()
-        warmups.append(CgroupScenario._wait_for_weblog_cgroup_file)
+        warmups.append(self._wait_for_weblog_cgroup_file)
         return warmups
 
-    @staticmethod
-    def _wait_for_weblog_cgroup_file():
+    def _wait_for_weblog_cgroup_file(self):
         max_attempts = 10  # each attempt = 1 second
         attempt = 0
 
-        while attempt < max_attempts and not os.path.exists("logs/docker/weblog/logs/weblog.cgroup"):
+        filename = f"{self.host_log_folder}/docker/weblog/logs/weblog.cgroup"
+        while attempt < max_attempts and not os.path.exists(filename):
 
             logger.debug("logs/docker/weblog/logs/weblog.cgroup is missing, wait")
             time.sleep(1)
