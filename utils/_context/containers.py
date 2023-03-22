@@ -62,11 +62,15 @@ class TestedContainer:
     def __init__(
         self, name, image_name, host_log_folder, environment=None, allow_old_container=False, healthcheck=None, **kwargs
     ) -> None:
-        self.image = ImageInfo(image_name)
         self.name = name
+        self.host_log_folder = host_log_folder
+
+        Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
+        Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
+
+        self.image = ImageInfo(image_name, dir_path=self.log_folder_path)
         self.allow_old_container = allow_old_container
         self.healthcheck = healthcheck
-        self.host_log_folder = host_log_folder
         self.environment = self.image.env | (environment or {})
 
         self.kwargs = kwargs
@@ -87,11 +91,6 @@ class TestedContainer:
                 return container
 
     def start(self) -> Container:
-        Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
-        Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
-
-        self.image.save_infos(self.log_folder_path)
-
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -165,21 +164,18 @@ class TestedContainer:
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name):
+    def __init__(self, image_name, dir_path):
         self.env = {}
         self.name = image_name
         try:
             self._image = _client.images.get(image_name)
         except docker.errors.ImageNotFound:
-            self._image = None
-        else:
-            for var in self._image.attrs["Config"]["Env"]:
-                key, value = var.split("=", 1)
-                self.env[key] = value
+            logger.info(f"Image {image_name} has not been found locally")
+            self._image = _client.images.pull(image_name)
 
-    def save_infos(self, dir_path):
-        if self._image is None:
-            raise ValueError(f"Image {self.name} is missing")
+        for var in self._image.attrs["Config"]["Env"]:
+            key, value = var.split("=", 1)
+            self.env[key] = value
 
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
             json.dump(self._image.attrs, f, indent=2)

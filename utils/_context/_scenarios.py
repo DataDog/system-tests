@@ -10,11 +10,28 @@ from utils._context.containers import TestedContainer, WeblogContainer, AgentCon
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger, get_log_formatter
 
+current_scenario = None
+
 
 class _Scenario:
-    def __init__(self, name, proxy_state=None) -> None:
+    def __init__(self, name) -> None:
         self.name = name
-        self.proxy_state = proxy_state
+
+        if os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO") == self.name:
+            global current_scenario
+            current_scenario = self
+
+            shutil.rmtree(self.host_log_folder, ignore_errors=True)
+            Path(self.host_log_folder).mkdir(parents=True)
+
+            handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
+            handler.setFormatter(get_log_formatter())
+
+            logger.addHandler(handler)
+
+    @property
+    def is_current_scenario(self):
+        return current_scenario is self
 
     def __call__(self, test_method):
         # handles @scenarios.scenario_name
@@ -24,13 +41,6 @@ class _Scenario:
 
     def session_start(self, session):
         """ called at the very begning of the process """
-        shutil.rmtree(self.host_log_folder, ignore_errors=True)
-        Path(self.host_log_folder).mkdir(parents=True)
-
-        handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
-        handler.setFormatter(get_log_formatter())
-
-        logger.addHandler(handler)
 
     def _get_warmups(self):
         return []
@@ -110,6 +120,9 @@ class EndToEndScenario(_Scenario):
         use_proxy=True,
     ) -> None:
         super().__init__(name)
+
+        if not self.is_current_scenario:
+            return
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
         self.weblog_container = WeblogContainer(
@@ -571,10 +584,8 @@ class scenarios:
     )
 
 
-current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO").lower()
-
-if not hasattr(scenarios, current_scenario_name):
+if current_scenario is None:
+    current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO")
     raise ValueError(f"Scenario {current_scenario_name} does not exists")
 
-current_scenario = getattr(scenarios, current_scenario_name)
 logger.info(f"Current scenario is {current_scenario}")
