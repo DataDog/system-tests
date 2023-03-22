@@ -97,15 +97,18 @@ class Test_DsmRabbitmq:
         checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
 
         expected_kafka_out = DsmStatsPoint(
-            6176024609184775446, 0, ["direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"])
-        #expected_kafka_in = DsmStatsPoint(
+            6176024609184775446,
+            0,
+            ["direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"],
+        )
+        # expected_kafka_in = DsmStatsPoint(
         #    3735318893869752335,
         #    4463699290244539355,
         #    ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
-        #)
+        # )
 
         assert expected_kafka_out in checkpoints
-        #assert expected_kafka_in in checkpoints
+        # assert expected_kafka_in in checkpoints
 
 
 class DsmHelper:

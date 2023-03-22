@@ -169,11 +169,7 @@ class EndToEndScenario(_Scenario):
 
         if include_rabbitmq:
             self._required_containers.append(
-                TestedContainer(
-                    image_name="rabbitmq:3-management-alpine",
-                    name="rabbitmq",
-                    allow_old_container=True,
-                )
+                TestedContainer(image_name="rabbitmq:3-management-alpine", name="rabbitmq", allow_old_container=True,)
             )
 
         if agent_interface_timeout is None:
