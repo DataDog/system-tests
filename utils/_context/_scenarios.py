@@ -91,6 +91,10 @@ class _Scenario:
 
 class TestTheTestScenario(_Scenario):
     @property
+    def host_log_folder(self):
+        return "logs"
+
+    @property
     def library(self):
         return LibraryVersion("java", "0.66.0")
 
