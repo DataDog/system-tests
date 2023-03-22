@@ -57,7 +57,9 @@ def test_traceparent_included_tracestate_missing(test_agent, test_library):
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
-@pytest.mark.skip_library("php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used")
+@pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
 @pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -562,7 +564,9 @@ def test_tracestate_header_name_valid_casing(test_agent, test_library):
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
-@pytest.mark.skip_library("php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used")
+@pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
 @pytest.mark.skip_library(
     "golang",
     "golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -620,7 +624,9 @@ def test_tracestate_empty_header(test_agent, test_library):
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
-@pytest.mark.skip_library("php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used")
+@pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
 @pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",

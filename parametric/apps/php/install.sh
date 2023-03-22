@@ -21,12 +21,8 @@ if [ "$PKG" == "" ]; then
     ARCH=x86_64
   fi
   # curl -LO https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/datadog-setup.php
-  # curl -LO https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/dd-library-php-${DDTRACE_VERSION}-${ARCH}-linux-gnu.tar.gz
-  curl -LO https://output.circle-artifacts.com/output/job/66a59769-7785-4db4-af6c-36a905218db1/artifacts/0/dd-library-php-1.0.0-nightly-${ARCH}-linux-gnu.tar.gz
-  curl -LO https://github.com/DataDog/dd-trace-php/releases/download/0.84.0/datadog-setup.php
-  PKG=dd-library-php-1.0.0-nightly-${ARCH}-linux-gnu.tar.gz
-  # PKG=dd-library-php-${DDTRACE_VERSION}-${ARCH}-linux-gnu.tar.gz
+  curl -LO https://output.circle-artifacts.com/output/job/b4a03600-2305-4605-827e-0d8daaaf8785/artifacts/0/datadog-setup.php 
   SETUP=datadog-setup.php
 fi
 echo "Installing php package $PKG with setup script $SETUP"
-php $SETUP --php-bin=all --file="$PKG"
+php $SETUP --php-bin=all "$([ "$PKG" = "" ] || echo --file="$PKG")"
