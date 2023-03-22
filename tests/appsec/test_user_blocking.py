@@ -2,7 +2,7 @@ from utils import released, coverage, interfaces, scenarios, weblog
 
 
 @released(
-    cpp="?", dotnet="?", golang="1.48.0", java="?", nodejs="?", php="0.85.0", php_appsec="0.7.0", python="?", ruby="?"
+    cpp="?", dotnet="2.26.0", golang="1.48.0", java="?", nodejs="?", php="0.85.0", php_appsec="0.7.0", python="?", ruby="?"
 )
 @coverage.basic
 @scenarios.appsec_blocking

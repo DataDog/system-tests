@@ -5,7 +5,7 @@
 from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, irrelevant
 
 
-@released(cpp="?", dotnet="?", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(cpp="?", dotnet="2.26.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
 @coverage.basic
 @scenarios.appsec_blocking
 @released(

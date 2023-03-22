@@ -110,7 +110,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 """
 
 
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(dotnet="2.26.0", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "0.112.0",
