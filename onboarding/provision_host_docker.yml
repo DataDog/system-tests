@@ -20,6 +20,9 @@ ami:
 prepare-repos:
   install: !include provision_prepare_repos.yml
 
+prepare-docker:
+  install: !include provision_prepare_docker.yml
+
 agent:
 
   - env: prod
@@ -39,8 +42,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh ./get-docker.sh
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -52,8 +53,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |    
-            sudo yum -y install docker
-            sudo systemctl start docker.service
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -67,8 +66,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh ./get-docker.sh
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -80,8 +77,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            sudo yum -y install docker
-            sudo systemctl start docker.service
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -95,8 +90,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh ./get-docker.sh
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -108,8 +101,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            sudo yum -y install docker
-            sudo systemctl start docker.service
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -123,8 +114,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh ./get-docker.sh
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -136,8 +125,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            sudo yum -y install docker
-            sudo systemctl start docker.service
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -151,8 +138,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh ./get-docker.sh
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -164,8 +149,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            sudo yum -y install docker
-            sudo systemctl start docker.service
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -179,8 +162,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh ./get-docker.sh
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
@@ -192,8 +173,6 @@ autoinjection:
               local_path: autoinjection/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
-            sudo yum -y install docker
-            sudo systemctl start docker.service
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
