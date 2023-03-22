@@ -38,7 +38,7 @@ The following dependencies are required to run the tests locally:
 - Docker
 - Python >= 3.7 (for Windows users, Python 3.9 seems to run best without issues)
 
-then, create a Python virtual environment and install the Python dependencies:
+then, create a Python virtual environment and install the Python dependencies from the parametric tests directory:
 
 ```sh
 python -m venv venv
@@ -126,6 +126,25 @@ To test unmerged PRs locally, run the following in the apps/golang directory:
 ```sh
 go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
 go mod tidy
+```
+
+#### Java
+
+##### Run Parametric tests with a custom Java Tracer version
+
+1. Build Java Tracer artifacts
+```bash
+git clone git@github.com:DataDog/dd-trace-java.git 
+cd dd-trace-java
+./gradlew :dd-trace-ot:shadowar :dd-trace-api:jar
+```
+
+2. Copy both artifacts `dd-trace-api-*.jar` and `dd-trace-ot-*.jar` into the `system-tests/binaries/` folder.
+
+3. Run Parametric tests from the `system-tests/parametric` folder:
+
+```bash
+CLIENTS_ENABLED=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
 ```
 
 

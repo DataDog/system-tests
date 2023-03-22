@@ -22,7 +22,6 @@ class AgentInterfaceValidator(InterfaceValidator):
     def __init__(self):
         super().__init__("agent")
         self.ready = threading.Event()
-        self.timeout = 5
 
     def append_data(self, data):
         data = super().append_data(data)
@@ -73,7 +72,6 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
 
     def profiling_assert_field(self, field_name, content_pattern=None):
-        self.timeout = 160
         self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
     def validate_appsec(self, request, validator):
@@ -82,6 +80,9 @@ class AgentInterfaceValidator(InterfaceValidator):
                 return
 
         raise Exception("No data validate this test")
+
+    def get_telemetry_data(self):
+        yield from self.get_data(path_filters="/api/v2/apmtelemetry")
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
@@ -107,3 +108,28 @@ class AgentInterfaceValidator(InterfaceValidator):
         self.validate(
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )
+
+    def get_spans(self, request=None):
+        """Attempts to fetch the spans the agent will submit to the backend.
+
+        When a valid request is given, then we filter the spans to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        rid = get_rid_from_request(request)
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            if "tracerPayloads" not in data["request"]["content"]:
+                raise Exception("Trace property is missing in agent payload")
+
+            content = data["request"]["content"]["tracerPayloads"]
+
+            for payload in content:
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        if rid is None:
+                            yield data, span
+                        elif get_rid_from_span(span) == rid:
+                            yield data, span

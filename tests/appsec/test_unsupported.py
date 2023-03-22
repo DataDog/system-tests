@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenario
+from utils import weblog, interfaces, scenarios
 
 
-@scenario("APPSEC_UNSUPPORTED")
+@scenarios.appsec_unsupported
 class TestAppSecDeactivated:
     def setup_no_attack_detected(self):
         self.r1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})

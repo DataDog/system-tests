@@ -135,7 +135,9 @@ RUN python3.9 -m pip install %s
 def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("apps", "nodejs")
     nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
-    nodejs_reldir = os.path.join("parametric", nodejs_appdir)
+
+    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    nodejs_reldir = os.path.join("parametric", nodejs_appdir).replace("\\", "/")
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
@@ -167,7 +169,9 @@ RUN npm install {node_module}
 def golang_library_factory(env: Dict[str, str]):
     go_appdir = os.path.join("apps", "golang")
     go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
-    go_reldir = os.path.join("parametric", go_appdir)
+
+    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    go_reldir = os.path.join("parametric", go_appdir).replace("\\", "/")
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
@@ -191,6 +195,8 @@ RUN go install
 def dotnet_library_factory(env: Dict[str, str]):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
+
+    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
     server = APMLibraryTestServer(
         lang="dotnet",
@@ -217,7 +223,9 @@ WORKDIR "/client/."
 def java_library_factory(env: Dict[str, str]):
     java_appdir = os.path.join("apps", "java")
     java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
-    java_reldir = os.path.join("parametric", java_appdir)
+    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    java_reldir = os.path.join("parametric", java_appdir).replace("\\", "/")
+    protofile = os.path.join("parametric", "protos", "apm_test_client.proto").replace("\\", "/")
     return APMLibraryTestServer(
         lang="java",
         protocol="grpc",
@@ -230,6 +238,7 @@ COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
 COPY {java_reldir}/run.sh .
+COPY {protofile} src/main/proto/
 COPY binaries /binaries
 RUN bash build.sh
 """,

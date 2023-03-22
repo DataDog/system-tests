@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/common/events/generate-metrics.json",
+    "description": "generate-metrics schema",
+    "title": "generate-metrics",
+    "type": "object",
+    "properties": {
+        "namespace": {
+            "type": "string"
+        },
+        "series": {
+            "type": "array",
+            "items": {
+                "$ref": "/miscs/telemetry/common/objects/metric.json"
+            }
+        }
+    },
+    "required": ["namespace", "series"]
+}

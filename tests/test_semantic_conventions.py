@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, released
+from utils import context, interfaces, bug, released, missing_feature
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -225,6 +225,7 @@ class Test_Meta:
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
     @bug(library="java", reason="language tag implemented but not for all spans")
+    @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
@@ -311,7 +312,7 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
-@released(ruby="1.7.0", nodejs="3.13.1", java="1.6.0", php="0.83.1")
+@released(ruby="1.7.0", nodejs="3.13.1", java="1.6.0", php="0.83.1", dotnet="2.6.0")
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

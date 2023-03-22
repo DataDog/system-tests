@@ -7,7 +7,6 @@ import json
 import threading
 
 from utils.tools import logger
-from utils._context.core import context
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
@@ -19,7 +18,10 @@ from utils.interfaces._library.sampling import (
     _AddSamplingDecisionValidator,
     _DistributedTracesDeterministicSamplingDecisisonValidator,
 )
-from utils.interfaces._library.telemetry import _SeqIdLatencyValidation, _NoSkippedSeqId
+from utils.interfaces._library.telemetry import (
+    _SeqIdLatencyValidation,
+    _NoSkippedSeqId,
+)
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils.interfaces._profiling import _ProfilingFieldValidator
@@ -33,19 +35,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
         super().__init__("library")
         self.ready = threading.Event()
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
-
-        if context.library == "java":
-            self.timeout = 80
-        elif context.library.library in ("golang",):
-            self.timeout = 10
-        elif context.library.library in ("nodejs",):
-            self.timeout = 5
-        elif context.library.library in ("php",):
-            self.timeout = 10  # possibly something weird on obfuscator, let increase the delay for now
-        elif context.library.library in ("python",):
-            self.timeout = 25
-        else:
-            self.timeout = 40
 
     def append_data(self, data):
         self.ready.set()
@@ -72,6 +61,10 @@ class LibraryInterfaceValidator(InterfaceValidator):
                             break
 
     def get_spans(self, request=None):
+        """
+        Iterate over all spans reported by the tracer to the agent.
+        If request is not None, only span trigered by this request will be returned.
+        """
         rid = get_rid_from_request(request)
 
         if rid:
@@ -364,7 +357,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
 
     def profiling_assert_field(self, field_name, content_pattern=None):
-        self.timeout = 160
         self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
 
     def assert_trace_exists(self, request, span_type=None):

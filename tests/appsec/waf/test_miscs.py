@@ -92,7 +92,6 @@ class Test_MultipleAttacks:
         interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
-@missing_feature(library="php")
 @coverage.basic
 class Test_NoWafTimeout:
     """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""

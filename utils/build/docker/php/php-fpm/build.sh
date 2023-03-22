@@ -5,6 +5,7 @@ set -e
 PHP_VERSION=$1
 PHP_MAJOR_VERSION=`echo $PHP_VERSION | cut -d. -f1`
 
+
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata publicsuffix
 
@@ -15,10 +16,11 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	rm -rf /usr/sbin/policy-rc.d
 
 
+add-apt-repository ppa:ondrej/apache2 -y
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl
+apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2
 
 find /var/www/html -mindepth 1 -delete
 
@@ -27,6 +29,8 @@ cp -rf /tmp/php/common/*.php /var/www/html/
 cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 cp /tmp/php/php-fpm/entrypoint.sh /
+
+chmod 644 /var/www/html/*.php
 
 a2enmod rewrite
 
@@ -47,6 +51,8 @@ export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
 cp /tmp/php/common/install_ddtrace.sh /
 /install_ddtrace.sh 0
+
+rm -rf /etc/php/$PHP_VERSION/fpm/conf.d/98-ddappsec.ini
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/$PHP_VERSION/fpm/php.ini
