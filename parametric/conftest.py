@@ -276,6 +276,7 @@ RUN composer install
         env=env,
     )
 
+
 def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     ruby_appdir = os.path.join("apps", "ruby")
     ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
@@ -306,6 +307,7 @@ def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
         container_build_dir=ruby_dir,
         env=env,
     )
+
 
 _libs = {
     "dotnet": dotnet_library_factory,
