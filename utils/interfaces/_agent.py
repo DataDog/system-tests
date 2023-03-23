@@ -133,3 +133,6 @@ class AgentInterfaceValidator(InterfaceValidator):
                             yield data, span
                         elif get_rid_from_span(span) == rid:
                             yield data, span
+
+    def get_dsm_data(self):
+        return self.get_data(path_filters="/api/v0.1/pipeline_stats")

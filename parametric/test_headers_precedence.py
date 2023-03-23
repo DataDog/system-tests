@@ -398,6 +398,7 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
 
 
 @enable_datadog_tracecontext()
+@pytest.mark.skip_library("php", "Legacy behaviour: Fixed order instead of order of definition")
 @pytest.mark.skip_library(
     "golang",
     "BUG: suite #4 is failing - if context is successfully retrieved from W3C propagator, datadog propagator is NOT "
