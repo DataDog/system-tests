@@ -18,17 +18,17 @@ while [[ "$#" -gt 0 ]]; do
         -fod|--filter-os-distro) FILTER_OS_DISTRO="$2"; shift ;;
         -fw|--filter-weblog) FILTER_WEBLOG="$2"; shift ;;
         -fp|--filter-provision-scenario) FILTER_PROVISION_SCENARIO="$2"; shift ;;
-        *) cat README.md; exit 8 ;;
+        *) cat USAGE.md; exit 8 ;;
     esac
     shift
 done
 
 #Parameters validation. Custom exit code for parameter validation.
-[[ -z "$AWS_KEY_PAIR_NAME" ]] && echo "--KeyPairName parameter is mandatory." && cat README.md && exit 8
-[[ -z "$AWS_SUBNET" ]] && echo "--subnet parameter is mandatory." && cat README.md && exit 8
-[[ -z "$AWS_VPC" ]] && echo "--vpc parameter is mandatory." && cat README.md && exit 8
-[[ -z "$AWS_PRIVATE_KEY_PATH" ]] && echo "--private-key-path parameter is mandatory." && cat README.md && exit 8
-[[ -z "$AWS_INSTANCE_TYPE" ]] && echo "--instance-type parameter is mandatory." && cat README.md && exit 8
+[[ -z "$AWS_KEY_PAIR_NAME" ]] && echo "--KeyPairName parameter is mandatory." && cat USAGE.md && exit 8
+[[ -z "$AWS_SUBNET" ]] && echo "--subnet parameter is mandatory." && cat USAGE.md && exit 8
+[[ -z "$AWS_VPC" ]] && echo "--vpc parameter is mandatory." && cat USAGE.md && exit 8
+[[ -z "$AWS_PRIVATE_KEY_PATH" ]] && echo "--private-key-path parameter is mandatory." && cat USAGE.md && exit 8
+[[ -z "$AWS_INSTANCE_TYPE" ]] && echo "--instance-type parameter is mandatory." && cat USAGE.md && exit 8
 
 SUPPORTED_LANGUAGES="java nodejs dotnet"
 [[ (! -z "$FILTER_LANGUAGE") && (! $SUPPORTED_LANGUAGES =~ (^|[[:space:]])$FILTER_LANGUAGE($|[[:space:]])) ]] && echo "Bad param --filter-language. Supported languages are: $SUPPORTED_LANGUAGES" && exit 8

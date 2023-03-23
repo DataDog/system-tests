@@ -1,19 +1,19 @@
 # Datadog Library Injection testing
 
-Similarly to Library Injection in Kubernetes environments via the admission controller, this simplifies the APM onboarding experience for customers deploying Java, NodeJS and .NET applications in VMs and docker environments.
+Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies the APM onboarding experience for customers deploying Java, NodeJS and .NET applications in VMs and docker environments.
 
 The target of this testing feature is to test the distinct injection environments.
 
-** Check Datadog lib injection capabilities [Official documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=host).   
+> Check Datadog lib injection capabilities [Official documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=host).   
 
 ## Library Injection testing scenarios
 
 The injection of libraries can take place in three scenarios:
-* Datadog Agent and your application on the same host.
+* Datadog Agent and your application deployed on the same host.
 * Datadog Agent installed on host and your application deployed on container.
 * Datadog Agent and your application installed on containers.
 
-** For Kubernetes Datadog library injection capabilities testing check [System-tests/lib-injection](https://github.com/DataDog/system-tests/tree/main/lib-injection).   
+> For Kubernetes Datadog library injection capabilities testing check [System-tests/lib-injection](https://github.com/DataDog/system-tests/tree/main/lib-injection).   
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ We want to test Datadog software in the three main scenarios described above, bu
 - We want to check the releases and the snapshot/beta of Datadog software:
     - Datadog Agent product
     - Library injection software
-- We want to check Datadog software installed in different machines types or distint SO distributions (Ubuntu, Centos...)
+- We want to check Datadog software installed in different machine types or distint SO distributions (Ubuntu, Centos...)
 - We want to check Datadog library injection software for different languages (Currently  supports for Java, Nodejs and dotNet)
     - We want to test the different versions of the supported languages (Java 8, Java 11). 
 
@@ -55,16 +55,16 @@ We want to test Datadog software in the three main scenarios described above, bu
 
 YML files define the AMI machines and software to be installed: 
 
-- provision_host.yml: All software and the test applications installed on host.
-- provision_host_docker.yml: Datadog Agent installed on host and your application deployed on container.
-- provision_docker.yml: Datadog Agent installed on containers.
+- **provision_host.yml:** All software and the test applications installed on host.
+- **provision_host_docker.yml:** Datadog Agent installed on host and your application deployed on container.
+- **provision_docker.yml:** Datadog Agent installed on containers.
 
 ### Understanding YML files
 
 There are some main sections that they will be combined in order to create a test matrix:
 
 - **AMI:** Define AWS machine types (Ubuntu AMI, Linux Amazon...)
-    - In this section we defines the AMI id, and we categorize the machines by os_type, os_distro, os_branch:
+    - In this section we define the AMI id, and we categorize the machines by os_type, os_distro, os_branch:
     ```
     - name: ubuntu-x86-18.04
       ami_id: ami-0263e4deb427da90e
@@ -185,9 +185,14 @@ There are some main sections that they will be combined in order to create a tes
 
 ## Tests assertions
 
-Check your tests assertions from tests/test_traces.py
+The testing process is very simple. For each machine started we will check:
 
-Check your pytest configuration from conftest.py
+- The weblog application is listenning on the common port.
+- The weblog application is sending traces to Datadog backend.
+
+Check the tests assertions from *tests/test_traces.py*
+
+Check the pytest configuration from *conftest.py*
 
 ## Run the tests
 
@@ -202,15 +207,10 @@ pulumi config set --secret ddagent:appKey zzzzyyyyyxxx
 
 ### Run script
 
-There is a run script "run.sh" to which we have to pass the configuration parameters:
-
-* --KeyPairName: Key pair name. See [Amazon EC2 Key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
-* --subnet: AWS subnet id
-* --vpc: AWS VPC groups id (separated by comma)
-* --dd-site: Datadog backend url (example datadoghq.com)
-* --private-key-path: Path to your local perm file. See [AWS create key pairs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html)
-* --instance-type: Type of Amazon EC2 instance. See [AWS EC2 Instance Types](https://aws.amazon.com/ec2/instance-types/)
-
-This is an example of a test launch:
+There is a run script "run.sh" to which we have to pass the configuration parameters in order to create the infraeestructure and execute the tests. This is an example of a test launch:
 
 `./run.sh --KeyPairName mykeypair --subnet subnet-zzzz --vpc sg-12345,sg-6789 --dd-site datadoghq.com --private-key-path /Users/user/mykeypair.pem --instance-type t2.micro`
+
+> [Check the run.sh script usage details](USAGE.md)
+
+
