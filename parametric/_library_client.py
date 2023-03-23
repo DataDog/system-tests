@@ -330,8 +330,9 @@ class APMLibraryClientGRPC:
 
 
 class APMLibrary:
-    def __init__(self, client: APMLibraryClient):
+    def __init__(self, client: APMLibraryClient, lang):
         self._client = client
+        self.lang = lang
 
     def __enter__(self) -> "APMLibrary":
         return self
