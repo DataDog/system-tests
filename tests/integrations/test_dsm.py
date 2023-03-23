@@ -94,7 +94,7 @@ class Test_DsmRabbitmq:
 
     def test_dsm_rabbitmq(self):
         assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
 
         expected_kafka_out = DsmStatsPoint(
             6176024609184775446,
