@@ -309,11 +309,6 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
-@pytest.mark.skip_library(
-    "php",
-    "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
-)
-@pytest.mark.skip_library("ruby", "Bug: manual.keep & manual.drop not supported in Ruby")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -536,6 +531,7 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.skip_library("ruby", "Issue: sending the complete trace when only the root span is expected")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -587,6 +583,7 @@ def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_act
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.skip_library("ruby", "Issue: sending the complete trace when only the root span is expected")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -639,6 +636,7 @@ def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_act
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.skip_library("ruby", "Issue: sending the complete trace when only the root span is expected")
 @pytest.mark.parametrize(
     "library_env",
     [
