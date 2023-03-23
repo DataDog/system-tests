@@ -14,7 +14,7 @@ def test_datadog_128_bit_propagation_D001(test_agent, test_library):
     headers.
     """
     with test_library:
-        headers = make_single_request_and_get_inject_headers(
+        make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "1234567890123456789"],
@@ -311,5 +311,5 @@ def validate_dd_p_tid(dd_p_tid):
     assert len(dd_p_tid) == 16
     assert dd_p_tid != ZERO16
     assert dd_p_tid[8:16] == ZERO8
-    # add check that dd_p_tid[0:8] is a timestamp
+    # check that dd_p_tid[0:8] is a timestamp
     assert int(dd_p_tid[0:8], 16) > 0x640CFD8C
