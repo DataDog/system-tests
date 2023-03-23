@@ -42,6 +42,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
 @pytest.mark.skip_library("golang", "go sends an empty stats aggregation")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @pytest.mark.skip_library("php", "php has not implemented stats computation yet")
+@pytest.mark.skip_library("ruby", "ruby has not implemented stats computation yet")
 def test_metrics_msgpack_serialization_TS001(library_env, test_agent, test_library):
     """
     When spans are finished
@@ -96,6 +97,7 @@ def test_metrics_msgpack_serialization_TS001(library_env, test_agent, test_libra
 @enable_tracestats()
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @pytest.mark.skip_library("php", "php has not implemented stats computation yet")
+@pytest.mark.skip_library("ruby", "ruby has not implemented stats computation yet")
 def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library, test_server):
     """
     When spans are created with a unique set of dimensions
@@ -175,6 +177,7 @@ def test_distinct_aggregationkeys_TS003(library_env, test_agent, test_library, t
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @pytest.mark.skip_library("php", "php has not implemented stats computation yet")
+@pytest.mark.skip_library("ruby", "ruby has not implemented stats computation yet")
 @enable_tracestats()
 def test_measured_spans_TS004(library_env, test_agent, test_library, test_server):
     """
@@ -214,6 +217,7 @@ def test_measured_spans_TS004(library_env, test_agent, test_library, test_server
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @pytest.mark.skip_library("php", "php has not implemented stats computation yet")
+@pytest.mark.skip_library("ruby", "ruby has not implemented stats computation yet")
 @enable_tracestats()
 def test_top_level_TS005(library_env, test_agent, test_library, test_server):
     """
@@ -263,6 +267,7 @@ def test_top_level_TS005(library_env, test_agent, test_library, test_server):
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @pytest.mark.skip_library("php", "php has not implemented stats computation yet")
+@pytest.mark.skip_library("ruby", "ruby has not implemented stats computation yet")
 @enable_tracestats()
 def test_successes_errors_recorded_separately_TS006(library_env, test_agent, test_library, test_server):
     """
@@ -314,6 +319,7 @@ def test_successes_errors_recorded_separately_TS006(library_env, test_agent, tes
 @pytest.mark.skip_library("java", "FIXME: Undefined behavior according the java tracer core team")
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @pytest.mark.skip_library("php", "php has not implemented stats computation yet")
+@pytest.mark.skip_library("ruby", "ruby has not implemented stats computation yet")
 @enable_tracestats(sample_rate=0.0)
 def test_sample_rate_0_TS007(library_env, test_agent, test_library, test_server):
     """
@@ -380,6 +386,7 @@ def test_relative_error_TS008(library_env, test_agent, test_library):
 
 @pytest.mark.skip_library("nodejs", "nodejs has not implemented stats computation yet")
 @pytest.mark.skip_library("php", "php has not implemented stats computation yet")
+@pytest.mark.skip_library("ruby", "ruby has not implemented stats computation yet")
 @enable_tracestats()
 def test_metrics_computed_after_span_finsh_TS008(library_env, test_agent, test_library, test_server):
     """
