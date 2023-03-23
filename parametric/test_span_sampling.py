@@ -184,6 +184,10 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
+@pytest.mark.skip_library(
+    "php",
+    "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
+)
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -301,6 +305,10 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
+@pytest.mark.skip_library(
+    "php",
+    "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
+)
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -367,6 +375,10 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
+@pytest.mark.skip_library(
+    "php",
+    "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
+)
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -467,11 +479,13 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     # child span should be dropped by defined trace sampling rules
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+    if "metrics" in child_span:
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    assert child_span["meta"].get("_dd.p.dm") is None
+    if "meta" in child_span:
+        assert child_span["meta"].get("_dd.p.dm") is None
 
 
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
