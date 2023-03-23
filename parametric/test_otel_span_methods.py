@@ -197,16 +197,11 @@ def test_otel_set_span_status_ok(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented")
 def test_otel_get_span_context(test_agent, test_library):
     """
-        This test verifies that setting the status of a span
-        behaves accordingly to the Otel API spec
-        (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
-        By checking the following:
-        1. attempts to set the value of `Unset` are ignored
-        3. setting the status to `Ok` is final and will override any
-            prior or future status values
+        This test verifies retrieving the span context of a span
+        accordingly to the Otel API spec
+        (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
     """
     with test_library:
         with test_library.start_otel_span(name="operation", new_root=True) as parent:
@@ -214,6 +209,6 @@ def test_otel_get_span_context(test_agent, test_library):
             with test_library.start_otel_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
                 span.otel_end_span()
                 context = span.span_context()
-                assert context.get("trace_id") == f"{parent.span_id:0x}".rjust(32, "0")
+                assert context.get("trace_id") == f"{parent.span_id:0x}".ljust(32, "0")
                 assert context.get("span_id") == f"{span.span_id:0x}".rjust(16, "0")
                 assert context.get("trace_flags") == "01"
