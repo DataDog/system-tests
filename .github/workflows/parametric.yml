@@ -30,12 +30,14 @@ jobs:
     strategy:
       matrix:
         client:
+        - php
         - python
         - python_http
         - dotnet
         - golang
         - java
         - nodejs
+        - ruby
       fail-fast: false
     steps:
     - name: Checkout

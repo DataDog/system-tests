@@ -148,6 +148,17 @@ CLIENTS_ENABLED=java ./run.sh test_span_sampling.py::test_single_rule_match_span
 ```
 
 
+#### PHP
+
+If you are seeing DNS resolution issues when running the tests locally, add the following config to the Docker daemon:
+
+```json
+  "dns-opts": [
+    "single-request"
+  ],
+```
+
+
 #### Python
 
 To run the Python tests "locally" push your code to a branch and then specify ``PYTHON_DDTRACE_PACKAGE``.
