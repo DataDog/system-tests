@@ -531,6 +531,7 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("php", "The PHP tracer always sends the full trace to the agent.")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.skip_library("ruby", "Issue: sending the complete trace when only the root span is expected")
 @pytest.mark.parametrize(
@@ -583,6 +584,7 @@ def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_act
 
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("php", "The PHP tracer always sends the full trace to the agent.")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.skip_library("ruby", "Issue: sending the complete trace when only the root span is expected")
 @pytest.mark.parametrize(
@@ -636,6 +638,7 @@ def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_act
 
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("php", "The PHP tracer always sends the full trace to the agent.")
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
 @pytest.mark.skip_library("ruby", "Issue: sending the complete trace when only the root span is expected")
 @pytest.mark.parametrize(
