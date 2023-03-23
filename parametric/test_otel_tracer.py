@@ -60,7 +60,7 @@ def test_force_flush_otel(test_agent, test_library):
     """
     with test_library:
         with test_library.start_otel_span(name="test_span") as span:
-            span.otel_end_span()  # TODO: it seems like this happens automagically for the non-otel tests how?
+            span.otel_end_span()
         # force flush with 5 second time out
         flushed = test_library.flush_otel(5)
         assert flushed, "ForceFlush error"

@@ -46,9 +46,6 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     """
         - Set attributes of multiple types for an otel span
     """
-    """
-        - Set attributes of multiple types for an otel span
-    """
     parent_start_time = int(time.time())
     with test_library:
         with test_library.start_otel_span(
@@ -77,7 +74,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
-def test_otel_span_is_finished(test_agent, test_library):
+def test_otel_span_is_recording(test_agent, test_library):
     """
     Test functionality of ending a span.
         - before ending - span.is_recording() is true

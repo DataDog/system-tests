@@ -12,24 +12,24 @@ import (
 	"google.golang.org/grpc"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	ot_api "go.opentelemetry.io/otel/trace"
-	ot "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	otel_trace "go.opentelemetry.io/otel/trace"
+	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 )
 
 type apmClientServer struct {
 	UnimplementedAPMClientServer
 	spans     map[uint64]tracer.Span
-	otelSpans map[uint64]ot_api.Span
-	tp        *ot.TracerProvider
-	tracer    ot_api.Tracer
+	otelSpans map[uint64]otel_trace.Span
+	tp        *ddotel.TracerProvider
+	tracer    otel_trace.Tracer
 }
 
 func newServer() *apmClientServer {
 	s := &apmClientServer{
 		spans:     make(map[uint64]tracer.Span),
-		otelSpans: make(map[uint64]ot_api.Span),
+		otelSpans: make(map[uint64]otel_trace.Span),
 	}
-	s.tp = ot.NewTracerProvider()
+	s.tp = ddotel.NewTracerProvider()
 	otel.SetTracerProvider(s.tp)
 	s.tracer = s.tp.Tracer("")
 	return s
