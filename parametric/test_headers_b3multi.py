@@ -104,6 +104,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
         )
 
     span = get_span(test_agent)
+    assert "x-b3-traceid" in headers
     b3_trace_id = headers["x-b3-traceid"]
     b3_span_id = headers["x-b3-spanid"]
     b3_sampling = headers["x-b3-sampled"]
