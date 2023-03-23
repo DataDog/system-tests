@@ -13,7 +13,6 @@ import json
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -38,7 +37,6 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}]), "DD_TRACE_SAMPLE_RATE": 0}],
@@ -81,7 +79,6 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
 )
@@ -118,7 +115,6 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env",
     [
