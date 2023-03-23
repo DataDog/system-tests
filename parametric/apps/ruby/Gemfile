@@ -1,0 +1,7 @@
+source "https://rubygems.org"
+
+# DEV: Uncomment for testing
+# gem 'ddtrace', git: 'https://github.com/Datadog/dd-trace-rb.git', ref: '4c5edeacb3eec224e814277c4a12a99bb834f36b'
+gem 'ddtrace'
+gem 'grpc'
+gem 'grpc-tools'
