@@ -1,0 +1,9 @@
+{
+    "$id": "/agent/api/v0.1/pipeline_stats-request.json",
+    "type": "object",
+    "properties": {
+        "Env": { "type": "string" },
+        "Stats": { "type": "array" }
+    },
+    "required": ["Env", "Stats"]
+}
