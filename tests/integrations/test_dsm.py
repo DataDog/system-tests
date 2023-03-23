@@ -85,7 +85,7 @@ class Test_DsmHttp:
     context.weblog_variant not in ("spring-boot"),
     reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
 )
-@scenarios.dsm
+@scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
 
