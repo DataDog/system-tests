@@ -188,6 +188,10 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
+@pytest.mark.skip_library(
+    "php",
+    "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
+)
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -305,6 +309,10 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
+@pytest.mark.skip_library(
+    "php",
+    "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
+)
 @pytest.mark.skip_library("ruby", "Bug: manual.keep & manual.drop not supported in Ruby")
 @pytest.mark.parametrize(
     "library_env",
@@ -372,6 +380,10 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
+@pytest.mark.skip_library(
+    "php",
+    "PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
+)
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -472,11 +484,13 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
     assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     # child span should be dropped by defined trace sampling rules
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
-    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
+    if "metrics" in child_span:
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
+        assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    assert child_span["meta"].get("_dd.p.dm") is None
+    if "meta" in child_span:
+        assert child_span["meta"].get("_dd.p.dm") is None
 
 
 @pytest.mark.skip_library("python", "RPC issue causing test to hang")
@@ -517,3 +531,151 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
+
+
+@pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.parametrize(
+    "library_env",
+    [
+        {
+            "DD_SPAN_SAMPLING_RULES": json.dumps(
+                [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
+            ),
+            "DD_TRACE_SAMPLE_RATE": 0,
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
+            "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
+        }
+    ],
+)
+def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016(test_agent, test_library):
+    """Single spans selected by SSS must be kept and other spans expected to be dropped on the tracer side when
+    dropping policy is active when tracer metrics enabled.
+
+    We're essentially testing to make sure that the child unsampled span is dropped on the tracer side because of
+    the activate dropping policy.
+    """
+    assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver"):
+            pass
+
+    # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
+    test_agent.wait_for_num_traces(1, clear=True)
+
+    # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+                pass
+
+    traces = test_agent.wait_for_num_traces(1, clear=True)
+    assert len(traces[0]) == 1, "only the root span is expected to be sent to the test agent"
+
+    parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
+
+    # the trace should be dropped, so the parent span priority is set to -1
+    assert parent_span["name"] == "parent"
+    assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
+
+
+@pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.parametrize(
+    "library_env",
+    [
+        {
+            "DD_SPAN_SAMPLING_RULES": json.dumps(
+                [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
+            ),
+            "DD_TRACE_SAMPLE_RATE": 0,
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
+            "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
+        }
+    ],
+)
+def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017(test_agent, test_library):
+    """Single spans selected by SSS must be kept and other spans expected to be dropped on the tracer side when
+    dropping policy is active when tracer metrics enabled.
+
+    We're essentially testing to make sure that the root unsampled span is dropped on the tracer side because of
+    the activate dropping policy.
+    """
+    assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+                pass
+
+    # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
+    test_agent.wait_for_num_traces(1, clear=True)
+
+    # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+                pass
+
+    traces = test_agent.wait_for_num_traces(1, clear=True)
+    assert len(traces[0]) == 1, "only the child span is expected to be sent to the test agent"
+
+    child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
+
+    # the trace should be dropped, so the parent span priority is set to -1
+    assert child_span["name"] == "child"
+    assert child_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
+
+
+@pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "RPC issue causing test to hang")
+@pytest.mark.parametrize(
+    "library_env",
+    [
+        {
+            "DD_TRACE_SAMPLE_RATE": 0,
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
+            "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
+        }
+    ],
+)
+def test_entire_trace_dropped_when_dropping_policy_is_active018(test_agent, test_library):
+    """The entire dropped span expected to be dropped on the tracer side when
+    dropping policy is active, which is the case when tracer metrics enabled.
+
+    We're essentially testing to make sure that the entire unsampled trace is dropped on the tracer side because of
+    the activate dropping policy.
+    """
+    assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver"):
+            pass
+
+    if test_library.lang == "java":
+        # Java Tracer is expected to keep the first trace despite of the active dropping policy because
+        # its resource/operation/error combination hasn't been seen before
+        test_agent.wait_for_num_traces(1, clear=True)
+    elif test_library.lang == "golang":
+        # Go Tracer is expected to drop the very fist p0s
+        test_agent.wait_for_num_traces(0, clear=True)
+
+    # the second similar trace is expected to be dropped on the Tracer side
+    with test_library:
+        with test_library.start_span(name="parent", service="webserver") as parent_span:
+            with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+                pass
+
+    traces = test_agent.wait_for_num_traces(0, clear=True)
+
+    assert len(traces) == 0

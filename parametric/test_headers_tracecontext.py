@@ -58,6 +58,9 @@ def test_traceparent_included_tracestate_missing(test_agent, test_library):
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
 @pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
+@pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
@@ -567,6 +570,9 @@ def test_tracestate_header_name_valid_casing(test_agent, test_library):
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
 @pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
+@pytest.mark.skip_library(
     "golang",
     "golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
@@ -623,6 +629,9 @@ def test_tracestate_empty_header(test_agent, test_library):
 @pytest.mark.skip_library(
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
+)
+@pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
 )
 @pytest.mark.skip_library(
     "python",
@@ -764,6 +773,7 @@ def test_tracestate_all_allowed_characters(test_agent, test_library):
     "python",
     "\t is an invalid character and is not supported in tracestate. We should update this test use spaces instead",
 )
+@pytest.mark.skip_library("php", "PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_ows_handling(test_agent, test_library):

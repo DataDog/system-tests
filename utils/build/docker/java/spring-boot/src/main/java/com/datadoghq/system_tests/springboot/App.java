@@ -2,6 +2,7 @@ package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
+import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -251,6 +252,30 @@ public class App {
         return "hi Mongo";
     }
 
+    @RequestMapping("/dsm")
+    String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
+        if ("kafka".equals(integration)) {
+            KafkaConnector kafka = new KafkaConnector();
+            try {
+                kafka.startProducingMessage("hello world!");
+            } catch (Exception e) {
+                System.out.println("Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                kafka.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+            return "ok";
+        } else {
+            return "unknown integration: " + integration;
+        }
+    }
+
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
         final Span span = GlobalTracer.get().activeSpan();
@@ -260,7 +285,7 @@ public class App {
 
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
-        try {
+        try { 
             Object expr = Ognl.parseExpression("[1]");
             String value = (String) Ognl.getValue(expr, list);
             return "hi OGNL, " + value;
