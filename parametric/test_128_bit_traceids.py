@@ -59,6 +59,7 @@ def test_datadog_128_bit_generation_disabled_D002(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
@@ -84,6 +85,7 @@ def test_datadog128_bit_generation_enabled_D003(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
@@ -132,6 +134,7 @@ def test_b3single_128_bit_generation_disabled_D005(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
@@ -155,6 +158,7 @@ def test_b3single128_bit_generation_enabled_D006(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
@@ -196,6 +200,7 @@ def test_b3multi_128_bit_generation_disabled_D008(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
@@ -215,6 +220,7 @@ def test_b3multi128_bit_generation_enabled_D009(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
@@ -263,6 +269,7 @@ def test_w3c_128_bit_generation_disabled_D011(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
