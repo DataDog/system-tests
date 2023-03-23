@@ -10,7 +10,7 @@ from utils import weblog, interfaces, context, bug, missing_feature, scenarios
     context.weblog_variant not in ("spring-boot"),
     reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
 )
-@scenarios.dsm
+@scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
@@ -19,7 +19,7 @@ class Test_DsmKafka:
 
     def test_dsm_kafka(self):
         assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
 
         expected_kafka_out = DsmStatsPoint(
             4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
@@ -35,7 +35,7 @@ class Test_DsmKafka:
 
 
 @missing_feature(condition=context.library != "dotnet", reason="Missing partition tag only on dotnet")
-@scenarios.dsm
+@scenarios.integrations
 class Test_DsmKafkaNoPartitionTag:
     """ Verify DSM stats points for Kafka """
 
@@ -44,7 +44,7 @@ class Test_DsmKafkaNoPartitionTag:
 
     def test_dsm_kafka(self):
         assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
 
         expected_kafka_out = DsmStatsPoint(
             4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
@@ -64,7 +64,7 @@ class Test_DsmKafkaNoPartitionTag:
     context.weblog_variant not in ("spring-boot"),
     reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
 )
-@scenarios.dsm
+@scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
@@ -74,7 +74,7 @@ class Test_DsmHttp:
     def test_dsm_http(self):
         assert str(self.r.content, "UTF-8") == "ok"
 
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data(self.r))
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
         expected_http = DsmStatsPoint(3883033147046472598, 0, ["direction:in", "type:http"])
 
         assert expected_http in checkpoints

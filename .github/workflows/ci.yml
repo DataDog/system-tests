@@ -370,11 +370,6 @@ jobs:
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run DSM scenario
-      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh DSM
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
@@ -593,11 +588,6 @@ jobs:
     - name: Run SAMPLING scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh SAMPLING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run DSM scenario
-      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
-      run: ./run.sh DSM
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_MESSAGE_BATCH_EVENT_ORDER scenario
