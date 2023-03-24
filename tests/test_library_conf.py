@@ -7,7 +7,7 @@ from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
+@released(dotnet="2.27.0", golang="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
