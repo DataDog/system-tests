@@ -309,6 +309,7 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
+@pytest.mark.skip_library("php", "manual.drop and manual.keep span tags are not implemented.")
 @pytest.mark.skip_library("ruby", "Issue: does not respect manual.drop or manual.keep span tags")
 @pytest.mark.parametrize(
     "library_env",
