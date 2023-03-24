@@ -57,13 +57,14 @@ def test_datadog_128_bit_generation_disabled(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
+# @pytest.mark.skip_library("php", "not working")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
-def test_datadog128_bit_generation_enabled(test_agent, test_library):
+def test_datadog_128_bit_generation_enabled(test_agent, test_library):
     """Ensure that 128-bit TraceIds are properly generated, propagated in
     datadog headers, and populated in trace data.
     """
@@ -83,6 +84,7 @@ def test_datadog128_bit_generation_enabled(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("php", "error - traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -140,7 +142,7 @@ def test_b3single_128_bit_generation_disabled(test_agent, test_library):
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
-def test_b3single128_bit_generation_enabled(test_agent, test_library):
+def test_b3single_128_bit_generation_enabled(test_agent, test_library):
     """Ensure that 128-bit TraceIds are properly generated, propagated in B3
     single-header, and populated in trace data.
     """
@@ -206,7 +208,7 @@ def test_b3multi_128_bit_generation_disabled(test_agent, test_library):
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
-def test_b3multi128_bit_generation_enabled(test_agent, test_library):
+def test_b3multi_128_bit_generation_enabled(test_agent, test_library):
     """Ensure that 128-bit TraceIds are properly generated, propagated in B3
     multi-headers, and populated in trace data.
     """
@@ -220,6 +222,7 @@ def test_b3multi128_bit_generation_enabled(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("php", "error - traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -277,7 +280,7 @@ def test_w3c_128_bit_generation_disabled(test_agent, test_library):
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
-def test_w3c128_bit_generation_enabled(test_agent, test_library):
+def test_w3c_128_bit_generation_enabled(test_agent, test_library):
     """Ensure that 128-bit TraceIds are properly generated, propagated in W3C
     headers, and populated in trace data.
     """
