@@ -439,7 +439,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
 @pytest.mark.skip_library("dotnet", "Issue: Traceparent doesn't override sampling decision")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 @pytest.mark.skip_library("nodejs", "Issue: the decision maker is removed. Is that allowed behavior?")
-@pytest.mark.skip_library("ruby", "Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
+@pytest.mark.skip_library("ruby", "Fixed in https://github.com/DataDog/dd-trace-rb/pull/2720")
 def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -510,7 +510,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
 @pytest.mark.skip_library("nodejs", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("python", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("python_http", "Issue: Does not reset dm to DEFAULT")
-@pytest.mark.skip_library("ruby", "Issue: Does not reset dm to DEFAULT")
+@pytest.mark.skip_library("ruby", "Issue: can't reset dm to DEFAULT at injection time because trace-level sampling runs on trace finish")
 def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent

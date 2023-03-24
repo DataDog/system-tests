@@ -477,7 +477,7 @@ def docker_run(
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
     if r.returncode != 0:
         pytest.fail(
-            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.name),
+            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file),
             pytrace=False,
         )
 
