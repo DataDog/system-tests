@@ -57,7 +57,6 @@ def test_datadog_128_bit_generation_disabled(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-# @pytest.mark.skip_library("php", "not working")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -84,7 +83,7 @@ def test_datadog_128_bit_generation_enabled(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-@pytest.mark.skip_library("php", "error - traces not available from test agent")
+@pytest.mark.skip_library("php", "Issue: traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -113,7 +112,7 @@ def test_b3single_128_bit_propagation(test_agent, test_library):
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
+@pytest.mark.skip_library("ruby", "Issue: Ruby doesn't support case-insensitive distributed headers")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
@@ -184,7 +183,8 @@ def test_b3multi_128_bit_propagation(test_agent, test_library):
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
+@pytest.mark.skip_library("php", "Issue: traces not available from test agent")
+@pytest.mark.skip_library("ruby", "Issue: Ruby doesn't support case-insensitive distributed headers")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
@@ -222,7 +222,7 @@ def test_b3multi_128_bit_generation_enabled(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
-@pytest.mark.skip_library("php", "error - traces not available from test agent")
+@pytest.mark.skip_library("php", "Issue: traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -251,7 +251,8 @@ def test_w3c_128_bit_propagation(test_agent, test_library):
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("java", "not implemented")
-@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
+@pytest.mark.skip_library("php", "Issue: traces not available from test agent")
+@pytest.mark.skip_library("ruby", "Issue: Ruby doesn't support case-insensitive distributed headers")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
