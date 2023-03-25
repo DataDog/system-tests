@@ -15,7 +15,10 @@ class Test_OTel_E2E:
         otel_trace_ids = list(interfaces.library.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 2
         dd_trace_ids = map(self._get_dd_trace_id, otel_trace_ids)
-        traces = map(lambda dd_trace_id: interfaces.backend.assert_otlp_trace_exist(request=self.r, dd_trace_id=dd_trace_id), dd_trace_ids)
+        traces = map(
+            lambda dd_trace_id: interfaces.backend.assert_otlp_trace_exist(request=self.r, dd_trace_id=dd_trace_id),
+            dd_trace_ids,
+        )
         validate_trace(traces, self.use_128_bits_trace_id)
 
     def _get_dd_trace_id(self, otel_trace_id=bytes) -> int:
