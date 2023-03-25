@@ -72,8 +72,13 @@ class _RequestLogger:
 
     def request(self, flow):
         if flow.request.host in ("runner", "localhost"):  # localhost because on UDS mode, UDS socket is redirected
-            flow.request.host, flow.request.port = "agent", 8126
-            flow.request.scheme = "http"
+            if "api/v0.2/traces" in flow.request.path:
+                flow.request.host = "trace.agent." + os.environ.get("DD_SITE")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            else:
+                flow.request.host, flow.request.port = "agent", 8126
+                flow.request.scheme = "http"
 
     def response(self, flow):
         self._modify_response(flow)
@@ -108,7 +113,7 @@ class _RequestLogger:
         if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
             payload["response"] = None
 
-        if flow.request.host == "agent":
+        if flow.request.host == "agent" or flow.request.headers.get("dd-protocol") == "otlp":
             interface = interfaces.library
         else:
             interface = interfaces.agent

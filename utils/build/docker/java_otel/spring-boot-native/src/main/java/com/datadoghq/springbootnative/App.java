@@ -31,9 +31,8 @@ public class App {
                 ResourceAttributes.SERVICE_NAME, "otel-system-tests-spring-boot",
                 ResourceAttributes.DEPLOYMENT_ENVIRONMENT, "system-tests"));
 
-        String ddSite = System.getenv().getOrDefault("DD_SITE", "datad0g.com");
         OtlpHttpSpanExporter intakeExporter = OtlpHttpSpanExporter.builder()
-                .setEndpoint(String.format("http://trace.agent.%s/api/v0.2/traces", ddSite))
+                .setEndpoint("http://runner:8126/api/v0.2/traces")
                 .addHeader("dd-protocol", "otlp")
                 .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                 .build();

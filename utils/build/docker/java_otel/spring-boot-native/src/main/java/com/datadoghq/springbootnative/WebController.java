@@ -54,6 +54,7 @@ public class WebController {
               .setSpanKind(SpanKind.PRODUCER)
               .setAttribute("messaging.system", "rabbitmq")
               .setAttribute("messaging.operation", "publish")
+              .setAttribute("http.request.headers.user-agent", headers.get("User-Agent").get(0))
               .startSpan();
       Thread.sleep(1);
       fakeSpan.end();
@@ -65,6 +66,7 @@ public class WebController {
                       Attributes.of(AttributeKey.stringKey("messaging.operation"), "publish"))
               .setAttribute(SemanticAttributes.HTTP_ROUTE, "/")
               .setAttribute(SemanticAttributes.HTTP_METHOD, "GET")
+              .setAttribute("http.request.headers.user-agent", headers.get("User-Agent").get(0))
               .startSpan();
       try (Scope ignored = span.makeCurrent()) {
         Thread.sleep(5);

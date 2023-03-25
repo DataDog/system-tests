@@ -5,6 +5,7 @@
 from collections import namedtuple
 import json
 import threading
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
@@ -59,6 +60,25 @@ class LibraryInterfaceValidator(InterfaceValidator):
                         if rid == get_rid_from_span(span):
                             yield data, trace
                             break
+
+
+    def get_otel_trace_id(self, request):
+        paths = ["/api/v0.2/traces"]
+        rid = get_rid_from_request(request)
+
+        if rid:
+            logger.debug(f"Try to find traces related to request {rid}")
+
+        for data in self.get_data(path_filters=paths):
+            export_request = ExportTraceServiceRequest()
+            content = eval(data["request"]["content"])  # Raw content is a str like "b'\n\x\...'"
+            assert export_request.ParseFromString(content) > 0, content
+            for resource_span in export_request.resource_spans:
+                for scope_span in resource_span.scope_spans:
+                    for span in scope_span.spans:
+                        for attribute in span.attributes:
+                            if attribute.key == "http.request.headers.user-agent" and rid in attribute.value.string_value:
+                                yield span.trace_id
 
     def get_spans(self, request=None):
         """
