@@ -58,6 +58,9 @@ def test_traceparent_included_tracestate_missing(test_agent, test_library):
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
 @pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
+@pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
@@ -66,6 +69,7 @@ def test_traceparent_included_tracestate_missing(test_agent, test_library):
     "golang does not reconcile duplicate http headers, if duplicate headers received the propagator will not be used",
 )
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_traceparent_duplicated(test_agent, test_library):
     """
     harness sends a request with two traceparent headers
@@ -107,6 +111,7 @@ def test_traceparent_header_name(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Bug: Header search is currently case-sensitive")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_traceparent_header_name_valid_casing(test_agent, test_library):
     """
     harness sends a valid traceparent using different combination of casing
@@ -152,10 +157,6 @@ def test_traceparent_version_0x00(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library(
-    "golang",
-    "Bug: See https://www.w3.org/TR/trace-context/#versioning-of-traceparent for corrections . 1) We currently assert that version must be two valid hex digits, except for 'ff' 2) We assert the length of the traceparent is exactly equal to 55",
-)
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 def test_traceparent_version_0xcc(test_agent, test_library):
     """
@@ -199,6 +200,7 @@ def test_traceparent_version_0xff(test_agent, test_library):
 
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_traceparent_version_illegal_characters(test_agent, test_library):
     """
     harness sends an invalid traceparent with illegal characters in version
@@ -489,6 +491,7 @@ def test_tracestate_included_traceparent_missing(test_agent, test_library):
 
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_included_traceparent_included(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
@@ -534,6 +537,7 @@ def test_tracestate_header_name(test_agent, test_library):
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("dotnet", "Tracestate not implemented")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_header_name_valid_casing(test_agent, test_library):
     """
     harness sends a valid tracestate using different combination of casing
@@ -566,6 +570,9 @@ def test_tracestate_header_name_valid_casing(test_agent, test_library):
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
 @pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
+@pytest.mark.skip_library(
     "golang",
     "golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
@@ -574,6 +581,7 @@ def test_tracestate_header_name_valid_casing(test_agent, test_library):
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_empty_header(test_agent, test_library):
     """
     harness sends a request with empty tracestate header
@@ -623,10 +631,14 @@ def test_tracestate_empty_header(test_agent, test_library):
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
 @pytest.mark.skip_library(
+    "php", "php does not reconcile duplicate http headers, if duplicate headers received one only one will be used"
+)
+@pytest.mark.skip_library(
     "python",
     "python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
 )
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_multiple_headers_different_keys(test_agent, test_library):
     """
     harness sends a request with multiple tracestate headers, each contains different set of keys
@@ -657,6 +669,7 @@ def test_tracestate_multiple_headers_different_keys(test_agent, test_library):
 
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_duplicated_keys(test_agent, test_library):
     """
     harness sends a request with an invalid tracestate header with duplicated keys
@@ -713,6 +726,7 @@ def test_tracestate_duplicated_keys(test_agent, test_library):
 
 @temporary_enable_optin_tracecontext()
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_all_allowed_characters(test_agent, test_library):
     """
     harness sends a request with a valid tracestate header with all legal characters
@@ -759,7 +773,9 @@ def test_tracestate_all_allowed_characters(test_agent, test_library):
     "python",
     "\t is an invalid character and is not supported in tracestate. We should update this test use spaces instead",
 )
+@pytest.mark.skip_library("php", "PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_tracestate_ows_handling(test_agent, test_library):
     """
     harness sends a request with a valid tracestate header with OWS

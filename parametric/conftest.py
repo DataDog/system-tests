@@ -249,16 +249,78 @@ RUN bash build.sh
     )
 
 
+def php_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    python_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
+    env = env.copy()
+    # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
+    return APMLibraryTestServer(
+        lang="php",
+        protocol="http",
+        container_name="php-test-library",
+        container_tag="php-test-library",
+        container_img="""
+FROM datadog/dd-trace-ci:php-8.2_buster
+WORKDIR /tmp
+ENV DD_TRACE_CLI_ENABLED=1
+ADD ./parametric/apps/php/composer.json .
+ADD ./parametric/apps/php/composer.lock .
+ADD ./parametric/apps/php/server.php .
+ADD ./parametric/apps/php/install.sh .
+COPY binaries /binaries
+RUN ./install.sh
+RUN composer install
+""",
+        container_cmd=["php", "server.php"],
+        container_build_dir=python_dir,
+        volumes=[(os.path.join(python_dir, "server.php"), "/client/server.php"),],
+        env=env,
+    )
+
+
+def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    ruby_appdir = os.path.join("apps", "ruby")
+    ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
+
+    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    ruby_reldir = os.path.join("parametric", ruby_appdir).replace("\\", "/")
+    shutil.copyfile(
+        os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+        os.path.join(ruby_appdir, "apm_test_client.proto"),
+    )
+    return APMLibraryTestServer(
+        lang="ruby",
+        protocol="grpc",
+        container_name="ruby-test-client",
+        container_tag="ruby-test-client",
+        container_img=f"""
+            FROM ruby:3.2.1-bullseye
+            WORKDIR /client
+            COPY {ruby_reldir}/Gemfile /client/
+            COPY {ruby_reldir}/install_dependencies.sh /client/
+            RUN bash install_dependencies.sh # Cache dependencies before copying application code
+            COPY {ruby_reldir}/apm_test_client.proto /client/
+            COPY {ruby_reldir}/generate_proto.sh /client/
+            RUN bash generate_proto.sh
+            COPY {ruby_reldir}/server.rb /client/
+            """,
+        container_cmd=["bundle", "exec", "ruby", "server.rb"],
+        container_build_dir=ruby_dir,
+        env=env,
+    )
+
+
 _libs = {
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
     "java": java_library_factory,
     "nodejs": node_library_factory,
+    "php": php_library_factory,
     "python": python_library_factory,
     "python_http": python_http_library_factory,
+    "ruby": ruby_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python,python_http").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,php,python,python_http,ruby").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -673,5 +735,5 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
         client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
     else:
         raise ValueError("interface %s not supported" % test_server.protocol)
-    tracer = APMLibrary(client)
+    tracer = APMLibrary(client, test_server.lang)
     yield tracer
