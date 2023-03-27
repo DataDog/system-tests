@@ -431,7 +431,6 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Issue: Traceparent doesn't override sampling decision")
 @pytest.mark.skip_library("nodejs", "Issue: the decision maker is removed. Is that allowed behavior?")
 @pytest.mark.skip_library("php", "Issue: Does not drop dm")
 @pytest.mark.skip_library("python", "Issue: Does not drop dm")
