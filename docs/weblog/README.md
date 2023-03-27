@@ -180,7 +180,7 @@ be returned.
 
 Expected query params:
   - `integration`: Name of messaging tech
-    - Possible Values: `kafka`
+    - Possible Values: `kafka`, `rabbitmq`
 
 ## GET /user_login_success_event
 
