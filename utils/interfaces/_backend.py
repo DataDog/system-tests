@@ -95,7 +95,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
         ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
         return traces
 
-    def assert_otlp_trace_exist(self, request: requests.Request, dd_trace_id: str) -> dict:
+    def assert_otlp_trace_exist(
+        self, request: requests.Request, dd_trace_id: str, dd_api_key: str = None, dd_app_key: str = None
+    ) -> dict:
         """Attempts to fetch from the backend, ALL the traces that the OpenTelemetry SDKs sent to Datadog
         during the execution of the given request.
 
@@ -105,7 +107,14 @@ class _BackendInterfaceValidator(InterfaceValidator):
         """
 
         rid = get_rid_from_request(request)
-        data = self._wait_for_trace(rid=rid, trace_id=dd_trace_id, retries=10, sleep_interval_multiplier=2.0)
+        data = self._wait_for_trace(
+            rid=rid,
+            trace_id=dd_trace_id,
+            retries=10,
+            sleep_interval_multiplier=2.0,
+            dd_api_key=dd_api_key,
+            dd_app_key=dd_app_key,
+        )
         return data["response"]["content"]["trace"]
 
     def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
@@ -165,11 +174,14 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         return self.rid_to_library_trace_ids[rid]
 
-    def _request(self, method, path, json_payload=None):
-
+    def _request(self, method, path, json_payload=None, dd_api_key=None, dd_app_key=None):
+        if dd_api_key is None:
+            dd_api_key = os.environ["DD_API_KEY"]
+        if dd_app_key is None:
+            dd_app_key = os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"])
         headers = {
-            "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
+            "DD-API-KEY": dd_api_key,
+            "DD-APPLICATION-KEY": dd_app_key,
         }
 
         r = requests.request(method, url=f"{self.dd_site_url}{path}", headers=headers, json=json_payload, timeout=10)
@@ -193,21 +205,21 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         return data
 
-    def _get_backend_trace_data(self, rid, trace_id):
+    def _get_backend_trace_data(self, rid, trace_id, dd_api_key=None, dd_app_key=None):
         path = f"/api/v1/trace/{trace_id}"
-        result = self._request("GET", path=path)
+        result = self._request("GET", path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key)
         result["rid"] = rid
 
         return result
 
-    def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier):
+    def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier, dd_api_key=None, dd_app_key=None):
         sleep_interval_s = 1
         current_retry = 1
         while current_retry <= retries:
             logger.info(f"Retry {current_retry}")
             current_retry += 1
 
-            data = self._get_backend_trace_data(rid, trace_id)
+            data = self._get_backend_trace_data(rid, trace_id, dd_api_key, dd_app_key)
 
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
