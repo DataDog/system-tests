@@ -11,6 +11,16 @@ RUN echo '\
 log_level: DEBUG\n\
 apm_config:\n\
   apm_non_local_traffic: true\n\
+otlp_config:\n\
+  debug:\n\
+    verbosity: detailed\n\
+  receiver:\n\
+    protocols:\n\
+      http:\n\
+        endpoint: 0.0.0.0:4318\n\
+  traces:\n\
+    enabled: true\n\
+    span_name_as_resource_name: true\n\
 ' >> /etc/datadog-agent/datadog.yaml
 
 # Proxy conf

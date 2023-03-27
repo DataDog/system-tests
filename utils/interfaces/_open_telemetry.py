@@ -26,7 +26,7 @@ class OpenTelemetryInterfaceValidator(InterfaceValidator):
         return super().ingest_file(src_path)
 
     def get_otel_trace_id(self, request):
-        paths = ["/api/v0.2/traces"]
+        paths = ["/api/v0.2/traces", "/v1/traces"]
         rid = get_rid_from_request(request)
 
         if rid:
@@ -34,7 +34,9 @@ class OpenTelemetryInterfaceValidator(InterfaceValidator):
 
         for data in self.get_data(path_filters=paths):
             export_request = ExportTraceServiceRequest()
-            content = eval(data["request"]["content"])  # Raw content is a str like "b'\n\x\...'"
+            raw_content = data["request"]["content"]
+            # Raw content can be either a str like "b'\n\x\...'" or bytes
+            content = eval(raw_content) if isinstance(raw_content, str) else raw_content
             assert export_request.ParseFromString(content) > 0, content
             for resource_span in export_request.resource_spans:
                 for scope_span in resource_span.scope_spans:

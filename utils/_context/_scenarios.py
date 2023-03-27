@@ -20,6 +20,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
+    OpenTelemetryCollectorContainer,
     create_network,
 )
 
@@ -495,10 +496,14 @@ class OpenTelemetryScenario(_DockerScenario):
 
     def __init__(self, name, weblog_env) -> None:
         self._required_containers = []
+        self._check_env_vars()
         super().__init__(name, use_proxy=True)
 
+        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
         self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
+        self._required_containers.append(OpenTelemetryCollectorContainer(self.host_log_folder))
 
     def _create_interface_folders(self):
         for interface in ("open_telemetry", "backend"):
@@ -565,17 +570,18 @@ class OpenTelemetryScenario(_DockerScenario):
 
         interface.wait(timeout)
 
+    def _check_env_vars(self):
+        for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
+            if env not in os.environ:
+                raise Exception(f"Please set {env}, OTel E2E test requires 3 API keys and 3 APP keys")
+
     @property
     def library(self):
         return LibraryVersion("open_telemetry", "0.0.0")
 
     @property
-    def agent(self):
-        return LibraryVersion("agent", "0.0.0")
-
-    @property
     def agent_version(self):
-        return self.agent.version
+        return self.agent_container.agent_version
 
     @property
     def weblog_variant(self):
@@ -849,7 +855,7 @@ class scenarios:
 
     otel_tracing_e2e = OpenTelemetryScenario(
         "OTEL_TRACING_E2E",
-        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
+        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY_2"), "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),},
     )
 
     library_conf_custom_headers_short = EndToEndScenario(

@@ -28,7 +28,15 @@ class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
-        self, name, image_name, host_log_folder, environment=None, allow_old_container=False, healthcheck=None, **kwargs
+        self,
+        name,
+        image_name,
+        host_log_folder,
+        environment=None,
+        allow_old_container=False,
+        healthcheck=None,
+        command=None,
+        **kwargs,
     ) -> None:
         self.name = name
         self.host_log_folder = host_log_folder
@@ -47,8 +55,12 @@ class TestedContainer:
         Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
         Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
 
-        self.image.load()
-        self.image.save_image_info(self.log_folder_path)
+        self.image = ImageInfo(image_name, dir_path=self.log_folder_path)
+        self.healthcheck = healthcheck
+        self.environment = self.image.env | (environment or {})
+        self.command = command
+        self.kwargs = kwargs
+        self._container = None
 
     @property
     def container_name(self):
@@ -93,6 +105,7 @@ class TestedContainer:
             name=self.container_name,
             hostname=self.name,
             environment=self.environment,
+            command=self.command,
             # auto_remove=True,
             detach=True,
             network=_NETWORK_NAME,
@@ -472,4 +485,21 @@ class MySqlContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
+        )
+
+
+class OpenTelemetryCollectorContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="otel/opentelemetry-collector-contrib:latest",
+            name="collector",
+            command="--config=/etc/otelcol-config.yml",
+            environment={
+                "DD_API_KEY": os.environ.get("DD_API_KEY_3"),
+                "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
+            },
+            volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "curl --fail http://localhost:13133", "retries": 60},
+            ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
