@@ -690,7 +690,7 @@ def test_server(
     test_server_log_file.flush()
 
     env = os.environ.copy()
-    env["DOCKER_SCAN_SUGGEST"] = "false" # Docker outputs an annoying synk message on every build
+    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
 
     p = subprocess.run(
         cmd,
