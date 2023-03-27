@@ -1,3 +1,4 @@
+ARG TRACER_IMAGE=agent_local
 ARG PHP_VERSION=7.0
 ARG VARIANT=release-zts
 
