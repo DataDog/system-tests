@@ -67,7 +67,6 @@ def test_headers_b3multi_extract_invalid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_inject_valid(test_agent, test_library):
@@ -89,7 +88,6 @@ def test_headers_b3multi_inject_valid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_propagate_valid(test_agent, test_library):
@@ -120,7 +118,6 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_propagate_invalid(test_agent, test_library):
