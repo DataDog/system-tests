@@ -89,7 +89,8 @@ class _RequestLogger:
 
     @staticmethod
     def request_is_from_tracer(request):
-        # as now, only the tracer use the proxy as a reverse proxy
+        # as now, only the tracer use the proxy as a reverse proxy with traffic redirected to localhost
+        # wich is mapped to the agent container
         return request.host == "localhost"
 
     def response(self, flow):
