@@ -470,8 +470,14 @@ class scenarios:
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
     )
-
-    # Telemetry scenarios
+    telemetry_app_started_products_disabled = EndToEndScenario(
+        "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_PROFILING_ENABLED": "false",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
+        },
+    )
     telemetry_message_batch_event_order = EndToEndScenario(
         "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
     )
