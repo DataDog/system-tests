@@ -510,7 +510,9 @@ def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
 @pytest.mark.skip_library("nodejs", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("python", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("python_http", "Issue: Does not reset dm to DEFAULT")
-@pytest.mark.skip_library("ruby", "Issue: can't reset dm to DEFAULT at injection time because trace-level sampling runs on trace finish")
+@pytest.mark.skip_library(
+    "ruby", "Issue: can't reset dm to DEFAULT at injection time because trace-level sampling runs on trace finish"
+)
 def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(test_agent, test_library):
     """
     harness sends a request with both tracestate and traceparent
