@@ -37,7 +37,7 @@ readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 readonly WHITE_BOLD='\033[1;37m'
-
+TRACER_IMAGE="local"
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
     echo -e "  Builds Docker images for weblog variants with tracers."
@@ -55,6 +55,8 @@ print_usage() {
     echo -e "  ${CYAN}--list-libraries${NC}           Lists all available libraries and exits."
     echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
+    echo -e "  ${CYAN}--tracer${NC}                   Posible values are: local, latest, latest_snapshot"
+    echo -e "  ${CYAN}--tracer-path${NC}              If you are testing local tracer library, you set the local directory path to your tracer (by default binaries folder)  "
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -150,6 +152,10 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == weblog ]]; then
+            if [ ! -z ${TRACER_LIBRARY_PATH+x} ]; then
+                echo "Copy tracer from folder ${TRACER_LIBRARY_PATH}"
+                cp -R $TRACER_LIBRARY_PATH/*.* ./binaries 
+            fi
             DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
@@ -157,6 +163,7 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
+                --build-arg TRACER_IMAGE="agent_$TRACER_IMAGE" \
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \
@@ -223,6 +230,8 @@ while [[ "$#" -gt 0 ]]; do
         --list-libraries) COMMAND=list-libraries ;;
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
+        -t|--tracer) TRACER_IMAGE="$2"; shift ;;
+        -tp|--tracer-path) TRACER_LIBRARY_PATH="$2"; shift ;;
         -h|--help) print_usage; exit 0 ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac

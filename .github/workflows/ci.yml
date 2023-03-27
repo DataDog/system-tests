@@ -230,9 +230,15 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+    - name: Build (using Java Docker Base Images)
+      id: build
+      run: |
+        [ "${{ matrix.version }}" == "prod"  ] && SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --tracer latest || SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --tracer latest_snapshot
+      if: ${{ matrix.variant.library == 'java' }}
     - name: Build
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      if: ${{ matrix.variant.library != 'java' }}
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT
@@ -455,7 +461,8 @@ jobs:
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      run: |
+        [ "${{ matrix.version }}" == "prod"  ] && SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --tracer latest || SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --tracer latest_snapshot
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT
