@@ -29,6 +29,7 @@ RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
 
+
 FROM eclipse-temurin:11-jre
 
 WORKDIR /app
