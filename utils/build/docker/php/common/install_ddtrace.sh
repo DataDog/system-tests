@@ -43,18 +43,21 @@ else
     "${INSTALLER_ARGS[@]}"\
     --php-bin all
 fi
-
-php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
-  ./SYSTEM_TESTS_LIBRARY_VERSION
-
-php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
-  ./SYSTEM_TESTS_PHP_APPSEC_VERSION
-
-touch SYSTEM_TESTS_LIBDDWAF_VERSION
-
-appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)
-rule_file="/opt/datadog/dd-library/appsec-${appsec_version}/etc/dd-appsec/recommended.json"
-jq -r '.metadata.rules_version // "1.2.5"' "${rule_file}" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+#Get library,appsec and app sec rules version (Check if we need to generate before)
+FILE_LIBRARY_VERSION=/binaries/SYSTEM_TESTS_LIBRARY_VERSION
+if  [ -s "$FILE_LIBRARY_VERSION" ]; then
+    echo "$FILE_LIBRARY_VERSION exists."
+    appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)
+else
+  php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
+    ./SYSTEM_TESTS_LIBRARY_VERSION
+  php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddappsec");' > \
+    ./SYSTEM_TESTS_PHP_APPSEC_VERSION
+  touch SYSTEM_TESTS_LIBDDWAF_VERSION
+  appsec_version=$(<./SYSTEM_TESTS_PHP_APPSEC_VERSION)
+  rule_file="/opt/datadog/dd-library/appsec-${appsec_version}/etc/dd-appsec/recommended.json"
+  jq -r '.metadata.rules_version // "1.2.5"' "${rule_file}" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+fi
 
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
 mkdir -p /etc/dd-appsec

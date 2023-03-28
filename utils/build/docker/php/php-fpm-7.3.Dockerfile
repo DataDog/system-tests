@@ -1,8 +1,30 @@
 
+ARG TRACER_IMAGE=agent_local
+
+FROM ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot as agent_latest_snapshot
+
+FROM ghcr.io/datadog/dd-trace-php/dd-trace-php:latest as agent_latest
+
+FROM bash as agent_local
+
+ADD binaries* /
+RUN touch /LIBRARY_VERSION
+RUN touch /LIBDDWAF_VERSION
+RUN touch /APPSEC_EVENT_RULES_VERSION
+RUN touch /PHP_APPSEC_VERSION
+
+FROM $TRACER_IMAGE as agent
+
 FROM ubuntu:20.04
 ARG PHP_VERSION=7.3
 
-ADD binaries* /binaries/
+COPY --from=agent /LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=agent /LIBDDWAF_VERSION /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=agent /APPSEC_EVENT_RULES_VERSION /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+COPY --from=agent /PHP_APPSEC_VERSION /binaries/SYSTEM_TESTS_PHP_APPSEC_VERSION
+
+COPY --from=agent /*.tar.gz /binaries/
+
 ADD utils/build/docker/php /tmp/php
 
 ENV DD_TRACE_ENABLED=1
