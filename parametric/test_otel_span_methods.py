@@ -31,7 +31,7 @@ def test_otel_start_span(test_agent, test_library):
             new_root=True,
             attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
-            parent.otel_end_span(timestamp=start_time + duration)
+            parent.end_span(timestamp=start_time + duration)
 
     root_span = get_span(test_agent)
     assert root_span["name"] == "operation"
@@ -58,7 +58,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
             parent.set_attributes({"key": ["val1", "val2"]})
             parent.set_attributes({"key2": [1]})
             parent.set_attributes({"pi": 3.14, "hi": "bye"})
-            parent.otel_end_span()
+            parent.end_span()
     traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, OtelSpan(name="operation"))
     assert len(trace) == 1
@@ -90,7 +90,7 @@ def test_otel_span_is_recording(test_agent, test_library):
         # start parent
         with test_library.start_otel_span(name="parent") as parent:
             assert parent.is_recording()
-            parent.otel_end_span()
+            parent.end_span()
             assert not parent.is_recording()
 
 
@@ -110,9 +110,9 @@ def test_otel_span_finished_end_options(test_agent, test_library):
     with test_library:
         with test_library.start_otel_span(name="operation", timestamp=start_time) as s:
             assert s.is_recording()
-            s.otel_end_span(timestamp=start_time + duration)
+            s.end_span(timestamp=start_time + duration)
             assert not s.is_recording()
-            s.otel_end_span(timestamp=start_time + duration * 2)
+            s.end_span(timestamp=start_time + duration * 2)
 
     s = get_span(test_agent)
     assert s.get("name") == "operation"
@@ -135,12 +135,12 @@ def test_otel_span_end(test_agent, test_library):
     """
     with test_library:
         with test_library.start_otel_span(name="parent") as parent:
-            parent.otel_end_span()
+            parent.end_span()
             # setting attributes after finish has no effect
             parent.set_name("new_name")
             parent.set_attributes({"after_finish": "true"})  # should have no affect
             with test_library.start_otel_span(name="child", parent_id=parent.span_id) as child:
-                child.otel_end_span()
+                child.end_span()
 
     trace = find_trace_by_root(test_agent.wait_for_num_traces(1), OtelSpan(name="parent"))
     assert len(trace) == 2
@@ -174,7 +174,7 @@ def test_otel_set_span_status_error(test_agent, test_library):
         with test_library.start_otel_span(name="error_span") as s:
             s.set_status(OTEL_ERROR_CODE, "error_desc")
             s.set_status(OTEL_UNSET_CODE, "unset_desc")
-            s.otel_end_span()
+            s.end_span()
     s = get_span(test_agent)
     assert s.get("meta").get("error.message") == "error_desc"
     assert s.get("name") == "error_span"
@@ -200,7 +200,7 @@ def test_otel_set_span_status_ok(test_agent, test_library):
         with test_library.start_otel_span(name="ok_span") as span:
             span.set_status(OTEL_OK_CODE, "ok_desc")
             span.set_status(OTEL_ERROR_CODE, "error_desc")
-            span.otel_end_span()
+            span.end_span()
 
     span = get_span(test_agent)
     assert span.get("meta").get("error.message") is None
@@ -221,9 +221,9 @@ def test_otel_get_span_context(test_agent, test_library):
     """
     with test_library:
         with test_library.start_otel_span(name="operation", new_root=True) as parent:
-            parent.otel_end_span()
+            parent.end_span()
             with test_library.start_otel_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
-                span.otel_end_span()
+                span.end_span()
                 context = span.span_context()
                 assert context.get("trace_id") == f"{parent.span_id:0x}".ljust(32, "0")
                 assert context.get("span_id") == f"{span.span_id:0x}".rjust(16, "0")

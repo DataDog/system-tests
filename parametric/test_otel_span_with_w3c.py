@@ -27,7 +27,7 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
             new_root=True,
             attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
-            parent.otel_end_span(timestamp=start_time + duration_us)
+            parent.end_span(timestamp=start_time + duration_us)
     duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd
 
     root_span = get_span(test_agent)
@@ -43,20 +43,19 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("golang", "Not implemented - waiting for 128bit work")
+@pytest.mark.skip_library("golang", "BUG - waiting for 128bit work")
 def test_otel_span_with_w3c_headers(test_agent, test_library):
     with test_library:
         with test_library.start_otel_span(
-            name="name", http_headers=[["traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01"]],
+            name="name", http_headers=[["traceparent", "00-00000000000000001111111111111111-2222222222222222-01"]],
         ) as span:
             context = span.span_context()
             assert context.get("trace_flags") == "01"
-            # TODO is this assertion right?
-            assert context.get("trace_id") == "000000000000000000000000075bcd15"
-            span.otel_end_span()
+            assert context.get("trace_id") == "00000000000000001111111111111111"
+            span.end_span()
 
     span = get_span(test_agent)
-    assert span.get("trace_id") == 123456789
-    assert span.get("parent_id") == 987654321
+    assert span.get("trace_id") == 1229782938247303441
+    assert span.get("parent_id") == 2459565876494606882
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
     assert span["meta"].get(ORIGIN) is None

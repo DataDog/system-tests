@@ -195,7 +195,7 @@ class _TestOtelSpan:
     def set_status(self, code, description):
         self._client.otel_set_status(self.span_id, code, description)
 
-    def otel_end_span(self, timestamp: int = 0):
+    def end_span(self, timestamp: int = 0):
         self._client.otel_end_span(self.span_id, timestamp)
 
     def is_recording(self) -> bool:
