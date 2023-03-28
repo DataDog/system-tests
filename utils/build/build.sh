@@ -129,7 +129,6 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
             docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
-            
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
                 AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
