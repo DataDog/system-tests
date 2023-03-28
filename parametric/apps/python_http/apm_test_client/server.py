@@ -3,8 +3,21 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
+
+import opentelemetry
+from opentelemetry.trace import set_tracer_provider
+from opentelemetry.trace.span import NonRecordingSpan as OtelNonRecordingSpan
+from opentelemetry.trace import SpanKind
+from opentelemetry.trace.span import Span as OtelSpan
+from opentelemetry.trace.span import StatusCode
+from opentelemetry.trace.span import TraceFlags
+from opentelemetry.trace.span import TraceState
+from opentelemetry.trace.span import SpanContext as OtelSpanContext
+from opentelemetry.trace import set_span_in_context
+from ddtrace.opentelemetry import TracerProvider
 
 import ddtrace
 from ddtrace import Span
@@ -16,6 +29,7 @@ from ddtrace.propagation.http import HTTPPropagator
 
 
 spans: Dict[int, Span] = {}
+otel_spans: Dict[int, OtelSpan] = {}
 app = FastAPI(
     title="APM library test server",
     description="""
@@ -24,6 +38,11 @@ The reference implementation of the APM Library test server.
 Implement the API specified below to enable your library to run all of the shared tests.
 """,
 )
+
+opentelemetry.trace.set_tracer_provider(TracerProvider())
+# Replaces the default otel api runtime context with DDRuntimeContext
+# https://github.com/open-telemetry/opentelemetry-python/blob/v1.16.0/opentelemetry-api/src/opentelemetry/context/__init__.py#L53
+os.environ["OTEL_PYTHON_CONTEXT"] = "ddcontextvars_context"
 
 
 class StartSpanArgs(BaseModel):
@@ -184,3 +203,224 @@ def trace_span_error(args: TraceSpanErrorArgs) -> TraceSpanErrorReturn:
     span.set_tag(ERROR_STACK, args.stack)
     span.error = 1
     return TraceSpanErrorReturn()
+
+
+class OtelStartSpanArgs(BaseModel):
+    name: str
+    new_root: bool
+    parent_id: int
+    span_kind: int
+    service: str
+    resource: str
+    type: str
+    timestamp: int
+    http_headers: dict
+    attributes: dict
+
+
+class OtelStartSpanReturn(BaseModel):
+    span_id: int
+    trace_id: int
+
+
+@app.post("/trace/otel/start/span")
+def otel_start_span(args: OtelStartSpanArgs):
+    # Note - args.resource, args.type, and args.new_root are not used.
+    otel_tracer = opentelemetry.trace.get_tracer(__name__)
+
+    parent_span = None
+    if args.parent_id:
+        parent_span = otel_spans[args.parent_id]
+    elif args.http_headers.ByteSize() > 0:
+        headers = {}
+        for header_tuple in args.http_headers.http_headers:
+            headers[header_tuple.key] = header_tuple.value
+        ddcontext = HTTPPropagator.extract(headers)
+        parent_span = OtelNonRecordingSpan(
+            OtelSpanContext(
+                ddcontext.trace_id,
+                ddcontext.span_id,
+                True,
+                TraceFlags.SAMPLED
+                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                else TraceFlags.DEFAULT,
+                TraceState.from_header([ddcontext._tracestate]),
+            )
+        )
+
+    otel_span = otel_tracer.start_span(
+        args.name,  # type: str
+        context=set_span_in_context(parent_span),
+        kind=SpanKind(args.span_kind),
+        attributes=args.attributes,
+        links=None,
+        # parametric tests expect timestamps to be set in microseconds (required by go)
+        # but the python implementation sets time nanoseconds.
+        start_time=args.timestamp * 1e3 if args.timestamp else None,
+        record_exception=True,
+        set_status_on_exception=True,
+    )
+
+    ctx = otel_span.get_span_context()
+    otel_spans[ctx.span_id] = otel_span
+    return OtelStartSpanReturn(span_id=ctx.span_id, trace_id=ctx.trace_id)
+
+
+class OtelEndSpanArgs(BaseModel):
+    id: int
+    timestamp: int
+
+
+class OtelEndSpanReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/otel/end/span")
+def otel_end_span(args: OtelEndSpanArgs):
+    span = otel_spans.get(args.id)
+    st = args.timestamp
+    if st is not None:
+        # convert timestamp from microseconds to nanoseconds
+        st = st * 1e3
+    span.end(st)
+    return OtelEndSpanReturn()
+
+
+class OtelForceFlushArgs(BaseModel):
+    seconds: int
+
+
+class OtelForceFlushReturn(BaseModel):
+    success: bool
+
+
+class OtelFlushSpansArgs(BaseModel):
+    seconds: int
+
+
+class OtelFlushSpansReturn(BaseModel):
+    success: bool
+
+
+@app.post("/trace/otel/flush/spans")
+def otel_flush_spans(args: OtelFlushSpansArgs):
+    ddtrace.tracer.flush()
+    spans.clear()
+    otel_spans.clear()
+    return OtelFlushSpansReturn(success=True)
+
+
+class OtelFlushTraceStatsArgs(BaseModel):
+    pass
+
+
+class OtelFlushTraceStatsReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/otel/flush/stats")
+def otel_flush_stats(args: OtelFlushTraceStatsArgs):
+    return trace_stats_flush(args)
+
+
+class OtelStopTracerArgs(BaseModel):
+    pass
+
+
+class OtelStopTracerReturn(BaseModel):
+    pass
+
+
+class OtelIsRecordingArgs(BaseModel):
+    span_id: int
+
+
+class OtelIsRecordingReturn(BaseModel):
+    is_recording: bool
+
+
+@app.post("/trace/otel/is/recording")
+def otel_is_recording(args: OtelIsRecordingArgs):
+    span = otel_spans.get(args.span_id)
+    return OtelIsRecordingReturn(is_recording=span.is_recording())
+
+
+class OtelSpanContextArgs(BaseModel):
+    span_id: int
+
+
+class OtelSpanContextReturn(BaseModel):
+    span_id: str
+    trace_id: str
+    trace_flags: str
+    trace_state: str
+    remote: bool
+
+
+@app.post("/trace/otel/span/context")
+def otel_span_context(args: OtelSpanContextArgs):
+    span = otel_spans[args.span_id]
+    ctx = span.get_span_context()
+    # Some implementations of the opentelemetry-api expect SpanContext.trace_id and SpanContext.span_id
+    # to be hex encoded strings (ex: go). So the system tests were defined with this implementation in mind.
+    # However, this is not the case in python. SpanContext.trace_id and SpanContext.span_id are stored
+    # as integers and are converted to hex when the trace is submitted to the collector.
+    # https://github.com/open-telemetry/opentelemetry-python/blob/v1.17.0/opentelemetry-api/src/opentelemetry/trace/span.py#L424-L425
+    return OtelSpanContextReturn(
+        span_id="{:016x}".format(ctx.span_id),
+        trace_id="{:032x}".format(ctx.trace_id),
+        trace_flags="{:02x}".format(ctx.trace_flags),
+        trace_state=ctx.trace_state.to_header(),
+        remote=ctx.is_remote,
+    )
+
+
+class OtelSetStatusArgs(BaseModel):
+    span_id: int
+    code: str
+    description: str
+
+
+class OtelSetStatusReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/otel/set/status")
+def otel_set_status(args: OtelSetStatusArgs):
+    span = otel_spans[args.span_id]
+    status_code = getattr(StatusCode, args.code.upper())
+    span.set_status(status_code, args.description)
+    return OtelSetStatusReturn()
+
+
+class OtelSetNameArgs(BaseModel):
+    span_id: int
+    name: str
+
+
+class OtelSetNameReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/otel/set/name")
+def otel_set_name(args: OtelSetNameArgs):
+    span = otel_spans[args.span_id]
+    span.update_name(args.name)
+    return OtelSetNameReturn()
+
+
+class OtelSetAttributesArgs(BaseModel):
+    span_id: int
+    attributes: dict
+
+
+class OtelSetAttributesReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/otel/set/attributes")
+def otel_set_attributes(args: OtelSetAttributesArgs):
+    span = otel_spans[args.span_id]
+    attributes = args.attributes
+    span.set_attributes(attributes)
+    return OtelSetAttributesReturn()

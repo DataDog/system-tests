@@ -88,6 +88,7 @@ ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
+    # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
@@ -98,7 +99,7 @@ def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
 WORKDIR /client
 RUN pyenv global 3.9.11
-RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3
+RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3 opentelemetry-api
 RUN python3.9 -m pip install %s
 """
         % (python_package,),
@@ -111,7 +112,10 @@ RUN python3.9 -m pip install %s
 
 def python_http_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python_http")
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
+    # By default run parametric tests against the development branch
+    python_package = os.getenv(
+        "PYTHON_DDTRACE_PACKAGE", "ddtrace"
+    )
     return APMLibraryTestServer(
         lang="python",
         protocol="http",
@@ -121,7 +125,7 @@ def python_http_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
 WORKDIR /client
 RUN pyenv global 3.9.11
-RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-api
 RUN python3.9 -m pip install %s
 """
         % (python_package,),
