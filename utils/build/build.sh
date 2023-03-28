@@ -56,7 +56,7 @@ print_usage() {
     echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
-    echo -e "  ${CYAN}--binary-url${NC}              Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
