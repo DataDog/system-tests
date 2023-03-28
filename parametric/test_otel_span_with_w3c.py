@@ -20,7 +20,7 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
     with test_library:
         duration_us = int(2 * 1_000_000)
         start_time = int(time.time())
-        with test_library.start_otel_span(
+        with test_library.otel_start_span(
             "operation",
             span_kind=SK_PRODUCER,
             timestamp=start_time,
@@ -46,7 +46,7 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
 @pytest.mark.skip_library("golang", "BUG - waiting for 128bit work")
 def test_otel_span_with_w3c_headers(test_agent, test_library):
     with test_library:
-        with test_library.start_otel_span(
+        with test_library.otel_start_span(
             name="name", http_headers=[["traceparent", "00-00000000000000001111111111111111-2222222222222222-01"]],
         ) as span:
             context = span.span_context()

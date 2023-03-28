@@ -24,7 +24,7 @@ def test_otel_start_span(test_agent, test_library):
     with test_library:
         duration: int = 6789
         start_time: int = 12345
-        with test_library.start_otel_span(
+        with test_library.otel_start_span(
             "operation",
             span_kind=SK_PRODUCER,
             timestamp=start_time,
@@ -52,7 +52,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     """
     parent_start_time = int(time.time())
     with test_library:
-        with test_library.start_otel_span(
+        with test_library.otel_start_span(
             "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
         ) as parent:
             parent.set_attributes({"key": ["val1", "val2"]})
@@ -88,7 +88,7 @@ def test_otel_span_is_recording(test_agent, test_library):
     """
     with test_library:
         # start parent
-        with test_library.start_otel_span(name="parent") as parent:
+        with test_library.otel_start_span(name="parent") as parent:
             assert parent.is_recording()
             parent.end_span()
             assert not parent.is_recording()
@@ -108,7 +108,7 @@ def test_otel_span_finished_end_options(test_agent, test_library):
     start_time: int = 12345
     duration: int = 6789
     with test_library:
-        with test_library.start_otel_span(name="operation", timestamp=start_time) as s:
+        with test_library.otel_start_span(name="operation", timestamp=start_time) as s:
             assert s.is_recording()
             s.end_span(timestamp=start_time + duration)
             assert not s.is_recording()
@@ -134,12 +134,12 @@ def test_otel_span_end(test_agent, test_library):
         - still possible to start child spans from parent context
     """
     with test_library:
-        with test_library.start_otel_span(name="parent") as parent:
+        with test_library.otel_start_span(name="parent") as parent:
             parent.end_span()
             # setting attributes after finish has no effect
             parent.set_name("new_name")
             parent.set_attributes({"after_finish": "true"})  # should have no affect
-            with test_library.start_otel_span(name="child", parent_id=parent.span_id) as child:
+            with test_library.otel_start_span(name="child", parent_id=parent.span_id) as child:
                 child.end_span()
 
     trace = find_trace_by_root(test_agent.wait_for_num_traces(1), OtelSpan(name="parent"))
@@ -171,7 +171,7 @@ def test_otel_set_span_status_error(test_agent, test_library):
 
     """
     with test_library:
-        with test_library.start_otel_span(name="error_span") as s:
+        with test_library.otel_start_span(name="error_span") as s:
             s.set_status(OTEL_ERROR_CODE, "error_desc")
             s.set_status(OTEL_UNSET_CODE, "unset_desc")
             s.end_span()
@@ -197,7 +197,7 @@ def test_otel_set_span_status_ok(test_agent, test_library):
             prior or future status values
     """
     with test_library:
-        with test_library.start_otel_span(name="ok_span") as span:
+        with test_library.otel_start_span(name="ok_span") as span:
             span.set_status(OTEL_OK_CODE, "ok_desc")
             span.set_status(OTEL_ERROR_CODE, "error_desc")
             span.end_span()
@@ -220,9 +220,9 @@ def test_otel_get_span_context(test_agent, test_library):
         (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
     """
     with test_library:
-        with test_library.start_otel_span(name="operation", new_root=True) as parent:
+        with test_library.otel_start_span(name="operation", new_root=True) as parent:
             parent.end_span()
-            with test_library.start_otel_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
+            with test_library.otel_start_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
                 span.end_span()
                 context = span.span_context()
                 assert context.get("trace_id") == f"{parent.span_id:0x}".ljust(32, "0")

@@ -34,7 +34,7 @@ class APMLibraryClient:
     ) -> StartSpanResponse:
         raise NotImplementedError
 
-    def trace_start_otel_span(
+    def otel_trace_start_span(
         self,
         name: str,
         new_root: bool,
@@ -64,7 +64,7 @@ class APMLibraryClient:
     def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
-    def get_otel_span_context(self, span_id: int):
+    def otel_get_span_context(self, span_id: int):
         raise NotImplementedError
 
     def span_set_meta(self, span_id: int, key: str, value: str) -> None:
@@ -85,7 +85,7 @@ class APMLibraryClient:
     def trace_stop(self) -> None:
         raise NotImplementedError
 
-    def flush_otel(self, timeout: int) -> bool:
+    def otel_flush(self, timeout: int) -> bool:
         raise NotImplementedError
 
 
@@ -202,7 +202,7 @@ class _TestOtelSpan:
         return self._client.otel_is_recording(self.span_id)
 
     def span_context(self) -> OtelSpanContext:
-        sctx = self._client.get_otel_span_context(self.span_id)
+        sctx = self._client.otel_get_span_context(self.span_id)
         return OtelSpanContext(
             trace_id=sctx.trace_id,
             span_id=sctx.span_id,
@@ -252,7 +252,7 @@ class APMLibraryClientGRPC:
             "trace_id": resp.trace_id,
         }
 
-    def trace_start_otel_span(
+    def otel_trace_start_span(
         self,
         name: str,
         new_root: bool,
@@ -285,9 +285,6 @@ class APMLibraryClientGRPC:
     def trace_flush(self):
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
-
-    def flush_otel(self, timeout: int) -> bool:
-        return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
@@ -325,8 +322,11 @@ class APMLibraryClientGRPC:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=span_id)).is_recording
 
-    def get_otel_span_context(self, span_id: int):
+    def otel_get_span_context(self, span_id: int):
         return self._client.OtelSpanContext(pb.OtelSpanContextArgs(span_id=span_id))
+
+    def otel_flush(self, timeout: int) -> bool:
+        return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
 
 
 class APMLibrary:
@@ -367,7 +367,7 @@ class APMLibrary:
         span.finish()
 
     @contextlib.contextmanager
-    def start_otel_span(
+    def otel_start_span(
         self,
         name: str,
         new_root: bool = False,
@@ -377,7 +377,7 @@ class APMLibrary:
         attributes: dict = None,
         http_headers: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.trace_start_otel_span(
+        resp = self._client.otel_trace_start_span(
             name=name,
             new_root=new_root,
             timestamp=timestamp,
@@ -397,11 +397,8 @@ class APMLibrary:
     def flush(self):
         self._client.trace_flush()
 
-    def flush_otel(self, timeout_sec: int) -> bool:
-        return self._client.flush_otel(timeout_sec)
+    def otel_flush(self, timeout_sec: int) -> bool:
+        return self._client.otel_flush(timeout_sec)
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
-
-    def stop(self):
-        return self._client.StopTracer(pb.StopTracerArgs())
