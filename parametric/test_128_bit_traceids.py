@@ -15,7 +15,7 @@ def test_datadog_128_bit_propagation(test_agent, test_library):
     headers.
     """
     with test_library:
-        make_single_request_and_get_inject_headers(
+        headers = make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["x-datadog-trace-id", "1234567890123456789"],
@@ -28,7 +28,27 @@ def test_datadog_128_bit_propagation(test_agent, test_library):
     dd_p_tid = span["meta"].get("_dd.p.tid")
 
     assert trace_id == 1234567890123456789
+    assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid == "640cfd8d00000000"
+
+
+@pytest.mark.parametrize(
+    "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
+)
+def test_datadog_128_bit_propagation_and_generation(test_agent, test_library):
+    """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
+    """
+    with test_library:
+        headers = make_single_request_and_get_inject_headers(
+            test_library, [["x-datadog-trace-id", "1234567890123456789"], ["x-datadog-parent-id", "987654321"],],
+        )
+    span = get_span(test_agent)
+    trace_id = span.get("trace_id")
+    dd_p_tid = span["meta"].get("_dd.p.tid")
+
+    assert trace_id == 1234567890123456789
+    assert int(headers["x-datadog-trace-id"], 10) == trace_id
+    assert dd_p_tid is None
 
 
 @pytest.mark.parametrize(
@@ -40,13 +60,12 @@ def test_datadog_128_bit_generation_disabled(test_agent, test_library):
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(test_library, [])
-    header_trace_id = headers["x-datadog-trace-id"]
     span = get_span(test_agent)
-    span_trace_id = span.get("trace_id")
+    trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
 
-    assert span_trace_id < POWER_2_64
-    assert int(header_trace_id, 10) == span_trace_id
+    assert trace_id < POWER_2_64
+    assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid is None
 
 
@@ -67,13 +86,12 @@ def test_datadog_128_bit_generation_enabled(test_agent, test_library):
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(test_library, [])
-    header_trace_id = headers["x-datadog-trace-id"]
     span = get_span(test_agent)
-    span_trace_id = span.get("trace_id")
+    trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
 
-    assert span_trace_id < POWER_2_64
-    assert int(header_trace_id, 10) == span_trace_id
+    assert trace_id < POWER_2_64
+    assert int(headers["x-datadog-trace-id"], 10) == trace_id
     validate_dd_p_tid(dd_p_tid)
 
 
@@ -105,6 +123,27 @@ def test_b3single_128_bit_propagation(test_agent, test_library):
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
     check_128_bit_trace_id(fields[0], trace_id, dd_p_tid)
+
+
+@pytest.mark.parametrize(
+    "library_env",
+    [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
+)
+def test_b3single_128_bit_propagation_and_generation(test_agent, test_library):
+    """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
+    """
+    with test_library:
+        headers = make_single_request_and_get_inject_headers(
+            test_library, [["b3", "abcdefab12345678-000000003ade68b1-1"],],
+        )
+    span = get_span(test_agent)
+    trace_id = span.get("trace_id")
+    dd_p_tid = span["meta"].get("_dd.p.tid")
+    fields = headers["b3"].split("-", 1)
+
+    assert trace_id == int("abcdefab12345678", 16)
+    assert dd_p_tid is None
+    check_64_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
@@ -176,6 +215,25 @@ def test_b3multi_128_bit_propagation(test_agent, test_library):
     check_128_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
 
+@pytest.mark.parametrize(
+    "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
+)
+def test_b3multi_128_bit_propagation_and_generation(test_agent, test_library):
+    """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
+    """
+    with test_library:
+        headers = make_single_request_and_get_inject_headers(
+            test_library, [["x-b3-traceid", "abcdefab12345678"], ["x-b3-spanid", "000000003ade68b1"],],
+        )
+    span = get_span(test_agent)
+    trace_id = span.get("trace_id")
+    dd_p_tid = span["meta"].get("_dd.p.tid")
+
+    assert trace_id == int("abcdefab12345678", 16)
+    assert dd_p_tid is None
+    check_64_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
+
+
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
@@ -244,6 +302,27 @@ def test_w3c_128_bit_propagation(test_agent, test_library):
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
     check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
+
+
+@pytest.mark.parametrize(
+    "library_env",
+    [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
+)
+def test_w3c_128_bit_propagation_and_generation(test_agent, test_library):
+    """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
+    """
+    with test_library:
+        headers = make_single_request_and_get_inject_headers(
+            test_library, [["traceparent", "00-0000000000000000abcdefab12345678-000000003ade68b1-01",],],
+        )
+    span = get_span(test_agent)
+    trace_id = span.get("trace_id")
+    dd_p_tid = span["meta"].get("_dd.p.tid")
+    fields = headers["traceparent"].split("-", 2)
+
+    assert trace_id == int("abcdefab12345678", 16)
+    assert dd_p_tid is None
+    check_64_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
