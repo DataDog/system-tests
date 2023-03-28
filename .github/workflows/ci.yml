@@ -203,6 +203,8 @@ jobs:
       run: docker pull bitnami/kafka:latest
     - name: Pull zookeeper image
       run: docker pull bitnami/zookeeper:latest
+    - name: Pull rabbitmq image
+      run: docker pull rabbitmq:3-management-alpine
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -429,6 +431,8 @@ jobs:
       run: docker pull bitnami/kafka:latest
     - name: Pull zookeeper image
       run: docker pull bitnami/zookeeper:latest
+    - name: Pull rabbitmq image
+      run: docker pull rabbitmq:3-management-alpine
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set

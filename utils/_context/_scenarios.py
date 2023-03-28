@@ -125,6 +125,7 @@ class EndToEndScenario(_Scenario):
         include_mongo_db=False,
         use_proxy=True,
         include_kafka=False,
+        include_rabbitmq=False,
     ) -> None:
         super().__init__(name)
 
@@ -212,6 +213,11 @@ class EndToEndScenario(_Scenario):
                     environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
                     allow_old_container=True,
                 )
+            )
+
+        if include_rabbitmq:
+            self._required_containers.append(
+                TestedContainer(image_name="rabbitmq:3-management-alpine", name="rabbitmq", allow_old_container=True,)
             )
 
         if agent_interface_timeout is None:
@@ -457,6 +463,7 @@ class scenarios:
         include_cassandra_db=True,
         include_mongo_db=True,
         include_kafka=True,
+        include_rabbitmq=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
