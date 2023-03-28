@@ -4,6 +4,7 @@
 import os
 import json
 
+import pytest
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context

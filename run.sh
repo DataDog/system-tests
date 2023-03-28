@@ -6,16 +6,6 @@
 
 set -eu
 
-# set .env if exists. Allow users to keep their conf via env vars
-if test -f ".env"; then
-    source .env
-fi
-
-if [ -z "${DD_API_KEY:-}" ]; then
-    echo "DD_API_KEY is missing in env, please add it."
-    exit 1
-fi
-
 FIRST_ARGUMENT=${1:-DEFAULT}
 if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
     export SYSTEMTESTS_SCENARIO=$FIRST_ARGUMENT

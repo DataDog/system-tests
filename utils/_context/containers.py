@@ -183,8 +183,12 @@ class ImageInfo:
 
 class AgentContainer(TestedContainer):
     def __init__(self, host_log_folder, use_proxy=True) -> None:
+
+        if "DD_API_KEY" not in os.environ:
+            pytest.exit(reason="DD_API_KEY is missing in env, please add it.", returncode=1)
+
         environment = {
-            "DD_API_KEY": os.environ.get("DD_API_KEY", "please-set-DD_API_KEY"),
+            "DD_API_KEY": os.environ["DD_API_KEY"],
             "DD_ENV": "system-tests",
             "DD_HOSTNAME": "test",
             "DD_SITE": self.dd_site,

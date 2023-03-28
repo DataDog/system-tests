@@ -8,7 +8,7 @@ import pytest
 
 from utils._context.containers import TestedContainer, WeblogContainer, AgentContainer, create_network
 from utils._context.library_version import LibraryVersion
-from utils.tools import logger, get_log_formatter
+from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 current_scenario = None
 
@@ -28,6 +28,8 @@ class _Scenario:
             handler.setFormatter(get_log_formatter())
 
             logger.addHandler(handler)
+
+            update_environ_with_local_env()
 
     @property
     def is_current_scenario(self):

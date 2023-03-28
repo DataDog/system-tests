@@ -3,6 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import logging
+import os
+import re
 import sys
 
 
@@ -22,6 +24,25 @@ class bcolors:
 
 def get_log_formatter():
     return logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S")
+
+
+def update_environ_with_local_env():
+
+    # dynamically load .env file in environ if exists, it allow users to keep their conf via env vars
+    try:
+        with open(".env", "r", encoding="utf-8") as f:
+            logger.debug("Found a .env file")
+            for line in f:
+                line = line.strip(" \t\n")
+                line = re.sub(r"(.*)#.$", r"\1", line)
+                line = re.sub(r"^(export +)(.*)$", r"\2", line)
+                if "=" in line:
+                    items = line.split("=")
+                    logger.debug(f"adding {items[0]} in environ")
+                    os.environ[items[0]] = items[1]
+
+    except FileNotFoundError:
+        pass
 
 
 def get_logger(name="tests", use_stdout=False):
