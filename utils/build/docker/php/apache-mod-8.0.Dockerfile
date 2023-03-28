@@ -8,7 +8,7 @@ FROM ghcr.io/datadog/dd-trace-php/dd-trace-php:latest as agent_latest
 
 FROM bash as agent_local
 
-ADD binaries* /binaries/
+ADD binaries* /
 RUN touch /LIBRARY_VERSION
 RUN touch /LIBDDWAF_VERSION
 RUN touch /APPSEC_EVENT_RULES_VERSION
