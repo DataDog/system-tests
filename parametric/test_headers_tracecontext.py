@@ -769,10 +769,6 @@ def test_tracestate_all_allowed_characters(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
-@pytest.mark.skip_library(
-    "python",
-    "\t is an invalid character and is not supported in tracestate. We should update this test use spaces instead",
-)
 @pytest.mark.skip_library("php", "PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)")
 @pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
