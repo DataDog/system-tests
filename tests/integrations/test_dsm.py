@@ -80,6 +80,37 @@ class Test_DsmHttp:
         assert expected_http in checkpoints
 
 
+@missing_feature(condition=context.library != "java", reason="RabbitMQ instrumentation only on Java")
+@missing_feature(
+    context.weblog_variant not in ("spring-boot"),
+    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
+)
+@scenarios.integrations
+class Test_DsmRabbitmq:
+    """ Verify DSM stats points for RabbitMQ """
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq")
+
+    def test_dsm_rabbitmq(self):
+        assert str(self.r.content, "UTF-8") == "ok"
+        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
+
+        expected_rabbit_out = DsmStatsPoint(
+            6176024609184775446,
+            0,
+            ["direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"],
+        )
+        expected_rabbit_in = DsmStatsPoint(
+            3735318893869752335,
+            4463699290244539355,
+            ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
+        )
+
+        assert expected_rabbit_out in checkpoints
+        assert expected_rabbit_in in checkpoints
+
+
 class DsmHelper:
     @staticmethod
     def parse_dsm_checkpoints(dsm_data):
