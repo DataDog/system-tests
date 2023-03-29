@@ -33,6 +33,8 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
+Make sure you're in the `parametric` directory before running these commands.
+
 The following dependencies are required to run the tests locally:
 
 - Docker
@@ -128,6 +130,36 @@ go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
 go mod tidy
 ```
 
+#### Java
+
+##### Run Parametric tests with a custom Java Tracer version
+
+1. Build Java Tracer artifacts
+```bash
+git clone git@github.com:DataDog/dd-trace-java.git 
+cd dd-trace-java
+./gradlew :dd-trace-ot:shadowar :dd-trace-api:jar
+```
+
+2. Copy both artifacts `dd-trace-api-*.jar` and `dd-trace-ot-*.jar` into the `system-tests/binaries/` folder.
+
+3. Run Parametric tests from the `system-tests/parametric` folder:
+
+```bash
+CLIENTS_ENABLED=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
+```
+
+
+#### PHP
+
+If you are seeing DNS resolution issues when running the tests locally, add the following config to the Docker daemon:
+
+```json
+  "dns-opts": [
+    "single-request"
+  ],
+```
+
 
 #### Python
 
@@ -147,6 +179,13 @@ with the filename placed in the aforementioned folder. For example:
 - Set the environment variable ``NODEJS_DDTRACE_MODULE`` to hold a commit in a remote branch. The following example will run
 the tests with a specific commit: ``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh``
 
+#### Ruby
+
+To run the Ruby tests "locally" push your code GitHub and then specify `RUBY_DDTRACE_SHA`:
+
+```sh
+RUBY_DDTRACE_SHA=0552ebd49dc5b3bec4e739c2c74b214fb3102c2a ./run.sh ...
+```
 
 ### Debugging
 
