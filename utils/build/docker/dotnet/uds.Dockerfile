@@ -42,9 +42,9 @@ COPY --from=build /app/out .
 RUN mkdir /opt/datadog
 COPY --from=build /opt/datadog /opt/datadog
 
-COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_VERSION
-COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 COPY utils/build/docker/dotnet/app.sh app.sh
 COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh

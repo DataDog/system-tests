@@ -81,9 +81,8 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java' && matrix.variant.library != 'dotnet')}}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent

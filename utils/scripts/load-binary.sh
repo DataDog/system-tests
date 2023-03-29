@@ -11,11 +11,8 @@
 # Binaries sources:
 # 
 # * C++:    Circle CI      (needs auth)
-# * .NET:   windows.net
 # * Golang: github repo
-# * Java:   Circle CI      (needs auth)
 # * NodeJS: github repo
-# * PHP:    Circle CI      (needs auth)
 # * Python: github actions
 # * Ruby:   github repo
 #
@@ -159,32 +156,7 @@ echo "Load $VERSION binary for $TARGET"
 
 cd binaries/
 
-if [ "$TARGET" = "java" ]; then
-    assert_version_is_dev
-    rm -rf *.jar
-    OWNER=DataDog
-    REPO=dd-trace-java
-
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build_lib" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
-
-elif [ "$TARGET" = "dotnet" ]; then
-    rm -rf *.tar.gz
-
-    if [ $VERSION = 'dev' ]; then
-       SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
-       ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
-       URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
-
-        echo "Load $URL"
-        curl -L --silent $URL --output $ARCHIVE
-    elif [ $VERSION = 'prod' ]; then
-       DDTRACE_VERSION=$(curl -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/DataDog/dd-trace-dotnet/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
-       curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz --output datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
-    else
-        echo "Don't know how to load version $VERSION for $TARGET"
-    fi
-
-elif [ "$TARGET" = "python" ]; then
+if [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
@@ -194,15 +166,6 @@ elif [ "$TARGET" = "ruby" ]; then
     echo "gem 'ddtrace', require: 'ddtrace/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 
-elif [ "$TARGET" = "php" ]; then
-    rm -rf *.tar.gz
-    if [ $VERSION = 'dev' ]; then
-        get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
-    elif [ $VERSION = 'prod' ]; then
-        get_github_release_asset "DataDog/dd-trace-php" "datadog-php-tracer-.*.x86_64.tar.gz"
-    else
-        echo "Don't know how to load version $VERSION for $TARGET"
-    fi
 
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
@@ -258,6 +221,5 @@ elif [ "$TARGET" = "php_appsec" ]; then
     fi
 
 else
-    echo "Unknown target: $1"
-    exit 1
+    echo "Not supported target: $1"
 fi;
