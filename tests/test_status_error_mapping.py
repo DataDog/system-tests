@@ -4,13 +4,24 @@
 
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 from utils.tools import logger
+from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
+
 # TODO: figure out how to add in the environment variable to only effec this test. 
+### CLIENT SPANS ###
 # 400-413 should be an error
 # 414-499 should not be an error
 # depending on the language and framework, some status codes will return an error so we need to test within its limits
 # for example, trying 455 in Java, spring-boot will return 500 as 455 is not an appropiate status code.
 
+###  SERVER SPANS ###
+# 500-510 should be an error
+# 511-599 should not be an error
 
+@bug(library="nodejs", reason="The span's should not be marked as an error as they are not listed in the environment variable but they are.")
+@bug(library="golang", reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.")
+@bug(library="php", reason="None of the spans are marked with the span.kind to determine if it's a server or client span.")
+@bug(library="python", reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.")
+@rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/status-error-mapping/rfc.md")
 class Test_Error_Status_Mapping:
     """ Verify behavior of Error Status Mapping for Client and Server"""
     
