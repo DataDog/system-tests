@@ -32,6 +32,7 @@ COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS
 
 COPY utils/build/docker/dotnet/app.sh app.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+ENV DD_DATA_STREAMS_ENABLED=true
 
 CMD [ "./app.sh" ]
 
