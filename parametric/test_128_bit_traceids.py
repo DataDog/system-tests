@@ -221,6 +221,8 @@ def test_b3single_128_bit_propagation(test_agent, test_library):
     check_128_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
 
+@pytest.mark.skip_library("java", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
@@ -311,6 +313,8 @@ def test_b3multi_128_bit_propagation(test_agent, test_library):
     check_128_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
 
+@pytest.mark.skip_library("java", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
@@ -467,6 +471,8 @@ def test_w3c_128_bit_propagation_tid_bad(test_agent, test_library):
     check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
 
+@pytest.mark.skip_library("java", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
