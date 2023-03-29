@@ -109,4 +109,4 @@ class Test_CorrectOptionProcessing:
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_main(self):
         attack = weblog.get("/waf/", params={"x-attack": "query_string"})
-        interfaces.library.assert_waf_attack(attack, rules.php_code_injection.crs_933_131)
+        interfaces.library.assert_no_appsec_event(attack)
