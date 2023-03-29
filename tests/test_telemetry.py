@@ -440,6 +440,66 @@ class Test_Telemetry:
                         )
 
         self.validate_library_telemetry_data(validator)
+    def setup_app_product_change(self):
+        weblog.get("/enable_product")
+
+    @missing_feature(
+        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp", "php", "ruby"),
+        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
+    )
+    def test_app_product_change(self):
+        """Test product change data when product is enabled"""
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        app_product_change_event_found = False
+        for data in telemetry_data:
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-product-change":
+                app_product_change_event_found = True
+                products = content["payload"]["products"]
+                for product in products:
+                    appsec_enabled = product["appsec"]["enabled"]
+                    profiler_enabled = product["profiler"]["enabled"]
+                    dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
+                    assert (
+                        appsec_enabled is True
+                    ), f"Product appsec Product profiler enabled was expected to be True, found False"
+                    assert profiler_enabled is True, f"Product profiler enabled was expected to be True, found False"
+                    assert (
+                        dynamic_instrumentation_enabled is False
+                    ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
+
+        if app_product_change_event_found is False:
+            raise Exception("app-product-change is not emited when product change is enabled")
+
+
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0")
+@bug(context.uds_mode and context.library < "nodejs@3.7.0")
+@missing_feature(library="cpp")
+@missing_feature(library="ruby")
+@missing_feature(library="php")
+@missing_feature(library="golang", reason="Implemented but not merged in master")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+class Test_ProductsDisabled:
+    """Assert that product informations are not reported when products are disabled in telemetry"""
+
+    @scenarios.telemetry_app_started_products_disabled
+    def test_app_started_product_disabled(self):
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            if data["request"]["content"].get("request_type") == "app-started":
+                content = data["request"]["content"]
+                assert (
+                    "products" not in content["payload"]
+                ), "Product information is present telemetry data on app-started event when all products are diabled"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")

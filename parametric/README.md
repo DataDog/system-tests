@@ -33,6 +33,8 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
+Make sure you're in the `parametric` directory before running these commands.
+
 The following dependencies are required to run the tests locally:
 
 - Docker
@@ -145,6 +147,17 @@ cd dd-trace-java
 
 ```bash
 CLIENTS_ENABLED=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
+```
+
+
+#### PHP
+
+If you are seeing DNS resolution issues when running the tests locally, add the following config to the Docker daemon:
+
+```json
+  "dns-opts": [
+    "single-request"
+  ],
 ```
 
 
