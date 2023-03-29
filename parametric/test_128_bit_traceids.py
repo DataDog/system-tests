@@ -427,7 +427,7 @@ def test_w3c_128_bit_propagation_tid_different(test_agent, test_library):
     the trace header, the trace header tid is preserved.
     """
     with test_library:
-        headers = make_single_request_and_get_inject_headers(
+        make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
@@ -438,7 +438,6 @@ def test_w3c_128_bit_propagation_tid_different(test_agent, test_library):
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
     propagation_error = span["meta"].get("_dd.propagation_error")
-    fields = headers["traceparent"].split("-", 2)
 
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
@@ -461,7 +460,7 @@ def test_w3c_128_bit_propagation_tid_bad(test_agent, test_library):
     """Ensure that if the trace state contains a tid that is badly formed, the trace header tid is preserved.
     """
     with test_library:
-        headers = make_single_request_and_get_inject_headers(
+        make_single_request_and_get_inject_headers(
             test_library,
             [
                 ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
@@ -472,7 +471,6 @@ def test_w3c_128_bit_propagation_tid_bad(test_agent, test_library):
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
     propagation_error = span["meta"].get("_dd.propagation_error")
-    fields = headers["traceparent"].split("-", 2)
 
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
