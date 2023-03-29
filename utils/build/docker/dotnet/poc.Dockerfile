@@ -30,8 +30,9 @@ COPY --from=agent /LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=agent /LIBDDWAF_VERSION /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=agent /APPSEC_EVENT_RULES_VERSION /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
-COPY --from=agent /*.tar.gz /binaries/
-RUN tar xzf $(ls /binaries/datadog-dotnet-apm-*.tar.gz) -C /opt/datadog
+COPY --from=agent /*.tar.gz /binaries/datadog-dotnet-apm.tar.gz
+# RUN tar xzf $(ls /binaries/datadog-dotnet-apm-*.tar.gz) -C /opt/datadog
+RUN tar xzf $(ls /binaries/datadog-dotnet-apm.tar.gz) -C /opt/datadog
 
 RUN DDTRACE_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") dotnet publish -c Release -o out
 
