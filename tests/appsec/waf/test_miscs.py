@@ -100,3 +100,13 @@ class Test_NoWafTimeout:
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")
+
+@coverage.basic
+class Test_CorrectOptionProcessing:
+    """Check that the case sensitive option is properly processed"""
+
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    def test_main(self):
+        attack = weblog.get("/waf/", params={"x-attack": "query_string"})
+        interfaces.library.assert_waf_attack(attack, rules.php_code_injection.crs_933_131)
