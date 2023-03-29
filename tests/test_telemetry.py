@@ -440,6 +440,7 @@ class Test_Telemetry:
                         )
 
         self.validate_library_telemetry_data(validator)
+
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 
