@@ -58,10 +58,12 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
+    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == 1234567890123456789
     assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid is None
+    assert propagation_error == "malformed_tid 1234567890abcdef1"
 
 
 @pytest.mark.skip_library("dotnet", "not implemented")
@@ -90,10 +92,12 @@ def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
+    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == 1234567890123456789
     assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid is None
+    assert propagation_error == "malformed_tid 1234567890abcde"
 
 
 @pytest.mark.skip_library("dotnet", "not implemented")
@@ -116,16 +120,18 @@ def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
             [
                 ["x-datadog-trace-id", "1234567890123456789"],
                 ["x-datadog-parent-id", "987654321"],
-                ["x-datadog-tags", "_dd.p.tid=1234567890abcdeg"],
+                ["x-datadog-tags", "_dd.p.tid=1234567890abcdeX"],
             ],
         )
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
+    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == 1234567890123456789
     assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid is None
+    assert propagation_error == "malformed_tid 1234567890abcdeX"
 
 
 @pytest.mark.parametrize(
@@ -431,11 +437,12 @@ def test_w3c_128_bit_propagation_tid_different(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
+    propagation_error = span["meta"].get("_dd.propagation_error")
     fields = headers["traceparent"].split("-", 2)
 
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
-    check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
+    assert propagation_error == "inconsistent_tid 640cfd8d0000ffff"
 
 
 @pytest.mark.skip_library("dotnet", "not implemented")
@@ -458,17 +465,18 @@ def test_w3c_128_bit_propagation_tid_bad(test_agent, test_library):
             test_library,
             [
                 ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
-                ["tracestate", "dd=t.tid:640cfd8d0000XXXX"],
+                ["tracestate", "dd=t.tid:XXXX"],
             ],
         )
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
+    propagation_error = span["meta"].get("_dd.propagation_error")
     fields = headers["traceparent"].split("-", 2)
 
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
-    check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
+    assert propagation_error == "malformed_tid: XXXX"
 
 
 @pytest.mark.skip_library("java", "not implemented")
