@@ -13,6 +13,7 @@ from parametric.utils.test_agent import get_span
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
+@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_start_span_with_w3c(test_agent, test_library):
     """
         - Start/end a span with start and end options
