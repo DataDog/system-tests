@@ -81,13 +81,9 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java' && matrix.variant.library != 'dotnet')}}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -97,7 +93,7 @@ jobs:
     - name: Build
       id: build
       run: |
-        if test ${{ matrix.variant.library == 'java' || matrix.variant.library == 'php' }}; then
+        if test ${{ matrix.variant.library == 'java' || matrix.variant.library == 'php' || matrix.variant.library == 'dotnet' }}; then
           [ "${{ matrix.version }}" == "prod"  ] && SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --tracer latest || SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh --tracer latest_snapshot
         else
           SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
