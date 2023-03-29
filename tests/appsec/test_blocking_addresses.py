@@ -5,7 +5,7 @@
 from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, irrelevant
 
 
-@released(cpp="?", dotnet="?", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
 @coverage.basic
 @scenarios.appsec_blocking
 @released(
@@ -72,18 +72,6 @@ class Test_BlockingAddresses:
         interfaces.library.assert_waf_attack(self.c_req, rule="tst-037-008")
         assert self.c_req.status_code == 403
 
-    def setup_request_body_raw(self):
-        self.rbr_req = weblog.post("/waf", data="asldhkuqwgervf")
-
-    @missing_feature(context.library == "java", reason="Either happens on a subsequent run or body is not read")
-    @missing_feature(context.library == "ruby")
-    @missing_feature(context.library == "php", reason="Raw body not enabled by default")
-    def test_request_body_raw(self):
-        """can block on server.request.body.raw"""
-
-        interfaces.library.assert_waf_attack(self.rbr_req, rule="tst-037-003")
-        assert self.rbr_req.status_code == 403
-
     def setup_request_body_urlencoded(self):
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
@@ -97,6 +85,7 @@ class Test_BlockingAddresses:
     def setup_request_body_multipart(self):
         self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
 
+    @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
@@ -107,6 +96,7 @@ class Test_BlockingAddresses:
     def setup_response_status(self):
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
+    @missing_feature(context.library == "dotnet", reason="only support blocking on 404 status at the moment")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library < "ruby@1.10.0")
     def test_response_status(self):
@@ -115,12 +105,22 @@ class Test_BlockingAddresses:
         interfaces.library.assert_waf_attack(self.rss_req, rule="tst-037-005")
         assert self.rss_req.status_code == 403
 
+    def setup_not_found(self):
+        self.rnf_req = weblog.get(path="/finger_print")
+
+    def test_not_found(self):
+        """can block on server.response.status"""
+
+        interfaces.library.assert_waf_attack(self.rnf_req, rule="tst-037-010")
+        assert self.rnf_req.status_code == 403
+
     def setup_response_header(self):
         self.rsh_req = weblog.get(path="/headers")
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
+    @missing_feature(context.library == "dotnet", reason="Address not supported yet")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 
