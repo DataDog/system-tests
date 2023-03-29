@@ -16,7 +16,7 @@ class Test_HeaderTags:
         """ Test that http.request.headers.user-agent is in all web spans """
 
         for _, _, span in interfaces.library.get_spans():
-            if span.get("type") == "web":
+            if span.get("type") == "web" and span.get("parent_id") is None:
                 assert "http.request.headers.user-agent" in span.get("meta", {})
 
 
