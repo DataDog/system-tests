@@ -108,6 +108,9 @@ class Test_BlockingAddresses:
     def setup_not_found(self):
         self.rnf_req = weblog.get(path="/finger_print")
 
+    @missing_feature(context.library == "dotnet", reason="only support blocking on 404 status at the moment")
+    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "ruby@1.10.0")
     def test_not_found(self):
         """can block on server.response.status"""
 
