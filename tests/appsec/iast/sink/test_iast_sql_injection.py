@@ -12,7 +12,16 @@ if context.library == "cpp":
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(
+    python={
+        "django-poc": "?",
+        "flask-poc": "1.11.0rc2.dev",
+        "uds-flask": "?",
+        "uwsgi-poc": "?",
+        "pylons": "?",
+    }
+)
 @released(
     java={
         "spring-boot": "1.1.0",
@@ -30,6 +39,7 @@ class TestIastSqlInjection:
     EXPECTATIONS = {
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.SqlExamples"},
         "nodejs": {"LOCATION": "iast.js"},
+        "python": {"LOCATION": "/app/app.py"},
     }
 
     def __expected_location(self):
