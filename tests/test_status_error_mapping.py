@@ -48,7 +48,7 @@ class Test_Error_Status_Mapping:
                 continue
             if span['meta']['span.kind'] == 'client':
                 if span['meta']['http.status_code'] == '416':
-                    logger.debug("this is for should NOT be error span: %s \n", span)
+                    # logger.debug("this is for should NOT be error span: %s \n", span)
                     assert 'error' not in span or span['error'] == 0, "this span should not be an error"
                     return
         assert False, "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
@@ -63,7 +63,7 @@ class Test_Error_Status_Mapping:
                 continue
             if span['meta']['span.kind'] == 'client':
                 if span['meta']['http.status_code'] == '413':
-                    logger.debug("this is for should be error span: %s \n", span)
+                    # logger.debug("this is for should be error span: %s \n", span)
                     assert span['error'] == 1, "this span should be marked as an error"
                     return
         assert False, "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
@@ -77,7 +77,7 @@ class Test_Error_Status_Mapping:
                 continue
             if span['meta']['span.kind'] == 'client':
                 if span['meta']['http.status_code'] == '416':
-                    logger.debug("this is for should NOT be error span: %s \n", span)
+                    # logger.debug("this is for should NOT be error span: %s \n", span)
                     assert 'error' not in span or span['error'] == 0, "this span should not be an error"
                     return
         assert False, "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
