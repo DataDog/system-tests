@@ -27,9 +27,6 @@ RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pundertow -B dependency:go-of
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mvn -Dmaven.repo.local=/maven -Pundertow package
 
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-
 FROM eclipse-temurin:11-jre
 
 WORKDIR /app

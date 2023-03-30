@@ -27,9 +27,6 @@ RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 COPY ./utils/build/docker/java/vertx3/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
 
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-
 FROM eclipse-temurin:11-jre
 
 WORKDIR /app
