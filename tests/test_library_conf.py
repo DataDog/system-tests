@@ -15,8 +15,8 @@ class Test_HeaderTags:
     def test_trace_header_tags_basic(self):
         """ Test that http.request.headers.user-agent is in all web spans """
 
-        for _, _, span in interfaces.library.get_spans():
-            if span.get("type") == "web" and span.get("parent_id") is None:
+        for _, span in interfaces.library.get_root_spans():
+            if span.get("type") == "web":
                 assert "http.request.headers.user-agent" in span.get("meta", {})
 
 
