@@ -482,12 +482,12 @@ class scenarios:
     library_conf_custom_headers_whitespacing_vals = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_WHITESPACING_VALS", additional_trace_header_tags=("dummy", "header-tag1", "header-tag2")
     )
-    # library_conf_custom_headers_colon_multi =  EndToEndScenario(
-    #     "LIBRARY_CONF_CUSTOM_HEADERS_COLON_MULTI", additional_trace_header_tags=("dummy", "first:second:third")
-    # )
     library_conf_custom_headers_colon_edge =  EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_COLON_EDGE", additional_trace_header_tags=("dummy", ":header-tag1", "header-tag2:")
     )
+    # library_conf_custom_headers_colon_multi =  EndToEndScenario(
+    #     "LIBRARY_CONF_CUSTOM_HEADERS_COLON_MULTI", additional_trace_header_tags=("dummy", "first:second:third")
+    # )
 
 
 current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO").lower()
