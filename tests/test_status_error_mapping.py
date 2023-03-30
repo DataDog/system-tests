@@ -39,7 +39,7 @@ class Test_Error_Status_Mapping:
     """ Verify behavior of Error Status Mapping for Client and Server"""
 
     def setup_should_be_error_server_span(self):
-        self.r_413 = weblog.get("/status", params={"code": "501"})
+        self.r_501 = weblog.get("/status", params={"code": "501"})
 
     def test_should_be_error_server_span(self):
         for data, trace, span in interfaces.library.get_spans():
@@ -55,7 +55,7 @@ class Test_Error_Status_Mapping:
         ), "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
 
     def setup_should_not_be_error_server_span(self):
-        self.r_416 = weblog.get("/status", params={"code": "511"})
+        self.r_511 = weblog.get("/status", params={"code": "511"})
 
     def test_should_not_be_error_server_span(self):
         for data, trace, span in interfaces.library.get_spans():
