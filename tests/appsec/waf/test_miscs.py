@@ -101,6 +101,7 @@ class Test_NoWafTimeout:
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")
 
+
 @coverage.basic
 class Test_CorrectOptionProcessing:
     """Check that the case sensitive option is properly processed"""
