@@ -1,14 +1,16 @@
-FROM maven:3.8-jdk-8 as build
-
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
+FROM maven:3.9-eclipse-temurin-11 as build
 
 WORKDIR /app
 
+ENV MAVEN_OPTS="-Daether.dependencyCollector.impl=bf -Dmaven.artifact.threads=4"
+
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
+# Dependencies are downloaded first to cache them as long as pom.xml does not change.
+# Use mvn package while ignoring errors, rather than go-offline to fetch less dependencies.
+RUN mvn package -Popenliberty ||  true
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Popenliberty package
+RUN mvn package -DskipTests -Popenliberty
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

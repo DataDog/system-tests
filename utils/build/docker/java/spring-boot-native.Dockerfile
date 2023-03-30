@@ -1,15 +1,3 @@
-
-FROM eclipse-temurin:8 as agent
-
-# Install required bsdtar
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
-
-# Install tracer
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-
-
 FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-22 as build
 
 RUN gu install native-image && native-image
@@ -30,8 +18,9 @@ RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven verify --fail-neve
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
 
-# Copy tracer
-COPY --from=agent /dd-tracer/dd-java-agent.jar .
+# Install tracer
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
 
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -P spring-native
