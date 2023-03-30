@@ -15,7 +15,7 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?")
 @released(
     python={
-        "django-poc": "?",
+        "django-poc": "1.11.0rc2.dev",
         "flask-poc": "1.11.0rc2.dev",
         "uds-flask": "?",
         "uwsgi-poc": "?",
@@ -39,11 +39,16 @@ class TestIastSqlInjection:
     EXPECTATIONS = {
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.SqlExamples"},
         "nodejs": {"LOCATION": "iast.js"},
-        "python": {"LOCATION": "/app/app.py"},
+        "python": {
+            "flask-poc": {"LOCATION": "/app/app.py"},
+            "django-poc": {"LOCATION": "/usr/local/lib/python3.9/site-packages/django/db/backends/utils.py"},
+        },
     }
 
     def __expected_location(self):
         expected = self.EXPECTATIONS.get(context.library.library)
+        if context.library.library == "python":
+            expected = expected.get(context.weblog_variant)
         return expected.get("LOCATION") if expected else None
 
     def setup_secure_sql(self):
