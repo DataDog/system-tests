@@ -7,8 +7,8 @@ black==19.10b0  # TODO : move to 22.8.0
 python-dateutil==2.8.2
 msgpack==1.0.4
 mitmproxy==9.0.1
-protobuf==4.21.6  # grpcio-tools 1.48.1 depends on protobuf<4.0dev and >=3.12.0
-grpcio-tools==1.51.3 # before 1.51.3 there are no arm64-darwin binary builds
+protobuf==3.20.2  # grpcio-tools 1.48.1 depends on protobuf<4.0dev and >=3.12.0
+grpcio-tools==1.48.1
 
 aiohttp==3.8.2
 yarl==1.8.1
