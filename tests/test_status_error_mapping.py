@@ -17,9 +17,9 @@ from utils import bug, context, coverage, interfaces, irrelevant, released, rfc,
 # 500-510 should be an error
 # 511-599 should not be an error
 
+
 @bug(
-    library="cpp",
-    reason="The span's do not comeo with the correct status code, it's always 200 for some reason.",
+    library="cpp", reason="The span's do not comeo with the correct status code, it's always 200 for some reason.",
 )
 @bug(
     library="nodejs",
@@ -40,13 +40,9 @@ from utils import bug, context, coverage, interfaces, irrelevant, released, rfc,
 @bug(
     library="java",
     weblog_variant="jersey-grizzly2",
-    reason="The check for client spans with the make a distant call results in a 404."
+    reason="The check for client spans with the make a distant call results in a 404.",
 )
-@bug(
-    library="java",
-    weblog_variant="vertx3",
-    reason="This variant doesn't have the endpoints."
-)
+@bug(library="java", weblog_variant="vertx3", reason="This variant doesn't have the endpoints.")
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/status-error-mapping/rfc.md")
 class Test_Error_Status_Mapping:
     """ Verify behavior of Error Status Mapping for Client and Server"""
