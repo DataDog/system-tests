@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from argparse import ArgumentParser, Namespace
 import tarfile
@@ -12,16 +11,10 @@ from subprocess import check_output, CalledProcessError
 def parse_args() -> Namespace:
     parser = ArgumentParser(Path(__file__).name)
     parser.add_argument(
-        "image",
-        type=str,
-        help="The docker image to save",
+        "image", type=str, help="The docker image to save",
     )
     parser.add_argument(
-        "-o",
-        "--output",
-        type=Path,
-        help="Where to save the extracted image",
-        default=Path("./deep-save-image"),
+        "-o", "--output", type=Path, help="Where to save the extracted image", default=Path("./deep-save-image"),
     )
 
     return parser.parse_args()
@@ -34,13 +27,7 @@ def create_output_directory(output: Path) -> None:
 def save_image(image: str, output: _TemporaryFileWrapper) -> None:
     print("saving docker image...")
     check_output(
-        [
-            "docker",
-            "save",
-            image,
-            "--output",
-            output.name,
-        ]
+        ["docker", "save", image, "--output", output.name,]
     )
 
 
@@ -58,6 +45,7 @@ def exctract_layer(layer_path: Path, output: Path) -> None:
         where = layer_path.parent
         print(f" - extracting {output}")
         t.extractall(str(output))
+
 
 def get_layers_from_manifest(output: Path) -> list[Path]:
     print("parsing manifest.json...")
