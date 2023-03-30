@@ -44,7 +44,7 @@ def test_datadog_128_bit_propagation(test_agent, test_library):
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
 def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
-    """ Ensure that tid's that are too long are discarded.
+    """ Ensure that tid's that are too long are discarded and the error is tagged.
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(
@@ -78,7 +78,7 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
 def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
-    """ Ensure that tid's that are too short are discarded.
+    """ Ensure that tid's that are too short are discarded and the error is tagged.
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(
@@ -112,7 +112,7 @@ def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
 def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
-    """ Ensure that tid's with bad characters are discarded.
+    """ Ensure that tid's with bad characters are discarded and the error is tagged.
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(
@@ -410,6 +410,34 @@ def test_w3c_128_bit_propagation(test_agent, test_library):
     check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
 
+@pytest.mark.skip_library("java", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.parametrize(
+    "library_env",
+    [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
+)
+def test_w3c_128_bit_propagation_tid_consistent(test_agent, test_library):
+    """Ensure that if the trace state contains a tid that is consistent with the trace id from
+    the trace header then no error is reported.
+    """
+    with test_library:
+        make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
+                ["tracestate", "dd=t.tid:640cfd8d00000000"],
+            ],
+        )
+    span = get_span(test_agent)
+    trace_id = span.get("trace_id")
+    dd_p_tid = span["meta"].get("_dd.p.tid")
+    propagation_error = span["meta"].get("_dd.propagation_error")
+
+    assert trace_id == int("abcdefab12345678", 16)
+    assert dd_p_tid == "640cfd8d00000000"
+    assert propagation_error is None
+
+
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("java", "not implemented")
@@ -422,9 +450,9 @@ def test_w3c_128_bit_propagation(test_agent, test_library):
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
-def test_w3c_128_bit_propagation_tid_different(test_agent, test_library):
+def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
     """Ensure that if the trace state contains a tid that is inconsistent with the trace id from
-    the trace header, the trace header tid is preserved.
+    the trace header, the trace header tid is preserved and the error is tagged.
     """
     with test_library:
         make_single_request_and_get_inject_headers(
@@ -456,8 +484,9 @@ def test_w3c_128_bit_propagation_tid_different(test_agent, test_library):
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
-def test_w3c_128_bit_propagation_tid_bad(test_agent, test_library):
-    """Ensure that if the trace state contains a tid that is badly formed, the trace header tid is preserved.
+def test_w3c_128_bit_propagation_tid_malformed(test_agent, test_library):
+    """Ensure that if the trace state contains a tid that is badly formed, the trace header tid is preserved
+    and the error is tagged.
     """
     with test_library:
         make_single_request_and_get_inject_headers(
