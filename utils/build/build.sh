@@ -175,7 +175,7 @@ build() {
             fi
             #By default if the binaries directory is empty, the latest release of the APM library will be loaded
             APM_LIBRARY_VERSION="latest"
-            if [ $(ls binaries/dd-java-agent*.jar | wc -l) = 1 ]; then
+            if [ $(ls binaries/ | wc -l) -gt 1 ]; then
                 echo "Using APM local library...."
                 APM_LIBRARY_VERSION="local"
             fi
