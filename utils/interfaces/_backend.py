@@ -4,11 +4,15 @@
 
 """ This files will validate data flow between agent and backend """
 
+import json
 import os
 import threading
 import requests
+import time
 
 from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
+from utils.tools import logger
+from utils.proxy.core import BACKEND_LOCAL_PORT
 
 
 class _BackendInterfaceValidator(InterfaceValidator):
@@ -18,33 +22,116 @@ class _BackendInterfaceValidator(InterfaceValidator):
         super().__init__("backend")
         self.ready = threading.Event()
         self.ready.set()
-        self.timeout = 5
 
-        self.rid_to_trace_id = {}
+        # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
+        self.rid_to_library_trace_ids = {}
 
-    def wait(self):
-        super().wait()
+    # Called by the test setup to make sure the interface is ready.
+    def wait(self, timeout):
+        super().wait(timeout, stop_accepting_data=False)
+
         from utils.interfaces import library
 
-        for _, _, span in library.get_spans():
-            if span.get("parent_id") in (0, None):
-                rid = get_rid_from_span(span)
-                self.rid_to_trace_id[rid] = span.get("trace_id")
+        # Map each request ID to the spans created and submitted during that request call.
+        for _, span in library.get_root_spans():
+            rid = get_rid_from_span(span)
 
-    def _get_backend_data(self, request):
+            if not self.rid_to_library_trace_ids.get(rid):
+                self.rid_to_library_trace_ids[rid] = [span["trace_id"]]
+            else:
+                self.rid_to_library_trace_ids[rid].append(span["trace_id"])
+
+    #################################
+    ######### API for tests #########
+    #################################
+
+    def assert_library_traces_exist(self, request, min_traces_len=1):
+        """Attempts to fetch from the backend, ALL the traces that the library tracers sent to the agent
+        during the execution of the given request.
+
+        The assosiation of the traces with a request is done through propagating the request ID (inside user agent)
+        on all the submitted traces. This is done automatically, unless you create root spans manually, which in
+        that case you need to manually propagate the user agent to the new spans.
+
+        It will assert that at least `min_traces_len` were received from the backend before
+        returning the list of traces.
+        """
+
         rid = get_rid_from_request(request)
+        tracesData = list(self._wait_for_request_traces(rid))
+        traces = [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
+        assert (
+            len(traces) >= min_traces_len
+        ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
+        return traces
 
-        if rid not in self.rid_to_trace_id:
+    def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
+        """Attempts to fetch single span events using the given `query_filter` as part of the search query.
+        The query should be what you would use in the `/apm/traces` page in the UI.
+
+        When a valid request is provided we will restrict the single span search to span events
+        that include the request ID in their tags.
+
+        It will assert that at least `min_spans_len` were received from the backend before
+        returning the list of span events.
+        """
+
+        rid = get_rid_from_request(request)
+        query_filter = f"service:weblog @single_span:true @http.useragent:*{rid}"
+        return self.assert_request_spans_exist(request, query_filter, min_spans_len, limit)
+
+    def assert_request_spans_exist(self, request, query_filter, min_spans_len=1, limit=100):
+        """Attempts to fetch span events from the Event Platform using the given `query_filter` as part of the search query.
+        The query should be what you would use in the `/apm/traces` page in the UI.
+        When a valid request is provided we will restrict the span search to span events
+        that include the request ID in their tags.
+
+        It will assert that at least `min_spans_len` were received from the backend before
+        returning the list of span events.
+        """
+
+        rid = get_rid_from_request(request)
+        if rid:
+            query_filter = f"{query_filter} @http.useragent:*{rid}"
+
+        return self.assert_spans_exist(query_filter, min_spans_len, limit)
+
+    def assert_spans_exist(self, query_filter, min_spans_len=1, limit=100):
+        """Attempts to fetch span events from the Event Platform using the given `query_filter` as part of the search query.
+        The query should be what you would use in the `/apm/traces` page in the UI.
+
+        It will assert that at least `min_spans_len` were received from the backend before
+        returning the list of span events.
+        """
+
+        logger.debug(f"We will attempt to fetch span events with query filter: {query_filter}")
+        data = self._wait_for_event_platform_spans(query_filter, limit)
+
+        result = data["response"]["contentJson"]["result"]
+        assert result["count"] >= min_spans_len, f"Did not have the expected number of spans ({min_spans_len}): {data}"
+
+        return [item["event"] for item in result["events"]]
+
+    ############################################
+    ######### Internal implementation ##########
+    ############################################
+
+    def _get_trace_ids(self, rid):
+        if rid not in self.rid_to_library_trace_ids:
             raise Exception("There is no trace id related to this request ")
 
-        trace_id = self.rid_to_trace_id[rid]
+        return self.rid_to_library_trace_ids[rid]
 
+    def _get_backend_trace_data(self, rid, trace_id):
+        # We use `localhost` as host since we run a proxy that forwards the requests to the right
+        # backend DD_SITE domain, and logs the request/response as well.
+        # More details in `utils.proxy.core.get_dd_site_api_host()`.
+        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
         path = f"/api/v1/trace/{trace_id}"
-        host = "https://dd.datad0g.com"
 
         headers = {
             "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
         }
         r = requests.get(f"{host}{path}", headers=headers, timeout=10)
 
@@ -55,24 +142,125 @@ class _BackendInterfaceValidator(InterfaceValidator):
             "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
         }
 
-    def assert_waf_attack(self, request):
-        data = self._get_backend_data(request)
+    def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier):
+        sleep_interval_s = 1
+        current_retry = 1
+        while current_retry <= retries:
+            logger.info(f"Retry {current_retry}")
+            current_retry += 1
 
-        status_code = data["response"]["status_code"]
-        if status_code != 200:
-            raise Exception(f"Backend did not provide trace: {data['path']}. Status is {status_code}")
+            data = self._get_backend_trace_data(rid, trace_id)
 
-        trace = data["response"]["content"].get("trace", {})
-        for span in trace.get("spans", {}).values():
-            if not span["parent_id"] in (None, 0, "0"):  # only root span
-                continue
+            # We should retry fetching from the backend as long as the response is 404.
+            status_code = data["response"]["status_code"]
+            if status_code != 404 and status_code != 200:
+                raise Exception(f"Backend did not provide trace: {data['path']}. Status is {status_code}.")
+            if status_code != 404:
+                return data
 
-            meta = span.get("meta", {})
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
 
-            assert "_dd.appsec.source" in meta, "'_dd.appsec.source' should be in span's meta tags"
-            assert "appsec" in meta, f"'appsec' should be in span's meta tags in {data['log_filename']}"
+        raise Exception(
+            f"Backend did not provide trace after {retries} retries: {data['path']}. Status is {status_code}."
+        )
 
-            assert meta["_dd.appsec.source"] == "backendwaf", (
-                f"'_dd.appsec.source' values should be 'backendwaf', "
-                f"not {meta['_dd.appsec.source']} in {data['log_filename']}"
+    def _wait_for_request_traces(self, rid, retries=5, sleep_interval_multiplier=2.0):
+        if retries < 1:
+            retries = 1
+
+        trace_ids = self._get_trace_ids(rid)
+        logger.info(
+            f"Waiting for {len(trace_ids)} traces to become available from request {rid} with {retries} retries..."
+        )
+        for trace_id in trace_ids:
+            logger.info(
+                f"Waiting for trace {trace_id} to become available from request {rid} with {retries} retries..."
             )
+            yield self._wait_for_trace(rid, trace_id, retries, sleep_interval_multiplier)
+
+    def _extract_trace_from_backend_response(self, response):
+        content_parsed = json.loads(response["content"])
+        trace = content_parsed.get("trace")
+        if not trace:
+            raise Exception(f"The response does not contain valid trace content: {response}")
+        return trace
+
+    def _wait_for_event_platform_spans(self, query_filter, limit, retries=5, sleep_interval_multiplier=2.0):
+        if retries < 1:
+            retries = 1
+
+        logger.info(
+            f"Waiting until spans (non-empty response) become available with query '{query_filter}' with {retries} retries..."
+        )
+        sleep_interval_s = 1
+        current_retry = 1
+        while current_retry <= retries:
+            logger.info(f"Retry {current_retry}")
+            current_retry += 1
+
+            data = self._get_event_platform_spans(query_filter, limit)
+
+            # We should retry fetching from the backend as long as the response has empty data.
+            status_code = data["response"]["status_code"]
+            if status_code != 200:
+                raise Exception(f"Fetching spans from Event Platform failed: {data['path']}. Status is {status_code}.")
+
+            parsed = data["response"]["contentJson"]
+            if parsed["result"]["count"] > 0:
+                return data
+
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
+
+        # We always try once so `data` should have not be None.
+        return data
+
+    def _get_event_platform_spans(self, query_filter, limit):
+        # Example of this query can be seen in the `events-ui` internal website (see Jira ATI-2419).
+        # We use `localhost` as host since we run a proxy that forwards the requests to the right
+        # backend DD_SITE domain, and logs the request/response as well.
+        # More details in `utils.proxy.core.get_dd_site_api_host()`.
+        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
+        path = "/api/unstable/event-platform/analytics/list?type=trace"
+
+        headers = {
+            "DD-API-KEY": os.environ["DD_API_KEY"],
+            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
+        }
+
+        request_data = {
+            "list": {
+                "search": {"query": f"env:system-tests {query_filter}",},
+                "indexes": ["trace-search"],
+                "time": {
+                    # 30 min of window should be plenty
+                    "from": "now-1800s",
+                    "to": "now",
+                },
+                "limit": limit,
+                "columns": [],
+                "computeCount": True,
+                "includeEventContents": True,
+            }
+        }
+        r = requests.post(f"{host}{path}", json=request_data, headers=headers, timeout=10)
+
+        contentJson = None
+        try:
+            contentJson = r.json()
+        except:
+            pass
+
+        data = {
+            "host": host,
+            "path": path,
+            "response": {
+                "status_code": r.status_code,
+                "content": r.text,
+                "contentJson": contentJson,
+                "headers": dict(r.headers),
+            },
+        }
+
+        return data

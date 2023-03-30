@@ -32,8 +32,6 @@ class InterfaceValidator:
         self._lock = threading.RLock()
         self._data_list = []
 
-        self.timeout = 0
-
         self.accept_data = True
 
     def __repr__(self):
@@ -42,9 +40,9 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self):
-        time.sleep(self.timeout)
-        self.accept_data = False
+    def wait(self, timeout, stop_accepting_data=True):
+        time.sleep(timeout)
+        self.accept_data = not stop_accepting_data
 
     # data collector thread domain
     def append_data(self, data):
@@ -72,6 +70,7 @@ class InterfaceValidator:
         return data
 
     def get_data(self, path_filters=None):
+        # TODO remove filter_empty_requests (never filter, even if it's empty)
 
         if path_filters is not None:
             if isinstance(path_filters, str):
@@ -80,24 +79,10 @@ class InterfaceValidator:
             path_filters = [re.compile(path) for path in path_filters]
 
         for data in self._data_list:
-            # Java sends empty requests during endpoint discovery
-            if "request" in data and data["request"]["length"] == 0:
-                continue
-
             if path_filters is not None and all((path.fullmatch(data["path"]) is None for path in path_filters)):
                 continue
 
             yield data
-
-    def get_spans(self):
-        for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                raise Exception("Trace property is missing in agent payload")
-
-            for payload in data["request"]["content"]["tracerPayloads"]:
-                for trace in payload["chunks"]:
-                    for span in trace["spans"]:
-                        yield data, span
 
     def validate(self, validator, path_filters=None, success_by_default=False):
         for data in self.get_data(path_filters=path_filters):
@@ -105,7 +90,7 @@ class InterfaceValidator:
                 if validator(data) is True:
                     return
             except Exception:
-                logger.error(f"{data['log_filename']} did not validate this test")
+                logger.error(f"{data['log_filename']} did not validate this test", exc_info=True)
                 raise
 
         if not success_by_default:

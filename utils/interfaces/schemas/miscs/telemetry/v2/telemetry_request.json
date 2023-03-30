@@ -1,0 +1,174 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/telemetry_request.json",
+  "description": "Instrumentation telemetry schema",
+  "allOf": [
+    {
+      "properties": {
+        "header": {
+          "$ref": "/miscs/telemetry/v2/objects/header.json"
+        }
+      },
+      "request_type": {
+        "enum": [
+          "app-started",
+          "app-extended-heartbeat",
+          "app-integrations-change",
+          "app-dependencies-loaded",
+          "app-client-configuration-change",
+          "app-product-change",
+          "generate-metrics",
+          "app-heartbeat",
+          "app-closing",
+          "apm-onboarding-event",
+          "message-batch"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-started"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/app-started.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-extended-heartbeat"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/extended-heartbeat.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-integrations-change"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/integrations-change.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-dependencies-loaded"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/dependencies-loaded.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-client-configuration-change"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/client-configuration-change.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-product-change"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/product-change.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "generate-metrics"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/generate-metrics.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "request_type": {
+            "const": "apm-onboarding-event"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/common/events/apm-onboarding.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "message-batch"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/message-batch.json"
+          }
+        }
+      }
+    }
+  ]
+}

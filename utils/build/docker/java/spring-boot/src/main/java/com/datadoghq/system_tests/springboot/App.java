@@ -2,6 +2,8 @@ package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
+import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -28,16 +30,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import org.apache.http.impl.client.CloseableHttpClient;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import org.springframework.web.servlet.view.RedirectView;
+
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -101,6 +109,42 @@ public class App {
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
+    private static final Map<String, String> METADATA = createMetadata();
+    private static final Map<String, String> createMetadata() {
+        HashMap<String, String> h = new HashMap<>();
+        h.put("metadata0", "value0");
+        h.put("metadata1", "value1");
+        return h;
+    }
+
+    @GetMapping("/user_login_success_event")
+    public String userLoginSuccess(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginSuccessEvent(userId, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/user_login_failure_event")
+    public String userLoginFailure(
+            @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId,
+            @RequestParam(value = "event_user_exists", defaultValue = "true") boolean eventUserExists) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackLoginFailureEvent(userId, eventUserExists, METADATA);
+
+        return "ok";
+    }
+
+    @GetMapping("/custom_event")
+    public String customEvent(
+            @RequestParam(value = "event_name", defaultValue = "system_tests_event") String eventName) {
+        datadog.trace.api.GlobalTracer.getEventTracker()
+                .trackCustomEvent(eventName, METADATA);
+
+        return "ok";
     }
 
     @JacksonXmlRootElement
@@ -209,6 +253,39 @@ public class App {
         return "hi Mongo";
     }
 
+    @RequestMapping("/dsm")
+    String publishToKafka(@RequestParam(required = true, name="integration") String integration) {
+        if ("kafka".equals(integration)) {
+            KafkaConnector kafka = new KafkaConnector();
+            try {
+                kafka.startProducingMessage("hello world!");
+            } catch (Exception e) {
+                System.out.println("Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                kafka.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        } else if ("rabbitmq".equals(integration)) {
+            RabbitmqConnector rabbitmq = new RabbitmqConnector();
+            try {
+                rabbitmq.startProducingMessage("hello world!");
+            } catch (Exception e) {
+                System.out.println("Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+        } else {
+            return "unknown integration: " + integration;
+        }
+        return "ok";
+    }
+
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
         final Span span = GlobalTracer.get().activeSpan();
@@ -218,7 +295,7 @@ public class App {
 
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
-        try {
+        try { 
             Object expr = Ognl.parseExpression("[1]");
             String value = (String) Ognl.getValue(expr, list);
             return "hi OGNL, " + value;
@@ -331,12 +408,55 @@ public class App {
         public HashMap<String, String> response_headers;
     }
 
+    @RequestMapping("/experimental/redirect")
+    RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("appsec.event", true);
+        }
+
+        if (redirect == null) {
+            return new RedirectView("https://datadoghq.com");
+        }
+        return new RedirectView("https://" + redirect);
+    }
+
+    @RequestMapping("/e2e_single_span")
+    String e2eSingleSpan(@RequestHeader(required = true, name = "User-Agent") String userAgent,
+                         @RequestParam(required = true, name="parentName") String parentName,
+                         @RequestParam(required = true, name="childName") String childName,
+                         @RequestParam(required = false, name="shouldIndex") int shouldIndex) {
+        // We want the parentSpan to be a true root-span (parentId==0).
+        Span parentSpan = GlobalTracer.get().buildSpan(parentName).ignoreActiveSpan().withTag("http.useragent", userAgent).start();
+        Span childSpan = GlobalTracer.get().buildSpan(childName).withTag("http.useragent", userAgent).asChildOf(parentSpan).start();
+
+        if (shouldIndex == 1) {
+            // Simulate a retention filter (see https://github.com/DataDog/system-tests/pull/898).
+            parentSpan.setTag("_dd.filter.kept", 1);
+            parentSpan.setTag("_dd.filter.id", "system_tests_e2e");
+            childSpan.setTag("_dd.filter.kept", 1);
+            childSpan.setTag("_dd.filter.id", "system_tests_e2e");
+        }
+
+        long nowMicros = System.currentTimeMillis() * 1000;
+        long tenSecMicros = 10_000_000;
+        childSpan.finish(nowMicros + tenSecMicros);
+        parentSpan.finish(nowMicros + 2*tenSecMicros);
+
+        return "OK";
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     @Trace
     public void init() {
         new AppReadyHandler(this).start();
     }
 
+    @RequestMapping("/load_dependency")
+    public String loadDep() throws ClassNotFoundException {
+        Class<?> klass = this.getClass().getClassLoader().loadClass("org.apache.http.client.HttpClient");
+        return "Loaded Dependency\n".concat(klass.toString());
+    }
 
 
     @Bean

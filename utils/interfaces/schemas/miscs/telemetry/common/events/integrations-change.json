@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "/miscs/telemetry/common/events/integrations-change.json",
+    "description": "integrations-change schema",
+    "title": "integrations-change",
+    "type": "object",
+    "properties": {
+        "integrations": {
+            "type": "array",
+            "items": {
+                "$ref": "/miscs/telemetry/common/objects/integration.json"
+            },
+            "maxItems": 2000
+        }
+    },
+    "required": ["integrations"]
+}

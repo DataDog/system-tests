@@ -1,15 +1,15 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
-	"log"
 
 	"github.com/gin-gonic/gin"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -29,6 +29,13 @@ func main() {
 			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), body)
 		}
 		ctx.Writer.Write([]byte("Hello, WAF!\n"))
+	})
+	r.Any("/users", func(ctx *gin.Context) {
+		userId := ctx.Query("user")
+		if appsec.SetUser(ctx.Request.Context(), ctx.Query("user")) != nil {
+			return
+		}
+		ctx.Writer.Write([]byte("Hello, " + userId))
 	})
 	r.Any("/waf/*allpaths", func(ctx *gin.Context) {
 		ctx.Writer.Write([]byte("Hello, WAF!\n"))
@@ -84,6 +91,37 @@ func main() {
 			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		ctx.Writer.Write([]byte("Hello, identify-propagate!"))
+	})
+
+	r.GET("/user_login_success_event", func(ctx *gin.Context) {
+		uid := "system_tests_user"
+		if q := ctx.Query("event_user_id"); q != "" {
+			uid = q
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	r.GET("/user_login_failure_event", func(ctx *gin.Context) {
+		uid := "system_tests_user"
+		if q := ctx.Query("event_user_id"); q != "" {
+			uid = q
+		}
+		exists := true
+		if q := ctx.Query("event_user_exists"); q != "" {
+			parsed, err := strconv.ParseBool(q)
+			if err != nil {
+				exists = parsed
+			}
+		}
+		appsec.TrackUserLoginFailureEvent(ctx.Request.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	r.GET("/custom_event", func(ctx *gin.Context) {
+		name := "system_tests_event"
+		if q := ctx.Query("event_name"); q != "" {
+			name = q
+		}
+		appsec.TrackCustomEvent(ctx.Request.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	initDatadog()

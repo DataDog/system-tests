@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, context, coverage, interfaces, released, bug, missing_feature, scenario
+from utils import weblog, context, coverage, interfaces, released, bug, missing_feature, scenarios
 
 
 if context.library == "cpp":
@@ -13,9 +13,9 @@ if context.library == "cpp":
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@released(java="0.93.0", php_appsec="0.3.0", ruby="?")
+@released(java="0.93.0", php_appsec="0.3.0", ruby="1.0.0.beta2")
 @coverage.basic
-@scenario("APPSEC_CORRUPTED_RULES")
+@scenarios.appsec_corrupted_rules
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_CorruptedRules:
@@ -25,6 +25,7 @@ class Test_CorruptedRules:
     @missing_feature(library="nodejs")
     @missing_feature(library="python")
     @missing_feature(library="php")
+    @missing_feature(library="ruby", reason="standard logs not implemented")
     @bug(library="dotnet", reason="ERROR io CRITICAL")
     def test_c05(self):
         """Log C5: Rules file is corrupted"""
@@ -40,9 +41,9 @@ class Test_CorruptedRules:
         interfaces.library.assert_no_appsec_event(self.r_2)
 
 
-@released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="?")
+@released(java="0.93.0", nodejs="?", php_appsec="0.3.0", ruby="1.0.0.beta2")
 @coverage.basic
-@scenario("APPSEC_MISSING_RULES")
+@scenarios.appsec_missing_rules
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_MissingRules:
@@ -52,6 +53,7 @@ class Test_MissingRules:
     @missing_feature(library="nodejs")
     @missing_feature(library="python")
     @missing_feature(library="php")
+    @missing_feature(library="ruby", reason="standard logs not implemented")
     @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
     def test_c04(self):
         """Log C4: Rules file is missing"""
@@ -73,12 +75,11 @@ class Test_MissingRules:
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "ruby@1.0.0.beta1")
+@released(java="0.93.0", nodejs="2.0.0", php_appsec="0.3.0", python="1.1.0rc2.dev", ruby="1.0.0.beta2")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
-@scenario("APPSEC_CUSTOM_RULES")
+@scenarios.appsec_custom_rules
 class Test_ConfRuleSet:
     """AppSec support env var DD_APPSEC_RULES"""
 
@@ -98,12 +99,19 @@ class Test_ConfRuleSet:
         stdout.assert_absence("WAF initialization failed")
 
 
-@released(dotnet="2.4.4", golang="1.37.0", java="0.97.0", nodejs="2.4.0", php_appsec="0.3.0", python="1.1.0rc2.dev")
-@missing_feature(context.library <= "ruby@1.0.0.beta1")
+@released(
+    dotnet="2.4.4",
+    golang="1.37.0",
+    java="0.97.0",
+    nodejs="2.4.0",
+    php_appsec="0.3.0",
+    python="1.1.0rc2.dev",
+    ruby="1.0.0.beta2",
+)
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
-@scenario("APPSEC_CUSTOM_RULES")
+@scenarios.appsec_custom_rules
 class Test_NoLimitOnWafRules:
     """ Serialize WAF rules without limiting their sizes """
 

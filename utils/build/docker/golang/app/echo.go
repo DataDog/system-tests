@@ -1,15 +1,15 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
-	"log"
 
 	"github.com/labstack/echo/v4"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -31,6 +31,15 @@ func main() {
 
 	r.Any("/waf", waf)
 	r.Any("/waf/", waf)
+
+	r.Any("/users", func(c echo.Context) error {
+		userID := c.QueryParam("user")
+		if err := appsec.SetUser(c.Request().Context(), userID); err != nil {
+			return err
+		}
+
+		return c.String(http.StatusOK, "Hello, "+userID)
+	})
 
 	r.Any("/sample_rate_route/:i", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
@@ -85,6 +94,40 @@ func main() {
 			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		return c.String(http.StatusOK, "Hello, identify-propagate!")
+	})
+
+	r.GET("/user_login_success_event", func(ctx echo.Context) error {
+		uid := "system_tests_user"
+		if q := ctx.QueryParam("event_user_id"); q != "" {
+			uid = q
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
+	r.GET("/user_login_failure_event", func(ctx echo.Context) error {
+		uid := "system_tests_user"
+		if q := ctx.QueryParam("event_user_id"); q != "" {
+			uid = q
+		}
+		exists := true
+		if q := ctx.QueryParam("event_user_exists"); q != "" {
+			parsed, err := strconv.ParseBool(q)
+			if err != nil {
+				exists = parsed
+			}
+		}
+		appsec.TrackUserLoginFailureEvent(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
+	r.GET("/custom_event", func(ctx echo.Context) error {
+		name := "system_tests_event"
+		if q := ctx.QueryParam("event_name"); q != "" {
+			name = q
+		}
+		appsec.TrackCustomEvent(ctx.Request().Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
 	})
 
 	initDatadog()

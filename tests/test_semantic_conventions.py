@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, released
+from utils import context, interfaces, bug, released, missing_feature
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -45,9 +45,11 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
+        "servlet.error": "java-web-servlet-dispatcher",
     },
     "spring-boot-3-native": {
         "servlet.request": "tomcat-server",
+        "spring.handler": "spring-web-controller",
         "hsqldb.query": "java-jdbc-statement",
         "servlet.response": "java-web-servlet-response",
     },
@@ -123,13 +125,13 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
+@released(ruby="1.7.0", golang="1.45.0", python="1.80.0", nodejs="3.13.1")
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
     @bug(library="python", reason="Span.kind not implemented yet")
     @bug(library="php", reason="All PHP current weblog variants trace with C++ tracers that do not have Span.Kind")
-    @released(ruby="1.7.0", golang="1.45.0")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -223,8 +225,8 @@ class Test_Meta:
 
     @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
-    @released(python="1.80.0")
     @bug(library="java", reason="language tag implemented but not for all spans")
+    @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
@@ -247,7 +249,6 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
-    @released(python="1.80.0")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -312,11 +313,11 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
+@released(ruby="1.7.0", nodejs="3.13.1", java="1.6.0", php="0.83.1", dotnet="2.6.0")
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
     @bug(library="cpp", reason="Not implemented")
-    @released(ruby="1.7.0")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
 

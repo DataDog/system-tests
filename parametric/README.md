@@ -23,7 +23,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 ```
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
-- The test case creates a new span and sets a tag on it using the shared GRPC interface.
+- The test case creates a new span and sets a tag on it using the shared GRPC/HTTP interface.
 - Data is flushed to the test agent after the with test_library block closes.
 - Data is retrieved using the `test_agent` fixture and asserted on.
 
@@ -33,12 +33,14 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 
 ### Installation
 
+Make sure you're in the `parametric` directory before running these commands.
+
 The following dependencies are required to run the tests locally:
 
 - Docker
 - Python >= 3.7 (for Windows users, Python 3.9 seems to run best without issues)
 
-then, create a Python virtual environment and install the Python dependencies:
+then, create a Python virtual environment and install the Python dependencies from the parametric tests directory:
 
 ```sh
 python -m venv venv
@@ -128,6 +130,36 @@ go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
 go mod tidy
 ```
 
+#### Java
+
+##### Run Parametric tests with a custom Java Tracer version
+
+1. Build Java Tracer artifacts
+```bash
+git clone git@github.com:DataDog/dd-trace-java.git 
+cd dd-trace-java
+./gradlew :dd-trace-ot:shadowar :dd-trace-api:jar
+```
+
+2. Copy both artifacts `dd-trace-api-*.jar` and `dd-trace-ot-*.jar` into the `system-tests/binaries/` folder.
+
+3. Run Parametric tests from the `system-tests/parametric` folder:
+
+```bash
+CLIENTS_ENABLED=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
+```
+
+
+#### PHP
+
+If you are seeing DNS resolution issues when running the tests locally, add the following config to the Docker daemon:
+
+```json
+  "dns-opts": [
+    "single-request"
+  ],
+```
+
 
 #### Python
 
@@ -147,6 +179,13 @@ with the filename placed in the aforementioned folder. For example:
 - Set the environment variable ``NODEJS_DDTRACE_MODULE`` to hold a commit in a remote branch. The following example will run
 the tests with a specific commit: ``CLIENTS_ENABLED=nodejs NODEJS_DDTRACE_MODULE=datadog/dd-trace-js#687cb813289e19bfcc884a2f9f634470cf138143 ./run.sh``
 
+#### Ruby
+
+To run the Ruby tests "locally" push your code GitHub and then specify `RUBY_DDTRACE_SHA`:
+
+```sh
+RUBY_DDTRACE_SHA=0552ebd49dc5b3bec4e739c2c74b214fb3102c2a ./run.sh ...
+```
 
 ### Debugging
 
@@ -167,7 +206,7 @@ further.
 ### Port conflict on 50052
 
 If there is a port conflict with an existing process on the local machine then the default port `50052` can be
-overridden using `APM_GRPC_SERVER_PORT=... ./run.sh`.
+overridden using `APM_LIBRARY_SERVER_PORT`.
 
 
 ### Disable build kit
@@ -188,10 +227,28 @@ are being produced then likely build kit has to be disabled.
 To do that open the Docker UI > Docker Engine. Change `buildkit: true` to `buildkit: false` and restart Docker.
 
 
+### Tests failing locally but not in CI
+
+A cause for this can be that the Docker image containing the APM library is cached locally with an older version of the
+library. Deleting the image will force a rebuild which will resolve the issue.
+
+```sh
+docker image rm <library>-test-library
+```
+
+
+## Developing the tests
+
+### Extending the interface
+
+The Python implementation of the interface `app/python_http`, when run, provides a specification of the API when run.
+See the steps below in the HTTP section to run the Python server and view the specification.
 
 ## Implementation
 
 ### Shared Interface
+
+#### GRPC
 
 In order to achieve shared tests, we introduce a shared GRPC interface to the clients. Thus, each client need only implement the GRPC interface server and then these shared tests can be run against the library. The GRPC interface implements common APIs across the clients which provide the building blocks for test cases.
 
@@ -209,10 +266,24 @@ service APMClient {
 }
 ```
 
+#### HTTP
+
+An HTTP interface can be used instead of the GRPC. To view the interface run
+
+```
+PORT=8000 ./run_reference_http.sh
+```
+
+and navigate to http://localhost:8000. The OpenAPI schema can be downloaded at
+http://localhost:8000/openapi.json. The schema can be imported
+into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
+other tooling to assist in development.
+
+
 ### Architecture
 
 - Shared tests are written in Python (pytest).
-- GRPC servers for each language are built and run in docker containers.
+- GRPC/HTTP servers for each language are built and run in docker containers.
 - [test agent](https://github.com/DataDog/dd-apm-test-agent/) is started in a container to collect the data from the GRPC servers. 
 
 Test cases are written in Python and target the shared GRPC interface. The tests use a GRPC client to query the servers and the servers generate the data which is submitted to the test agent. Test cases can then query the data from the test agent to perform assertions.
