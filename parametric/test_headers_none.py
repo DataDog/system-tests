@@ -32,6 +32,7 @@ def enable_none_invalid() -> Any:
 
 
 @enable_none()
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_none_extract(test_agent, test_library):
     """Ensure that no distributed tracing headers are extracted.
     """
@@ -82,6 +83,7 @@ def test_headers_none_extract_with_other_propagators(test_agent, test_library):
 
 
 @enable_none()
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_none_inject(test_agent, test_library):
     """Ensure that the 'none' propagator is used and
     no Datadog distributed tracing headers are injected.
@@ -113,6 +115,7 @@ def test_headers_none_inject_with_other_propagators(test_agent, test_library):
 
 
 @enable_none()
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_none_propagate(test_agent, test_library):
     """Ensure that the 'none' propagator is used and
     no Datadog distributed tracing headers are extracted or injected.

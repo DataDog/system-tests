@@ -94,6 +94,8 @@ class EndToEndScenario(_Scenario):
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
+        include_kafka=False,
+        include_rabbitmq=False,
     ) -> None:
         super().__init__(name, use_interfaces=True)
 
@@ -136,6 +138,38 @@ class EndToEndScenario(_Scenario):
         if include_cassandra_db:
             self._required_containers.append(
                 TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
+            )
+
+        if include_kafka:
+            self._required_containers.append(
+                TestedContainer(
+                    image_name="bitnami/kafka:latest",
+                    name="kafka",
+                    environment={
+                        "KAFKA_LISTENERS": "PLAINTEXT://:9092",
+                        "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
+                        "ALLOW_PLAINTEXT_LISTENER": "yes",
+                        "KAFKA_ADVERTISED_HOST_NAME": "kafka",
+                        "KAFKA_ADVERTISED_PORT": "9092",
+                        "KAFKA_PORT": "9092",
+                        "KAFKA_BROKER_ID": "1",
+                        "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+                    },
+                    allow_old_container=True,
+                )
+            )
+            self._required_containers.append(
+                TestedContainer(
+                    image_name="bitnami/zookeeper:latest",
+                    name="zookeeper",
+                    environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
+                    allow_old_container=True,
+                )
+            )
+
+        if include_rabbitmq:
+            self._required_containers.append(
+                TestedContainer(image_name="rabbitmq:3-management-alpine", name="rabbitmq", allow_old_container=True,)
             )
 
         if agent_interface_timeout is None:
@@ -310,6 +344,8 @@ class scenarios:
         include_postgres_db=True,
         include_cassandra_db=True,
         include_mongo_db=True,
+        include_kafka=True,
+        include_rabbitmq=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
@@ -325,8 +361,14 @@ class scenarios:
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
     )
-
-    # Telemetry scenarios
+    telemetry_app_started_products_disabled = EndToEndScenario(
+        "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_PROFILING_ENABLED": "false",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
+        },
+    )
     telemetry_message_batch_event_order = EndToEndScenario(
         "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
     )
