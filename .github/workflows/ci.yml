@@ -209,7 +209,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      if: ${{ matrix.version == 'dev' && matrix.variant.library != 'php' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
     - name: Load PHP prod library binary
       if: ${{ matrix.variant.library == 'php' }}
@@ -434,7 +434,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      if: ${{ matrix.version == 'dev' && matrix.variant.library != 'php' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
     - name: Load PHP prod library binary
       if: ${{ matrix.variant.library == 'php' }}

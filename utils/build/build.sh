@@ -173,6 +173,12 @@ build() {
                 cp -r $BINARY_PATH/* ./
                 cd ..
             fi
+            #By default if the binaries directory is empty, the latest release of the APM library will be loaded
+            APM_LIBRARY_VERSION="latest"
+            if [ $(ls binaries/dd-java-agent*.jar | wc -l) = 1 ]; then
+                echo "Using APM local library...."
+                APM_LIBRARY_VERSION="local"
+            fi
 
             DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
@@ -181,6 +187,7 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
+                --build-arg APM_LIBRARY_IMAGE="apm_library_$APM_LIBRARY_VERSION" \
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \

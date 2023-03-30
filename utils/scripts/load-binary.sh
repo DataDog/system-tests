@@ -161,11 +161,8 @@ cd binaries/
 
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
-    rm -rf *.jar
-    OWNER=DataDog
-    REPO=dd-trace-java
-
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build_lib" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
+    docker pull ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot
+    python ../utils/scripts/docker-deep-save.py -o . ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot
 
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
