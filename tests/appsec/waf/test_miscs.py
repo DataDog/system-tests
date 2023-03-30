@@ -92,6 +92,23 @@ class Test_MultipleAttacks:
         interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
+@released(golang={"gin": "1.37.0", "echo": "1.36.0", "chi": "1.36.0", "*": "1.34.0"})
+@released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.1.0")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@coverage.good
+class Test_CorrectOptionProcessing:
+    """Check that the case sensitive option is properly processed"""
+
+    def setup_main(self):
+        self.r_match = weblog.get("/waf/", params={"x-attack": "QUERY_STRING"})
+        self.r_no_match = weblog.get("/waf/", params={"x-attack": "query_string"})
+
+    def test_main(self):
+        interfaces.library.assert_waf_attack(self.r_match)
+        interfaces.library.assert_no_appsec_event(self.r_no_match)
+
+
 @coverage.basic
 class Test_NoWafTimeout:
     """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
@@ -100,14 +117,3 @@ class Test_NoWafTimeout:
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_main(self):
         interfaces.library_stdout.assert_absence("Ran out of time while running flow")
-
-
-@coverage.basic
-class Test_CorrectOptionProcessing:
-    """Check that the case sensitive option is properly processed"""
-
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-    def test_main(self):
-        attack = weblog.get("/waf/", params={"x-attack": "query_string"})
-        interfaces.library.assert_no_appsec_event(attack)
