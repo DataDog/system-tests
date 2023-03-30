@@ -18,7 +18,7 @@ builder.WebHost.ConfigureKestrel(options =>
     // NOTE: For now, we'll set this in code via the options.Listen call since this
     // seems to work with the Python tests (perhaps because this covers IPv4 and IPv6)
 
-    options.Listen(IPAddress.Any, Int32.Parse(Environment.GetEnvironmentVariable("APM_TEST_CLIENT_SERVER_PORT")), listenOptions =>
+    options.Listen(IPAddress.Any, Int32.Parse(Environment.GetEnvironmentVariable("APM_TEST_CLIENT_SERVER_PORT")!), listenOptions =>
     {
         listenOptions.Protocols = HttpProtocols.Http2;
     });
