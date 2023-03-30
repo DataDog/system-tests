@@ -6,7 +6,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 from utils.tools import logger
 from utils import bug, context, coverage, interfaces, irrelevant, released, rfc, weblog, missing_feature
 
-# TODO: figure out how to add in the environment variable to only effec this test. 
+# TODO: figure out how to add in the environment variable to only effec this test.
 ### CLIENT SPANS ###
 # 400-413 should be an error
 # 414-499 should not be an error
@@ -17,68 +17,87 @@ from utils import bug, context, coverage, interfaces, irrelevant, released, rfc,
 # 500-510 should be an error
 # 511-599 should not be an error
 
-@bug(library="nodejs", reason="The span's should not be marked as an error as they are not listed in the environment variable but they are.")
-@bug(library="golang", reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.")
-@bug(library="php", reason="None of the spans are marked with the span.kind to determine if it's a server or client span.")
-@bug(library="python", reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.")
+
+@bug(
+    library="nodejs",
+    reason="The span's should not be marked as an error as they are not listed in the environment variable but they are.",
+)
+@bug(
+    library="golang",
+    reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.",
+)
+@bug(
+    library="php",
+    reason="None of the spans are marked with the span.kind to determine if it's a server or client span.",
+)
+@bug(
+    library="python",
+    reason="The spans should be marked as errors but they are not, in fact none of them are being marked as errors.",
+)
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/status-error-mapping/rfc.md")
 class Test_Error_Status_Mapping:
     """ Verify behavior of Error Status Mapping for Client and Server"""
-    
+
     def setup_should_be_error_server_span(self):
-        self.r_413 = weblog.get("/make_distant_call", params={"url":"http://weblog:7777/status?code=413"})
+        self.r_413 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=413"})
 
     def test_should_be_error_server_span(self):
-        for data ,trace, span in interfaces.library.get_spans():
-            if 'span.kind' not in span['meta'].keys() or 'http.status_code' not in span['meta'].keys():
+        for data, trace, span in interfaces.library.get_spans():
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
-            if span['meta']['span.kind'] == 'client':
-                if span['meta']['http.status_code'] == '413':
+            if span["meta"]["span.kind"] == "client":
+                if span["meta"]["http.status_code"] == "413":
                     logger.debug("this is for should be error span: %s \n", span)
-                    assert span['error'] == 1, "this span should be marked as an error"
+                    assert span["error"] == 1, "this span should be marked as an error"
                     return
-        assert False, "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
+        assert (
+            False
+        ), "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
 
     def setup_should_not_be_error_server_span(self):
-        self.r_416 = weblog.get("/make_distant_call", params={"url":"http://weblog:7777/status?code=416"})
+        self.r_416 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=416"})
 
     def test_should_not_be_error_server_span(self):
-        for data ,trace, span in interfaces.library.get_spans():
-            if 'span.kind' not in span['meta'].keys() or 'http.status_code' not in span['meta'].keys():
+        for data, trace, span in interfaces.library.get_spans():
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
-            if span['meta']['span.kind'] == 'client':
-                if span['meta']['http.status_code'] == '416':
+            if span["meta"]["span.kind"] == "client":
+                if span["meta"]["http.status_code"] == "416":
                     # logger.debug("this is for should NOT be error span: %s \n", span)
-                    assert 'error' not in span or span['error'] == 0, "this span should not be an error"
+                    assert "error" not in span or span["error"] == 0, "this span should not be an error"
                     return
-        assert False, "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
-
+        assert (
+            False
+        ), "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
 
     def setup_should_be_error_client_span(self):
-        self.r_413 = weblog.get("/make_distant_call", params={"url":"http://weblog:7777/status?code=413"})
+        self.r_413 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=413"})
 
     def test_should_be_error_client_span(self):
-        for data ,trace, span in interfaces.library.get_spans():
-            if 'span.kind' not in span['meta'].keys() or 'http.status_code' not in span['meta'].keys():
+        for data, trace, span in interfaces.library.get_spans():
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
-            if span['meta']['span.kind'] == 'client':
-                if span['meta']['http.status_code'] == '413':
+            if span["meta"]["span.kind"] == "client":
+                if span["meta"]["http.status_code"] == "413":
                     # logger.debug("this is for should be error span: %s \n", span)
-                    assert span['error'] == 1, "this span should be marked as an error"
+                    assert span["error"] == 1, "this span should be marked as an error"
                     return
-        assert False, "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
+        assert (
+            False
+        ), "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
 
     def setup_should_not_be_error_client_span(self):
-        self.r_416 = weblog.get("/make_distant_call", params={"url":"http://weblog:7777/status?code=416"})
+        self.r_416 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=416"})
 
     def test_should_not_be_error_client_span(self):
-        for data ,trace, span in interfaces.library.get_spans():
-            if 'span.kind' not in span['meta'].keys() or 'http.status_code' not in span['meta'].keys():
+        for data, trace, span in interfaces.library.get_spans():
+            if "span.kind" not in span["meta"].keys() or "http.status_code" not in span["meta"].keys():
                 continue
-            if span['meta']['span.kind'] == 'client':
-                if span['meta']['http.status_code'] == '416':
+            if span["meta"]["span.kind"] == "client":
+                if span["meta"]["http.status_code"] == "416":
                     # logger.debug("this is for should NOT be error span: %s \n", span)
-                    assert 'error' not in span or span['error'] == 0, "this span should not be an error"
+                    assert "error" not in span or span["error"] == 0, "this span should not be an error"
                     return
-        assert False, "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
-
+        assert (
+            False
+        ), "there were 0 spans with the tags span.kind and http.status_code needed to test the custom error tag functionality"
