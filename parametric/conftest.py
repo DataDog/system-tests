@@ -206,7 +206,7 @@ def dotnet_library_factory(env: Dict[str, str]):
         container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["{dotnet_reldir}/ApmTestClient.csproj", "."]
+COPY ["{dotnet_reldir}/ApmTestClient.csproj","{dotnet_reldir}/nuget.config","{dotnet_reldir}/*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
 COPY {dotnet_reldir} .
 WORKDIR "/client/."
@@ -232,8 +232,11 @@ def java_library_factory(env: Dict[str, str]):
         container_name="java-test-client",
         container_tag="java8-test-client",
         container_img=f"""
+FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
 FROM maven:3-jdk-8
 WORKDIR /client
+COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
+COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .

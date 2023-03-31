@@ -130,6 +130,13 @@ go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
 go mod tidy
 ```
 
+#### dotnet
+
+To test unmerged PRs locally, do the following:
+- In your local dd-trace-dotnet repo, build the `Datadog.Trace` NuGet package. The easiest way to do this is to run `dotnet pack` from the `/tracer/src/Datadog.Trace` directory.
+- Copy the resulting `.nupkg` file into the `apps/dotnet` directory
+- In `apps/dotnet/ApmTestClient.csproj`, update the version of the `Datadog.Trace` package reference to the dev version
+
 #### Java
 
 ##### Run Parametric tests with a custom Java Tracer version
@@ -138,10 +145,12 @@ go mod tidy
 ```bash
 git clone git@github.com:DataDog/dd-trace-java.git 
 cd dd-trace-java
-./gradlew :dd-trace-ot:shadowar :dd-trace-api:jar
+./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar
 ```
 
-2. Copy both artifacts `dd-trace-api-*.jar` and `dd-trace-ot-*.jar` into the `system-tests/binaries/` folder.
+2. Copy both artifacts into the `system-tests/binaries/` folder:
+  * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
+  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into 
 
 3. Run Parametric tests from the `system-tests/parametric` folder:
 
