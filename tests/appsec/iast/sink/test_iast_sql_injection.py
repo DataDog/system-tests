@@ -40,8 +40,8 @@ class TestIastSqlInjection:
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.SqlExamples"},
         "nodejs": {"LOCATION": "iast.js"},
         "python": {
-            "flask-poc": {"LOCATION": "/app/app.py"},
-            "django-poc": {"LOCATION": "/usr/local/lib/python3.9/site-packages/django/db/backends/utils.py"},
+            "flask-poc": {"LOCATION": "/app.py"},
+            "django-poc": {"LOCATION": "/app/urls.py"},
         },
     }
 
