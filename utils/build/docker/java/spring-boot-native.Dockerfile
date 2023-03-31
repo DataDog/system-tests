@@ -20,7 +20,7 @@ RUN mv ./src/main/resources/application-native.properties ./src/main/resources/a
 
 # Install tracer
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && mv /dd-tracer/dd-java-agent.jar /app/
 
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -P spring-native

@@ -15,7 +15,7 @@ COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
 
 # Install tracer
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && mv /dd-tracer/dd-java-agent.jar /app/
 
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative native:compile
