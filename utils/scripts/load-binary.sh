@@ -187,13 +187,24 @@ elif [ "$TARGET" = "ruby" ]; then
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot .
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot ./temp
     elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest .
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest ./temp
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi  
+    mv ./temp/datadog-php-tracer*.tar.gz . && rm -rf ./temp
+elif [ "$TARGET" = "php_appsec" ]; then
+
+    if [ $VERSION = 'dev' ]; then
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot ./temp
+    elif [ $VERSION = 'prod' ]; then
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
-
+    mv ./temp/dd-appsec-php-*.tar.gz . && rm -rf ./temp
+    
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get

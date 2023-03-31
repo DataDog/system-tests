@@ -11,11 +11,11 @@ mkdir --parent $target_dir
 echo "Extracting Docker base image $image to folder $target_dir"
 docker pull $image
 docker save -o $target_dir/image.tar $image 
-tar xvf $target_dir/image.tar -C $target_dir
+tar xf $target_dir/image.tar -C $target_dir
 layers=$(jq -r '.[0].Layers[]' $target_dir/manifest.json)
  
 for i in $layers; do
-    tar xvf $target_dir/$i -C $target_dir
+    tar xf $target_dir/$i -C $target_dir
 done 
 
 #Done! clean
