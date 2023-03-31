@@ -8,7 +8,7 @@ target_dir="$2"
 
 mkdir --parent $target_dir
 
-echo "Extracting Docker base image $image"
+echo "Extracting Docker base image $image to folder $target_dir"
 echo "Pas1" 
 docker save -o $target_dir/image.tar $image 
 echo "Pas2" 
