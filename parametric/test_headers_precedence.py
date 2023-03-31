@@ -29,7 +29,8 @@ def enable_datadog_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-@pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("java", "Issue: tracecontext is not enabled by default")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_precedence_propagationstyle_default(test_agent, test_library):
     with test_library:
         # 1) No headers
@@ -172,7 +173,7 @@ def test_headers_precedence_propagationstyle_default(test_agent, test_library):
 
 
 @enable_tracecontext()
-@pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_library):
     with test_library:
         # 1) No headers
@@ -294,7 +295,6 @@ def test_headers_precedence_propagationstyle_tracecontext(test_agent, test_libra
 
 
 @enable_datadog()
-@pytest.mark.skip_library("java", "Issue: only sampling priority -1 to 2 allowed")
 def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
     with test_library:
         # 1) No headers
@@ -398,12 +398,13 @@ def test_headers_precedence_propagationstyle_datadog(test_agent, test_library):
 
 
 @enable_datadog_tracecontext()
+@pytest.mark.skip_library("php", "Legacy behaviour: Fixed order instead of order of definition")
 @pytest.mark.skip_library(
     "golang",
     "BUG: suite #4 is failing - if context is successfully retrieved from W3C propagator, datadog propagator is NOT "
     "run, thus not retrieving / overwriting the headers",
 )
-@pytest.mark.skip_library("java", "Issue: tracecontext is not merged yet")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library):
     with test_library:
         # 1) No headers

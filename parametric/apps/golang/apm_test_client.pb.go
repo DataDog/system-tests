@@ -120,7 +120,7 @@ type DistributedHTTPHeaders struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	HttpHeaders map[string]string `protobuf:"bytes,9,rep,name=http_headers,json=httpHeaders,proto3" json:"http_headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	HttpHeaders []*HeaderTuple `protobuf:"bytes,9,rep,name=http_headers,json=httpHeaders,proto3" json:"http_headers,omitempty"`
 }
 
 func (x *DistributedHTTPHeaders) Reset() {
@@ -155,11 +155,66 @@ func (*DistributedHTTPHeaders) Descriptor() ([]byte, []int) {
 	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *DistributedHTTPHeaders) GetHttpHeaders() map[string]string {
+func (x *DistributedHTTPHeaders) GetHttpHeaders() []*HeaderTuple {
 	if x != nil {
 		return x.HttpHeaders
 	}
 	return nil
+}
+
+type HeaderTuple struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *HeaderTuple) Reset() {
+	*x = HeaderTuple{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *HeaderTuple) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HeaderTuple) ProtoMessage() {}
+
+func (x *HeaderTuple) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HeaderTuple.ProtoReflect.Descriptor instead.
+func (*HeaderTuple) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *HeaderTuple) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *HeaderTuple) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
 }
 
 type StartSpanReturn struct {
@@ -174,7 +229,7 @@ type StartSpanReturn struct {
 func (x *StartSpanReturn) Reset() {
 	*x = StartSpanReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[2]
+		mi := &file_protos_apm_test_client_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -187,7 +242,7 @@ func (x *StartSpanReturn) String() string {
 func (*StartSpanReturn) ProtoMessage() {}
 
 func (x *StartSpanReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[2]
+	mi := &file_protos_apm_test_client_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -200,7 +255,7 @@ func (x *StartSpanReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartSpanReturn.ProtoReflect.Descriptor instead.
 func (*StartSpanReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{2}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *StartSpanReturn) GetSpanId() uint64 {
@@ -228,7 +283,7 @@ type InjectHeadersArgs struct {
 func (x *InjectHeadersArgs) Reset() {
 	*x = InjectHeadersArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[3]
+		mi := &file_protos_apm_test_client_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -241,7 +296,7 @@ func (x *InjectHeadersArgs) String() string {
 func (*InjectHeadersArgs) ProtoMessage() {}
 
 func (x *InjectHeadersArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[3]
+	mi := &file_protos_apm_test_client_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +309,7 @@ func (x *InjectHeadersArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectHeadersArgs.ProtoReflect.Descriptor instead.
 func (*InjectHeadersArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{3}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *InjectHeadersArgs) GetSpanId() uint64 {
@@ -275,7 +330,7 @@ type InjectHeadersReturn struct {
 func (x *InjectHeadersReturn) Reset() {
 	*x = InjectHeadersReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[4]
+		mi := &file_protos_apm_test_client_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -288,7 +343,7 @@ func (x *InjectHeadersReturn) String() string {
 func (*InjectHeadersReturn) ProtoMessage() {}
 
 func (x *InjectHeadersReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[4]
+	mi := &file_protos_apm_test_client_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -301,7 +356,7 @@ func (x *InjectHeadersReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectHeadersReturn.ProtoReflect.Descriptor instead.
 func (*InjectHeadersReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{4}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *InjectHeadersReturn) GetHttpHeaders() *DistributedHTTPHeaders {
@@ -322,7 +377,7 @@ type FinishSpanArgs struct {
 func (x *FinishSpanArgs) Reset() {
 	*x = FinishSpanArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[5]
+		mi := &file_protos_apm_test_client_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -335,7 +390,7 @@ func (x *FinishSpanArgs) String() string {
 func (*FinishSpanArgs) ProtoMessage() {}
 
 func (x *FinishSpanArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[5]
+	mi := &file_protos_apm_test_client_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -348,7 +403,7 @@ func (x *FinishSpanArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinishSpanArgs.ProtoReflect.Descriptor instead.
 func (*FinishSpanArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{5}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FinishSpanArgs) GetId() uint64 {
@@ -367,7 +422,7 @@ type FinishSpanReturn struct {
 func (x *FinishSpanReturn) Reset() {
 	*x = FinishSpanReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[6]
+		mi := &file_protos_apm_test_client_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -380,7 +435,7 @@ func (x *FinishSpanReturn) String() string {
 func (*FinishSpanReturn) ProtoMessage() {}
 
 func (x *FinishSpanReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[6]
+	mi := &file_protos_apm_test_client_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -393,7 +448,7 @@ func (x *FinishSpanReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinishSpanReturn.ProtoReflect.Descriptor instead.
 func (*FinishSpanReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{6}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{7}
 }
 
 type SpanSetMetaArgs struct {
@@ -409,7 +464,7 @@ type SpanSetMetaArgs struct {
 func (x *SpanSetMetaArgs) Reset() {
 	*x = SpanSetMetaArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[7]
+		mi := &file_protos_apm_test_client_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -422,7 +477,7 @@ func (x *SpanSetMetaArgs) String() string {
 func (*SpanSetMetaArgs) ProtoMessage() {}
 
 func (x *SpanSetMetaArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[7]
+	mi := &file_protos_apm_test_client_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -435,7 +490,7 @@ func (x *SpanSetMetaArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanSetMetaArgs.ProtoReflect.Descriptor instead.
 func (*SpanSetMetaArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{7}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SpanSetMetaArgs) GetSpanId() uint64 {
@@ -468,7 +523,7 @@ type SpanSetMetaReturn struct {
 func (x *SpanSetMetaReturn) Reset() {
 	*x = SpanSetMetaReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[8]
+		mi := &file_protos_apm_test_client_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -481,7 +536,7 @@ func (x *SpanSetMetaReturn) String() string {
 func (*SpanSetMetaReturn) ProtoMessage() {}
 
 func (x *SpanSetMetaReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[8]
+	mi := &file_protos_apm_test_client_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -494,7 +549,7 @@ func (x *SpanSetMetaReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanSetMetaReturn.ProtoReflect.Descriptor instead.
 func (*SpanSetMetaReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{8}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{9}
 }
 
 type SpanSetMetricArgs struct {
@@ -510,7 +565,7 @@ type SpanSetMetricArgs struct {
 func (x *SpanSetMetricArgs) Reset() {
 	*x = SpanSetMetricArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[9]
+		mi := &file_protos_apm_test_client_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -523,7 +578,7 @@ func (x *SpanSetMetricArgs) String() string {
 func (*SpanSetMetricArgs) ProtoMessage() {}
 
 func (x *SpanSetMetricArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[9]
+	mi := &file_protos_apm_test_client_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -536,7 +591,7 @@ func (x *SpanSetMetricArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanSetMetricArgs.ProtoReflect.Descriptor instead.
 func (*SpanSetMetricArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{9}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SpanSetMetricArgs) GetSpanId() uint64 {
@@ -569,7 +624,7 @@ type SpanSetMetricReturn struct {
 func (x *SpanSetMetricReturn) Reset() {
 	*x = SpanSetMetricReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[10]
+		mi := &file_protos_apm_test_client_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -582,7 +637,7 @@ func (x *SpanSetMetricReturn) String() string {
 func (*SpanSetMetricReturn) ProtoMessage() {}
 
 func (x *SpanSetMetricReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[10]
+	mi := &file_protos_apm_test_client_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -595,7 +650,7 @@ func (x *SpanSetMetricReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanSetMetricReturn.ProtoReflect.Descriptor instead.
 func (*SpanSetMetricReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{10}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{11}
 }
 
 type SpanSetErrorArgs struct {
@@ -612,7 +667,7 @@ type SpanSetErrorArgs struct {
 func (x *SpanSetErrorArgs) Reset() {
 	*x = SpanSetErrorArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[11]
+		mi := &file_protos_apm_test_client_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -625,7 +680,7 @@ func (x *SpanSetErrorArgs) String() string {
 func (*SpanSetErrorArgs) ProtoMessage() {}
 
 func (x *SpanSetErrorArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[11]
+	mi := &file_protos_apm_test_client_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -638,7 +693,7 @@ func (x *SpanSetErrorArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanSetErrorArgs.ProtoReflect.Descriptor instead.
 func (*SpanSetErrorArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{11}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SpanSetErrorArgs) GetSpanId() uint64 {
@@ -678,7 +733,7 @@ type SpanSetErrorReturn struct {
 func (x *SpanSetErrorReturn) Reset() {
 	*x = SpanSetErrorReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[12]
+		mi := &file_protos_apm_test_client_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -691,7 +746,7 @@ func (x *SpanSetErrorReturn) String() string {
 func (*SpanSetErrorReturn) ProtoMessage() {}
 
 func (x *SpanSetErrorReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[12]
+	mi := &file_protos_apm_test_client_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -704,7 +759,7 @@ func (x *SpanSetErrorReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpanSetErrorReturn.ProtoReflect.Descriptor instead.
 func (*SpanSetErrorReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{12}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{13}
 }
 
 type FlushSpansArgs struct {
@@ -716,7 +771,7 @@ type FlushSpansArgs struct {
 func (x *FlushSpansArgs) Reset() {
 	*x = FlushSpansArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[13]
+		mi := &file_protos_apm_test_client_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -729,7 +784,7 @@ func (x *FlushSpansArgs) String() string {
 func (*FlushSpansArgs) ProtoMessage() {}
 
 func (x *FlushSpansArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[13]
+	mi := &file_protos_apm_test_client_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -742,7 +797,7 @@ func (x *FlushSpansArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushSpansArgs.ProtoReflect.Descriptor instead.
 func (*FlushSpansArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{13}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{14}
 }
 
 type FlushSpansReturn struct {
@@ -754,7 +809,7 @@ type FlushSpansReturn struct {
 func (x *FlushSpansReturn) Reset() {
 	*x = FlushSpansReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[14]
+		mi := &file_protos_apm_test_client_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -767,7 +822,7 @@ func (x *FlushSpansReturn) String() string {
 func (*FlushSpansReturn) ProtoMessage() {}
 
 func (x *FlushSpansReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[14]
+	mi := &file_protos_apm_test_client_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -780,7 +835,7 @@ func (x *FlushSpansReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushSpansReturn.ProtoReflect.Descriptor instead.
 func (*FlushSpansReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{14}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{15}
 }
 
 type FlushTraceStatsArgs struct {
@@ -792,7 +847,7 @@ type FlushTraceStatsArgs struct {
 func (x *FlushTraceStatsArgs) Reset() {
 	*x = FlushTraceStatsArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[15]
+		mi := &file_protos_apm_test_client_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -805,7 +860,7 @@ func (x *FlushTraceStatsArgs) String() string {
 func (*FlushTraceStatsArgs) ProtoMessage() {}
 
 func (x *FlushTraceStatsArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[15]
+	mi := &file_protos_apm_test_client_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -818,7 +873,7 @@ func (x *FlushTraceStatsArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushTraceStatsArgs.ProtoReflect.Descriptor instead.
 func (*FlushTraceStatsArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{15}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{16}
 }
 
 type FlushTraceStatsReturn struct {
@@ -830,7 +885,7 @@ type FlushTraceStatsReturn struct {
 func (x *FlushTraceStatsReturn) Reset() {
 	*x = FlushTraceStatsReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[16]
+		mi := &file_protos_apm_test_client_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -843,7 +898,7 @@ func (x *FlushTraceStatsReturn) String() string {
 func (*FlushTraceStatsReturn) ProtoMessage() {}
 
 func (x *FlushTraceStatsReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[16]
+	mi := &file_protos_apm_test_client_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -856,8 +911,1325 @@ func (x *FlushTraceStatsReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlushTraceStatsReturn.ProtoReflect.Descriptor instead.
 func (*FlushTraceStatsReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{16}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{17}
 }
+
+type OtelStartSpanArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name        string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	NewRoot     *bool                   `protobuf:"varint,2,opt,name=new_root,json=newRoot,proto3,oneof" json:"new_root,omitempty"`
+	ParentId    *uint64                 `protobuf:"varint,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
+	SpanKind    *uint64                 `protobuf:"varint,9,opt,name=span_kind,json=spanKind,proto3,oneof" json:"span_kind,omitempty"`
+	Service     *string                 `protobuf:"bytes,4,opt,name=service,proto3,oneof" json:"service,omitempty"`
+	Resource    *string                 `protobuf:"bytes,5,opt,name=resource,proto3,oneof" json:"resource,omitempty"`
+	Type        *string                 `protobuf:"bytes,6,opt,name=type,proto3,oneof" json:"type,omitempty"`
+	Timestamp   *int64                  `protobuf:"varint,7,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
+	HttpHeaders *DistributedHTTPHeaders `protobuf:"bytes,10,opt,name=http_headers,json=httpHeaders,proto3,oneof" json:"http_headers,omitempty"`
+	Attributes  *Attributes             `protobuf:"bytes,8,opt,name=attributes,proto3" json:"attributes,omitempty"`
+}
+
+func (x *OtelStartSpanArgs) Reset() {
+	*x = OtelStartSpanArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelStartSpanArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelStartSpanArgs) ProtoMessage() {}
+
+func (x *OtelStartSpanArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelStartSpanArgs.ProtoReflect.Descriptor instead.
+func (*OtelStartSpanArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *OtelStartSpanArgs) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *OtelStartSpanArgs) GetNewRoot() bool {
+	if x != nil && x.NewRoot != nil {
+		return *x.NewRoot
+	}
+	return false
+}
+
+func (x *OtelStartSpanArgs) GetParentId() uint64 {
+	if x != nil && x.ParentId != nil {
+		return *x.ParentId
+	}
+	return 0
+}
+
+func (x *OtelStartSpanArgs) GetSpanKind() uint64 {
+	if x != nil && x.SpanKind != nil {
+		return *x.SpanKind
+	}
+	return 0
+}
+
+func (x *OtelStartSpanArgs) GetService() string {
+	if x != nil && x.Service != nil {
+		return *x.Service
+	}
+	return ""
+}
+
+func (x *OtelStartSpanArgs) GetResource() string {
+	if x != nil && x.Resource != nil {
+		return *x.Resource
+	}
+	return ""
+}
+
+func (x *OtelStartSpanArgs) GetType() string {
+	if x != nil && x.Type != nil {
+		return *x.Type
+	}
+	return ""
+}
+
+func (x *OtelStartSpanArgs) GetTimestamp() int64 {
+	if x != nil && x.Timestamp != nil {
+		return *x.Timestamp
+	}
+	return 0
+}
+
+func (x *OtelStartSpanArgs) GetHttpHeaders() *DistributedHTTPHeaders {
+	if x != nil {
+		return x.HttpHeaders
+	}
+	return nil
+}
+
+func (x *OtelStartSpanArgs) GetAttributes() *Attributes {
+	if x != nil {
+		return x.Attributes
+	}
+	return nil
+}
+
+type OtelStartSpanReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId  uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	TraceId uint64 `protobuf:"varint,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+}
+
+func (x *OtelStartSpanReturn) Reset() {
+	*x = OtelStartSpanReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelStartSpanReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelStartSpanReturn) ProtoMessage() {}
+
+func (x *OtelStartSpanReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelStartSpanReturn.ProtoReflect.Descriptor instead.
+func (*OtelStartSpanReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *OtelStartSpanReturn) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+func (x *OtelStartSpanReturn) GetTraceId() uint64 {
+	if x != nil {
+		return x.TraceId
+	}
+	return 0
+}
+
+type OtelEndSpanArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id        uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Timestamp *int64 `protobuf:"varint,2,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
+}
+
+func (x *OtelEndSpanArgs) Reset() {
+	*x = OtelEndSpanArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelEndSpanArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelEndSpanArgs) ProtoMessage() {}
+
+func (x *OtelEndSpanArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelEndSpanArgs.ProtoReflect.Descriptor instead.
+func (*OtelEndSpanArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *OtelEndSpanArgs) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *OtelEndSpanArgs) GetTimestamp() int64 {
+	if x != nil && x.Timestamp != nil {
+		return *x.Timestamp
+	}
+	return 0
+}
+
+type OtelEndSpanReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelEndSpanReturn) Reset() {
+	*x = OtelEndSpanReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelEndSpanReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelEndSpanReturn) ProtoMessage() {}
+
+func (x *OtelEndSpanReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelEndSpanReturn.ProtoReflect.Descriptor instead.
+func (*OtelEndSpanReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{21}
+}
+
+type OtelForceFlushArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Seconds uint32 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
+}
+
+func (x *OtelForceFlushArgs) Reset() {
+	*x = OtelForceFlushArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelForceFlushArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelForceFlushArgs) ProtoMessage() {}
+
+func (x *OtelForceFlushArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelForceFlushArgs.ProtoReflect.Descriptor instead.
+func (*OtelForceFlushArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *OtelForceFlushArgs) GetSeconds() uint32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
+
+type OtelForceFlushReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+}
+
+func (x *OtelForceFlushReturn) Reset() {
+	*x = OtelForceFlushReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelForceFlushReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelForceFlushReturn) ProtoMessage() {}
+
+func (x *OtelForceFlushReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelForceFlushReturn.ProtoReflect.Descriptor instead.
+func (*OtelForceFlushReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *OtelForceFlushReturn) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+type OtelFlushSpansArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Seconds uint32 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
+}
+
+func (x *OtelFlushSpansArgs) Reset() {
+	*x = OtelFlushSpansArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelFlushSpansArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelFlushSpansArgs) ProtoMessage() {}
+
+func (x *OtelFlushSpansArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelFlushSpansArgs.ProtoReflect.Descriptor instead.
+func (*OtelFlushSpansArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *OtelFlushSpansArgs) GetSeconds() uint32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
+
+type OtelFlushSpansReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+}
+
+func (x *OtelFlushSpansReturn) Reset() {
+	*x = OtelFlushSpansReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[25]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelFlushSpansReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelFlushSpansReturn) ProtoMessage() {}
+
+func (x *OtelFlushSpansReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[25]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelFlushSpansReturn.ProtoReflect.Descriptor instead.
+func (*OtelFlushSpansReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *OtelFlushSpansReturn) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+type OtelFlushTraceStatsArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelFlushTraceStatsArgs) Reset() {
+	*x = OtelFlushTraceStatsArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelFlushTraceStatsArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelFlushTraceStatsArgs) ProtoMessage() {}
+
+func (x *OtelFlushTraceStatsArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelFlushTraceStatsArgs.ProtoReflect.Descriptor instead.
+func (*OtelFlushTraceStatsArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{26}
+}
+
+type OtelFlushTraceStatsReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelFlushTraceStatsReturn) Reset() {
+	*x = OtelFlushTraceStatsReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[27]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelFlushTraceStatsReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelFlushTraceStatsReturn) ProtoMessage() {}
+
+func (x *OtelFlushTraceStatsReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[27]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelFlushTraceStatsReturn.ProtoReflect.Descriptor instead.
+func (*OtelFlushTraceStatsReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{27}
+}
+
+type OtelStopTracerArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelStopTracerArgs) Reset() {
+	*x = OtelStopTracerArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[28]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelStopTracerArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelStopTracerArgs) ProtoMessage() {}
+
+func (x *OtelStopTracerArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[28]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelStopTracerArgs.ProtoReflect.Descriptor instead.
+func (*OtelStopTracerArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{28}
+}
+
+type OtelStopTracerReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelStopTracerReturn) Reset() {
+	*x = OtelStopTracerReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[29]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelStopTracerReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelStopTracerReturn) ProtoMessage() {}
+
+func (x *OtelStopTracerReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[29]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelStopTracerReturn.ProtoReflect.Descriptor instead.
+func (*OtelStopTracerReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{29}
+}
+
+type OtelIsRecordingArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+}
+
+func (x *OtelIsRecordingArgs) Reset() {
+	*x = OtelIsRecordingArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[30]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelIsRecordingArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelIsRecordingArgs) ProtoMessage() {}
+
+func (x *OtelIsRecordingArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[30]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelIsRecordingArgs.ProtoReflect.Descriptor instead.
+func (*OtelIsRecordingArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *OtelIsRecordingArgs) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+type OtelIsRecordingReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	IsRecording bool `protobuf:"varint,1,opt,name=is_recording,json=isRecording,proto3" json:"is_recording,omitempty"`
+}
+
+func (x *OtelIsRecordingReturn) Reset() {
+	*x = OtelIsRecordingReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[31]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelIsRecordingReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelIsRecordingReturn) ProtoMessage() {}
+
+func (x *OtelIsRecordingReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[31]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelIsRecordingReturn.ProtoReflect.Descriptor instead.
+func (*OtelIsRecordingReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *OtelIsRecordingReturn) GetIsRecording() bool {
+	if x != nil {
+		return x.IsRecording
+	}
+	return false
+}
+
+type OtelSpanContextArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+}
+
+func (x *OtelSpanContextArgs) Reset() {
+	*x = OtelSpanContextArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[32]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSpanContextArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSpanContextArgs) ProtoMessage() {}
+
+func (x *OtelSpanContextArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[32]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSpanContextArgs.ProtoReflect.Descriptor instead.
+func (*OtelSpanContextArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *OtelSpanContextArgs) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+type OtelSpanContextReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId     string `protobuf:"bytes,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	TraceId    string `protobuf:"bytes,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	TraceFlags string `protobuf:"bytes,3,opt,name=trace_flags,json=traceFlags,proto3" json:"trace_flags,omitempty"`
+	TraceState string `protobuf:"bytes,4,opt,name=trace_state,json=traceState,proto3" json:"trace_state,omitempty"`
+	Remote     bool   `protobuf:"varint,5,opt,name=remote,proto3" json:"remote,omitempty"`
+}
+
+func (x *OtelSpanContextReturn) Reset() {
+	*x = OtelSpanContextReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[33]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSpanContextReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSpanContextReturn) ProtoMessage() {}
+
+func (x *OtelSpanContextReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[33]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSpanContextReturn.ProtoReflect.Descriptor instead.
+func (*OtelSpanContextReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *OtelSpanContextReturn) GetSpanId() string {
+	if x != nil {
+		return x.SpanId
+	}
+	return ""
+}
+
+func (x *OtelSpanContextReturn) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *OtelSpanContextReturn) GetTraceFlags() string {
+	if x != nil {
+		return x.TraceFlags
+	}
+	return ""
+}
+
+func (x *OtelSpanContextReturn) GetTraceState() string {
+	if x != nil {
+		return x.TraceState
+	}
+	return ""
+}
+
+func (x *OtelSpanContextReturn) GetRemote() bool {
+	if x != nil {
+		return x.Remote
+	}
+	return false
+}
+
+type OtelSetStatusArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId      uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Code        string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+}
+
+func (x *OtelSetStatusArgs) Reset() {
+	*x = OtelSetStatusArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[34]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSetStatusArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSetStatusArgs) ProtoMessage() {}
+
+func (x *OtelSetStatusArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[34]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSetStatusArgs.ProtoReflect.Descriptor instead.
+func (*OtelSetStatusArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *OtelSetStatusArgs) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+func (x *OtelSetStatusArgs) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *OtelSetStatusArgs) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+type OtelSetStatusReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelSetStatusReturn) Reset() {
+	*x = OtelSetStatusReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[35]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSetStatusReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSetStatusReturn) ProtoMessage() {}
+
+func (x *OtelSetStatusReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[35]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSetStatusReturn.ProtoReflect.Descriptor instead.
+func (*OtelSetStatusReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{35}
+}
+
+type OtelSetNameArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Name   string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *OtelSetNameArgs) Reset() {
+	*x = OtelSetNameArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[36]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSetNameArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSetNameArgs) ProtoMessage() {}
+
+func (x *OtelSetNameArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[36]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSetNameArgs.ProtoReflect.Descriptor instead.
+func (*OtelSetNameArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *OtelSetNameArgs) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+func (x *OtelSetNameArgs) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type OtelSetNameReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelSetNameReturn) Reset() {
+	*x = OtelSetNameReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[37]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSetNameReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSetNameReturn) ProtoMessage() {}
+
+func (x *OtelSetNameReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[37]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSetNameReturn.ProtoReflect.Descriptor instead.
+func (*OtelSetNameReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{37}
+}
+
+type OtelSetAttributesArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SpanId     uint64      `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Attributes *Attributes `protobuf:"bytes,2,opt,name=attributes,proto3" json:"attributes,omitempty"`
+}
+
+func (x *OtelSetAttributesArgs) Reset() {
+	*x = OtelSetAttributesArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[38]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSetAttributesArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSetAttributesArgs) ProtoMessage() {}
+
+func (x *OtelSetAttributesArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[38]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSetAttributesArgs.ProtoReflect.Descriptor instead.
+func (*OtelSetAttributesArgs) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *OtelSetAttributesArgs) GetSpanId() uint64 {
+	if x != nil {
+		return x.SpanId
+	}
+	return 0
+}
+
+func (x *OtelSetAttributesArgs) GetAttributes() *Attributes {
+	if x != nil {
+		return x.Attributes
+	}
+	return nil
+}
+
+type OtelSetAttributesReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *OtelSetAttributesReturn) Reset() {
+	*x = OtelSetAttributesReturn{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[39]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OtelSetAttributesReturn) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OtelSetAttributesReturn) ProtoMessage() {}
+
+func (x *OtelSetAttributesReturn) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[39]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OtelSetAttributesReturn.ProtoReflect.Descriptor instead.
+func (*OtelSetAttributesReturn) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{39}
+}
+
+type Attributes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	KeyVals map[string]*ListVal `protobuf:"bytes,3,rep,name=key_vals,json=keyVals,proto3" json:"key_vals,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *Attributes) Reset() {
+	*x = Attributes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[40]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Attributes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Attributes) ProtoMessage() {}
+
+func (x *Attributes) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[40]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Attributes.ProtoReflect.Descriptor instead.
+func (*Attributes) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *Attributes) GetKeyVals() map[string]*ListVal {
+	if x != nil {
+		return x.KeyVals
+	}
+	return nil
+}
+
+type ListVal struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Val []*AttrVal `protobuf:"bytes,1,rep,name=val,proto3" json:"val,omitempty"`
+}
+
+func (x *ListVal) Reset() {
+	*x = ListVal{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[41]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListVal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVal) ProtoMessage() {}
+
+func (x *ListVal) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[41]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVal.ProtoReflect.Descriptor instead.
+func (*ListVal) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *ListVal) GetVal() []*AttrVal {
+	if x != nil {
+		return x.Val
+	}
+	return nil
+}
+
+type AttrVal struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to Val:
+	//
+	//	*AttrVal_BoolVal
+	//	*AttrVal_StringVal
+	//	*AttrVal_DoubleVal
+	//	*AttrVal_IntegerVal
+	Val isAttrVal_Val `protobuf_oneof:"val"`
+}
+
+func (x *AttrVal) Reset() {
+	*x = AttrVal{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protos_apm_test_client_proto_msgTypes[42]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AttrVal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttrVal) ProtoMessage() {}
+
+func (x *AttrVal) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_apm_test_client_proto_msgTypes[42]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttrVal.ProtoReflect.Descriptor instead.
+func (*AttrVal) Descriptor() ([]byte, []int) {
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{42}
+}
+
+func (m *AttrVal) GetVal() isAttrVal_Val {
+	if m != nil {
+		return m.Val
+	}
+	return nil
+}
+
+func (x *AttrVal) GetBoolVal() bool {
+	if x, ok := x.GetVal().(*AttrVal_BoolVal); ok {
+		return x.BoolVal
+	}
+	return false
+}
+
+func (x *AttrVal) GetStringVal() string {
+	if x, ok := x.GetVal().(*AttrVal_StringVal); ok {
+		return x.StringVal
+	}
+	return ""
+}
+
+func (x *AttrVal) GetDoubleVal() float64 {
+	if x, ok := x.GetVal().(*AttrVal_DoubleVal); ok {
+		return x.DoubleVal
+	}
+	return 0
+}
+
+func (x *AttrVal) GetIntegerVal() int64 {
+	if x, ok := x.GetVal().(*AttrVal_IntegerVal); ok {
+		return x.IntegerVal
+	}
+	return 0
+}
+
+type isAttrVal_Val interface {
+	isAttrVal_Val()
+}
+
+type AttrVal_BoolVal struct {
+	BoolVal bool `protobuf:"varint,1,opt,name=bool_val,json=boolVal,proto3,oneof"`
+}
+
+type AttrVal_StringVal struct {
+	StringVal string `protobuf:"bytes,2,opt,name=string_val,json=stringVal,proto3,oneof"`
+}
+
+type AttrVal_DoubleVal struct {
+	DoubleVal float64 `protobuf:"fixed64,3,opt,name=double_val,json=doubleVal,proto3,oneof"`
+}
+
+type AttrVal_IntegerVal struct {
+	IntegerVal int64 `protobuf:"varint,4,opt,name=integer_val,json=integerVal,proto3,oneof"`
+}
+
+func (*AttrVal_BoolVal) isAttrVal_Val() {}
+
+func (*AttrVal_StringVal) isAttrVal_Val() {}
+
+func (*AttrVal_DoubleVal) isAttrVal_Val() {}
+
+func (*AttrVal_IntegerVal) isAttrVal_Val() {}
 
 type StopTracerArgs struct {
 	state         protoimpl.MessageState
@@ -868,7 +2240,7 @@ type StopTracerArgs struct {
 func (x *StopTracerArgs) Reset() {
 	*x = StopTracerArgs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[17]
+		mi := &file_protos_apm_test_client_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -881,7 +2253,7 @@ func (x *StopTracerArgs) String() string {
 func (*StopTracerArgs) ProtoMessage() {}
 
 func (x *StopTracerArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[17]
+	mi := &file_protos_apm_test_client_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -894,7 +2266,7 @@ func (x *StopTracerArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopTracerArgs.ProtoReflect.Descriptor instead.
 func (*StopTracerArgs) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{17}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{43}
 }
 
 type StopTracerReturn struct {
@@ -906,7 +2278,7 @@ type StopTracerReturn struct {
 func (x *StopTracerReturn) Reset() {
 	*x = StopTracerReturn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protos_apm_test_client_proto_msgTypes[18]
+		mi := &file_protos_apm_test_client_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -919,7 +2291,7 @@ func (x *StopTracerReturn) String() string {
 func (*StopTracerReturn) ProtoMessage() {}
 
 func (x *StopTracerReturn) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_apm_test_client_proto_msgTypes[18]
+	mi := &file_protos_apm_test_client_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -932,7 +2304,7 @@ func (x *StopTracerReturn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopTracerReturn.ProtoReflect.Descriptor instead.
 func (*StopTracerReturn) Descriptor() ([]byte, []int) {
-	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{18}
+	return file_protos_apm_test_client_proto_rawDescGZIP(), []int{44}
 }
 
 var File_protos_apm_test_client_proto protoreflect.FileDescriptor
@@ -960,100 +2332,257 @@ var file_protos_apm_test_client_proto_rawDesc = []byte{
 	0x72, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x72, 0x65, 0x73, 0x6f,
 	0x75, 0x72, 0x63, 0x65, 0x42, 0x07, 0x0a, 0x05, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x42, 0x09, 0x0a,
 	0x07, 0x5f, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x68, 0x74, 0x74,
-	0x70, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x22, 0xa5, 0x01, 0x0a, 0x16, 0x44, 0x69,
-	0x73, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x64, 0x48, 0x54, 0x54, 0x50, 0x48, 0x65, 0x61,
-	0x64, 0x65, 0x72, 0x73, 0x12, 0x4b, 0x0a, 0x0c, 0x68, 0x74, 0x74, 0x70, 0x5f, 0x68, 0x65, 0x61,
-	0x64, 0x65, 0x72, 0x73, 0x18, 0x09, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x44, 0x69, 0x73,
+	0x70, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x22, 0x49, 0x0a, 0x16, 0x44, 0x69, 0x73,
 	0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x64, 0x48, 0x54, 0x54, 0x50, 0x48, 0x65, 0x61, 0x64,
-	0x65, 0x72, 0x73, 0x2e, 0x48, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x45,
-	0x6e, 0x74, 0x72, 0x79, 0x52, 0x0b, 0x68, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
-	0x73, 0x1a, 0x3e, 0x0a, 0x10, 0x48, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73,
-	0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38,
-	0x01, 0x22, 0x45, 0x0a, 0x0f, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65,
-	0x74, 0x75, 0x72, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x19, 0x0a,
-	0x08, 0x74, 0x72, 0x61, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52,
-	0x07, 0x74, 0x72, 0x61, 0x63, 0x65, 0x49, 0x64, 0x22, 0x2c, 0x0a, 0x11, 0x49, 0x6e, 0x6a, 0x65,
-	0x63, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a,
+	0x65, 0x72, 0x73, 0x12, 0x2f, 0x0a, 0x0c, 0x68, 0x74, 0x74, 0x70, 0x5f, 0x68, 0x65, 0x61, 0x64,
+	0x65, 0x72, 0x73, 0x18, 0x09, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x48, 0x65, 0x61, 0x64,
+	0x65, 0x72, 0x54, 0x75, 0x70, 0x6c, 0x65, 0x52, 0x0b, 0x68, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61,
+	0x64, 0x65, 0x72, 0x73, 0x22, 0x35, 0x0a, 0x0b, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x54, 0x75,
+	0x70, 0x6c, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x45, 0x0a, 0x0f, 0x53,
+	0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x12, 0x17,
+	0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52,
+	0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x74, 0x72, 0x61, 0x63, 0x65,
+	0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x07, 0x74, 0x72, 0x61, 0x63, 0x65,
+	0x49, 0x64, 0x22, 0x2c, 0x0a, 0x11, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64,
+	0x65, 0x72, 0x73, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64,
+	0x22, 0x67, 0x0a, 0x13, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
+	0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x12, 0x3f, 0x0a, 0x0c, 0x68, 0x74, 0x74, 0x70, 0x5f,
+	0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e,
+	0x44, 0x69, 0x73, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x64, 0x48, 0x54, 0x54, 0x50, 0x48,
+	0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x48, 0x00, 0x52, 0x0b, 0x68, 0x74, 0x74, 0x70, 0x48, 0x65,
+	0x61, 0x64, 0x65, 0x72, 0x73, 0x88, 0x01, 0x01, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x68, 0x74, 0x74,
+	0x70, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x22, 0x20, 0x0a, 0x0e, 0x46, 0x69, 0x6e,
+	0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x12, 0x0e, 0x0a, 0x02, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22, 0x12, 0x0a, 0x10, 0x46,
+	0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22,
+	0x52, 0x0a, 0x0f, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x41, 0x72,
+	0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6b,
+	0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x22, 0x13, 0x0a, 0x11, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65,
+	0x74, 0x61, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x54, 0x0a, 0x11, 0x53, 0x70, 0x61, 0x6e,
+	0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a,
 	0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06,
-	0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x22, 0x67, 0x0a, 0x13, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74,
-	0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x12, 0x3f, 0x0a,
-	0x0c, 0x68, 0x74, 0x74, 0x70, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x44, 0x69, 0x73, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65,
-	0x64, 0x48, 0x54, 0x54, 0x50, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x48, 0x00, 0x52, 0x0b,
-	0x68, 0x74, 0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x88, 0x01, 0x01, 0x42, 0x0f,
-	0x0a, 0x0d, 0x5f, 0x68, 0x74, 0x74, 0x70, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x22,
-	0x20, 0x0a, 0x0e, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67,
+	0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x15,
+	0x0a, 0x13, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52,
+	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x9d, 0x01, 0x0a, 0x10, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65,
+	0x74, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70,
+	0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61,
+	0x6e, 0x49, 0x64, 0x12, 0x17, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x48, 0x00, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x88, 0x01, 0x01, 0x12, 0x1d, 0x0a, 0x07,
+	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x48, 0x01, 0x52,
+	0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x88, 0x01, 0x01, 0x12, 0x19, 0x0a, 0x05, 0x73,
+	0x74, 0x61, 0x63, 0x6b, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x48, 0x02, 0x52, 0x05, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x88, 0x01, 0x01, 0x42, 0x07, 0x0a, 0x05, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x42,
+	0x0a, 0x0a, 0x08, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x42, 0x08, 0x0a, 0x06, 0x5f,
+	0x73, 0x74, 0x61, 0x63, 0x6b, 0x22, 0x14, 0x0a, 0x12, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74,
+	0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x10, 0x0a, 0x0e, 0x46,
+	0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72, 0x67, 0x73, 0x22, 0x12, 0x0a,
+	0x10, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72,
+	0x6e, 0x22, 0x15, 0x0a, 0x13, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53,
+	0x74, 0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x22, 0x17, 0x0a, 0x15, 0x46, 0x6c, 0x75, 0x73,
+	0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72,
+	0x6e, 0x22, 0xdf, 0x03, 0x0a, 0x11, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53,
+	0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1e, 0x0a, 0x08, 0x6e,
+	0x65, 0x77, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x48, 0x00, 0x52,
+	0x07, 0x6e, 0x65, 0x77, 0x52, 0x6f, 0x6f, 0x74, 0x88, 0x01, 0x01, 0x12, 0x20, 0x0a, 0x09, 0x70,
+	0x61, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x48, 0x01,
+	0x52, 0x08, 0x70, 0x61, 0x72, 0x65, 0x6e, 0x74, 0x49, 0x64, 0x88, 0x01, 0x01, 0x12, 0x20, 0x0a,
+	0x09, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x6b, 0x69, 0x6e, 0x64, 0x18, 0x09, 0x20, 0x01, 0x28, 0x04,
+	0x48, 0x02, 0x52, 0x08, 0x73, 0x70, 0x61, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x88, 0x01, 0x01, 0x12,
+	0x1d, 0x0a, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
+	0x48, 0x03, 0x52, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x88, 0x01, 0x01, 0x12, 0x1f,
+	0x0a, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
+	0x48, 0x04, 0x52, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x88, 0x01, 0x01, 0x12,
+	0x17, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x48, 0x05, 0x52,
+	0x04, 0x74, 0x79, 0x70, 0x65, 0x88, 0x01, 0x01, 0x12, 0x21, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65,
+	0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x07, 0x20, 0x01, 0x28, 0x03, 0x48, 0x06, 0x52, 0x09, 0x74,
+	0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x88, 0x01, 0x01, 0x12, 0x3f, 0x0a, 0x0c, 0x68,
+	0x74, 0x74, 0x70, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x18, 0x0a, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x17, 0x2e, 0x44, 0x69, 0x73, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x64, 0x48,
+	0x54, 0x54, 0x50, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x48, 0x07, 0x52, 0x0b, 0x68, 0x74,
+	0x74, 0x70, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x88, 0x01, 0x01, 0x12, 0x2b, 0x0a, 0x0a,
+	0x61, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x0b, 0x2e, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x52, 0x0a, 0x61,
+	0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x6e, 0x65,
+	0x77, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x42, 0x0c, 0x0a, 0x0a, 0x5f, 0x70, 0x61, 0x72, 0x65, 0x6e,
+	0x74, 0x5f, 0x69, 0x64, 0x42, 0x0c, 0x0a, 0x0a, 0x5f, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x6b, 0x69,
+	0x6e, 0x64, 0x42, 0x0a, 0x0a, 0x08, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x42, 0x0b,
+	0x0a, 0x09, 0x5f, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x42, 0x07, 0x0a, 0x05, 0x5f,
+	0x74, 0x79, 0x70, 0x65, 0x42, 0x0c, 0x0a, 0x0a, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
+	0x6d, 0x70, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x68, 0x74, 0x74, 0x70, 0x5f, 0x68, 0x65, 0x61, 0x64,
+	0x65, 0x72, 0x73, 0x22, 0x49, 0x0a, 0x13, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x74, 0x61, 0x72, 0x74,
+	0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70,
+	0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61,
+	0x6e, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x74, 0x72, 0x61, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x07, 0x74, 0x72, 0x61, 0x63, 0x65, 0x49, 0x64, 0x22, 0x52,
+	0x0a, 0x0f, 0x4f, 0x74, 0x65, 0x6c, 0x45, 0x6e, 0x64, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67,
 	0x73, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69,
-	0x64, 0x22, 0x12, 0x0a, 0x10, 0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x52,
-	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x52, 0x0a, 0x0f, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74,
-	0x4d, 0x65, 0x74, 0x61, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e,
+	0x64, 0x12, 0x21, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x03, 0x48, 0x00, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+	0x70, 0x88, 0x01, 0x01, 0x42, 0x0c, 0x0a, 0x0a, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
+	0x6d, 0x70, 0x22, 0x13, 0x0a, 0x11, 0x4f, 0x74, 0x65, 0x6c, 0x45, 0x6e, 0x64, 0x53, 0x70, 0x61,
+	0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x2e, 0x0a, 0x12, 0x4f, 0x74, 0x65, 0x6c, 0x46,
+	0x6f, 0x72, 0x63, 0x65, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x41, 0x72, 0x67, 0x73, 0x12, 0x18, 0x0a,
+	0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x07,
+	0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x30, 0x0a, 0x14, 0x4f, 0x74, 0x65, 0x6c, 0x46,
+	0x6f, 0x72, 0x63, 0x65, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x12,
+	0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x22, 0x2e, 0x0a, 0x12, 0x4f, 0x74, 0x65,
+	0x6c, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72, 0x67, 0x73, 0x12,
+	0x18, 0x0a, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d,
+	0x52, 0x07, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x22, 0x30, 0x0a, 0x14, 0x4f, 0x74, 0x65,
+	0x6c, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72,
+	0x6e, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x22, 0x19, 0x0a, 0x17, 0x4f,
+	0x74, 0x65, 0x6c, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61,
+	0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x22, 0x1b, 0x0a, 0x19, 0x4f, 0x74, 0x65, 0x6c, 0x46, 0x6c,
+	0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x74,
+	0x75, 0x72, 0x6e, 0x22, 0x14, 0x0a, 0x12, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x74, 0x6f, 0x70, 0x54,
+	0x72, 0x61, 0x63, 0x65, 0x72, 0x41, 0x72, 0x67, 0x73, 0x22, 0x16, 0x0a, 0x14, 0x4f, 0x74, 0x65,
+	0x6c, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72, 0x61, 0x63, 0x65, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72,
+	0x6e, 0x22, 0x2e, 0x0a, 0x13, 0x4f, 0x74, 0x65, 0x6c, 0x49, 0x73, 0x52, 0x65, 0x63, 0x6f, 0x72,
+	0x64, 0x69, 0x6e, 0x67, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e,
 	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49,
-	0x64, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
-	0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x13, 0x0a, 0x11, 0x53, 0x70, 0x61,
-	0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x54,
-	0x0a, 0x11, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x41,
+	0x64, 0x22, 0x3a, 0x0a, 0x15, 0x4f, 0x74, 0x65, 0x6c, 0x49, 0x73, 0x52, 0x65, 0x63, 0x6f, 0x72,
+	0x64, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x12, 0x21, 0x0a, 0x0c, 0x69, 0x73,
+	0x5f, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x69, 0x6e, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x0b, 0x69, 0x73, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x69, 0x6e, 0x67, 0x22, 0x2e, 0x0a,
+	0x13, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x70, 0x61, 0x6e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x78, 0x74,
+	0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x22, 0xa5, 0x01,
+	0x0a, 0x15, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x70, 0x61, 0x6e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x78,
+	0x74, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64,
+	0x12, 0x19, 0x0a, 0x08, 0x74, 0x72, 0x61, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x74, 0x72, 0x61, 0x63, 0x65, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x0b, 0x74,
+	0x72, 0x61, 0x63, 0x65, 0x5f, 0x66, 0x6c, 0x61, 0x67, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0a, 0x74, 0x72, 0x61, 0x63, 0x65, 0x46, 0x6c, 0x61, 0x67, 0x73, 0x12, 0x1f, 0x0a, 0x0b,
+	0x74, 0x72, 0x61, 0x63, 0x65, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0a, 0x74, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x16, 0x0a,
+	0x06, 0x72, 0x65, 0x6d, 0x6f, 0x74, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x72,
+	0x65, 0x6d, 0x6f, 0x74, 0x65, 0x22, 0x62, 0x0a, 0x11, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74,
+	0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70,
+	0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61,
+	0x6e, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72,
+	0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65,
+	0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x15, 0x0a, 0x13, 0x4f, 0x74, 0x65,
+	0x6c, 0x53, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e,
+	0x22, 0x3e, 0x0a, 0x0f, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x41,
 	0x72, 0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x10, 0x0a, 0x03,
-	0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02, 0x52, 0x05, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x22, 0x15, 0x0a, 0x13, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d,
-	0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x9d, 0x01, 0x0a, 0x10,
-	0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x41, 0x72, 0x67, 0x73,
-	0x12, 0x17, 0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x17, 0x0a, 0x04, 0x74, 0x79, 0x70,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x88,
-	0x01, 0x01, 0x12, 0x1d, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x09, 0x48, 0x01, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x88, 0x01,
-	0x01, 0x12, 0x19, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
-	0x48, 0x02, 0x52, 0x05, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x88, 0x01, 0x01, 0x42, 0x07, 0x0a, 0x05,
-	0x5f, 0x74, 0x79, 0x70, 0x65, 0x42, 0x0a, 0x0a, 0x08, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x42, 0x08, 0x0a, 0x06, 0x5f, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x22, 0x14, 0x0a, 0x12, 0x53,
-	0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72,
-	0x6e, 0x22, 0x10, 0x0a, 0x0e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41,
-	0x72, 0x67, 0x73, 0x22, 0x12, 0x0a, 0x10, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e,
-	0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x15, 0x0a, 0x13, 0x46, 0x6c, 0x75, 0x73, 0x68,
-	0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x22, 0x17,
-	0x0a, 0x15, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74,
-	0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x10, 0x0a, 0x0e, 0x53, 0x74, 0x6f, 0x70, 0x54,
-	0x72, 0x61, 0x63, 0x65, 0x72, 0x41, 0x72, 0x67, 0x73, 0x22, 0x12, 0x0a, 0x10, 0x53, 0x74, 0x6f,
-	0x70, 0x54, 0x72, 0x61, 0x63, 0x65, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x32, 0x86, 0x04,
-	0x0a, 0x09, 0x41, 0x50, 0x4d, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x2f, 0x0a, 0x09, 0x53,
-	0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x12, 0x0e, 0x2e, 0x53, 0x74, 0x61, 0x72, 0x74,
-	0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x10, 0x2e, 0x53, 0x74, 0x61, 0x72, 0x74,
-	0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a,
-	0x46, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x12, 0x0f, 0x2e, 0x46, 0x69, 0x6e,
-	0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x11, 0x2e, 0x46, 0x69,
-	0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00,
-	0x12, 0x35, 0x0a, 0x0b, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12,
-	0x10, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x41, 0x72, 0x67,
-	0x73, 0x1a, 0x12, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x52,
-	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x3b, 0x0a, 0x0d, 0x53, 0x70, 0x61, 0x6e, 0x53,
-	0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x12, 0x12, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53,
-	0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x53,
-	0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x74, 0x75,
-	0x72, 0x6e, 0x22, 0x00, 0x12, 0x38, 0x0a, 0x0c, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x45,
-	0x72, 0x72, 0x6f, 0x72, 0x12, 0x11, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x45, 0x72,
-	0x72, 0x6f, 0x72, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65,
-	0x74, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x3b,
-	0x0a, 0x0d, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x12,
-	0x12, 0x2e, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x41,
-	0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64,
-	0x65, 0x72, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a, 0x46,
-	0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x12, 0x0f, 0x2e, 0x46, 0x6c, 0x75, 0x73,
-	0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x11, 0x2e, 0x46, 0x6c, 0x75,
-	0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12,
-	0x41, 0x0a, 0x0f, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61,
-	0x74, 0x73, 0x12, 0x14, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53,
-	0x74, 0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68,
-	0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e,
-	0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72, 0x61, 0x63, 0x65, 0x72,
-	0x12, 0x0f, 0x2e, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72, 0x61, 0x63, 0x65, 0x72, 0x41, 0x72, 0x67,
-	0x73, 0x1a, 0x11, 0x2e, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72, 0x61, 0x63, 0x65, 0x72, 0x52, 0x65,
-	0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x22, 0x13, 0x0a, 0x11, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x52,
+	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x5d, 0x0a, 0x15, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74,
+	0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x41, 0x72, 0x67, 0x73, 0x12, 0x17,
+	0x0a, 0x07, 0x73, 0x70, 0x61, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52,
+	0x06, 0x73, 0x70, 0x61, 0x6e, 0x49, 0x64, 0x12, 0x2b, 0x0a, 0x0a, 0x61, 0x74, 0x74, 0x72, 0x69,
+	0x62, 0x75, 0x74, 0x65, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x41, 0x74,
+	0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x52, 0x0a, 0x61, 0x74, 0x74, 0x72, 0x69, 0x62,
+	0x75, 0x74, 0x65, 0x73, 0x22, 0x19, 0x0a, 0x17, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74, 0x41,
+	0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22,
+	0x87, 0x01, 0x0a, 0x0a, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x12, 0x33,
+	0x0a, 0x08, 0x6b, 0x65, 0x79, 0x5f, 0x76, 0x61, 0x6c, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x18, 0x2e, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x2e, 0x4b, 0x65,
+	0x79, 0x56, 0x61, 0x6c, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x6b, 0x65, 0x79, 0x56,
+	0x61, 0x6c, 0x73, 0x1a, 0x44, 0x0a, 0x0c, 0x4b, 0x65, 0x79, 0x56, 0x61, 0x6c, 0x73, 0x45, 0x6e,
+	0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x1e, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x08, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x56, 0x61, 0x6c, 0x52, 0x05,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x25, 0x0a, 0x07, 0x4c, 0x69, 0x73,
+	0x74, 0x56, 0x61, 0x6c, 0x12, 0x1a, 0x0a, 0x03, 0x76, 0x61, 0x6c, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x08, 0x2e, 0x41, 0x74, 0x74, 0x72, 0x56, 0x61, 0x6c, 0x52, 0x03, 0x76, 0x61, 0x6c,
+	0x22, 0x92, 0x01, 0x0a, 0x07, 0x41, 0x74, 0x74, 0x72, 0x56, 0x61, 0x6c, 0x12, 0x1b, 0x0a, 0x08,
+	0x62, 0x6f, 0x6f, 0x6c, 0x5f, 0x76, 0x61, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x48, 0x00,
+	0x52, 0x07, 0x62, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x12, 0x1f, 0x0a, 0x0a, 0x73, 0x74, 0x72,
+	0x69, 0x6e, 0x67, 0x5f, 0x76, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52,
+	0x09, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x12, 0x1f, 0x0a, 0x0a, 0x64, 0x6f,
+	0x75, 0x62, 0x6c, 0x65, 0x5f, 0x76, 0x61, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x01, 0x48, 0x00,
+	0x52, 0x09, 0x64, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x56, 0x61, 0x6c, 0x12, 0x21, 0x0a, 0x0b, 0x69,
+	0x6e, 0x74, 0x65, 0x67, 0x65, 0x72, 0x5f, 0x76, 0x61, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03,
+	0x48, 0x00, 0x52, 0x0a, 0x69, 0x6e, 0x74, 0x65, 0x67, 0x65, 0x72, 0x56, 0x61, 0x6c, 0x42, 0x05,
+	0x0a, 0x03, 0x76, 0x61, 0x6c, 0x22, 0x10, 0x0a, 0x0e, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72, 0x61,
+	0x63, 0x65, 0x72, 0x41, 0x72, 0x67, 0x73, 0x22, 0x12, 0x0a, 0x10, 0x53, 0x74, 0x6f, 0x70, 0x54,
+	0x72, 0x61, 0x63, 0x65, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x32, 0xcc, 0x08, 0x0a, 0x09,
+	0x41, 0x50, 0x4d, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x2f, 0x0a, 0x09, 0x53, 0x74, 0x61,
+	0x72, 0x74, 0x53, 0x70, 0x61, 0x6e, 0x12, 0x0e, 0x2e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70,
+	0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x10, 0x2e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70,
+	0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a, 0x46, 0x69,
+	0x6e, 0x69, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x12, 0x0f, 0x2e, 0x46, 0x69, 0x6e, 0x69, 0x73,
+	0x68, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x11, 0x2e, 0x46, 0x69, 0x6e, 0x69,
+	0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x35,
+	0x0a, 0x0b, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x12, 0x10, 0x2e,
+	0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x41, 0x72, 0x67, 0x73, 0x1a,
+	0x12, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x74,
+	0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x3b, 0x0a, 0x0d, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74,
+	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x12, 0x12, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74,
+	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x53, 0x70, 0x61,
+	0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e,
+	0x22, 0x00, 0x12, 0x38, 0x0a, 0x0c, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x45, 0x72, 0x72,
+	0x6f, 0x72, 0x12, 0x11, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x45, 0x72, 0x72, 0x6f,
+	0x72, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e, 0x53, 0x70, 0x61, 0x6e, 0x53, 0x65, 0x74, 0x45,
+	0x72, 0x72, 0x6f, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x3b, 0x0a, 0x0d,
+	0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x12, 0x12, 0x2e,
+	0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x41, 0x72, 0x67,
+	0x73, 0x1a, 0x14, 0x2e, 0x49, 0x6e, 0x6a, 0x65, 0x63, 0x74, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
+	0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a, 0x46, 0x6c, 0x75,
+	0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x12, 0x0f, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53,
+	0x70, 0x61, 0x6e, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x11, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68,
+	0x53, 0x70, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x41, 0x0a,
+	0x0f, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73,
+	0x12, 0x14, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61,
+	0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16, 0x2e, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72,
+	0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00,
+	0x12, 0x3b, 0x0a, 0x0d, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61,
+	0x6e, 0x12, 0x12, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x70, 0x61,
+	0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x74, 0x61, 0x72,
+	0x74, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x35, 0x0a,
+	0x0b, 0x4f, 0x74, 0x65, 0x6c, 0x45, 0x6e, 0x64, 0x53, 0x70, 0x61, 0x6e, 0x12, 0x10, 0x2e, 0x4f,
+	0x74, 0x65, 0x6c, 0x45, 0x6e, 0x64, 0x53, 0x70, 0x61, 0x6e, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x12,
+	0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x45, 0x6e, 0x64, 0x53, 0x70, 0x61, 0x6e, 0x52, 0x65, 0x74, 0x75,
+	0x72, 0x6e, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0f, 0x4f, 0x74, 0x65, 0x6c, 0x49, 0x73, 0x52, 0x65,
+	0x63, 0x6f, 0x72, 0x64, 0x69, 0x6e, 0x67, 0x12, 0x14, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x49, 0x73,
+	0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x69, 0x6e, 0x67, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16, 0x2e,
+	0x4f, 0x74, 0x65, 0x6c, 0x49, 0x73, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x69, 0x6e, 0x67, 0x52,
+	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0f, 0x4f, 0x74, 0x65, 0x6c, 0x53,
+	0x70, 0x61, 0x6e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x78, 0x74, 0x12, 0x14, 0x2e, 0x4f, 0x74, 0x65,
+	0x6c, 0x53, 0x70, 0x61, 0x6e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x78, 0x74, 0x41, 0x72, 0x67, 0x73,
+	0x1a, 0x16, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x70, 0x61, 0x6e, 0x43, 0x6f, 0x6e, 0x74, 0x65,
+	0x78, 0x74, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x3b, 0x0a, 0x0d, 0x4f, 0x74,
+	0x65, 0x6c, 0x53, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x12, 0x2e, 0x4f, 0x74,
+	0x65, 0x6c, 0x53, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a,
+	0x14, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52,
+	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x0b, 0x4f, 0x74, 0x65, 0x6c, 0x53,
+	0x65, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x10, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74,
+	0x4e, 0x61, 0x6d, 0x65, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x12, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x53,
+	0x65, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x47,
+	0x0a, 0x11, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75,
+	0x74, 0x65, 0x73, 0x12, 0x16, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x53, 0x65, 0x74, 0x41, 0x74, 0x74,
+	0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x18, 0x2e, 0x4f, 0x74,
+	0x65, 0x6c, 0x53, 0x65, 0x74, 0x41, 0x74, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x65, 0x73, 0x52,
+	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x3e, 0x0a, 0x0e, 0x4f, 0x74, 0x65, 0x6c, 0x46,
+	0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x12, 0x13, 0x2e, 0x4f, 0x74, 0x65, 0x6c,
+	0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x15,
+	0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x53, 0x70, 0x61, 0x6e, 0x73, 0x52,
+	0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x13, 0x4f, 0x74, 0x65, 0x6c, 0x46,
+	0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x12, 0x18,
+	0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x46, 0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53,
+	0x74, 0x61, 0x74, 0x73, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x1a, 0x2e, 0x4f, 0x74, 0x65, 0x6c, 0x46,
+	0x6c, 0x75, 0x73, 0x68, 0x54, 0x72, 0x61, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65,
+	0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x0a, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72,
+	0x61, 0x63, 0x65, 0x72, 0x12, 0x0f, 0x2e, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72, 0x61, 0x63, 0x65,
+	0x72, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x11, 0x2e, 0x53, 0x74, 0x6f, 0x70, 0x54, 0x72, 0x61, 0x63,
+	0x65, 0x72, 0x52, 0x65, 0x74, 0x75, 0x72, 0x6e, 0x22, 0x00, 0x42, 0x16, 0x0a, 0x14, 0x63, 0x6f,
+	0x6d, 0x2e, 0x64, 0x61, 0x74, 0x61, 0x64, 0x6f, 0x67, 0x68, 0x71, 0x2e, 0x63, 0x6c, 0x69, 0x65,
+	0x6e, 0x74, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1068,56 +2597,106 @@ func file_protos_apm_test_client_proto_rawDescGZIP() []byte {
 	return file_protos_apm_test_client_proto_rawDescData
 }
 
-var file_protos_apm_test_client_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_protos_apm_test_client_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_protos_apm_test_client_proto_goTypes = []interface{}{
-	(*StartSpanArgs)(nil),          // 0: StartSpanArgs
-	(*DistributedHTTPHeaders)(nil), // 1: DistributedHTTPHeaders
-	(*StartSpanReturn)(nil),        // 2: StartSpanReturn
-	(*InjectHeadersArgs)(nil),      // 3: InjectHeadersArgs
-	(*InjectHeadersReturn)(nil),    // 4: InjectHeadersReturn
-	(*FinishSpanArgs)(nil),         // 5: FinishSpanArgs
-	(*FinishSpanReturn)(nil),       // 6: FinishSpanReturn
-	(*SpanSetMetaArgs)(nil),        // 7: SpanSetMetaArgs
-	(*SpanSetMetaReturn)(nil),      // 8: SpanSetMetaReturn
-	(*SpanSetMetricArgs)(nil),      // 9: SpanSetMetricArgs
-	(*SpanSetMetricReturn)(nil),    // 10: SpanSetMetricReturn
-	(*SpanSetErrorArgs)(nil),       // 11: SpanSetErrorArgs
-	(*SpanSetErrorReturn)(nil),     // 12: SpanSetErrorReturn
-	(*FlushSpansArgs)(nil),         // 13: FlushSpansArgs
-	(*FlushSpansReturn)(nil),       // 14: FlushSpansReturn
-	(*FlushTraceStatsArgs)(nil),    // 15: FlushTraceStatsArgs
-	(*FlushTraceStatsReturn)(nil),  // 16: FlushTraceStatsReturn
-	(*StopTracerArgs)(nil),         // 17: StopTracerArgs
-	(*StopTracerReturn)(nil),       // 18: StopTracerReturn
-	nil,                            // 19: DistributedHTTPHeaders.HttpHeadersEntry
+	(*StartSpanArgs)(nil),             // 0: StartSpanArgs
+	(*DistributedHTTPHeaders)(nil),    // 1: DistributedHTTPHeaders
+	(*HeaderTuple)(nil),               // 2: HeaderTuple
+	(*StartSpanReturn)(nil),           // 3: StartSpanReturn
+	(*InjectHeadersArgs)(nil),         // 4: InjectHeadersArgs
+	(*InjectHeadersReturn)(nil),       // 5: InjectHeadersReturn
+	(*FinishSpanArgs)(nil),            // 6: FinishSpanArgs
+	(*FinishSpanReturn)(nil),          // 7: FinishSpanReturn
+	(*SpanSetMetaArgs)(nil),           // 8: SpanSetMetaArgs
+	(*SpanSetMetaReturn)(nil),         // 9: SpanSetMetaReturn
+	(*SpanSetMetricArgs)(nil),         // 10: SpanSetMetricArgs
+	(*SpanSetMetricReturn)(nil),       // 11: SpanSetMetricReturn
+	(*SpanSetErrorArgs)(nil),          // 12: SpanSetErrorArgs
+	(*SpanSetErrorReturn)(nil),        // 13: SpanSetErrorReturn
+	(*FlushSpansArgs)(nil),            // 14: FlushSpansArgs
+	(*FlushSpansReturn)(nil),          // 15: FlushSpansReturn
+	(*FlushTraceStatsArgs)(nil),       // 16: FlushTraceStatsArgs
+	(*FlushTraceStatsReturn)(nil),     // 17: FlushTraceStatsReturn
+	(*OtelStartSpanArgs)(nil),         // 18: OtelStartSpanArgs
+	(*OtelStartSpanReturn)(nil),       // 19: OtelStartSpanReturn
+	(*OtelEndSpanArgs)(nil),           // 20: OtelEndSpanArgs
+	(*OtelEndSpanReturn)(nil),         // 21: OtelEndSpanReturn
+	(*OtelForceFlushArgs)(nil),        // 22: OtelForceFlushArgs
+	(*OtelForceFlushReturn)(nil),      // 23: OtelForceFlushReturn
+	(*OtelFlushSpansArgs)(nil),        // 24: OtelFlushSpansArgs
+	(*OtelFlushSpansReturn)(nil),      // 25: OtelFlushSpansReturn
+	(*OtelFlushTraceStatsArgs)(nil),   // 26: OtelFlushTraceStatsArgs
+	(*OtelFlushTraceStatsReturn)(nil), // 27: OtelFlushTraceStatsReturn
+	(*OtelStopTracerArgs)(nil),        // 28: OtelStopTracerArgs
+	(*OtelStopTracerReturn)(nil),      // 29: OtelStopTracerReturn
+	(*OtelIsRecordingArgs)(nil),       // 30: OtelIsRecordingArgs
+	(*OtelIsRecordingReturn)(nil),     // 31: OtelIsRecordingReturn
+	(*OtelSpanContextArgs)(nil),       // 32: OtelSpanContextArgs
+	(*OtelSpanContextReturn)(nil),     // 33: OtelSpanContextReturn
+	(*OtelSetStatusArgs)(nil),         // 34: OtelSetStatusArgs
+	(*OtelSetStatusReturn)(nil),       // 35: OtelSetStatusReturn
+	(*OtelSetNameArgs)(nil),           // 36: OtelSetNameArgs
+	(*OtelSetNameReturn)(nil),         // 37: OtelSetNameReturn
+	(*OtelSetAttributesArgs)(nil),     // 38: OtelSetAttributesArgs
+	(*OtelSetAttributesReturn)(nil),   // 39: OtelSetAttributesReturn
+	(*Attributes)(nil),                // 40: Attributes
+	(*ListVal)(nil),                   // 41: ListVal
+	(*AttrVal)(nil),                   // 42: AttrVal
+	(*StopTracerArgs)(nil),            // 43: StopTracerArgs
+	(*StopTracerReturn)(nil),          // 44: StopTracerReturn
+	nil,                               // 45: Attributes.KeyValsEntry
 }
 var file_protos_apm_test_client_proto_depIdxs = []int32{
 	1,  // 0: StartSpanArgs.http_headers:type_name -> DistributedHTTPHeaders
-	19, // 1: DistributedHTTPHeaders.http_headers:type_name -> DistributedHTTPHeaders.HttpHeadersEntry
+	2,  // 1: DistributedHTTPHeaders.http_headers:type_name -> HeaderTuple
 	1,  // 2: InjectHeadersReturn.http_headers:type_name -> DistributedHTTPHeaders
-	0,  // 3: APMClient.StartSpan:input_type -> StartSpanArgs
-	5,  // 4: APMClient.FinishSpan:input_type -> FinishSpanArgs
-	7,  // 5: APMClient.SpanSetMeta:input_type -> SpanSetMetaArgs
-	9,  // 6: APMClient.SpanSetMetric:input_type -> SpanSetMetricArgs
-	11, // 7: APMClient.SpanSetError:input_type -> SpanSetErrorArgs
-	3,  // 8: APMClient.InjectHeaders:input_type -> InjectHeadersArgs
-	13, // 9: APMClient.FlushSpans:input_type -> FlushSpansArgs
-	15, // 10: APMClient.FlushTraceStats:input_type -> FlushTraceStatsArgs
-	17, // 11: APMClient.StopTracer:input_type -> StopTracerArgs
-	2,  // 12: APMClient.StartSpan:output_type -> StartSpanReturn
-	6,  // 13: APMClient.FinishSpan:output_type -> FinishSpanReturn
-	8,  // 14: APMClient.SpanSetMeta:output_type -> SpanSetMetaReturn
-	10, // 15: APMClient.SpanSetMetric:output_type -> SpanSetMetricReturn
-	12, // 16: APMClient.SpanSetError:output_type -> SpanSetErrorReturn
-	4,  // 17: APMClient.InjectHeaders:output_type -> InjectHeadersReturn
-	14, // 18: APMClient.FlushSpans:output_type -> FlushSpansReturn
-	16, // 19: APMClient.FlushTraceStats:output_type -> FlushTraceStatsReturn
-	18, // 20: APMClient.StopTracer:output_type -> StopTracerReturn
-	12, // [12:21] is the sub-list for method output_type
-	3,  // [3:12] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	1,  // 3: OtelStartSpanArgs.http_headers:type_name -> DistributedHTTPHeaders
+	40, // 4: OtelStartSpanArgs.attributes:type_name -> Attributes
+	40, // 5: OtelSetAttributesArgs.attributes:type_name -> Attributes
+	45, // 6: Attributes.key_vals:type_name -> Attributes.KeyValsEntry
+	42, // 7: ListVal.val:type_name -> AttrVal
+	41, // 8: Attributes.KeyValsEntry.value:type_name -> ListVal
+	0,  // 9: APMClient.StartSpan:input_type -> StartSpanArgs
+	6,  // 10: APMClient.FinishSpan:input_type -> FinishSpanArgs
+	8,  // 11: APMClient.SpanSetMeta:input_type -> SpanSetMetaArgs
+	10, // 12: APMClient.SpanSetMetric:input_type -> SpanSetMetricArgs
+	12, // 13: APMClient.SpanSetError:input_type -> SpanSetErrorArgs
+	4,  // 14: APMClient.InjectHeaders:input_type -> InjectHeadersArgs
+	14, // 15: APMClient.FlushSpans:input_type -> FlushSpansArgs
+	16, // 16: APMClient.FlushTraceStats:input_type -> FlushTraceStatsArgs
+	18, // 17: APMClient.OtelStartSpan:input_type -> OtelStartSpanArgs
+	20, // 18: APMClient.OtelEndSpan:input_type -> OtelEndSpanArgs
+	30, // 19: APMClient.OtelIsRecording:input_type -> OtelIsRecordingArgs
+	32, // 20: APMClient.OtelSpanContext:input_type -> OtelSpanContextArgs
+	34, // 21: APMClient.OtelSetStatus:input_type -> OtelSetStatusArgs
+	36, // 22: APMClient.OtelSetName:input_type -> OtelSetNameArgs
+	38, // 23: APMClient.OtelSetAttributes:input_type -> OtelSetAttributesArgs
+	24, // 24: APMClient.OtelFlushSpans:input_type -> OtelFlushSpansArgs
+	26, // 25: APMClient.OtelFlushTraceStats:input_type -> OtelFlushTraceStatsArgs
+	43, // 26: APMClient.StopTracer:input_type -> StopTracerArgs
+	3,  // 27: APMClient.StartSpan:output_type -> StartSpanReturn
+	7,  // 28: APMClient.FinishSpan:output_type -> FinishSpanReturn
+	9,  // 29: APMClient.SpanSetMeta:output_type -> SpanSetMetaReturn
+	11, // 30: APMClient.SpanSetMetric:output_type -> SpanSetMetricReturn
+	13, // 31: APMClient.SpanSetError:output_type -> SpanSetErrorReturn
+	5,  // 32: APMClient.InjectHeaders:output_type -> InjectHeadersReturn
+	15, // 33: APMClient.FlushSpans:output_type -> FlushSpansReturn
+	17, // 34: APMClient.FlushTraceStats:output_type -> FlushTraceStatsReturn
+	19, // 35: APMClient.OtelStartSpan:output_type -> OtelStartSpanReturn
+	21, // 36: APMClient.OtelEndSpan:output_type -> OtelEndSpanReturn
+	31, // 37: APMClient.OtelIsRecording:output_type -> OtelIsRecordingReturn
+	33, // 38: APMClient.OtelSpanContext:output_type -> OtelSpanContextReturn
+	35, // 39: APMClient.OtelSetStatus:output_type -> OtelSetStatusReturn
+	37, // 40: APMClient.OtelSetName:output_type -> OtelSetNameReturn
+	39, // 41: APMClient.OtelSetAttributes:output_type -> OtelSetAttributesReturn
+	25, // 42: APMClient.OtelFlushSpans:output_type -> OtelFlushSpansReturn
+	27, // 43: APMClient.OtelFlushTraceStats:output_type -> OtelFlushTraceStatsReturn
+	44, // 44: APMClient.StopTracer:output_type -> StopTracerReturn
+	27, // [27:45] is the sub-list for method output_type
+	9,  // [9:27] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_protos_apm_test_client_proto_init() }
@@ -1151,7 +2730,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StartSpanReturn); i {
+			switch v := v.(*HeaderTuple); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1163,7 +2742,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InjectHeadersArgs); i {
+			switch v := v.(*StartSpanReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1175,7 +2754,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InjectHeadersReturn); i {
+			switch v := v.(*InjectHeadersArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1187,7 +2766,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FinishSpanArgs); i {
+			switch v := v.(*InjectHeadersReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1199,7 +2778,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FinishSpanReturn); i {
+			switch v := v.(*FinishSpanArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1211,7 +2790,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SpanSetMetaArgs); i {
+			switch v := v.(*FinishSpanReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1223,7 +2802,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SpanSetMetaReturn); i {
+			switch v := v.(*SpanSetMetaArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1235,7 +2814,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SpanSetMetricArgs); i {
+			switch v := v.(*SpanSetMetaReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1247,7 +2826,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SpanSetMetricReturn); i {
+			switch v := v.(*SpanSetMetricArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1259,7 +2838,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SpanSetErrorArgs); i {
+			switch v := v.(*SpanSetMetricReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1271,7 +2850,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SpanSetErrorReturn); i {
+			switch v := v.(*SpanSetErrorArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1283,7 +2862,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FlushSpansArgs); i {
+			switch v := v.(*SpanSetErrorReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1295,7 +2874,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FlushSpansReturn); i {
+			switch v := v.(*FlushSpansArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1307,7 +2886,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FlushTraceStatsArgs); i {
+			switch v := v.(*FlushSpansReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1319,7 +2898,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FlushTraceStatsReturn); i {
+			switch v := v.(*FlushTraceStatsArgs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1331,7 +2910,7 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StopTracerArgs); i {
+			switch v := v.(*FlushTraceStatsReturn); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1343,6 +2922,318 @@ func file_protos_apm_test_client_proto_init() {
 			}
 		}
 		file_protos_apm_test_client_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelStartSpanArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelStartSpanReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelEndSpanArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelEndSpanReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelForceFlushArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelForceFlushReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelFlushSpansArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelFlushSpansReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelFlushTraceStatsArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelFlushTraceStatsReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelStopTracerArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelStopTracerReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelIsRecordingArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelIsRecordingReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSpanContextArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSpanContextReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSetStatusArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSetStatusReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSetNameArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSetNameReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSetAttributesArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*OtelSetAttributesReturn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Attributes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListVal); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AttrVal); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StopTracerArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protos_apm_test_client_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StopTracerReturn); i {
 			case 0:
 				return &v.state
@@ -1356,15 +3247,23 @@ func file_protos_apm_test_client_proto_init() {
 		}
 	}
 	file_protos_apm_test_client_proto_msgTypes[0].OneofWrappers = []interface{}{}
-	file_protos_apm_test_client_proto_msgTypes[4].OneofWrappers = []interface{}{}
-	file_protos_apm_test_client_proto_msgTypes[11].OneofWrappers = []interface{}{}
+	file_protos_apm_test_client_proto_msgTypes[5].OneofWrappers = []interface{}{}
+	file_protos_apm_test_client_proto_msgTypes[12].OneofWrappers = []interface{}{}
+	file_protos_apm_test_client_proto_msgTypes[18].OneofWrappers = []interface{}{}
+	file_protos_apm_test_client_proto_msgTypes[20].OneofWrappers = []interface{}{}
+	file_protos_apm_test_client_proto_msgTypes[42].OneofWrappers = []interface{}{
+		(*AttrVal_BoolVal)(nil),
+		(*AttrVal_StringVal)(nil),
+		(*AttrVal_DoubleVal)(nil),
+		(*AttrVal_IntegerVal)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_protos_apm_test_client_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

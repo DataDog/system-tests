@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Datadog.Trace;
+using Google.Protobuf.Collections;
 using Grpc.Core;
 
 namespace ApmTestClient.Services
@@ -50,6 +51,20 @@ namespace ApmTestClient.Services
             _ = Tracer.Instance;
         }
 
+        private static IEnumerable<string> GetHeaderValues(RepeatedField<HeaderTuple> headers, string key)
+        {
+            List<string> values = new List<string>();
+            foreach (var kvp in headers)
+            {
+                if (string.Equals(key, kvp.Key, StringComparison.OrdinalIgnoreCase))
+                {
+                    values.Add(kvp.Value);
+                }
+            }
+
+            return values.AsReadOnly();
+        }
+
         public override Task<StartSpanReturn> StartSpan(StartSpanArgs request, ServerCallContext context)
         {
             var creationSettings = new SpanCreationSettings()
@@ -59,9 +74,12 @@ namespace ApmTestClient.Services
 
             if (request.HttpHeaders?.HttpHeaders.Count > 0)
             {
+                // ASP.NET and ASP.NET Core HTTP headers are automatically lower-cased, simulate that here.
                 creationSettings.Parent = _spanContextExtractor.Extract(
-                    request.HttpHeaders.HttpHeaders,
-                    (headers, key) => headers.TryGetValue(key, out string value) ? new string[] { value } : new string[] {} );
+                    request.HttpHeaders?.HttpHeaders!,
+                    getter: GetHeaderValues);
+                Console.WriteLine($"creationSettings.Parent?.SpanId={creationSettings.Parent?.SpanId}");
+                Console.WriteLine($"creationSettings.Parent?.TraceId={creationSettings.Parent?.TraceId}");
             }
 
             if (creationSettings.Parent is null && request.HasParentId && request.ParentId > 0)
@@ -160,10 +178,10 @@ namespace ApmTestClient.Services
 
                 // Use reflection to inject the headers
                 // SpanContextPropagator.Instance.Inject(SpanContext context, TCarrier carrier, Action<TCarrier, string, string> setter)
-                // => TCarrier=Google.Protobuf.Collections.MapField<string, string>
+                // => TCarrier=Google.Protobuf.Collections.RepeatedField<HeaderTuple>
                 SpanContext? contextArg = span.Context as SpanContext;
-                Google.Protobuf.Collections.MapField<string, string> carrierArg = injectHeadersReturn.HttpHeaders.HttpHeaders;
-                Action<Google.Protobuf.Collections.MapField<string, string>, string, string> setterArg = (headers, key, value) => headers.TryAdd(key, value);
+                Google.Protobuf.Collections.RepeatedField<HeaderTuple> carrierArg = injectHeadersReturn.HttpHeaders.HttpHeaders;
+                Action<Google.Protobuf.Collections.RepeatedField<HeaderTuple>, string, string> setterArg = (headers, key, value) => headers.Add(new HeaderTuple { Key = key, Value = value });
 
                 var spanContextPropagator = GetSpanContextPropagator.GetValue(null);
                 SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, carrierArg, setterArg });
@@ -219,12 +237,6 @@ namespace ApmTestClient.Services
             return new FlushTraceStatsReturn();
         }
 
-        public override Task<StopTracerReturn> StopTracer(StopTracerArgs request, ServerCallContext context)
-        {
-            // TODO: Finish
-            return Task.FromResult(new StopTracerReturn());
-        }
-
         private static MethodInfo? GenerateInjectMethod()
         {
             if (SpanContextPropagatorType is null)
@@ -244,7 +256,7 @@ namespace ApmTestClient.Services
                     && parameters[1].ParameterType == genericArgs[0]
                     && parameters[2].ParameterType.Name == "Action`3")
                 {
-                    var carrierType = typeof(Google.Protobuf.Collections.MapField<string, string>);
+                    var carrierType = typeof(Google.Protobuf.Collections.RepeatedField<HeaderTuple>);
                     var actionType = typeof(Action<,,>);
 
                     var closedActionType = actionType.MakeGenericType(carrierType, typeof(string), typeof(string));

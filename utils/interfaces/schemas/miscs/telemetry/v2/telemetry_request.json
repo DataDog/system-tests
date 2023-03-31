@@ -90,22 +90,34 @@
       }
     },
     {
-      "properties": {
-        "request_type": {
-          "const": "app-client-configuration-change"
-        },
-        "payload": {
-          "$ref": "/miscs/telemetry/v2/events/client-configuration-change.json"
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-client-configuration-change"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/client-configuration-change.json"
+          }
         }
       }
     },
     {
-      "properties": {
-        "request_type": {
-          "const": "app-product-change"
-        },
-        "payload": {
-          "$ref": "/miscs/telemetry/v2/events/product-change.json"
+      "if": {
+        "properties": {
+          "request_type": {
+            "const": "app-product-change"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "/miscs/telemetry/v2/events/product-change.json"
+          }
         }
       }
     },

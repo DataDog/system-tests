@@ -55,6 +55,8 @@ print_usage() {
     echo -e "  ${CYAN}--list-libraries${NC}           Lists all available libraries and exits."
     echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
+    echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
+    echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -62,6 +64,10 @@ print_usage() {
     echo -e "    ${SCRIPT_NAME}"
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
+    echo -e "  Build default images for Dotnet with binary path:"
+    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""    
+    echo -e "  Build default images for Dotnet with binary url:"
+    echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
     echo -e "    ${SCRIPT_NAME} --list-libraries"
     echo -e "  List weblogs for PHP:"
@@ -109,11 +115,11 @@ build() {
 
     # Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
     ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
-    DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}"
 
-    if [ "$ARCH" = "arm64" ]; then
-        DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}"
-    fi
+    case $ARCH in
+    arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
+    *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
+    esac
 
     # Build images
     for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
@@ -123,7 +129,6 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
             docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
-
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
                 AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
@@ -150,6 +155,25 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == weblog ]]; then
+            clean-binaries() {
+                find . -mindepth 1 -type d -exec rm -rf {} +
+                find . ! -name 'README.md' -type f -exec rm -f {} +
+            }
+
+            if ! [[ -z "$BINARY_URL" ]]; then 
+                cd binaries
+                clean-binaries
+                curl -L -O $BINARY_URL
+                cd ..
+            fi
+
+            if ! [[ -z "$BINARY_PATH" ]]; then 
+                cd binaries
+                clean-binaries
+                cp -r $BINARY_PATH/* ./
+                cd ..
+            fi
+
             DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
@@ -220,6 +244,8 @@ while [[ "$#" -gt 0 ]]; do
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
+        --binary-url) BINARY_URL="$2"; shift ;;
+        --binary-path) BINARY_PATH="$2"; shift ;;
         --list-libraries) COMMAND=list-libraries ;;
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
@@ -235,6 +261,8 @@ EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS:-}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-}"
 BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
+BINARY_PATH="${BINARY_PATH:-}"
+BINARY_URL="${BINARY_URL:-}"
 
 if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"

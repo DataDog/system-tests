@@ -53,9 +53,9 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
         $span = \DDTrace\start_trace_span();
     }
     if ($headers = arg($req, 'http_headers')) {
-        $headers = array_merge(...array_map(fn($h) => [$h[0] => $h[1]], $headers));
+        $headers = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $headers));
         \DDTrace\consume_distributed_tracing_headers(function ($headername) use ($headers) {
-            return $headers[strtolower($headername)] ?? null;
+            return $headers[$headername] ?? null;
         });
     }
     if ($origin = arg($req, 'origin')) {
