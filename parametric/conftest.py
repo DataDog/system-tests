@@ -206,7 +206,7 @@ def dotnet_library_factory(env: Dict[str, str]):
         container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["{dotnet_reldir}/ApmTestClient.csproj", "."]
+COPY ["{dotnet_reldir}/ApmTestClient.csproj","{dotnet_reldir}/nuget.config","{dotnet_reldir}/*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
 COPY {dotnet_reldir} .
 WORKDIR "/client/."
@@ -232,8 +232,11 @@ def java_library_factory(env: Dict[str, str]):
         container_name="java-test-client",
         container_tag="java8-test-client",
         container_img=f"""
+FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
 FROM maven:3-jdk-8
 WORKDIR /client
+COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
+COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
@@ -281,6 +284,8 @@ def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     ruby_appdir = os.path.join("apps", "ruby")
     ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
 
+    ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
+
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     ruby_reldir = os.path.join("parametric", ruby_appdir).replace("\\", "/")
     shutil.copyfile(
@@ -295,8 +300,10 @@ def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
         container_img=f"""
             FROM ruby:3.2.1-bullseye
             WORKDIR /client
+            RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
             COPY {ruby_reldir}/Gemfile /client/
             COPY {ruby_reldir}/install_dependencies.sh /client/
+            ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
             RUN bash install_dependencies.sh # Cache dependencies before copying application code
             COPY {ruby_reldir}/apm_test_client.proto /client/
             COPY {ruby_reldir}/generate_proto.sh /client/
@@ -684,6 +691,10 @@ def test_server(
     ]
     test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
+
+    env = os.environ.copy()
+    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
+
     p = subprocess.run(
         cmd,
         cwd=root_path,
@@ -691,7 +702,7 @@ def test_server(
         input=apm_test_server.container_img,
         stdout=test_server_log_file,
         stderr=test_server_log_file,
-        env={"DOCKER_SCAN_SUGGEST": "false",},  # Docker outputs an annoying synk message on every build
+        env=env,
     )
     if p.returncode != 0:
         test_server_log_file.seek(0)

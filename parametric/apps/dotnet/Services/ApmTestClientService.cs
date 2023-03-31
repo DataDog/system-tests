@@ -74,8 +74,9 @@ namespace ApmTestClient.Services
 
             if (request.HttpHeaders?.HttpHeaders.Count > 0)
             {
+                // ASP.NET and ASP.NET Core HTTP headers are automatically lower-cased, simulate that here.
                 creationSettings.Parent = _spanContextExtractor.Extract(
-                    request.HttpHeaders.HttpHeaders,
+                    request.HttpHeaders?.HttpHeaders!,
                     getter: GetHeaderValues);
                 Console.WriteLine($"creationSettings.Parent?.SpanId={creationSettings.Parent?.SpanId}");
                 Console.WriteLine($"creationSettings.Parent?.TraceId={creationSettings.Parent?.TraceId}");

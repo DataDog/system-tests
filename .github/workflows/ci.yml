@@ -201,29 +201,19 @@ jobs:
       run: docker pull bitnami/kafka:latest
     - name: Pull zookeeper image
       run: docker pull bitnami/zookeeper:latest
+    - name: Pull rabbitmq image
+      run: docker pull rabbitmq:3-management-alpine
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library PHP appsec binary
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -348,6 +338,11 @@ jobs:
       run: ./run.sh APPSEC_IP_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_IP_BLOCKING_MAXED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh APPSEC_IP_BLOCKING_MAXED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_REQUEST_BLOCKING scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_REQUEST_BLOCKING
@@ -424,29 +419,19 @@ jobs:
       run: docker pull bitnami/kafka:latest
     - name: Pull zookeeper image
       run: docker pull bitnami/zookeeper:latest
+    - name: Pull rabbitmq image
+      run: docker pull rabbitmq:3-management-alpine
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library PHP appsec binary
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
