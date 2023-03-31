@@ -42,6 +42,7 @@ from utils import bug, context, coverage, interfaces, irrelevant, released, rfc,
     weblog_variant="jersey-grizzly2",
     reason="The check for client spans with the make a distant call results in a 404.",
 )
+@bug(library="ruby", reason="the spans are still being marked as an error regardless of the configuration.")
 @bug(library="java", weblog_variant="vertx3", reason="This variant doesn't have the endpoints.")
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/status-error-mapping/rfc.md")
 class Test_Error_Status_Mapping:
