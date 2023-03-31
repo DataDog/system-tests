@@ -34,8 +34,6 @@ class Test_AppSecRequestBlocking:
     def setup_request_blocking(self):
         def remote_config_is_applied(data):
 
-            logger.info(data)
-
             if data["path"] != "/v0.7/config":
                 return False
 
@@ -56,13 +54,9 @@ class Test_AppSecRequestBlocking:
 
             return True
 
-        logger.info(f"before wait")
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
-        logger.info(f"before first request")
         self.blocked_requests1 = weblog.get(headers={"user-agent": "Arachni/v1"})
-
-        logger.info(f"before second request")
         self.blocked_requests2 = weblog.get(headers={"random-key": "acunetix-user-agreement"})
 
     def test_request_blocking(self):
