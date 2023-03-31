@@ -361,24 +361,11 @@ class Test_Telemetry:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
 
     def setup_app_client_configuration(self):
+        # this endpoint will change configuration from application code at runtime
         weblog.get("/enable_configuration")
 
-    @bug(
-        library="dotnet",
-        reason="""
-            weblog GET/enable_configuration and app-client-configuration event is not implemented yet.        """,
-    )
-    @bug(
-        library="nodejs",
-        reason="""
-            weblog GET/enable_configuration and app-client-configuration event is not implemented yet.         """,
-    )
-    @bug(
-        library="java",
-        reason="""
-            weblog GET/enable_configuration and app-client-configuration event is not implemented yet.         """,
-    )
-    def test_app_product_change(self):
+
+    def test_app_client_configuration(self):
         """Assert that app-product-change event is emitted when a product is enabled """
 
         def validator(data):
