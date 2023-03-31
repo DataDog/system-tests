@@ -375,7 +375,9 @@ class Test_Telemetry:
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         weblog.get("/enable_product")
 
-    @missing_feature(context.library == "golang", reason="Telemetry is not implemented yet. ")
+    @missing_feature(
+        context.library in ("java", "nodejs", "golang", "dotnet"), reason="Telemetry V2 is not implemented yet. ",
+    )
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
