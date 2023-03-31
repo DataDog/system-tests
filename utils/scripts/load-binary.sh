@@ -167,9 +167,9 @@ elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
 
     if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot $(pwd)
     elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest .
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest $(pwd)
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
