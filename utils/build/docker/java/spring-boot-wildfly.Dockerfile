@@ -7,7 +7,7 @@ ENV MAVEN_OPTS="-Daether.dependencyCollector.impl=bf -Dmaven.artifact.threads=4"
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 # Dependencies are downloaded first to cache them as long as pom.xml does not change.
 # Use mvn package while ignoring errors, rather than go-offline to fetch less dependencies.
-RUN mvn package -Pwildfly ||  true
+RUN mvn package -DskipTests -Pwildfly || true
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mvn package -DskipTests -Pwildfly

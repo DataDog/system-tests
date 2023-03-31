@@ -7,7 +7,7 @@ ENV MAVEN_OPTS="-Daether.dependencyCollector.impl=bf -Dmaven.artifact.threads=4"
 COPY ./utils/build/docker/java/ratpack/pom.xml .
 # Dependencies are downloaded first to cache them as long as pom.xml does not change.
 # Use mvn package while ignoring errors, rather than go-offline to fetch less dependencies.
-RUN mvn package ||  true
+RUN mvn package -DskipTests || true
 
 COPY ./utils/build/docker/java/ratpack/src ./src
 RUN mvn package -DskipTests
