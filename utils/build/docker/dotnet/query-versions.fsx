@@ -50,7 +50,7 @@ module QueryVersions =
                     unknownRulesDefault
                 else
                     ruleVersion.Value.ToString()
-        File.WriteAllText("/app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", ruleVersion)
+        File.WriteAllText("/APPSEC_EVENT_RULES_VERSION", ruleVersion)
 
     let writeWafVersion () =
         let getOldWafVersion () =
@@ -67,7 +67,7 @@ module QueryVersions =
         let version = 
             if assem.GetName().Version.Major <= 2 && assem.GetName().Version.Minor <= 14 then getOldWafVersion()
             else getWafVersion()
-        File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", version)
+        File.WriteAllText("/LIBDDWAF_VERSION", version)
 
     writeRulesVersion ()
     writeWafVersion ()
