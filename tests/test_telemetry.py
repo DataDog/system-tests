@@ -5,7 +5,7 @@ from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @bug(
     context.library <= "ruby@1.10.1",
