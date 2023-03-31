@@ -9,7 +9,11 @@ target_dir="$2"
 mkdir --parent $target_dir
 
 echo "Extracting Docker base image $image to folder $target_dir"
-echo "Pas1" 
+echo "Pas01"
+docker ps
+echo "Pas01.05"
+ls $target_dir
+echo "Pas01.06"
 docker save -o $target_dir/image.tar $image 
 echo "Pas2" 
 tar xvf $target_dir/image.tar -C $target_dir
