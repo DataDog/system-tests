@@ -44,7 +44,7 @@ def test_datadog_128_bit_propagation(test_agent, test_library):
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
 def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
-    """ Ensure that tid's that are too long are discarded and the error is tagged.
+    """ Ensure that incoming tids that are too long are discarded.
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(
@@ -58,12 +58,10 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
-    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == 1234567890123456789
     assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid is None
-    assert propagation_error == "malformed_tid 1234567890abcdef1"
 
 
 @pytest.mark.skip_library("dotnet", "not implemented")
@@ -78,7 +76,7 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
 def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
-    """ Ensure that tid's that are too short are discarded and the error is tagged.
+    """ Ensure that incoming tids that are too short are discarded.
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(
@@ -92,12 +90,10 @@ def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
-    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == 1234567890123456789
     assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid is None
-    assert propagation_error == "malformed_tid 1234567890abcde"
 
 
 @pytest.mark.skip_library("dotnet", "not implemented")
@@ -112,7 +108,7 @@ def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
 def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
-    """ Ensure that tid's with bad characters are discarded and the error is tagged.
+    """ Ensure that incoming tids with bad characters are discarded.
     """
     with test_library:
         headers = make_single_request_and_get_inject_headers(
@@ -126,12 +122,36 @@ def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
-    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == 1234567890123456789
     assert int(headers["x-datadog-trace-id"], 10) == trace_id
     assert dd_p_tid is None
-    assert propagation_error == "malformed_tid 1234567890abcdeX"
+
+
+@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("java", "not implemented")
+@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
+@pytest.mark.skip_library("python", "not implemented")
+@pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.parametrize(
+    "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
+)
+def test_datadog_128_bit_propagation_tid_malformed_optional_tag(test_agent, test_library):
+    """ Ensure that if incoming tids are malformed and the error is tagged, the tag is set to the expected value.
+    """
+    with test_library:
+        make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["x-datadog-trace-id", "1234567890123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-tags", "_dd.p.tid=XXXX"],
+            ],
+        )
+    assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "malformed_tid XXXX"
 
 
 @pytest.mark.parametrize(
@@ -452,7 +472,7 @@ def test_w3c_128_bit_propagation_tid_consistent(test_agent, test_library):
 )
 def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
     """Ensure that if the trace state contains a tid that is inconsistent with the trace id from
-    the trace header, the trace header tid is preserved and the error is tagged.
+    the trace header, the trace header tid is preserved.
     """
     with test_library:
         make_single_request_and_get_inject_headers(
@@ -465,11 +485,36 @@ def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
-    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
-    assert propagation_error == "inconsistent_tid 640cfd8d0000ffff"
+
+
+@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("java", "not implemented")
+@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
+@pytest.mark.skip_library("python", "not implemented")
+@pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.parametrize(
+    "library_env",
+    [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
+)
+def test_w3c_128_bit_propagation_tid_inconsistent_optional_tag(test_agent, test_library):
+    """Ensure that if the trace state contains a tid that is inconsistent with the trace id from
+    the trace header the error is tagged.
+    """
+    with test_library:
+        make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
+                ["tracestate", "dd=t.tid:640cfd8d0000ffff"],
+            ],
+        )
+    assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "inconsistent_tid 640cfd8d0000ffff"
 
 
 @pytest.mark.skip_library("dotnet", "not implemented")
@@ -485,8 +530,7 @@ def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
 def test_w3c_128_bit_propagation_tid_malformed(test_agent, test_library):
-    """Ensure that if the trace state contains a tid that is badly formed, the trace header tid is preserved
-    and the error is tagged.
+    """Ensure that if the trace state contains a tid that is badly formed, the trace header tid is preserved.
     """
     with test_library:
         make_single_request_and_get_inject_headers(
@@ -499,11 +543,36 @@ def test_w3c_128_bit_propagation_tid_malformed(test_agent, test_library):
     span = get_span(test_agent)
     trace_id = span.get("trace_id")
     dd_p_tid = span["meta"].get("_dd.p.tid")
-    propagation_error = span["meta"].get("_dd.propagation_error")
 
     assert trace_id == int("abcdefab12345678", 16)
     assert dd_p_tid == "640cfd8d00000000"
-    assert propagation_error == "malformed_tid: XXXX"
+
+
+@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("java", "not implemented")
+@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
+@pytest.mark.skip_library("python", "not implemented")
+@pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.parametrize(
+    "library_env",
+    [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
+)
+def test_w3c_128_bit_propagation_tid_malformed_optional_tag(test_agent, test_library):
+    """Ensure that if the trace state contains a tid that is badly formed and the error is tagged,
+      it is tagged with the expected value.
+    """
+    with test_library:
+        make_single_request_and_get_inject_headers(
+            test_library,
+            [
+                ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
+                ["tracestate", "dd=t.tid:XXXX"],
+            ],
+        )
+    assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "malformed_tid XXXX"
 
 
 @pytest.mark.skip_library("java", "not implemented")
