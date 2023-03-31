@@ -378,6 +378,8 @@ class Test_Telemetry:
     @missing_feature(
         context.library in ("java", "nodejs", "golang", "dotnet"), reason="Telemetry V2 is not implemented yet. ",
     )
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
