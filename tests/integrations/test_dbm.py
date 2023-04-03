@@ -7,7 +7,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 
 @released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.26.0", php="?", ruby="?")
 @missing_feature(
-    context.library in ["python", "nodejs"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
+    context.library in ["python"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )
 @scenarios.integrations
 class Test_Dbm:

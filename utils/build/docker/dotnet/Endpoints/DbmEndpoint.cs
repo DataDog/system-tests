@@ -24,7 +24,7 @@ namespace weblog
                         command.ExecuteNonQuery();
                     }
 
-                    await context.Response.WriteAsync("MySql query excuted.");
+                    await context.Response.WriteAsync("MySql query executed.");
                 }                
                 else if (context.Request.Query["integration"] == "npgsql") 
                 {
@@ -36,9 +36,8 @@ namespace weblog
                         connection.Open();
                         command.ExecuteNonQuery();
                     }
-
                     
-                    await context.Response.WriteAsync("NpgSql query excuted.");
+                    await context.Response.WriteAsync("NpgSql query executed.");
                 } 
                 else 
                 {
