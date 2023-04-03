@@ -14,9 +14,8 @@ let
   # use this pyton version, and include the abvoe packages
   python = pinned.python39.withPackages python_packages;
 
-  # control compiler version (e.g for packages built form source)
+  # control llvm/clang version (e.g for packages built form source)
   llvm = pinned.llvmPackages_12;
-  clang = pinned.clang_12;
 in llvm.stdenv.mkDerivation {
   # unique project name for this environment derivation
   name = "system-tests.devshell";
@@ -40,5 +39,8 @@ in llvm.stdenv.mkDerivation {
     export PYTHONPATH="$PIP_PREFIX/lib/python$PYTHON_VERSION/site-packages:$PYTHONPATH"
     unset SOURCE_DATE_EPOCH
     export PATH="$PIP_PREFIX/bin:$PATH"
+
+    # for grpcio-tools, which is building from source but doesn't pick up the proper include
+    export CFLAGS="-I${llvm.libcxx}/include/c++/v1"
   '';
 }
