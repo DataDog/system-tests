@@ -197,6 +197,12 @@ jobs:
       run: docker pull cassandra:latest
     - name: Pull postgres image
       run: docker pull postgres:latest
+    - name: Pull kafka image
+      run: docker pull bitnami/kafka:latest
+    - name: Pull zookeeper image
+      run: docker pull bitnami/zookeeper:latest
+    - name: Pull rabbitmq image
+      run: docker pull rabbitmq:3-management-alpine
     - name: Pull mysql image
       run: docker pull mysql/mysql-server:8.0
     - name: Load WAF rules
@@ -205,23 +211,11 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library PHP appsec binary
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -346,6 +340,11 @@ jobs:
       run: ./run.sh APPSEC_IP_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_IP_BLOCKING_MAXED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh APPSEC_IP_BLOCKING_MAXED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_REQUEST_BLOCKING scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_REQUEST_BLOCKING
@@ -418,6 +417,12 @@ jobs:
       run: docker pull cassandra:latest
     - name: Pull postgres image
       run: docker pull postgres:latest
+    - name: Pull kafka image
+      run: docker pull bitnami/kafka:latest
+    - name: Pull zookeeper image
+      run: docker pull bitnami/zookeeper:latest
+    - name: Pull rabbitmq image
+      run: docker pull rabbitmq:3-management-alpine
     - name: Pull mysql image
       run: docker pull mysql/mysql-server:8.0
     - name: Load WAF rules
@@ -426,23 +431,11 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library binary
-      if: ${{ matrix.version == 'dev' && (matrix.variant.library != 'php' && matrix.variant.library != 'java')}}
+      if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }}
-    - name: Load PHP prod library binary
-      if: ${{ matrix.variant.library == 'php' }}
-      run: ./utils/scripts/load-binary.sh php prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load library PHP appsec binary
       if: ${{ matrix.variant.library == 'php' }}
       run: ./utils/scripts/load-binary.sh php_appsec ${{matrix.version}}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library dotNet prod binary
-      if: ${{ matrix.variant.library == 'dotNet' && matrix.version == 'prod' }}
-      run: ./utils/scripts/load-binary.sh ${{ matrix.variant.library }} prod
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Load agent binary
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh agent
@@ -587,6 +580,11 @@ jobs:
       run: ./run.sh TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
@@ -594,7 +592,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
+      run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED      
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs

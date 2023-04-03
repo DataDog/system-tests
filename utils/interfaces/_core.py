@@ -40,9 +40,9 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self, timeout):
+    def wait(self, timeout, stop_accepting_data=True):
         time.sleep(timeout)
-        self.accept_data = False
+        self.accept_data = not stop_accepting_data
 
     # data collector thread domain
     def append_data(self, data):
@@ -70,6 +70,7 @@ class InterfaceValidator:
         return data
 
     def get_data(self, path_filters=None):
+        # TODO remove filter_empty_requests (never filter, even if it's empty)
 
         if path_filters is not None:
             if isinstance(path_filters, str):
@@ -78,10 +79,6 @@ class InterfaceValidator:
             path_filters = [re.compile(path) for path in path_filters]
 
         for data in self._data_list:
-            # Java sends empty requests during endpoint discovery
-            if "request" in data and data["request"]["length"] == 0:
-                continue
-
             if path_filters is not None and all((path.fullmatch(data["path"]) is None for path in path_filters)):
                 continue
 

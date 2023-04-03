@@ -206,7 +206,7 @@ def dotnet_library_factory(env: Dict[str, str]):
         container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["{dotnet_reldir}/ApmTestClient.csproj", "."]
+COPY ["{dotnet_reldir}/ApmTestClient.csproj","{dotnet_reldir}/nuget.config","{dotnet_reldir}/*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
 COPY {dotnet_reldir} .
 WORKDIR "/client/."
@@ -232,8 +232,11 @@ def java_library_factory(env: Dict[str, str]):
         container_name="java-test-client",
         container_tag="java8-test-client",
         container_img=f"""
+FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
 FROM maven:3-jdk-8
 WORKDIR /client
+COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
+COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
@@ -249,16 +252,82 @@ RUN bash build.sh
     )
 
 
+def php_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    python_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
+    env = env.copy()
+    # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
+    return APMLibraryTestServer(
+        lang="php",
+        protocol="http",
+        container_name="php-test-library",
+        container_tag="php-test-library",
+        container_img="""
+FROM datadog/dd-trace-ci:php-8.2_buster
+WORKDIR /tmp
+ENV DD_TRACE_CLI_ENABLED=1
+ADD ./parametric/apps/php/composer.json .
+ADD ./parametric/apps/php/composer.lock .
+ADD ./parametric/apps/php/server.php .
+ADD ./parametric/apps/php/install.sh .
+COPY binaries /binaries
+RUN ./install.sh
+RUN composer install
+""",
+        container_cmd=["php", "server.php"],
+        container_build_dir=python_dir,
+        volumes=[(os.path.join(python_dir, "server.php"), "/client/server.php"),],
+        env=env,
+    )
+
+
+def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+    ruby_appdir = os.path.join("apps", "ruby")
+    ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
+
+    ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
+
+    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    ruby_reldir = os.path.join("parametric", ruby_appdir).replace("\\", "/")
+    shutil.copyfile(
+        os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+        os.path.join(ruby_appdir, "apm_test_client.proto"),
+    )
+    return APMLibraryTestServer(
+        lang="ruby",
+        protocol="grpc",
+        container_name="ruby-test-client",
+        container_tag="ruby-test-client",
+        container_img=f"""
+            FROM ruby:3.2.1-bullseye
+            WORKDIR /client
+            RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
+            COPY {ruby_reldir}/Gemfile /client/
+            COPY {ruby_reldir}/install_dependencies.sh /client/
+            ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
+            RUN bash install_dependencies.sh # Cache dependencies before copying application code
+            COPY {ruby_reldir}/apm_test_client.proto /client/
+            COPY {ruby_reldir}/generate_proto.sh /client/
+            RUN bash generate_proto.sh
+            COPY {ruby_reldir}/server.rb /client/
+            """,
+        container_cmd=["bundle", "exec", "ruby", "server.rb"],
+        container_build_dir=ruby_dir,
+        env=env,
+    )
+
+
 _libs = {
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
     "java": java_library_factory,
     "nodejs": node_library_factory,
+    "php": php_library_factory,
     "python": python_library_factory,
     "python_http": python_http_library_factory,
+    "ruby": ruby_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,python,python_http").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,php,python,python_http,ruby").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
@@ -622,6 +691,10 @@ def test_server(
     ]
     test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
+
+    env = os.environ.copy()
+    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
+
     p = subprocess.run(
         cmd,
         cwd=root_path,
@@ -629,7 +702,7 @@ def test_server(
         input=apm_test_server.container_img,
         stdout=test_server_log_file,
         stderr=test_server_log_file,
-        env={"DOCKER_SCAN_SUGGEST": "false",},  # Docker outputs an annoying synk message on every build
+        env=env,
     )
     if p.returncode != 0:
         test_server_log_file.seek(0)
@@ -673,5 +746,5 @@ def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) ->
         client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
     else:
         raise ValueError("interface %s not supported" % test_server.protocol)
-    tracer = APMLibrary(client)
+    tracer = APMLibrary(client, test_server.lang)
     yield tracer

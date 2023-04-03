@@ -12,6 +12,7 @@ import time
 
 from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
 from utils.tools import logger
+from utils.proxy.core import BACKEND_LOCAL_PORT
 
 
 class _BackendInterfaceValidator(InterfaceValidator):
@@ -27,7 +28,8 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     # Called by the test setup to make sure the interface is ready.
     def wait(self, timeout):
-        super().wait(timeout)
+        super().wait(timeout, stop_accepting_data=False)
+
         from utils.interfaces import library
 
         # Map each request ID to the spans created and submitted during that request call.
@@ -114,30 +116,6 @@ class _BackendInterfaceValidator(InterfaceValidator):
     ######### Internal implementation ##########
     ############################################
 
-    def _get_dd_site_api_host(self):
-        # https://docs.datadoghq.com/getting_started/site/#access-the-datadog-site
-        # DD_SITE => API HOST
-        # datad0g.com       => dd.datad0g.com
-        # datadoghq.com     => app.datadoghq.com
-        # datadoghq.eu      => app.datadoghq.eu
-        # ddog-gov.com      => app.ddog-gov.com
-        # XYZ.datadoghq.com => XYZ.datadoghq.com
-
-        dd_site = os.environ["DD_SITE"]
-        dd_site_to_app = {
-            "datad0g.com": "https://dd.datad0g.com",
-            "datadoghq.com": "https://app.datadoghq.com",
-            "datadoghq.eu": "https://app.datadoghq.eu",
-            "ddog-gov.com": "https://app.ddog-gov.com",
-            "us3.datadoghq.com": "https://us3.datadoghq.com",
-            "us5.datadoghq.com": "https://us5.datadoghq.com",
-        }
-        dd_app_url = dd_site_to_app.get(dd_site)
-        assert dd_app_url is not None, f"We could not resolve a proper Datadog API URL given DD_SITE[{dd_site}]!"
-
-        logger.debug(f"Using Datadog API URL[{dd_app_url}] as resolved from DD_SITE[{dd_site}].")
-        return dd_app_url
-
     def _get_trace_ids(self, rid):
         if rid not in self.rid_to_library_trace_ids:
             raise Exception("There is no trace id related to this request ")
@@ -145,12 +123,15 @@ class _BackendInterfaceValidator(InterfaceValidator):
         return self.rid_to_library_trace_ids[rid]
 
     def _get_backend_trace_data(self, rid, trace_id):
-        host = self._get_dd_site_api_host()
+        # We use `localhost` as host since we run a proxy that forwards the requests to the right
+        # backend DD_SITE domain, and logs the request/response as well.
+        # More details in `utils.proxy.core.get_dd_site_api_host()`.
+        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
         path = f"/api/v1/trace/{trace_id}"
 
         headers = {
             "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
         }
         r = requests.get(f"{host}{path}", headers=headers, timeout=10)
 
@@ -237,12 +218,15 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     def _get_event_platform_spans(self, query_filter, limit):
         # Example of this query can be seen in the `events-ui` internal website (see Jira ATI-2419).
-        host = self._get_dd_site_api_host()
+        # We use `localhost` as host since we run a proxy that forwards the requests to the right
+        # backend DD_SITE domain, and logs the request/response as well.
+        # More details in `utils.proxy.core.get_dd_site_api_host()`.
+        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
         path = "/api/unstable/event-platform/analytics/list?type=trace"
 
         headers = {
             "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ["DD_APPLICATION_KEY"],
+            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
         }
 
         request_data = {

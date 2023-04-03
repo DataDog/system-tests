@@ -106,7 +106,7 @@ The output of the query should be written to the body of the response.
 
 ## `GET /status`
 
-The endpoint must accept a query string parameter `code`, which should be an integer. This parameter should be come the status code of the response message.
+The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message.
 
 ## \[All HTTP verbs\] /waf
 
@@ -171,6 +171,16 @@ Expected query params:
 
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
+
+## GET /dsm
+
+This endpoint executes database queries for DSM supported libraries. A 200 response with message "ok" is returned
+if the produce and consume calls for the specified tech are started successfully. Otherwise, error messages will
+be returned.
+
+Expected query params:
+  - `integration`: Name of messaging tech
+    - Possible Values: `kafka`, `rabbitmq`
 
 ## GET /user_login_success_event
 
