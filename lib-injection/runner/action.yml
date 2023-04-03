@@ -22,6 +22,7 @@ runs:
         with:
           repository: 'DataDog/system-tests'
           path: './system-tests'
+          ref: tonycthsu/fix-ruby-images-for-lib-injection-tests
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8  # 2.0.0
