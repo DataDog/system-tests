@@ -225,6 +225,20 @@ weblogs:
               local_path: test-app-java.tar
               remote_path: test-app-java.tar
           command: sh test-app-java_docker_run.sh
+    - name: test-app-java-buildpack
+      supported-language-versions:
+        - 11
+      local-script: weblog/java/test-app-java/test-app-java_local_build.sh
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/java/test-app-java/test-app-java_docker_run_buildpack.sh
+              remote_path: test-app-java_docker_run_buildpack.sh
+            - name: copy-java-app
+              local_path: test-app-java.tar
+              remote_path: test-app-java.tar
+          command: sh test-app-java_docker_run_buildpack.sh
 
   - nodejs: 
     - name: test-app-nodejs
