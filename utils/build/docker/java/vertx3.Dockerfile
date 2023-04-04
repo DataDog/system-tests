@@ -1,4 +1,4 @@
-FROM maven:3.6-jdk-11 as build
+FROM maven:3.9-eclipse-temurin-11 as build
 
 RUN apt-get update && \
 	apt-get install -y libarchive-tools
