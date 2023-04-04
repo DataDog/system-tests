@@ -31,7 +31,8 @@ readonly MAVEN_REPO="${MAVEN_REPO}"
 readonly EXTRA_MVN_ARGS=("$@")
 
 declare -a MVN_COMMAND=(mvn -B package -DskipTests)
-MVN_COMMAND+=("${EXTRA_MVN_ARGS[@]}")
+# NOTE: bash3 considers this empty array as an unbound variable, do not remove the :-
+MVN_COMMAND+=("${EXTRA_MVN_ARGS[@]:-}")
 
 readonly CURL_CONFIG=.curl-config
 
@@ -58,7 +59,7 @@ if [[ ! -f ${LOCK_FILE} ]]; then
     "${MVN_COMMAND[@]}" || true
 
     for path in $(find "$MAVEN_REPO" -type f | sort); do
-        if [[ $path =~ .*(.lastUpdated|_remote.repositories|resolver-status.properties) ]]; then
+        if echo -n "$path" | grep -qE '.*(.lastUpdated|_remote.repositories|resolver-status.properties)' ; then
             continue
         fi
         rel="$(realpath --relative-to="$MAVEN_REPO" "$path")"
