@@ -1,8 +1,10 @@
 # pages/urls.py
 from ddtrace import tracer
+from django.db import connection
 from django.http import HttpResponse
-from django.urls import path
 from django.http import JsonResponse
+from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
 from iast import (
     weak_hash_secure_algorithm,
     weak_hash,
@@ -116,6 +118,28 @@ def view_weak_cipher_secure(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def view_sqli_insecure(request):
+    username = request.POST.get("username", "")
+    password = request.POST.get("password", "")
+    sql = "SELECT * FROM IAST_USER WHERE USERNAME = " + username + " AND PASSWORD = " + password
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_sqli_secure(request):
+    username = request.POST.get("username", "")
+    password = request.POST.get("password", "")
+    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, (username, password))
+    return HttpResponse("OK")
+
+
 def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
@@ -150,5 +174,7 @@ urlpatterns = [
     path("iast/insecure_hashing/deduplicate", view_weak_hash_deduplicate),
     path("iast/insecure_cipher/test_insecure_algorithm", view_weak_cipher_insecure),
     path("iast/insecure_cipher/test_secure_algorithm", view_weak_cipher_secure),
+    path("iast/sqli/test_secure", view_sqli_secure),
+    path("iast/sqli/test_insecure", view_sqli_insecure),
     path("make_distant_call", make_distant_call),
 ]
