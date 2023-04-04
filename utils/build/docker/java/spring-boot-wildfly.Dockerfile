@@ -8,12 +8,12 @@ WORKDIR /app
 ENV MAVEN_REPO=/maven
 ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
 COPY ./utils/build/docker/java/install_dependencies.sh .
-COPY ./utils/build/docker/java/spring-boot/sprint-boot-wildfly.dep.lock .
+COPY ./utils/build/docker/java/spring-boot/spring-boot-wildfly.dep.lock .
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN ./install_dependencies.sh sprint-boot-wildfly.dep.lock -Pwildfly
+RUN ./install_dependencies.sh spring-boot-wildfly.dep.lock -Pwildfly
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Pwildfly package
+RUN mvn -Pwildfly package -DskipTests
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

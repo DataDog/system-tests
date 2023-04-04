@@ -13,7 +13,7 @@ COPY ./utils/build/docker/java/ratpack/pom.xml .
 RUN ./install_dependencies.sh ratpack.dep.lock
 
 COPY ./utils/build/docker/java/ratpack/src ./src
-RUN mvn package
+RUN mvn package -DskipTests
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

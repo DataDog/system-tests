@@ -13,7 +13,7 @@ COPY ./utils/build/docker/java/resteasy-netty3/pom.xml .
 RUN ./install_dependencies.sh resteasy-netty3.dep.lock
 
 COPY ./utils/build/docker/java/resteasy-netty3/src ./src
-RUN mvn package
+RUN mvn package -DskipTests
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

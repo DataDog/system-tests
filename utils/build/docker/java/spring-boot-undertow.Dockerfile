@@ -8,12 +8,12 @@ WORKDIR /app
 ENV MAVEN_REPO=/maven
 ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
 COPY ./utils/build/docker/java/install_dependencies.sh .
-COPY ./utils/build/docker/java/spring-boot/sprint-boot-undertow.dep.lock .
+COPY ./utils/build/docker/java/spring-boot/spring-boot-undertow.dep.lock .
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN ./install_dependencies.sh sprint-boot-undertow.dep.lock -Pundertow
+RUN ./install_dependencies.sh spring-boot-undertow.dep.lock -Pundertow
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Pundertow package
+RUN mvn -Pundertow package -DskipTests
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

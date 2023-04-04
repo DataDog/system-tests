@@ -8,12 +8,12 @@ WORKDIR /app
 ENV MAVEN_REPO=/maven
 ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
 COPY ./utils/build/docker/java/install_dependencies.sh .
-COPY ./utils/build/docker/java/spring-boot/sprint-boot-openliberty.dep.lock .
+COPY ./utils/build/docker/java/spring-boot/spring-boot-openliberty.dep.lock .
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN ./install_dependencies.sh sprint-boot-openliberty.dep.lock -Popenliberty
+RUN ./install_dependencies.sh spring-boot-openliberty.dep.lock -Popenliberty
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Popenliberty package
+RUN mvn -Popenliberty package -DskipTests
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

@@ -32,7 +32,7 @@ shift
 readonly MAVEN_REPO="${MAVEN_REPO}"
 readonly EXTRA_MVN_ARGS=("$@")
 
-declare -a MVN_COMMAND=(mvn -B package)
+declare -a MVN_COMMAND=(mvn -B package -DskipTests)
 MVN_COMMAND+=("${EXTRA_MVN_ARGS[@]}")
 
 readonly CURL_CONFIG=.curl-config
