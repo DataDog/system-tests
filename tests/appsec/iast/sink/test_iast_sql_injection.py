@@ -15,8 +15,8 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?")
 @released(
     python={
-        "django-poc": "1.11.0rc2.dev",
-        "flask-poc": "1.11.0rc2.dev",
+        "django-poc": "1.11.1.dev",
+        "flask-poc": "1.11.1.dev",
         "uds-flask": "?",
         "uwsgi-poc": "?",
         "pylons": "?",
@@ -66,7 +66,6 @@ class TestIastSqlInjection:
 
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-    @bug(context.library == "python@1.11.0", reason="Under investigation")
     def test_insecure_sql(self):
         """Insecure SQL queries are reported as insecure"""
         interfaces.library.expect_iast_vulnerabilities(
