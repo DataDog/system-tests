@@ -18,6 +18,7 @@ stdout = interfaces.library_stdout if context.library != "dotnet" else interface
 @scenarios.appsec_corrupted_rules
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@bug(context.library > "nodejs@3.16.0")
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
 
