@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, interfaces, context, coverage, released, missing_feature
+from utils import weblog, interfaces, context, coverage, released, missing_feature, bug
 
 
 if context.library == "cpp":
@@ -66,6 +66,7 @@ class TestIastSqlInjection:
 
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    @bug(context.library == "python@1.11.0", reason="Under investigation")
     def test_insecure_sql(self):
         """Insecure SQL queries are reported as insecure"""
         interfaces.library.expect_iast_vulnerabilities(

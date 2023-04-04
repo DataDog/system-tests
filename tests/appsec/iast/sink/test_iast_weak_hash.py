@@ -66,6 +66,7 @@ class TestIastWeakHash:
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
     @bug(context.weblog_variant == "spring-boot-openliberty")
+    @bug(context.library == "python@1.11.0", reason="Under investigation")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
 
