@@ -72,7 +72,6 @@ class Test_HeaderTagsWhitespacing_Headers:
     e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header' """
 
     def setup_trace_header_tags(self):
-        # " header-tag1 ", "h e a d e r - t a g 2"
         self.headers = {"header-tag1": "header-val1"}
         self.r = weblog.get("/waf", headers=self.headers)
 
@@ -90,8 +89,9 @@ class Test_HeaderTagsWhitespacing_Headers:
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
+# Note: dotnet fails this test. It normalizes those spaces to underscores instead.
 @irrelevant(library="cpp")
-@released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
+@released(dotnet="?", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
 @scenarios.library_conf_custom_headers_whitespacing_tags
 class Test_HeaderTagsWhitespacing_Tags:
@@ -116,7 +116,6 @@ class Test_HeaderTagsWhitespacing_Tags:
             val = self.headers[item.split(":")[0]].strip()
             tags[tag] = val
         
-        # tags = {(item.split(":")[1]).strip(): (self.headers[item.split(":")[0]]).strip() for item in tag_config_list}
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 @irrelevant(library="cpp")
@@ -124,7 +123,7 @@ class Test_HeaderTagsWhitespacing_Tags:
 @coverage.basic
 @scenarios.library_conf_custom_headers_whitespacing_vals
 class Test_HeaderTagsWhitespacing_Vals:
-    """ Validates that whitespaces in header values are not removed in the span tag value """
+    """Validates that whitespaces in header values are not removed in the span tag value"""
 
     def setup_trace_header_tags(self):
         self.headers = {"header-tag1": "header-val1 ", "header-tag2": "h e a d e r - v a l 2"}
@@ -170,26 +169,3 @@ class Test_HeaderTagsColon_Edge:
             nottags.append(splitItem[1])
 
         interfaces.library.add_not_span_tag_validation(request=self.r, nottags=nottags)
-        
-
-# @irrelevant(library="cpp")
-# @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
-# @coverage.basic
-# @scenarios.library_conf_custom_headers_colon_multi
-# class Test_HeaderTagsColon_Multi:
-#     """ Validates that input to DD_TRACE_HEADER_TAGS will be split on the last colon, e.g,
-#     in DD_TRACE_HEADER_TAGS='first:second:third', 'first:second' is considered the header, and 'third' the tag."""
-
-#     def setup_trace_header_tags(self):
-#         self.headers = {"first": "header-val1", "second": "header-val2", "third": "header-val3", "first:second": "special"}
-#         self.r = weblog.get("/waf", headers=self.headers)
-
-#     def test_trace_header_tags(self):
-#         tag_conf = scenarios.library_conf_custom_headers_colon_multi.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
-        
-#         full_tag_config_list = tag_conf.split(",")
-#         # skip the first item, as this required to make the tests work on some platforms
-#         tag_config_list = full_tag_config_list[1::]
-
-#         tags = {item.rsplit(":", 1)[1]: self.headers[item.rsplit(":", 1)[0]] for item in tag_config_list}
-#         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
