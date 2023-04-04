@@ -410,6 +410,37 @@ class Test_Telemetry:
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emited when product change is enabled")
 
+    def setup_app_client_configuration(self):
+        # this endpoint will change configuration from application code at runtime
+        weblog.get("/enable_configuration")
+
+    @irrelevant(library="golang")
+    @irrelevant(library="java")
+    @irrelevant(library="dotnnet")
+    @irrelevant(library="nodejs")
+    def test_app_client_configuration(self):
+        """Assert that app-configuration-change event is emitted when a confiuration is enabled """
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+        app_configuration_change_event_found = False
+        for data in telemetry_data:
+            content = data["request"]["content"]
+            if content.get("request_type") == "app-client-configuration":
+                app_configuration_change_event_found = True
+                configurations = content["payload"]["conf_key_values"]
+                for conf in configurations:
+                    name = conf["name"]
+                    value = conf["value"]
+                    origin = conf["origin"]
+                    assert name == "DD_TRACE_PARTIAL_FLUSH_ENABLED", f"Configuration name is {name}"
+                    assert value == "True", f"Configuration name is {value}"
+                    assert origin == "json", f"Configuration origin is {origin}"
+
+        if app_configuration_change_event_found is False:
+            raise Exception("app-client-configuration is not emitted when client configutration is enabled")
+
 
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
@@ -509,27 +540,3 @@ class Test_Metric_Generation:
             if data["request"]["content"].get("request_type") == "generate-metrics":
                 content = data["request"]["content"]
                 raise Exception("Metric genrate event is sent when metric generation is disabled")
-
-    def setup_app_client_configuration(self):
-        # this endpoint will change configuration from application code at runtime
-        weblog.get("/enable_configuration")
-
-
-    def test_app_client_configuration(self):
-        """Assert that app-product-change event is emitted when a product is enabled """
-
-        def validator(data):
-            content = data["request"]["content"]
-            if content.get("request_type") == "app-client-configuration":
-                configurations = content["payload"]["conf_key_values"]
-                for conf in configurations:
-                    name = conf["name"]
-                    value = conf["value"]
-                    origin = conf["origin"]
-                    assert name == "DD_TRACE_PARTIAL_FLUSH_ENABLED", f"Configuration name is {name}"
-                    assert value == "True", f"Configuration name is {value}"
-                    assert origin == "json", f"Configuration origin is {origin}"
-            else:
-                raise Exception("app-client-configuration is not emitted when client configutration is enabled")
-
-        self.validate_library_telemetry_data(validator)
