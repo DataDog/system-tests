@@ -5,11 +5,15 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+ENV MAVEN_REPO=/maven
+ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
+COPY ./utils/build/docker/java/install_dependencies.sh .
+COPY ./utils/build/docker/java/resteasy-netty3/resteasy-netty3.dep.lock .
 COPY ./utils/build/docker/java/resteasy-netty3/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
+RUN ./install_dependencies.sh resteasy-netty3.dep.lock
 
 COPY ./utils/build/docker/java/resteasy-netty3/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
+RUN mvn package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

@@ -5,11 +5,15 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+ENV MAVEN_REPO=/maven
+ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
+COPY ./utils/build/docker/java/install_dependencies.sh .
+COPY ./utils/build/docker/java/jersey-grizzly2/jersey-grizzly2.dep.lock .
 COPY ./utils/build/docker/java/jersey-grizzly2/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
+RUN ./install_dependencies.sh jersey-grizzly2.dep.lock
 
 COPY ./utils/build/docker/java/jersey-grizzly2/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
+RUN mvn  package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

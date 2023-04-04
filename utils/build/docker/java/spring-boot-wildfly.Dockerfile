@@ -5,11 +5,15 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+ENV MAVEN_REPO=/maven
+ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
+COPY ./utils/build/docker/java/install_dependencies.sh .
+COPY ./utils/build/docker/java/spring-boot/sprint-boot-wildfly.dep.lock .
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pwildfly -B dependency:go-offline
+RUN ./install_dependencies.sh sprint-boot-wildfly.dep.lock -Pwildfly
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven -Pwildfly package
+RUN mvn -Pwildfly package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

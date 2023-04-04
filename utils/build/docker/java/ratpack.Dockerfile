@@ -5,11 +5,15 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+ENV MAVEN_REPO=/maven
+ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
+COPY ./utils/build/docker/java/install_dependencies.sh .
+COPY ./utils/build/docker/java/ratpack/ratpack.dep.lock .
 COPY ./utils/build/docker/java/ratpack/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
+RUN ./install_dependencies.sh ratpack.dep.lock
 
 COPY ./utils/build/docker/java/ratpack/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
+RUN mvn package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
