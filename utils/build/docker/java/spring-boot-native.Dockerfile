@@ -17,15 +17,20 @@ RUN gu install native-image && native-image
 # Install maven
 RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz --output /opt/maven.tar.gz && \
 	tar xzvf /opt/maven.tar.gz --directory /opt && \
-	rm /opt/maven.tar.gz
+	rm /opt/maven.tar.gz && \
+	ln -s /opt/apache-maven-3.8.6/bin/mvn /usr/local/bin/mvn
 
 WORKDIR /app
 
-# Copy application sources
+ENV MAVEN_REPO=/maven
+ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
+COPY ./utils/build/docker/java/install_dependencies.sh .
+COPY ./utils/build/docker/java/spring-boot/spring-boot-native.dep.lock .
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven -B dependency:resolve-plugins dependency:go-offline -P spring-native
+RUN ./install_dependencies.sh spring-boot-native.dep.lock -Pspring-native
+
 #Force to download all pom from deps
-RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven verify --fail-never
+RUN mvn verify --fail-never -Pspring-native
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
@@ -34,7 +39,7 @@ RUN mv ./src/main/resources/application-native.properties ./src/main/resources/a
 COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -P spring-native
+RUN mvn package -Pspring-native
 
 FROM ubuntu
 

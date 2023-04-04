@@ -14,20 +14,26 @@ FROM ghcr.io/graalvm/graalvm-ce:ol7-java17-22.3.0 as build
 # Install maven
 RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz --output /opt/maven.tar.gz && \
 	tar xzvf /opt/maven.tar.gz --directory /opt && \
-	rm /opt/maven.tar.gz
+	rm /opt/maven.tar.gz && \
+	ln -s /opt/apache-maven-3.8.6/bin/mvn /usr/local/bin/mvn
 
 WORKDIR /app
 
-# Copy application sources and cache dependencies
+ENV MAVEN_REPO=/maven
+ENV MAVEN_OPTS=-Dmaven.repo.local=/maven
+COPY ./utils/build/docker/java/install_dependencies.sh .
+COPY ./utils/build/docker/java/spring-boot-3-native/spring-boot-3-native.dep.lock .
 COPY ./utils/build/docker/java/spring-boot-3-native/pom.xml .
-RUN /opt/apache-maven-3.8.6/bin/mvn -P native -B dependency:go-offline 
+RUN ./install_dependencies.sh spring-boot-3-native.dep.lock
+
+# Copy application sources
 COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
 
 # Copy tracer
 COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative native:compile
+RUN mvn -Pnative native:compile
 
 FROM ubuntu
 

@@ -8,12 +8,10 @@ readonly PROG="$0"
 
 if [[ "${1:-}" = --pin-all ]]; then
     find -name '*.Dockerfile' | while read dockerfile; do
-        echo "$dockerfile"
         src_dir="$(grep '^COPY.*/pom.xml' "$dockerfile" | head -n 1 | sed -e 's~/pom.xml.*~~g' -e 's~.*/~~g')"
         if [[ -z ${src_dir} ]]; then
             continue
         fi
-        echo "src_dir: $src_dir"
         cmd="$(grep '^RUN ./install_dependencies.sh' "$dockerfile" | sed -e 's~RUN ./install_dependencies.sh~~g' | head -n 1)"
         if [[ -z ${cmd} ]]; then
             continue
