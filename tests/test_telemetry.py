@@ -5,7 +5,7 @@ from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
-@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
+@released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @bug(
     context.library <= "ruby@1.10.1",
@@ -13,7 +13,6 @@ from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersM
 )
 @missing_feature(library="cpp")
 @missing_feature(library="php")
-@missing_feature(library="golang", reason="Implemented but not merged in master")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
@@ -243,6 +242,7 @@ class Test_Telemetry:
     @irrelevant(library="java")
     @irrelevant(library="nodejs")
     @irrelevant(library="dotnet")
+    @irrelevant(library="golang")
     def test_app_dependencies_loaded_not_sent(self):
         """app-dependencies-loaded request should not be sent"""
         # Request type app-dependencies-loaded is never sent from certain language tracers
@@ -487,9 +487,9 @@ class Test_Telemetry:
 @missing_feature(library="cpp")
 @missing_feature(library="ruby")
 @missing_feature(library="php")
-@missing_feature(library="golang", reason="Implemented but not merged in master")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@irrelevant(library="golang", reason="products info is always in app-started for golang")
 class Test_ProductsDisabled:
     """Assert that product informations are not reported when products are disabled in telemetry"""
 
@@ -505,7 +505,7 @@ class Test_ProductsDisabled:
                 content = data["request"]["content"]
                 assert (
                     "products" not in content["payload"]
-                ), "Product information is present telemetry data on app-started event when all products are diabled"
+                ), "Product information is present telemetry data on app-started event when all products are disabled"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
