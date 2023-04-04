@@ -29,9 +29,6 @@ COPY ./utils/build/docker/java/spring-boot/spring-boot-native.dep.lock .
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN ./install_dependencies.sh spring-boot-native.dep.lock -Pspring-native
 
-#Force to download all pom from deps
-RUN mvn verify --fail-never -Pspring-native
-
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
 
