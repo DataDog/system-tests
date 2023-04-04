@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenario, weblog, rfc
+from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -110,7 +110,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 """
 
 
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "0.112.0",
@@ -125,7 +125,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
     }
 )
 @coverage.basic
-@scenario("APPSEC_BLOCKING")
+@scenarios.appsec_blocking
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 
@@ -138,8 +138,9 @@ class Test_Blocking:
         assert self.r_na.status_code == 403
         assert re.match("^application/json", self.r_na.headers.get("content-type", "")) is not None
         assert (
-            self.r_na.text == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
-            'this page. Please contact the customer service team. Security provided by Datadog."}]}\n'
+            self.r_na.text.rstrip()
+            == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
+            'this page. Please contact the customer service team. Security provided by Datadog."}]}'
         )
 
     def setup_blocking_appsec_blocked_tag(self):
@@ -191,6 +192,7 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.8, application/*;q=0.7, */*;q=0.9"}
         )
 
+    @missing_feature(context.library == "php", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -219,6 +221,7 @@ class Test_Blocking:
             },
         )
 
+    @missing_feature(context.library == "php", reason="Support for quality not implemented")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
@@ -228,9 +231,9 @@ class Test_Blocking:
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
-@released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @coverage.basic
-@scenario("APPSEC_BLOCKING")
+@scenarios.appsec_blocking
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
 

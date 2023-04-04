@@ -29,7 +29,7 @@ def enable_b3multi() -> Any:
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_extract_valid(test_agent, test_library):
     """Ensure that b3multi distributed tracing headers are extracted
     and activated properly.
@@ -52,12 +52,6 @@ def test_headers_b3multi_extract_valid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library(
-    "golang",
-    "BUG: the parent_id will be 0 in any span that didn't have a parent context ; "
-    "if extract fails - the parent context is nil",
-)
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
 def test_headers_b3multi_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted.
     """
@@ -73,9 +67,7 @@ def test_headers_b3multi_extract_invalid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
-@pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_inject_valid(test_agent, test_library):
     """Ensure that b3multi distributed tracing headers are injected properly.
     """
@@ -95,9 +87,7 @@ def test_headers_b3multi_inject_valid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
-@pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_propagate_valid(test_agent, test_library):
     """Ensure that b3multi distributed tracing headers are extracted
     and injected properly.
@@ -113,6 +103,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
         )
 
     span = get_span(test_agent)
+    assert "x-b3-traceid" in headers
     b3_trace_id = headers["x-b3-traceid"]
     b3_span_id = headers["x-b3-spanid"]
     b3_sampling = headers["x-b3-sampled"]
@@ -125,9 +116,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
 
 
 @enable_b3multi()
-@pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("nodejs", "TODO: remove when https://github.com/DataDog/dd-trace-js/pull/2477 lands")
-@pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
+@pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted
     and the new span context is injected properly.

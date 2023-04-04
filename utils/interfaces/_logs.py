@@ -72,8 +72,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self):
-        super().wait()
+    def wait(self, timeout):
+        super().wait(timeout)
 
         for log_line in self._read():
 
@@ -279,7 +279,7 @@ class Test:
         # i.assert_presence(r".*")
 
         i = _AgentStdout()
-        i.wait()
+        i.wait(0)
         i.assert_presence(r"FIPS mode is disabled")
 
 

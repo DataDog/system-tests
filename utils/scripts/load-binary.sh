@@ -161,25 +161,15 @@ cd binaries/
 
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
-    rm -rf *.jar
-    OWNER=DataDog
-    REPO=dd-trace-java
-
-    get_circleci_artifact "gh/DataDog/dd-trace-java" "nightly" "build" "libs/dd-java-agent-.*(-SNAPSHOT)?.jar"
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot .
 
 elif [ "$TARGET" = "dotnet" ]; then
     rm -rf *.tar.gz
 
     if [ $VERSION = 'dev' ]; then
-       SHA=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/sha.txt)
-       ARCHIVE=$(curl --silent https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/index.txt | grep '^datadog-dotnet-apm-[0-9.]*\.tar\.gz$')
-       URL=https://apmdotnetci.blob.core.windows.net/apm-dotnet-ci-artifacts-master/$SHA/$ARCHIVE
-
-        echo "Load $URL"
-        curl -L --silent $URL --output $ARCHIVE
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
     elif [ $VERSION = 'prod' ]; then
-       DDTRACE_VERSION=$(curl -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/DataDog/dd-trace-dotnet/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
-       curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz --output datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest .
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
@@ -197,13 +187,24 @@ elif [ "$TARGET" = "ruby" ]; then
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     if [ $VERSION = 'dev' ]; then
-        get_circleci_artifact "gh/DataDog/dd-trace-php" "build_packages" "package extension" "datadog-php-tracer-.*-nightly.x86_64.tar.gz"
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot ./temp
     elif [ $VERSION = 'prod' ]; then
-        get_github_release_asset "DataDog/dd-trace-php" "datadog-php-tracer-.*.x86_64.tar.gz"
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest ./temp
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+    fi  
+    mv ./temp/datadog-php-tracer*.tar.gz . && rm -rf ./temp
+elif [ "$TARGET" = "php_appsec" ]; then
+
+    if [ $VERSION = 'dev' ]; then
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest_snapshot ./temp
+    elif [ $VERSION = 'prod' ]; then
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-trace-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
-
+    mv ./temp/dd-appsec-php-*.tar.gz . && rm -rf ./temp
+    
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
@@ -246,16 +247,6 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         -H "Accept: application/vnd.github.v3.raw" \
         --output "waf_rule_set.json" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
-
-elif [ "$TARGET" = "php_appsec" ]; then
-
-    if [ $VERSION = 'dev' ]; then
-        get_github_action_artifact "DataDog/dd-appsec-php" "package.yml" "master" "dd-appsec-php-*-amd64.tar.gz"
-    elif [ $VERSION = 'prod' ]; then
-        get_github_release_asset "DataDog/dd-appsec-php" "dd-appsec-php-.*-amd64.tar.gz"
-    else
-        echo "Don't know how to load version $VERSION for $TARGET"
-    fi
 
 else
     echo "Unknown target: $1"

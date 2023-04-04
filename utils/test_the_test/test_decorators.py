@@ -1,15 +1,14 @@
 import sys
 import logging
 
-from utils import interfaces, bug, context, irrelevant, missing_feature, flaky, rfc, released
+import pytest
+
+from utils import bug, irrelevant, missing_feature, flaky, rfc, released
 from utils.tools import logger
-from utils._context.library_version import LibraryVersion
 
 
-context.weblog_variant = "spring"
-context.library = LibraryVersion("java", "0.66.0")
-# monkey patch
-context.execute_warmups = lambda *args, **kwargs: None
+pytestmark = pytest.mark.scenario("TEST_THE_TEST")
+
 
 BASE_PATH = "utils/test_the_test/test_decorators.py"
 
