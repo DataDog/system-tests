@@ -1,5 +1,9 @@
-venv/
-.git/
-.vscode/
-vendor
-logs
+*
+# venv/
+# .git/
+# .vscode/
+# vendor
+# logs
+
+!parametric/
+parametric/.venv
