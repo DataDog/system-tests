@@ -3,6 +3,7 @@ import contextlib
 import dataclasses
 import os
 import shutil
+import socket
 import subprocess
 import tempfile
 import time
@@ -18,6 +19,13 @@ from parametric.spec.trace import decode_v06_stats
 from parametric._library_client import APMLibraryClientGRPC
 from parametric._library_client import APMLibraryClientHTTP
 from parametric._library_client import APMLibrary
+
+
+@pytest.fixture
+def test_id():
+    import uuid
+
+    yield str(uuid.uuid4())[0:6]
 
 
 class AgentRequest(TypedDict):
@@ -76,6 +84,9 @@ class APMLibraryTestServer:
     port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
+    # Whether the image has been built already
+    # Used for performance to skip rebuilding images
+    image_built: bool = False
 
 
 @pytest.fixture
@@ -86,13 +97,13 @@ def library_env() -> Dict[str, str]:
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 
-def python_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+def python_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
         protocol="grpc",
-        container_name="python-test-library",
+        container_name="python-test-library-%s" % container_id,
         container_tag="python-test-library",
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
@@ -106,16 +117,17 @@ RUN python3.9 -m pip install %s
         container_build_dir=python_dir,
         volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
         env=env,
+        port=port,
     )
 
 
-def python_http_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+def python_http_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python_http")
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
         protocol="http",
-        container_name="python-test-library-http",
+        container_name="python-test-library-http-%s" % container_id,
         container_tag="python-test-library",
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
@@ -129,10 +141,11 @@ RUN python3.9 -m pip install %s
         container_build_dir=python_dir,
         volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
         env=env,
+        port=port,
     )
 
 
-def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("apps", "nodejs")
     nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
 
@@ -142,7 +155,7 @@ def node_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     return APMLibraryTestServer(
         lang="nodejs",
         protocol="grpc",
-        container_name="node-test-client",
+        container_name="node-test-client-%s" % container_id,
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
@@ -162,7 +175,9 @@ RUN npm install {node_module}
                 "/client/apm_test_client.proto",
             ),
         ],
+        port=port,
         env=env,
+        image_built=False,
     )
 
 
@@ -333,14 +348,25 @@ for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,php,python,
     _enabled_libs.append((_lang, _libs[_lang]))
 
 
+def get_open_port():
+    # Not very nice and also not 100% correct but it works for now.
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("", 0))
+    s.listen(1)
+    port = s.getsockname()[1]
+    s.close()
+    return port
+
+
 @pytest.fixture(
     params=list(factory for lang, factory in _enabled_libs), ids=list(lang for lang, factory in _enabled_libs)
 )
-def apm_test_server(request, library_env):
+def apm_test_server(request, library_env, test_id):
     # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
     # in pytest.
     apm_test_library = request.param
-    yield apm_test_library(library_env)
+
+    yield apm_test_library(library_env, test_id, get_open_port())
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -479,6 +505,7 @@ def docker_run(
     # Run the docker container
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
     if r.returncode != 0:
+        log_file.flush()
         pytest.fail(
             "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.name),
             pytrace=False,
@@ -504,7 +531,7 @@ def docker_run(
         )
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
@@ -522,14 +549,9 @@ def docker_network_log_file(request) -> TextIO:
         yield f
 
 
-network_id = 0
-
-
 @pytest.fixture()
-def docker_network_name() -> str:
-    global network_id
-    network_id += 1
-    return "apm_shared_tests_network%i" % network_id
+def docker_network_name(test_id) -> str:
+    return "apm_shared_tests_network_%s" % test_id
 
 
 @pytest.fixture()
@@ -598,19 +620,13 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
 
 
 @pytest.fixture
-def test_agent_container_name() -> str:
-    return "ddapm-test-agent"
+def test_agent_container_name(test_id) -> str:
+    return "ddapm-test-agent-%s" % test_id
 
 
 @pytest.fixture
 def test_agent(
-    docker,
-    docker_network: str,
-    request,
-    tmp_path,
-    test_agent_container_name: str,
-    test_agent_port,
-    test_agent_log_file: TextIO,
+    docker_network: str, request, test_agent_container_name: str, test_agent_port, test_agent_log_file: TextIO,
 ):
     env = {}
     if os.getenv("DEV_MODE") is not None:
@@ -620,19 +636,20 @@ def test_agent(
     # go client doesn't submit content length header
     env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
 
+    test_agent_external_port = get_open_port()
     with docker_run(
         image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
         name=test_agent_container_name,
         cmd=[],
         env=env,
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
-        ports=[(test_agent_port, test_agent_port)],
+        ports=[(test_agent_external_port, test_agent_port)],
         log_file=test_agent_log_file,
         network_name=docker_network,
     ):
-        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_port)
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port)
         # Wait for the agent to start
-        for i in range(200):
+        for i in range(20):
             try:
                 resp = client.info()
             except requests.exceptions.ConnectionError:
@@ -676,6 +693,11 @@ def test_server(
     # Write dockerfile to the build directory
     # Note that this needs to be done as the context cannot be
     # specified if Dockerfiles are read from stdin.
+
+    # TODO: write a dockerignore in the root directory
+    # *
+    # !parametric/
+    # parametric/.venv
     dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
     with open(dockf_path, "w") as dockf:
         dockf.write(apm_test_server.container_img)
@@ -731,9 +753,6 @@ def test_server(
         network_name=docker_network,
     ):
         yield apm_test_server
-
-    # Clean up generated files
-    os.remove(dockf_path)
 
 
 @pytest.fixture
