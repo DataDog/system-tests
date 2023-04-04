@@ -33,6 +33,9 @@ with open("utils/proxy/rc_mocked_responses_asm_dd.json", encoding="utf-8") as f:
 with open("utils/proxy/rc_mocked_responses_asm_data.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM_DATA = json.load(f)
 
+with open("utils/proxy/rc_mocked_responses_asm_data_ip_blocking_maxed.json", encoding="utf-8") as f:
+    RC_MOCKED_RESPONSES_ASM_DATA_IP_BLOCKING_MAXED = json.load(f)
+
 with open("utils/proxy/rc_mocked_responses_asm.json", encoding="utf-8") as f:
     RC_MOCKED_RESPONSES_ASM = json.load(f)
 
@@ -143,6 +146,8 @@ class _RequestLogger:
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD)
         elif self.state.get("mock_remote_config_backend") == "ASM_DATA":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DATA)
+        elif self.state.get("mock_remote_config_backend") == "ASM_DATA_IP_BLOCKING_MAXED":
+            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DATA_IP_BLOCKING_MAXED)
         elif self.state.get("mock_remote_config_backend") == "ASM":
             self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM)
         elif self.state.get("mock_remote_config_backend") == "ASM_FEATURES_NO_CACHE":

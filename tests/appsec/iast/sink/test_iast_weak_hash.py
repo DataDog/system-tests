@@ -36,9 +36,13 @@ class TestIastWeakHash:
 
         if context.library.library == "python":
             if context.weblog_variant == "uwsgi-poc":
-                return "/app/./iast.py"
+                if context.library.version < "1.11.0rc2.dev":
+                    return "/app/./iast.py"
+                return "/./iast.py"
 
-            return "/app/iast.py"
+            if context.library.version < "1.11.0rc2.dev":
+                return "/app/iast.py"
+            return "/iast.py"
 
         return None
 
