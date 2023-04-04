@@ -32,7 +32,8 @@ class _SpanTagValidator:
                     raise Exception(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
 
         return True
-    
+
+
 class _NotSpanTagValidator:
     """ Validates that values in the `nottags` list do not exist as span tags """
 

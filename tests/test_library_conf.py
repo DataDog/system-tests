@@ -42,6 +42,7 @@ class Test_HeaderTagsShortFormat:
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
+
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="1.2.1", ruby="?")
 @coverage.basic
@@ -63,6 +64,7 @@ class Test_HeaderTagsLongFormat:
         tags = {item.split(":")[1]: self.headers[item.split(":")[0]] for item in tag_config_list}
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
+
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="1.2.1", ruby="?")
 @coverage.basic
@@ -76,7 +78,9 @@ class Test_HeaderTagsWhitespacing_Headers:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_whitespacing_headers.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_headers_whitespacing_headers.weblog_container.environment[
+            "DD_TRACE_HEADER_TAGS"
+        ]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
@@ -88,6 +92,7 @@ class Test_HeaderTagsWhitespacing_Headers:
             tags["http.request.headers." + tag] = re.sub("[^a-zA-Z0-9 -]", "_", self.headers[tag])
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+
 
 # Note: dotnet fails this test. It normalizes those spaces to underscores instead.
 @irrelevant(library="cpp")
@@ -103,7 +108,9 @@ class Test_HeaderTagsWhitespacing_Tags:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_whitespacing_tags.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_headers_whitespacing_tags.weblog_container.environment[
+            "DD_TRACE_HEADER_TAGS"
+        ]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
@@ -115,8 +122,9 @@ class Test_HeaderTagsWhitespacing_Tags:
             tag = (item.split(":")[1]).strip()
             val = self.headers[item.split(":")[0]].strip()
             tags[tag] = val
-        
+
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+
 
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="0.74.0", python="?", ruby="?")
@@ -130,7 +138,9 @@ class Test_HeaderTagsWhitespacing_Vals:
         self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        tag_conf = scenarios.library_conf_custom_headers_whitespacing_vals.weblog_container.environment["DD_TRACE_HEADER_TAGS"]
+        tag_conf = scenarios.library_conf_custom_headers_whitespacing_vals.weblog_container.environment[
+            "DD_TRACE_HEADER_TAGS"
+        ]
 
         full_tag_config_list = tag_conf.split(",")
         # skip the first item, as this required to make the tests work on some platforms
@@ -142,6 +152,7 @@ class Test_HeaderTagsWhitespacing_Vals:
             tags["http.request.headers." + tag] = val
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
+
 
 @irrelevant(library="cpp")
 @released(dotnet="2.1.0", golang="?", java="0.102.0", nodejs="?", php="?", python="?", ruby="?")
