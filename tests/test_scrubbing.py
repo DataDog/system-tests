@@ -78,7 +78,7 @@ class Test_UrlField:
         self.r = weblog.get("/make_distant_call", params={"url": "http://leak-name-url:leak-password-url@agent:8127"})
 
     @missing_feature(
-        context.weblog_variant in ("vertx3", "vertx4", "resteasy-netty3", "jersey-grizzly2"),
+        context.weblog_variant in ("vertx3", "vertx4", "resteasy-netty3", "jersey-grizzly2", "akka-http"),
         reason="Need weblog endpoint",
     )
     def test_main(self):
