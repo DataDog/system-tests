@@ -1,8 +1,5 @@
 FROM maven:3.6-jdk-8 as build
 
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
-
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
