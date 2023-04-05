@@ -169,13 +169,14 @@ class EndToEndScenario(_Scenario):
         if include_mysql_db:
             self._required_containers.append(
                 TestedContainer(
-                    image_name="mysql/mysql-server:8.0",
+                    image_name="mysql/mysql-server:latest",
                     name="mysqldb",
                     environment={
                         "MYSQL_DATABASE": "world",
                         "MYSQL_USER": "mysqldb",
                         "MYSQL_ROOT_PASSWORD": "mysqldb",
                         "MYSQL_PASSWORD": "mysqldb",
+                        "MYSQL_PORT": "3307",
                     },
                     allow_old_container=True,
                 )

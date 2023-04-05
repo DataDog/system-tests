@@ -171,6 +171,8 @@ Expected query params:
 
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
+  - mysql (ADO.NET driver for MySQL)
+  - npgsql (ADO.NET Data Provider for PostgreSQL)
 
 ## GET /dsm
 

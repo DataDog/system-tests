@@ -204,7 +204,7 @@ jobs:
     - name: Pull rabbitmq image
       run: docker pull rabbitmq:3-management-alpine
     - name: Pull mysql image
-      run: docker pull mysql/mysql-server:8.0
+      run: docker pull mysql/mysql-server:latest
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -424,7 +424,7 @@ jobs:
     - name: Pull rabbitmq image
       run: docker pull rabbitmq:3-management-alpine
     - name: Pull mysql image
-      run: docker pull mysql/mysql-server:8.0
+      run: docker pull mysql/mysql-server:latest
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set

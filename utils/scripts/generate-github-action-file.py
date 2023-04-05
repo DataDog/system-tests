@@ -190,7 +190,7 @@ def add_main_job(i, workflow, needs, scenarios, variants, use_cache=False, large
     job.add_step("Pull postgres image", run="docker pull postgres:latest")
     job.add_step("Pull kafka image", run="docker pull bitnami/kafka:latest")
     job.add_step("Pull zookeeper image", run="docker pull bitnami/zookeeper:latest")
-    job.add_step("Pull mysql image", run="docker pull mysql/mysql-server:8.0")
+    job.add_step("Pull mysql image", run="docker pull mysql/mysql-server:latest")
     job.add_step(
         "Load WAF rules",
         "./utils/scripts/load-binary.sh waf_rule_set",
