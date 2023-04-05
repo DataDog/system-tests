@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, interfaces, context, coverage, released, missing_feature
+from utils import weblog, interfaces, context, coverage, released, missing_feature, bug
 
 
 if context.library == "cpp":
@@ -14,13 +14,7 @@ if context.library == "cpp":
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?")
 @released(
-    python={
-        "django-poc": "1.11.0rc2.dev",
-        "flask-poc": "1.11.0rc2.dev",
-        "uds-flask": "?",
-        "uwsgi-poc": "?",
-        "pylons": "?",
-    }
+    python={"django-poc": "1.11.1.dev", "flask-poc": "1.11.1.dev", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
 )
 @released(
     java={
