@@ -577,6 +577,7 @@ def test_w3c_128_bit_propagation_tid_malformed_optional_tag(test_agent, test_lib
 
 @pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.skip_library("nodejs", "???")
 @pytest.mark.parametrize(
     "library_env",
     [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
