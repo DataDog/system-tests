@@ -19,10 +19,9 @@ WORKDIR /app
 
 # Copy application sources
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven -B dependency:resolve-plugins dependency:go-offline -P spring-native
-
+RUN mkdir /maven && /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven -B dependency:resolve-plugins dependency:go-offline -Pspring-native
 #Force to download all pom from deps
-RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven verify --fail-never
+RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven verify --fail-never -Pspring-native
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mv ./src/main/resources/application-native.properties ./src/main/resources/application.properties
@@ -31,7 +30,7 @@ RUN mv ./src/main/resources/application-native.properties ./src/main/resources/a
 COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -P spring-native
+RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -Pspring-native
 
 FROM ubuntu
 
