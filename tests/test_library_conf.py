@@ -7,7 +7,7 @@ from utils import coverage, weblog, interfaces, released, irrelevant, scenarios
 
 # basic / legacy tests, just tests user-agent can be received as a tag
 @irrelevant(library="cpp")
-@released(dotnet="?", golang="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
+@released(dotnet="2.27.0", golang="?", java="?", nodejs="?", php="0.68.2", python="0.53", ruby="?")
 @coverage.basic
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
@@ -15,7 +15,7 @@ class Test_HeaderTags:
     def test_trace_header_tags_basic(self):
         """ Test that http.request.headers.user-agent is in all web spans """
 
-        for _, _, span in interfaces.library.get_spans():
+        for _, span in interfaces.library.get_root_spans():
             if span.get("type") == "web":
                 assert "http.request.headers.user-agent" in span.get("meta", {})
 

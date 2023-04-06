@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import weblog, interfaces, context, coverage, released, missing_feature
+from utils import weblog, interfaces, context, coverage, released, missing_feature, bug
 
 
 if context.library == "cpp":
@@ -12,13 +12,17 @@ if context.library == "cpp":
 
 # Weblog are ok for nodejs/express4 and java/spring-boot
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(
+    python={"django-poc": "1.11.1.dev", "flask-poc": "1.11.1.dev", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
+)
 @released(
     java={
         "spring-boot": "1.1.0",
         "spring-boot-jetty": "1.1.0",
         "spring-boot-openliberty": "1.1.0",
         "resteasy-netty3": "1.11.0",
+        "jersey-grizzly2": "1.11.0",
         "*": "?",
     }
 )
@@ -29,10 +33,13 @@ class TestIastSqlInjection:
     EXPECTATIONS = {
         "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.SqlExamples"},
         "nodejs": {"LOCATION": "iast.js"},
+        "python": {"flask-poc": {"LOCATION": "/app.py"}, "django-poc": {"LOCATION": "/app/urls.py"},},
     }
 
     def __expected_location(self):
         expected = self.EXPECTATIONS.get(context.library.library)
+        if context.library.library == "python":
+            expected = expected.get(context.weblog_variant)
         return expected.get("LOCATION") if expected else None
 
     def setup_secure_sql(self):

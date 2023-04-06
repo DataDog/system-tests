@@ -19,6 +19,7 @@ if context.library == "cpp":
         "spring-boot-jetty": "0.108.0",
         "spring-boot-openliberty": "0.108.0",
         "resteasy-netty3": "1.11.0",
+        "jersey-grizzly2": "1.11.0",
         "*": "?",
     }
 )
@@ -35,9 +36,13 @@ class TestIastWeakHash:
 
         if context.library.library == "python":
             if context.weblog_variant == "uwsgi-poc":
-                return "/app/./iast.py"
+                if context.library.version < "1.11.1.dev":
+                    return "/app/./iast.py"
+                return "/./iast.py"
 
-            return "/app/iast.py"
+            if context.library.version < "1.11.1.dev":
+                return "/app/iast.py"
+            return "/iast.py"
 
         return None
 

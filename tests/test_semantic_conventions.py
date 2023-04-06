@@ -45,6 +45,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
+        "servlet.error": "java-web-servlet-dispatcher",
     },
     "spring-boot-3-native": {
         "servlet.request": "tomcat-server",
