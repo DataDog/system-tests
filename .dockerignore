@@ -3,3 +3,4 @@ venv/
 .vscode/
 vendor
 logs*
+shell.nix
