@@ -1,13 +1,9 @@
 
 FROM eclipse-temurin:8 as agent
 
-# Install required bsdtar
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
 # Install tracer
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-
 
 FROM ghcr.io/graalvm/graalvm-ce:ol7-java17-22.3.0 as build
 
