@@ -128,7 +128,14 @@ build() {
         echo "-----------------------"
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
-            docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/runner.Dockerfile \
+                -t system_tests/runner \
+                $EXTRA_DOCKER_ARGS \
+                .
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
                 AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
@@ -138,7 +145,9 @@ build() {
 
             echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
-            docker build \
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
@@ -148,7 +157,7 @@ build() {
 
             SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
 
-            docker build \
+            docker buildx build \
                 --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
                 -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
                 -t system_tests/agent \
@@ -177,6 +186,8 @@ build() {
             DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
@@ -190,7 +201,9 @@ build() {
             if test -f "binaries/waf_rule_set.json"; then
                 SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
-                docker build \
+                docker buildx build \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
@@ -212,7 +225,9 @@ build() {
             SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
 
-            docker build \
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
