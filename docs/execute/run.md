@@ -21,6 +21,15 @@
 ./run.sh tests/test_waf.py::Test_WAFAddresses::test_post_json_value
 ```
 
+## Run a scenario
+
+Without providing a scenario argument, only the tests without any `@scenario` decorator will be executed. We provide a scenario name to `run.sh` to run tests decorated with the given scenario.
+
+```bash
+./run.sh <SCENARIO_ENV_VAR>
+# e.g, "LIBRARY_CONF_CUSTOM_HEADERS_LONG" to run the library_conf_custom_headers_long scenario
+```
+
 ## Spawn componenents, but do nothing
 
 ```bash
