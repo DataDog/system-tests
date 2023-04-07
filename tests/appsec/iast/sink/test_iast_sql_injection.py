@@ -60,6 +60,7 @@ class TestIastSqlInjection:
 
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    @bug(library="python@1.11.1")
     def test_insecure_sql(self):
         """Insecure SQL queries are reported as insecure"""
         interfaces.library.expect_iast_vulnerabilities(
