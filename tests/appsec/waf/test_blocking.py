@@ -110,7 +110,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 """
 
 
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(dotnet="2.27.0", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "0.112.0",
@@ -193,6 +193,7 @@ class Test_Blocking:
         )
 
     @missing_feature(context.library == "php", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -222,6 +223,7 @@ class Test_Blocking:
         )
 
     @missing_feature(context.library == "php", reason="Support for quality not implemented")
+    @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403

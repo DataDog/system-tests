@@ -342,6 +342,45 @@
       "on_match": [
         "block"
       ]
+    },
+    {
+      "id": "tst-037-010",
+      "name": "Test block on not found",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000005",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.response.status"
+              }
+            ],
+            "regex": "404"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "operator": "phrase_match",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "list": [
+              "/finger_print"
+            ]
+          }
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
     }
   ],
   "actions": [
