@@ -36,9 +36,13 @@ class TestIastWeakHash:
 
         if context.library.library == "python":
             if context.weblog_variant == "uwsgi-poc":
-                return "/app/./iast.py"
+                if context.library.version < "1.11.1.dev":
+                    return "/app/./iast.py"
+                return "/./iast.py"
 
-            return "/app/iast.py"
+            if context.library.version < "1.11.1.dev":
+                return "/app/iast.py"
+            return "/iast.py"
 
         return None
 
@@ -62,6 +66,7 @@ class TestIastWeakHash:
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
     @bug(context.weblog_variant == "spring-boot-openliberty")
+    @bug(library="python@1.11.1")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
 

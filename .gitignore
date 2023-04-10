@@ -1,10 +1,12 @@
 .idea
 .env
+.envrc
 __pycache__
 binaries/*
 !binaries/README.md
 
 venv
+/vendor/python
 
 # tools for http tunneling
 ngrok

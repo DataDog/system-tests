@@ -233,6 +233,6 @@ def test_otel_get_span_context(test_agent, test_library):
             with test_library.otel_start_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
                 span.end_span()
                 context = span.span_context()
-                assert context.get("trace_id") == f"{parent.span_id:0x}".ljust(32, "0")
-                assert context.get("span_id") == f"{span.span_id:0x}".rjust(16, "0")
+                assert context.get("trace_id") == parent.span_context().get("trace_id")
+                assert context.get("span_id") == "{:016x}".format(span.span_id)
                 assert context.get("trace_flags") == "01"
