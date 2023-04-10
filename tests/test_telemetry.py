@@ -410,18 +410,17 @@ class Test_Telemetry:
             "python": {},
             "java": {"trace.agent.port": 8126, "telemetry.heartbeat.interval": 2},
         }
-        configurationMap = test_configuration[context.library.library]
+        configuration_map = test_configuration[context.library.library]
 
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-started":
                 content = data["request"]["content"]
-                cnt = 0
                 configurations = content["payload"]["configuration"]
                 configurations_present = []
                 for cnf in configurations:
-                    if cnf["name"] in configurationMap:
+                    if cnf["name"] in configuration_map:
                         configuaration_name = cnf["name"]
-                        expected_value = str(configurationMap.get(cnf["name"]))
+                        expected_value = str(configuration_map.get(cnf["name"]))
                         configuaration_value = str(cnf["value"])
                         if configuaration_value != expected_value:
                             raise Exception(
@@ -433,10 +432,10 @@ class Test_Telemetry:
                                 + str(configuaration_value)
                             )
                         configurations_present.append(configuaration_name)
-                for cnf in configurationMap:
+                for cnf in configuration_map:
                     if cnf not in configurations_present:
                         raise Exception(
-                            "Client Configuration information is not accuratelyreported, "
+                            "Client Configuration information is not accurately reported, "
                             + cnf
                             + "is not present in configuration on app-started event"
                         )
