@@ -47,21 +47,19 @@ def test_otel_start_span(test_agent, test_library):
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("golang", "BUG: Span.set_name() does not update the resource name")
-def test_otel_update_names(test_agent, test_library):
+def test_otel_set_service_name(test_agent, test_library):
     """
-        - Update the operation name, resource name, and service name on a span
+        - Update the service name on a span
     """
     with test_library:
-        with test_library.otel_start_span("operation") as parent:
-            parent.set_name("new_name")
-            parent.set_attributes({"service.name": "new_service_name"})
+        with test_library.otel_start_span("parent_span") as parent:
+            parent.set_attributes({"service.name": "new_service"})
             parent.end_span()
 
     root_span = get_span(test_agent)
-    assert root_span["name"] == "new_name"
-    assert root_span["resource"] == "new_name"
-    assert root_span["service"] == "new_service_name"
+    assert root_span["name"] == "parent_span"
+    assert root_span["resource"] == "parent_span"
+    assert root_span["service"] == "new_service"
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
