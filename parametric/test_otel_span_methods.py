@@ -91,7 +91,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     assert root_span["meta"]["d_str_val"] == "bye"
     assert root_span["meta"]["d_bool_val"] == "False"
     assert root_span["metrics"]["d_int_val"] == 2
-    assert root_span["metrics"]["d_double_val"] ==  3.14
+    assert root_span["metrics"]["d_double_val"] == 3.14
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
