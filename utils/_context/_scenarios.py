@@ -536,6 +536,11 @@ class scenarios:
         proxy_state={"mock_remote_config_backend": "ASM_DATA"},
         weblog_env={"DD_APPSEC_RULES": None},
     )
+    appsec_ip_blocking_maxed = EndToEndScenario(
+        "APPSEC_IP_BLOCKING_MAXED",
+        proxy_state={"mock_remote_config_backend": "ASM_DATA_IP_BLOCKING_MAXED"},
+        weblog_env={"DD_APPSEC_RULES": None},
+    )
 
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",

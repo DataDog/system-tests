@@ -2,22 +2,20 @@ package com.datadoghq;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import datadog.opentracing.DDTracer;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.opentracing.util.GlobalTracer;
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class App {
+    private static final String SERVER_PORT_ARG = "APM_TEST_CLIENT_SERVER_PORT";
     static final Logger LOGGER = LoggerFactory.getLogger(App.class.getName());
-    private static final int CLIENT_SERVER_PORT = Integer.parseInt(System.getenv("APM_TEST_CLIENT_SERVER_PORT"));
-    private final DDTracer tracer;
 
     public App() throws ReflectiveOperationException, IOException {
-        this.tracer = createTracer();
-        startServer(CLIENT_SERVER_PORT);
+        int port = getServerPort();
+        startServer(port);
     }
 
     public static void main(String[] args) {
@@ -30,9 +28,24 @@ public class App {
         }
     }
 
+    private int getServerPort() {
+        String portString = System.getenv(SERVER_PORT_ARG);
+        if (portString == null) {
+            LOGGER.error("Missing {} environment variable.", SERVER_PORT_ARG);
+            System.exit(1);
+        }
+        try {
+            return Integer.parseInt(portString);
+        } catch (NumberFormatException e) {
+            LOGGER.error("Invalid {} environment variable value: {}.", SERVER_PORT_ARG, portString);
+            System.exit(1);
+            return -1;
+        }
+    }
+
     private void startServer(int port) throws IOException {
         Server server = ServerBuilder.forPort(port)
-                .addService(new ApmClientImpl(this.tracer))
+                .addService(new ApmClientImpl())
                 .build()
                 .start();
         LOGGER.info("Server started at port " + port + ".");
@@ -57,11 +70,5 @@ public class App {
         } catch (InterruptedException e) {
             LOGGER.warn("Failed to wait for server termination.", e);
         }
-    }
-
-    private DDTracer createTracer() {
-        DDTracer tracer = new DDTracer.DDTracerBuilder().build();
-        GlobalTracer.registerIfAbsent(tracer);
-        return tracer;
     }
 }
