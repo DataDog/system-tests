@@ -26,11 +26,7 @@ def test_otel_start_span(test_agent, test_library):
         duration: int = 6789
         start_time: int = 12345
         with test_library.otel_start_span(
-            "operation",
-            span_kind=SK_PRODUCER,
-            timestamp=start_time,
-            new_root=True,
-            attributes={"start_attr_key": "start_attr_val"},
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time, attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
             parent.end_span(timestamp=start_time + duration)
 
@@ -54,9 +50,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     """
     parent_start_time = int(time.time())
     with test_library:
-        with test_library.otel_start_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
-        ) as parent:
+        with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=parent_start_time,) as parent:
             parent.set_attributes({"key": ["val1", "val2"]})
             parent.set_attributes({"key2": [1]})
             parent.set_attributes({"pi": 3.14, "hi": "bye"})
@@ -228,9 +222,9 @@ def test_otel_get_span_context(test_agent, test_library):
         (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
     """
     with test_library:
-        with test_library.otel_start_span(name="operation", new_root=True) as parent:
+        with test_library.otel_start_span(name="operation") as parent:
             parent.end_span()
-            with test_library.otel_start_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
+            with test_library.otel_start_span(name="operation", parent_id=parent.span_id) as span:
                 span.end_span()
                 context = span.span_context()
                 assert context.get("trace_id") == parent.span_context().get("trace_id")
