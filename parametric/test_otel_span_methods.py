@@ -58,8 +58,10 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
             "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True,
         ) as span:
             span.set_attributes({"str_val": "val"})
+            span.set_attributes({"str_val_empty": ""})
             span.set_attributes({"bool_val": True})
             span.set_attributes({"int_val": 1})
+            span.set_attributes({"int_val_zero": 0})
             span.set_attributes({"double_val": 4.2})
             span.set_attributes({"array_val_str": ["val1", "val2"]})
             span.set_attributes({"array_val_int": [10, 20]})
@@ -77,8 +79,10 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     assert root_span["resource"] == "operation"
 
     assert root_span["meta"]["str_val"] == "val"
+    assert root_span["meta"]["str_val_empty"] == ""
     assert root_span["meta"]["bool_val"] == "True"
     assert root_span["metrics"]["int_val"] == 1
+    assert root_span["metrics"]["int_val_zero"] == 0
     assert root_span["metrics"]["double_val"] == 4.2
     assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
     assert root_span["meta"]["array_val_int"] == "[10, 20]"
