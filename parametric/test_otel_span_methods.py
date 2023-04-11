@@ -74,7 +74,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     assert root_span["meta"]["key"] == "val"
     assert root_span["meta"]["key2"] == "['val1', 'val2']"
     assert root_span["metrics"]["key3"] == 1
-    assert root_span["meta"]["key4"] == '[10, 20]'
+    assert root_span["meta"]["key4"] == "[10, 20]"
     assert root_span["metrics"]["pi"] == 3.14
     assert root_span["meta"]["hi"] == "bye"
 
