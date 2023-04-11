@@ -57,8 +57,10 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
         with test_library.otel_start_span(
             "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
         ) as parent:
-            parent.set_attributes({"key": ["val1", "val2"]})
-            parent.set_attributes({"key2": [1]})
+            parent.set_attributes({"key": "val"})
+            parent.set_attributes({"key2": ["val1", "val2"]})
+            parent.set_attributes({"key3": 1})
+            parent.set_attributes({"key4": [10, 20]})
             parent.set_attributes({"pi": 3.14, "hi": "bye"})
             parent.end_span()
     traces = test_agent.wait_for_num_traces(1)
@@ -69,9 +71,10 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
 
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
-    assert "val2" in root_span["meta"]["key"]
-    assert "val1" in root_span["meta"]["key"]
-    assert root_span["metrics"]["key2"] == 1
+    assert root_span["meta"]["key"] == "val"
+    assert root_span["meta"]["key2"] == "['val1', 'val2']"
+    assert root_span["metrics"]["key3"] == 1
+    assert root_span["meta"]["key4"] == '[10, 20]'
     assert root_span["metrics"]["pi"] == 3.14
     assert root_span["meta"]["hi"] == "bye"
 
