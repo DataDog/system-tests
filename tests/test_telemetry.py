@@ -375,6 +375,73 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not recieved in app-dependencies-loaded message")
 
+    @missing_feature(
+        context.library in ("java", "nodejs", "golang", "dotnet"), reason="Telemetry V2 is not implemented yet. ",
+    )
+    def test_app_started_product_info(self):
+        """Assert that product information is accurately reported by telemetry"""
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-started":
+                content = data["request"]["content"]
+                products = content["application"]["products"]
+                assert (
+                    "appsec" in products
+                ), "Product information is not accurately reported by telemetry on app-started event"
+
+        self.validate_library_telemetry_data(validator)
+
+    @irrelevant(library="cpp")
+    @missing_feature(
+        context.library in ("golang", "ruby", "cpp", "php"), reason="Telemetry is not implemented yet. ",
+    )
+    @bug(
+        library="python",
+        reason="""
+            configuration is not properly populating for python
+        """,
+    )
+    def test_app_started_client_configuration(self):
+        """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
+        test_configuration = {
+            "dotnet": {},
+            "nodejs": {"hostname": "runner", "port": 8126, "appsec.enabled": True},
+            # to-do :need to add configuration keys once python bug is fixed
+            "python": {},
+            "java": {"trace.agent.port": 8126, "telemetry.heartbeat.interval": 2},
+        }
+        configuration_map = test_configuration[context.library.library]
+
+        def validator(data):
+            if data["request"]["content"].get("request_type") == "app-started":
+                content = data["request"]["content"]
+                configurations = content["payload"]["configuration"]
+                configurations_present = []
+                for cnf in configurations:
+                    if cnf["name"] in configuration_map:
+                        configuaration_name = cnf["name"]
+                        expected_value = str(configuration_map.get(cnf["name"]))
+                        configuaration_value = str(cnf["value"])
+                        if configuaration_value != expected_value:
+                            raise Exception(
+                                "Client Configuration "
+                                + configuaration_name
+                                + " excpected value is "
+                                + str(expected_value)
+                                + " but found "
+                                + str(configuaration_value)
+                            )
+                        configurations_present.append(configuaration_name)
+                for cnf in configuration_map:
+                    if cnf not in configurations_present:
+                        raise Exception(
+                            "Client Configuration information is not accurately reported, "
+                            + cnf
+                            + "is not present in configuration on app-started event"
+                        )
+
+        self.validate_library_telemetry_data(validator)
+
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 

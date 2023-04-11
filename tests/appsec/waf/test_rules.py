@@ -94,10 +94,10 @@ class Test_LFI:
     def setup_lfi_in_path(self):
         self.r_5 = weblog.get("/waf/..")
 
-    @bug(library="dotnet", reason="APPSEC-2290")
     @bug(context.library < "java@0.92.0")
     @bug(context.weblog_variant == "uwsgi-poc" and context.library == "python")
     @irrelevant(library="python", weblog_variant="django-poc")
+    @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     def test_lfi_in_path(self):
         """ AppSec catches LFI attacks in URL path like /.."""
         interfaces.library.assert_waf_attack(self.r_5, rules.lfi.crs_930_110)
@@ -233,7 +233,6 @@ class Test_XSS:
     def setup_xss2(self):
         self.r_xss2 = weblog.get("/waf/", cookies={"value": '<vmlframe src="xss">'})
 
-    @bug(library="dotnet", reason="APPSEC-2290")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_xss2(self):
         """XSS patterns in cookie, with special char"""

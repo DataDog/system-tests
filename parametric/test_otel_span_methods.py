@@ -50,15 +50,23 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     """
         - Set attributes of multiple types for an otel span
     """
-    parent_start_time = int(time.time())
+    start_time = int(time.time())
     with test_library:
         with test_library.otel_start_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
-        ) as parent:
-            parent.set_attributes({"key": ["val1", "val2"]})
-            parent.set_attributes({"key2": [1]})
-            parent.set_attributes({"pi": 3.14, "hi": "bye"})
-            parent.end_span()
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True,
+        ) as span:
+            span.set_attributes({"str_val": "val"})
+            span.set_attributes({"str_val_empty": ""})
+            span.set_attributes({"bool_val": True})
+            span.set_attributes({"int_val": 1})
+            span.set_attributes({"int_val_zero": 0})
+            span.set_attributes({"double_val": 4.2})
+            span.set_attributes({"array_val_str": ["val1", "val2"]})
+            span.set_attributes({"array_val_int": [10, 20]})
+            span.set_attributes({"array_val_bool": [True, False]})
+            span.set_attributes({"array_val_double": [10.1, 20.2]})
+            span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
+            span.end_span()
     traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, OtelSpan(name="operation"))
     assert len(trace) == 1
@@ -67,11 +75,21 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
 
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
-    assert "val2" in root_span["meta"]["key"]
-    assert "val1" in root_span["meta"]["key"]
-    assert root_span["metrics"]["key2"] == 1
-    assert root_span["metrics"]["pi"] == 3.14
-    assert root_span["meta"]["hi"] == "bye"
+
+    assert root_span["meta"]["str_val"] == "val"
+    assert root_span["meta"]["str_val_empty"] == ""
+    assert root_span["meta"]["bool_val"] == "True"
+    assert root_span["metrics"]["int_val"] == 1
+    assert root_span["metrics"]["int_val_zero"] == 0
+    assert root_span["metrics"]["double_val"] == 4.2
+    assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
+    assert root_span["meta"]["array_val_int"] == "[10, 20]"
+    assert root_span["meta"]["array_val_bool"] == "[True, False]"
+    assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
+    assert root_span["meta"]["d_str_val"] == "bye"
+    assert root_span["meta"]["d_bool_val"] == "False"
+    assert root_span["metrics"]["d_int_val"] == 2
+    assert root_span["metrics"]["d_double_val"] == 3.14
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
