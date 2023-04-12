@@ -481,7 +481,6 @@ class Test_Telemetry:
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
-@missing_feature(library="ruby")
 @missing_feature(library="php")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -504,7 +503,7 @@ class Test_ProductsDisabled:
                 ), "Product information is present telemetry data on app-started event when all products are disabled"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DpendencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
@@ -521,6 +520,7 @@ class Test_DpendencyEnable:
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@missing_feature(library="ruby", reason="DD_FORCE_BATCHING_ENABLE not yet supported")
 @scenarios.telemetry_message_batch_event_order
 class Test_ForceBatchingEnabled:
     """ Tests on DD_FORCE_BATCHING_ENABLE environment variable """
@@ -544,7 +544,7 @@ class Test_ForceBatchingEnabled:
         ), "Events in message-batch are not in chronological order of event triggered"
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_log_generation_disabled
 class Test_Log_Generation:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
@@ -561,7 +561,7 @@ class Test_Log_Generation:
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
-@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_metric_generation_disabled
 class Test_Metric_Generation:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
