@@ -41,9 +41,9 @@ class TestIastWeakHash:
             if context.library.version >= "1.12.0" or is_dev_version:
                 # new value: relative path (but yes, the leading slash is misleading)
                 if context.weblog_variant == "uwsgi-poc":
-                    return "/./iast.py"
+                    return "./iast.py"
                 else:
-                    return "/iast.py"
+                    return "iast.py"
             else:
                 # old value: absolute path
                 if context.weblog_variant == "uwsgi-poc":
