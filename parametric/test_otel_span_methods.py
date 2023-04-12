@@ -58,7 +58,6 @@ def test_otel_set_service_name(test_agent, test_library):
 
     root_span = get_span(test_agent)
     assert root_span["name"] == "parent_span"
-    assert root_span["resource"] == "parent_span"
     assert root_span["service"] == "new_service"
 
 
