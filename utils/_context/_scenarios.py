@@ -176,7 +176,6 @@ class EndToEndScenario(_Scenario):
                         "MYSQL_USER": "mysqldb",
                         "MYSQL_ROOT_PASSWORD": "mysqldb",
                         "MYSQL_PASSWORD": "mysqldb",
-                        "MYSQL_PORT": "3307",
                     },
                     allow_old_container=True,
                 )

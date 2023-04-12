@@ -17,7 +17,7 @@ namespace weblog
                 {
                     var queryString = "CREATE TABLE foo_bar (Id int PRIMARY KEY, Name varchar(100))";
 
-                    using (var connection = new MySqlConnection(Constants.MySqlConnectionString)) 
+                    await using (var connection = new MySqlConnection(Constants.MySqlConnectionString)) 
                     {
                         var command = new MySqlCommand(queryString, connection);
                         connection.Open();
