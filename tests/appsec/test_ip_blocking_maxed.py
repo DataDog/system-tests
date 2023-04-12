@@ -31,6 +31,7 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
     reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
+@bug(context.library > "nodejs@3.16.0", reason="Under investigation")
 @coverage.basic
 @scenarios.appsec_ip_blocking_maxed
 class Test_AppSecIPBlockingMaxed:

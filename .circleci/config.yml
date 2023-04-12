@@ -29,9 +29,12 @@ jobs:
           name: Run
           command: ./run.sh
 
+      - run:
+          name: Collect artifacts
+          command: tar cvzf system-tests.tar.gz logs
+
       - store_artifacts:
-          path: logs
-          destination: system-tests.tar.gz
+          path: system-tests.tar.gz
 
 workflows:
   test:
