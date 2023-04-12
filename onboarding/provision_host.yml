@@ -3,7 +3,7 @@ ami:
   ami_id: ami-0557a15b87f6559cf
   user: ubuntu
   os_type: linux
-  os_distro: deb
+  os_distro: deb__
 
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
@@ -108,6 +108,33 @@ autoinjection:
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-install
+  - python:
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-python
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-python
+            dd-host-install
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
+            dd-host-install
+
+        - os_type: linux
+          os_distro: rpm
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-python
+            dd-host-install
 language-variants:
   - java: 
     - name: OpenJDK11
@@ -141,10 +168,19 @@ language-variants:
           os_branch: amazon-netcore6
           command: dotnet --info  
 
+  - python: 
+    - name: Python3
+      version: 3
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: sudo apt-get -y install python3 python3-pip
 
+        - os_type: linux
+          os_distro: rpm
+          command: sudo yum -y install python3
 weblogs:
   - java: 
-
     - name: test-app-java
       supported-language-versions:
         - 11
@@ -160,11 +196,12 @@ weblogs:
               local_path: weblog/java/test-app-java/test-app-java_run.sh
               remote_path: test-app-java_run.sh
 
-            - name: copy-binary
-              local_path: ../lib-injection/build/docker/java/dd-lib-java-init-test-app/build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar 
-              remote_path: k8s-lib-injection-app-0.0.1-SNAPSHOT.jar  
-
+            - name: copy-java-app
+              local_path: test-app-java.tar
+              remote_path: test-app-java.tar
+              
           command: sh test-app-java_run.sh
+
     - name: wildfly
       supported-language-versions:
         - 11
@@ -223,3 +260,24 @@ weblogs:
               local_path: weblog/dotnet/test-app-dotnet/test-app-dotnet_run.sh
               remote_path: test-app-dotnet_run.sh
           command: sh test-app-dotnet_run.sh
+  - python: 
+    - name: test-app-python
+      supported-language-versions:
+        - 3
+      local-script: weblog/python/test-app-python-django/test-app-python_local_build.sh
+      install: 
+        - os_type: linux
+          copy_files:
+            - name: copy-service
+              local_path: weblog/python/test-app-python-django/test-app-python.service
+              remote_path: test-app-python.service
+
+            - name: copy-run-weblog-script
+              local_path: weblog/python/test-app-python-django/test-app-python_run.sh
+              remote_path: test-app-python_run.sh
+
+            - name: copy-python-app
+              local_path: test-app-python.tar
+              remote_path: test-app-python.tar
+
+          command: sh test-app-python_run.sh

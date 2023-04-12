@@ -30,7 +30,7 @@ done
 [[ -z "$AWS_PRIVATE_KEY_PATH" ]] && echo "--private-key-path parameter is mandatory." && cat USAGE.md && exit 8
 [[ -z "$AWS_INSTANCE_TYPE" ]] && echo "--instance-type parameter is mandatory." && cat USAGE.md && exit 8
 
-SUPPORTED_LANGUAGES="java nodejs dotnet"
+SUPPORTED_LANGUAGES="java nodejs dotnet python"
 [[ (! -z "$FILTER_LANGUAGE") && (! $SUPPORTED_LANGUAGES =~ (^|[[:space:]])$FILTER_LANGUAGE($|[[:space:]])) ]] && echo "Bad param --filter-language. Supported languages are: $SUPPORTED_LANGUAGES" && exit 8
 
 
