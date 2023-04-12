@@ -148,7 +148,7 @@ class Test_Telemetry:
                 )
 
             if diff > 1:
-                raise Exception(f"Detected non conscutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
+                raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -298,7 +298,7 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
-    @bug(library="dotnet", reason="NodaTime not recieved in app-dependencies-loaded message")
+    @bug(library="dotnet", reason="NodaTime not received in app-dependencies-loaded message")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -373,7 +373,7 @@ class Test_Telemetry:
 
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
-                raise Exception(dependency + " not recieved in app-dependencies-loaded message")
+                raise Exception(dependency + " not received in app-dependencies-loaded message")
 
     @missing_feature(
         context.library in ("java", "nodejs", "golang", "dotnet"), reason="Telemetry V2 is not implemented yet. ",
@@ -419,19 +419,19 @@ class Test_Telemetry:
                 configurations_present = []
                 for cnf in configurations:
                     if cnf["name"] in configuration_map:
-                        configuaration_name = cnf["name"]
+                        configuration_name = cnf["name"]
                         expected_value = str(configuration_map.get(cnf["name"]))
-                        configuaration_value = str(cnf["value"])
-                        if configuaration_value != expected_value:
+                        configuration_value = str(cnf["value"])
+                        if configuration_value != expected_value:
                             raise Exception(
                                 "Client Configuration "
-                                + configuaration_name
-                                + " excpected value is "
+                                + configuration_name
+                                + " expected value is "
                                 + str(expected_value)
                                 + " but found "
-                                + str(configuaration_value)
+                                + str(configuration_value)
                             )
-                        configurations_present.append(configuaration_name)
+                        configurations_present.append(configuration_name)
                 for cnf in configuration_map:
                     if cnf not in configurations_present:
                         raise Exception(
@@ -475,7 +475,7 @@ class Test_Telemetry:
                     ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
 
         if app_product_change_event_found is False:
-            raise Exception("app-product-change is not emited when product change is enabled")
+            raise Exception("app-product-change is not emitted when product change is enabled")
 
 
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0")
@@ -487,7 +487,7 @@ class Test_Telemetry:
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="golang", reason="products info is always in app-started for golang")
 class Test_ProductsDisabled:
-    """Assert that product informations are not reported when products are disabled in telemetry"""
+    """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
     def test_app_started_product_disabled(self):
@@ -506,7 +506,7 @@ class Test_ProductsDisabled:
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
-class Test_DpendencyEnable:
+class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
 
     def setup_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
@@ -532,16 +532,16 @@ class Test_ForceBatchingEnabled:
 
     def test_message_batch_event_order(self):
         """Test that the events in message-batch are in chronological order"""
-        eventslist = []
+        event_list = []
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
-            eventslist.append(content.get("request_type"))
+            event_list.append(content.get("request_type"))
 
         assert (
-            eventslist.index("app-dependencies-loaded")
-            < eventslist.index("app-integrations-change")
-            < eventslist.index("app-product-change")
-        ), "Events in message-batch are not in chronological order of event triggered"
+            event_list.index("app-dependencies-loaded")
+            < event_list.index("app-integrations-change")
+            < event_list.index("app-product-change")
+        ), f"Events in message-batch are not in chronological order of event triggered: {event_list}"
 
 
 @released(cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php="?", python="?", ruby="?")
@@ -574,5 +574,4 @@ class Test_Metric_Generation:
 
         for data in telemetry_data:
             if data["request"]["content"].get("request_type") == "generate-metrics":
-                content = data["request"]["content"]
-                raise Exception("Metric genrate event is sent when metric generation is disabled")
+                raise Exception("Metric generate event is sent when metric generation is disabled")
