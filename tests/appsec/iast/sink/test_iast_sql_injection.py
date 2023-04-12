@@ -14,7 +14,7 @@ if context.library == "cpp":
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?")
 @released(
-    python={"django-poc": "1.11.1.dev", "flask-poc": "1.11.1.dev", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
+    python={"django-poc": "1.12.0", "flask-poc": "1.12.0", "uds-flask": "?", "uwsgi-poc": "?", "pylons": "?",}
 )
 @released(
     java={

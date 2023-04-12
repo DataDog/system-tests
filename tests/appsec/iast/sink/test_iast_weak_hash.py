@@ -35,16 +35,21 @@ class TestIastWeakHash:
             return "iast.js"
 
         if context.library.library == "python":
-            if context.weblog_variant == "uwsgi-poc":
-                if context.library.version < "1.11.1.dev":
+            # temporary hack because dd-trace-py version is net yet increased
+            is_dev_version = "dev" in str(context.library)
+
+            if context.library.version >= "1.12.0" or is_dev_version:
+                # new value: relative path (but yes, the leading slash is misleading)
+                if context.weblog_variant == "uwsgi-poc":
+                    return "/./iast.py"
+                else:
+                    return "/iast.py"
+            else:
+                # old value: absolute path
+                if context.weblog_variant == "uwsgi-poc":
                     return "/app/./iast.py"
-                return "/./iast.py"
-
-            if context.library.version < "1.11.1.dev":
-                return "/app/iast.py"
-            return "/iast.py"
-
-        return None
+                else:
+                    return "/app/iast.py"
 
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
