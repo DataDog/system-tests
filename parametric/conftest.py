@@ -81,7 +81,7 @@ class APMLibraryTestServer:
     container_img: str
     container_cmd: List[str]
     container_build_dir: str
-    container_build_context: str = ".",
+    container_build_context: str = "."
     port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
