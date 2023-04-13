@@ -81,6 +81,7 @@ class APMLibraryTestServer:
     container_img: str
     container_cmd: List[str]
     container_build_dir: str
+    container_build_context: str = ".",
     port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
@@ -148,9 +149,6 @@ RUN python3.9 -m pip install %s
 def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("apps", "nodejs")
     nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
-
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
-    nodejs_reldir = os.path.join("parametric", nodejs_appdir).replace("\\", "/")
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
@@ -160,15 +158,16 @@ def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
         container_img=f"""
 FROM node:18.10-slim
 WORKDIR /client
-COPY {nodejs_reldir}/package.json /client/
-COPY {nodejs_reldir}/package-lock.json /client/
-COPY {nodejs_reldir}/*.js /client/
-COPY {nodejs_reldir}/npm/* /client/
+COPY ./package.json /client/
+COPY ./package-lock.json /client/
+COPY ./*.js /client/
+COPY ./npm/* /client/
 RUN npm install
 RUN npm install {node_module}
 """,
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_dir,
+        container_build_context=nodejs_dir,
         volumes=[
             (
                 os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
@@ -717,7 +716,7 @@ def test_server(
         apm_test_server.container_tag,
         "-f",
         dockf_path,
-        ".",
+        apm_test_server.container_build_context,
     ]
     test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
     test_server_log_file.flush()
