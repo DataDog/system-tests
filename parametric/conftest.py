@@ -85,9 +85,6 @@ class APMLibraryTestServer:
     port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
-    # Whether the image has been built already
-    # Used for performance to skip rebuilding images
-    image_built: bool = False
 
 
 @pytest.fixture
@@ -176,7 +173,6 @@ RUN npm install {node_module}
         ],
         port=port,
         env=env,
-        image_built=False,
     )
 
 
@@ -697,11 +693,6 @@ def test_server(
     # Write dockerfile to the build directory
     # Note that this needs to be done as the context cannot be
     # specified if Dockerfiles are read from stdin.
-
-    # TODO: write a dockerignore in the root directory
-    # *
-    # !parametric/
-    # parametric/.venv
     dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
     with open(dockf_path, "w") as dockf:
         dockf.write(apm_test_server.container_img)
