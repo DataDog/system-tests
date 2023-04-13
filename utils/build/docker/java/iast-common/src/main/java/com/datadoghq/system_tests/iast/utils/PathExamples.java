@@ -1,10 +1,7 @@
-package com.datadoghq.system_tests.springboot.iast.utils;
-
-import org.springframework.stereotype.Component;
+package com.datadoghq.system_tests.iast.utils;
 
 import java.nio.file.Paths;
 
-@Component
 public class PathExamples {
 
     public String insecurePathTraversal(final String path) {
