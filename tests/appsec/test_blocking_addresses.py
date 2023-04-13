@@ -5,7 +5,7 @@
 from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, irrelevant
 
 
-@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="1.50.0", ruby="1.0.0")
 @coverage.basic
 @scenarios.appsec_blocking
 @released(
@@ -28,6 +28,7 @@ class Test_BlockingAddresses:
         self.rm_req = weblog.request("OPTIONS")
 
     @missing_feature(context.library == "ruby")
+    @missing_feature(context.library == "golang")
     def test_request_method(self):
         """can block on server.request.method"""
 
@@ -48,6 +49,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(library="java", reason="When supported, path parameter detection happens on subsequent WAF run")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
+    @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
     def test_path_params(self):
         """can block on server.request.path_params"""
 
@@ -76,6 +78,7 @@ class Test_BlockingAddresses:
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
 
@@ -87,6 +90,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
@@ -99,6 +103,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "dotnet", reason="only support blocking on 404 status at the moment")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library < "ruby@1.10.0")
+    @missing_feature(context.library == "golang", reason="Blocking on response addresses not implemented")
     def test_response_status(self):
         """can block on server.response.status"""
 
@@ -110,6 +115,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby", reason="Not working")
+    @missing_feature(context.library == "golang", reason="Blocking on response addresses not implemented")
     def test_not_found(self):
         """can block on server.response.status"""
 
@@ -123,6 +129,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
     @missing_feature(context.library == "dotnet", reason="Address not supported yet")
+    @missing_feature(context.library == "golang", reason="Blocking on response addresses not implemented")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 
