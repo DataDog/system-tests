@@ -56,6 +56,7 @@ class _Scenario:
                 warmup()
         except:
             self.collect_logs()
+            self.close_targets()
             raise
 
     def post_setup(self, session):
@@ -63,6 +64,9 @@ class _Scenario:
 
     def collect_logs(self):
         """ Called after setup """
+
+    def close_targets(self):
+        """ called after setup"""
 
     @property
     def host_log_folder(self):
@@ -142,13 +146,37 @@ class EndToEndScenario(_Scenario):
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy,
         )
-        self.use_proxy = use_proxy
         self.proxy_state = proxy_state
         self.include_postgres_db = include_postgres_db
 
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         self._required_containers = []
+
+        self.use_proxy = use_proxy
+        if self.use_proxy:
+            self._required_containers.append(
+                TestedContainer(
+                    image_name="mitmproxy/mitmproxy",
+                    name="proxy",
+                    host_log_folder=self.host_log_folder,
+                    environment={
+                        "DD_SITE": os.environ.get("DD_SITE"),
+                        "DD_API_KEY": os.environ.get("DD_API_KEY"),
+                        "HOST_LOG_FOLDER": self.host_log_folder,
+                        "PROXY_STATE": self.proxy_state,
+                    },
+                    working_dir="/app",
+                    volumes={
+                        f"./{self.host_log_folder}/interfaces/": {
+                            "bind": f"/app/{self.host_log_folder}/interfaces",
+                            "mode": "rw",
+                        },
+                        "./utils/": {"bind": "/app/utils/", "mode": "ro"},
+                    },
+                    command="python utils/proxy/core_next.py",
+                )
+            )
 
         if include_postgres_db:
             self._required_containers.append(
@@ -283,12 +311,8 @@ class EndToEndScenario(_Scenario):
         print_info(f"Backend: {self.agent_container.dd_site}")
 
     def _get_warmups(self):
-        from utils.proxy.core import start_proxy  # prevent circular import
 
         warmups = [create_network]
-
-        if self.use_proxy:
-            warmups.append(lambda: start_proxy(self.proxy_state))
 
         for container in self._required_containers:
             warmups.append(container.start)
@@ -308,11 +332,11 @@ class EndToEndScenario(_Scenario):
             logger.debug("Wait for app readiness")
 
             if not interfaces.library.ready.wait(40):
-                pytest.exit("Library not ready", 1)
+                raise Exception("Library not ready")
             logger.debug("Library ready")
 
             if not interfaces.agent.ready.wait(40):
-                pytest.exit("Datadog agent not ready", 1)
+                raise Exception("Datadog agent not ready")
             logger.debug("Agent ready")
 
     def post_setup(self, session):
@@ -331,6 +355,7 @@ class EndToEndScenario(_Scenario):
         else:
             self.collect_logs()
 
+    def close_targets(self):
         containers = [self.agent_container, self.weblog_container] + self._required_containers
 
         for container in containers:
@@ -348,7 +373,8 @@ class EndToEndScenario(_Scenario):
         interface.wait(timeout)
 
     def collect_logs(self):
-        for container in (self.weblog_container, self.agent_container):
+
+        for container in [self.weblog_container, self.agent_container] + self._required_containers:
             try:
                 container.save_logs()
             except:

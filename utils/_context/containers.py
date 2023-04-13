@@ -13,7 +13,6 @@ from utils.tools import logger
 _client = docker.DockerClient()
 
 _NETWORK_NAME = "system-tests_default"
-_HOST_DOMAIN = "host.docker.internal"
 
 
 def create_network():
@@ -185,7 +184,7 @@ class AgentContainer(TestedContainer):
     def __init__(self, host_log_folder, use_proxy=True) -> None:
 
         if "DD_API_KEY" not in os.environ:
-            pytest.exit(reason="DD_API_KEY is missing in env, please add it.", returncode=1)
+            raise ValueError("DD_API_KEY is missing in env, please add it.")
 
         environment = {
             "DD_API_KEY": os.environ["DD_API_KEY"],
@@ -197,8 +196,8 @@ class AgentContainer(TestedContainer):
         }
 
         if use_proxy:
-            environment["DD_PROXY_HTTPS"] = f"http://{_HOST_DOMAIN}:8126"
-            environment["DD_PROXY_HTTP"] = f"http://{_HOST_DOMAIN}:8126"
+            environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
+            environment["DD_PROXY_HTTP"] = "http://proxy:8126"
 
         super().__init__(
             image_name="system_tests/agent",
@@ -296,7 +295,7 @@ class WeblogContainer(TestedContainer):
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
-            self.environment["DD_AGENT_HOST"] = _HOST_DOMAIN
+            self.environment["DD_AGENT_HOST"] = "proxy"
             self.environment["DD_TRACE_AGENT_PORT"] = 8126
         else:
             self.environment["DD_AGENT_HOST"] = "agent"
