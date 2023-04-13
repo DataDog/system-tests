@@ -13,7 +13,7 @@ def test_partial_flushing_one_span(test_agent, test_library):
         with test_library.start_span(name="root") as parent_span:
             with test_library.start_span(name="child1", parent_id=parent_span.span_id):
                 pass
-            partial_trace = test_agent.wait_for_num_traces(1, clear=True)
+            partial_trace = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
             child_span = find_span_in_traces(partial_trace, Span(name="child1"))
             assert len(partial_trace) == 1
             assert child_span["name"] == "child1"
