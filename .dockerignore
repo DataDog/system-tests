@@ -3,4 +3,3 @@ venv/
 .vscode/
 vendor
 logs
-parametric/.venv
