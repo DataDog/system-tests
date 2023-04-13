@@ -56,7 +56,7 @@ class _TracesSamplingDecisionValidator:
         return (AUTO_REJECT, MANUAL_REJECT)
 
 
-class _DistributedTracesDeterministicSamplingDecisisonValidator:
+class _DistributedTracesDeterministicSamplingDecisionValidator:
     """Asserts that traces with the same id have the same sampling decisions"""
 
     def __init__(self, traces):
@@ -91,7 +91,7 @@ class _DistributedTracesDeterministicSamplingDecisisonValidator:
 
 
 class _AddSamplingDecisionValidator:
-    """Asserts that a trace sampling decisions are taken for choosen traces and spans"""
+    """Asserts that a trace sampling decisions are taken for chosen traces and spans"""
 
     def __init__(self, traces):
         self.traces = {trace["parent_id"]: trace for trace in traces}

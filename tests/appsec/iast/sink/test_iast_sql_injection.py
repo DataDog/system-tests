@@ -31,9 +31,9 @@ class TestIastSqlInjection:
     """Verify IAST SQL INJECTION feature"""
 
     EXPECTATIONS = {
-        "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.SqlExamples"},
+        "java": {"LOCATION": "com.datadoghq.system_tests.iast.utils.SqlExamples"},
         "nodejs": {"LOCATION": "iast.js"},
-        "python": {"flask-poc": {"LOCATION": "/app.py"}, "django-poc": {"LOCATION": "/app/urls.py"},},
+        "python": {"flask-poc": {"LOCATION": "app.py"}, "django-poc": {"LOCATION": "app/urls.py"},},
     }
 
     def __expected_location(self):

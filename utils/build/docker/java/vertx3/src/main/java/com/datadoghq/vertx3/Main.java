@@ -1,5 +1,9 @@
 package com.datadoghq.vertx3;
 
+import com.datadoghq.system_tests.iast.infra.LdapServer;
+import com.datadoghq.system_tests.iast.infra.SqlServer;
+import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
+import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import io.vertx.core.Vertx;
@@ -7,19 +11,22 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
+import javax.naming.directory.InitialDirContext;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.LogManager;
+import java.util.stream.Stream;
 
 public class Main {
     static {
         try {
             try (InputStream resourceAsStream = Main.class.getClassLoader().getResourceAsStream("logging.properties")) {
-                LogManager.getLogManager().readConfiguration(
-                        resourceAsStream);
+                LogManager.getLogManager().readConfiguration(resourceAsStream);
             }
         } catch (IOException e) {
             throw new UndeclaredThrowableException(e);
@@ -116,10 +123,17 @@ public class Main {
                     ctx.response().end("ok");
                 });
 
+        iastRouteProviders().forEach(provider -> provider.accept(router));
+
         server.requestHandler(router::accept).listen(7777);
     }
 
+    private static Stream<Consumer<Router>> iastRouteProviders() {
+        return Stream.of(new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), new IastSourceRouteProvider(DATA_SOURCE));
+    }
+
     private static final Map<String, String> METADATA = createMetadata();
+
     private static final Map<String, String> createMetadata() {
         HashMap<String, String> h = new HashMap<>();
         h.put("metadata0", "value0");
@@ -127,4 +141,7 @@ public class Main {
         return h;
     }
 
+    private static final DataSource DATA_SOURCE = new SqlServer().start();
+
+    private static final InitialDirContext LDAP_CONTEXT = new LdapServer().start();
 }

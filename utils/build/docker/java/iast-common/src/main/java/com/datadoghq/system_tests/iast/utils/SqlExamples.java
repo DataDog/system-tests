@@ -1,19 +1,13 @@
-package com.datadoghq.system_tests.springboot.iast.utils;
-
-import org.springframework.stereotype.Component;
+package com.datadoghq.system_tests.iast.utils;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class SqlExamples {
 
     private final DataSource dataSource;
@@ -22,16 +16,22 @@ public class SqlExamples {
         this.dataSource = dataSource;
     }
 
-    public Object insecureSql(final String username, final String password) throws SQLException {
+    public Object insecureSql(final String username, final String password) {
+        return insecureSql(username, password, ((statement, sql) -> statement.executeQuery(sql)));
+    }
+
+    public Object insecureSql(final String username, final String password, final StatementHandler code) {
         try (final Connection con = dataSource.getConnection()) {
             final Statement statement = con.createStatement();
             final String sql = "SELECT * FROM USER WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "'";
-            final ResultSet result = statement.executeQuery(sql);
+            final ResultSet result = code.handle(statement, sql);
             return fetchUsers(result);
+        } catch (final Exception e) {
+            throw new UndeclaredThrowableException(e);
         }
     }
 
-    public Object secureSql(final String username, final String password) throws SQLException {
+    public Object secureSql(final String username, final String password) {
         try (final Connection con = dataSource.getConnection()) {
             final PreparedStatement statement = con.prepareStatement(
                     "SELECT * FROM USER WHERE USERNAME = ? AND PASSWORD = ?");
@@ -39,6 +39,8 @@ public class SqlExamples {
             statement.setString(2, password);
             final ResultSet result = statement.executeQuery();
             return fetchUsers(result);
+        } catch (final Exception e) {
+            throw new UndeclaredThrowableException(e);
         }
     }
 
@@ -51,5 +53,9 @@ public class SqlExamples {
             result.add(user);
         }
         return result;
+    }
+
+    public interface StatementHandler {
+        ResultSet handle(Statement statement, String sql) throws SQLException;
     }
 }
