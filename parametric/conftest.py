@@ -181,7 +181,7 @@ RUN npm install {node_module}
     )
 
 
-def golang_library_factory(env: Dict[str, str]):
+def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
     go_appdir = os.path.join("apps", "golang")
     go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
 
@@ -190,7 +190,7 @@ def golang_library_factory(env: Dict[str, str]):
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
-        container_name="go-test-library",
+        container_name="go-test-library-%s" % container_id,
         container_tag="go118-test-library",
         container_img=f"""
 FROM golang:1.18
@@ -204,10 +204,11 @@ RUN go install
         container_build_dir=go_dir,
         volumes=[(os.path.join(go_dir), "/client"),],
         env=env,
+        port=port,
     )
 
 
-def dotnet_library_factory(env: Dict[str, str]):
+def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
 
@@ -216,7 +217,7 @@ def dotnet_library_factory(env: Dict[str, str]):
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
-        container_name="dotnet-test-client",
+        container_name="dotnet-test-client-%s" % container_id,
         container_tag="dotnet6_0-test-client",
         container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
@@ -230,12 +231,13 @@ WORKDIR "/client/."
         container_build_dir=dotnet_dir,
         volumes=[(os.path.join(dotnet_dir), "/client"),],
         env=env,
+        port=port,
     )
     server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
     return server
 
 
-def java_library_factory(env: Dict[str, str]):
+def java_library_factory(env: Dict[str, str], container_id: str, port: str):
     java_appdir = os.path.join("apps", "java")
     java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
@@ -244,7 +246,7 @@ def java_library_factory(env: Dict[str, str]):
     return APMLibraryTestServer(
         lang="java",
         protocol="grpc",
-        container_name="java-test-client",
+        container_name="java-test-client-%s" % container_id,
         container_tag="java8-test-client",
         container_img=f"""
 FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
@@ -264,17 +266,18 @@ RUN bash build.sh
         container_build_dir=java_dir,
         volumes=[],
         env=env,
+        port=port,
     )
 
 
-def php_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+def php_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
     env = env.copy()
     # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
     return APMLibraryTestServer(
         lang="php",
         protocol="http",
-        container_name="php-test-library",
+        container_name="php-test-library-%s" % container_id,
         container_tag="php-test-library",
         container_img="""
 FROM datadog/dd-trace-ci:php-8.2_buster
@@ -292,10 +295,11 @@ RUN composer install
         container_build_dir=python_dir,
         volumes=[(os.path.join(python_dir, "server.php"), "/client/server.php"),],
         env=env,
+        port=port,
     )
 
 
-def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
+def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     ruby_appdir = os.path.join("apps", "ruby")
     ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
 
@@ -310,7 +314,7 @@ def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     return APMLibraryTestServer(
         lang="ruby",
         protocol="grpc",
-        container_name="ruby-test-client",
+        container_name="ruby-test-client-%s" % container_id,
         container_tag="ruby-test-client",
         container_img=f"""
             FROM ruby:3.2.1-bullseye
@@ -328,6 +332,7 @@ def ruby_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_dir,
         env=env,
+        port=port,
     )
 
 
