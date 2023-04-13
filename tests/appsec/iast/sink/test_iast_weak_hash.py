@@ -29,7 +29,7 @@ class TestIastWeakHash:
     @property
     def expected_location(self):
         if context.library.library == "java":
-            return "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+            return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
         if context.library.library == "nodejs":
             return "iast.js"

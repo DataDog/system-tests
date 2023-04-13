@@ -26,7 +26,7 @@ class TestIastPathTraversal:
     """Verify IAST features"""
 
     EXPECTATIONS = {
-        "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.PathExamples"},
+        "java": {"LOCATION": "com.datadoghq.system_tests.iast.utils.PathExamples"},
         "nodejs": {"LOCATION": "iast.js"},
     }
 
