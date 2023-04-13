@@ -421,7 +421,7 @@ class _TestAgentAPI:
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
-    def wait_for_num_traces(self, num: int, clear: bool = False) -> List[Trace]:
+    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
         """Wait for `num` to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -429,7 +429,7 @@ class _TestAgentAPI:
         Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
-        for i in range(20):
+        for i in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
