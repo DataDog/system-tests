@@ -49,6 +49,7 @@ jobs:
       with:
         python-version: '3.9'
         cache: 'pip' # TODO: Use a lockfile instead of requirements.txt
+        cache-dependency-path: ./parametric/requirements.txt
     - name: Install
       run: pip install wheel && pip install -r requirements.txt
     - name: Run
