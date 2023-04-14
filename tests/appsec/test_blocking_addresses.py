@@ -135,7 +135,7 @@ class Test_BlockingAddresses:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -154,7 +154,7 @@ class Test_Blocking_request_method:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -173,7 +173,7 @@ class Test_Blocking_request_uri:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
@@ -192,7 +192,7 @@ class Test_Blocking_request_path_params:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -211,7 +211,7 @@ class Test_Blocking_request_query:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -230,7 +230,7 @@ class Test_Blocking_request_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -249,7 +249,7 @@ class Test_Blocking_request_cookies:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.headers.body address"""
@@ -268,7 +268,7 @@ class Test_Blocking_request_body:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
@@ -283,7 +283,7 @@ class Test_Blocking_response_status:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
@@ -298,7 +298,7 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implement
+@coverage.not_implemented
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
