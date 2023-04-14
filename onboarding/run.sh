@@ -6,4 +6,4 @@ rm pulumi.log || true
 [[ "$?" == "8" ]] && exit 1
 
 # .:: Destroy infraestructure ::.
-#aws-vault exec sandbox-account-admin -- pulumi destroy --yes -C . -s dev
+aws-vault exec sandbox-account-admin -- pulumi destroy --yes -C . -s dev

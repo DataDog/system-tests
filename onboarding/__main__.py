@@ -91,7 +91,8 @@ def build_local_weblog(ec2_name, weblog_instalations, depends):
         return depends
 
 
-def infraestructure_provision(provision_parser):
+def infraestructure_provision(provision_filter):
+    provision_parser = Provision_parser(provision_filter)
     for ec2_data in provision_parser.ec2_instances_data():
         os_type = ec2_data["os_type"]
         os_distro = ec2_data["os_distro"]
@@ -188,9 +189,9 @@ def infraestructure_provision(provision_parser):
                         weblog_runner = remote_install(
                             connection, "run-weblog_" + ec2_name, weblog_instalations["install"], webapp_build, True
                         )
-                        pulumi.export("privateIp_" + ec2_name, server.private_ip)
+                        pulumi.export("privateIp_" + provision_filter.provision_scenario + "__" + ec2_name, server.private_ip)
 
 
 provision_filter = load_filter()
-provision_parser = Provision_parser(provision_filter)
-infraestructure_provision(provision_parser)
+
+infraestructure_provision(provision_filter)

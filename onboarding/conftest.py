@@ -3,15 +3,68 @@ import pulumi
 import json
 import logging
 
+_docs = {}
+
+def _getParams(key, ip):
+    test_metadata = dict()
+    test_metadata["private_ip"] = ip  
+    #key format example: privateIp_host__amazon-linux-x86__agent-prod__autoinjection-java-dev__lang-variant-OpenJDK11__weblog-test-app-java
+    key=key.replace('privateIp_', '')
+    key_parts = key.split("__")
+    test_metadata["scenario"]=key_parts[0]
+    test_metadata["machine"]=key_parts[1]
+    test_metadata["agent"]=key_parts[2]
+    language_version=key_parts[3].replace('autoinjection-','')
+    language_version_parts = language_version.split("-")
+    test_metadata["language"]=language_version_parts[0]
+    test_metadata["version"]=language_version_parts[1]
+    test_metadata["lang_variant"]=key_parts[4].replace('lang-variant-','')
+    test_metadata["weblog_variant"]=key_parts[5].replace('weblog-','')
+
+    return test_metadata
 
 def pytest_generate_tests(metafunc):
-    testing_machines = []
+    ''' We execute a test for each line of the pulumi export (fo each ip) '''
+    ips = []
     with open("pulumi.output.json", "r") as f:
         obj = json.load(f)
 
         for key, value in obj.items():
-            machine_desc = dict()
-            machine_desc["private_ip"] = value
-            machine_desc["name"] = key
-            testing_machines.append(machine_desc)
-        metafunc.parametrize("machine_desc", testing_machines)
+            ips.append( _getParams(key,value)['private_ip'])
+
+        metafunc.parametrize("ip", ips)
+
+def pytest_json_modifyreport(json_report):
+    print("Updating json report...")
+    allData = []
+    with open("pulumi.output.json", "r") as f:
+        obj = json.load(f)
+        for key, value in obj.items():
+            allData.append(_getParams(key,value))
+    
+    # clean useless and volumetric data
+    del json_report["collectors"]
+        
+    #Add usefull information
+    json_report["metadata"]=allData
+    json_report["docs"] = _docs  
+    
+    #TODO Extract versions
+    json_report["context"]={'library':{'version':''}}
+    
+    #TODO Create and manage skip reason decorators
+    for test in json_report["tests"]:
+        test["skip_reason"]=None
+
+
+def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+         _collect_item_metadata(item)
+         
+# called when each test item is collected and extracts doc info
+def _collect_item_metadata(item):
+
+    _docs[item.nodeid] = item.obj.__doc__
+    _docs[item.parent.nodeid] = item.parent.obj.__doc__
+    if hasattr(item.parent.parent, "obj"):
+        _docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__

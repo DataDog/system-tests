@@ -29,6 +29,8 @@ done
 [[ -z "$AWS_VPC" ]] && echo "--vpc parameter is mandatory." && cat USAGE.md && exit 8
 [[ -z "$AWS_PRIVATE_KEY_PATH" ]] && echo "--private-key-path parameter is mandatory." && cat USAGE.md && exit 8
 [[ -z "$AWS_INSTANCE_TYPE" ]] && echo "--instance-type parameter is mandatory." && cat USAGE.md && exit 8
+[[ -z "$FILTER_PROVISION_SCENARIO" ]] && echo "--filter-provision-scenarioparameter is mandatory." && cat USAGE.md && exit 8
+
 
 SUPPORTED_LANGUAGES="java nodejs dotnet python"
 [[ (! -z "$FILTER_LANGUAGE") && (! $SUPPORTED_LANGUAGES =~ (^|[[:space:]])$FILTER_LANGUAGE($|[[:space:]])) ]] && echo "Bad param --filter-language. Supported languages are: $SUPPORTED_LANGUAGES" && exit 8
@@ -57,7 +59,8 @@ pulumi stack output --json > pulumi.output.json
 # .:: Launch tests ::.
 
 export DD_APP_KEY=$(pulumi config get ddagent:appKey)
-export DD_API_KEY=$(pulumi config get ddagent:apiKey) 
+export DD_API_KEY=$(pulumi config get ddagent:apiKey)
+
 PARENT_DIR=$(dirname $PWD)
-venv/bin/pytest -s -c $PWD/conftest.py tests/test_traces.py --json-report
+venv/bin/pytest -s -c $PWD/conftest.py tests/installation/* --json-report
 ###venv/bin/python -m pytest -s -c $PWD/conftest.py $ARGS
