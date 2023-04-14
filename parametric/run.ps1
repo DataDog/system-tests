@@ -6,6 +6,6 @@ param
 #        not required for the integration/shared tests.
 $env:PARENT_DIR = [System.IO.Path]::GetDirectoryName($pwd)
 $n = $env:PYTEST_N ?? "auto";
-$splits = $env:PYTEST_SPLITS ?? 1;
-$group = $env:PYTEST_GROUP ?? 1;
-python -m pytest -n $n --splits $splits --group $group -c $PWD/conftest.py $ARGS
+
+# TODO: support splits/group when fixed
+python -m pytest -n $n -c $PWD/conftest.py $ARGS
