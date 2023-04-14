@@ -52,8 +52,8 @@ jobs:
       run:
         working-directory: ./parametric
     env:
-      - CLIENTS_ENABLED: ${{ matrix.client.name }}
-      - PYTEST_N: ${{ matrix.client.concurrency }}
+      CLIENTS_ENABLED: ${{ matrix.client.name }}
+      PYTEST_N: ${{ matrix.client.concurrency }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
