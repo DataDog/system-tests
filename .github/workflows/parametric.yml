@@ -51,6 +51,9 @@ jobs:
     defaults:
       run:
         working-directory: ./parametric
+    env:
+      - CLIENTS_ENABLED: ${{ matrix.client.name }}
+      - PYTEST_N: ${{ matrix.client.concurrency }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -66,6 +69,4 @@ jobs:
       if: steps.cache-pip.outputs.cache-hit != 'true'
       run: pip install wheel && pip install -r requirements.txt && pip cache purge
     - name: Run
-      env:
-        - PYTEST_N: ${{ matrix.client.concurrency }}
-      run: CLIENTS_ENABLED=${{ matrix.client.name }} ./run.sh
+      run: ./run.sh
