@@ -31,7 +31,7 @@ class TestIastCommandInjection:
     def expected_location(self):
 
         EXPECTATIONS = {
-            "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"},
+            "java": {"LOCATION": "com.datadoghq.system_tests.iast.utils.CmdExamples"},
             "nodejs": {"LOCATION": "iast.js"},
         }
 

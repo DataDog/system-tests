@@ -29,22 +29,23 @@ class TestIastWeakHash:
     @property
     def expected_location(self):
         if context.library.library == "java":
-            return "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+            return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
         if context.library.library == "nodejs":
             return "iast.js"
 
         if context.library.library == "python":
-            if context.weblog_variant == "uwsgi-poc":
-                if context.library.version < "1.11.1.dev":
+            # temporary hack because dd-trace-py version is net yet increased
+            is_dev_version = "dev" in str(context.library)
+
+            if context.library.version >= "1.12.0" or is_dev_version:
+                return "iast.py"
+            else:
+                # old value: absolute path
+                if context.weblog_variant == "uwsgi-poc":
                     return "/app/./iast.py"
-                return "/./iast.py"
-
-            if context.library.version < "1.11.1.dev":
-                return "/app/iast.py"
-            return "/iast.py"
-
-        return None
+                else:
+                    return "/app/iast.py"
 
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
@@ -66,7 +67,6 @@ class TestIastWeakHash:
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
     @bug(context.weblog_variant == "spring-boot-openliberty")
-    @bug(library="python@1.11.1")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
 

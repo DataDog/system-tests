@@ -16,7 +16,7 @@ if context.library == "cpp":
 class TestIastLDAPInjection:
     """Verify IAST LDAP Injection"""
 
-    EXPECTATIONS = {"java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.LDAPExamples"}}
+    EXPECTATIONS = {"java": {"LOCATION": "com.datadoghq.system_tests.iast.utils.LDAPExamples"}}
 
     def __expected_location(self, vulnerability):
         expected = self.EXPECTATIONS.get(context.library.library)
