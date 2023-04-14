@@ -48,9 +48,13 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
-        cache: 'pip' # TODO: Use a lockfile instead of requirements.txt
-        cache-dependency-path: ./parametric/requirements.txt
+    - uses: actions/cache@v3 # TODO: Use a lockfile instead of requirements.txt
+      id: cache-pip
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ env.pythonLocation }}-pip-${{ hashFiles('parametric/requirements.txt') }}
     - name: Install
+      if: steps.cache-pip.outputs.cache-hit != 'true'
       run: pip install wheel && pip install -r requirements.txt
     - name: Run
       run: CLIENTS_ENABLED=${{ matrix.client }} ./run.sh
