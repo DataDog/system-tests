@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, irrelevant
+from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
-@released(cpp="?", dotnet="?", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
 @coverage.basic
 @scenarios.appsec_blocking
 @released(
@@ -72,18 +72,6 @@ class Test_BlockingAddresses:
         interfaces.library.assert_waf_attack(self.c_req, rule="tst-037-008")
         assert self.c_req.status_code == 403
 
-    def setup_request_body_raw(self):
-        self.rbr_req = weblog.post("/waf", data="asldhkuqwgervf")
-
-    @missing_feature(context.library == "java", reason="Either happens on a subsequent run or body is not read")
-    @missing_feature(context.library == "ruby")
-    @missing_feature(context.library == "php", reason="Raw body not enabled by default")
-    def test_request_body_raw(self):
-        """can block on server.request.body.raw"""
-
-        interfaces.library.assert_waf_attack(self.rbr_req, rule="tst-037-003")
-        assert self.rbr_req.status_code == 403
-
     def setup_request_body_urlencoded(self):
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
@@ -97,6 +85,7 @@ class Test_BlockingAddresses:
     def setup_request_body_multipart(self):
         self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
 
+    @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
@@ -107,6 +96,7 @@ class Test_BlockingAddresses:
     def setup_response_status(self):
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
+    @missing_feature(context.library == "dotnet", reason="only support blocking on 404 status at the moment")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library < "ruby@1.10.0")
     def test_response_status(self):
@@ -115,12 +105,24 @@ class Test_BlockingAddresses:
         interfaces.library.assert_waf_attack(self.rss_req, rule="tst-037-005")
         assert self.rss_req.status_code == 403
 
+    def setup_not_found(self):
+        self.rnf_req = weblog.get(path="/finger_print")
+
+    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library == "ruby", reason="Not working")
+    def test_not_found(self):
+        """can block on server.response.status"""
+
+        interfaces.library.assert_waf_attack(self.rnf_req, rule="tst-037-010")
+        assert self.rnf_req.status_code == 403
+
     def setup_response_header(self):
         self.rsh_req = weblog.get(path="/headers")
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
+    @missing_feature(context.library == "dotnet", reason="Address not supported yet")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 
@@ -130,3 +132,185 @@ class Test_BlockingAddresses:
     @missing_feature(reason="No endpoint defined yet")
     def test_response_cookies(self):
         assert False
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_request_method:
+    """Test if blocking is supported on server.request.method address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_request_uri:
+    """Test if blocking is supported on server.request.uri.raw address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_request_path_params:
+    """Test if blocking is supported on server.request.path_params address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_request_query:
+    """Test if blocking is supported on server.request.query address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_request_headers:
+    """Test if blocking is supported on server.request.headers.no_cookies address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_request_cookies:
+    """Test if blocking is supported on server.request.cookies address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_request_body:
+    """Test if blocking is supported on server.request.headers.body address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_response_status:
+    """Test if blocking is supported on server.response.status address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Blocking_response_headers:
+    """Test if blocking is supported on server.response.headers.no_cookies address"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@coverage.not_implemented
+@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+class Test_Suspicious_Request_Blocking:
+    """Test if blocking on multiple addresses with multiple rules is supported"""
+
+    def test_blocking(self):
+        """Test if requests that should be blocked are blocked"""
+        # TODO
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        # TODO
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # TODO

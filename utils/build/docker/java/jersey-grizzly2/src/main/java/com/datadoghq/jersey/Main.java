@@ -1,9 +1,13 @@
 package com.datadoghq.jersey;
 
+import com.datadoghq.system_tests.iast.infra.LdapServer;
+import com.datadoghq.system_tests.iast.infra.SqlServer;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import javax.naming.directory.InitialDirContext;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -61,5 +65,9 @@ public class Main {
         }
         server.shutdownNow();
     }
+
+    public static final DataSource DATA_SOURCE = new SqlServer().start();
+
+    public static final InitialDirContext LDAP_CONTEXT = new LdapServer().start();
 }
 
