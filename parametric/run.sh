@@ -6,7 +6,9 @@ ARGS=$*
 # FIXME: have to ignore the root conftest as it does a bunch of initialization/teardown
 #        not required for the integration/shared tests.
 PARENT_DIR=$(dirname $PWD)
-PYTEST_N=${PYTEST_N:-auto}
+
+# TODO: default to "auto" when dotnet is fixed
+PYTEST_N=${PYTEST_N:-1}
 
 cmd="python -m pytest -n $PYTEST_N"
 

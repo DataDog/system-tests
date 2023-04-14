@@ -29,15 +29,24 @@ jobs:
     - lints
     strategy:
       matrix:
+        # TODO: remove "concurrency" options when dotnet is fixed
         client:
-        - php
-        - python
-        - python_http
-        - dotnet
-        - golang
-        - java
-        - nodejs
-        - ruby
+        - name: php
+          concurrency: "auto"
+        - name: python
+          concurrency: "auto"
+        - name: python_http
+          concurrency: "auto"
+        - name: dotnet
+          concurrency: "1"
+        - name: golang
+          concurrency: "auto"
+        - name: java
+          concurrency: "auto"
+        - name: nodejs
+          concurrency: "auto"
+        - name: ruby
+          concurrency: "auto"
       fail-fast: false
     defaults:
       run:
@@ -52,9 +61,11 @@ jobs:
       id: cache-pip
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ env.pythonLocation }}-${{ matrix.client }}-pip-${{ hashFiles('parametric/requirements.txt') }}
+        key: ${{ env.pythonLocation }}-${{ matrix.client.name }}-pip-${{ hashFiles('parametric/requirements.txt') }}
     - name: Install
       if: steps.cache-pip.outputs.cache-hit != 'true'
       run: pip install wheel && pip install -r requirements.txt && pip cache purge
     - name: Run
-      run: CLIENTS_ENABLED=${{ matrix.client }} ./run.sh
+      env:
+        - PYTEST_N: ${{ matrix.client.concurrency }}
+      run: CLIENTS_ENABLED=${{ matrix.client.name }} ./run.sh
