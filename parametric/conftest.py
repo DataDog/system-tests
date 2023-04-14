@@ -113,6 +113,7 @@ RUN python3.9 -m pip install %s
         % (python_package,),
         container_cmd="python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_dir,
+        container_build_context=python_dir,
         volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
         env=env,
         port=port,
@@ -137,6 +138,7 @@ RUN python3.9 -m pip install %s
         % (python_package,),
         container_cmd="python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_dir,
+        container_build_context=python_dir,
         volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
         env=env,
         port=port,
@@ -179,9 +181,6 @@ RUN npm install {node_module}
 def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
     go_appdir = os.path.join("apps", "golang")
     go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
-
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
-    go_reldir = os.path.join("parametric", go_appdir).replace("\\", "/")
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
@@ -190,13 +189,14 @@ def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
         container_img=f"""
 FROM golang:1.18
 WORKDIR /client
-COPY {go_reldir}/go.mod /client
-COPY {go_reldir}/go.sum /client
-COPY {go_reldir} /client
+COPY ./go.mod /client
+COPY ./go.sum /client
+COPY . /client
 RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=go_dir,
+        container_build_context=go_dir,
         volumes=[(os.path.join(go_dir), "/client"),],
         env=env,
         port=port,
@@ -206,9 +206,6 @@ RUN go install
 def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     dotnet_appdir = os.path.join("apps", "dotnet")
     dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
-
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
-    dotnet_reldir = os.path.join("parametric", dotnet_appdir).replace("\\", "/")
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
@@ -217,13 +214,14 @@ def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
         container_img=f"""
 FROM mcr.microsoft.com/dotnet/sdk:6.0
 WORKDIR /client
-COPY ["{dotnet_reldir}/ApmTestClient.csproj","{dotnet_reldir}/nuget.config","{dotnet_reldir}/*.nupkg", "./"]
+COPY ["./ApmTestClient.csproj","./nuget.config","./*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY {dotnet_reldir} .
+COPY . .
 WORKDIR "/client/."
 """,
         container_cmd=["dotnet", "run"],
         container_build_dir=dotnet_dir,
+        container_build_context=dotnet_dir,
         volumes=[(os.path.join(dotnet_dir), "/client"),],
         env=env,
         port=port,
@@ -300,8 +298,6 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
 
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
 
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
-    ruby_reldir = os.path.join("parametric", ruby_appdir).replace("\\", "/")
     shutil.copyfile(
         os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
         os.path.join(ruby_appdir, "apm_test_client.proto"),
@@ -315,17 +311,18 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
             FROM ruby:3.2.1-bullseye
             WORKDIR /client
             RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
-            COPY {ruby_reldir}/Gemfile /client/
-            COPY {ruby_reldir}/install_dependencies.sh /client/
+            COPY ./Gemfile /client/
+            COPY ./install_dependencies.sh /client/
             ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
             RUN bash install_dependencies.sh # Cache dependencies before copying application code
-            COPY {ruby_reldir}/apm_test_client.proto /client/
-            COPY {ruby_reldir}/generate_proto.sh /client/
+            COPY ./apm_test_client.proto /client/
+            COPY ./generate_proto.sh /client/
             RUN bash generate_proto.sh
-            COPY {ruby_reldir}/server.rb /client/
+            COPY ./server.rb /client/
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_dir,
+        container_build_context=ruby_dir,
         env=env,
         port=port,
     )
