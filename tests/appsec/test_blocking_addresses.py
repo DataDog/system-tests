@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, irrelevant, missing_feature, released, scenarios, weblog
+from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
 @released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
@@ -300,8 +300,8 @@ class Test_Blocking_response_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implement
 @released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
-class Test_Blocking:
-    """Test if blocking on multiple addresses is supported"""
+class Test_Suspicious_Request_Blocking:
+    """Test if blocking on multiple addresses with multiple rules is supported"""
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
