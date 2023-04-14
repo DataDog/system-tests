@@ -29,14 +29,14 @@ jobs:
     - lints
     strategy:
       matrix:
-        # TODO: remove "concurrency" options when dotnet is fixed
+        # TODO: remove "concurrency" options when dotnet/python are fixed
         client:
         - name: php
           concurrency: "auto"
         - name: python
           concurrency: "auto"
         - name: python_http
-          concurrency: "auto"
+          concurrency: "1"
         - name: dotnet
           concurrency: "1"
         - name: golang
