@@ -5,7 +5,7 @@
   },
   "exclusions": [
     {
-      "id": 1,
+      "id": "1",
       "rules_target": [
         {
           "tags": {
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "id": 2,
+      "id": "2",
       "rules_target": [
         {
           "rule_id": "easy-to-match-rule-bbbb",
