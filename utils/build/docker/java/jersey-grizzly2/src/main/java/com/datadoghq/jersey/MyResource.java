@@ -1,12 +1,6 @@
 package com.datadoghq.jersey;
 
-import com.datadoghq.system_tests.springboot.iast.utils.CmdExamples;
-import com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples;
-import com.datadoghq.system_tests.springboot.iast.utils.LDAPExamples;
-import com.datadoghq.system_tests.springboot.iast.utils.PathExamples;
-import com.datadoghq.system_tests.springboot.iast.utils.SqlExamples;
-import com.datadoghq.system_tests.springboot.iast.utils.TestBean;
-import io.opentracing.Scope;
+import com.datadoghq.system_tests.iast.utils.*;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import jakarta.json.JsonValue;
@@ -22,9 +16,6 @@ import jakarta.xml.bind.annotation.XmlValue;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -37,11 +28,20 @@ import javax.naming.NamingException;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Cookie;
 
+import static com.datadoghq.jersey.Main.DATA_SOURCE;
+import static com.datadoghq.jersey.Main.LDAP_CONTEXT;
+
 
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
     String superSecretAccessKey = "insecure";
+
+    private final CryptoExamples crypto = new CryptoExamples();
+    private final SqlExamples sql = new SqlExamples(DATA_SOURCE) ;
+    private final LDAPExamples ldap = new LDAPExamples(LDAP_CONTEXT);
+    private final CmdExamples cmd = new CmdExamples();
+    private final PathExamples path = new PathExamples();
 
     @GET
     public String hello() {
@@ -200,13 +200,13 @@ public class MyResource {
     @GET
     @Path("/iast/insecure_hashing/deduplicate")
     public String removeDuplicates() throws NoSuchAlgorithmException {
-        return CryptoExamples.getSingleton().removeDuplicates(superSecretAccessKey);
+        return crypto.removeDuplicates(superSecretAccessKey);
     }
 
     @GET
     @Path("/iast/insecure_hashing/multiple_hash")
     public String multipleInsecureHash() throws NoSuchAlgorithmException {
-        return CryptoExamples.getSingleton().multipleInsecureHash(superSecretAccessKey);
+        return crypto.multipleInsecureHash(superSecretAccessKey);
     }
 
     @GET
@@ -216,7 +216,7 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().secureHashing(superSecretAccessKey);
+        return crypto.secureHashing(superSecretAccessKey);
     }
 
     @GET
@@ -226,7 +226,7 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().insecureMd5Hashing(superSecretAccessKey);
+        return crypto.insecureMd5Hashing(superSecretAccessKey);
     }
 
     @GET
@@ -237,7 +237,7 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().secureCipher(superSecretAccessKey);
+        return crypto.secureCipher(superSecretAccessKey);
     }
 
     @GET
@@ -248,27 +248,27 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return CryptoExamples.getSingleton().insecureCipher(superSecretAccessKey);
+        return crypto.insecureCipher(superSecretAccessKey);
     }
 
     @POST
     @Path("/iast/sqli/test_insecure")
-    public Object insecureSql(@FormParam("username") String username, @FormParam("password") String password) throws SQLException {
+    public Object insecureSql(@FormParam("username") String username, @FormParam("password") String password) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return SqlExamples.insecureSql(username, password);
+        return sql.insecureSql(username, password);
     }
 
     @POST
     @Path("/iast/sqli/test_secure")
-    public Object secureSql(@FormParam("username") String username, @FormParam("password") String password) throws SQLException {
+    public Object secureSql(@FormParam("username") String username, @FormParam("password") String password) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return SqlExamples.secureSql(username, password);
+        return sql.secureSql(username, password);
     }
 
     @POST
@@ -278,7 +278,7 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return new CmdExamples().insecureCmd(cmd);
+        return this.cmd.insecureCmd(cmd);
     }
 
     @POST
@@ -288,7 +288,7 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return  new LDAPExamples().injection(username, password);
+        return ldap.injection(username, password);
     }
 
     @POST
@@ -298,7 +298,7 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return new LDAPExamples().secure();
+        return ldap.secure();
     }
 
     @POST
@@ -308,57 +308,45 @@ public class MyResource {
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        return new PathExamples().insecurePathTraversal(path);
+        return this.path.insecurePathTraversal(path);
     }
 
     @POST
     @Path("/iast/source/parameter/test")
-    public String sourceParameter(@FormParam("source") final String source) throws SQLException {
+    public String sourceParameter(@FormParam("source") final String source) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        try (final Connection con = SqlExamples.initDBAndGetConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USERS WHERE USERNAME = '" + source + "' AND PASSWORD = '" + source + "'";
-            statement.executeQuery(sql);
-        }
+        sql.insecureSql(source, source, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Parameters => source: %s", source);
     }
 
     @GET
     @Path("/iast/source/header/test")
-    public String sourceHeaders(@HeaderParam("random-key") String header) throws SQLException {
+    public String sourceHeaders(@HeaderParam("random-key") String header) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        try (final Connection con = SqlExamples.initDBAndGetConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USERS WHERE USERNAME = '" + header + "' AND PASSWORD = '" + header + "'";
-            statement.executeQuery(sql);
-        }
+        sql.insecureSql(header, header, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Headers => %s", header);
     }
 
     @GET
     @Path("/iast/source/cookievalue/test")
-    public String sourceCookieValue(@CookieParam("cookie-source-name") final String value) throws SQLException {
+    public String sourceCookieValue(@CookieParam("cookie-source-name") final String value) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
         }
-        try (final Connection con = SqlExamples.initDBAndGetConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USERS WHERE USERNAME = '" + value + "' AND PASSWORD = '" + value + "'";
-            statement.executeQuery(sql);
-        }
+        sql.insecureSql(value, value, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Cookies => %s", value);
     }
 
     @GET
     @Path("/iast/source/cookiename/test")
-    public String sourceCookieName(@Context final HttpHeaders headers) throws SQLException {
+    public String sourceCookieName(@Context final HttpHeaders headers) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
@@ -366,11 +354,7 @@ public class MyResource {
         Map<String, Cookie> cookies = headers.getCookies();
         for (Cookie cookie : cookies.values()) {
             String name = cookie.getName();
-            try (final Connection con = SqlExamples.initDBAndGetConnection()) {
-                final Statement statement = con.createStatement();
-                final String sql = "SELECT * FROM USERS WHERE USERNAME = '" + name + "' AND PASSWORD = '" + name + "'";
-                statement.executeQuery(sql);
-            }
+            sql.insecureSql(name, name, (statement, sql) -> statement.executeQuery(sql));
             break;
         }
         return String.format("Request Cookies => %s", cookies);
@@ -378,7 +362,7 @@ public class MyResource {
 
     @POST
     @Path("/iast/source/body/test")
-    public String sourceBody(TestBean testBean) throws SQLException {
+    public String sourceBody(TestBean testBean) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span != null) {
             span.setTag("appsec.event", true);
@@ -386,11 +370,7 @@ public class MyResource {
         System.out.println("Inside body test testbean: " + testBean);
         String name = testBean.getName();
         String value = testBean.getValue();
-        try (final Connection con = SqlExamples.initDBAndGetConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USERS WHERE USERNAME = '" + name + "' AND PASSWORD = '" + value + "'";
-            statement.executeQuery(sql);
-        }
+        sql.insecureSql(name, value, (statement, sql) -> statement.executeQuery(sql));
         return String.format("@RequestBody to Test bean -> name: %s, value:%", name, value);
     }
 }

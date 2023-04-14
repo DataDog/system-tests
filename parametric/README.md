@@ -145,10 +145,12 @@ To test unmerged PRs locally, do the following:
 ```bash
 git clone git@github.com:DataDog/dd-trace-java.git 
 cd dd-trace-java
-./gradlew :dd-trace-ot:shadowar :dd-trace-api:jar
+./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar
 ```
 
-2. Copy both artifacts `dd-trace-api-*.jar` and `dd-trace-ot-*.jar` into the `system-tests/binaries/` folder.
+2. Copy both artifacts into the `system-tests/binaries/` folder:
+  * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
+  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into 
 
 3. Run Parametric tests from the `system-tests/parametric` folder:
 
@@ -206,6 +208,7 @@ further.
 ## Troubleshooting
 
 - Ensure docker is running.
+- Ensure you do not have a datadog agent running outside the tests (`ps aux | grep 'datadog'` can help you check this).
 - Exiting the tests abruptly maybe leave some docker containers running. Use `docker ps` to find and `docker kill` any
   containers that may still be running.
 

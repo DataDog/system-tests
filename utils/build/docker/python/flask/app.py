@@ -211,4 +211,27 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 @app.route("/custom_event")
 def track_custom_event():
     appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+
+
+@app.route("/iast/sqli/test_secure", methods=["POST"])
+def view_sqli_secure():
+    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql, flask_request.form["username"], flask_request.form["password"])
+    return Response("OK")
+
+
+@app.route("/iast/sqli/test_insecure", methods=["POST"])
+def view_sqli_insecure():
+    sql = (
+        "SELECT * FROM IAST_USER WHERE USERNAME = '"
+        + flask_request.form["username"]
+        + "' AND PASSWORD = '"
+        + flask_request.form["password"]
+        + "'"
+    )
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql)
     return Response("OK")

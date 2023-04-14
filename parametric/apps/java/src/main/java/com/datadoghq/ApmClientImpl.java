@@ -19,14 +19,15 @@ import static com.datadoghq.client.ApmTestClient.SpanSetMetricArgs;
 import static com.datadoghq.client.ApmTestClient.SpanSetMetricReturn;
 import static com.datadoghq.client.ApmTestClient.StartSpanArgs;
 import static com.datadoghq.client.ApmTestClient.StartSpanReturn;
-//import static com.datadoghq.client.ApmTestClient.StopTracerArgs;
-//import static com.datadoghq.client.ApmTestClient.StopTracerReturn;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 
 import com.datadoghq.client.APMClientGrpc;
+import com.datadoghq.client.ApmTestClient;
+import com.datadoghq.client.ApmTestClient.StopTracerReturn;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTags;
 import datadog.trace.api.DDTraceId;
+import datadog.trace.api.GlobalTracer;
 import datadog.trace.api.internal.InternalTracer;
 import io.grpc.stub.StreamObserver;
 import io.opentracing.Span;
@@ -44,11 +45,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
-    private final Tracer tracer;
+    private final datadog.trace.api.Tracer ddTracer;
+    private final Tracer otTracer;
     private final Map<Long, Span> spans;
 
-    public ApmClientImpl(Tracer tracer) {
-        this.tracer = tracer;
+    public ApmClientImpl() {
+        this.ddTracer = GlobalTracer.get();
+        this.otTracer = io.opentracing.util.GlobalTracer.get();
         this.spans = new HashMap<>();
     }
 
@@ -57,7 +60,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
         LOGGER.info("Creating span: " + request.toString());
         try {
             // Build span from request
-            Tracer.SpanBuilder builder = this.tracer.buildSpan(request.getName());
+            Tracer.SpanBuilder builder = this.otTracer.buildSpan(request.getName());
             if (request.hasService()) {
                 builder.withTag(DDTags.SERVICE_NAME, request.getService());
             }
@@ -81,7 +84,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
             // Extract headers from request to add them to span.
             DistributedHTTPHeaders httpHeaders = request.hasHttpHeaders() ? request.getHttpHeaders() : null;
             if (httpHeaders != null && httpHeaders.getHttpHeadersCount() > 0) {
-                SpanContext context = tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(httpHeaders));
+                SpanContext context = this.otTracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(httpHeaders));
                 builder.asChildOf(context);
             }
             Span span = builder.start();
@@ -111,7 +114,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
                 // Get context from span and inject it to carrier
                 SpanContext context = span.context();
                 TextMapAdapter carrier = TextMapAdapter.empty();
-                this.tracer.inject(context, TEXT_MAP, carrier);
+                this.otTracer.inject(context, TEXT_MAP, carrier);
                 // Copy carrier content to protobuf response
                 DistributedHTTPHeaders.Builder headerBuilder = DistributedHTTPHeaders.newBuilder();
                 for (Map.Entry<String, String> header : carrier) {
@@ -210,7 +213,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     public void flushSpans(FlushSpansArgs request, StreamObserver<FlushSpansReturn> responseObserver) {
         LOGGER.info("Flushing span: " + request.toString());
         try {
-            ((InternalTracer) this.tracer).flush();
+            ((InternalTracer) this.ddTracer).flush();
             this.spans.clear();
             responseObserver.onNext(FlushSpansReturn.newBuilder().build());
             responseObserver.onCompleted();
@@ -224,7 +227,7 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
     public void flushTraceStats(FlushTraceStatsArgs request, StreamObserver<FlushTraceStatsReturn> responseObserver) {
         LOGGER.info("Flushing trace stats: " + request.toString());
         try {
-            ((InternalTracer) this.tracer).flushMetrics();
+            ((InternalTracer) this.ddTracer).flushMetrics();
             responseObserver.onNext(FlushTraceStatsReturn.newBuilder().build());
             responseObserver.onCompleted();
         } catch (Throwable t) {
@@ -233,12 +236,12 @@ public class ApmClientImpl extends APMClientGrpc.APMClientImplBase {
         }
     }
 
-//    @Override
-//    public void stopTracer(StopTracerArgs request, StreamObserver<StopTracerReturn> responseObserver) {
-//        this.tracer.close();
-//        responseObserver.onNext(StopTracerReturn.newBuilder().build());
-//        responseObserver.onCompleted();
-//    }
+    @Override
+    public void stopTracer(ApmTestClient.StopTracerArgs request, StreamObserver<StopTracerReturn> responseObserver) {
+        this.otTracer.close(); // Closing OT tracer also close internal DD tracer
+        responseObserver.onNext(StopTracerReturn.newBuilder().build());
+        responseObserver.onCompleted();
+    }
 
     private Span getSpan(long spanId, StreamObserver<?> responseObserver) {
         Span span = this.spans.get(spanId);

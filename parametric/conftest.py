@@ -232,8 +232,11 @@ def java_library_factory(env: Dict[str, str]):
         container_name="java-test-client",
         container_tag="java8-test-client",
         container_img=f"""
+FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
 FROM maven:3-jdk-8
 WORKDIR /client
+COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
+COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
@@ -418,7 +421,7 @@ class _TestAgentAPI:
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
-    def wait_for_num_traces(self, num: int, clear: bool = False) -> List[Trace]:
+    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
         """Wait for `num` to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -426,7 +429,7 @@ class _TestAgentAPI:
         Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
-        for i in range(20):
+        for i in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
