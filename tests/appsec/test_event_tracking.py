@@ -87,7 +87,6 @@ class Test_UserLoginFailureEvent:
         interfaces.library.validate_spans(self.r, validate_user_login_failure_tags)
 
 
-
 @released(dotnet="2.27.0", golang="1.47.0", java="1.8.0", nodejs="?", php_appsec="0.6.0", python="1.10.0", ruby="1.9.0")
 @irrelevant(_is_spring_native_weblog, reason="GraalVM. Tracing support only")
 @coverage.basic
