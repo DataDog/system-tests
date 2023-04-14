@@ -110,7 +110,9 @@ class RemoteConfigurationFieldsBasicTests:
             client = data["request"]["content"]["client"]
             client_tracer = client["client_tracer"]
 
-            assert "is_agent" not in client, "'client.is_agent' MUST either NOT be set or set to false"
+            assert (
+                "is_agent" not in client or client["is_agent"] == False
+            ), "'client.is_agent' MUST either NOT be set or set to false"
             assert "client_agent" not in client, "'client.client_agent' must NOT be set"
             assert (
                 client["id"] != client_tracer["runtime_id"]
@@ -122,27 +124,29 @@ class RemoteConfigurationFieldsBasicTests:
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
+    expected_client_state = expected["client"]["state"]
 
     try:
         # verify that the tracer properly updated the TUF targets version,
         # if it's not included we assume it to be 0 in the agent.
         # Our test suite will always emit SOMETHING for this
-        expected_targets_version = expected["client"]["state"]["targets_version"]
+        expected_targets_version = expected_client_state.get("targets_version")
         targets_version = client_state.get("targets_version", 0)
         assert (
             targets_version == expected_targets_version
         ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
 
         # verify that the tracer is properly storing and reporting on its config state
-        expected_config_states = client_state.get("config_states")
+        expected_config_states = expected_client_state.get("config_states")
         config_states = client_state.get("config_states")
-        if expected_config_states is None and config_states is not None:
+
+        if expected_config_states is None and (config_states is not None and len(config_states) > 0):
             raise Exception("client is not expected to have stored config but is reporting stored configs")
 
         if expected_config_states is not None and config_states is None:
             raise Exception("client is expected to have stored confis but isn't reporting any")
 
-        if config_states is not None:
+        if config_states is not None and expected_config_states is not None:
             assert len(config_states) == len(
                 expected_config_states
             ), "client reporting more or less configs than expected"
