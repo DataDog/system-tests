@@ -52,9 +52,9 @@ jobs:
       id: cache-pip
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ matrix.client }}-${{ env.pythonLocation }}-pip-${{ hashFiles('parametric/requirements.txt') }}
+        key: ${{ env.pythonLocation }}-${{ matrix.client }}-pip-${{ hashFiles('parametric/requirements.txt') }}
     - name: Install
       if: steps.cache-pip.outputs.cache-hit != 'true'
-      run: pip install wheel && pip install -r requirements.txt
+      run: pip install wheel && pip install -r requirements.txt && pip cache purge
     - name: Run
       run: CLIENTS_ENABLED=${{ matrix.client }} ./run.sh
