@@ -52,7 +52,7 @@ jobs:
       id: cache-pip
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ env.pythonLocation }}-pip-${{ hashFiles('parametric/requirements.txt') }}
+        key: ${{ matrix.client }}-${{ env.pythonLocation }}-pip-${{ hashFiles('parametric/requirements.txt') }}
     - name: Install
       if: steps.cache-pip.outputs.cache-hit != 'true'
       run: pip install wheel && pip install -r requirements.txt
