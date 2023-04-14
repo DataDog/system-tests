@@ -5,6 +5,14 @@ from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
+def is_v2_payload(data):
+    return data["request"]["content"].get("api_version") == "v2"
+
+
+def is_v1_payload(data):
+    return data["request"]["content"].get("api_version") == "v1"
+
+
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @bug(
@@ -390,6 +398,24 @@ class Test_Telemetry:
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
         self.validate_library_telemetry_data(validator)
+
+    @released(cpp="?", dotnet="?", golang="?", java="?", python="?", nodejs="?", php="?", ruby="1.4.0")
+    def test_api_upgraded_to_v2(self):
+        """Test that the telemetry api is upgraded to v2"""
+
+        def validator(data):
+            assert is_v2_payload(data)
+
+        self.validate_library_telemetry_data(validator=validator, success_by_default=True)
+
+    @irrelevant(library="ruby")
+    def test_api_still_v1(self):
+        """Test that the telemetry api is still at version v1"""
+
+        def validator(data):
+            assert is_v1_payload(data)
+
+        self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
     @irrelevant(library="cpp")
     @missing_feature(
