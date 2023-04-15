@@ -31,29 +31,20 @@ jobs:
       matrix:
         # TODO: remove "concurrency" options when dotnet/python are fixed
         client:
-        - name: php
-          concurrency: "auto"
-        - name: python
-          concurrency: "auto"
-        - name: python_http
-          concurrency: "1"
-        - name: dotnet
-          concurrency: "1"
-        - name: golang
-          concurrency: "auto"
-        - name: java
-          concurrency: "auto"
-        - name: nodejs
-          concurrency: "auto"
-        - name: ruby
-          concurrency: "auto"
+        - php
+        - python
+        - python_http
+        - dotnet
+        - golang
+        - java
+        - nodejs
+        - ruby
       fail-fast: false
     defaults:
       run:
         working-directory: ./parametric
     env:
-      CLIENTS_ENABLED: ${{ matrix.client.name }}
-      PYTEST_N: ${{ matrix.client.concurrency }}
+      CLIENTS_ENABLED: ${{ matrix.client }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -64,7 +55,7 @@ jobs:
       id: cache-pip
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ env.pythonLocation }}-${{ matrix.client.name }}-pip-${{ hashFiles('parametric/requirements.txt') }}
+        key: ${{ env.pythonLocation }}-${{ matrix.client }}-pip-${{ hashFiles('parametric/requirements.txt') }}
     - name: Install
       if: steps.cache-pip.outputs.cache-hit != 'true'
       run: pip install wheel && pip install -r requirements.txt && pip cache purge
