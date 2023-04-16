@@ -174,7 +174,7 @@ def pytest_collection_finish(session):
 
         if last_file != item.location[0]:
             if len(last_file) == 0:
-                terminal.write_sep("-", "Tests setup", bold=True)
+                terminal.write_sep("-", "tests setup", bold=True)
 
             terminal.write(f"\n{item.location[0]} ")
             last_file = item.location[0]

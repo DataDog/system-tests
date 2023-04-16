@@ -5,6 +5,8 @@ import shutil
 import time
 
 import pytest
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 from utils._context.containers import TestedContainer, WeblogContainer, AgentContainer, create_network
 from utils._context.library_version import LibraryVersion
@@ -21,8 +23,7 @@ class _Scenario:
             global current_scenario
             current_scenario = self
 
-            shutil.rmtree(self.host_log_folder, ignore_errors=True)
-            Path(self.host_log_folder).mkdir(parents=True)
+            self.create_log_subfolder("")
 
             handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
             handler.setFormatter(get_log_formatter())
@@ -30,6 +31,12 @@ class _Scenario:
             logger.addHandler(handler)
 
             update_environ_with_local_env()
+
+    def create_log_subfolder(self, subfolder):
+        path = os.path.join(self.host_log_folder, subfolder)
+
+        shutil.rmtree(path, ignore_errors=True)
+        Path(path).mkdir(parents=True)
 
     @property
     def is_current_scenario(self):
@@ -174,7 +181,8 @@ class EndToEndScenario(_Scenario):
                         },
                         "./utils/": {"bind": "/app/utils/", "mode": "ro"},
                     },
-                    command="python utils/proxy/core_next.py",
+                    ports={"11111/tcp": ("127.0.0.1", 11111)},
+                    command="python utils/proxy/core.py",
                 )
             )
 
@@ -280,9 +288,6 @@ class EndToEndScenario(_Scenario):
     def session_start(self, session):
         super().session_start(session)
 
-        for interface in ("agent", "library", "backend"):
-            Path(f"{self.host_log_folder}/interfaces/{interface}").mkdir(parents=True, exist_ok=True)
-
         # called at the very begning of the process
         terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
@@ -290,7 +295,7 @@ class EndToEndScenario(_Scenario):
             logger.info(info)
             terminal.write_line(info)
 
-        terminal.write_sep("=", "Test context", bold=True)
+        terminal.write_sep("=", "test context", bold=True)
         print_info(f"Scenario: {self.name}")
         print_info(f"Logs folder: ./{self.host_log_folder}")
         print_info(f"Library: {self.library}")
@@ -310,18 +315,45 @@ class EndToEndScenario(_Scenario):
         print_info(f"Weblog variant: {self.weblog_container.weblog_variant}")
         print_info(f"Backend: {self.agent_container.dd_site}")
 
+    def _create_interface_folders(self):
+        for interface in ("agent", "library", "backend"):
+            self.create_log_subfolder(f"interfaces/{interface}")
+
+    def _start_interface_watchdog(self):
+        from utils import interfaces
+
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def on_modified(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+        observer = Observer()
+        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library", recursive=True)
+        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent", recursive=True)
+
+        observer.start()
+
     def _get_warmups(self):
 
-        warmups = [create_network]
+        containers = self._required_containers + [self.agent_container, self.weblog_container]
 
-        for container in self._required_containers:
+        warmups = []
+
+        for container in containers:
+            warmups.append(container.stop_previous_container)
+
+        warmups += [self._create_interface_folders, create_network, self._start_interface_watchdog]
+
+        for container in containers:
             warmups.append(container.start)
 
-        warmups += [
-            self.agent_container.start,
-            self.weblog_container.start,
-            self._wait_for_app_readiness,
-        ]
+        warmups.append(self._wait_for_app_readiness)
 
         return warmups
 

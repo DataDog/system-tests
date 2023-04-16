@@ -6,6 +6,7 @@ pytest-json-report==1.5.0
 black==19.10b0  # TODO : move to 22.8.0
 python-dateutil==2.8.2
 msgpack==1.0.4
+watchdog==3.0.0
 
 # we'd like to update protobuf and grpcio-tools to those version, but a bug in protobuf 4.x need to be solved before
 # https://github.com/protocolbuffers/protobuf/issues/11863

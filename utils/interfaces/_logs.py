@@ -24,6 +24,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         self._new_log_line_pattern = re.compile(r".")
         self._parsers = []
         self.timeout = 0
+        self._data_list = []
 
     def _get_files(self):
         raise NotImplementedError()

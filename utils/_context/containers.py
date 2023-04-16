@@ -89,6 +89,14 @@ class TestedContainer:
                 logger.debug(f"Container {self.container_name} found")
                 return container
 
+    def stop_previous_container(self):
+        if self.allow_old_container:
+            return
+
+        if old_container := self.get_existing_container():
+            logger.debug(f"Kill old container {self.container_name}")
+            old_container.remove(force=True)
+
     def start(self) -> Container:
         if old_container := self.get_existing_container():
             if self.allow_old_container:
@@ -96,8 +104,7 @@ class TestedContainer:
                 logger.debug(f"Use old container {self.container_name}")
                 return
 
-            logger.debug(f"Kill old container {self.container_name}")
-            old_container.remove(force=True)
+            raise ValueError("Old container still exists")
 
         self._fix_host_pwd_in_volumes()
 

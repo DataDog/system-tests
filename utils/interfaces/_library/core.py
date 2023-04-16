@@ -36,9 +36,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready = threading.Event()
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
-    def append_data(self, data):
+    def ingest_file(self, src_path):
         self.ready.set()
-        return super().append_data(data)
+        return super().ingest_file(src_path)
 
     ############################################################
     def get_traces(self, request=None):
