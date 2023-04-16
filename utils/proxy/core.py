@@ -169,7 +169,12 @@ class _RequestLogger:
 
             data["log_filename"] = log_filename
 
-            with open(log_filename, "w", encoding="utf-8") as f:
+            os.umask(0)
+
+            def opener(path, flags):
+                return os.open(path, flags, 0o777)
+
+            with open(log_filename, "w", encoding="utf-8", opener=opener) as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
         except:
