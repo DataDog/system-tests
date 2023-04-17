@@ -1,4 +1,5 @@
 from logging import FileHandler
+import json
 import os
 from pathlib import Path
 import shutil
@@ -171,7 +172,7 @@ class EndToEndScenario(_Scenario):
                         "DD_SITE": os.environ.get("DD_SITE"),
                         "DD_API_KEY": os.environ.get("DD_API_KEY"),
                         "HOST_LOG_FOLDER": self.host_log_folder,
-                        "PROXY_STATE": self.proxy_state,
+                        "PROXY_STATE": json.dumps(self.proxy_state or {}),
                     },
                     working_dir="/app",
                     volumes={

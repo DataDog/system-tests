@@ -9,6 +9,8 @@ from mitmproxy import master, options
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError
 
+# prevent permission issues on file created by the proxy when the host is linux
+os.umask(0)
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()
@@ -168,8 +170,6 @@ class _RequestLogger:
             logger.info(f"    => Saving data as {log_filename}")
 
             data["log_filename"] = log_filename
-
-            os.umask(0)
 
             def opener(path, flags):
                 return os.open(path, flags, 0o777)
