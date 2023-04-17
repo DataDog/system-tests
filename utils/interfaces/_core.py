@@ -55,8 +55,9 @@ class InterfaceValidator:
             with open(src_path, "r", encoding="utf-8") as f:
                 try:
                     data = json.load(f)
-                except Exception as e:
-                    raise Exception(src_path) from e
+                except json.decoder.JSONDecodeError:
+                    # the file may not be finished
+                    return
 
             deserialize(data, self.name)
 
