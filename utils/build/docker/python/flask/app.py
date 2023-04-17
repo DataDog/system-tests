@@ -53,10 +53,11 @@ VALUE_STORED = ""
 
 
 @app.route("/set_value/<string:value>", methods=["GET", "POST", "OPTIONS"])
-def set_value(value):
+@app.route("/set_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
+def set_value(value, code=200):
     global VALUE_STORED
     VALUE_STORED = value
-    return "Value set"
+    return "Value set", code, flask_request.args
 
 
 @app.route("/get_value", methods=["GET", "POST", "OPTIONS"])

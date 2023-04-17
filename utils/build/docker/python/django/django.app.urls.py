@@ -31,6 +31,7 @@ def sample_rate(request, i):
     return HttpResponse("OK")
 
 
+@csrf_exempt
 def waf(request, *args, **kwargs):
     return HttpResponse("Hello, World!")
 
@@ -189,10 +190,17 @@ def track_custom_event(request):
 VALUE_STORED = ""
 
 
-def set_value(request, value):
+@csrf_exempt
+def set_value(request, value, code=200):
+    """set_value entry point.
+    First parameter after the /set_value/ is used to set internal value
+    Second optional parameter is to set status response code
+    Any query parameter is used to set header reponse
+    """
+
     global VALUE_STORED
     VALUE_STORED = value
-    return HttpResponse("Value set")
+    return HttpResponse("Value set", status=code, headers=request.GET.dict())
 
 
 def get_value(request):
@@ -224,5 +232,6 @@ urlpatterns = [
     path("user_login_failure_event", track_user_login_failure_event),
     path("custom_event", track_custom_event),
     path("set_value/<str:value>", set_value),
+    path("set_value/<str:value>/<int:code>", set_value),
     path("get_value", get_value),
 ]
