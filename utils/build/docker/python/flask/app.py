@@ -19,11 +19,7 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres",
-    port="5433",
-    user="system_tests_user",
-    password="system_tests",
-    dbname="system_tests",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
 )
 
 app = Flask(__name__)
@@ -220,10 +216,7 @@ def track_user_login_success_event():
 @app.route("/user_login_failure_event")
 def track_user_login_failure_event():
     appsec_trace_utils.track_user_login_failure_event(
-        tracer,
-        user_id=_TRACK_USER,
-        exists=True,
-        metadata=_TRACK_METADATA,
+        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
     )
     return Response("OK")
 
