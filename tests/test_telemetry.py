@@ -399,7 +399,7 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @released(cpp="?", dotnet="?", golang="?", java="?", python="?", nodejs="?", php="?", ruby="1.4.0")
+    @released(cpp="?", dotnet="?", golang="1.49.1", java="?", python="?", nodejs="?", php="?", ruby="1.11")
     def test_api_upgraded_to_v2(self):
         """Test that the telemetry api is upgraded to v2"""
 
@@ -409,6 +409,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
     @irrelevant(library="ruby")
+    @irrelevant(library="golang")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1"""
 
