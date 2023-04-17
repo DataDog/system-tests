@@ -8,7 +8,7 @@ import threading
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
-from utils.interfaces._library._utils import get_trace_request_path
+from utils.interfaces._library._utils import get_trace_request_path, split_telemetry_message_batch
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.appsec_iast import _AppSecIastValidator
 from utils.interfaces._library.appsec_iast import _AppSecIastSourceValidator
@@ -141,8 +141,11 @@ class LibraryInterfaceValidator(InterfaceValidator):
                 appsec_iast_data = json.loads(span["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
                 yield data, span, appsec_iast_data
 
-    def get_telemetry_data(self):
-        yield from self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry")
+    def get_telemetry_data(self, split_message_batch=False):
+        for data in self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry"):
+            if split_message_batch:
+                yield from split_telemetry_message_batch(data)
+            yield data
 
     ############################################################
 

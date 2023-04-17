@@ -4,6 +4,24 @@ from utils import context, interfaces, missing_feature, bug, released, flaky, ir
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
+INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
+AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
+
+
+def get_header(data, origin, name):
+    for h in data[origin]["headers"]:
+        if h[0].lower() == name:
+            return h[1]
+    return None
+
+
+def get_request_type(data):
+    return data["request"]["content"].get("request_type")
+
+
+def not_onboarding_event(data):
+    return get_request_type(data) != "apm-onboarding-event"
+
 
 def is_v2_payload(data):
     return data["request"]["content"].get("api_version") == "v2"
@@ -30,14 +48,11 @@ class Test_Telemetry:
     library_requests = {}
     agent_requests = {}
 
-    app_started_count = 0
+    def validate_library_telemetry_data(self, validator, success_by_default=False, split_message_batch=False):
+        telemetry_data = list(interfaces.library.get_telemetry_data(split_message_batch))
 
-    def validate_library_telemetry_data(self, validator, success_by_default=False):
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-
-        if len(telemetry_data) == 0:
-            if not success_by_default:
-                raise Exception("No telemetry data to validate on")
+        if len(telemetry_data) == 0 and not success_by_default:
+            raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
@@ -45,9 +60,8 @@ class Test_Telemetry:
     def validate_agent_telemetry_data(self, validator, success_by_default=False):
         telemetry_data = list(interfaces.agent.get_telemetry_data())
 
-        if len(telemetry_data) == 0:
-            if not success_by_default:
-                raise Exception("No telemetry data to validate on")
+        if len(telemetry_data) == 0 and not success_by_default:
+            raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
@@ -56,7 +70,7 @@ class Test_Telemetry:
         """Test telemetry message data size"""
 
         def validator(data):
-            if data["request"]["length"] / 1000000 >= 5:
+            if data["request"]["length"] >= 5_000_000:
                 raise Exception(f"Received message size is more than 5MB")
 
         self.validate_library_telemetry_data(validator)
@@ -80,9 +94,6 @@ class Test_Telemetry:
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
-        def not_onboarding_event(data):
-            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
-
         header_presence_validator = HeadersPresenceValidator(
             request_headers=["dd-agent-hostname", "dd-agent-env"],
             response_headers=(),
@@ -99,20 +110,33 @@ class Test_Telemetry:
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry", request_headers=["datadog-container-id"],
+            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"],
         )
 
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
-        def not_onboarding_event(data):
-            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
-
         interfaces.agent.assert_headers_presence(
-            path_filter="/api/v2/apmtelemetry",
-            request_headers=["dd-api-key", "dd-telemetry-api-version", "dd-telemetry-request-type"],
+            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"],
+        )
+        interfaces.library.assert_headers_presence(
+            path_filter=AGENT_TELEMETRY_PATH,
+            request_headers=["dd-telemetry-api-version", "dd-telemetry-request-type"],
             check_condition=not_onboarding_event,
         )
+
+    def test_telemetry_v2_required_headers(self):
+        def validator(data):
+            if not is_v2_payload(data):
+                return
+            telemetry = data["request"]["content"]
+            assert get_header(data, "request", "dd-telemetry-api-version") == telemetry.get("api_version")
+            assert get_header(data, "request", "dd-telemetry-request-type") == telemetry.get("request_type")
+            application = telemetry.get("application", {})
+            assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
+            assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
+
+        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
 
     @missing_feature(library="python")
     def test_seq_id(self):
@@ -164,17 +188,20 @@ class Test_Telemetry:
         """Request type app-started is sent on startup at least once"""
 
         def validator(data):
-            return data["request"]["content"].get("request_type") == "app-started"
+            return get_request_type(data) == "app-started"
 
         self.validate_library_telemetry_data(validator)
 
-    def test_app_started_sent_only_once(self):
+    def test_app_started_sent_exactly_once(self):
         """Request type app-started is not sent twice"""
 
+        app_started_count = 0
+
         def validator(data):
-            if data["request"]["content"].get("request_type") == "app-started":
-                self.app_started_count += 1
-                assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
+            if get_request_type(data) == "app-started":
+                nonlocal app_started_count
+                app_started_count += 1
+                assert app_started_count < 2, "request_type/app-started has been sent too many times"
 
         self.validate_library_telemetry_data(validator)
 
@@ -195,9 +222,6 @@ class Test_Telemetry:
     )
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
-
-        def not_onboarding_event(data):
-            return data["request"]["content"].get("request_type") != "apm-onboarding-event"
 
         def save_data(data, container):
             # payloads are identifed by their tracer_time/runtime_id
@@ -260,7 +284,7 @@ class Test_Telemetry:
         # we never have guarantees that we have all the dependencies at one point in time
 
         def validator(data):
-            if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
+            if get_request_type(data) == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
 
         self.validate_library_telemetry_data(validator)
@@ -277,11 +301,7 @@ class Test_Telemetry:
         ALLOWED_INTERVALS = 2
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
-
-        for data in telemetry_data:
+        for data in interfaces.library.get_telemetry_data():
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time != -1:
                 delta = curr_message_time - prev_message_time
@@ -383,14 +403,13 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
-    @missing_feature(
-        context.library in ("java", "nodejs", "golang", "dotnet"), reason="Telemetry V2 is not implemented yet. ",
-    )
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
         def validator(data):
-            if data["request"]["content"].get("request_type") == "app-started":
+            if not is_v2_payload(data):
+                return True
+            if get_request_type(data) == "app-started":
                 content = data["request"]["content"]
                 products = content["application"]["products"]
                 assert (
@@ -440,7 +459,7 @@ class Test_Telemetry:
         configuration_map = test_configuration[context.library.library]
 
         def validator(data):
-            if data["request"]["content"].get("request_type") == "app-started":
+            if get_request_type(data) == "app-started":
                 content = data["request"]["content"]
                 configurations = content["payload"]["configuration"]
                 configurations_present = []
@@ -485,8 +504,8 @@ class Test_Telemetry:
 
         app_product_change_event_found = False
         for data in telemetry_data:
-            content = data["request"]["content"]
-            if content.get("request_type") == "app-product-change":
+            if get_request_type(data) == "app-product-change":
+                content = data["request"]["content"]
                 app_product_change_event_found = True
                 products = content["payload"]["products"]
                 for product in products:
@@ -523,7 +542,7 @@ class Test_ProductsDisabled:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
-            if data["request"]["content"].get("request_type") == "app-started":
+            if get_request_type(data) == "app-started":
                 content = data["request"]["content"]
                 assert (
                     "products" not in content["payload"]
@@ -542,7 +561,7 @@ class Test_DependencyEnable:
         """app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"""
 
         for data in interfaces.library.get_telemetry_data():
-            if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
+            if get_request_type(data) == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
@@ -577,14 +596,8 @@ class Test_Log_Generation:
     """Assert that logs are not reported when logs generation is disabled in telemetry"""
 
     def test_log_generation_disabled(self):
-
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
-
-        for data in telemetry_data:
-            if data["request"]["content"].get("request_type") == "logs":
-                content = data["request"]["content"]
+        for data in interfaces.library.get_telemetry_data(split_message_batch=True):
+            if get_request_type(data) == "logs":
                 raise Exception(" Logs event is sent when log generation is disabled")
 
 
@@ -594,11 +607,6 @@ class Test_Metric_Generation:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
     def test_metric_generation_disabled(self):
-
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
-
-        for data in telemetry_data:
-            if data["request"]["content"].get("request_type") == "generate-metrics":
+        for data in interfaces.library.get_telemetry_data(split_message_batch=True):
+            if get_request_type(data) == "generate-metrics":
                 raise Exception("Metric generate event is sent when metric generation is disabled")

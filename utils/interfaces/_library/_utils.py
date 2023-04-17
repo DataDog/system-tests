@@ -30,3 +30,17 @@ def get_trace_request_path(root_span):
     path = urlparse(url).path
 
     return path
+
+
+def split_telemetry_message_batch(data):
+    req = data["request"]["content"]
+    if req.get("request_type") == "message-batch":
+        payloads = req.get("payload")
+        if payloads is not None:
+            for payload in payloads:
+                yield {
+                    **data,
+                    "request": {**data["request"], "content": {**req, **payload}},
+                }
+            return
+    yield data
