@@ -29,10 +29,10 @@ CMD="python -m pytest -n $PYTEST_N"
 
 # FIXME: dotnet hangs when this plugin is enabled even when both "splits" and
 # "group" are set to "1" which should do effectively nothing.
-if [[ "$PYTEST_SPLITS" && "$PYTEST_GROUP" ]]; then
+if [[ "${PYTEST_SPLITS:-}" && "${PYTEST_GROUP:-}" ]]; then
     CMD="${cmd} --splits $PYTEST_SPLITS --group $PYTEST_GROUP"
 fi
 
-CMD="$CMD -c $PWD/conftest.py $ARGS"
+CMD="$CMD -c $PWD/conftest.py $@"
 
 eval "$CMD"
