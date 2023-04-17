@@ -3,8 +3,7 @@ import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from iast import (
@@ -171,7 +170,10 @@ def track_user_login_success_event(request):
 
 def track_user_login_failure_event(request):
     appsec_trace_utils.track_user_login_failure_event(
-        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+        tracer,
+        user_id=_TRACK_USER,
+        exists=True,
+        metadata=_TRACK_METADATA,
     )
     return HttpResponse("OK")
 
@@ -182,6 +184,19 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 def track_custom_event(request):
     appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
+
+
+VALUE_STORED = ""
+
+
+def set_value(request, value):
+    global VALUE_STORED
+    VALUE_STORED = value
+    return HttpResponse("Value set")
+
+
+def get_value(request):
+    return HttpResponse(VALUE_STORED)
 
 
 urlpatterns = [
@@ -208,4 +223,6 @@ urlpatterns = [
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
     path("custom_event", track_custom_event),
+    path("set_value/<str:value>", set_value),
+    path("get_value", get_value),
 ]

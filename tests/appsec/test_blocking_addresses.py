@@ -135,22 +135,48 @@ class Test_BlockingAddresses:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@coverage.not_implemented
-@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+@scenarios.appsec_blocking
+@coverage.good
+@released(
+    cpp="?",
+    dotnet="?",
+    php_appsec="?",
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    nodejs="?",
+    golang="?",
+    ruby="?",
+)
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
+    def setup_blocking(self):
+        self.rm_req_block = weblog.request("OPTIONS")
+
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        # TODO
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-006")
+
+    def setup_non_blocking(self):
+        self.rm_req_nonblock = weblog.request("GET")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
-        # TODO
+        assert self.rm_req_nonblock.status_code == 200
+
+    def setup_blocking_before(self):
+        self.set_req1 = weblog.request("GET", path="/set_value/clean_value_3876")
+        self.block_req2 = weblog.request("OPTIONS", path="/set_value/tainted_value_6512")
+        self.check_req = weblog.request("GET", path="/get_value")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
-        # TODO
+        assert self.set_req1.status_code == 200
+        assert self.set_req1.content == b"Value set"
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-006")
+        assert self.check_req.status_code == 200
+        assert self.check_req.content == b"clean_value_3876"
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")

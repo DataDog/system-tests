@@ -1,17 +1,17 @@
+import psycopg2
 import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import (
-    weak_hash_secure_algorithm,
-    weak_hash,
-    weak_hash_multiple,
-    weak_hash_duplicates,
     weak_cipher,
     weak_cipher_secure_algorithm,
+    weak_hash,
+    weak_hash_duplicates,
+    weak_hash_multiple,
+    weak_hash_secure_algorithm,
 )
-import psycopg2
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -19,7 +19,11 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres",
+    port="5433",
+    user="system_tests_user",
+    password="system_tests",
+    dbname="system_tests",
 )
 
 app = Flask(__name__)
@@ -43,6 +47,21 @@ def sample_rate(i):
 @app.route("/params/<path>", methods=["GET", "POST"])
 def waf(*args, **kwargs):
     return "Hello, World!\\n"
+
+
+VALUE_STORED = ""
+
+
+@app.route("/set_value/<string:value>", methods=["GET", "POST", "OPTIONS"])
+def set_value(value):
+    global VALUE_STORED
+    VALUE_STORED = value
+    return "Value set"
+
+
+@app.route("/get_value", methods=["GET", "POST", "OPTIONS"])
+def get_value(*args, **kwargs):
+    return VALUE_STORED
 
 
 @app.route("/read_file", methods=["GET"])
@@ -200,7 +219,10 @@ def track_user_login_success_event():
 @app.route("/user_login_failure_event")
 def track_user_login_failure_event():
     appsec_trace_utils.track_user_login_failure_event(
-        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+        tracer,
+        user_id=_TRACK_USER,
+        exists=True,
+        metadata=_TRACK_METADATA,
     )
     return Response("OK")
 
