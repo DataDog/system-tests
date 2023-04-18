@@ -287,7 +287,11 @@ class EndToEndScenario(_Scenario):
                 self.library_interface_timeout = 40
 
     def session_start(self, session):
+        from utils import weblog
+
         super().session_start(session)
+
+        logger.debug(f"Docker host is {weblog.domain}")
 
         # called at the very begning of the process
         terminal = session.config.pluginmanager.get_plugin("terminalreporter")
