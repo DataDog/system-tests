@@ -11,7 +11,7 @@ $DEFAULT_N = "auto"
 if (![string]::IsNullOrEmpty($env:CLIENTS_ENABLED)) {
     foreach ($client in $env:CLIENTS_ENABLED.split(',')) {
         # default to "1" for languages with concurrency issues
-        if ($client -eq "dotnet" || $client -eq "python_http") {
+        if ($client -eq "dotnet" -or $client -eq "go" -or $client -eq "python_http") {
             $DEFAULT_N = "1"
             break
         }
@@ -28,7 +28,7 @@ $CMD = "python -m pytest -n $PYTEST_N"
 
 # FIXME: dotnet hangs when this plugin is enabled even when both "splits" and
 # "group" are set to "1" which should do effectively nothing.
-if (![string]::IsNullOrEmpty($env:PYTEST_SPLITS) -And ![string]::IsNullOrEmpty($env:PYTEST_GROUP)) {
+if (![string]::IsNullOrEmpty($env:PYTEST_SPLITS) -and ![string]::IsNullOrEmpty($env:PYTEST_GROUP)) {
     $CMD = "$CMD --splits $env:PYTEST_SPLITS --group $env:PYTEST_GROUP"
 }
 

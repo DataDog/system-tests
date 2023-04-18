@@ -29,7 +29,6 @@ jobs:
     - lints
     strategy:
       matrix:
-        # TODO: remove "concurrency" options when dotnet/python are fixed
         client:
         - php
         - python

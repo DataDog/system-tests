@@ -12,7 +12,7 @@ DEFAULT_N=auto
 if [ "${CLIENTS_ENABLED}" ]; then
     for client in $(echo $CLIENTS_ENABLED | sed "s/,/ /g"); do
         # default to "1" for languages with concurrency issues
-        if [[ "${client}" == "dotnet" || "${client}" == "python_http" ]]; then
+        if [[ "${client}" == "dotnet" || "${client}" == "go" ||"${client}" == "python_http" ]]; then
             DEFAULT_N=1
             break
         fi
