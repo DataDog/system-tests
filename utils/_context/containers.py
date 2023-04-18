@@ -63,12 +63,14 @@ class TestedContainer:
     ) -> None:
         self.name = name
         self.host_log_folder = host_log_folder
+        self.allow_old_container = allow_old_container
+
+        self.stop_previous_container()
 
         Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
         Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
 
         self.image = ImageInfo(image_name, dir_path=self.log_folder_path)
-        self.allow_old_container = allow_old_container
         self.healthcheck = healthcheck
         self.environment = self.image.env | (environment or {})
 

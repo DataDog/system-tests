@@ -346,9 +346,6 @@ class EndToEndScenario(_Scenario):
 
         warmups = []
 
-        for container in containers:
-            warmups.append(container.stop_previous_container)
-
         warmups += [self._create_interface_folders, create_network, self._start_interface_watchdog]
 
         for container in containers:

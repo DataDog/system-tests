@@ -29,7 +29,6 @@ from tests.fuzzer.tools.metrics import (
     AccumulatedMetricWithPercent,
     Report,
 )
-from utils.proxy import core
 
 
 class Semaphore(asyncio.Semaphore):
