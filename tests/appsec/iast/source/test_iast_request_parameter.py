@@ -4,7 +4,7 @@
 
 import pytest
 import re
-from utils import weblog, interfaces, context, coverage, released, missing_feature
+from utils import weblog, interfaces, context, coverage, released, missing_feature, bug
 
 
 if context.library == "cpp":
@@ -18,7 +18,11 @@ if context.library == "cpp":
         "spring-boot": "1.5.0",
         "spring-boot-jetty": "1.5.0",
         "spring-boot-openliberty": "1.5.0",
+        "spring-boot-wildfly": "1.5.0",
+        "spring-boot-undertow": "1.5.0",
         "resteasy-netty3": "1.11.0",
+        "jersey-grizzly2": "1.11.0",
+        "vertx3": "1.12.0",
         "*": "?",
     }
 )
@@ -29,6 +33,7 @@ class TestRequestParameter:
     def setup_parameter(self):
         self.r = weblog.post("/iast/source/parameter/test", data={"source": "parameter"})
 
+    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     def test_parameter(self):
         interfaces.library.expect_iast_sources(
             self.r, source_count=1, name="source", origin="http.request.parameter", value="parameter"
