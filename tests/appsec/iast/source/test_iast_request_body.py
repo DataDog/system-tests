@@ -25,7 +25,7 @@ if context.library == "cpp":
     }
 )
 @released(nodejs="?")
-class TestRequestCookieName:
+class TestRequestBody:
     """Verify that request json body is tainted"""
 
     def setup_body(self):
