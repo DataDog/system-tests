@@ -99,7 +99,6 @@ message FlushTraceStatsReturn {}
 
 message OtelStartSpanArgs {
   string name = 1;
-  optional bool new_root = 2;
   optional uint64 parent_id = 3;
   optional uint64 span_kind = 9;
   optional string service = 4;
