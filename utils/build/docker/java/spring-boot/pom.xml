@@ -265,7 +265,8 @@
                 <plugins>
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-jar-maven-plugin</artifactId>
+			<artifactId>wildfly-jar-maven-plugin</artifactId>
+			<version>8.1.0.Final</version>
                         <configuration>
                             <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#26.1.0.Final</feature-pack-location>
                             <layers>
