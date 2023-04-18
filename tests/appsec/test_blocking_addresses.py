@@ -140,10 +140,11 @@ class Test_BlockingAddresses:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_request_method:
@@ -185,10 +186,11 @@ class Test_Blocking_request_method:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_request_uri:
@@ -233,10 +235,11 @@ class Test_Blocking_request_uri:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_request_path_params:
@@ -284,10 +287,11 @@ class Test_Blocking_request_path_params:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_request_query:
@@ -335,10 +339,11 @@ class Test_Blocking_request_query:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_request_headers:
@@ -386,10 +391,11 @@ class Test_Blocking_request_headers:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_request_cookies:
@@ -437,10 +443,11 @@ class Test_Blocking_request_cookies:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_request_body:
@@ -499,10 +506,11 @@ class Test_Blocking_request_body:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_response_status:
@@ -532,10 +540,11 @@ class Test_Blocking_response_status:
 @released(
     cpp="?",
     dotnet="?",
+    golang="?",
+    java="?",
+    nodejs="?",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    nodejs="?",
-    golang="?",
     ruby="?",
 )
 class Test_Blocking_response_headers:
