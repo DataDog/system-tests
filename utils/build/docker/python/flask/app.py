@@ -1,5 +1,6 @@
 import requests
 from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import (
@@ -70,7 +71,6 @@ def status_code():
 
 @app.route("/make_distant_call")
 def make_distant_call():
-
     url = flask_request.args["url"]
     response = requests.get(url)
 
@@ -180,6 +180,37 @@ def view_weak_cipher_insecure():
 def view_weak_cipher_secure():
     weak_cipher_secure_algorithm()
     return Response("OK")
+
+
+_TRACK_METADATA = {
+    "metadata0": "value0",
+    "metadata1": "value1",
+}
+
+
+_TRACK_USER = "system_tests_user"
+
+
+@app.route("/user_login_success_event")
+def track_user_login_success_event():
+    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    return Response("OK")
+
+
+@app.route("/user_login_failure_event")
+def track_user_login_failure_event():
+    appsec_trace_utils.track_user_login_failure_event(
+        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+    )
+    return Response("OK")
+
+
+_TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
+
+
+@app.route("/custom_event")
+def track_custom_event():
+    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
 
 
 @app.route("/iast/sqli/test_secure", methods=["POST"])

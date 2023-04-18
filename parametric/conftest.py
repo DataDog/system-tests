@@ -425,7 +425,7 @@ class _TestAgentAPI:
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
-    def wait_for_num_traces(self, num: int, clear: bool = False) -> List[Trace]:
+    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
         """Wait for `num` to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -433,7 +433,7 @@ class _TestAgentAPI:
         Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
-        for i in range(20):
+        for i in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
@@ -484,7 +484,7 @@ def docker_run(
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file)
     if r.returncode != 0:
         pytest.fail(
-            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file),
+            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.name),
             pytrace=False,
         )
 
@@ -567,7 +567,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
         if r.returncode != 0:
             pytest.fail(
                 "Could not create docker network %r, see the log file %r"
-                % (docker_network_name, docker_network_log_file),
+                % (docker_network_name, docker_network_log_file.name),
                 pytrace=False,
             )
     yield docker_network_name
@@ -582,7 +582,8 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
     if r.returncode != 0:
         pytest.fail(
-            "Failed to remove docker network %r, see the log file %r" % (docker_network_name, docker_network_log_file),
+            "Failed to remove docker network %r, see the log file %r"
+            % (docker_network_name, docker_network_log_file.name),
             pytrace=False,
         )
 
@@ -648,7 +649,9 @@ def test_agent(
                     )
                 break
         else:
-            pytest.fail("Could not connect to test agent, check the log file %r." % test_agent_log_file, pytrace=False)
+            pytest.fail(
+                "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
+            )
 
         # If the snapshot mark is on the test case then do a snapshot test
         marks = [m for m in request.node.iter_markers(name="snapshot")]

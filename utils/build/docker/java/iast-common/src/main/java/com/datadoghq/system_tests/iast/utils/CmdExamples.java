@@ -1,21 +1,16 @@
-package com.datadoghq.system_tests.springboot.iast.utils;
+package com.datadoghq.system_tests.iast.utils;
 
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.stereotype.Component;
+import java.io.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-@Component
 public class CmdExamples {
 
-    private final TaskExecutor taskExecutor;
+    private final ExecutorService taskExecutor;
 
-    public CmdExamples(final TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
+    public CmdExamples() {
+        this.taskExecutor = Executors.newSingleThreadExecutor();
+        Runtime.getRuntime().addShutdownHook(new Thread(taskExecutor::shutdown));
     }
 
     public String insecureCmd(final String... cmd) {

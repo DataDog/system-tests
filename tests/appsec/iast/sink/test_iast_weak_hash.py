@@ -18,8 +18,11 @@ if context.library == "cpp":
         "spring-boot": "0.108.0",
         "spring-boot-jetty": "0.108.0",
         "spring-boot-openliberty": "0.108.0",
+        "spring-boot-wildfly": "0.108.0",
+        "spring-boot-undertow": "0.108.0",
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
+        "vertx3": "1.12.0",
         "*": "?",
     }
 )
@@ -29,7 +32,7 @@ class TestIastWeakHash:
     @property
     def expected_location(self):
         if context.library.library == "java":
-            return "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+            return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
         if context.library.library == "nodejs":
             return "iast.js"
@@ -39,11 +42,7 @@ class TestIastWeakHash:
             is_dev_version = "dev" in str(context.library)
 
             if context.library.version >= "1.12.0" or is_dev_version:
-                # new value: relative path (but yes, the leading slash is misleading)
-                if context.weblog_variant == "uwsgi-poc":
-                    return "/./iast.py"
-                else:
-                    return "/iast.py"
+                return "iast.py"
             else:
                 # old value: absolute path
                 if context.weblog_variant == "uwsgi-poc":

@@ -2,4 +2,5 @@ venv/
 .git/
 .vscode/
 vendor
-logs
+logs*
+shell.nix

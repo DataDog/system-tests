@@ -25,11 +25,7 @@ def test_otel_start_span(test_agent, test_library):
         duration: int = 6789
         start_time: int = 12345
         with test_library.otel_start_span(
-            "operation",
-            span_kind=SK_PRODUCER,
-            timestamp=start_time,
-            new_root=True,
-            attributes={"start_attr_key": "start_attr_val"},
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time, attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
             parent.end_span(timestamp=start_time + duration)
 
@@ -45,6 +41,25 @@ def test_otel_start_span(test_agent, test_library):
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
+def test_otel_set_service_name(test_agent, test_library):
+    """
+        - Update the service name on a span
+    """
+    with test_library:
+        with test_library.otel_start_span("parent_span") as parent:
+            parent.set_attributes({"service.name": "new_service"})
+            parent.end_span()
+
+    root_span = get_span(test_agent)
+    assert root_span["name"] == "parent_span"
+    assert root_span["service"] == "new_service"
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+@pytest.mark.skip_library("php", "Not implemented")
+@pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_set_attributes_different_types(test_agent, test_library):
     """
@@ -53,7 +68,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     start_time = int(time.time())
     with test_library:
         with test_library.otel_start_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True,
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time,
         ) as span:
             span.set_attributes({"str_val": "val"})
             span.set_attributes({"str_val_empty": ""})
@@ -239,9 +254,9 @@ def test_otel_get_span_context(test_agent, test_library):
         (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
     """
     with test_library:
-        with test_library.otel_start_span(name="operation", new_root=True) as parent:
+        with test_library.otel_start_span(name="operation") as parent:
             parent.end_span()
-            with test_library.otel_start_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
+            with test_library.otel_start_span(name="operation", parent_id=parent.span_id) as span:
                 span.end_span()
                 context = span.span_context()
                 assert context.get("trace_id") == parent.span_context().get("trace_id")
