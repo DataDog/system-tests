@@ -15,7 +15,7 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.7.0", "*": "?"})
 @released(nodejs="?")
-class TestRequestCookieName:
+class TestRequestBody:
     """Verify that request json body is tainted"""
 
     def setup_body(self):
