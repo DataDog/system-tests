@@ -118,7 +118,6 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=_NETWORK_NAME,
-            extra_hosts={"host.docker.internal": "host-gateway"},
             **self.kwargs,
         )
 

@@ -106,7 +106,7 @@ class _RequestLogger:
     def request(self, flow):
         logger.info(f"{flow.request.method} {flow.request.pretty_url}")
 
-        if flow.request.host == "proxy":
+        if flow.request.host in ("proxy", "localhost"):
             # tracer is the only container that uses the proxy directly
             flow.request.host, flow.request.port = "agent", 8127
             flow.request.scheme = "http"

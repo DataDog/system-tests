@@ -37,7 +37,7 @@ class _Scenario:
         path = os.path.join(self.host_log_folder, subfolder)
 
         shutil.rmtree(path, ignore_errors=True)
-        Path(path).mkdir(parents=True)
+        Path(path).mkdir(parents=True, exist_ok=True)
 
     @property
     def is_current_scenario(self):
