@@ -211,6 +211,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 @app.route("/custom_event")
 def track_custom_event():
     appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    return Response("OK")
 
 
 @app.route("/iast/sqli/test_secure", methods=["POST"])
