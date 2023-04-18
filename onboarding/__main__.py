@@ -4,6 +4,7 @@ import pulumi_aws as aws
 
 import pulumi_command as command
 import logging
+import logging.config
 import os
 from provision_filter import Provision_filter
 from provision_parser import Provision_parser
@@ -26,7 +27,8 @@ dd_site = config_agent.require("site")
 
 
 private_key_pem = (lambda path: open(path).read())(privateKeyPath)
-logging.basicConfig(filename="pulumi.log", level=logging.INFO)  # TODO one log file for each vm
+# logging.basicConfig(filename="pulumi.log", level=logging.INFO)  # TODO one log file for each vm
+logging.config.fileConfig("logging.conf")
 
 
 def load_filter():
@@ -45,7 +47,9 @@ def load_filter():
     return Provision_filter(provision_scenario, language, env, os_distro, weblog)
 
 
-def remote_install(connection, command_identifier, install_info, depends_on, add_dd_keys=False):
+def remote_install(
+    connection, command_identifier, install_info, depends_on, add_dd_keys=False, logger_name="defaultLogger"
+):
     if install_info is None:
         return depends_on
     if add_dd_keys:
@@ -72,7 +76,7 @@ def remote_install(connection, command_identifier, install_info, depends_on, add
         opts=pulumi.ResourceOptions(depends_on=[depends_on]),
     )
 
-    cmd_exec_install.stdout.apply(lambda outputlog: logging.info(outputlog))
+    cmd_exec_install.stdout.apply(lambda outputlog: logging.getLogger(logger_name).info(outputlog))
 
     return cmd_exec_install
 
@@ -165,7 +169,7 @@ def infraestructure_provision(provision_filter):
                             "agent-installer_" + ec2_name,
                             agent_instalations["install"],
                             prepare_docker_installer,
-                            True,
+                            add_dd_keys=True,
                         )
 
                         # Install autoinjection
@@ -174,6 +178,18 @@ def infraestructure_provision(provision_filter):
                             "autoinjection-installer_" + ec2_name,
                             autoinjection_instalations["install"],
                             agent_installer,
+                        )
+
+                        # Extract installed component versions
+                        installation_check_data = provision_parser.ec2_installation_checks_data(
+                            language, os_type, os_distro, os_branch
+                        )
+                        remote_install(
+                            connection,
+                            "installation-check_" + ec2_name,
+                            installation_check_data["install"],
+                            autoinjection_installer,
+                            logger_name="installedVersionsLogger",
                         )
 
                         # Install language variants
@@ -187,9 +203,15 @@ def infraestructure_provision(provision_filter):
                         # Build weblog app
                         webapp_build = build_local_weblog(ec2_name, weblog_instalations, lang_variant_installer)
                         weblog_runner = remote_install(
-                            connection, "run-weblog_" + ec2_name, weblog_instalations["install"], webapp_build, True
+                            connection,
+                            "run-weblog_" + ec2_name,
+                            weblog_instalations["install"],
+                            webapp_build,
+                            add_dd_keys=True,
                         )
-                        pulumi.export("privateIp_" + provision_filter.provision_scenario + "__" + ec2_name, server.private_ip)
+                        pulumi.export(
+                            "privateIp_" + provision_filter.provision_scenario + "__" + ec2_name, server.private_ip
+                        )
 
 
 provision_filter = load_filter()

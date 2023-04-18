@@ -281,3 +281,5 @@ weblogs:
               remote_path: test-app-python.tar
 
           command: sh test-app-python_run.sh
+
+installation_checks: !include provision_installation_checks.yml

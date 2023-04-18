@@ -75,6 +75,15 @@ class Provision_parser:
                         continue
                     yield filtered_weblog_data
 
+    def ec2_installation_checks_data(self, language, os_type, os_distro, os_branch):
+        config_data = self._load_provision()
+        for installation_checks_data in config_data["installation_checks"]:
+            for filtered_installation_checks_data in self._filter_provision_data(
+                installation_checks_data, language, os_type, os_distro, os_branch
+            ):
+                #Only one check
+                return filtered_installation_checks_data
+                
     def _filter_install_data(self, data, os_type, os_distro, os_branch, exact_match=False):
         # Filter by type,  distro and branch
         filteredInstalations = [

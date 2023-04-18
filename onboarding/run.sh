@@ -1,5 +1,7 @@
 #!/bin/bash
 rm pulumi.log || true
+rm pulumi_installed_versions || true
+
 ./run_tests.sh "$@"
 
 #Exit 8 custom output for run_tests.sh == Invalid parameter
