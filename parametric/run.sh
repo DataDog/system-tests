@@ -33,6 +33,6 @@ if [[ "${PYTEST_SPLITS:-}" && "${PYTEST_GROUP:-}" ]]; then
     CMD="${cmd} --splits $PYTEST_SPLITS --group $PYTEST_GROUP"
 fi
 
-CMD="$CMD -c $PWD/conftest.py $@"
+CMD="$CMD -c $PWD/conftest.py $ARGS"
 
 eval "$CMD"
