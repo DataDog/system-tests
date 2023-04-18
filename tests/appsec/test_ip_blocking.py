@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="?", golang="1.47.0")
+@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="?", golang="1.47.0")
 @released(
     java={
         "spring-boot": "0.110.0",
@@ -37,6 +37,7 @@ class Test_AppSecIPBlocking:
     """A library should block requests from blocked IP addresses."""
 
     request_number = 0
+    python_request_number = 0
     remote_config_is_sent = False
 
     def test_rc_protocol(self):
@@ -49,7 +50,12 @@ class Test_AppSecIPBlocking:
 
             logger.info(f"validating rc request number {self.request_number}")
             rc_check_request(data, EXPECTED_REQUESTS[self.request_number], caching=True)
-            self.request_number += 1
+            self.python_request_number += 1
+            if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+                if self.python_request_number % 2 == 0:
+                    self.request_number += 1
+            else:
+                self.request_number += 1
 
         interfaces.library.validate_remote_configuration(validator=validate)
 

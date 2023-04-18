@@ -1,5 +1,7 @@
 package com.datadoghq.resteasy;
 
+import com.datadoghq.system_tests.iast.infra.LdapServer;
+import com.datadoghq.system_tests.iast.infra.SqlServer;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -13,6 +15,8 @@ import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.plugins.server.netty.RequestDispatcher;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 
+import javax.naming.directory.InitialDirContext;
+import javax.sql.DataSource;
 import javax.ws.rs.core.Application;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,10 +24,13 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
     static {
@@ -45,7 +52,11 @@ public class Main {
     public static void main(String[] args) {
         var deployment = new ResteasyDeployment();
         deployment.setApplication(new Application() {
-            private final Set<Object> singletons = Collections.singleton(new MyResource());
+            private final Set<Object> singletons = Stream.of(
+                    new MyResource(),
+                    new IastSinkResource(),
+                    new IastSourceResource()
+            ).collect(Collectors.toSet());
 
             @Override
             public Set<Object> getSingletons() {
@@ -100,5 +111,9 @@ public class Main {
         }
         netty.stop();
     }
+
+    public static final DataSource DATA_SOURCE = new SqlServer().start();
+
+    public static final InitialDirContext LDAP_CONTEXT = new LdapServer().start();
 }
 

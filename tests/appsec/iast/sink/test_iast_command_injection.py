@@ -18,8 +18,11 @@ if context.library == "cpp":
         "spring-boot": "1.1.0",
         "spring-boot-jetty": "1.1.0",
         "spring-boot-openliberty": "1.1.0",
+        "spring-boot-wildfly": "1.1.0",
+        "spring-boot-undertow": "1.1.0",
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
+        "vertx3": "1.12.0",
         "*": "?",
     }
 )
@@ -31,7 +34,7 @@ class TestIastCommandInjection:
     def expected_location(self):
 
         EXPECTATIONS = {
-            "java": {"LOCATION": "com.datadoghq.system_tests.springboot.iast.utils.CmdExamples"},
+            "java": {"LOCATION": "com.datadoghq.system_tests.iast.utils.CmdExamples"},
             "nodejs": {"LOCATION": "iast.js"},
         }
 
