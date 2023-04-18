@@ -16,7 +16,7 @@ from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecisionValidator,
     _AddSamplingDecisionValidator,
-    _DistributedTracesDeterministicSamplingDecisisonValidator,
+    _DistributedTracesDeterministicSamplingDecisionValidator,
 )
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
@@ -243,7 +243,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def assert_deterministic_sampling_decisions(self, traces):
         # TODO: move this into test class
-        validator = _DistributedTracesDeterministicSamplingDecisisonValidator(traces)
+        validator = _DistributedTracesDeterministicSamplingDecisionValidator(traces)
         self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
         validator.final_check()
 
