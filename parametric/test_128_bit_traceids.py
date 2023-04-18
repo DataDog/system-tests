@@ -34,7 +34,6 @@ def test_datadog_128_bit_propagation(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -66,7 +65,6 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -98,7 +96,6 @@ def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -130,7 +127,6 @@ def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -193,7 +189,6 @@ def test_datadog_128_bit_generation_disabled(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -218,7 +213,6 @@ def test_datadog_128_bit_generation_enabled(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -245,7 +239,6 @@ def test_b3single_128_bit_propagation(test_agent, test_library):
     check_128_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
 
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -269,7 +262,6 @@ def test_b3single_128_bit_propagation_and_generation(test_agent, test_library):
 
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("ruby", "Issue: Ruby doesn't support case-insensitive distributed headers")
 @pytest.mark.parametrize(
     "library_env",
@@ -289,7 +281,6 @@ def test_b3single_128_bit_generation_disabled(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -311,7 +302,6 @@ def test_b3single_128_bit_generation_enabled(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -335,7 +325,6 @@ def test_b3multi_128_bit_propagation(test_agent, test_library):
     check_128_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
 
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
@@ -357,7 +346,6 @@ def test_b3multi_128_bit_propagation_and_generation(test_agent, test_library):
 
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("java", "Issue: Java doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("ruby", "Issue: Ruby doesn't support case-insensitive distributed headers")
 @pytest.mark.parametrize(
@@ -376,7 +364,6 @@ def test_b3multi_128_bit_generation_disabled(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -397,7 +384,6 @@ def test_b3multi_128_bit_generation_enabled(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -424,7 +410,6 @@ def test_w3c_128_bit_propagation(test_agent, test_library):
     check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
 
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -454,7 +439,6 @@ def test_w3c_128_bit_propagation_tid_consistent(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -486,7 +470,6 @@ def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -513,7 +496,6 @@ def test_w3c_128_bit_propagation_tid_inconsistent_optional_tag(test_agent, test_
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -544,7 +526,6 @@ def test_w3c_128_bit_propagation_tid_malformed(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
@@ -569,7 +550,6 @@ def test_w3c_128_bit_propagation_tid_malformed_optional_tag(test_agent, test_lib
     assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "malformed_tid XXXX"
 
 
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
@@ -593,7 +573,6 @@ def test_w3c_128_bit_propagation_and_generation(test_agent, test_library):
 
 
 @pytest.mark.skip_library("python", "Issue: Python doesn't pad the trace-id to length of 16 or 32 lower-hex characters")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("ruby", "Issue: Ruby doesn't support case-insensitive distributed headers")
 @pytest.mark.parametrize(
@@ -614,7 +593,6 @@ def test_w3c_128_bit_generation_disabled(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "not implemented")
 @pytest.mark.skip_library("golang", "not implemented")
-@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
