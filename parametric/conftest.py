@@ -113,9 +113,7 @@ RUN python3.9 -m pip install %s
 def python_http_library_factory(env: Dict[str, str]) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python_http")
     # By default run parametric tests against the development branch
-    python_package = os.getenv(
-        "PYTHON_DDTRACE_PACKAGE", "ddtrace"
-    )
+    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
         protocol="http",

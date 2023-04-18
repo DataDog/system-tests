@@ -67,9 +67,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     """
     start_time = int(time.time())
     with test_library:
-        with test_library.otel_start_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=start_time,
-        ) as span:
+        with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
             span.set_attributes({"str_val": "val"})
             span.set_attributes({"str_val_empty": ""})
             span.set_attributes({"bool_val": True})
@@ -219,7 +217,9 @@ def test_otel_set_span_status_error(test_agent, test_library):
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
-@pytest.mark.skip_library("python", "Default state of otel spans is OK, updating the status from OK to ERROR is supported")
+@pytest.mark.skip_library(
+    "python", "Default state of otel spans is OK, updating the status from OK to ERROR is supported"
+)
 def test_otel_set_span_status_ok(test_agent, test_library):
     """
         This test verifies that setting the status of a span
