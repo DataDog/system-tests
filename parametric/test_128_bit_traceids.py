@@ -36,7 +36,6 @@ def test_datadog_128_bit_propagation(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
-@pytest.mark.skip_library("python", "size of _dd.p.tid is not validated")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
@@ -67,7 +66,6 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
-@pytest.mark.skip_library("python", "size of _dd.p.tid is not validated")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
@@ -98,7 +96,6 @@ def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
-@pytest.mark.skip_library("python", "Invalid charachters in tid are not dropped")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
@@ -129,7 +126,6 @@ def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
-@pytest.mark.skip_library("python", "malformed_tid is not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
@@ -463,7 +459,7 @@ def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
 @pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
-@pytest.mark.skip_library("python", "inconsistent_tid is not supported")
+@pytest.mark.skip_library("python", "inconsistent_tid is not implemented for w3c")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
