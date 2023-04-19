@@ -207,14 +207,13 @@ def trace_span_error(args: TraceSpanErrorArgs) -> TraceSpanErrorReturn:
 
 class OtelStartSpanArgs(BaseModel):
     name: str
-    new_root: bool
     parent_id: int
     span_kind: int
-    service: str
-    resource: str
-    type: str
+    service: str = "" # Not used but defined in protos/apm-test-client.protos
+    resource: str = "" # Not used but defined in protos/apm-test-client.protos
+    type: str = "" # Not used but defined in protos/apm-test-client.protos
     timestamp: int
-    http_headers: dict
+    http_headers: List[Tuple[str, str]]
     attributes: dict
 
 
@@ -223,18 +222,14 @@ class OtelStartSpanReturn(BaseModel):
     trace_id: int
 
 
-@app.post("/trace/otel/start/span")
+@app.post("/trace/otel/start_span")
 def otel_start_span(args: OtelStartSpanArgs):
-    # Note - args.resource, args.type, and args.new_root are not used.
     otel_tracer = opentelemetry.trace.get_tracer(__name__)
 
-    parent_span = None
     if args.parent_id:
         parent_span = otel_spans[args.parent_id]
-    elif args.http_headers.ByteSize() > 0:
-        headers = {}
-        for header_tuple in args.http_headers.http_headers:
-            headers[header_tuple.key] = header_tuple.value
+    elif args.http_headers:
+        headers = {k:v for k,v in args.http_headers}
         ddcontext = HTTPPropagator.extract(headers)
         parent_span = OtelNonRecordingSpan(
             OtelSpanContext(
@@ -247,9 +242,11 @@ def otel_start_span(args: OtelStartSpanArgs):
                 TraceState.from_header([ddcontext._tracestate]),
             )
         )
+    else:
+        parent_span = None
 
     otel_span = otel_tracer.start_span(
-        args.name,  # type: str
+        args.name,
         context=set_span_in_context(parent_span),
         kind=SpanKind(args.span_kind),
         attributes=args.attributes,
@@ -275,7 +272,7 @@ class OtelEndSpanReturn(BaseModel):
     pass
 
 
-@app.post("/trace/otel/end/span")
+@app.post("/trace/otel/end_span")
 def otel_end_span(args: OtelEndSpanArgs):
     span = otel_spans.get(args.id)
     st = args.timestamp
@@ -286,49 +283,20 @@ def otel_end_span(args: OtelEndSpanArgs):
     return OtelEndSpanReturn()
 
 
-class OtelForceFlushArgs(BaseModel):
-    seconds: int
-
-
-class OtelForceFlushReturn(BaseModel):
-    success: bool
-
-
 class OtelFlushSpansArgs(BaseModel):
-    seconds: int
+    seconds: int = 1
 
 
 class OtelFlushSpansReturn(BaseModel):
-    success: bool
+    success: bool = 1
 
 
-@app.post("/trace/otel/flush/spans")
+@app.post("/trace/otel/flush")
 def otel_flush_spans(args: OtelFlushSpansArgs):
     ddtrace.tracer.flush()
     spans.clear()
     otel_spans.clear()
     return OtelFlushSpansReturn(success=True)
-
-
-class OtelFlushTraceStatsArgs(BaseModel):
-    pass
-
-
-class OtelFlushTraceStatsReturn(BaseModel):
-    pass
-
-
-@app.post("/trace/otel/flush/stats")
-def otel_flush_stats(args: OtelFlushTraceStatsArgs):
-    return trace_stats_flush(args)
-
-
-class OtelStopTracerArgs(BaseModel):
-    pass
-
-
-class OtelStopTracerReturn(BaseModel):
-    pass
 
 
 class OtelIsRecordingArgs(BaseModel):
@@ -339,7 +307,7 @@ class OtelIsRecordingReturn(BaseModel):
     is_recording: bool
 
 
-@app.post("/trace/otel/is/recording")
+@app.post("/trace/otel/is_recording")
 def otel_is_recording(args: OtelIsRecordingArgs):
     span = otel_spans.get(args.span_id)
     return OtelIsRecordingReturn(is_recording=span.is_recording())
@@ -357,7 +325,7 @@ class OtelSpanContextReturn(BaseModel):
     remote: bool
 
 
-@app.post("/trace/otel/span/context")
+@app.post("/trace/otel/span_context")
 def otel_span_context(args: OtelSpanContextArgs):
     span = otel_spans[args.span_id]
     ctx = span.get_span_context()
@@ -385,7 +353,7 @@ class OtelSetStatusReturn(BaseModel):
     pass
 
 
-@app.post("/trace/otel/set/status")
+@app.post("/trace/otel/set_status")
 def otel_set_status(args: OtelSetStatusArgs):
     span = otel_spans[args.span_id]
     status_code = getattr(StatusCode, args.code.upper())
@@ -402,7 +370,7 @@ class OtelSetNameReturn(BaseModel):
     pass
 
 
-@app.post("/trace/otel/set/name")
+@app.post("/trace/otel/set_name")
 def otel_set_name(args: OtelSetNameArgs):
     span = otel_spans[args.span_id]
     span.update_name(args.name)
@@ -418,9 +386,40 @@ class OtelSetAttributesReturn(BaseModel):
     pass
 
 
-@app.post("/trace/otel/set/attributes")
+@app.post("/trace/otel/set_attributes")
 def otel_set_attributes(args: OtelSetAttributesArgs):
     span = otel_spans[args.span_id]
     attributes = args.attributes
     span.set_attributes(attributes)
     return OtelSetAttributesReturn()
+
+
+# TODO: Remove all unused otel types and endpoints from parametric tests
+# Defined in apm_test_client.proto but not implemented in library clients (_library_client.py)
+# class OtelFlushTraceStatsArgs(BaseModel):
+#     seconds: int = 1
+
+
+# class OtelFlushTraceStatsReturn(BaseModel):
+#     success: int = 1
+
+
+# @app.post("/trace/otel/flush_stats")
+# def otel_flush_stats(args: OtelFlushTraceStatsArgs):
+#     return trace_stats_flush(args)
+
+
+# class OtelForceFlushArgs(BaseModel):
+#     seconds: int
+
+
+# class OtelForceFlushReturn(BaseModel):
+#     success: bool
+
+
+# class OtelStopTracerArgs(BaseModel):
+#     pass
+
+
+# class OtelStopTracerReturn(BaseModel):
+#     pass
