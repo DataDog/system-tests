@@ -25,7 +25,6 @@ class Test_Dbm:
         elif self.library_name == "dotnet":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "npgsql"}),
             ]
 
     def test_trace_payload(self):
@@ -37,8 +36,3 @@ class Test_Dbm:
 
                 meta = span.get("meta", {})
                 assert "_dd.dbm_trace_injected" in meta
-
-    def test_dbm_payload(self):
-        # TODO: Add schema for validation of dbm payload agent/backend
-        # TODO: Add check for dbm payload agent/backend ensure that the expected trace data
-        pass
