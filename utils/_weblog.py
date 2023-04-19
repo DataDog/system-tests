@@ -3,8 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 import urllib
-import string
+import os
 import random
+import string
+
 import requests
 import grpc
 import google.protobuf.struct_pb2 as pb
@@ -34,7 +36,14 @@ class _GrpcQuery:
 
 
 class _Weblog:
-    _grpc_target = "weblog:7778"
+    _grpc_port = 7778
+
+    def __init__(self):
+        if "DOCKER_HOST" in os.environ:
+            self.domain = os.environ["DOCKER_HOST"]
+            self.domain = self.domain.replace("ssh://docker@", "")
+        else:
+            self.domain = "localhost"
 
     def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self.request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
@@ -53,7 +62,7 @@ class _Weblog:
         data=None,
         headers=None,
         stream=None,
-        domain="weblog",
+        domain=None,
         port=7777,
         allow_redirects=True,
         **kwargs,
@@ -97,6 +106,8 @@ class _Weblog:
         if path.startswith("/"):
             path = path[1:]
 
+        domain = domain if domain is not None else self.domain
+
         res = f"http://{domain}:{port}/{path}"
 
         if query:
@@ -110,7 +121,7 @@ class _Weblog:
         # We cannot set the user agent for each request. For now, start a new channel for each query
         _grpc_client = grpcapi.WeblogStub(
             grpc.insecure_channel(
-                self._grpc_target,
+                f"{self.domain}:{self._grpc_port}",
                 options=(("grpc.enable_http_proxy", 0), ("grpc.primary_user_agent", f"system_tests rid/{rid}")),
             )
         )

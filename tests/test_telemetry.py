@@ -397,7 +397,7 @@ class Test_Telemetry:
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
             "dotnet": {},
-            "nodejs": {"hostname": "runner", "port": 8126, "appsec.enabled": True},
+            "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "java": {"trace.agent.port": 8126, "telemetry.heartbeat.interval": 2},
