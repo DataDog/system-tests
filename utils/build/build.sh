@@ -128,7 +128,7 @@ build() {
         echo "-----------------------"
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
-            if [[ -z "$IN_NIX_SHELL" ]]; then
+            if [[ -z "${IN_NIX_SHELL:-}" ]]; then
               if [ ! -d "venv/" ]
               then
                   echo "Build virtual env"

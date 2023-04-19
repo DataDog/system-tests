@@ -19,7 +19,7 @@ fi
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 
-if [[ -z "$IN_NIX_SHELL" ]]; then
+if [[ -z "${IN_NIX_SHELL:-}" ]]; then
    source venv/bin/activate
 fi
 
