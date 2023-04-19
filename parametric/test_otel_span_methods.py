@@ -70,9 +70,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     """
     start_time = int(time.time())
     with test_library:
-        with test_library.otel_start_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=start_time, new_root=True,
-        ) as span:
+        with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
             span.set_attributes({"str_val": "val"})
             span.set_attributes({"str_val_empty": ""})
             span.set_attributes({"bool_val": True})
