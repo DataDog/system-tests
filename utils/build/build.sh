@@ -128,14 +128,16 @@ build() {
         echo "-----------------------"
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                -f utils/build/docker/runner.Dockerfile \
-                -t system_tests/runner \
-                $EXTRA_DOCKER_ARGS \
-                .
+            if [ ! -d "venv/" ] 
+            then
+                echo "Build virtual env"
+                python3.9 -m venv venv
+            fi
+
+            source venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
                 AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)

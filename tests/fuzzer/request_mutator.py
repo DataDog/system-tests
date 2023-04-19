@@ -7,8 +7,8 @@ import os
 import re
 from urllib.parse import quote
 from utils import context
-from scenarios.fuzzer.tools import data
-from scenarios.fuzzer.tools.random_strings import get_random_unicode as gru, get_random_string, string_lists
+from tests.fuzzer.tools import data
+from tests.fuzzer.tools.random_strings import get_random_unicode as gru, get_random_string, string_lists
 
 
 def _get_data_file(name):
