@@ -19,5 +19,8 @@ fi
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 
-source venv/bin/activate
+if [[ -z "$IN_NIX_SHELL" ]]; then
+   source venv/bin/activate
+fi
+
 pytest $RUNNER_ARGS
