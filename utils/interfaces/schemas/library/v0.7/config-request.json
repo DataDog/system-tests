@@ -1,27 +1,62 @@
 {
   "$id": "/library/v0.7/config-request.json",
-
-  "required": ["client"],
+  "required": [
+    "client"
+  ],
   "properties": {
     "client": {
-      "required": ["id", "state", "is_tracer", "client_tracer"],
+      "required": [
+        "id",
+        "state",
+        "is_tracer",
+        "client_tracer"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/non-empty-string" },
+        "id": {
+          "$ref": "#/definitions/non-empty-string"
+        },
         "is_tracer": {
           "const": true
         },
-        "state": { 
+        "state": {
           "$ref": "/library/v0.7/misc/config-state.json"
         },
         "client_tracer": {
-          "required": ["runtime_id", "service", "env", "app_version", "tracer_version"],
+          "required": [
+            "runtime_id",
+            "service",
+            "env",
+            "tracer_version",
+            "language"
+          ],
           "properties": {
-            "runtime_id": { "$ref": "#/definitions/non-empty-string" },
-            "service": { "$ref": "#/definitions/non-empty-string" },
-            "env": { "$ref": "#/definitions/non-empty-string" },
-            "app_version": { "$ref": "#/definitions/non-empty-string" },
-            "tracer_version": { "$ref": "#/definitions/non-empty-string" },
-            "language": {"enum": ["cpp", "dotnet", "go", "node", "java", "php", "python", "ruby"]}
+            "runtime_id": {
+              "$ref": "#/definitions/non-empty-string"
+            },
+            "service": {
+              "$ref": "#/definitions/non-empty-string"
+            },
+            "env": {
+              "$ref": "#/definitions/non-empty-string"
+            },
+            "app_version": {
+              "$ref": "#/definitions/non-empty-string"
+            },
+            "tracer_version": {
+              "$ref": "#/definitions/non-empty-string"
+            },
+            "language": {
+              "enum": [
+                "cpp",
+                "dotnet",
+                "go",
+                "node",
+                "java",
+                "php",
+                "python",
+                "ruby"
+              ]
+            }
           }
         },
         "products": {
