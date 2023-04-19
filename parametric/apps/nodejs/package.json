@@ -11,8 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "@grpc/grpc-js": "^1.6.8",
-    "@grpc/proto-loader": "^0.7.0",
-    "dd-trace": "^2.12.2",
-    "opentracing": "^0.14.7"
+    "@grpc/proto-loader": "^0.7.0"
   }
 }
