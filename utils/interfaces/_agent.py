@@ -23,12 +23,9 @@ class AgentInterfaceValidator(InterfaceValidator):
         super().__init__("agent")
         self.ready = threading.Event()
 
-    def append_data(self, data):
-        data = super().append_data(data)
-
+    def ingest_file(self, src_path):
         self.ready.set()
-
-        return data
+        return super().ingest_file(src_path)
 
     def get_appsec_data(self, request):
 

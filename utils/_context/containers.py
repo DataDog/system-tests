@@ -2,7 +2,6 @@ import os
 import json
 from pathlib import Path
 import time
-
 import docker
 from docker.models.containers import Container
 import pytest
@@ -12,6 +11,17 @@ from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
 _client = docker.DockerClient()
+
+_NETWORK_NAME = "system-tests_default"
+
+
+def create_network():
+    for _ in _client.networks.list(names=[_NETWORK_NAME,]):
+        logger.debug(f"Network {_NETWORK_NAME} still exists")
+        return
+
+    logger.debug(f"Create network {_NETWORK_NAME}")
+    _client.networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 class _HealthCheck:
@@ -48,19 +58,32 @@ class _HealthCheck:
 class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
-    def __init__(self, name, image_name, allow_old_container=False, healthcheck=None, **kwargs) -> None:
+    def __init__(
+        self, name, image_name, host_log_folder, environment=None, allow_old_container=False, healthcheck=None, **kwargs
+    ) -> None:
         self.name = name
-        self.container_name = f"system-tests-{name}"
-        self.image_name = image_name
+        self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
+
+        self.stop_previous_container()
+
+        Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
+        Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
+
+        self.image = ImageInfo(image_name, dir_path=self.log_folder_path)
         self.healthcheck = healthcheck
+        self.environment = self.image.env | (environment or {})
 
         self.kwargs = kwargs
         self._container = None
 
     @property
+    def container_name(self):
+        return f"system-tests-{self.name}"
+
+    @property
     def log_folder_path(self):
-        return f"/app/logs/docker/{self.name}"
+        return f"./{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
         for container in _client.containers.list(all=True, filters={"name": self.container_name}):
@@ -68,29 +91,35 @@ class TestedContainer:
                 logger.debug(f"Container {self.container_name} found")
                 return container
 
-    def start(self) -> Container:
-        Path(self.log_folder_path).mkdir(exist_ok=True)
+    def stop_previous_container(self):
+        if self.allow_old_container:
+            return
 
+        if old_container := self.get_existing_container():
+            logger.debug(f"Kill old container {self.container_name}")
+            old_container.remove(force=True)
+
+    def start(self) -> Container:
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
                 logger.debug(f"Use old container {self.container_name}")
                 return
 
-            logger.debug(f"Kill old container {self.container_name}")
-            old_container.remove(force=True)
+            raise ValueError("Old container still exists")
 
         self._fix_host_pwd_in_volumes()
 
         logger.info(f"Start container {self.container_name}")
 
         self._container = _client.containers.run(
-            image=self.image_name,
+            image=self.image.name,
             name=self.container_name,
+            hostname=self.name,
+            environment=self.environment,
             # auto_remove=True,
             detach=True,
-            hostname=self.name,
-            network="system-tests_default",
+            network=_NETWORK_NAME,
             **self.kwargs,
         )
 
@@ -104,7 +133,7 @@ class TestedContainer:
         if "volumes" not in self.kwargs:
             return
 
-        host_pwd = os.environ["HOST_PWD"]
+        host_pwd = os.getcwd()
 
         result = {}
         for k, v in self.kwargs["volumes"].items():
@@ -142,39 +171,52 @@ class TestedContainer:
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name):
+    def __init__(self, image_name, dir_path):
         self.env = {}
-
+        self.name = image_name
         try:
-            with open(f"logs/{image_name}_image.json", encoding="ascii") as fp:
-                self._raw = json.load(fp)
-        except FileNotFoundError:
-            return  # silently fail, needed for testing
+            self._image = _client.images.get(image_name)
+        except docker.errors.ImageNotFound:
+            logger.info(f"Image {image_name} has not been found locally")
+            self._image = _client.images.pull(image_name)
 
-        for var in self._raw[0]["Config"]["Env"]:
+        for var in self._image.attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
             self.env[key] = value
 
+        with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
+            json.dump(self._image.attrs, f, indent=2)
+
 
 class AgentContainer(TestedContainer):
-    def __init__(self) -> None:
+    def __init__(self, host_log_folder, use_proxy=True) -> None:
+
+        if "DD_API_KEY" not in os.environ:
+            raise ValueError("DD_API_KEY is missing in env, please add it.")
+
+        environment = {
+            "DD_API_KEY": os.environ["DD_API_KEY"],
+            "DD_ENV": "system-tests",
+            "DD_HOSTNAME": "test",
+            "DD_SITE": self.dd_site,
+            "DD_APM_RECEIVER_PORT": self.agent_port,
+            "DD_DOGSTATSD_PORT": "8125",
+        }
+
+        if use_proxy:
+            environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
+            environment["DD_PROXY_HTTP"] = "http://proxy:8126"
+
         super().__init__(
             image_name="system_tests/agent",
             name="agent",
-            environment={
-                "DD_API_KEY": os.environ.get("DD_API_KEY", "please-set-DD_API_KEY"),
-                "DD_ENV": "system-tests",
-                "DD_HOSTNAME": "test",
-                "DD_SITE": self.dd_site,
-                "DD_APM_RECEIVER_PORT": self.agent_port,
-                "DD_DOGSTATSD_PORT": "8125",  # TODO : move this in agent build ?
-            },
-            healthcheck=_HealthCheck(f"http://agent:{self.agent_port}/info", 60, start_period=1),
+            host_log_folder=host_log_folder,
+            environment=environment,
+            healthcheck=_HealthCheck(f"http://localhost:{self.agent_port}/info", 60, start_period=1),
+            ports={f"{self.agent_port}/tcp": ("127.0.0.1", self.agent_port)},
         )
 
-        self.image_info = ImageInfo("agent")
-
-        agent_version = self.image_info.env.get("SYSTEM_TESTS_AGENT_VERSION")
+        agent_version = self.image.env.get("SYSTEM_TESTS_AGENT_VERSION")
 
         if not agent_version:
             self.agent_version = None
@@ -187,7 +229,7 @@ class AgentContainer(TestedContainer):
 
     @property
     def agent_port(self):
-        return 8126
+        return 8127
 
 
 class WeblogContainer(TestedContainer):
@@ -199,83 +241,83 @@ class WeblogContainer(TestedContainer):
         appsec_rules=None,
         appsec_enabled=True,
         additional_trace_header_tags=(),
+        use_proxy=True,
     ) -> None:
 
-        self.image_info = ImageInfo("weblog")
+        super().__init__(
+            image_name="system_tests/weblog",
+            name="weblog",
+            host_log_folder=host_log_folder,
+            environment=environment or {},
+            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+            # ddprof's perf event open is blocked by default by docker's seccomp profile
+            # This is worse than the line above though prevents mmap bugs locally
+            security_opt=["seccomp=unconfined"],
+            healthcheck=_HealthCheck("http://localhost:7777", 60),
+            ports={"7777/tcp": ("127.0.0.1", 7777), "7778/tcp": ("127.0.0.1", 7778)},
+        )
 
         self.tracer_sampling_rate = tracer_sampling_rate
 
-        self.uds_socket = self.image_info.env.get("DD_APM_RECEIVER_SOCKET", None)
-
-        self.library = LibraryVersion(
-            self.image_info.env.get("SYSTEM_TESTS_LIBRARY", None),
-            self.image_info.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
-        )
-
-        self.weblog_variant = self.image_info.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
+        self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
         if self.library == "php":
-            self.php_appsec = Version(self.image_info.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
+            self.php_appsec = Version(self.image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
         else:
             self.php_appsec = None
 
-        libddwaf_version = self.image_info.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None)
+        libddwaf_version = self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None)
 
         if not libddwaf_version:
             self.libddwaf_version = None
         else:
             self.libddwaf_version = Version(libddwaf_version, "libddwaf")
 
-        appsec_rules_version = self.image_info.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
+        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules")
 
         # Basic env set for all scenarios
-        base_environment = {}
-
-        base_environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
+        self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
 
         if appsec_enabled:
-            base_environment["DD_APPSEC_ENABLED"] = "true"
+            self.environment["DD_APPSEC_ENABLED"] = "true"
 
         if self.library in ("cpp", "dotnet", "java", "python"):
-            base_environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
+            self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
         elif self.library in ("golang", "nodejs", "php", "ruby"):
-            base_environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
+            self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:
-            base_environment["DD_TRACE_HEADER_TAGS"] = ""
+            self.environment["DD_TRACE_HEADER_TAGS"] = ""
 
         if len(additional_trace_header_tags) != 0:
-            base_environment["DD_TRACE_HEADER_TAGS"] += ",".join(additional_trace_header_tags)
+            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(additional_trace_header_tags)
 
         if tracer_sampling_rate:
-            base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+            self.environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
 
         if appsec_rules:
-            base_environment["DD_APPSEC_RULES"] = str(appsec_rules)
+            self.environment["DD_APPSEC_RULES"] = str(appsec_rules)
             self.appsec_rules_file = str(appsec_rules)
         else:
-            self.appsec_rules_file = self.image_info.env.get("DD_APPSEC_RULES", None)
+            self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
 
-        # set the tracer to send data to runner (it will forward them to the agent)
-        base_environment["DD_AGENT_HOST"] = "runner"
-        base_environment["DD_TRACE_AGENT_PORT"] = 8126
+        if use_proxy:
+            # set the tracer to send data to runner (it will forward them to the agent)
+            self.environment["DD_AGENT_HOST"] = "proxy"
+            self.environment["DD_TRACE_AGENT_PORT"] = 8126
+        else:
+            self.environment["DD_AGENT_HOST"] = "agent"
+            self.environment["DD_TRACE_AGENT_PORT"] = 8127
 
-        environment = base_environment | (environment or {})
-
-        super().__init__(
-            image_name="system_tests/weblog",
-            name="weblog",
-            environment=environment,
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
-            # ddprof's perf event open is blocked by default by docker's seccomp profile
-            # This is worse than the line above though prevents mmap bugs locally
-            security_opt=["seccomp=unconfined"],
-            healthcheck=_HealthCheck("http://weblog:7777", 60),
+    @property
+    def library(self):
+        return LibraryVersion(
+            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
         )
 
     @property
-    def environment(self):
-        return self.kwargs["environment"]
+    def uds_socket(self):
+        return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
     def uds_mode(self):
