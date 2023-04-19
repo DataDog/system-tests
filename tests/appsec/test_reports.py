@@ -73,6 +73,9 @@ class Test_StatusCode:
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @flaky(context.library == "ruby" and context.weblog_variant in ("rails32", "rails40"))
 @coverage.good
+@missing_feature(
+    True, reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV"
+)
 class Test_HttpClientIP:
     """AppSec reports good http client IP"""
 

@@ -10,16 +10,15 @@ jobs:
       - checkout
 
       - run:
-          name: Install good version of docker-compose
-          command: |
-            sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
+          name: Install python 3.9
+          command: sudo apt-get install python3.9-venv
 
       - run:
           name: versions
           command: |
             docker --version
-            docker-compose --version
+            python3.9 --version
+            pip --version
 
       - run:
           name: Build

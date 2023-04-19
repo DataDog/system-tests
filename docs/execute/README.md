@@ -2,7 +2,7 @@
 
 ## Run tests
 
-You will only need `docker-compose`. Clone this folder, and at root level, create a `.env` file with `DD_API_KEY=<a_valid_staging_api_key>`. Then: 
+You will need a bash based terminal, python3.9, git and docker. Clone this folder, and at root level, create a `.env` file with `DD_API_KEY=<a_valid_staging_api_key>`. Then: 
 
 ```bash
 ./build.sh   # build all images
@@ -29,3 +29,14 @@ If system tests fails, you'll need to dig into logs. Most of the time and with s
 ## Troubleshooting
 
 For troubleshooting check the troubleshooting [page](./troubleshooting.md)
+
+## Installing python3.9 on Ubuntu
+
+```
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.9 python3.9-distutils python3.9-venv
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3.9 get-pip.py
+./build.sh -i runner
+```
