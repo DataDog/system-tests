@@ -43,6 +43,26 @@ def test_otel_start_span(test_agent, test_library):
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
+def test_otel_set_service_name(test_agent, test_library):
+    """
+        - Update the service name on a span
+    """
+    with test_library:
+        with test_library.otel_start_span("parent_span") as parent:
+            parent.set_attributes({"service.name": "new_service"})
+            parent.end_span()
+
+    root_span = get_span(test_agent)
+    assert root_span["name"] == "parent_span"
+    assert root_span["service"] == "new_service"
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+@pytest.mark.skip_library("php", "Not implemented")
+@pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_set_attributes_different_types(test_agent, test_library):
     """
