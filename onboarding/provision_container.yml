@@ -12,10 +12,10 @@ ami:
   os_distro: rpm
 
 prepare-repos:
-  install: !include provision_prepare_repos.yml
+  install: !include autoinjection/yaml/includes/provision_prepare_repos.yml
 
 prepare-docker:
-  install: !include provision_prepare_docker.yml
+  install: !include autoinjection/yaml/includes/provision_prepare_docker.yml
 
 agent:
 
@@ -257,4 +257,4 @@ weblogs:
               remote_path: test-app-dotnet.tar
           command: sh test-app-dotnet_docker_compose_run.sh
 
-installation_checks: !include provision_installation_checks.yml
+installation_checks: !include autoinjection/yaml/includes/provision_installation_checks.yml

@@ -9,7 +9,7 @@ ami:
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
   os_type: linux
-  os_distro: deb
+  os_distro: deb_
 
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
@@ -25,7 +25,7 @@ ami:
   os_branch: amazon-netcore6
 
 prepare-repos:
-  install: !include provision_prepare_repos.yml
+  install: !include autoinjection/yaml/includes/provision_prepare_repos.yml
 
 agent:
 
@@ -282,4 +282,4 @@ weblogs:
 
           command: sh test-app-python_run.sh
 
-installation_checks: !include provision_installation_checks.yml
+installation_checks: !include autoinjection/yaml/includes/provision_installation_checks.yml
