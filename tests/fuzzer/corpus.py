@@ -5,7 +5,7 @@
 import os
 import sys
 import json
-from scenarios.fuzzer.tools.random_strings import get_random_unicode as gru
+from tests.fuzzer.tools.random_strings import get_random_unicode as gru
 
 
 def get_simple_gets_corpus():

@@ -1,17 +1,47 @@
+from logging import FileHandler
+import json
 import os
+from pathlib import Path
+import shutil
 import time
-import pytest
 
-from utils._context.containers import TestedContainer, WeblogContainer, AgentContainer
+import pytest
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+from utils._context.containers import TestedContainer, WeblogContainer, AgentContainer, create_network
 from utils._context.library_version import LibraryVersion
-from utils.tools import logger
+from utils.tools import logger, get_log_formatter, update_environ_with_local_env
+
+current_scenario = None
 
 
 class _Scenario:
-    def __init__(self, name, use_interfaces=False, proxy_state=None) -> None:
+    def __init__(self, name) -> None:
         self.name = name
-        self.proxy_state = proxy_state
-        self.use_interfaces = use_interfaces
+
+        if os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO") == self.name:
+            global current_scenario
+            current_scenario = self
+
+            self.create_log_subfolder("")
+
+            handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
+            handler.setFormatter(get_log_formatter())
+
+            logger.addHandler(handler)
+
+            update_environ_with_local_env()
+
+    def create_log_subfolder(self, subfolder):
+        path = os.path.join(self.host_log_folder, subfolder)
+
+        shutil.rmtree(path, ignore_errors=True)
+        Path(path).mkdir(parents=True, exist_ok=True)
+
+    @property
+    def is_current_scenario(self):
+        return current_scenario is self
 
     def __call__(self, test_method):
         # handles @scenarios.scenario_name
@@ -20,8 +50,7 @@ class _Scenario:
         return test_method
 
     def session_start(self, session):
-        # called at the very begning of the process
-        pass
+        """ called at the very begning of the process """
 
     def _get_warmups(self):
         return []
@@ -29,15 +58,23 @@ class _Scenario:
     def execute_warmups(self):
         """ Called before any setup """
 
-        for warmup in self._get_warmups():
-            logger.info(f"Executing warmup {warmup}")
-            warmup()
+        try:
+            for warmup in self._get_warmups():
+                logger.info(f"Executing warmup {warmup}")
+                warmup()
+        except:
+            self.collect_logs()
+            self.close_targets()
+            raise
+
+    def post_setup(self, session):
+        """ called after test setup """
 
     def collect_logs(self):
         """ Called after setup """
 
     def close_targets(self):
-        """ Called after setup """
+        """ called after setup"""
 
     @property
     def host_log_folder(self):
@@ -68,6 +105,10 @@ class _Scenario:
 
 class TestTheTestScenario(_Scenario):
     @property
+    def host_log_folder(self):
+        return "logs"
+
+    @property
     def library(self):
         return LibraryVersion("java", "0.66.0")
 
@@ -94,12 +135,16 @@ class EndToEndScenario(_Scenario):
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
+        use_proxy=True,
         include_kafka=False,
         include_rabbitmq=False,
     ) -> None:
-        super().__init__(name, use_interfaces=True)
+        super().__init__(name)
 
-        self.agent_container = AgentContainer()
+        if not self.is_current_scenario:
+            return
+
+        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
         self.weblog_container = WeblogContainer(
             self.host_log_folder,
             environment=weblog_env,
@@ -107,6 +152,7 @@ class EndToEndScenario(_Scenario):
             appsec_rules=appsec_rules,
             appsec_enabled=appsec_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
+            use_proxy=use_proxy,
         )
         self.proxy_state = proxy_state
         self.include_postgres_db = include_postgres_db
@@ -115,11 +161,38 @@ class EndToEndScenario(_Scenario):
 
         self._required_containers = []
 
+        self.use_proxy = use_proxy
+        if self.use_proxy:
+            self._required_containers.append(
+                TestedContainer(
+                    image_name="mitmproxy/mitmproxy",
+                    name="proxy",
+                    host_log_folder=self.host_log_folder,
+                    environment={
+                        "DD_SITE": os.environ.get("DD_SITE"),
+                        "DD_API_KEY": os.environ.get("DD_API_KEY"),
+                        "HOST_LOG_FOLDER": self.host_log_folder,
+                        "PROXY_STATE": json.dumps(self.proxy_state or {}),
+                    },
+                    working_dir="/app",
+                    volumes={
+                        f"./{self.host_log_folder}/interfaces/": {
+                            "bind": f"/app/{self.host_log_folder}/interfaces",
+                            "mode": "rw",
+                        },
+                        "./utils/": {"bind": "/app/utils/", "mode": "ro"},
+                    },
+                    ports={"11111/tcp": ("127.0.0.1", 11111)},
+                    command="python utils/proxy/core.py",
+                )
+            )
+
         if include_postgres_db:
             self._required_containers.append(
                 TestedContainer(
                     image_name="postgres:latest",
                     name="postgres",
+                    host_log_folder=self.host_log_folder,
                     user="postgres",
                     environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
                     volumes={
@@ -133,11 +206,21 @@ class EndToEndScenario(_Scenario):
 
         if include_mongo_db:
             self._required_containers.append(
-                TestedContainer(image_name="mongo:latest", name="mongodb", allow_old_container=True)
+                TestedContainer(
+                    image_name="mongo:latest",
+                    name="mongodb",
+                    host_log_folder=self.host_log_folder,
+                    allow_old_container=True,
+                )
             )
         if include_cassandra_db:
             self._required_containers.append(
-                TestedContainer(image_name="cassandra:latest", name="cassandra_db", allow_old_container=True)
+                TestedContainer(
+                    image_name="cassandra:latest",
+                    name="cassandra_db",
+                    host_log_folder=self.host_log_folder,
+                    allow_old_container=True,
+                )
             )
 
         if include_kafka:
@@ -145,6 +228,7 @@ class EndToEndScenario(_Scenario):
                 TestedContainer(
                     image_name="bitnami/kafka:latest",
                     name="kafka",
+                    host_log_folder=self.host_log_folder,
                     environment={
                         "KAFKA_LISTENERS": "PLAINTEXT://:9092",
                         "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
@@ -162,6 +246,7 @@ class EndToEndScenario(_Scenario):
                 TestedContainer(
                     image_name="bitnami/zookeeper:latest",
                     name="zookeeper",
+                    host_log_folder=self.host_log_folder,
                     environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
                     allow_old_container=True,
                 )
@@ -169,7 +254,12 @@ class EndToEndScenario(_Scenario):
 
         if include_rabbitmq:
             self._required_containers.append(
-                TestedContainer(image_name="rabbitmq:3-management-alpine", name="rabbitmq", allow_old_container=True,)
+                TestedContainer(
+                    image_name="rabbitmq:3-management-alpine",
+                    name="rabbitmq",
+                    host_log_folder=self.host_log_folder,
+                    allow_old_container=True,
+                )
             )
 
         if agent_interface_timeout is None:
@@ -197,14 +287,22 @@ class EndToEndScenario(_Scenario):
                 self.library_interface_timeout = 40
 
     def session_start(self, session):
+        from utils import weblog
+
+        super().session_start(session)
+
+        logger.debug(f"Docker host is {weblog.domain}")
+
         # called at the very begning of the process
         terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
         def print_info(info):
-            logger.debug(info)
+            logger.info(info)
             terminal.write_line(info)
 
-        terminal.write_sep("=", "Tested components", bold=True)
+        terminal.write_sep("=", "test context", bold=True)
+        print_info(f"Scenario: {self.name}")
+        print_info(f"Logs folder: ./{self.host_log_folder}")
         print_info(f"Library: {self.library}")
         print_info(f"Agent: {self.agent_version}")
         if self.library == "php":
@@ -221,51 +319,100 @@ class EndToEndScenario(_Scenario):
 
         print_info(f"Weblog variant: {self.weblog_container.weblog_variant}")
         print_info(f"Backend: {self.agent_container.dd_site}")
-        print_info(f"Scenario: {self.name}")
+
+    def _create_interface_folders(self):
+        for interface in ("agent", "library", "backend"):
+            self.create_log_subfolder(f"interfaces/{interface}")
+
+    def _start_interface_watchdog(self):
+        from utils import interfaces
+
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def on_modified(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+        observer = Observer()
+        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library", recursive=True)
+        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent", recursive=True)
+
+        observer.start()
 
     def _get_warmups(self):
-        from utils.proxy.core import start_proxy  # prevent circular import
 
-        warmups = [lambda: start_proxy(self.proxy_state)]
+        containers = self._required_containers + [self.agent_container, self.weblog_container]
 
-        for container in self._required_containers:
+        warmups = []
+
+        warmups += [self._create_interface_folders, create_network, self._start_interface_watchdog]
+
+        for container in containers:
             warmups.append(container.start)
 
-        warmups += [
-            self.agent_container.start,
-            self.weblog_container.start,
-            EndToEndScenario._wait_for_app_readiness,
-        ]
+        warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
-    @staticmethod
-    def _wait_for_app_readiness():
+    def _wait_for_app_readiness(self):
         from utils import interfaces  # import here to avoid circular import
 
-        logger.debug("Wait for app readiness")
+        if self.use_proxy:
+            logger.debug("Wait for app readiness")
 
-        if not interfaces.library.ready.wait(40):
-            pytest.exit("Library not ready", 1)
-        logger.debug("Library ready")
+            if not interfaces.library.ready.wait(40):
+                raise Exception("Library not ready")
+            logger.debug("Library ready")
 
-        if not interfaces.agent.ready.wait(40):
-            pytest.exit("Datadog agent not ready", 1)
-        logger.debug("Agent ready")
+            if not interfaces.agent.ready.wait(40):
+                raise Exception("Datadog agent not ready")
+            logger.debug("Agent ready")
 
-    def collect_logs(self):
-        try:
-            self.agent_container.save_logs()
-            self.weblog_container.save_logs()
-        except:
-            logger.exception("Fail to save logs")
+    def post_setup(self, session):
+        from utils import interfaces
+
+        if self.use_proxy:
+            self._wait_interface(interfaces.library, session, self.library_interface_timeout)
+            self._wait_interface(interfaces.agent, session, self.agent_interface_timeout)
+            self._wait_interface(interfaces.backend, session, self.backend_interface_timeout)
+
+            self.collect_logs()
+
+            self._wait_interface(interfaces.library_stdout, session, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, session, 0)
+            self._wait_interface(interfaces.agent_stdout, session, 0)
+        else:
+            self.collect_logs()
 
     def close_targets(self):
-        self.agent_container.remove()
-        self.weblog_container.remove()
+        containers = [self.agent_container, self.weblog_container] + self._required_containers
 
-        for container in self._required_containers:
-            container.remove()
+        for container in containers:
+            try:
+                container.remove()
+            except:
+                logger.exception(f"Failed to remove container {container}")
+
+    @staticmethod
+    def _wait_interface(interface, session, timeout):
+        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        terminal.flush()
+
+        interface.wait(timeout)
+
+    def collect_logs(self):
+
+        for container in [self.weblog_container, self.agent_container] + self._required_containers:
+            try:
+                container.save_logs()
+            except:
+                logger.exception(f"Fail to save logs for container {container}")
 
     @property
     def library(self):
@@ -305,17 +452,17 @@ class CgroupScenario(EndToEndScenario):
 
     def _get_warmups(self):
         warmups = super()._get_warmups()
-        warmups.append(CgroupScenario._wait_for_weblog_cgroup_file)
+        warmups.append(self._wait_for_weblog_cgroup_file)
         return warmups
 
-    @staticmethod
-    def _wait_for_weblog_cgroup_file():
+    def _wait_for_weblog_cgroup_file(self):
         max_attempts = 10  # each attempt = 1 second
         attempt = 0
 
-        while attempt < max_attempts and not os.path.exists("logs/docker/weblog/logs/weblog.cgroup"):
+        filename = f"{self.host_log_folder}/docker/weblog/logs/weblog.cgroup"
+        while attempt < max_attempts and not os.path.exists(filename):
 
-            logger.debug("logs/docker/weblog/logs/weblog.cgroup is missing, wait")
+            logger.debug(f"{filename} is missing, wait")
             time.sleep(1)
             attempt += 1
 
@@ -323,6 +470,39 @@ class CgroupScenario(EndToEndScenario):
             pytest.exit("Failed to access cgroup file from weblog container", 1)
 
         return True
+
+
+class PerformanceScenario(EndToEndScenario):
+    """ A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"""
+
+    def __init__(self, name) -> None:
+        super().__init__(name, appsec_enabled=self.appsec_enabled, use_proxy=False)
+
+    @property
+    def appsec_enabled(self):
+        return os.environ.get("DD_APPSEC_ENABLED") == "true"
+
+    @property
+    def host_log_folder(self):
+        return "logs_with_appsec" if self.appsec_enabled else "logs_without_appsec"
+
+    def _get_warmups(self):
+        result = super()._get_warmups()
+        result.append(self._extra_weblog_warmup)
+
+        return result
+
+    def _extra_weblog_warmup(self):
+        import requests
+
+        WARMUP_REQUEST_COUNT = 10
+        WARMUP_LAST_SLEEP_DURATION = 3
+
+        for _ in range(WARMUP_REQUEST_COUNT):
+            requests.get("http://localhost:7777", timeout=10)
+            time.sleep(0.6)
+
+        time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
 
 class scenarios:
@@ -334,6 +514,9 @@ class scenarios:
     cgroup = CgroupScenario("CGROUP")
     custom = EndToEndScenario("CUSTOM")
     sleep = EndToEndScenario("SLEEP")
+
+    # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
+    performances = PerformanceScenario("PERFORMANCES")
 
     # scenario for weblog arch that does not support Appsec
     appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
@@ -387,7 +570,9 @@ class scenarios:
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS", appsec_rules="/appsec_custom_rules_with_errors.json"
     )
-    appsec_disabled = EndToEndScenario("APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"})
+    appsec_disabled = EndToEndScenario(
+        "APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"}, appsec_enabled=False
+    )
     appsec_low_waf_timeout = EndToEndScenario("APPSEC_LOW_WAF_TIMEOUT", weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"})
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
@@ -527,10 +712,8 @@ class scenarios:
     )
 
 
-current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO").lower()
-
-if not hasattr(scenarios, current_scenario_name):
+if current_scenario is None:
+    current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO")
     raise ValueError(f"Scenario {current_scenario_name} does not exists")
 
-current_scenario = getattr(scenarios, current_scenario_name)
 logger.info(f"Current scenario is {current_scenario}")

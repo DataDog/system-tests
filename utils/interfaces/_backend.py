@@ -6,13 +6,15 @@
 
 import json
 import os
-import threading
-import requests
 import time
+
+import requests
 
 from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_rid_from_request
 from utils.tools import logger
-from utils.proxy.core import BACKEND_LOCAL_PORT
+
+
+BACKEND_LOCAL_PORT = 11111
 
 
 class _BackendInterfaceValidator(InterfaceValidator):
@@ -20,8 +22,6 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     def __init__(self):
         super().__init__("backend")
-        self.ready = threading.Event()
-        self.ready.set()
 
         # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
         self.rid_to_library_trace_ids = {}

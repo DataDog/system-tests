@@ -13,7 +13,7 @@ echo "Setting up UDS with $DD_APM_RECEIVER_SOCKET"
 mkdir -p ${SOCKET_DIR}
 chmod -R a+rwX ${SOCKET_DIR}
 
-( socat -d -d UNIX-LISTEN:${DD_APM_RECEIVER_SOCKET},fork TCP:runner:8126 > /var/log/system-tests/uds-socat.log 2>&1 ) &
+( socat -d -d UNIX-LISTEN:${DD_APM_RECEIVER_SOCKET},fork TCP:proxy:8126 > /var/log/system-tests/uds-socat.log 2>&1 ) &
 
 # Zero is good!
 script_status=1

@@ -18,8 +18,11 @@ if context.library == "cpp":
         "spring-boot": "0.108.0",
         "spring-boot-jetty": "0.108.0",
         "spring-boot-openliberty": "0.108.0",
+        "spring-boot-wildfly": "0.108.0",
+        "spring-boot-undertow": "0.108.0",
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
+        "vertx3": "1.12.0",
         "*": "?",
     }
 )
