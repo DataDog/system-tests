@@ -19,7 +19,12 @@ TODO
 
 ### Mac
 
-TODO
+For Homebrew users : 
+
+```
+brew install python@3.9
+pip3.9 install virtualenv
+```
 
 ## Bash based terminal for Windows
 
