@@ -18,22 +18,24 @@ namespace weblog
 
                 if (integration == "npgsql") 
                 {
-                    using (var connection = new NpgsqlConnection(Constants.NpgSqlConnectionString))
+                    await using (var connection = new NpgsqlConnection(Constants.NpgSqlConnectionString))
                     {
                         var command = new NpgsqlCommand(queryString, connection);
-                        await connection.OpenAsync();
-                        await command.ExecuteNonQueryAsync();
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        connection.Close();
                     }
 
                     await context.Response.WriteAsync("NpgSql query executed.");
                 } 
                 else if (integration == "mysql") 
                 {
-                    using (var connection = new MySqlConnection(Constants.MySqlConnectionString)) 
+                    await using (var connection = new MySqlConnection(Constants.MySqlConnectionString)) 
                     {
                         var command = new MySqlCommand(queryString, connection);
                         connection.Open();
                         command.ExecuteNonQuery();
+                        connection.Close();
                     }
 
                     await context.Response.WriteAsync("MySql query executed.");
