@@ -27,13 +27,13 @@ in llvm.stdenv.mkDerivation {
     # linters
     pinned.shellcheck
 
-    # have docker-compose at hand
-    pinned.docker-compose
-
     # for scripts
     pinned.bash
     pinned.fswatch
     pinned.rsync
+
+    # for c++ dependencies such as grpcio-tools
+    llvm.libcxx.dev
   ];
 
   shellHook = ''
@@ -46,6 +46,6 @@ in llvm.stdenv.mkDerivation {
     export PATH="$PIP_PREFIX/bin:$PATH"
 
     # for grpcio-tools, which is building from source but doesn't pick up the proper include
-    export CFLAGS="-I${llvm.libcxx}/include/c++/v1"
+    export CFLAGS="-I${llvm.libcxx.dev}/include/c++/v1"
   '';
 }

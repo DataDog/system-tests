@@ -128,14 +128,16 @@ build() {
         echo "-----------------------"
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
-            if [ ! -d "venv/" ] 
-            then
-                echo "Build virtual env"
-                python3.9 -m venv venv
-            fi
+            if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+              if [ ! -d "venv/" ]
+              then
+                  echo "Build virtual env"
+                  python3.9 -m venv venv
+              fi
 
-            source venv/bin/activate
-            python -m pip install --upgrade pip
+              source venv/bin/activate
+              python -m pip install --upgrade pip
+            fi
             pip install -r requirements.txt
 
         elif [[ $IMAGE_NAME == agent ]]; then

@@ -25,3 +25,4 @@ rfc3339-validator==0.1.4
 matplotlib
 
 docker==6.0.0
+paramiko==3.1.0
