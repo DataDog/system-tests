@@ -43,7 +43,7 @@ class Test_AppSecRequestBlocking:
                 return False
 
             state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-            if len(state.get("config_states", [])) == 0 or state["has_error"]:
+            if len(state.get("config_states", [])) == 0 or state.get("has_error"):
                 logger.info(f"rc request contains an error or no configs:\n{state}")
                 return False
 
