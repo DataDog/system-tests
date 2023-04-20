@@ -25,5 +25,9 @@ rfc3339-validator==0.1.4
 matplotlib
 
 docker==6.0.0
+<<<<<<< HEAD
 
 opentelemetry-proto==1.17.0
+=======
+paramiko==3.1.0
+>>>>>>> main

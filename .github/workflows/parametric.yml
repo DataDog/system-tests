@@ -39,13 +39,24 @@ jobs:
         - nodejs
         - ruby
       fail-fast: false
+    defaults:
+      run:
+        working-directory: ./parametric
+    env:
+      CLIENTS_ENABLED: ${{ matrix.client }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
+    - uses: actions/cache@v3 # TODO: Use a lockfile instead of requirements.txt
+      id: cache-pip
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ env.pythonLocation }}-${{ matrix.client }}-pip-${{ hashFiles('parametric/requirements.txt') }}
     - name: Install
-      run: cd parametric && pip install wheel && pip install -r requirements.txt
+      if: steps.cache-pip.outputs.cache-hit != 'true'
+      run: pip install wheel && pip install -r requirements.txt && pip cache purge
     - name: Run
-      run: cd parametric && CLIENTS_ENABLED=${{ matrix.client }} ./run.sh
+      run: ./run.sh

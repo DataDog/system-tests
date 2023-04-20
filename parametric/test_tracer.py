@@ -61,7 +61,6 @@ def test_tracer_service_name_environment_variable(
     assert span["service"] == library_env["DD_SERVICE"]
 
 
-@pytest.mark.skip_library("nodejs", "nodejs consistently fails during GRPC calls")
 @parametrize("library_env", [{"DD_ENV": "prod"}])
 def test_tracer_env_environment_variable(
     library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
