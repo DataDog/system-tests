@@ -110,7 +110,7 @@ class _RequestLogger:
         if flow.request.host in ("proxy", "localhost"):
             # tracer is the only container that uses the proxy directly
 
-            if "api/v0.2/traces" in flow.request.path:  # open telemetry datas
+            if flow.request.headers.get("dd-protocol") == "otlp":  # open telemetry datas
                 flow.request.host = "trace.agent." + os.environ.get("DD_SITE")
                 flow.request.port = 443
                 flow.request.scheme = "https"
@@ -159,7 +159,7 @@ class _RequestLogger:
             data["response"] = None
 
         if flow.request.headers.get("dd-protocol") == "otlp":
-            interface = "otlp"
+            interface = "open_telemetry"
         if self.request_is_from_tracer(flow.request):
             interface = "library"
         elif f"https://{flow.request.host}" == self.dd_site_url:
