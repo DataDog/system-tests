@@ -188,6 +188,28 @@ class ImageInfo:
             json.dump(self._image.attrs, f, indent=2)
 
 
+class ProxyContainer(TestedContainer):
+    def __init__(self, host_log_folder, proxy_state) -> None:
+        super().__init__(
+            image_name="mitmproxy/mitmproxy",
+            name="proxy",
+            host_log_folder=host_log_folder,
+            environment={
+                "DD_SITE": os.environ.get("DD_SITE"),
+                "DD_API_KEY": os.environ.get("DD_API_KEY"),
+                "HOST_LOG_FOLDER": host_log_folder,
+                "PROXY_STATE": json.dumps(proxy_state or {}),
+            },
+            working_dir="/app",
+            volumes={
+                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                "./utils/": {"bind": "/app/utils/", "mode": "ro"},
+            },
+            ports={"11111/tcp": ("127.0.0.1", 11111)},
+            command="python utils/proxy/core.py",
+        )
+
+
 class AgentContainer(TestedContainer):
     def __init__(self, host_log_folder, use_proxy=True) -> None:
 
@@ -326,3 +348,78 @@ class WeblogContainer(TestedContainer):
     @property
     def telemetry_heartbeat_interval(self):
         return 2
+
+
+class PostgresContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="postgres:latest",
+            name="postgres",
+            host_log_folder=host_log_folder,
+            user="postgres",
+            environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
+            volumes={
+                "./utils/build/docker/postgres-init-db.sh": {
+                    "bind": "/docker-entrypoint-initdb.d/init_db.sh",
+                    "mode": "ro",
+                }
+            },
+        )
+
+
+class MongoContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True,
+        )
+
+
+class KafkaContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="bitnami/kafka:latest",
+            name="kafka",
+            host_log_folder=host_log_folder,
+            environment={
+                "KAFKA_LISTENERS": "PLAINTEXT://:9092",
+                "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
+                "ALLOW_PLAINTEXT_LISTENER": "yes",
+                "KAFKA_ADVERTISED_HOST_NAME": "kafka",
+                "KAFKA_ADVERTISED_PORT": "9092",
+                "KAFKA_PORT": "9092",
+                "KAFKA_BROKER_ID": "1",
+                "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+            },
+            allow_old_container=True,
+        )
+
+
+class ZooKeeperContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="bitnami/zookeeper:latest",
+            name="zookeeper",
+            host_log_folder=host_log_folder,
+            environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
+            allow_old_container=True,
+        )
+
+
+class CassandraContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="cassandra:latest",
+            name="cassandra_db",
+            host_log_folder=host_log_folder,
+            allow_old_container=True,
+        )
+
+
+class RabbitMqContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="rabbitmq:3-management-alpine",
+            name="rabbitmq",
+            host_log_folder=host_log_folder,
+            allow_old_container=True,
+        )
