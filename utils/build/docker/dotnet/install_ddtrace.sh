@@ -13,8 +13,8 @@ if [ $(ls /binaries/Datadog.Trace.ClrProfiler.Native.so | wc -l) = 1 ]; then
     echo "Install from local folder"
     cp -r /binaries/* /opt/datadog/
 else
-    if [ $(ls datadog-dotnet-apm-*.tar.gz | wc -l) = 1 ]; then
-        echo "Install ddtrace from $(ls datadog-dotnet-apm-*.tar.gz)"
+    if [ $(ls datadog-dotnet-apm*.tar.gz | wc -l) = 1 ]; then
+        echo "Install ddtrace from $(ls datadog-dotnet-apm*.tar.gz)"
     else
         echo "Install ddtrace from github releases"
         DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-dotnet)"
