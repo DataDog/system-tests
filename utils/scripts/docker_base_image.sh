@@ -23,3 +23,4 @@ rm -rf $target_dir/image.tar $target_dir/manifest.json $target_dir/oci-layout  $
 rm -rf $target_dir/blobs/
 
 cat $target_dir/LIBRARY_VERSION
+pwd
