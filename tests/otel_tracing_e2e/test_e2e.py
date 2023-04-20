@@ -1,11 +1,9 @@
 from _validator import validate_trace
-from utils import context, weblog, interfaces, scenarios, missing_feature
+from utils import context, weblog, interfaces, scenarios, irrelevant
 
 
 @scenarios.otel_tracing_e2e
-@missing_feature(
-    context.library != "java_otel", reason="OTel tests only support OTel instrumented applications at the moment.",
-)
+@irrelevant(context.library != "open_telemetry")
 class Test_OTel_E2E:
     def setup_main(self):
         self.use_128_bits_trace_id = False

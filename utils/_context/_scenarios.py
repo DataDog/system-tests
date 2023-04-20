@@ -470,17 +470,38 @@ class OpenTelemetryScenario(_DockerScenario):
         from utils import interfaces
 
         if self.use_proxy:
-            self._wait_interface(interfaces.library, session, self.library_interface_timeout)
-            self._wait_interface(interfaces.agent, session, self.agent_interface_timeout)
-            self._wait_interface(interfaces.backend, session, self.backend_interface_timeout)
+            self._wait_interface(interfaces.open_telemetry, session, 5)
 
             self.collect_logs()
 
             self._wait_interface(interfaces.library_stdout, session, 0)
             self._wait_interface(interfaces.library_dotnet_managed, session, 0)
-            self._wait_interface(interfaces.agent_stdout, session, 0)
         else:
             self.collect_logs()
+
+    @staticmethod
+    def _wait_interface(interface, session, timeout):
+        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        terminal.flush()
+
+        interface.wait(timeout)
+
+    @property
+    def library(self):
+        return LibraryVersion("open_telemetry", "0.0.0")
+
+    @property
+    def agent(self):
+        return LibraryVersion("agent", "0.0.0")
+
+    @property
+    def agent_version(self):
+        return self.agent.version
+
+    @property
+    def weblog_variant(self):
+        return self.weblog_container.weblog_variant
 
 
 class CgroupScenario(EndToEndScenario):
