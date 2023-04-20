@@ -1,17 +1,17 @@
+import psycopg2
 import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import (
-    weak_hash_secure_algorithm,
-    weak_hash,
-    weak_hash_multiple,
-    weak_hash_duplicates,
     weak_cipher,
     weak_cipher_secure_algorithm,
+    weak_hash,
+    weak_hash_duplicates,
+    weak_hash_multiple,
+    weak_hash_secure_algorithm,
 )
-import psycopg2
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -43,6 +43,22 @@ def sample_rate(i):
 @app.route("/params/<path>", methods=["GET", "POST"])
 def waf(*args, **kwargs):
     return "Hello, World!\\n"
+
+
+VALUE_STORED = ""
+
+
+@app.route("/set_value/<string:value>", methods=["GET", "POST", "OPTIONS"])
+@app.route("/set_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
+def set_value(value, code=200):
+    global VALUE_STORED
+    VALUE_STORED = value
+    return "Value set", code, flask_request.args
+
+
+@app.route("/get_value", methods=["GET", "POST", "OPTIONS"])
+def get_value(*args, **kwargs):
+    return VALUE_STORED
 
 
 @app.route("/read_file", methods=["GET"])
