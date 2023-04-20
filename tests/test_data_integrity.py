@@ -77,7 +77,7 @@ class Test_TraceHeaders:
             infos = r.text.split("\n")
         else:
             logger.debug("cgroup: using log file")
-            with open("logs/docker/weblog/logs/weblog.cgroup", mode="r", encoding="utf-8") as fp:
+            with open("logs_cgroup/docker/weblog/logs/weblog.cgroup", mode="r", encoding="utf-8") as fp:
                 infos = fp.readlines()
 
         logger.info(f"cgroup: file content is {infos}")

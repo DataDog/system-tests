@@ -1,7 +1,8 @@
 Fuzz agents!
 
 ```
-RUNNER_CMD=python ./run.sh scenarios/fuzzer/main.py
+./build.sh
+./tests/fuzzer/run.sh
 ```
 
 

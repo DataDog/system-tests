@@ -14,7 +14,15 @@ if context.library == "cpp":
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
 @released(
-    java={"spring-boot": "1.5.0", "spring-boot-jetty": "1.5.0", "spring-boot-openliberty": "1.5.0", "*": "?",}
+    java={
+        "spring-boot": "1.5.0",
+        "spring-boot-jetty": "1.5.0",
+        "spring-boot-openliberty": "1.5.0",
+        "spring-boot-wildfly": "1.5.0",
+        "spring-boot-undertow": "1.5.0",
+        "vertx3": "1.12.0",
+        "*": "?",
+    }
 )
 @released(nodejs="?")
 class TestRequestCookieName:

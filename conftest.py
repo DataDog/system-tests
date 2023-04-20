@@ -4,9 +4,10 @@
 import os
 import json
 
+import pytest
 from pytest_jsonreport.plugin import JSONReport
 
-from utils import context, interfaces
+from utils import context
 from utils._context._scenarios import current_scenario
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
@@ -21,6 +22,16 @@ _skip_reasons = {}
 _release_versions = {}
 _coverages = {}
 _rfcs = {}
+
+
+_JSON_REPORT_FILE = f"{current_scenario.host_log_folder}/report.json"
+_XML_REPORT_FILE = f"{current_scenario.host_log_folder}/reportJunit.xml"
+
+
+def pytest_configure(config):
+    config.option.json_report_file = _JSON_REPORT_FILE
+    config.option.xmlpath = _XML_REPORT_FILE
+
 
 # Called at the very begening
 def pytest_sessionstart(session):
@@ -142,70 +153,47 @@ def pytest_collection_finish(session):
 
     terminal.write_line("Executing weblog warmup...")
 
-    try:
-        current_scenario.execute_warmups()
+    current_scenario.execute_warmups()
 
-        last_file = ""
-        for item in session.items:
+    last_file = ""
+    for item in session.items:
 
-            if _item_is_skipped(item):
-                continue
+        if _item_is_skipped(item):
+            continue
 
-            if not item.instance:  # item is a method bounded to a class
-                continue
+        if not item.instance:  # item is a method bounded to a class
+            continue
 
-            # the test metohd name is like test_xxxx
-            # we replace the test_ by setup_, and call it if it exists
+        # the test metohd name is like test_xxxx
+        # we replace the test_ by setup_, and call it if it exists
 
-            setup_method_name = f"setup_{item.name[5:]}"
+        setup_method_name = f"setup_{item.name[5:]}"
 
-            if not hasattr(item.instance, setup_method_name):
-                continue
+        if not hasattr(item.instance, setup_method_name):
+            continue
 
-            if last_file != item.location[0]:
-                if len(last_file) == 0:
-                    terminal.write_sep("-", "Tests setup", bold=True)
+        if last_file != item.location[0]:
+            if len(last_file) == 0:
+                terminal.write_sep("-", "tests setup", bold=True)
 
-                terminal.write(f"\n{item.location[0]} ")
-                last_file = item.location[0]
+            terminal.write(f"\n{item.location[0]} ")
+            last_file = item.location[0]
 
-            setup_method = getattr(item.instance, setup_method_name)
-            logger.debug(f"Call {setup_method} for {item}")
-            try:
-                setup_method()
-            except Exception:
-                logger.exception("Unexpected failure during setup method call")
-                terminal.write("x", bold=True, red=True)
-                raise
-            else:
-                terminal.write(".", bold=True, green=True)
+        setup_method = getattr(item.instance, setup_method_name)
+        logger.debug(f"Call {setup_method} for {item}")
+        try:
+            setup_method()
+        except Exception:
+            logger.exception("Unexpected failure during setup method call")
+            terminal.write("x", bold=True, red=True)
+            current_scenario.close_targets()
+            raise
+        else:
+            terminal.write(".", bold=True, green=True)
 
-        terminal.write("\n\n")
+    terminal.write("\n\n")
 
-        if current_scenario.use_interfaces:
-            _wait_interface(interfaces.library, session, current_scenario.library_interface_timeout)
-            _wait_interface(interfaces.agent, session, current_scenario.agent_interface_timeout)
-            _wait_interface(interfaces.backend, session, current_scenario.backend_interface_timeout)
-
-            current_scenario.collect_logs()
-
-            _wait_interface(interfaces.library_stdout, session, 0)
-            _wait_interface(interfaces.library_dotnet_managed, session, 0)
-            _wait_interface(interfaces.agent_stdout, session, 0)
-
-    except:
-        current_scenario.collect_logs()
-        raise
-    finally:
-        current_scenario.close_targets()
-
-
-def _wait_interface(interface, session, timeout):
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-    terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-    terminal.flush()
-
-    interface.wait(timeout)
+    current_scenario.post_setup(session)
 
 
 def pytest_json_modifyreport(json_report):
@@ -241,7 +229,7 @@ def pytest_sessionfinish(session, exitstatus):
 
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-        open("logs/known_versions.json", "w", encoding="utf-8"),
+        open(f"{current_scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
         indent=2,
     )
 
@@ -253,14 +241,12 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def _pytest_junit_modifyreport():
-    json_report_path = "logs/report.json"
-    junit_report_path = "logs/reportJunit.xml"
 
-    with open(json_report_path, encoding="utf-8") as f:
+    with open(_JSON_REPORT_FILE, encoding="utf-8") as f:
         json_report = json.load(f)
         junit_modifyreport(
             json_report,
-            junit_report_path,
+            _XML_REPORT_FILE,
             _skip_reasons,
             _docs,
             _rfcs,
