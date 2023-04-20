@@ -920,7 +920,6 @@ type OtelStartSpanArgs struct {
 	unknownFields protoimpl.UnknownFields
 
 	Name        string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	NewRoot     *bool                   `protobuf:"varint,2,opt,name=new_root,json=newRoot,proto3,oneof" json:"new_root,omitempty"`
 	ParentId    *uint64                 `protobuf:"varint,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
 	SpanKind    *uint64                 `protobuf:"varint,9,opt,name=span_kind,json=spanKind,proto3,oneof" json:"span_kind,omitempty"`
 	Service     *string                 `protobuf:"bytes,4,opt,name=service,proto3,oneof" json:"service,omitempty"`
@@ -968,13 +967,6 @@ func (x *OtelStartSpanArgs) GetName() string {
 		return x.Name
 	}
 	return ""
-}
-
-func (x *OtelStartSpanArgs) GetNewRoot() bool {
-	if x != nil && x.NewRoot != nil {
-		return *x.NewRoot
-	}
-	return false
 }
 
 func (x *OtelStartSpanArgs) GetParentId() uint64 {

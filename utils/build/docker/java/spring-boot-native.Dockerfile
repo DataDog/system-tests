@@ -15,6 +15,8 @@ RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-mav
 	tar xzvf /opt/maven.tar.gz --directory /opt && \
 	rm /opt/maven.tar.gz
 
+COPY ./utils/build/docker/java/iast-common/src /iast-common/src
+
 WORKDIR /app
 
 # Copy application sources
