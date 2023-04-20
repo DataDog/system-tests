@@ -29,6 +29,11 @@ in llvm.stdenv.mkDerivation {
 
     # have docker-compose at hand
     pinned.docker-compose
+
+    # for scripts
+    pinned.bash
+    pinned.fswatch
+    pinned.rsync
   ];
 
   shellHook = ''
