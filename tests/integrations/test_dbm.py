@@ -25,6 +25,7 @@ class Test_Dbm:
         elif self.library_name == "dotnet":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "mysql"}),
+                weblog.get("/dbm", params={"integration": "npgsql"}),
             ]
 
     def test_trace_payload(self):
