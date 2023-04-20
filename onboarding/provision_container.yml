@@ -24,7 +24,7 @@ agent:
       - os_type: linux
         copy_files:
             - name: copy-agent-docker-compose
-              local_path: autoinjection/docker-compose-agent-prod.yml
+              local_path: autoinjection/docker/docker-compose-agent-prod.yml
               remote_path: docker-compose-agent-prod.yml
         command: cat docker-compose-agent-prod.yml
 
@@ -36,7 +36,7 @@ autoinjection:
           os_distro: deb
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
@@ -47,7 +47,7 @@ autoinjection:
           os_distro: rpm
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |    
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
@@ -60,7 +60,7 @@ autoinjection:
           os_distro: deb
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
@@ -71,7 +71,7 @@ autoinjection:
           os_distro: rpm
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
@@ -84,7 +84,7 @@ autoinjection:
           os_distro: deb
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
@@ -95,7 +95,7 @@ autoinjection:
           os_distro: rpm
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
@@ -108,7 +108,7 @@ autoinjection:
           os_distro: deb
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
@@ -119,7 +119,7 @@ autoinjection:
           os_distro: rpm
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
@@ -132,7 +132,7 @@ autoinjection:
           os_distro: deb
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-dotnet
@@ -143,7 +143,7 @@ autoinjection:
           os_distro: rpm
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-dotnet
@@ -156,7 +156,7 @@ autoinjection:
           os_distro: deb
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-dotnet
@@ -167,7 +167,7 @@ autoinjection:
           os_distro: rpm
           copy_files:
             - name: copy-docker-config
-              local_path: autoinjection/docker_config.yaml
+              local_path: autoinjection/docker/docker_config.yaml
               remote_path: docker_config.yaml
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
@@ -203,9 +203,9 @@ weblogs:
     - name: test-app-java
       supported-language-versions:
         - 11
-      local-script: weblog/java/test-app-java/test-app-java_local_build.sh
       install: 
         - os_type: linux
+          local-script: weblog/java/test-app-java/test-app-java_local_build.sh
           copy_files:
             - name: copy-run-weblog-script
               local_path: weblog/java/test-app-java/test-app-java_docker_compose_run.sh
@@ -224,9 +224,9 @@ weblogs:
     - name: test-app-nodejs
       supported-language-versions:
         - 0
-      local-script: weblog/nodejs/test-app-nodejs/test-app-nodejs_local_build.sh
       install: 
         - os_type: linux
+          local-script: weblog/nodejs/test-app-nodejs/test-app-nodejs_local_build.sh
           copy_files:
             - name: copy-run-weblog-script
               local_path: weblog/nodejs/test-app-nodejs/test-app-nodejs_docker_compose_run.sh
@@ -242,9 +242,9 @@ weblogs:
     - name: test-app-dotnet
       supported-language-versions:
         - 0
-      local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_local_build.sh
       install: 
         - os_type: linux
+          local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_local_build.sh
           copy_files:
             - name: copy-run-weblog-script
               local_path: weblog/dotnet/test-app-dotnet/test-app-dotnet_docker_compose_run.sh

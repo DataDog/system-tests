@@ -28,10 +28,10 @@
           os_distro: rpm
           copy_files:
             - name: copy-datadog-staging-repo
-              local_path: autoinjection/datadog-staging.repo
+              local_path: autoinjection/repositories/rpm/datadog-staging.repo
               remote_path: datadog-staging.repo
             - name: copy-datadog-stable-repo
-              local_path: autoinjection/datadog-stable.repo
+              local_path: autoinjection/repositories/rpm/datadog-stable.repo
               remote_path: datadog-stable.repo
           command: |
               sudo cp *.repo /etc/yum.repos.d/

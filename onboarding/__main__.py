@@ -59,13 +59,27 @@ def load_filter():
 
 
 def remote_install(connection, command_identifier, install_info, depends_on, add_dd_keys=False, logger_name=None):
+    #Do we need to add env variables?
     if install_info is None:
         return depends_on
     if add_dd_keys:
         command_exec = "DD_API_KEY=" + dd_api_key + " DD_SITE=" + dd_site + " " + install_info["command"]
     else:
         command_exec = install_info["command"]
-
+        
+    #Execute local script if we need
+    if "local-script" in install_info:
+        webapp_build = command.local.Command(
+            "local-script_" + command_identifier,
+            create="sh " + install_info["local-script"],
+            opts=pulumi.ResourceOptions(depends_on=[depends_on]),
+        )
+        webapp_build.stdout.apply(
+            lambda outputlog: pulumi_logger("build_local_weblogs").info(outputlog)
+        )
+        depends_on = webapp_build
+        
+    #Copy files from local to remote if we need
     if "copy_files" in install_info:
         for file_to_copy in install_info["copy_files"]:
             cmd_cp_webapp = command.remote.CopyFile(
@@ -90,25 +104,6 @@ def remote_install(connection, command_identifier, install_info, depends_on, add
         Output.all(connection.host, cmd_exec_install.stdout).apply(lambda args: pulumi_logger(args[0]).info(args[1]))
 
     return cmd_exec_install
-
-
-def build_local_weblog(ec2_name, weblog_instalations, depends):
-    logging.info("Building weblog application: " + weblog_instalations["name"])
-    if "local-script" in weblog_instalations:
-        webapp_build = command.local.Command(
-            "build-weblog_" + ec2_name,
-            create="sh " + weblog_instalations["local-script"],
-            opts=pulumi.ResourceOptions(depends_on=[depends]),
-        )
-        webapp_build.stdout.apply(
-            lambda outputlog: pulumi_logger("build_local_weblogs").info(
-                weblog_instalations["local-script"] + "............................\n" + outputlog
-            )
-        )
-        return webapp_build
-    else:
-        return depends
-
 
 def infraestructure_provision(provision_filter):
     provision_parser = Provision_parser(provision_filter)
@@ -186,7 +181,11 @@ def infraestructure_provision(provision_filter):
                             prepare_docker_installer,
                             add_dd_keys=True,
                         )
-
+                        
+                        pulumi.export(
+                            "privateIp_" + provision_filter.provision_scenario + "__" + ec2_name, server.private_ip
+                        )
+                        
                         # Install autoinjection
                         autoinjection_installer = remote_install(
                             connection,
@@ -216,18 +215,17 @@ def infraestructure_provision(provision_filter):
                         )
 
                         # Build weblog app
-                        webapp_build = build_local_weblog(ec2_name, weblog_instalations, lang_variant_installer)
+                       # webapp_build = build_local_weblog(ec2_name, weblog_instalations, lang_variant_installer)
                         weblog_runner = remote_install(
                             connection,
                             "run-weblog_" + ec2_name,
                             weblog_instalations["install"],
-                            webapp_build,
+                          #  webapp_build,
+                            lang_variant_installer,
                             add_dd_keys=True,
                         )
 
-                        pulumi.export(
-                            "privateIp_" + provision_filter.provision_scenario + "__" + ec2_name, server.private_ip
-                        )
+
 
 
 provision_filter = load_filter()

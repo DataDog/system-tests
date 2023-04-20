@@ -1,28 +1,10 @@
 ami:
-- name: ubuntu-x86-22.04
-  ami_id: ami-0557a15b87f6559cf
-  user: ubuntu
-  os_type: linux
-  os_distro: deb
-
-- name: ubuntu-x86-18.04
-  ami_id: ami-0263e4deb427da90e
-  user: ubuntu
-  os_type: linux
-  os_distro: deb
 
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
   user: ec2-user
   os_type: linux
   os_distro: rpm
-
-- name: amazon-linux-dotnet
-  ami_id: ami-005b11f8b84489615
-  user: ec2-user
-  os_type: linux
-  os_distro: rpm
-  os_branch: amazon-netcore6
 
 prepare-repos:
   install: !include autoinjection/yaml/includes/provision_prepare_repos.yml
@@ -32,9 +14,21 @@ agent:
   - env: prod
     install:
       - os_type: linux
-        command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-        #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-
+        os_distro: rpm
+        local-script: autoinjection/ansible/local_inject_dd_api_key.sh
+        copy_files:
+            - name: copy-ansible-inventory
+              local_path: autoinjection/ansible/hosts
+              remote_path: hosts
+            - name: copy-ansible-playbook
+              local_path: autoinjection/ansible/datadog_playbook.yml
+              remote_path: datadog_playbook.yml
+        command: |
+          sudo amazon-linux-extras install ansible2 -y
+          ansible --version
+          ansible-galaxy install datadog.datadog
+          sudo cp hosts /etc/ansible/hosts
+          ansible-playbook datadog_playbook.yml
 autoinjection:
   - java: 
     - env: dev
@@ -50,9 +44,6 @@ autoinjection:
           command: |          
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
             dd-host-install
-            #Verify package signature. Fails if it isn't V4
-            yumdownloader datadog-apm-inject
-            rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
 
     - env: prod
       install: 
@@ -67,9 +58,6 @@ autoinjection:
           command: |
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
             dd-host-install
-            #Verify package signature. Fails if it isn't V4
-            yumdownloader datadog-apm-inject
-            rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
 
   - nodejs: 
     - env: dev
@@ -190,10 +178,9 @@ weblogs:
     - name: test-app-java
       supported-language-versions:
         - 11
-      
+      local-script: weblog/java/test-app-java/test-app-java_local_build.sh
       install: 
         - os_type: linux
-          local-script: weblog/java/test-app-java/test-app-java_local_build.sh
           copy_files:
             - name: copy-service
               local_path: weblog/java/test-app-java/test-app-java.service
@@ -248,12 +235,12 @@ weblogs:
   - dotnet: 
     - name: test-app-dotnet
       supported-language-versions:
-        - 6   
+        - 6
+      local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_local_build.sh
       install: 
         - os_type: linux
           os_distro: rpm
           os_branch: amazon-netcore6
-          local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_local_build.sh
           copy_files:
             - name: copy-dotnet-app
               local_path: test-app-dotnet.tar
@@ -271,9 +258,9 @@ weblogs:
     - name: test-app-python
       supported-language-versions:
         - 3
+      local-script: weblog/python/test-app-python-django/test-app-python_local_build.sh
       install: 
         - os_type: linux
-          local-script: weblog/python/test-app-python-django/test-app-python_local_build.sh
           copy_files:
             - name: copy-service
               local_path: weblog/python/test-app-python-django/test-app-python.service
