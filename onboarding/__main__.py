@@ -1,13 +1,15 @@
 """An AWS Python Pulumi program"""
 import pulumi
 import pulumi_aws as aws
-
 import pulumi_command as command
+from pulumi import Output
+
 import logging
 import logging.config
 import os
 from provision_filter import Provision_filter
 from provision_parser import Provision_parser
+
 
 config_infra = pulumi.Config("ddinfra")
 config_agent = pulumi.Config("ddagent")
@@ -27,8 +29,17 @@ dd_site = config_agent.require("site")
 
 
 private_key_pem = (lambda path: open(path).read())(privateKeyPath)
-# logging.basicConfig(filename="pulumi.log", level=logging.INFO)  # TODO one log file for each vm
-logging.config.fileConfig("logging.conf")
+# logging.config.fileConfig("logging.conf")
+formatter = logging.Formatter("%(message)s")
+
+
+def pulumi_logger(log_name, level=logging.INFO):
+    handler = logging.FileHandler(f"logs/{log_name}.log")
+    handler.setFormatter(formatter)
+    specified_logger = logging.getLogger(log_name)
+    specified_logger.setLevel(level)
+    specified_logger.addHandler(handler)
+    return specified_logger
 
 
 def load_filter():
@@ -47,9 +58,7 @@ def load_filter():
     return Provision_filter(provision_scenario, language, env, os_distro, weblog)
 
 
-def remote_install(
-    connection, command_identifier, install_info, depends_on, add_dd_keys=False, logger_name="defaultLogger"
-):
+def remote_install(connection, command_identifier, install_info, depends_on, add_dd_keys=False, logger_name=None):
     if install_info is None:
         return depends_on
     if add_dd_keys:
@@ -75,8 +84,10 @@ def remote_install(
         create=command_exec,
         opts=pulumi.ResourceOptions(depends_on=[depends_on]),
     )
-
-    cmd_exec_install.stdout.apply(lambda outputlog: logging.getLogger(logger_name).info(outputlog))
+    if logger_name:
+        cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(logger_name).info(outputlog))
+    else:
+        Output.all(connection.host, cmd_exec_install.stdout).apply(lambda args: pulumi_logger(args[0]).info(args[1]))
 
     return cmd_exec_install
 
@@ -89,7 +100,11 @@ def build_local_weblog(ec2_name, weblog_instalations, depends):
             create="sh " + weblog_instalations["local-script"],
             opts=pulumi.ResourceOptions(depends_on=[depends]),
         )
-        webapp_build.stdout.apply(lambda outputlog: logging.info(outputlog))
+        webapp_build.stdout.apply(
+            lambda outputlog: pulumi_logger("build_local_weblogs").info(
+                weblog_instalations["local-script"] + "............................\n" + outputlog
+            )
+        )
         return webapp_build
     else:
         return depends
@@ -189,7 +204,7 @@ def infraestructure_provision(provision_filter):
                             "installation-check_" + ec2_name,
                             installation_check_data["install"],
                             autoinjection_installer,
-                            logger_name="installedVersionsLogger",
+                            logger_name="pulumi_installed_versions",
                         )
 
                         # Install language variants
@@ -209,6 +224,7 @@ def infraestructure_provision(provision_filter):
                             webapp_build,
                             add_dd_keys=True,
                         )
+
                         pulumi.export(
                             "privateIp_" + provision_filter.provision_scenario + "__" + ec2_name, server.private_ip
                         )

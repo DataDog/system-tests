@@ -8,7 +8,6 @@ def test_forTraces(ip):
     """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
         After starting application we can see application HTTP requests traces in the backend.
         Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
-
     print(f"Launching test for : [{ip}]")
     print(f"Waiting for weblog available [{ip}]")
     wait_for_port(5985, ip, 60.0)

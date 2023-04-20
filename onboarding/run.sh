@@ -1,6 +1,8 @@
 #!/bin/bash
 rm pulumi.log || true
-rm pulumi_installed_versions || true
+rm logs/pulumi_installed_versions.log || true
+rm -rf logs/ || true
+mkdir logs/
 
 ./run_tests.sh "$@"
 

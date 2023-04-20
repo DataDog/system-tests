@@ -2,6 +2,7 @@ import pytest
 import pulumi
 import json
 import logging
+import os
 
 _docs = {}
 
@@ -34,7 +35,8 @@ def pytest_generate_tests(metafunc):
     with open("pulumi.output.json", "r") as f:
         obj = json.load(f)
         for key, value in obj.items():
-            ips.append(_getParams(key, value)["private_ip"])
+            if key.startswith("privateIp_"):
+                ips.append(_getParams(key, value)["private_ip"])
 
         metafunc.parametrize("ip", ips)
 
@@ -46,7 +48,8 @@ def pytest_json_modifyreport(json_report):
 
         obj = json.load(f)
         for key, value in obj.items():
-            allData.append(_getParams(key, value))
+            if key.startswith("privateIp_"):
+                allData.append(_getParams(key, value))
 
     # clean useless and volumetric data
     del json_report["collectors"]
@@ -64,7 +67,7 @@ def pytest_json_modifyreport(json_report):
 
 
 def getInstalledVersions(ip):
-    versions_file_path = "pulumi_installed_versions.log"
+    versions_file_path = "logs/pulumi_installed_versions.log"
     with open(versions_file_path) as fh:
         for line in fh:
             if line.startswith(ip):
