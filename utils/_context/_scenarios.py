@@ -414,7 +414,7 @@ class EndToEndScenario(_DockerScenario):
 
 
 class OpenTelemetryScenario(_DockerScenario):
-    """ Scenario for testing open"""
+    """ Scenario for testing opentelemetry"""
 
     def __init__(self, name, weblog_env) -> None:
         super().__init__(name, use_proxy=True)
