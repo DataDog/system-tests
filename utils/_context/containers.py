@@ -10,7 +10,7 @@ import requests
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
-_client = docker.DockerClient()
+_client = docker.DockerClient.from_env()
 
 _NETWORK_NAME = "system-tests_default"
 
