@@ -45,7 +45,7 @@ public class App {
 
     private void startServer(int port) throws IOException {
         Server server = ServerBuilder.forPort(port)
-                .addService(new ApmClientImpl())
+                .addService(new ApmCompositeClient())
                 .build()
                 .start();
         LOGGER.info("Server started at port " + port + ".");
