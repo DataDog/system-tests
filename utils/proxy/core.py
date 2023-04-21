@@ -22,8 +22,6 @@ logger.setLevel(logging.DEBUG)
 SIMPLE_TYPES = (bool, int, float, type(None))
 
 
-BACKEND_LOCAL_PORT = 11111
-
 messages_counts = defaultdict(int)
 
 
@@ -69,12 +67,11 @@ with open("utils/proxy/rc_mocked_responses_asm_nocache.json", encoding="utf-8") 
 
 
 class _RequestLogger:
-    def __init__(self, dd_site_url) -> None:
+    def __init__(self) -> None:
         self.dd_api_key = os.environ["DD_API_KEY"]
         self.dd_application_key = os.environ.get("DD_APPLICATION_KEY")
         self.dd_app_key = os.environ.get("DD_APP_KEY")
         self.state = json.loads(os.environ.get("PROXY_STATE", "{}"))
-        self.dd_site_url = dd_site_url
         self.host_log_folder = os.environ.get("HOST_LOG_FOLDER", "logs")
 
         # for config backend mock
@@ -163,8 +160,6 @@ class _RequestLogger:
             interface = "open_telemetry"
         elif self.request_is_from_tracer(flow.request):
             interface = "library"
-        elif f"https://{flow.request.host}" == self.dd_site_url:
-            interface = "backend"
         else:
             interface = "agent"
 
@@ -241,12 +236,9 @@ class _RequestLogger:
 
 def start_proxy() -> None:
 
-    dd_site_url = _get_dd_site_api_host()
     modes = [
         # Used for tracer/agents
         "regular",
-        # Used for the interaction with the backend API
-        f"reverse:{dd_site_url}@{BACKEND_LOCAL_PORT}",
     ]
 
     loop = asyncio.new_event_loop()
@@ -255,33 +247,8 @@ def start_proxy() -> None:
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())
-    proxy.addons.add(_RequestLogger(dd_site_url=dd_site_url))
+    proxy.addons.add(_RequestLogger())
     loop.run_until_complete(proxy.run())
-
-
-def _get_dd_site_api_host():
-    # https://docs.datadoghq.com/getting_started/site/#access-the-datadog-site
-    # DD_SITE => API HOST
-    # datad0g.com       => dd.datad0g.com
-    # datadoghq.com     => app.datadoghq.com
-    # datadoghq.eu      => app.datadoghq.eu
-    # ddog-gov.com      => app.ddog-gov.com
-    # XYZ.datadoghq.com => XYZ.datadoghq.com
-
-    dd_site = os.environ.get("DD_SITE", "datad0g.com")
-    dd_site_to_app = {
-        "datad0g.com": "https://dd.datad0g.com",
-        "datadoghq.com": "https://app.datadoghq.com",
-        "datadoghq.eu": "https://app.datadoghq.eu",
-        "ddog-gov.com": "https://app.ddog-gov.com",
-        "us3.datadoghq.com": "https://us3.datadoghq.com",
-        "us5.datadoghq.com": "https://us5.datadoghq.com",
-    }
-    dd_app_url = dd_site_to_app.get(dd_site)
-    assert dd_app_url is not None, f"We could not resolve a proper Datadog API URL given DD_SITE[{dd_site}]!"
-
-    logger.debug(f"Using Datadog API URL[{dd_app_url}] as resolved from DD_SITE[{dd_site}].")
-    return dd_app_url
 
 
 if __name__ == "__main__":

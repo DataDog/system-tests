@@ -104,6 +104,9 @@ class TestedContainer:
             if self.allow_old_container:
                 self._container = old_container
                 logger.debug(f"Use old container {self.container_name}")
+
+                old_container.restart()
+
                 return
 
             raise ValueError("Old container still exists")
@@ -377,7 +380,7 @@ class MongoContainer(TestedContainer):
 class KafkaContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="bitnami/kafka:latest",
+            image_name="bitnami/kafka:3.1",
             name="kafka",
             host_log_folder=host_log_folder,
             environment={

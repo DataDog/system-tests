@@ -375,6 +375,8 @@ class EndToEndScenario(_DockerScenario):
         else:
             self.collect_logs()
 
+        self.close_targets()
+
     @staticmethod
     def _wait_interface(interface, session, timeout):
         terminal = session.config.pluginmanager.get_plugin("terminalreporter")

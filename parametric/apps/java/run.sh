@@ -19,4 +19,6 @@ case $(echo "${DD_TRACE_DEBUG:-false}" | tr '[:upper:]' '[:lower:]') in
   *);;
 esac
 
-java -javaagent:${CUSTOM_DD_JAVA_AGENT:-$DD_JAVA_AGENT} -jar target/dd-trace-java-client-1.0.0.jar
+java -javaagent:${CUSTOM_DD_JAVA_AGENT:-$DD_JAVA_AGENT} \
+  -Ddd.integration.opentelemetry.experimental.enabled=true \
+  -jar target/dd-trace-java-client-1.0.0.jar
