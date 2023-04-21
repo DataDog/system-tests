@@ -370,7 +370,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", java="?", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
-@released(golang="1.50.0-rc.1")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="php", reason="cache is implemented")
 @irrelevant(library="golang", reason="cache is implemented")
