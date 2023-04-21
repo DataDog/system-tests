@@ -3,7 +3,7 @@ from utils import released, coverage, interfaces, scenarios, weblog
 
 @released(
     cpp="?",
-    dotnet="2.28.0",
+    dotnet="2.30.0",
     golang="1.48.0",
     java="?",
     nodejs="?",
