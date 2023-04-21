@@ -134,6 +134,21 @@ class Test_BlockingAddresses:
         assert False
 
 
+def validate_custom_event_tag(expected_value="", present=True):
+    def wrapper(span):
+        tag = "appsec.events.system_tests_appsec_event.value"
+        if present:
+            assert tag in span["meta"], f"Can't find {tag} in span's meta"
+            value = span["meta"][tag]
+            if value != expected_value:
+                raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+        else:
+            assert tag not in span["meta"], f"Found {tag} in span's meta"
+        return True
+
+    return wrapper
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
@@ -166,18 +181,19 @@ class Test_Blocking_request_method:
         assert self.rm_req_nonblock.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.request("GET", path="/set_value/clean_value_3876")
-        self.block_req2 = weblog.request("OPTIONS", path="/set_value/tainted_value_6512")
-        self.check_req = weblog.request("GET", path="/get_value")
+        self.set_req1 = weblog.request("GET", path="/tag_value/clean_value_3876/200")
+        self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.content == b"Value tagged"
+        interfaces.library.validate_spans(self.set_req1, validate_custom_event_tag("clean_value_3876", True))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-006")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3876"
+        interfaces.library.validate_spans(self.block_req2, validate_custom_event_tag(present=False))
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -215,18 +231,19 @@ class Test_Blocking_request_uri:
         assert self.rm_req_nonblock.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3877")
-        self.block_req2 = weblog.get("/set_value/tainted_value_6512.git")
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.content == b"Value tagged"
+        interfaces.library.validate_spans(self.set_req1, validate_custom_event_tag("clean_value_3877", True))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-002")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3877"
+        interfaces.library.validate_spans(self.block_req2, validate_custom_event_tag(present=False))
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -247,7 +264,7 @@ class Test_Blocking_request_path_params:
 
     def setup_blocking(self):
         self.rm_req_block1 = weblog.get("/params/AiKfOeRcvG45")
-        self.rm_req_block2 = weblog.get("/set_value/AiKfOeRcvG45")
+        self.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -257,28 +274,29 @@ class Test_Blocking_request_path_params:
 
     def setup_non_blocking(self):
         # query parameters are not a part of path parameters
-        self.rm_req_nonblock = weblog.get("/set_value/noharm?value=AiKfOeRcvG45")
+        self.rm_req_nonblock = weblog.get("/waf/noharm?value=AiKfOeRcvG45")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         assert self.rm_req_nonblock.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3878")
-        self.block_req2 = weblog.get("/set_value/tainted_value_AiKfOeRcvG45")
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3878/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
     @missing_feature(
         context.library == "python" and context.weblog_variant == "flask-poc", reason="Block at the end of the request"
     )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.content == b"Value tagged"
+        interfaces.library.validate_spans(self.set_req1, validate_custom_event_tag("clean_value_3878", True))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-007")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3878", globals()
+        interfaces.library.validate_spans(self.block_req2, validate_custom_event_tag(present=False))
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -309,7 +327,7 @@ class Test_Blocking_request_query:
 
     def setup_non_blocking(self):
         # path parameters are not a part of query parameters
-        self.rm_req_nonblock1 = weblog.get("/set_value/xtrace")
+        self.rm_req_nonblock1 = weblog.get("/waf/xtrace")
         # query parameters are blocking only on value not parameter name
         self.rm_req_nonblock2 = weblog.get("/waf?xtrace=foo")
 
@@ -319,18 +337,19 @@ class Test_Blocking_request_query:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3879")
-        self.block_req2 = weblog.get("/set_value/tainted_value_a1b2c3?foo=xtrace")
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.content == b"Value tagged"
+        interfaces.library.validate_spans(self.set_req1, validate_custom_event_tag("clean_value_3879", True))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-001")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3879", globals()
+        interfaces.library.validate_spans(self.block_req2, validate_custom_event_tag(present=False))
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -371,18 +390,19 @@ class Test_Blocking_request_headers:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3880")
-        self.block_req2 = weblog.get("/set_value/tainted_value_xyz", headers={"foo": "asldhkuqwgervf"})
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.content == b"Value tagged"
+        interfaces.library.validate_spans(self.set_req1, validate_custom_event_tag("clean_value_3880", True))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-003")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3880", globals()
+        interfaces.library.validate_spans(self.block_req2, validate_custom_event_tag(present=False))
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -423,18 +443,19 @@ class Test_Blocking_request_cookies:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3881")
-        self.block_req2 = weblog.get("/set_value/tainted_value_cookies", cookies={"foo": "jdfoSDGFkivRG_234"})
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.content == b"Value tagged"
+        interfaces.library.validate_spans(self.set_req1, validate_custom_event_tag("clean_value_3881", True))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-008")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3881", globals()
+        interfaces.library.validate_spans(self.block_req2, validate_custom_event_tag(present=False))
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -451,15 +472,11 @@ class Test_Blocking_request_cookies:
     ruby="?",
 )
 class Test_Blocking_request_body:
-    """Test if blocking is supported on server.request.body address"""
+    """Test if blocking is supported on server.request.body address for urlencoded body"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.post(
-            "/waf", data='{"value1": "bsldhkuqwgervf"}', headers={"content-type": "text/json"}
-        )
-        self.rm_req_block2 = weblog.post(
-            "/waf", data='{"value2": "bsldhkuqwgervf"}', headers={"content-type": "application/json"}
-        )
+        self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
+        self.rm_req_block2 = weblog.post("/waf", data={"": "bsldhkuqwgervf"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -482,22 +499,22 @@ class Test_Blocking_request_body:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.post("/set_value/clean_value_3882", data="None")
+        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data="None")
         self.block_req2 = weblog.post(
-            "/set_value/tainted_value_body",
-            data='{"value5": "bsldhkuqwgervf"}',
-            headers={"content-type": "application/json"},
+            "/tag_value/tainted_value_body/200",
+            data={"value5": "bsldhkuqwgervf"},
         )
-        self.check_req = weblog.get("/get_value")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.content == b"Value tagged"
+        interfaces.library.validate_spans(self.set_req1, validate_custom_event_tag("clean_value_3882", True))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-004")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3882", globals()
+        interfaces.library.validate_spans(self.block_req2, validate_custom_event_tag(present=False))
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -517,7 +534,7 @@ class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
     def setup_blocking(self):
-        self.rm_req_block = {status: weblog.get(f"/set_value/anything/{status}") for status in (415, 416, 417, 418)}
+        self.rm_req_block = {status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)}
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -526,7 +543,7 @@ class Test_Blocking_response_status:
             interfaces.library.assert_waf_attack(response, rule="tst-037-005")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock = {status: weblog.get(f"/set_value/anything/{status}") for status in (411, 412, 413, 414)}
+        self.rm_req_nonblock = {status: weblog.get(f"/tag_value/anything/{status}") for status in (411, 412, 413, 414)}
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
@@ -551,8 +568,8 @@ class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.get(f"/set_value/anything?content-language=en-us")
-        self.rm_req_block2 = weblog.get(f"/set_value/anything?content-language=krypton")
+        self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=en-us")
+        self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -561,8 +578,8 @@ class Test_Blocking_response_headers:
             interfaces.library.assert_waf_attack(response, rule="tst-037-009")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock1 = weblog.get(f"/set_value/anything?content-color=en-us")
-        self.rm_req_nonblock2 = weblog.get(f"/set_value/anything?content-language=fr")
+        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=en-us")
+        self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
