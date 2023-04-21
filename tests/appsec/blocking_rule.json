@@ -125,7 +125,7 @@
                 ]
               }
             ],
-            "regex": "en-us"
+            "regex": "en-us|krypton"
           },
           "operator": "match_regex"
         }
@@ -215,7 +215,7 @@
     },
     {
       "id": "tst-037-003",
-      "name": "Test block on body raw",
+      "name": "Test block on request headers",
       "tags": {
         "type": "lfi",
         "crs_id": "000003",
@@ -226,7 +226,7 @@
           "parameters": {
             "inputs": [
               {
-                "address": "server.request.body.raw"
+                "address": "server.request.headers.no_cookies"
               }
             ],
             "regex": "asldhkuqwgervf"
@@ -333,7 +333,7 @@
                 "address": "server.response.status"
               }
             ],
-            "regex": "418"
+            "regex": "415|416|417|418"
           },
           "operator": "match_regex"
         }

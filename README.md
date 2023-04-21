@@ -2,9 +2,9 @@
 
 Workbench designed to run advanced tests (integration, smoke, functionnal, fuzzing and performance)
 
-## Requirement
+## Requirements
 
-`bash`, `docker-compose`
+`bash`, `docker` and `python3.9`. More infos in the [documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/requirements.txt)
 
 ## How to use
 

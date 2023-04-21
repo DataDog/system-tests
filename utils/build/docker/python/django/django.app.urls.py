@@ -3,8 +3,7 @@ import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from iast import (
@@ -32,6 +31,7 @@ def sample_rate(request, i):
     return HttpResponse("OK")
 
 
+@csrf_exempt
 def waf(request, *args, **kwargs):
     return HttpResponse("Hello, World!")
 
@@ -184,6 +184,26 @@ def track_custom_event(request):
     return HttpResponse("OK")
 
 
+VALUE_STORED = ""
+
+
+@csrf_exempt
+def set_value(request, value, code=200):
+    """set_value entry point.
+    First parameter after the /set_value/ is used to set internal value
+    Second optional parameter is to set status response code
+    Any query parameter is used to set header reponse
+    """
+
+    global VALUE_STORED
+    VALUE_STORED = value
+    return HttpResponse("Value set", status=code, headers=request.GET.dict())
+
+
+def get_value(request):
+    return HttpResponse(VALUE_STORED)
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -208,4 +228,7 @@ urlpatterns = [
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
     path("custom_event", track_custom_event),
+    path("set_value/<str:value>", set_value),
+    path("set_value/<str:value>/<int:code>", set_value),
+    path("get_value", get_value),
 ]

@@ -1,5 +1,4 @@
 from logging import FileHandler
-import json
 import os
 from pathlib import Path
 import shutil
@@ -9,7 +8,19 @@ import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from utils._context.containers import TestedContainer, WeblogContainer, AgentContainer, create_network
+from utils._context.containers import (
+    WeblogContainer,
+    AgentContainer,
+    ProxyContainer,
+    PostgresContainer,
+    MongoContainer,
+    KafkaContainer,
+    ZooKeeperContainer,
+    CassandraContainer,
+    RabbitMqContainer,
+    create_network,
+)
+
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
@@ -19,6 +30,7 @@ current_scenario = None
 class _Scenario:
     def __init__(self, name) -> None:
         self.name = name
+        self.terminal = None
 
         if os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO") == self.name:
             global current_scenario
@@ -51,6 +63,17 @@ class _Scenario:
 
     def session_start(self, session):
         """ called at the very begning of the process """
+        # called at the very begning of the process
+        self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        self.terminal.write_sep("=", "test context", bold=True)
+        self.print_info(f"Scenario: {self.name}")
+        self.print_info(f"Logs folder: ./{self.host_log_folder}")
+
+    def print_info(self, info):
+        """ print info in stdout """
+        logger.info(info)
+        if self.terminal is not None:
+            self.terminal.write_line(info)
 
     def _get_warmups(self):
         return []
@@ -117,34 +140,118 @@ class TestTheTestScenario(_Scenario):
         return "spring"
 
 
-class EndToEndScenario(_Scenario):
-    """ Scenario that implier an instrumented HTTP application shipping a tracer (weblog) and an agent """
+class _DockerScenario(_Scenario):
+    """ Scenario that tests docker containers """
+
+    def __init__(
+        self,
+        name,
+        use_proxy=True,
+        proxy_state=None,
+        include_postgres_db=False,
+        include_cassandra_db=False,
+        include_mongo_db=False,
+        include_kafka=False,
+        include_zookeeper=False,
+        include_rabbitmq=False,
+    ) -> None:
+        super().__init__(name)
+        if not self.is_current_scenario:
+            return
+
+        self.use_proxy = use_proxy
+        self._required_containers = []
+
+        if self.use_proxy:
+            self._required_containers.append(
+                ProxyContainer(host_log_folder=self.host_log_folder, proxy_state=proxy_state)
+            )  # we want the proxy being the first container to start
+
+        if include_postgres_db:
+            self._required_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
+
+        if include_mongo_db:
+            self._required_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
+
+        if include_cassandra_db:
+            self._required_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
+
+        if include_kafka:
+            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
+
+        if include_zookeeper:
+            self._required_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
+
+        if include_rabbitmq:
+            self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+
+    def _get_warmups(self):
+
+        warmups = super()._get_warmups()
+
+        warmups.append(create_network)
+
+        for container in self._required_containers:
+            warmups.append(container.start)
+
+        return warmups
+
+    def close_targets(self):
+        for container in reversed(self._required_containers):
+            try:
+                container.remove()
+            except:
+                logger.exception(f"Failed to remove container {container}")
+
+    def collect_logs(self):
+
+        for container in self._required_containers:
+            try:
+                container.save_logs()
+            except:
+                logger.exception(f"Fail to save logs for container {container}")
+
+
+class EndToEndScenario(_DockerScenario):
+    """ Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent """
 
     def __init__(
         self,
         name,
         weblog_env=None,
-        proxy_state=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
-        agent_interface_timeout=None,
+        agent_interface_timeout=5,
+        use_proxy=True,
+        proxy_state=None,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
-        use_proxy=True,
         include_kafka=False,
+        include_zookeeper=False,
         include_rabbitmq=False,
     ) -> None:
-        super().__init__(name)
+        super().__init__(
+            name,
+            use_proxy=use_proxy,
+            proxy_state=proxy_state,
+            include_postgres_db=include_postgres_db,
+            include_cassandra_db=include_cassandra_db,
+            include_mongo_db=include_mongo_db,
+            include_kafka=include_kafka,
+            include_zookeeper=include_zookeeper,
+            include_rabbitmq=include_rabbitmq,
+        )
 
         if not self.is_current_scenario:
             return
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
+
         self.weblog_container = WeblogContainer(
             self.host_log_folder,
             environment=weblog_env,
@@ -154,119 +261,13 @@ class EndToEndScenario(_Scenario):
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy,
         )
-        self.proxy_state = proxy_state
-        self.include_postgres_db = include_postgres_db
 
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
-        self._required_containers = []
+        self._required_containers.append(self.agent_container)
+        self._required_containers.append(self.weblog_container)
 
-        self.use_proxy = use_proxy
-        if self.use_proxy:
-            self._required_containers.append(
-                TestedContainer(
-                    image_name="mitmproxy/mitmproxy",
-                    name="proxy",
-                    host_log_folder=self.host_log_folder,
-                    environment={
-                        "DD_SITE": os.environ.get("DD_SITE"),
-                        "DD_API_KEY": os.environ.get("DD_API_KEY"),
-                        "HOST_LOG_FOLDER": self.host_log_folder,
-                        "PROXY_STATE": json.dumps(self.proxy_state or {}),
-                    },
-                    working_dir="/app",
-                    volumes={
-                        f"./{self.host_log_folder}/interfaces/": {
-                            "bind": f"/app/{self.host_log_folder}/interfaces",
-                            "mode": "rw",
-                        },
-                        "./utils/": {"bind": "/app/utils/", "mode": "ro"},
-                    },
-                    ports={"11111/tcp": ("127.0.0.1", 11111)},
-                    command="python utils/proxy/core.py",
-                )
-            )
-
-        if include_postgres_db:
-            self._required_containers.append(
-                TestedContainer(
-                    image_name="postgres:latest",
-                    name="postgres",
-                    host_log_folder=self.host_log_folder,
-                    user="postgres",
-                    environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
-                    volumes={
-                        "./utils/build/docker/postgres-init-db.sh": {
-                            "bind": "/docker-entrypoint-initdb.d/init_db.sh",
-                            "mode": "ro",
-                        }
-                    },
-                )
-            )
-
-        if include_mongo_db:
-            self._required_containers.append(
-                TestedContainer(
-                    image_name="mongo:latest",
-                    name="mongodb",
-                    host_log_folder=self.host_log_folder,
-                    allow_old_container=True,
-                )
-            )
-        if include_cassandra_db:
-            self._required_containers.append(
-                TestedContainer(
-                    image_name="cassandra:latest",
-                    name="cassandra_db",
-                    host_log_folder=self.host_log_folder,
-                    allow_old_container=True,
-                )
-            )
-
-        if include_kafka:
-            self._required_containers.append(
-                TestedContainer(
-                    image_name="bitnami/kafka:latest",
-                    name="kafka",
-                    host_log_folder=self.host_log_folder,
-                    environment={
-                        "KAFKA_LISTENERS": "PLAINTEXT://:9092",
-                        "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
-                        "ALLOW_PLAINTEXT_LISTENER": "yes",
-                        "KAFKA_ADVERTISED_HOST_NAME": "kafka",
-                        "KAFKA_ADVERTISED_PORT": "9092",
-                        "KAFKA_PORT": "9092",
-                        "KAFKA_BROKER_ID": "1",
-                        "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
-                    },
-                    allow_old_container=True,
-                )
-            )
-            self._required_containers.append(
-                TestedContainer(
-                    image_name="bitnami/zookeeper:latest",
-                    name="zookeeper",
-                    host_log_folder=self.host_log_folder,
-                    environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
-                    allow_old_container=True,
-                )
-            )
-
-        if include_rabbitmq:
-            self._required_containers.append(
-                TestedContainer(
-                    image_name="rabbitmq:3-management-alpine",
-                    name="rabbitmq",
-                    host_log_folder=self.host_log_folder,
-                    allow_old_container=True,
-                )
-            )
-
-        if agent_interface_timeout is None:
-            self.agent_interface_timeout = 5
-        else:
-            self.agent_interface_timeout = agent_interface_timeout
-
+        self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
 
         if library_interface_timeout is not None:
@@ -293,32 +294,23 @@ class EndToEndScenario(_Scenario):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        # called at the very begning of the process
-        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        self.print_info(f"Library: {self.library}")
+        self.print_info(f"Agent: {self.agent_version}")
 
-        def print_info(info):
-            logger.info(info)
-            terminal.write_line(info)
-
-        terminal.write_sep("=", "test context", bold=True)
-        print_info(f"Scenario: {self.name}")
-        print_info(f"Logs folder: ./{self.host_log_folder}")
-        print_info(f"Library: {self.library}")
-        print_info(f"Agent: {self.agent_version}")
         if self.library == "php":
-            print_info(f"AppSec: {self.weblog_container.php_appsec}")
+            self.print_info(f"AppSec: {self.weblog_container.php_appsec}")
 
         if self.weblog_container.libddwaf_version:
-            print_info(f"libddwaf: {self.weblog_container.libddwaf_version}")
+            self.print_info(f"libddwaf: {self.weblog_container.libddwaf_version}")
 
         if self.weblog_container.appsec_rules_file:
-            print_info(f"AppSec rules version: {self.weblog_container.appsec_rules_version}")
+            self.print_info(f"AppSec rules version: {self.weblog_container.appsec_rules_version}")
 
         if self.weblog_container.uds_mode:
-            print_info(f"UDS socket: {self.weblog_container.uds_socket}")
+            self.print_info(f"UDS socket: {self.weblog_container.uds_socket}")
 
-        print_info(f"Weblog variant: {self.weblog_container.weblog_variant}")
-        print_info(f"Backend: {self.agent_container.dd_site}")
+        self.print_info(f"Weblog variant: {self.weblog_container.weblog_variant}")
+        self.print_info(f"Backend: {self.agent_container.dd_site}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -345,16 +337,10 @@ class EndToEndScenario(_Scenario):
         observer.start()
 
     def _get_warmups(self):
+        warmups = super()._get_warmups()
 
-        containers = self._required_containers + [self.agent_container, self.weblog_container]
-
-        warmups = []
-
-        warmups += [self._create_interface_folders, create_network, self._start_interface_watchdog]
-
-        for container in containers:
-            warmups.append(container.start)
-
+        warmups.insert(0, self._create_interface_folders)
+        warmups.insert(1, self._start_interface_watchdog)
         warmups.append(self._wait_for_app_readiness)
 
         return warmups
@@ -389,15 +375,6 @@ class EndToEndScenario(_Scenario):
         else:
             self.collect_logs()
 
-    def close_targets(self):
-        containers = [self.agent_container, self.weblog_container] + self._required_containers
-
-        for container in containers:
-            try:
-                container.remove()
-            except:
-                logger.exception(f"Failed to remove container {container}")
-
     @staticmethod
     def _wait_interface(interface, session, timeout):
         terminal = session.config.pluginmanager.get_plugin("terminalreporter")
@@ -405,14 +382,6 @@ class EndToEndScenario(_Scenario):
         terminal.flush()
 
         interface.wait(timeout)
-
-    def collect_logs(self):
-
-        for container in [self.weblog_container, self.agent_container] + self._required_containers:
-            try:
-                container.save_logs()
-            except:
-                logger.exception(f"Fail to save logs for container {container}")
 
     @property
     def library(self):
@@ -528,6 +497,7 @@ class scenarios:
         include_cassandra_db=True,
         include_mongo_db=True,
         include_kafka=True,
+        include_zookeeper=True,
         include_rabbitmq=True,
     )
 
