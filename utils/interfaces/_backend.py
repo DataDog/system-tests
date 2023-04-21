@@ -14,9 +14,6 @@ from utils.interfaces._core import InterfaceValidator, get_rid_from_span, get_ri
 from utils.tools import logger
 
 
-BACKEND_LOCAL_PORT = 11111
-
-
 class _BackendInterfaceValidator(InterfaceValidator):
     """Validate backend data processors"""
 
@@ -25,6 +22,39 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
         self.rid_to_library_trace_ids = {}
+        self.dd_site_url = self._get_dd_site_api_host()
+        self.message_count = 0
+
+    @property
+    def _log_folder(self):
+        from utils._context._scenarios import current_scenario
+
+        return f"{current_scenario.host_log_folder}/interfaces/backend"
+
+    @staticmethod
+    def _get_dd_site_api_host():
+        # https://docs.datadoghq.com/getting_started/site/#access-the-datadog-site
+        # DD_SITE => API HOST
+        # datad0g.com       => dd.datad0g.com
+        # datadoghq.com     => app.datadoghq.com
+        # datadoghq.eu      => app.datadoghq.eu
+        # ddog-gov.com      => app.ddog-gov.com
+        # XYZ.datadoghq.com => XYZ.datadoghq.com
+
+        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        dd_site_to_app = {
+            "datad0g.com": "https://dd.datad0g.com",
+            "datadoghq.com": "https://app.datadoghq.com",
+            "datadoghq.eu": "https://app.datadoghq.eu",
+            "ddog-gov.com": "https://app.ddog-gov.com",
+            "us3.datadoghq.com": "https://us3.datadoghq.com",
+            "us5.datadoghq.com": "https://us5.datadoghq.com",
+        }
+        dd_app_url = dd_site_to_app.get(dd_site)
+        assert dd_app_url is not None, f"We could not resolve a proper Datadog API URL given DD_SITE[{dd_site}]!"
+
+        logger.debug(f"Using Datadog API URL[{dd_app_url}] as resolved from DD_SITE[{dd_site}].")
+        return dd_app_url
 
     # Called by the test setup to make sure the interface is ready.
     def wait(self, timeout):
@@ -107,7 +137,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         logger.debug(f"We will attempt to fetch span events with query filter: {query_filter}")
         data = self._wait_for_event_platform_spans(query_filter, limit)
 
-        result = data["response"]["contentJson"]["result"]
+        result = data["response"]["content"]["result"]
         assert result["count"] >= min_spans_len, f"Did not have the expected number of spans ({min_spans_len}): {data}"
 
         return [item["event"] for item in result["events"]]
@@ -118,29 +148,44 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     def _get_trace_ids(self, rid):
         if rid not in self.rid_to_library_trace_ids:
-            raise Exception("There is no trace id related to this request ")
+            raise ValueError("There is no trace id related to this request ")
 
         return self.rid_to_library_trace_ids[rid]
 
-    def _get_backend_trace_data(self, rid, trace_id):
-        # We use `localhost` as host since we run a proxy that forwards the requests to the right
-        # backend DD_SITE domain, and logs the request/response as well.
-        # More details in `utils.proxy.core.get_dd_site_api_host()`.
-        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
-        path = f"/api/v1/trace/{trace_id}"
+    def _request(self, method, path, json_payload=None):
 
         headers = {
             "DD-API-KEY": os.environ["DD_API_KEY"],
             "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
         }
-        r = requests.get(f"{host}{path}", headers=headers, timeout=10)
 
-        return {
-            "host": host,
+        r = requests.request(method, url=f"{self.dd_site_url}{path}", headers=headers, json=json_payload, timeout=10)
+
+        data = {
+            "host": self.dd_site_url,
             "path": path,
-            "rid": rid,
-            "response": {"status_code": r.status_code, "content": r.text, "headers": dict(r.headers),},
+            "request": {"content": json_payload},
+            "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers),},
+            "log_filename": f"{self._log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
         }
+        self.message_count += 1
+
+        try:
+            data["response"]["content"] = r.json()
+        except:
+            data["response"]["content"] = r.text
+
+        with open(data["log_filename"], mode="w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+        return data
+
+    def _get_backend_trace_data(self, rid, trace_id):
+        path = f"/api/v1/trace/{trace_id}"
+        result = self._request("GET", path=path)
+        result["rid"] = rid
+
+        return result
 
     def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier):
         sleep_interval_s = 1
@@ -154,7 +199,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
             if status_code != 404 and status_code != 200:
-                raise Exception(f"Backend did not provide trace: {data['path']}. Status is {status_code}.")
+                raise ValueError(f"Backend did not provide trace: {data['path']}. Status is {status_code}.")
             if status_code != 404:
                 return data
 
@@ -180,10 +225,10 @@ class _BackendInterfaceValidator(InterfaceValidator):
             yield self._wait_for_trace(rid, trace_id, retries, sleep_interval_multiplier)
 
     def _extract_trace_from_backend_response(self, response):
-        content_parsed = json.loads(response["content"])
-        trace = content_parsed.get("trace")
+        trace = response["content"].get("trace")
         if not trace:
-            raise Exception(f"The response does not contain valid trace content: {response}")
+            raise ValueError(f"The response does not contain valid trace content:\n{json.dumps(response, indent=2)}")
+
         return trace
 
     def _wait_for_event_platform_spans(self, query_filter, limit, retries=5, sleep_interval_multiplier=2.0):
@@ -206,7 +251,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
             if status_code != 200:
                 raise Exception(f"Fetching spans from Event Platform failed: {data['path']}. Status is {status_code}.")
 
-            parsed = data["response"]["contentJson"]
+            parsed = data["response"]["content"]
             if parsed["result"]["count"] > 0:
                 return data
 
@@ -218,16 +263,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     def _get_event_platform_spans(self, query_filter, limit):
         # Example of this query can be seen in the `events-ui` internal website (see Jira ATI-2419).
-        # We use `localhost` as host since we run a proxy that forwards the requests to the right
-        # backend DD_SITE domain, and logs the request/response as well.
-        # More details in `utils.proxy.core.get_dd_site_api_host()`.
-        host = f"http://localhost:{BACKEND_LOCAL_PORT}"
         path = "/api/unstable/event-platform/analytics/list?type=trace"
-
-        headers = {
-            "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
-        }
 
         request_data = {
             "list": {
@@ -244,23 +280,5 @@ class _BackendInterfaceValidator(InterfaceValidator):
                 "includeEventContents": True,
             }
         }
-        r = requests.post(f"{host}{path}", json=request_data, headers=headers, timeout=10)
 
-        contentJson = None
-        try:
-            contentJson = r.json()
-        except:
-            pass
-
-        data = {
-            "host": host,
-            "path": path,
-            "response": {
-                "status_code": r.status_code,
-                "content": r.text,
-                "contentJson": contentJson,
-                "headers": dict(r.headers),
-            },
-        }
-
-        return data
+        return self._request("POST", path, json_payload=request_data)
