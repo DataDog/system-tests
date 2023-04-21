@@ -1,6 +1,4 @@
-## Description
-
-*Please include a short summary of the change*
+<!--
 
 ## Workflow
 
@@ -11,4 +9,20 @@
 
 > **_NOTE:_**  By default in PR only default scenario tests will be launched. Please refer to the [documentation](https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/2866381467/CI+Workflow+Github+Actions) to run all scenarios in your PR if needed.
 
+
 Once your PR is reviewed, you can merge it ! :heart:
+
+-->
+
+## Description
+
+<!-- A brief description of the change being made with this pull request. -->
+
+## Motivation
+
+<!-- What inspired you to submit this pull request? -->
+
+## Additional notes
+
+<!-- Anything else we should know when reviewing? Context, references, considered alternatives, logs... are welcome!-->
+
