@@ -12,7 +12,6 @@ import time
 import json
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env",
@@ -37,7 +36,6 @@ def test_single_rule_match_span_sampling_sss001(test_agent, test_library):
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env",
@@ -55,7 +53,6 @@ def test_special_glob_characters_span_sampling_sss002(test_agent, test_library):
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -80,7 +77,6 @@ def test_single_rule_no_match_span_sampling_sss003(test_agent, test_library):
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
@@ -99,7 +95,6 @@ def test_single_rule_only_service_pattern_match_span_sampling_sss004(test_agent,
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]), "DD_TRACE_SAMPLE_RATE": 0}]
 )
@@ -117,7 +112,6 @@ def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(test_agent,
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("ruby", "Issue: _dd.span_sampling.max_per_second is always set in Ruby")
 @pytest.mark.parametrize(
     "library_env",
@@ -152,7 +146,6 @@ def test_multi_rule_keep_drop_span_sampling_sss006(test_agent, test_library):
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -186,7 +179,6 @@ def test_multi_rule_drop_keep_span_sampling_sss007(test_agent, test_library):
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
 @pytest.mark.skip_library(
     "php",
@@ -244,7 +236,6 @@ def test_single_rule_rate_limiter_span_sampling_sss008(test_agent, test_library)
     assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.parametrize(
     "library_env",
     [
@@ -307,7 +298,6 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
 @pytest.mark.skip_library("php", "manual.drop and manual.keep span tags are not implemented.")
 @pytest.mark.skip_library("ruby", "Issue: does not respect manual.drop or manual.keep span tags")
@@ -375,7 +365,6 @@ def test_single_rule_tracer_always_keep_span_sampling_sss012(test_agent, test_li
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("python", "Fixed in v1.7.0")
 @pytest.mark.skip_library(
     "php",

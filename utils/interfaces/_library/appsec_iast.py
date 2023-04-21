@@ -4,6 +4,8 @@
 
 """ AppSec IAST validations """
 
+import json
+
 
 class _AppSecIastValidator:
     """Base class for all IAST validations"""
@@ -36,12 +38,19 @@ class _AppSecIastValidator:
         count_filtered = len(filtered_vulnerabilities)
 
         if not self._check_count_conditions(count_filtered):
-            raise Exception(
-                f"""Expected assertion failed:
-    Expect count: {self.vulnerability_count},
-    [ type: {self.type}, evidence:{self.evidence}, location: {self.location_path}({self.location_line}) )]
-    All vulnerabilities: \n count:{len(vulnerabilities)},[ {(vulnerabilities)}]
-    Filtered vulnerabilities: \n count:{len(filtered_vulnerabilities)},[ {(filtered_vulnerabilities)}] """
+            raise ValueError(
+                f"""Expected assertion failed. Expectations are:
+    * count: {self.vulnerability_count},
+    * type: {self.type},
+    * evidence: {self.evidence},
+    * location: {self.location_path},
+    * location_line: {self.location_line}.
+
+Seen vulnerabilities:
+{json.dumps(vulnerabilities, indent=2)}]
+
+Filtered vulnerabilities:
+{json.dumps(filtered_vulnerabilities, indent=2)}"""
             )
         return True
 

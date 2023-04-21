@@ -26,11 +26,7 @@ def test_otel_start_span(test_agent, test_library):
         duration: int = 6789
         start_time: int = 12345
         with test_library.otel_start_span(
-            "operation",
-            span_kind=SK_PRODUCER,
-            timestamp=start_time,
-            new_root=True,
-            attributes={"start_attr_key": "start_attr_val"},
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time, attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
             parent.end_span(timestamp=start_time + duration)
 
@@ -47,20 +43,46 @@ def test_otel_start_span(test_agent, test_library):
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
+def test_otel_set_service_name(test_agent, test_library):
+    """
+        - Update the service name on a span
+    """
+    with test_library:
+        with test_library.otel_start_span("parent_span") as parent:
+            parent.set_attributes({"service.name": "new_service"})
+            parent.end_span()
+
+    root_span = get_span(test_agent)
+    assert root_span["name"] == "parent_span"
+    assert root_span["service"] == "new_service"
+
+
+@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("nodejs", "Not implemented")
+@pytest.mark.skip_library("python", "Not implemented")
+@pytest.mark.skip_library("java", "Not implemented")
+@pytest.mark.skip_library("php", "Not implemented")
+@pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_set_attributes_different_types(test_agent, test_library):
     """
         - Set attributes of multiple types for an otel span
     """
-    parent_start_time = int(time.time())
+    start_time = int(time.time())
     with test_library:
-        with test_library.otel_start_span(
-            "operation", span_kind=SK_PRODUCER, timestamp=parent_start_time, new_root=True,
-        ) as parent:
-            parent.set_attributes({"key": ["val1", "val2"]})
-            parent.set_attributes({"key2": [1]})
-            parent.set_attributes({"pi": 3.14, "hi": "bye"})
-            parent.end_span()
+        with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
+            span.set_attributes({"str_val": "val"})
+            span.set_attributes({"str_val_empty": ""})
+            span.set_attributes({"bool_val": True})
+            span.set_attributes({"int_val": 1})
+            span.set_attributes({"int_val_zero": 0})
+            span.set_attributes({"double_val": 4.2})
+            span.set_attributes({"array_val_str": ["val1", "val2"]})
+            span.set_attributes({"array_val_int": [10, 20]})
+            span.set_attributes({"array_val_bool": [True, False]})
+            span.set_attributes({"array_val_double": [10.1, 20.2]})
+            span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
+            span.end_span()
     traces = test_agent.wait_for_num_traces(1)
     trace = find_trace_by_root(traces, OtelSpan(name="operation"))
     assert len(trace) == 1
@@ -69,11 +91,21 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
 
     assert root_span["name"] == "operation"
     assert root_span["resource"] == "operation"
-    assert "val2" in root_span["meta"]["key"]
-    assert "val1" in root_span["meta"]["key"]
-    assert root_span["metrics"]["key2"] == 1
-    assert root_span["metrics"]["pi"] == 3.14
-    assert root_span["meta"]["hi"] == "bye"
+
+    assert root_span["meta"]["str_val"] == "val"
+    assert root_span["meta"]["str_val_empty"] == ""
+    assert root_span["meta"]["bool_val"] == "True"
+    assert root_span["metrics"]["int_val"] == 1
+    assert root_span["metrics"]["int_val_zero"] == 0
+    assert root_span["metrics"]["double_val"] == 4.2
+    assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
+    assert root_span["meta"]["array_val_int"] == "[10, 20]"
+    assert root_span["meta"]["array_val_bool"] == "[True, False]"
+    assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
+    assert root_span["meta"]["d_str_val"] == "bye"
+    assert root_span["meta"]["d_bool_val"] == "False"
+    assert root_span["metrics"]["d_int_val"] == 2
+    assert root_span["metrics"]["d_double_val"] == 3.14
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
@@ -228,11 +260,11 @@ def test_otel_get_span_context(test_agent, test_library):
         (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
     """
     with test_library:
-        with test_library.otel_start_span(name="operation", new_root=True) as parent:
+        with test_library.otel_start_span(name="operation") as parent:
             parent.end_span()
-            with test_library.otel_start_span(name="operation", parent_id=parent.span_id, new_root=False) as span:
+            with test_library.otel_start_span(name="operation", parent_id=parent.span_id) as span:
                 span.end_span()
                 context = span.span_context()
-                assert context.get("trace_id") == f"{parent.span_id:0x}".ljust(32, "0")
-                assert context.get("span_id") == f"{span.span_id:0x}".rjust(16, "0")
+                assert context.get("trace_id") == parent.span_context().get("trace_id")
+                assert context.get("span_id") == "{:016x}".format(span.span_id)
                 assert context.get("trace_flags") == "01"

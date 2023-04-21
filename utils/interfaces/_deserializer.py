@@ -71,7 +71,13 @@ def deserialize_http_message(path, message, data, interface, key):
         return data
 
     def json_load():
-        return None if message.get("length") == 0 else json.loads(data)
+        if len(data) == 0:
+            return None
+
+        elif message.get("length") == 0:
+            return None
+
+        return json.loads(data)
 
     content_type = get_header_value("content-type", message["headers"])
     content_type = None if content_type is None else content_type.lower()

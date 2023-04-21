@@ -1,16 +1,17 @@
+import psycopg2
 import requests
 from ddtrace import tracer
+from ddtrace.appsec import trace_utils as appsec_trace_utils
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import (
-    weak_hash_secure_algorithm,
-    weak_hash,
-    weak_hash_multiple,
-    weak_hash_duplicates,
     weak_cipher,
     weak_cipher_secure_algorithm,
+    weak_hash,
+    weak_hash_duplicates,
+    weak_hash_multiple,
+    weak_hash_secure_algorithm,
 )
-import psycopg2
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -44,6 +45,22 @@ def waf(*args, **kwargs):
     return "Hello, World!\\n"
 
 
+VALUE_STORED = ""
+
+
+@app.route("/set_value/<string:value>", methods=["GET", "POST", "OPTIONS"])
+@app.route("/set_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
+def set_value(value, code=200):
+    global VALUE_STORED
+    VALUE_STORED = value
+    return "Value set", code, flask_request.args
+
+
+@app.route("/get_value", methods=["GET", "POST", "OPTIONS"])
+def get_value(*args, **kwargs):
+    return VALUE_STORED
+
+
 @app.route("/read_file", methods=["GET"])
 def read_file():
     if "file" not in flask_request.args:
@@ -70,7 +87,6 @@ def status_code():
 
 @app.route("/make_distant_call")
 def make_distant_call():
-
     url = flask_request.args["url"]
     response = requests.get(url)
 
@@ -179,4 +195,60 @@ def view_weak_cipher_insecure():
 @app.route("/iast/insecure_cipher/test_secure_algorithm")
 def view_weak_cipher_secure():
     weak_cipher_secure_algorithm()
+    return Response("OK")
+
+
+_TRACK_METADATA = {
+    "metadata0": "value0",
+    "metadata1": "value1",
+}
+
+
+_TRACK_USER = "system_tests_user"
+
+
+@app.route("/user_login_success_event")
+def track_user_login_success_event():
+    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    return Response("OK")
+
+
+@app.route("/user_login_failure_event")
+def track_user_login_failure_event():
+    appsec_trace_utils.track_user_login_failure_event(
+        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+    )
+    return Response("OK")
+
+
+_TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
+
+
+@app.route("/custom_event")
+def track_custom_event():
+    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    return Response("OK")
+
+
+@app.route("/iast/sqli/test_secure", methods=["POST"])
+def view_sqli_secure():
+    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql, flask_request.form["username"], flask_request.form["password"])
+    return Response("OK")
+
+
+@app.route("/iast/sqli/test_insecure", methods=["POST"])
+def view_sqli_insecure():
+    sql = (
+        "SELECT * FROM IAST_USER WHERE USERNAME = '"
+        + flask_request.form["username"]
+        + "' AND PASSWORD = '"
+        + flask_request.form["password"]
+        + "'"
+    )
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cursor = postgres_db.cursor()
+    cursor.execute(sql)
     return Response("OK")

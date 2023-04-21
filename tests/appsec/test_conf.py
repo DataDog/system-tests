@@ -35,7 +35,7 @@ class Test_StaticRuleSet:
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
+@released(golang="?", dotnet="2.26.0", java="?", nodejs="?", php="?", python="?", ruby="?")
 @coverage.not_implemented
 class Test_FleetManagement:
     """ApppSec supports Fleet management"""

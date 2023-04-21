@@ -18,8 +18,11 @@ if context.library == "cpp":
         "spring-boot": "0.108.0",
         "spring-boot-jetty": "0.108.0",
         "spring-boot-openliberty": "0.108.0",
+        "spring-boot-wildfly": "0.108.0",
+        "spring-boot-undertow": "0.108.0",
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
+        "vertx3": "1.12.0",
         "*": "?",
     }
 )
@@ -29,18 +32,23 @@ class TestIastWeakHash:
     @property
     def expected_location(self):
         if context.library.library == "java":
-            return "com.datadoghq.system_tests.springboot.iast.utils.CryptoExamples"
+            return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
         if context.library.library == "nodejs":
             return "iast.js"
 
         if context.library.library == "python":
-            if context.weblog_variant == "uwsgi-poc":
-                return "/app/./iast.py"
+            # temporary hack because dd-trace-py version is net yet increased
+            is_dev_version = "dev" in str(context.library)
 
-            return "/app/iast.py"
-
-        return None
+            if context.library.version >= "1.12.0" or is_dev_version:
+                return "iast.py"
+            else:
+                # old value: absolute path
+                if context.weblog_variant == "uwsgi-poc":
+                    return "/app/./iast.py"
+                else:
+                    return "/app/iast.py"
 
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")

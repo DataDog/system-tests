@@ -16,10 +16,8 @@ There is a script `format.sh` in the root of the repository which will package t
 
 ## Using a virtualenv
 
-* [install python 3](https://www.python.org/downloads/). You may have it by default:
-  * run `python --version`. As long as the version is 3, it's ok
-  * you can try with `python3 --version`.
-* run `python -m venv venv` (use `python3` if the step above works with it).
+* [install python 3.9](https://www.python.org/downloads/). You may have it by default:
+* run `python3.9 -m venv venv`.
 * run `source venv/bin/activate`
   * Windows user, it'll be `venv\Scripts\activate.bat`
   * Fish users, i'll be `. venv/bin/activate.fish`
