@@ -39,11 +39,21 @@ class Provision_parser:
 
     def ec2_language_variants_install_data(self, language, os_type, os_distro, os_branch):
         config_data = self._load_provision()
-        for language_variants_data in config_data["language-variants"]:
-            for filtered_language_variants_data in self._filter_provision_data(
-                language_variants_data, language, os_type, os_distro, os_branch
-            ):
-                yield filtered_language_variants_data
+        language_variants_data_result = []
+
+        # Language variants are not mandatory. Perhaps the yml file doesn't contain this node
+        if "language-variants" in config_data:
+            for language_variants_data in config_data["language-variants"]:
+                for filtered_language_variants_data in self._filter_provision_data(
+                    language_variants_data, language, os_type, os_distro, os_branch
+                ):
+                    language_variants_data_result.append(filtered_language_variants_data)
+
+        # If the aren't language variants for this language, we allways return one row.
+        # This let us to search weblog variants without "language_specification" versionn (ie container based apps)
+        if not language_variants_data_result:
+            language_variants_data_result.append(dict(version=None, name="None"))
+        return language_variants_data_result
 
     def ec2_prepare_repos_install_data(self, os_type, os_distro):
         config_data = self._load_provision()
@@ -69,7 +79,9 @@ class Provision_parser:
             for filtered_weblog_data in self._filter_provision_data(
                 language_weblog_data, language, os_type, os_distro, os_branch, exact_match=True
             ):
-                if support_version in filtered_weblog_data["supported-language-versions"]:
+                if (not support_version and "supported-language-versions" not in filtered_weblog_data) or (
+                    support_version in filtered_weblog_data["supported-language-versions"]
+                ):
                     weblog_filter = self.provision_filter.weblog
                     if weblog_filter and filtered_weblog_data["name"] != weblog_filter:
                         continue
@@ -81,9 +93,9 @@ class Provision_parser:
             for filtered_installation_checks_data in self._filter_provision_data(
                 installation_checks_data, language, os_type, os_distro, os_branch
             ):
-                #Only one check
+                # Only one check
                 return filtered_installation_checks_data
-                
+
     def _filter_install_data(self, data, os_type, os_distro, os_branch, exact_match=False):
         # Filter by type,  distro and branch
         filteredInstalations = [

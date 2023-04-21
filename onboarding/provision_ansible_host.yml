@@ -19,10 +19,10 @@ agent:
         copy_files:
             - name: copy-ansible-inventory
               local_path: autoinjection/ansible/hosts
-              remote_path: hosts
+
             - name: copy-ansible-playbook
               local_path: autoinjection/ansible/datadog_playbook.yml
-              remote_path: datadog_playbook.yml
+
         command: |
           sudo amazon-linux-extras install ansible2 -y
           ansible --version
@@ -184,15 +184,12 @@ weblogs:
           copy_files:
             - name: copy-service
               local_path: weblog/java/test-app-java/test-app-java.service
-              remote_path: test-app-java.service
 
             - name: copy-run-weblog-script
               local_path: weblog/java/test-app-java/test-app-java_run.sh
-              remote_path: test-app-java_run.sh
 
             - name: copy-java-app
               local_path: test-app-java.tar
-              remote_path: test-app-java.tar
               
           command: sh test-app-java_run.sh
 
@@ -204,11 +201,9 @@ weblogs:
           copy_files:
             - name: copy-service
               local_path: weblog/java/wildfly/wildfly.service
-              remote_path: wildfly.service
 
             - name: copy-run-weblog-script
               local_path: weblog/java/wildfly/wildfly_run.sh
-              remote_path: wildfly_run.sh
 
           command: sh wildfly_run.sh
   - nodejs: 
@@ -220,15 +215,12 @@ weblogs:
           copy_files:
             - name: copy-service
               local_path: weblog/nodejs/test-app-nodejs/test-app-nodejs.service
-              remote_path: test-app-nodejs.service
 
             - name: copy-run-weblog-script
               local_path: weblog/nodejs/test-app-nodejs/test-app-nodejs_run.sh
-              remote_path: test-app-nodejs_run.sh
 
             - name: copy-binary
               local_path: ../lib-injection/build/docker/nodejs/sample-app/index.js
-              remote_path: index.js
 
           command: sh test-app-nodejs_run.sh
 
@@ -244,15 +236,13 @@ weblogs:
           copy_files:
             - name: copy-dotnet-app
               local_path: test-app-dotnet.tar
-              remote_path: test-app-dotnet.tar
 
             - name: copy-service
               local_path: weblog/dotnet/test-app-dotnet/test-app-dotnet.service
-              remote_path: test-app-dotnet.service
 
             - name: copy-run-weblog-script
               local_path: weblog/dotnet/test-app-dotnet/test-app-dotnet_run.sh
-              remote_path: test-app-dotnet_run.sh
+
           command: sh test-app-dotnet_run.sh
   - python: 
     - name: test-app-python
@@ -264,15 +254,12 @@ weblogs:
           copy_files:
             - name: copy-service
               local_path: weblog/python/test-app-python-django/test-app-python.service
-              remote_path: test-app-python.service
 
             - name: copy-run-weblog-script
               local_path: weblog/python/test-app-python-django/test-app-python_run.sh
-              remote_path: test-app-python_run.sh
 
             - name: copy-python-app
               local_path: test-app-python.tar
-              remote_path: test-app-python.tar
 
           command: sh test-app-python_run.sh
 
