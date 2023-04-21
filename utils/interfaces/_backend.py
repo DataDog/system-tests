@@ -75,7 +75,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         """
 
         rid = get_rid_from_request(request)
-        data = self._wait_for_trace(rid=rid, trace_id=dd_trace_id, retries=5, sleep_interval_multiplier=2.0)
+        data = self._wait_for_trace(rid=rid, trace_id=dd_trace_id, retries=10, sleep_interval_multiplier=2.0)
         return json.loads(data["response"]["content"])["trace"]
 
     def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):

@@ -442,7 +442,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
         observer = Observer()
         observer.schedule(
-            Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
+            Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
         )
 
         observer.start()
