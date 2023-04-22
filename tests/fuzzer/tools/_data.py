@@ -4,7 +4,7 @@
 
 import json
 import os
-from scenarios.fuzzer.tools._tools import cached_property
+from tests.fuzzer.tools._tools import cached_property
 
 
 class _Data:
