@@ -207,6 +207,14 @@ pulumi config set --secret ddagent:appKey zzzzyyyyyxxx
 
 ### Run script
 
+Before executing run script, you should create a Python virtual environment and install the Python dependencies from the onboarding tests directory:
+
+```sh
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 There is a run script "run.sh" to which we have to pass the configuration parameters in order to create the infraeestructure and execute the tests. This is an example of a test launch:
 
 `./run.sh --KeyPairName mykeypair --subnet subnet-zzzz --vpc sg-12345,sg-6789 --dd-site datadoghq.com --private-key-path /Users/user/mykeypair.pem --instance-type t2.micro`
