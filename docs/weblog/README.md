@@ -133,7 +133,7 @@ This endpoint must accept two required parameters (the first is a string, the se
 
 This endpoint must accept all query parameters and all content types.
 
-The first path parameter must be wrote in the span with the tag `appsec.events.system_tests_appsec_event.value` and the parameter as value.
+The first path parameter must be written in the span with the tag `appsec.events.system_tests_appsec_event.value` and the parameter as value.
 
 The second path parameter must be used as a response status code.
 
