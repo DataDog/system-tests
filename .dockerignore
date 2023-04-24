@@ -4,3 +4,4 @@ venv/
 vendor
 logs*
 shell.nix
+__pycache__

@@ -283,7 +283,7 @@ TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 
-if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"
     echo "Available libraries: $(echo $(list-libraries))"
     exit 1
@@ -291,7 +291,7 @@ fi
 
 WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
-if [[ ! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" ]]; then
+if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" ]]; then
     echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
     echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
     exit 1
