@@ -110,7 +110,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 """
 
 
-@released(dotnet="2.27.0", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(dotnet="2.27.0", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "0.112.0",
@@ -124,6 +124,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
         "*": "?",
     }
 )
+@released(golang="1.50.0-rc.1")
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_Blocking:
@@ -133,6 +134,7 @@ class Test_Blocking:
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
+    @bug(context.library == "golang", reason="minify")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
@@ -194,6 +196,7 @@ class Test_Blocking:
 
     @missing_feature(context.library == "php", reason="Support for partial html not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
