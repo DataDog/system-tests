@@ -121,6 +121,30 @@ class RemoteConfigurationFieldsBasicTests:
         interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
 
 
+def dict_is_included(sub_dict: dict, main_dict: dict):
+    """ returns true if every field/values in sub_dict are in main_dict"""
+
+    for key, value in sub_dict.items():
+        if key not in main_dict or value != main_dict[key]:
+            return False
+
+    return True
+
+
+def dict_is_in_array(needle: dict, haystack: list, allow_additional_fields=True):
+    """ 
+    returns true is needle is contained in haystack. 
+    If allow_additional_field is true, needle can contains less field than the one in haystack
+    """
+
+    for item in haystack:
+        if dict_is_included(needle, item):
+            if allow_additional_fields or len(needle) == len(item):
+                return True
+
+    return False
+
+
 def rc_check_request(data, expected, caching):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
@@ -150,9 +174,13 @@ def rc_check_request(data, expected, caching):
             assert len(config_states) == len(
                 expected_config_states
             ), "client reporting more or less configs than expected"
+
             for state in expected_config_states:
-                if state not in config_states:
-                    raise ValidationError(f"Config {state} should be in config_states property", extra_info=content)
+                if not dict_is_in_array(state, config_states, allow_additional_fields=True):
+                    raise ValidationError(
+                        "A config state is missing in config_states property",
+                        extra_info={"expected_state": state, "observed_states": config_states},
+                    )
 
         if not caching:
             # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files

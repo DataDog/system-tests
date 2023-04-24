@@ -89,8 +89,15 @@ class InterfaceValidator:
             try:
                 if validator(data) is True:
                     return
-            except Exception:
-                logger.error(f"{data['log_filename']} did not validate this test", exc_info=True)
+            except Exception as e:
+                logger.error(f"{data['log_filename']} did not validate this test")
+
+                if isinstance(e, ValidationError):
+                    if isinstance(e.extra_info, (dict, list)):
+                        logger.info(json.dumps(e.extra_info, indent=2))
+                    elif isinstance(e.extra_info, (str, int, float)):
+                        logger.info(e.extra_info)
+
                 raise
 
         if not success_by_default:
