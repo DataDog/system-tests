@@ -159,11 +159,11 @@ def infraestructure_provision(provision_filter):
                             ami=ec2_data["ami_id"],
                             tags={"Name": ec2_name,},
                         )
-                        
+
                         pulumi.export(
                             "privateIp_" + provision_filter.provision_scenario + "__" + ec2_name, server.private_ip
                         )
-                                              
+
                         connection = command.remote.ConnectionArgs(
                             host=server.private_ip,
                             user=ec2_data["user"],
@@ -195,7 +195,6 @@ def infraestructure_provision(provision_filter):
                             add_dd_keys=True,
                         )
 
-
                         # Install autoinjection
                         autoinjection_installer = remote_install(
                             connection,
@@ -225,7 +224,7 @@ def infraestructure_provision(provision_filter):
                                 autoinjection_installer,
                             )
                         else:
-                           lang_variant_installer = autoinjection_installer 
+                            lang_variant_installer = autoinjection_installer
 
                         # Build weblog app
                         weblog_runner = remote_install(
