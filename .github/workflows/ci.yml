@@ -630,7 +630,7 @@ jobs:
       run: docker pull mitmproxy/mitmproxy
     - name: Build
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel
     - name: Run OTEL_TRACING_E2E scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh OTEL_TRACING_E2E
