@@ -419,6 +419,7 @@ class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
     def __init__(self, name, weblog_env) -> None:
+        self._required_containers = []
         super().__init__(name, use_proxy=True)
 
         self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
