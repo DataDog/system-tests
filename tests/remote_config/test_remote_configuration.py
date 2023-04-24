@@ -111,7 +111,7 @@ class RemoteConfigurationFieldsBasicTests:
             client_tracer = client["client_tracer"]
 
             assert (
-                "is_agent" not in client or client["is_agent"] == False
+                "is_agent" not in client or client["is_agent"] is False
             ), "'client.is_agent' MUST either NOT be set or set to false"
             assert "client_agent" not in client, "'client.client_agent' must NOT be set"
             assert (
@@ -165,10 +165,16 @@ def rc_check_request(data, expected, caching):
         config_states = client_state.get("config_states")
 
         if expected_config_states is None and (config_states is not None and len(config_states) > 0):
-            raise Exception("client is not expected to have stored config but is reporting stored configs")
+            raise ValidationError(
+                "client is not expected to have stored config but is reporting stored configs",
+                extra_info={"observed_config_states": config_states},
+            )
 
         if expected_config_states is not None and config_states is None:
-            raise Exception("client is expected to have stored confis but isn't reporting any")
+            raise ValidationError(
+                "client is expected to have stored confis but isn't reporting any",
+                extra_info={"expected_config_states": expected_config_states, "observed_client_state": client_state},
+            )
 
         if config_states is not None and expected_config_states is not None:
             assert len(config_states) == len(
@@ -179,7 +185,7 @@ def rc_check_request(data, expected, caching):
                 if not dict_is_in_array(state, config_states, allow_additional_fields=True):
                     raise ValidationError(
                         "A config state is missing in config_states property",
-                        extra_info={"expected_state": state, "observed_states": config_states},
+                        extra_info={"expected_config_state": state, "observed_config_states": config_states},
                     )
 
         if not caching:
@@ -242,6 +248,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
         reason="ASM_FEATURES was not subscribed when a custom rules file was present",
     )
+    @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
+    @bug(library="java", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
@@ -253,8 +261,9 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
             rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
 
-            # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two payloads
-            #  for each request number. We're working to update this behavior in this propossal
+            # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers).
+            #  It generates two payloads for each request number.
+            #  We're working to update this behavior in this propossal:
             #  https://docs.google.com/document/d/1zeh7g_c_4Oj9EUuf8kQEW_qbZl9PCH4hJHiVYnoLy6I/edit
             self.python_request_number += 1
             if context.library == "python" and context.weblog_variant != "uwsgi-poc":
