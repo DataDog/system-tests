@@ -171,7 +171,7 @@ def _validate_distributions_metrics(payload):
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(python="?", cpp="?", golang="?", java="?", dotnet="?", nodejs="?", php="?", ruby="?")
+@released(python="?", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
 @scenarios.appsec_waf_telemetry
 class Test_TelemetryMetricsTriggered:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
