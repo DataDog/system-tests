@@ -35,12 +35,6 @@ class Test_StaticRuleSet:
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 
-@released(golang="?", dotnet="2.26.0", java="?", nodejs="?", php="?", python="?", ruby="?")
-@coverage.not_implemented
-class Test_FleetManagement:
-    """ApppSec supports Fleet management"""
-
-
 @coverage.basic
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
