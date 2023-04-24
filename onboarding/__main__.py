@@ -216,13 +216,16 @@ def infraestructure_provision(provision_filter):
                             logger_name="pulumi_installed_versions",
                         )
 
-                        # Install language variants
-                        lang_variant_installer = remote_install(
-                            connection,
-                            "lang-variant-installer_" + ec2_name,
-                            language_variants_instalations["install"],
-                            autoinjection_installer,
-                        )
+                        # Install language variants (not mandatory)
+                        if "install" in language_variants_instalations:
+                            lang_variant_installer = remote_install(
+                                connection,
+                                "lang-variant-installer_" + ec2_name,
+                                language_variants_instalations["install"],
+                                autoinjection_installer,
+                            )
+                        else:
+                           lang_variant_installer = autoinjection_installer 
 
                         # Build weblog app
                         weblog_runner = remote_install(
