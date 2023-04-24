@@ -267,9 +267,9 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         interfaces.library.validate_remote_configuration(validator=validate)
 
-
+# TODO version
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", golang="?", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.19.0")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -340,6 +340,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
@@ -369,6 +370,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="php", reason="cache is implemented")
 @coverage.basic
