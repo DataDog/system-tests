@@ -135,7 +135,7 @@ This endpoint must accept all query parameters and all content types.
 
 The first path parameter must be wrote in the span with the tag `appsec.events.system_tests_appsec_event.value` and the parameter as value.
 
-The second path parameter must be used as a response status.
+The second path parameter must be used as a response status code.
 
 All query parameters (key, value) must be used as (key, value) in the response headers.
 
