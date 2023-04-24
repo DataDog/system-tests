@@ -37,7 +37,6 @@ class APMLibraryClient:
     def otel_trace_start_span(
         self,
         name: str,
-        new_root: bool,
         timestamp: int,
         span_kind: int,
         parent_id: int,
@@ -255,7 +254,6 @@ class APMLibraryClientGRPC:
     def otel_trace_start_span(
         self,
         name: str,
-        new_root: bool,
         timestamp: int,
         span_kind: int,
         parent_id: int,
@@ -269,7 +267,6 @@ class APMLibraryClientGRPC:
         resp = self._client.OtelStartSpan(
             pb.OtelStartSpanArgs(
                 name=name,
-                new_root=new_root,
                 timestamp=timestamp,
                 span_kind=span_kind,
                 parent_id=parent_id,
@@ -370,7 +367,6 @@ class APMLibrary:
     def otel_start_span(
         self,
         name: str,
-        new_root: bool = False,
         timestamp: int = 0,
         span_kind: int = 0,
         parent_id: int = 0,
@@ -379,7 +375,6 @@ class APMLibrary:
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
             name=name,
-            new_root=new_root,
             timestamp=timestamp,
             span_kind=span_kind,
             parent_id=parent_id,

@@ -40,7 +40,6 @@ jobs:
       uses: actions/checkout@v3
     - name: Run lints
       uses: ./.github/actions/lint_code
-    - run: mkdir -p logs/docker/weblog/logs/
     - run: pip install -r requirements.txt
     - run: PYTHONPATH="$PWD" SYSTEMTESTS_SCENARIO=TEST_THE_TEST pytest utils/test_the_test
   test-the-tests-main:
@@ -190,7 +189,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - run: mkdir logs && touch logs/.weblog.env
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Pull mongo image
       run: docker pull mongo:latest
     - name: Pull cassandra image
@@ -293,14 +295,14 @@ jobs:
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh APPSEC_CORRUPTED_RULES
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CUSTOM_RULES scenario
       if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_CUSTOM_RULES
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_CORRUPTED_RULES scenario
+      if: steps.build.outcome == 'success' && github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
@@ -408,7 +410,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - run: mkdir logs && touch logs/.weblog.env
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Pull mongo image
       run: docker pull mongo:latest
     - name: Pull cassandra image
@@ -624,6 +629,7 @@ jobs:
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
     runs-on: ubuntu-latest
+    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
     needs:
     - lint_and_test
     env:
@@ -631,12 +637,19 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Run
-      run: ./scenarios/perfs/run.sh golang
+      run: ./tests/perfs/run.sh golang
     - name: Display
-      run: python scenarios/perfs/process.py
+      run: |
+        source venv/bin/activate
+        python tests/perfs/process.py
   fuzzer:
     runs-on: ubuntu-latest
+    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
     needs:
     - lint_and_test
     env:
@@ -644,9 +657,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Setup python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
     - name: Build
       run: ./build.sh golang
     - name: Run
-      run: ./run.sh scenarios/fuzzer/main.py -t 60
-      env:
-        RUNNER_CMD: python
+      run: ./tests/fuzzer/run.sh

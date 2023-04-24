@@ -1,2 +1,2 @@
-Theorically, only `docker-compose` and `git`, and very common Unix tools are required.
+Only `python3`, `docker-compose` and `git`, and very common Unix tools are required.
  

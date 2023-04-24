@@ -11,9 +11,6 @@ RUN echo '\
 log_level: DEBUG\n\
 apm_config:\n\
   apm_non_local_traffic: true\n\
-proxy:\n\
-    http: "http://runner:8126"\n\
-    https: "http://runner:8126"\n\
 ' >> /etc/datadog-agent/datadog.yaml
 
 # Proxy conf

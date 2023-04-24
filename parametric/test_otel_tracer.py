@@ -11,20 +11,19 @@ from parametric.spec.otel_trace import OtelSpan
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
-@pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_simple_trace(test_agent, test_library):
     """
         Perform two traces
     """
     with test_library:
-        with test_library.otel_start_span("root_one", new_root=True,) as parent:
+        with test_library.otel_start_span("root_one") as parent:
             parent.set_attributes({"parent_k1": "parent_v1"})
             with test_library.otel_start_span(name="child", parent_id=parent.span_id) as child:
                 assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
                 child.end_span()
             parent.end_span()
-        with test_library.otel_start_span("root_two", new_root=True) as parent:
+        with test_library.otel_start_span("root_two") as parent:
             with test_library.otel_start_span(name="child", parent_id=parent.span_id) as child:
                 assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
                 child.end_span()
@@ -56,7 +55,6 @@ def test_otel_simple_trace(test_agent, test_library):
 @pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_force_flush_otel(test_agent, test_library):
     """

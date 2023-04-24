@@ -1,35 +1,48 @@
 from datetime import datetime
 import json
 from os import environ
-import time
 import threading
 
 import requests
 import docker
 
+from utils import scenarios
+
 
 MAX_CONCURRENT_REQUEST = 5
 TOTAL_REQUEST_COUNT = 10000
-WARMUP_REQUEST_COUNT = 10
-WARMUP_LAST_SLEEP_DURATION = 3
 
-WEBLOG_URL = environ["WEBLOG_URL"] if "WEBLOG_URL" in environ else "http://weblog:7777"
-LOG_FOLDER = environ["LOG_FOLDER"] if "LOG_FOLDER" in environ else "/app/logs"
+WEBLOG_URL = "http://localhost:7777"
 TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=bcd", "/waf?a=b&a=c")
 
 # TOTAL_REQUEST_COUNT = 100
 # WARMUP_REQUEST_COUNT = 1
 # WARMUP_LAST_SLEEP_DURATION = 1
 # WEBLOG_URL="http://localhost:7777"
-# LOG_FOLDER="logs"
-class Runner:
-    def __init__(self) -> None:
+@scenarios.performances
+class Test_Performances:
+    def setup_main(self) -> None:
         self.requests = []
         self.build_requests()
 
         self.results = []
         self.memory = []
         self.finished = False
+
+        self.appsec = "with_appsec" if environ.get("DD_APPSEC_ENABLED") == "true" else "without_appsec"
+        self.lang = scenarios.performances.library.library
+
+        threads = [threading.Thread(target=self.watch_docker_target)] + [
+            threading.Thread(target=self.fetch) for _ in range(MAX_CONCURRENT_REQUEST)
+        ]
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        self.data = {"durations": self.results, "memory": self.memory}
 
     def build_requests(self):
         headers = (None, {"User-Agent": "normal"}, {"x-filename": "test"})
@@ -74,36 +87,6 @@ class Runner:
         size = len(str([request.values()]))
         self.requests.append((size, request))
 
-    def run(self):
-        appsec = "with_appsec" if environ["DD_APPSEC_ENABLED"] == "true" else "without_appsec"
-        lang = environ["SYSTEM_TESTS_LIBRARY"]
-
-        print(f"Testing {lang} {appsec}")
-        print("Warmup...", flush=True)
-
-        # warmup
-        for _ in range(WARMUP_REQUEST_COUNT):
-            requests.get(WEBLOG_URL, timeout=10)
-            time.sleep(0.6)
-
-        time.sleep(WARMUP_LAST_SLEEP_DURATION)
-        print("Warmup ok", flush=True)
-
-        threads = [threading.Thread(target=self.watch_docker_target)] + [
-            threading.Thread(target=self.fetch) for _ in range(MAX_CONCURRENT_REQUEST)
-        ]
-
-        for thread in threads:
-            thread.start()
-
-        for thread in threads:
-            thread.join()
-
-        data = {"durations": self.results, "memory": self.memory}
-
-        with open(f"{LOG_FOLDER}/stats_{lang}_{appsec}.json", "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-
     def fetch(self):
         i = 0
         while len(self.results) < TOTAL_REQUEST_COUNT:
@@ -125,7 +108,9 @@ class Runner:
     def watch_docker_target(self):
         start = datetime.now()
         docker_client = docker.from_env()
-        container_stats = docker_client.containers.get("/system-tests_runner_1").stats(decode=True)
+        container_stats = docker_client.containers.get(
+            f"/{scenarios.performances.weblog_container.container_name}"
+        ).stats(decode=True)
 
         while len(self.results) < TOTAL_REQUEST_COUNT:
             data = next(container_stats)
@@ -134,5 +119,10 @@ class Runner:
 
             print("MEM", datetime.now(), memory, flush=True)
 
+    def test_main(self):
+        """ add some tests ?"""
 
-Runner().run()
+        with open(
+            f"{scenarios.performances.host_log_folder}/stats_{self.lang}_{self.appsec}.json", "w", encoding="utf-8"
+        ) as f:
+            json.dump(self.data, f, indent=2)

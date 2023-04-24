@@ -54,7 +54,6 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
-    @flaky(library="java", reason="Agent sometimes respond 502")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
@@ -170,13 +169,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @bug(
-        library="dotnet",
-        reason="""
-            Bug in the telemetry agent proxy, that can't reopen connections if they're closed by timeout
-            https://github.com/DataDog/datadog-agent/pull/11880
-        """,
-    )
     @bug(
         library="java",
         weblog_variant="spring-boot-openliberty",
@@ -405,7 +397,7 @@ class Test_Telemetry:
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
             "dotnet": {},
-            "nodejs": {"hostname": "runner", "port": 8126, "appsec.enabled": True},
+            "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "java": {"trace.agent.port": 8126, "telemetry.heartbeat.interval": 2},

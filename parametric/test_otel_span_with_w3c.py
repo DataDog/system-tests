@@ -10,7 +10,6 @@ from parametric.utils.test_agent import get_span
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("python", "Not implemented")
-@pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
@@ -22,11 +21,7 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
         duration_us = int(2 * 1_000_000)
         start_time = int(time.time())
         with test_library.otel_start_span(
-            "operation",
-            span_kind=SK_PRODUCER,
-            timestamp=start_time,
-            new_root=True,
-            attributes={"start_attr_key": "start_attr_val"},
+            "operation", span_kind=SK_PRODUCER, timestamp=start_time, attributes={"start_attr_key": "start_attr_val"},
         ) as parent:
             parent.end_span(timestamp=start_time + duration_us)
     duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd

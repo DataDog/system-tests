@@ -5,7 +5,7 @@
 import json
 import random
 
-from scenarios.fuzzer.html_parser import extract_requests
+from tests.fuzzer.html_parser import extract_requests
 
 
 class RequestGenerator:
