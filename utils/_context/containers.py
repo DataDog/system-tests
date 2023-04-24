@@ -5,7 +5,6 @@ import time
 import docker
 from docker.models.containers import Container
 import pytest
-import requests
 
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
@@ -22,37 +21,6 @@ def create_network():
 
     logger.debug(f"Create network {_NETWORK_NAME}")
     _client.networks.create(_NETWORK_NAME, check_duplicate=True)
-
-
-class _HealthCheck:
-    def __init__(self, url, retries, interval=1, start_period=0):
-        self.url = url
-        self.retries = retries
-        self.interval = interval
-        self.start_period = start_period
-
-    def __call__(self):
-        if self.start_period:
-            time.sleep(self.start_period)
-
-        for i in range(self.retries + 1):
-            try:
-                r = requests.get(self.url, timeout=1)
-                logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
-                if r.status_code == 200:
-                    return
-            except Exception as e:
-                logger.debug(f"Healthcheck #{i} on {self.url}: {e}")
-
-            time.sleep(self.interval)
-
-        pytest.exit(f"{self.url} never answered to healthcheck request", 1)
-
-    def __str__(self):
-        return (
-            f"Healthcheck({repr(self.url)}, retries={self.retries}, "
-            f"interval={self.interval}, start_period={self.start_period})"
-        )
 
 
 class TestedContainer:
@@ -126,8 +94,42 @@ class TestedContainer:
             **self.kwargs,
         )
 
-        if self.healthcheck:
-            self.healthcheck()
+        self.wait_for_health()
+
+    def wait_for_health(self):
+        if not self.healthcheck:
+            return
+
+        cmd = self.healthcheck["test"]
+
+        if not isinstance(cmd, str):
+            assert cmd[0] == "CMD-SHELL", "Only CMD-SHELL is supported"
+            cmd = cmd[1]
+
+        retries = self.healthcheck.get("retries", 10)
+        interval = self.healthcheck.get("interval", 1 * 1_000_000_000) / 1_000_000_000
+        # timeout = self.healthcheck.get("timeout", 1 * 1_000_000_000) / 1_000_000_000
+        start_period = self.healthcheck.get("start_period", 0) / 1_000_000_000
+
+        if start_period:
+            time.sleep(start_period)
+
+        logger.info(f"Executing healthcheck {cmd} for {self.name}")
+
+        for i in range(retries + 1):
+            try:
+                result = self._container.exec_run(cmd)
+
+                logger.debug(f"Healthcheck #{i}: {result}")
+
+                if result.exit_code == 0:
+                    return
+            except Exception as e:
+                logger.debug(f"Healthcheck #{i}: {e}")
+
+            time.sleep(interval)
+
+        pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}", 1)
 
     def _fix_host_pwd_in_volumes(self):
         # on docker compose, volume host path can starts with a "."
@@ -237,7 +239,7 @@ class AgentContainer(TestedContainer):
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
-            healthcheck=_HealthCheck(f"http://localhost:{self.agent_port}/info", 60, start_period=1),
+            healthcheck={"test": f"curl --fail http://localhost:{self.agent_port}/info", "retries": 60},
             ports={f"{self.agent_port}/tcp": ("127.0.0.1", self.agent_port)},
         )
 
@@ -278,7 +280,7 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck=_HealthCheck("http://localhost:7777", 60),
+            healthcheck={"test": "curl --fail http://localhost:7777", "retries": 60},
             ports={"7777/tcp": ("127.0.0.1", 7777), "7778/tcp": ("127.0.0.1", 7778)},
         )
 
@@ -441,4 +443,5 @@ class MySqlContainer(TestedContainer):
             },
             allow_old_container=True,
             host_log_folder=host_log_folder,
+            healthcheck={"test": "/healthcheck.sh", "retries": 60},
         )
