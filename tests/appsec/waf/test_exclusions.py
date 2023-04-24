@@ -1,7 +1,7 @@
 from utils import scenarios, released, weblog, interfaces, missing_feature, context
 
-
-@released(java="1.6.0", dotnet="2.26.0", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?", cpp="?")
+# TODO version
+@released(java="1.6.0", dotnet="2.26.0", golang="?", nodejs="3.19.0", php_appsec="0.7.0", python="?", ruby="?", cpp="?")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_custom_rules
@@ -35,3 +35,4 @@ class Test_Exclusions:
 
     def test_rule_exclusion_positive_test(self):
         interfaces.library.assert_no_appsec_event(self.r_rept)
+
