@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (context, coverage, interfaces, irrelevant, missing_feature,
-                   released, rfc, scenarios, weblog)
+from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
 @released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
