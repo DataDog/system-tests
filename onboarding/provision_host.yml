@@ -1,7 +1,7 @@
 ami:
 - name: ubuntu-x86-22.04
-  ami_id: ami-0557a15b87f6559cf
-  #22 ami_id: ami-007855ac798b5175e
+ # ami_id: ami-0557a15b87f6559cf
+  ami_id: ami-007855ac798b5175e
   user: ubuntu
   os_type: linux
   os_distro: deb
@@ -44,7 +44,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
-            dd-host-install
+            dd-host-install || true
 
         - os_type: linux
           os_distro: rpm
@@ -61,7 +61,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
-            dd-host-install
+            dd-host-install || true
 
         - os_type: linux
           os_distro: rpm
@@ -79,7 +79,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
-            dd-host-install
+            dd-host-install || true
 
         - os_type: linux
           os_distro: rpm
@@ -93,7 +93,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
-            dd-host-install
+            dd-host-install || true
 
         - os_type: linux
           os_distro: rpm
@@ -122,7 +122,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-python
-            dd-host-install
+            dd-host-install || true
 
         - os_type: linux
           os_distro: rpm
@@ -135,7 +135,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
-            dd-host-install
+            dd-host-install || true
 
         - os_type: linux
           os_distro: rpm
