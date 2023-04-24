@@ -23,4 +23,4 @@ if [[ -z "${IN_NIX_SHELL:-}" ]]; then
    source venv/bin/activate
 fi
 
-pytest $RUNNER_ARGS
+pytest -vv $RUNNER_ARGS
