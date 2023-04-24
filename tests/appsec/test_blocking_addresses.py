@@ -141,8 +141,7 @@ def validate_custom_event_tag(expected_value="", present=True):
         if present:
             assert tag in span["meta"], f"Can't find {tag} in span's meta"
             value = span["meta"][tag]
-            if value != expected_value:
-                raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+            assert value == expected_value
         else:
             assert tag not in span["meta"], f"Found {tag} in span's meta"
         return True
