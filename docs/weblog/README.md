@@ -126,6 +126,25 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
     content
 </string>
 ```
+
+## \[GET, POST, OPTIONS\] /set_tag/%s/%d
+
+This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path. 
+
+This endpoint must accept all query parameters and all content types.
+
+The first path parameter must be wrote in the span with the tag `appsec.events.system_tests_appsec_event.value` and the parameter as value.
+
+The second path parameter must be used as a response status.
+
+All query parameters (key, value) must be used as (key, value) in the response headers.
+
+The following text should be written to the body of the response:
+
+```
+Value tagged
+```
+
 ## `GET /iast/insecure_hashing/deduplicate`
 
 Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hashing) in a loop.
