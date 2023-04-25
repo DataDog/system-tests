@@ -145,6 +145,14 @@ The following text should be written to the body of the response:
 Value tagged
 ```
 
+Example :
+```
+/set_tag/tainted_value/418?Content-Language=fr&custom_field=myvalue
+```
+must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with reponse headers populated with `Content-Language=fr` and `custom_field=myvalue`.
+
+The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on reponse status code or response header content.
+
 ## `GET /iast/insecure_hashing/deduplicate`
 
 Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hashing) in a loop.
