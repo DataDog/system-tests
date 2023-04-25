@@ -145,6 +145,7 @@ def _assert_custom_event_tag_presence(expected_value):
 
     return wrapper
 
+
 def _assert_custom_event_tag_absence():
     def wrapper(span):
         tag = "appsec.events.system_tests_appsec_event.value"
