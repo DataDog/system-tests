@@ -234,6 +234,16 @@ class Test_Blocking:
         assert self.r_afh.status_code == 403
         assert re.match("^text/html", self.r_afh.headers.get("content-type", "")) is not None
 
+    def setup_accept_explicit_html(self):
+        self.r_aeh = weblog.get(
+            "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html;q=0.8, application/*;q=0.7, */*;q=0.9"}
+        )
+
+    def test_accept_explicit_html(self):
+        """Blocking with Accept: text/html"""
+        assert self.r_aeh.status_code == 403
+        assert self.r_aeh.text == HTML_DATA
+
 
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
