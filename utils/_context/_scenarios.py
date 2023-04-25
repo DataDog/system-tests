@@ -506,7 +506,7 @@ class OpenTelemetryScenario(_DockerScenario):
         self._required_containers.append(OpenTelemetryCollectorContainer(self.host_log_folder))
 
     def _create_interface_folders(self):
-        for interface in ("open_telemetry", "backend"):
+        for interface in ("open_telemetry", "backend", "agent"):
             self.create_log_subfolder(f"interfaces/{interface}")
 
     def _start_interface_watchdog(self):
