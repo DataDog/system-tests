@@ -10,7 +10,7 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-@released(cpp="?", dotnet="2.25.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="?", golang="?")
+@released(cpp="?", dotnet="2.25.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="?")
 @released(
     java={
         "spring-boot": "1.9.0",
@@ -24,6 +24,7 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
         "*": "?",
     }
 )
+@released(golang="1.50.0-rc.1")
 @coverage.basic
 @scenarios.appsec_request_blocking
 class Test_AppSecRequestBlocking:
@@ -43,7 +44,7 @@ class Test_AppSecRequestBlocking:
                 return False
 
             state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-            if len(state.get("config_states", [])) == 0 or state["has_error"]:
+            if len(state.get("config_states", [])) == 0 or state.get("has_error"):
                 logger.info(f"rc request contains an error or no configs:\n{state}")
                 return False
 

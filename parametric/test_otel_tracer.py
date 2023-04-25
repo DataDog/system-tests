@@ -8,7 +8,6 @@ from parametric.spec.otel_trace import OtelSpan
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
@@ -52,7 +51,6 @@ def test_otel_simple_trace(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")

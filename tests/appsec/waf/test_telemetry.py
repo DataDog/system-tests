@@ -10,7 +10,7 @@ def _validate_headers(headers, request_type):
     """
     # empty value means we don't care about the content, but we want to check the key exists
     expected_headers = {
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
         "DD-Telemetry-API-Version": "v1",
         "DD-Telemetry-Request-Type": request_type,
         "DD-Client-Library-Language": context.library,
