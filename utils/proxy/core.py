@@ -101,12 +101,20 @@ class _RequestLogger:
         return content
 
     def request(self, flow):
+
         logger.info(f"{flow.request.method} {flow.request.pretty_url}")
 
         if flow.request.host in ("proxy", "localhost"):
             # tracer is the only container that uses the proxy directly
-            flow.request.host, flow.request.port = "agent", 8127
-            flow.request.scheme = "http"
+
+            if flow.request.headers.get("dd-protocol") == "otlp":  # open telemetry datas
+                flow.request.host = "trace.agent." + os.environ.get("DD_SITE", "datad0g.com")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            else:
+                flow.request.host, flow.request.port = "agent", 8127
+                flow.request.scheme = "http"
+
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
     @staticmethod
@@ -148,7 +156,9 @@ class _RequestLogger:
         if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
             data["response"] = None
 
-        if self.request_is_from_tracer(flow.request):
+        if flow.request.headers.get("dd-protocol") == "otlp":
+            interface = "open_telemetry"
+        elif self.request_is_from_tracer(flow.request):
             interface = "library"
         else:
             interface = "agent"
