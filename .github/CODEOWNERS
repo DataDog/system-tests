@@ -2,3 +2,4 @@
 /utils/build/docker/golang/* @DataDog/tracing-go @DataDog/system-tests-core
 /parametric/* @Kyle-Verhoog @DataDog/system-tests-core
 /tests/remote_config/* @DataDog/system-tests-core @DataDog/remote-config @DataDog/system-tests-core
+/tests/appsec/* @DataDog/appsec-libraries @DataDog/system-tests-core
