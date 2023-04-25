@@ -61,27 +61,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
                             yield data, trace
                             break
 
-    def get_otel_trace_id(self, request):
-        paths = ["/api/v0.2/traces"]
-        rid = get_rid_from_request(request)
-
-        if rid:
-            logger.debug(f"Try to find traces related to request {rid}")
-
-        for data in self.get_data(path_filters=paths):
-            export_request = ExportTraceServiceRequest()
-            content = eval(data["request"]["content"])  # Raw content is a str like "b'\n\x\...'"
-            assert export_request.ParseFromString(content) > 0, content
-            for resource_span in export_request.resource_spans:
-                for scope_span in resource_span.scope_spans:
-                    for span in scope_span.spans:
-                        for attribute in span.attributes:
-                            if (
-                                attribute.key == "http.request.headers.user-agent"
-                                and rid in attribute.value.string_value
-                            ):
-                                yield span.trace_id
-
     def get_spans(self, request=None):
         """
         Iterate over all spans reported by the tracer to the agent.
