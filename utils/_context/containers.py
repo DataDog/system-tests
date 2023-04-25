@@ -5,6 +5,7 @@ import time
 import docker
 from docker.models.containers import Container
 import pytest
+import requests
 
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
@@ -468,6 +469,20 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             },
             volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
-            # healthcheck={"test": "curl --fail http://localhost:13133", "retries": 60},
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
+
+    # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
+    def wait_for_health(self):
+        time.sleep(20)  # It takes long for otel collector to start
+
+        for i in range(61):
+            try:
+                r = requests.get("http://localhost:13133", timeout=1)
+                logger.debug(f"Healthcheck #{i} on localhost:13133: {r}")
+                if r.status_code == 200:
+                    return
+            except Exception as e:
+                logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
+            time.sleep(1)
+        pytest.exit("localhost:13133 never answered to healthcheck request", 1)
