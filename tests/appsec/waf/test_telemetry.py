@@ -43,7 +43,11 @@ class Test_TelemetryMetrics:
         }
         valid_tag_prefixes = mandatory_tag_prefixes
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
-        assert len(series) == 1
+        # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
+        if context.library == "python":
+            assert len(series) == 2
+        else:
+            assert len(series) == 1
         s = series[0]
         assert s["_computed_namespace"] == "appsec"
         assert s["metric"] == expected_metric_name
@@ -95,7 +99,8 @@ class Test_TelemetryMetrics:
             "event_rules_version",
             "rule_triggered",
             "request_blocked",
-            "request_excluded," "waf_timeout",
+            "request_excluded",
+            "waf_timeout",
         }
         mandatory_tag_prefixes = {
             "waf_version",
