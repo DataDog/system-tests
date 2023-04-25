@@ -51,7 +51,7 @@ class APMLibraryClient:
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
         raise NotImplementedError
 
-    def otel_set_attributes(self, span_id: int, attributes) -> None:
+    def otel_set_attributes(self, span_id: int, attributes: dict) -> None:
         raise NotImplementedError
 
     def otel_set_name(self, span_id: int, name: str) -> None:
@@ -161,6 +161,60 @@ class APMLibraryClientHTTP(APMLibraryClient):
         self._session.post(self._url("/trace/span/flush"), json={})
         self._session.post(self._url("/trace/stats/flush"), json={})
 
+    def otel_trace_start_span(
+        self,
+        name: str,
+        timestamp: int,
+        span_kind: int,
+        parent_id: int,
+        http_headers: List[Tuple[str, str]],
+        attributes: dict,
+    ) -> StartSpanResponse:
+        resp = self._session.post(
+            self._url("/trace/otel/start_span"),
+            json={
+                "name": name,
+                "timestamp": timestamp,
+                "span_kind": span_kind,
+                "parent_id": parent_id,
+                "http_headers": http_headers,
+                "attributes": attributes or {},
+            },
+        ).json()
+        return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
+
+    def otel_end_span(self, span_id: int, timestamp: int) -> None:
+        self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
+
+    def otel_set_attributes(self, span_id: int, attributes) -> None:
+        self._session.post(self._url("/trace/otel/set_attributes"), json={"span_id": span_id, "attributes": attributes})
+
+    def otel_set_name(self, span_id: int, name: str) -> None:
+        self._session.post(self._url("/trace/otel/set_name"), json={"span_id": span_id, "name": name})
+
+    def otel_set_status(self, span_id: int, code: int, description: str) -> None:
+        self._session.post(
+            self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
+        )
+
+    def otel_is_recording(self, span_id: int) -> bool:
+        resp = self._session.post(self._url("/trace/otel/is_recording"), json={"span_id": span_id}).json()
+        return resp["is_recording"]
+
+    def otel_get_span_context(self, span_id: int):
+        resp = self._session.post(self._url("/trace/otel/span_context"), json={"span_id": span_id}).json()
+        return OtelSpanContext(
+            trace_id=resp["trace_id"],
+            span_id=resp["span_id"],
+            trace_flags=resp["trace_flags"],
+            trace_state=resp["trace_state"],
+            remote=resp["remote"],
+        )
+
+    def otel_flush(self, timeout: int) -> bool:
+        resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
+        return resp["success"]
+
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int):
@@ -201,14 +255,7 @@ class _TestOtelSpan:
         return self._client.otel_is_recording(self.span_id)
 
     def span_context(self) -> OtelSpanContext:
-        sctx = self._client.otel_get_span_context(self.span_id)
-        return OtelSpanContext(
-            trace_id=sctx.trace_id,
-            span_id=sctx.span_id,
-            trace_flags=sctx.trace_flags,
-            trace_state=sctx.trace_state,
-            remote=sctx.remote,
-        )
+        return self._client.otel_get_span_context(self.span_id)
 
 
 class APMLibraryClientGRPC:
@@ -320,7 +367,14 @@ class APMLibraryClientGRPC:
         return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=span_id)).is_recording
 
     def otel_get_span_context(self, span_id: int):
-        return self._client.OtelSpanContext(pb.OtelSpanContextArgs(span_id=span_id))
+        sctx = self._client.OtelSpanContext(pb.OtelSpanContextArgs(span_id=span_id))
+        return OtelSpanContext(
+            trace_id=sctx.trace_id,
+            span_id=sctx.span_id,
+            trace_flags=sctx.trace_flags,
+            trace_state=sctx.trace_state,
+            remote=sctx.remote,
+        )
 
     def otel_flush(self, timeout: int) -> bool:
         return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
