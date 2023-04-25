@@ -109,8 +109,8 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 </html>
 """
 
-
-@released(dotnet="2.27.0", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+# TODO version
+@released(dotnet="2.27.0", nodejs="3.19.0", php_appsec="0.7.0", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "0.112.0",
@@ -149,7 +149,7 @@ class Test_Blocking:
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
     def test_blocking_appsec_blocked_tag(self):
-        """Tag ddappsec.blocked is set when blocking"""
+        """Tag appsec.blocked is set when blocking"""
         assert self.r_abt.status_code == 403
 
         interfaces.library.assert_waf_attack(
@@ -197,6 +197,7 @@ class Test_Blocking:
     @missing_feature(context.library == "php", reason="Support for partial html not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -227,6 +228,7 @@ class Test_Blocking:
 
     @missing_feature(context.library == "php", reason="Support for quality not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
+    @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
