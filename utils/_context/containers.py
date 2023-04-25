@@ -468,6 +468,6 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             },
             volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
-            healthcheck={"test": "curl --fail http://localhost:13133", "retries": 60},
+            # healthcheck={"test": "curl --fail http://localhost:13133", "retries": 60},
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
