@@ -496,9 +496,9 @@ class OpenTelemetryScenario(_DockerScenario):
 
     def __init__(self, name, weblog_env) -> None:
         self._required_containers = []
-        self._check_env_vars()
         super().__init__(name, use_proxy=True)
 
+        self._check_env_vars()
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
         self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
         self._required_containers.append(self.agent_container)
