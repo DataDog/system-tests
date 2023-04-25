@@ -4,8 +4,8 @@
 
 from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
-
-@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+# TODO version
+@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="1.0.0")
 @coverage.basic
 @scenarios.appsec_blocking
 @released(
@@ -47,6 +47,7 @@ class Test_BlockingAddresses:
         self.pp_req = weblog.get("/params/AiKfOeRcvG45")
 
     @missing_feature(library="java", reason="When supported, path parameter detection happens on subsequent WAF run")
+    @missing_feature(library="nodejs", reason="Not supported yet")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     def test_path_params(self):
         """can block on server.request.path_params"""
@@ -66,6 +67,7 @@ class Test_BlockingAddresses:
     def setup_cookies(self):
         self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
 
+    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_cookies(self):
         """can block on server.request.cookies"""
 
@@ -87,6 +89,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
@@ -99,6 +102,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "dotnet", reason="only support blocking on 404 status at the moment")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library < "ruby@1.10.0")
+    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_response_status(self):
         """can block on server.response.status"""
 
@@ -110,6 +114,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby", reason="Not working")
+    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_not_found(self):
         """can block on server.response.status"""
 
@@ -123,6 +128,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
     @missing_feature(context.library == "dotnet", reason="Address not supported yet")
+    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 
@@ -142,7 +148,7 @@ class Test_BlockingAddresses:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="?",
+    nodejs="?", # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -188,7 +194,7 @@ class Test_Blocking_request_method:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="?",
+    nodejs="?", # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -289,7 +295,7 @@ class Test_Blocking_request_path_params:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="?",
+    nodejs="?", # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -341,7 +347,7 @@ class Test_Blocking_request_query:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="?",
+    nodejs="?", # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -445,7 +451,7 @@ class Test_Blocking_request_cookies:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="?",
+    nodejs="?", # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
