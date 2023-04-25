@@ -18,6 +18,7 @@ from utils._context.containers import (
     ZooKeeperContainer,
     CassandraContainer,
     RabbitMqContainer,
+    MySqlContainer,
     create_network,
 )
 
@@ -154,6 +155,7 @@ class _DockerScenario(_Scenario):
         include_kafka=False,
         include_zookeeper=False,
         include_rabbitmq=False,
+        include_mysql_db=False,
     ) -> None:
         super().__init__(name)
         if not self.is_current_scenario:
@@ -184,6 +186,9 @@ class _DockerScenario(_Scenario):
 
         if include_rabbitmq:
             self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+
+        if include_mysql_db:
+            self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
     def _get_warmups(self):
 
@@ -234,6 +239,7 @@ class EndToEndScenario(_DockerScenario):
         include_kafka=False,
         include_zookeeper=False,
         include_rabbitmq=False,
+        include_mysql_db=False,
     ) -> None:
         super().__init__(
             name,
@@ -245,6 +251,7 @@ class EndToEndScenario(_DockerScenario):
             include_kafka=include_kafka,
             include_zookeeper=include_zookeeper,
             include_rabbitmq=include_rabbitmq,
+            include_mysql_db=include_mysql_db,
         )
 
         if not self.is_current_scenario:
@@ -501,6 +508,7 @@ class scenarios:
         include_kafka=True,
         include_zookeeper=True,
         include_rabbitmq=True,
+        include_mysql_db=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
