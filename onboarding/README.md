@@ -55,9 +55,10 @@ We want to test Datadog software in the three main scenarios described above, bu
 
 YML files define the AMI machines and software to be installed: 
 
-- **provision_host.yml:** All software and the test applications installed on host.
-- **provision_host_docker.yml:** Datadog Agent installed on host and your application deployed on container.
-- **provision_docker.yml:** Datadog Agent installed on containers.
+- **provision_host.yml:** All the software and the test applications installed on host.
+- **provision_host_container.yml:** Datadog Agent installed on host and your application deployed on container.
+- **provision_container.yml:** Datadog Agent installed on containers.
+- **provision_ansible_host.yml:** Datadog Agent installed on host using Ansible.
 
 ### Understanding YML files
 
@@ -125,7 +126,7 @@ There are some main sections that they will be combined in order to create a tes
                 sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
                 dd-host-install
     ```
-- **language-variants:** Especially useful in the scenario that does not contain containers. It will allow us to install different language versions:
+- **language-variants:** Especially useful in the scenario that does not contain containers. This section is not mandatory. It will allow us to install different language versions:
     ```
     language-variants:
     - java: 
@@ -217,7 +218,7 @@ pip install -r requirements.txt
 
 There is a run script "run.sh" to which we have to pass the configuration parameters in order to create the infraeestructure and execute the tests. This is an example of a test launch:
 
-`./run.sh --KeyPairName mykeypair --subnet subnet-zzzz --vpc sg-12345,sg-6789 --dd-site datadoghq.com --private-key-path /Users/user/mykeypair.pem --instance-type t2.micro`
+`./run.sh --KeyPairName mykeypair --subnet subnet-zzzz --vpc sg-12345,sg-6789 --dd-site datadoghq.com --private-key-path /Users/user/mykeypair.pem --instance-type t2.micro --filter-provision-scenario host`
 
 > [Check the run.sh script usage details](USAGE.md)
 

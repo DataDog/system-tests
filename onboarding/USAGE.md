@@ -21,10 +21,11 @@ The optional parameter is:
 
 You can filter the tests by scenario, language, OS distribution, environment or weblog name. These are the filtering options:
 
-- **--filter-provision-scenario:** The injection of libraries can take place in three scenarios, each of which is represented by the values:
+- **--filter-provision-scenario:** The injection of libraries can take place in different scenarios, each of which is represented by the values:
   - **host:** Datadog Agent and your application deployed on the same host.
-  - **host_docker:** Datadog Agent installed on host and your application deployed on container.
-  - **docker:** Datadog Agent and your application installed on containers.
+  - **host_container:** Datadog Agent installed on host and your application deployed on container.
+  - **container:** Datadog Agent and your application installed on containers.
+  - **ansible_host:** Datadog Agent and your application installed on host using Ansible.
 - **--filter-language:** Run only the tests associated with a language (java, nodejs, dotnet).
 - **--filter-os-distro:** Run the tests on the specified machine type.
 - **--filter-env:** Run the tests with Datadog releases or snapshots (prod or dev).
@@ -32,6 +33,6 @@ You can filter the tests by scenario, language, OS distribution, environment or 
 
 This is an example of a test launch with the mandatory parameters and filtered by scenario and language:
 
-`./run.sh --KeyPairName mykeypair --subnet subnet-zzzz --vpc sg-12345,sg-6789 --private-key-path /Users/user/mykeypair.pem --instance-type t2.micro --filter-provision-scenario docker --filter-language java`
+`./run.sh --KeyPairName mykeypair --subnet subnet-zzzz --vpc sg-12345,sg-6789 --private-key-path /Users/user/mykeypair.pem --instance-type t2.micro --filter-provision-scenario container --filter-language java`
 
 > By default, if no scenario is specified, the "Agent and application on host" scenario will be executed.
