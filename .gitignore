@@ -38,3 +38,4 @@ dist/
 
 # Visual Studio
 .vs/
+.config/dotnet-tools.json
