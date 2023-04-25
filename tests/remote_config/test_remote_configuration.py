@@ -328,6 +328,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
+    @bug(context.library <= "java@1.12.1", reason="config state id value was wrong")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
