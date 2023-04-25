@@ -39,4 +39,6 @@ ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
 ENV DD_DATA_STREAMS_ENABLED=true
 ENV UDS_WEBLOG=1
 
+RUN apt-get update && apt-get install -y curl
+
 CMD [ "./app.sh" ]

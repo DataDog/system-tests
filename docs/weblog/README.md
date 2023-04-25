@@ -192,12 +192,14 @@ is executed successfully.
 Expected query params:
   - `integration`: Name of DBM supported library
     - Possible Values: `psycopg`
-  - `cursor_method`: Method used to execute database statements
+  - `operation`: Method used to execute database statements
     - Possible Values: `execute`, `executemany`
 
 
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
+  - mysql (ADO.NET driver for MySQL)
+  - npgsql (ADO.NET Data Provider for PostgreSQL)
 
 ## GET /dsm
 

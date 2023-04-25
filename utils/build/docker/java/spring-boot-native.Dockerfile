@@ -36,6 +36,8 @@ RUN /opt/apache-maven-3.8.6/bin/mvn -Dmaven.repo.local=/maven package -Pspring-n
 
 FROM ubuntu
 
+RUN apt-get update && apt-get install -y curl
+
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION

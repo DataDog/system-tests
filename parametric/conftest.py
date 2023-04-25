@@ -97,6 +97,7 @@ ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 def python_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
+    # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",
@@ -122,6 +123,7 @@ RUN python3.9 -m pip install %s
 
 def python_http_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_dir = os.path.join(os.path.dirname(__file__), "apps", "python_http")
+    # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
         lang="python",

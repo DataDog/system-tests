@@ -143,14 +143,14 @@ def dbm():
     if integration == "psycopg":
         postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
         cursor = postgres_db.cursor()
-        cursor_method = flask_request.args.get("cursor_method")
-        if cursor_method == "execute":
+        operation = flask_request.args.get("operation")
+        if operation == "execute":
             cursor.execute("select 'blah'")
             return Response("OK")
-        elif cursor_method == "executemany":
+        elif operation == "executemany":
             cursor.executemany("select %s", (("blah",), ("moo",)))
             return Response("OK")
-        return Response(f"Cursor method is not supported: {cursor_method}", 406)
+        return Response(f"Cursor method is not supported: {operation}", 406)
 
     return Response(f"Integration is not supported: {integration}", 406)
 
