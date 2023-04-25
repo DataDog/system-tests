@@ -1,0 +1,40 @@
+  - java:
+      - install:
+        - os_type: linux
+          os_distro: rpm
+          command: |
+              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-java': '$(rpm -q datadog-apm-library-java)'}"
+        - os_type: linux
+          os_distro: deb
+          command: |
+              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-java| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-java':'${version_lang//'Version:'/}'}"
+  - nodejs:
+      - install:
+        - os_type: linux
+          os_distro: rpm
+          command: |
+              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-js': '$(rpm -q datadog-apm-library-js)'}"
+        - os_type: linux
+          os_distro: deb
+          command: |
+              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-js| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-js':'${version_lang//'Version:'/}'}"
+  - dotnet:
+      - install:
+        - os_type: linux
+          os_distro: rpm
+          command: |
+              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-dotnet': '$(rpm -q datadog-apm-library-dotnet)'}"
+        - os_type: linux
+          os_distro: deb
+          command: |
+              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-dotnet| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-dotnet':'${version_lang//'Version:'/}'}"
+  - python:
+      - install:
+        - os_type: linux
+          os_distro: rpm
+          command: |
+              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-python': '$(rpm -q datadog-apm-library-python)'}"
+        - os_type: linux
+          os_distro: deb
+          command: |
+              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-python| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-python':'${version_lang//'Version:'/}'}"
