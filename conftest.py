@@ -8,7 +8,7 @@ import pytest
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
-from utils._context._scenarios import current_scenario
+from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
@@ -24,13 +24,31 @@ _coverages = {}
 _rfcs = {}
 
 
-_JSON_REPORT_FILE = f"{current_scenario.host_log_folder}/report.json"
-_XML_REPORT_FILE = f"{current_scenario.host_log_folder}/reportJunit.xml"
+def _JSON_REPORT_FILE():
+    return f"{context.scenario.host_log_folder}/report.json"
+
+
+def _XML_REPORT_FILE():
+    return f"{context.scenario.host_log_folder}/reportJunit.xml"
 
 
 def pytest_configure(config):
-    config.option.json_report_file = _JSON_REPORT_FILE
-    config.option.xmlpath = _XML_REPORT_FILE
+
+    # First of all, we must get the current scenario
+    current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
+
+    for name in dir(scenarios):
+        if name.upper() == current_scenario_name:
+            context.scenario = getattr(scenarios, name)
+            break
+
+    if context.scenario is None:
+        pytest.exit(f"Scenario {current_scenario_name} does not exists", 1)
+
+    context.scenario.configure()
+
+    config.option.json_report_file = _JSON_REPORT_FILE()
+    config.option.xmlpath = _XML_REPORT_FILE()
 
 
 # Called at the very begening
@@ -39,7 +57,7 @@ def pytest_sessionstart(session):
     if session.config.option.collectonly:
         return
 
-    current_scenario.session_start(session)
+    context.scenario.session_start(session)
 
 
 # called when each test item is collected
@@ -120,7 +138,11 @@ def pytest_collection_modifyitems(session, config, items):
     for item in items:
         declared_scenario = get_declared_scenario(item)
 
-        if declared_scenario == context.scenario or declared_scenario is None and context.scenario == "DEFAULT":
+        if (
+            declared_scenario == context.scenario.name
+            or declared_scenario is None
+            and context.scenario.name == "DEFAULT"
+        ):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
             _collect_item_metadata(item)
@@ -150,10 +172,6 @@ def pytest_collection_finish(session):
         return
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-
-    terminal.write_line("Executing weblog warmup...")
-
-    current_scenario.execute_warmups()
 
     last_file = ""
     for item in session.items:
@@ -186,14 +204,14 @@ def pytest_collection_finish(session):
         except Exception:
             logger.exception("Unexpected failure during setup method call")
             terminal.write("x", bold=True, red=True)
-            current_scenario.close_targets()
+            context.scenario.close_targets()
             raise
         else:
             terminal.write(".", bold=True, green=True)
 
     terminal.write("\n\n")
 
-    current_scenario.post_setup(session)
+    context.scenario.post_setup(session)
 
 
 def pytest_json_modifyreport(json_report):
@@ -229,28 +247,24 @@ def pytest_sessionfinish(session, exitstatus):
 
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-        open(f"{current_scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
+        open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
         indent=2,
     )
 
     _pytest_junit_modifyreport()
 
-    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
-        # TODO : shutdown proxy
-        ...
-
 
 def _pytest_junit_modifyreport():
 
-    with open(_JSON_REPORT_FILE, encoding="utf-8") as f:
+    with open(_JSON_REPORT_FILE(), encoding="utf-8") as f:
         json_report = json.load(f)
         junit_modifyreport(
             json_report,
-            _XML_REPORT_FILE,
+            _XML_REPORT_FILE(),
             _skip_reasons,
             _docs,
             _rfcs,
             _coverages,
             _release_versions,
-            junit_properties=current_scenario.get_junit_properties(),
+            junit_properties=context.scenario.get_junit_properties(),
         )

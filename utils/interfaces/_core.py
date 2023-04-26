@@ -10,7 +10,6 @@ import re
 import time
 
 from utils.tools import logger
-from utils._context._scenarios import current_scenario
 from ._deserializer import deserialize
 
 
@@ -31,6 +30,9 @@ class InterfaceValidator:
         self._ingested_files = set()
 
         self.accept_data = True
+
+    def configure(self):
+        pass
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
