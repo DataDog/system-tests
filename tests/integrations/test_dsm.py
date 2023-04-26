@@ -5,7 +5,10 @@
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 
 
-@missing_feature(condition=context.library != "java" and context.library != "dotnet", reason="Full Kafka instrumentation only on Java and Dotnet")i
+@missing_feature(
+    context.library != "java" and context.library != "dotnet",
+    reason="Full Kafka instrumentation only on Java and Dotnet",
+)
 @missing_feature(
     context.weblog_variant not in ("spring-boot"),
     reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
