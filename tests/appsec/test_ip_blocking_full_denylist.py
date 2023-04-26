@@ -7,7 +7,7 @@ from tests.remote_config.test_remote_configuration import rc_check_request
 from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
 from utils.tools import logger
 
-with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", encoding="utf-8") as f:
+with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
@@ -32,8 +32,8 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
 @bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
-@scenarios.appsec_ip_blocking_maxed
-class Test_AppSecIPBlockingMaxed:
+@scenarios.appsec_blocking_full_denylist
+class Test_AppSecIPBlockingFullDenylist:
     """A library should block requests from up to 2500 different blocked IP addresses."""
 
     request_number = 0
@@ -62,16 +62,10 @@ class Test_AppSecIPBlockingMaxed:
 
     def setup_blocked_ips(self):
         NOT_BLOCKED_IP = "42.42.42.3"
-        BLOCKED_IPS = [
-            "245.159.180.146",
-            "126.29.6.251",
-            "59.9.47.235",
-            "179.140.243.163",
-            "136.26.224.167",
-            "165.160.156.36",
-            "172.2.59.155",
-            "169.49.236.135",
-        ]
+
+        # Generate the list of 10 * 125 = 1250 blocked ips that are found in the rc_mocked_responses_asm_data_full_denylist.json
+        # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
+        BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(10) for b in range(125)]
 
         def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":
