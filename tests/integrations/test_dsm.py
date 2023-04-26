@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, bug, missing_feature, scenarios
 
 
-@missing_feature(condition=context.library != "java", reason="Full Kafka instrumentation only on Java")
+@missing_feature(condition=context.library != "java" and context.library != "dotnet", reason="Full Kafka instrumentation only on Java and Dotnet")i
 @missing_feature(
     context.weblog_variant not in ("spring-boot"),
     reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
@@ -28,31 +28,6 @@ class Test_DsmKafka:
             3735318893869752335,
             4463699290244539355,
             ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
-        )
-
-        assert expected_kafka_out in checkpoints
-        assert expected_kafka_in in checkpoints
-
-
-@missing_feature(condition=context.library != "dotnet", reason="Missing partition tag only on dotnet")
-@scenarios.integrations
-class Test_DsmKafkaNoPartitionTag:
-    """ Verify DSM stats points for Kafka """
-
-    def setup_dsm_kafka(self):
-        self.r = weblog.get("/dsm?integration=kafka")
-
-    def test_dsm_kafka(self):
-        assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
-
-        expected_kafka_out = DsmStatsPoint(
-            4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
-        )
-        expected_kafka_in = DsmStatsPoint(
-            3735318893869752335,
-            4463699290244539355,
-            ["direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"],
         )
 
         assert expected_kafka_out in checkpoints
