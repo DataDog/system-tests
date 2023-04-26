@@ -249,7 +249,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         reason="ASM_FEATURES was not subscribed when a custom rules file was present",
     )
     @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
-    @bug(library="java", reason="id reported for config state is not the expected one")
+    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
