@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import time
 import docker
+from docker.errors import APIError
 from docker.models.containers import Container
 import pytest
 
@@ -124,6 +125,11 @@ class TestedContainer:
 
                 if result.exit_code == 0:
                     return
+
+            except APIError as e:
+                logger.exception(f"Healthcheck #{i} failed")
+                pytest.exit(f"Healthcheck {cmd} failed for {self._container.name}: {e.explanation}", 1)
+
             except Exception as e:
                 logger.debug(f"Healthcheck #{i}: {e}")
 
