@@ -28,12 +28,16 @@ class Test_TelemetryMetrics:
             assert data["response"]["status_code"] == 202
 
     @bug(context.library < "java@1.13.0", reason="Missing two headers")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
         for data in interfaces.library.get_telemetry_data():
             request_type = data["request"]["content"].get("request_type")
             _validate_headers(data["request"]["headers"], request_type)
 
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_metric_waf_init(self):
         """Test waf.init metric."""
         expected_metric_name = "waf.init"
@@ -65,6 +69,8 @@ class Test_TelemetryMetrics:
 
     @irrelevant(reason="Test not implemented")
     @bug(context.library < "java@1.13.0", reason="Missing tags")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_metric_waf_updates(self):
         """Test waf.updates metric."""
         expected_metric_name = "waf.updates"
@@ -91,6 +97,8 @@ class Test_TelemetryMetrics:
         assert p[1] == 1
 
     @bug(context.library < "java@1.13.0", reason="Missing tags")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_metric_waf_requests(self):
         """Test waf.requests metric."""
         expected_metric_name = "waf.requests"
