@@ -69,7 +69,6 @@ class Test_UrlQuery:
 
 
 @released(nodejs="3.13.1", python="1.7.1")
-@missing_feature(library="dotnet", reason="Needs weblog endpoint")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
