@@ -18,6 +18,7 @@ from utils._context.containers import (
     ZooKeeperContainer,
     CassandraContainer,
     RabbitMqContainer,
+    MySqlContainer,
     create_network,
 )
 
@@ -154,6 +155,7 @@ class _DockerScenario(_Scenario):
         include_kafka=False,
         include_zookeeper=False,
         include_rabbitmq=False,
+        include_mysql_db=False,
     ) -> None:
         super().__init__(name)
         if not self.is_current_scenario:
@@ -184,6 +186,9 @@ class _DockerScenario(_Scenario):
 
         if include_rabbitmq:
             self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+
+        if include_mysql_db:
+            self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
     def _get_warmups(self):
 
@@ -234,6 +239,7 @@ class EndToEndScenario(_DockerScenario):
         include_kafka=False,
         include_zookeeper=False,
         include_rabbitmq=False,
+        include_mysql_db=False,
     ) -> None:
         super().__init__(
             name,
@@ -245,6 +251,7 @@ class EndToEndScenario(_DockerScenario):
             include_kafka=include_kafka,
             include_zookeeper=include_zookeeper,
             include_rabbitmq=include_rabbitmq,
+            include_mysql_db=include_mysql_db,
         )
 
         if not self.is_current_scenario:
@@ -415,6 +422,100 @@ class EndToEndScenario(_DockerScenario):
         return result
 
 
+class OpenTelemetryScenario(_DockerScenario):
+    """ Scenario for testing opentelemetry"""
+
+    def __init__(self, name, weblog_env) -> None:
+        self._required_containers = []
+        super().__init__(name, use_proxy=True)
+        if not self.is_current_scenario:
+            return
+
+        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self._required_containers.append(self.weblog_container)
+
+    def _create_interface_folders(self):
+        for interface in ("open_telemetry", "backend"):
+            self.create_log_subfolder(f"interfaces/{interface}")
+
+    def _start_interface_watchdog(self):
+        from utils import interfaces
+
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def on_modified(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+        observer = Observer()
+        observer.schedule(
+            Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
+        )
+
+        observer.start()
+
+    def _get_warmups(self):
+        warmups = super()._get_warmups()
+
+        warmups.insert(0, self._create_interface_folders)
+        warmups.insert(1, self._start_interface_watchdog)
+        warmups.append(self._wait_for_app_readiness)
+
+        return warmups
+
+    def _wait_for_app_readiness(self):
+        from utils import interfaces  # import here to avoid circular import
+
+        if self.use_proxy:
+            logger.debug("Wait for app readiness")
+
+            if not interfaces.open_telemetry.ready.wait(40):
+                raise Exception("Open telemetry interface not ready")
+            logger.debug("Open telemetry ready")
+
+    def post_setup(self, session):
+        from utils import interfaces
+
+        if self.use_proxy:
+            self._wait_interface(interfaces.open_telemetry, session, 5)
+
+            self.collect_logs()
+
+            self._wait_interface(interfaces.library_stdout, session, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, session, 0)
+        else:
+            self.collect_logs()
+
+    @staticmethod
+    def _wait_interface(interface, session, timeout):
+        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        terminal.flush()
+
+        interface.wait(timeout)
+
+    @property
+    def library(self):
+        return LibraryVersion("open_telemetry", "0.0.0")
+
+    @property
+    def agent(self):
+        return LibraryVersion("agent", "0.0.0")
+
+    @property
+    def agent_version(self):
+        return self.agent.version
+
+    @property
+    def weblog_variant(self):
+        return self.weblog_container.weblog_variant
+
+
 class CgroupScenario(EndToEndScenario):
 
     # cgroup test
@@ -501,6 +602,7 @@ class scenarios:
         include_kafka=True,
         include_zookeeper=True,
         include_rabbitmq=True,
+        include_mysql_db=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
@@ -667,6 +769,11 @@ class scenarios:
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
+    )
+
+    otel_tracing_e2e = OpenTelemetryScenario(
+        "OTEL_TRACING_E2E",
+        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
     )
 
     library_conf_custom_headers_short = EndToEndScenario(
