@@ -725,6 +725,7 @@ class scenarios:
         "APPSEC_WAF_TELEMETRY",
         weblog_env={
             "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
             "DD_APPSEC_RULES": None,
         },
