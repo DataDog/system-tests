@@ -290,7 +290,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     # that spawns multiple worker processes, each running its own RCM client.
     request_number = defaultdict(int)
 
-    @bug(library="java", reason="id reported for config state is not the expected one")
+    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """ test update sequence, based on a scenario mocked in the proxy """
 
