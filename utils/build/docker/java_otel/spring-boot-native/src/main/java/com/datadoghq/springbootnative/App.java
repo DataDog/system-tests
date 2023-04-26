@@ -25,14 +25,24 @@ public class App {
                 ResourceAttributes.DEPLOYMENT_ENVIRONMENT, "system-tests"));
 
         OtlpHttpSpanExporter agentExporter = 
-            OtlpHttpSpanExporter.builder().setEndpoint("http://proxy:8126/agent/v1/traces").addHeader("dd-protocol", "otlp").build();
-        OtlpHttpSpanExporter intakeExporter = OtlpHttpSpanExporter.builder()
-                                                .setEndpoint("http://proxy:8126/api/v0.2/traces")  // send to the proxy first
-                                                .addHeader("dd-protocol", "otlp")
-                                                .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
-                                                .build();
+            OtlpHttpSpanExporter.builder()
+                .setEndpoint("http://proxy:8126/v1/traces")
+                .addHeader("dd-protocol", "otlp")
+                .addHeader("dd-otlp-path", "agent")
+                .build();
+        OtlpHttpSpanExporter intakeExporter = 
+            OtlpHttpSpanExporter.builder()
+                .setEndpoint("http://proxy:8126/api/v0.2/traces")  // send to the proxy first
+                .addHeader("dd-protocol", "otlp")
+                .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
+                .addHeader("dd-otlp-path", "intake")
+                .build();
         OtlpHttpSpanExporter collectorExporter = 
-            OtlpHttpSpanExporter.builder().setEndpoint("http://proxy:8126/collector/v1/traces").addHeader("dd-protocol", "otlp").build();
+            OtlpHttpSpanExporter.builder()
+                .setEndpoint("http://proxy:8126/v1/traces")
+                .addHeader("dd-protocol", "otlp")
+                .addHeader("dd-otlp-path", "collector")
+                .build();
 
         SpanExporter loggingSpanExporter = OtlpJsonLoggingSpanExporter.create();
 
