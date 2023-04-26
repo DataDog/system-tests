@@ -21,7 +21,7 @@ class Test_OTel_E2E:
                 request=self.r,
                 dd_trace_id=dd_trace_id,
                 dd_api_key=os.environ["DD_API_KEY"],
-                dd_app_key=os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
+                dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
             )
             for dd_trace_id in dd_trace_ids
         ]
