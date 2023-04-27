@@ -65,6 +65,12 @@ namespace ApmTestClient.Services
             return values.AsReadOnly();
         }
 
+        public override async Task<StopTracerReturn> StopTracer(StopTracerArgs request, ServerCallContext context)
+        {
+            await Tracer.Instance.ForceFlushAsync();
+            return new StopTracerReturn();
+        }
+
         public override Task<StartSpanReturn> StartSpan(StartSpanArgs request, ServerCallContext context)
         {
             var creationSettings = new SpanCreationSettings
