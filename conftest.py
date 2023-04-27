@@ -1,7 +1,6 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import os
 import json
 
 import pytest
@@ -32,18 +31,23 @@ def _XML_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/reportJunit.xml"
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
+    )
+
+
 def pytest_configure(config):
 
     # First of all, we must get the current scenario
-    current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
 
     for name in dir(scenarios):
-        if name.upper() == current_scenario_name:
+        if name.upper() == config.option.scenario:
             context.scenario = getattr(scenarios, name)
             break
 
     if context.scenario is None:
-        pytest.exit(f"Scenario {current_scenario_name} does not exists", 1)
+        pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
     context.scenario.configure()
 
@@ -127,10 +131,6 @@ def pytest_collection_modifyitems(session, config, items):
                 return marker.args[0]
 
         return None
-
-    if context.scenario == "CUSTOM":
-        # user has specifed which test to run, do nothing
-        return
 
     selected = []
     deselected = []
