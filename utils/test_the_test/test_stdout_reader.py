@@ -16,6 +16,7 @@ class Test_Main:
             f.write("[dd.trace 2021-11-29 17:10:22:203 +0000] [main] INFO com.klass - AppSec initial 1.0.14\n")
 
         stdout = _LibraryStdout()
+        stdout.configure()
 
         stdout.wait(0)
 

@@ -7,6 +7,7 @@ import time
 import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from utils._context.library_version import LibraryVersion
 
 from utils._context.containers import (
     WeblogContainer,
@@ -25,7 +26,7 @@ from utils._context.containers import (
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
-current_scenario = None
+update_environ_with_local_env()
 
 
 class _Scenario:
@@ -33,28 +34,11 @@ class _Scenario:
         self.name = name
         self.terminal = None
 
-        if os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO") == self.name:
-            global current_scenario
-            current_scenario = self
-
-            self.create_log_subfolder("")
-
-            handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
-            handler.setFormatter(get_log_formatter())
-
-            logger.addHandler(handler)
-
-            update_environ_with_local_env()
-
     def create_log_subfolder(self, subfolder):
         path = os.path.join(self.host_log_folder, subfolder)
 
         shutil.rmtree(path, ignore_errors=True)
         Path(path).mkdir(parents=True, exist_ok=True)
-
-    @property
-    def is_current_scenario(self):
-        return current_scenario is self
 
     def __call__(self, test_method):
         # handles @scenarios.scenario_name
@@ -62,10 +46,32 @@ class _Scenario:
 
         return test_method
 
+    def configure(self):
+        self.create_log_subfolder("")
+
+        handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
+        handler.setFormatter(get_log_formatter())
+
+        logger.addHandler(handler)
+
     def session_start(self, session):
         """ called at the very begning of the process """
-        # called at the very begning of the process
+
         self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        self.print_test_context()
+
+        self.print_info("Executing warmups...")
+
+        try:
+            for warmup in self._get_warmups():
+                logger.info(f"Executing warmup {warmup}")
+                warmup()
+        except:
+            self.collect_logs()
+            self.close_targets()
+            raise
+
+    def print_test_context(self):
         self.terminal.write_sep("=", "test context", bold=True)
         self.print_info(f"Scenario: {self.name}")
         self.print_info(f"Logs folder: ./{self.host_log_folder}")
@@ -78,18 +84,6 @@ class _Scenario:
 
     def _get_warmups(self):
         return []
-
-    def execute_warmups(self):
-        """ Called before any setup """
-
-        try:
-            for warmup in self._get_warmups():
-                logger.info(f"Executing warmup {warmup}")
-                warmup()
-        except:
-            self.collect_logs()
-            self.close_targets()
-            raise
 
     def post_setup(self, session):
         """ called after test setup """
@@ -104,21 +98,54 @@ class _Scenario:
     def host_log_folder(self):
         return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}"
 
+    # Set of properties used in test decorators
+    @property
+    def dd_site(self):
+        return ""
+
     @property
     def library(self):
-        return None
+        return LibraryVersion("undefined")
 
     @property
     def agent_version(self):
-        return None
+        return ""
 
     @property
     def weblog_variant(self):
-        return None
+        return ""
 
     @property
     def php_appsec(self):
-        return None
+        return ""
+
+    @property
+    def tracer_sampling_rate(self):
+        return 0
+
+    @property
+    def appsec_rules_file(self):
+        return ""
+
+    @property
+    def uds_socket(self):
+        return ""
+
+    @property
+    def libddwaf_version(self):
+        return ""
+
+    @property
+    def appsec_rules_version(self):
+        return ""
+
+    @property
+    def uds_mode(self):
+        return False
+
+    @property
+    def telemetry_heartbeat_interval(self):
+        return 0
 
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
@@ -158,8 +185,6 @@ class _DockerScenario(_Scenario):
         include_mysql_db=False,
     ) -> None:
         super().__init__(name)
-        if not self.is_current_scenario:
-            return
 
         self.use_proxy = use_proxy
         self._required_containers = []
@@ -189,6 +214,12 @@ class _DockerScenario(_Scenario):
 
         if include_mysql_db:
             self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+
+    def configure(self):
+        super().configure()
+
+        for container in reversed(self._required_containers):
+            container.configure()
 
     def _get_warmups(self):
 
@@ -254,9 +285,6 @@ class EndToEndScenario(_DockerScenario):
             include_mysql_db=include_mysql_db,
         )
 
-        if not self.is_current_scenario:
-            return
-
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
 
         self.weblog_container = WeblogContainer(
@@ -276,12 +304,17 @@ class EndToEndScenario(_DockerScenario):
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
+        self.library_interface_timeout = library_interface_timeout
 
-        if library_interface_timeout is not None:
-            self.library_interface_timeout = library_interface_timeout
-        else:
+    def configure(self):
+        from utils import interfaces
+
+        super().configure()
+        interfaces.library_stdout.configure()
+
+        if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
-                self.library_interface_timeout = 80
+                self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("nodejs",):
@@ -294,10 +327,10 @@ class EndToEndScenario(_DockerScenario):
             else:
                 self.library_interface_timeout = 40
 
-    def session_start(self, session):
+    def print_test_context(self):
         from utils import weblog
 
-        super().session_start(session)
+        super().print_test_context()
 
         logger.debug(f"Docker host is {weblog.domain}")
 
@@ -393,6 +426,10 @@ class EndToEndScenario(_DockerScenario):
         interface.wait(timeout)
 
     @property
+    def dd_site(self):
+        return self.agent_container.dd_site
+
+    @property
     def library(self):
         return self.weblog_container.library
 
@@ -408,6 +445,34 @@ class EndToEndScenario(_DockerScenario):
     def php_appsec(self):
         return self.weblog_container.php_appsec
 
+    @property
+    def tracer_sampling_rate(self):
+        return self.weblog_container.tracer_sampling_rate
+
+    @property
+    def appsec_rules_file(self):
+        return self.weblog_container.appsec_rules_file
+
+    @property
+    def uds_socket(self):
+        return self.weblog_container.uds_socket
+
+    @property
+    def libddwaf_version(self):
+        return self.weblog_container.libddwaf_version
+
+    @property
+    def appsec_rules_version(self):
+        return self.weblog_container.appsec_rules_version
+
+    @property
+    def uds_mode(self):
+        return self.weblog_container.uds_mode
+
+    @property
+    def telemetry_heartbeat_interval(self):
+        return self.weblog_container.telemetry_heartbeat_interval
+
     def get_junit_properties(self):
         result = super().get_junit_properties()
 
@@ -420,6 +485,98 @@ class EndToEndScenario(_DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
+
+
+class OpenTelemetryScenario(_DockerScenario):
+    """ Scenario for testing opentelemetry"""
+
+    def __init__(self, name, weblog_env) -> None:
+        self._required_containers = []
+        super().__init__(name, use_proxy=True)
+
+        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self._required_containers.append(self.weblog_container)
+
+    def _create_interface_folders(self):
+        for interface in ("open_telemetry", "backend"):
+            self.create_log_subfolder(f"interfaces/{interface}")
+
+    def _start_interface_watchdog(self):
+        from utils import interfaces
+
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def on_modified(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+        observer = Observer()
+        observer.schedule(
+            Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
+        )
+
+        observer.start()
+
+    def _get_warmups(self):
+        warmups = super()._get_warmups()
+
+        warmups.insert(0, self._create_interface_folders)
+        warmups.insert(1, self._start_interface_watchdog)
+        warmups.append(self._wait_for_app_readiness)
+
+        return warmups
+
+    def _wait_for_app_readiness(self):
+        from utils import interfaces  # import here to avoid circular import
+
+        if self.use_proxy:
+            logger.debug("Wait for app readiness")
+
+            if not interfaces.open_telemetry.ready.wait(40):
+                raise Exception("Open telemetry interface not ready")
+            logger.debug("Open telemetry ready")
+
+    def post_setup(self, session):
+        from utils import interfaces
+
+        if self.use_proxy:
+            self._wait_interface(interfaces.open_telemetry, session, 5)
+
+            self.collect_logs()
+
+            self._wait_interface(interfaces.library_stdout, session, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, session, 0)
+        else:
+            self.collect_logs()
+
+    @staticmethod
+    def _wait_interface(interface, session, timeout):
+        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        terminal.flush()
+
+        interface.wait(timeout)
+
+    @property
+    def library(self):
+        return LibraryVersion("open_telemetry", "0.0.0")
+
+    @property
+    def agent(self):
+        return LibraryVersion("agent", "0.0.0")
+
+    @property
+    def agent_version(self):
+        return self.agent.version
+
+    @property
+    def weblog_variant(self):
+        return self.weblog_container.weblog_variant
 
 
 class CgroupScenario(EndToEndScenario):
@@ -677,6 +834,11 @@ class scenarios:
         backend_interface_timeout=5,
     )
 
+    otel_tracing_e2e = OpenTelemetryScenario(
+        "OTEL_TRACING_E2E",
+        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
+    )
+
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")
     )
@@ -684,10 +846,3 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
-
-
-if current_scenario is None:
-    current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO")
-    raise ValueError(f"Scenario {current_scenario_name} does not exists")
-
-logger.info(f"Current scenario is {current_scenario}")

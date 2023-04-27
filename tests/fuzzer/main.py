@@ -46,8 +46,14 @@ def main():
     logger = get_logger(use_stdout=True)
 
     create_network()
-    AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False).start()
-    WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False).start()
+
+    agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
+    agent.configure()
+    agent.start()
+
+    weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
+    weblog.configure()
+    weblog.start()
 
     Fuzzer(
         corpus=args.corpus,
@@ -62,6 +68,7 @@ def main():
         debug=args.debug,
         request_count=args.request_count,
         logger=logger,
+        weblog=weblog,
     ).run_forever()
 
 

@@ -27,9 +27,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     @property
     def _log_folder(self):
-        from utils._context._scenarios import current_scenario
+        from utils import context
 
-        return f"{current_scenario.host_log_folder}/interfaces/backend"
+        return f"{context.scenario.host_log_folder}/interfaces/backend"
 
     @staticmethod
     def _get_dd_site_api_host():
@@ -94,6 +94,19 @@ class _BackendInterfaceValidator(InterfaceValidator):
             len(traces) >= min_traces_len
         ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
         return traces
+
+    def assert_otlp_trace_exist(self, request: requests.Request, dd_trace_id: str) -> dict:
+        """Attempts to fetch from the backend, ALL the traces that the OpenTelemetry SDKs sent to Datadog
+        during the execution of the given request.
+
+        The assosiation of the traces with a request is done through propagating the request ID (inside user agent)
+        on all the submitted traces. This is done automatically, unless you create root spans manually, which in
+        that case you need to manually propagate the user agent to the new spans.
+        """
+
+        rid = get_rid_from_request(request)
+        data = self._wait_for_trace(rid=rid, trace_id=dd_trace_id, retries=10, sleep_interval_multiplier=2.0)
+        return data["response"]["content"]["trace"]
 
     def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
         """Attempts to fetch single span events using the given `query_filter` as part of the search query.
