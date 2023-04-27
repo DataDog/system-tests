@@ -27,9 +27,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     @property
     def _log_folder(self):
-        from utils._context._scenarios import current_scenario
+        from utils import context
 
-        return f"{current_scenario.host_log_folder}/interfaces/backend"
+        return f"{context.scenario.host_log_folder}/interfaces/backend"
 
     @staticmethod
     def _get_dd_site_api_host():
