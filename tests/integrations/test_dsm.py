@@ -30,7 +30,7 @@ class Test_DsmKafka:
         expected_kafka_in = DsmStatsPoint(
             3735318893869752335,
             4463699290244539355,
-            ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
+            ["direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"],
         )
 
         assert expected_kafka_out in checkpoints
@@ -82,7 +82,7 @@ class Test_DsmRabbitmq:
         expected_rabbit_in = DsmStatsPoint(
             3735318893869752335,
             4463699290244539355,
-            ["direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"],
+            ["direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"],
         )
 
         assert expected_rabbit_out in checkpoints
