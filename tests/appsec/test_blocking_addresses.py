@@ -4,6 +4,7 @@
 
 from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
+
 # TODO version
 @released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="1.0.0")
 @coverage.basic
@@ -169,7 +170,7 @@ def _assert_custom_event_tag_absence():
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0", # TODO version
+    nodejs="3.19.0",  # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -216,7 +217,7 @@ class Test_Blocking_request_method:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0", # TODO version
+    nodejs="3.19.0",  # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -316,7 +317,7 @@ class Test_Blocking_request_path_params:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0", # TODO version
+    nodejs="3.19.0",  # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -369,7 +370,7 @@ class Test_Blocking_request_query:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0", # TODO version
+    nodejs="3.19.0",  # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -475,7 +476,7 @@ class Test_Blocking_request_cookies:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0", # TODO version
+    nodejs="3.19.0",  # TODO version
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -485,7 +486,7 @@ class Test_Blocking_request_body:
 
     def setup_blocking(self):
         self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
-        self.rm_req_block2 = weblog.post("/waf", data={"_": "jeanpierrebsldhkuqwgervfraffarin"})
+        self.rm_req_block2 = weblog.post("/waf", data={"_": "jwqghbsldhkuqwgervfznythj"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -509,7 +510,10 @@ class Test_Blocking_request_body:
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data="None")
-        self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"},)
+        self.block_req2 = weblog.post(
+            "/tag_value/tainted_value_body/200",
+            data={"value5": "bsldhkuqwgervf"},
+        )
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
