@@ -571,6 +571,9 @@ class OpenTelemetryScenario(_DockerScenario):
         interface.wait(timeout)
 
     def _check_env_vars(self):
+        if os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO") != self.name:
+            return
+
         for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
             if env not in os.environ:
                 raise Exception(f"Please set {env}, OTel E2E test requires 3 API keys and 3 APP keys")
