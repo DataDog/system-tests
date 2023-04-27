@@ -2,17 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, scenarios
+from utils import weblog, interfaces, context, bug, missing_feature, scenarios, released
+from utils.tools import logger
 
 
-@missing_feature(
-    context.library != "java" and context.library != "dotnet",
-    reason="Full Kafka instrumentation only on Java and Dotnet",
-)
-@missing_feature(
-    context.weblog_variant not in ("spring-boot"),
-    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
-)
+@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(dotnet="2.29.0")
+@released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -22,26 +18,21 @@ class Test_DsmKafka:
 
     def test_dsm_kafka(self):
         assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
 
-        expected_kafka_out = DsmStatsPoint(
-            4463699290244539355, 0, ["direction:out", "topic:dsm-system-tests-queue", "type:kafka"]
+        DsmHelper.assert_checkpoint_presence(
+            hash_=4463699290244539355,
+            parent_hash=0,
+            tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
-        expected_kafka_in = DsmStatsPoint(
-            3735318893869752335,
-            4463699290244539355,
-            ["direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"],
+        DsmHelper.assert_checkpoint_presence(
+            hash_=3735318893869752335,
+            parent_hash=4463699290244539355,
+            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
-        assert expected_kafka_out in checkpoints
-        assert expected_kafka_in in checkpoints
 
-
-@missing_feature(condition=context.library != "java", reason="HTTP instrumentation only on Java")
-@missing_feature(
-    context.weblog_variant not in ("spring-boot"),
-    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
-)
+@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmHttp:
     def setup_dsm_http(self):
@@ -52,17 +43,13 @@ class Test_DsmHttp:
     def test_dsm_http(self):
         assert str(self.r.content, "UTF-8") == "ok"
 
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
-        expected_http = DsmStatsPoint(3883033147046472598, 0, ["direction:in", "type:http"])
+        DsmHelper.assert_checkpoint_presence(
+            hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
+        )
 
-        assert expected_http in checkpoints
 
-
-@missing_feature(condition=context.library != "java", reason="RabbitMQ instrumentation only on Java")
-@missing_feature(
-    context.weblog_variant not in ("spring-boot"),
-    reason="The Java /dsm endpoint is only implemented in spring-boot at the moment.",
-)
+@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.12.1", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -72,83 +59,39 @@ class Test_DsmRabbitmq:
 
     def test_dsm_rabbitmq(self):
         assert str(self.r.content, "UTF-8") == "ok"
-        checkpoints = DsmHelper.parse_dsm_checkpoints(interfaces.agent.get_dsm_data())
 
-        expected_rabbit_out = DsmStatsPoint(
-            6176024609184775446,
-            0,
-            ["direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"],
-        )
-        expected_rabbit_in = DsmStatsPoint(
-            3735318893869752335,
-            4463699290244539355,
-            ["direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"],
+        DsmHelper.assert_checkpoint_presence(
+            hash_=6176024609184775446,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
-        assert expected_rabbit_out in checkpoints
-        assert expected_rabbit_in in checkpoints
+        DsmHelper.assert_checkpoint_presence(
+            hash_=3735318893869752335,
+            parent_hash=4463699290244539355,
+            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
+        )
 
 
 class DsmHelper:
     @staticmethod
-    def parse_dsm_checkpoints(dsm_data):
-        checkpoints = set()
-        for data in dsm_data:
+    def assert_checkpoint_presence(hash_, parent_hash, tags):
+
+        assert isinstance(tags, tuple)
+
+        logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
+
+        for data in interfaces.agent.get_dsm_data():
             for stats_bucket in data["request"]["content"]["Stats"]:
                 for stats_point in stats_bucket["Stats"]:
-                    point = DsmStatsPoint(stats_point["Hash"], stats_point["ParentHash"], stats_point["EdgeTags"])
-                    checkpoints.add(point)
-        return checkpoints
+                    observed_hash = stats_point["Hash"]
+                    observed_parent_hash = stats_point["ParentHash"]
+                    observed_tags = tuple(stats_point["EdgeTags"])
 
+                    logger.debug(f"Observed checkpoint: {observed_hash}, {observed_parent_hash}, {observed_tags}")
+                    if observed_hash == hash_ and observed_parent_hash == parent_hash and observed_tags == tags:
+                        logger.info("checkpoint found ✅")
+                        return
 
-class DsmStatsPoint:
-    def __init__(self, self_hash, parent_hash, sorted_tags):
-        self.self_hash = self_hash
-        self.parent_hash = parent_hash
-        # Turn input sorted tags into tuples so that it's hashable and order is preserved
-        self.sorted_tags = tuple(sorted_tags)
-
-    def __hash__(self):
-        return hash((self.self_hash, self.parent_hash, self.sorted_tags))
-
-    def __eq__(self, other):
-        return (self.self_hash, self.parent_hash, self.sorted_tags) == (
-            other.self_hash,
-            other.parent_hash,
-            other.sorted_tags,
-        )
-
-    def __ne__(self, other):
-        # Not strictly necessary, but to avoid having both x==y and x!=y
-        # True at the same time
-        return not (self == other)
-
-    def __str__(self):
-        return (
-            "hash: "
-            + str(self.self_hash)
-            + ", parentHash: "
-            + str(self.parent_hash)
-            + ", tags: "
-            + str(self.sorted_tags)
-        )
-
-    def __unicode__(self):
-        return (
-            "hash: "
-            + str(self.self_hash)
-            + ", parentHash: "
-            + str(self.parent_hash)
-            + ", tags: "
-            + str(self.sorted_tags)
-        )
-
-    def __repr__(self):
-        return (
-            "hash: "
-            + str(self.self_hash)
-            + ", parentHash: "
-            + str(self.parent_hash)
-            + ", tags: "
-            + str(self.sorted_tags)
-        )
+        logger.error("Checkpoint not found 🚨")
+        raise ValueError("Checkpoint has not been found, please have a look in logs")
