@@ -27,7 +27,7 @@ class Test_DsmKafka:
         DsmHelper.assert_checkpoint_presence(
             hash_=3735318893869752335,
             parent_hash=4463699290244539355,
-            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
+            tags=("direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
@@ -64,12 +64,6 @@ class Test_DsmRabbitmq:
             hash_=6176024609184775446,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
-        )
-
-        DsmHelper.assert_checkpoint_presence(
-            hash_=3735318893869752335,
-            parent_hash=4463699290244539355,
-            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
