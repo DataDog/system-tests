@@ -19,7 +19,7 @@ TODO
 
 ### Mac
 
-For Homebrew users : 
+For Homebrew users :
 
 ```
 brew install python@3.9
