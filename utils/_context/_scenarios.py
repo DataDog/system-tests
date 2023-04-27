@@ -639,7 +639,15 @@ class PerformanceScenario(EndToEndScenario):
 
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
-
+class ParametricScenario(_Scenario):
+    @property
+    def host_log_folder(self):
+        return "logs_parametric"
+    @property
+    def library(self):     
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "java"),"0.66")
+    
+    
 class scenarios:
     empty_scenario = _Scenario("EMPTY_SCENARIO")
     todo = _Scenario("TODO")  # scenario that skips tests not yest executed
@@ -846,3 +854,4 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
+    parametric=ParametricScenario("PARAMETRIC")

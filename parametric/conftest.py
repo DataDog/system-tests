@@ -20,6 +20,9 @@ from parametric._library_client import APMLibraryClientGRPC
 from parametric._library_client import APMLibraryClientHTTP
 from parametric._library_client import APMLibrary
 
+from utils.tools import logger
+from utils import context
+
 
 @pytest.fixture
 def test_id():
@@ -238,6 +241,8 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = os.path.join("parametric", java_appdir).replace("\\", "/")
     protofile = os.path.join("parametric", "protos", "apm_test_client.proto").replace("\\", "/")
+    logger.info(f"java_reldir::{java_reldir}")
+    logger.info(f"java_dir::{java_dir}")
     return APMLibraryTestServer(
         lang="java",
         protocol="grpc",
@@ -250,16 +255,17 @@ WORKDIR /client
 # COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
 # COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
 RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/download/v1.12.1/dd-java-agent-1.12.1.jar
-COPY {java_reldir}/src src
-COPY {java_reldir}/build.sh .
-COPY {java_reldir}/pom.xml .
-COPY {java_reldir}/run.sh .
-COPY {protofile} src/main/proto/
-COPY binaries /binaries
+COPY src src
+COPY build.sh .
+COPY pom.xml .
+COPY run.sh .
+COPY ../../protos/ src/main/proto/
+#COPY binaries /binaries
 RUN bash build.sh
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_dir,
+        container_build_context=java_dir,
         volumes=[],
         env=env,
         port=port,
@@ -341,12 +347,6 @@ _libs = {
     "python_http": python_http_library_factory,
     "ruby": ruby_library_factory,
 }
-_enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,php,python,python_http,ruby").split(","):
-    if _lang not in _libs:
-        raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
-    _enabled_libs.append((_lang, _libs[_lang]))
-
 
 def get_open_port():
     # Not very nice and also not 100% correct but it works for now.
@@ -357,15 +357,13 @@ def get_open_port():
     s.close()
     return port
 
-
-@pytest.fixture(
-    params=list(factory for lang, factory in _enabled_libs), ids=list(lang for lang, factory in _enabled_libs)
-)
+@pytest.fixture
 def apm_test_server(request, library_env, test_id):
+    logger.info(f"APM TEST SERVER: {context.scenario.library.library}")
+
     # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
     # in pytest.
-    apm_test_library = request.param
-
+    apm_test_library = _libs[context.scenario.library.library] #request.param
     yield apm_test_library(library_env, test_id, get_open_port())
 
 

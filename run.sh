@@ -9,7 +9,7 @@ set -eu
 FIRST_ARGUMENT=${1:-DEFAULT}
 if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
     export SYSTEMTESTS_SCENARIO=$FIRST_ARGUMENT
-    export RUNNER_ARGS="tests/"
+    export RUNNER_ARGS="tests/ parametric/"
 else
     # Let user choose the target
     export SYSTEMTESTS_SCENARIO="CUSTOM"
