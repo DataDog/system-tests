@@ -16,8 +16,10 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 @released(
     java={
         "spring-boot": "0.110.0",
+        "uds-spring-boot": "0.110.0",
         "sprint-boot-jetty": "0.111.0",
         "spring-boot-undertow": "0.111.0",
+        "spring-boot-wildfly": "0.111.0",
         "spring-boot-openliberty": "0.115.0",
         "ratpack": "1.7.0",
         "jersey-grizzly2": "1.7.0",
@@ -27,8 +29,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
     }
 )
 @irrelevant(
-    context.library == "java" and context.appsec_rules_file is not None,
-    reason="No Remote Config sub with custom rules file",
+    context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
 @coverage.basic
@@ -88,19 +89,6 @@ class Test_AppSecIPBlocking:
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
 
-    @released(
-        java={
-            "spring-boot": "0.111.0",
-            "spring-boot-jetty": "0.111.0",
-            "spring-boot-undertow": "0.111.0",
-            "spring-boot-openliberty": "0.115.0",
-            "ratpack": "1.7.0",
-            "jersey-grizzly2": "1.7.0",
-            "resteasy-netty3": "1.7.0",
-            "vertx3": "1.7.0",
-            "*": "?",
-        }
-    )
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

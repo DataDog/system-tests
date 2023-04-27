@@ -114,8 +114,10 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 @released(
     java={
         "spring-boot": "0.112.0",
+        "uds-spring-boot": "0.112.0",
         "sprint-boot-jetty": "0.112.0",
         "spring-boot-undertow": "0.112.0",
+        "spring-boot-wildfly": "0.112.0",
         "spring-boot-openliberty": "1.3.0",
         "ratpack": "1.7.0",
         "jersey-grizzly2": "1.7.0",
@@ -125,6 +127,8 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
     }
 )
 @released(golang="1.50.0-rc.1")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_Blocking:
@@ -134,6 +138,7 @@ class Test_Blocking:
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
+    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
     @bug(context.library == "golang", reason="minify")
     def test_no_accept(self):
         """Blocking without an accept header"""
@@ -236,7 +241,9 @@ class Test_Blocking:
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
-@released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(java="1.11.0", dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_CustomBlockingResponse:
