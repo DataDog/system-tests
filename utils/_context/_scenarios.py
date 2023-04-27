@@ -314,7 +314,7 @@ class EndToEndScenario(_DockerScenario):
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
-                self.library_interface_timeout = 80
+                self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("nodejs",):

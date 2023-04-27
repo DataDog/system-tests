@@ -6,7 +6,6 @@ import random
 import os
 import re
 from urllib.parse import quote
-from utils import context
 from tests.fuzzer.tools import data
 from tests.fuzzer.tools.random_strings import get_random_unicode as gru, get_random_string, string_lists
 
@@ -731,24 +730,24 @@ class PhpRequestMutator(RequestMutator):
     invalid_header_keys = ("Content-length",)
 
 
-def get_mutator(no_mutation):
+def get_mutator(no_mutation, weblog):
 
-    if context.weblog_variant == "basic-sinatra":
+    if weblog.weblog_variant == "basic-sinatra":
         mutator = SinatraRequestMutator(no_mutation=no_mutation)
 
-    elif context.weblog_variant == "rails":
+    elif weblog.weblog_variant == "rails":
         mutator = RailsRequestMutator(no_mutation=no_mutation)
 
-    elif context.library == "java":
+    elif weblog.library == "java":
         mutator = JavaRequestMutator(no_mutation=no_mutation)
 
-    elif context.library == "nodejs":
+    elif weblog.library == "nodejs":
         mutator = NodeRequestMutator(no_mutation=no_mutation)
 
-    elif context.library == "php":
+    elif weblog.library == "php":
         mutator = PhpRequestMutator(no_mutation=no_mutation)
 
-    elif context.weblog_variant == "flask":
+    elif weblog.weblog_variant == "flask":
         mutator = FlaskRequestMutator(no_mutation=no_mutation)
 
     else:
