@@ -4,6 +4,9 @@ exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|paramet
 
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
+testpaths = [
+    "tests",
+]
 # log_cli = True
 # log_cli_level = DEBUG
 log_level = "DEBUG"
