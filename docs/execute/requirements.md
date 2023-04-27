@@ -11,9 +11,6 @@ sudo apt install python3.9 python3.9-distutils python3.9-venv
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3.9 get-pip.py
 ./build.sh -i runner
-
-virtualenv venv
-source venv/bin/activate
 ```
 
 ### Windows
