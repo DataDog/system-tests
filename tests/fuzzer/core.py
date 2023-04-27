@@ -67,6 +67,7 @@ class Fuzzer:
         max_tasks,
         report_frequency,
         logger,
+        weblog,
         request_count=None,
         max_time=None,
         dump_on_status=("500",),
@@ -79,12 +80,13 @@ class Fuzzer:
 
         self.logger = logger
 
+        self.weblog = weblog
         self.base_url = base_url
         self.report = Report(report_frequency=report_frequency, logger=self.logger)
 
         self.corpus = corpus
         self.seed = seed
-        self.requests = RequestGenerator(get_mutator(no_mutation), get_corpus(corpus))
+        self.requests = RequestGenerator(get_mutator(no_mutation, weblog), get_corpus(corpus))
         self.request_count = request_count
 
         self.max_tasks = max_tasks
@@ -218,8 +220,8 @@ class Fuzzer:
         tasks.add(task)
         task.add_done_callback(tasks.remove)
 
-        self.report.value("Target library", str(context.library))
-        self.report.value("Weblog variant", context.weblog_variant)
+        self.report.value("Target library", str(self.weblog.library))
+        self.report.value("Weblog variant", self.weblog.weblog_variant)
         self.report.value("Corpus", self.corpus)
         self.report.value("Corpus size", len(self.requests.buffer))
         self.report.value("Target", f"{self.base_url}")
