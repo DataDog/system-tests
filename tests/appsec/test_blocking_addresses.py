@@ -160,7 +160,7 @@ def _assert_custom_event_tag_absence():
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -207,7 +207,7 @@ class Test_Blocking_request_method:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -257,7 +257,7 @@ class Test_Blocking_request_uri:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -307,7 +307,7 @@ class Test_Blocking_request_path_params:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -360,7 +360,7 @@ class Test_Blocking_request_query:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -413,7 +413,7 @@ class Test_Blocking_request_headers:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -466,7 +466,7 @@ class Test_Blocking_request_cookies:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -522,7 +522,7 @@ class Test_Blocking_request_body:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -556,7 +556,7 @@ class Test_Blocking_response_status:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -589,7 +589,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+@released(cpp="?", dotnet="2.29.0", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
