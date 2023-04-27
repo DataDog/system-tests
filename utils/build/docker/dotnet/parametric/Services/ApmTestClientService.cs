@@ -5,7 +5,7 @@ using Grpc.Core;
 
 namespace ApmTestClient.Services
 {
-    public class ApmTestClientService : APMClient.APMClientBase
+    public partial class ApmTestClientService : APMClient.APMClientBase
     {
         // Core types
         private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
