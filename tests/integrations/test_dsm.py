@@ -8,7 +8,7 @@ from utils.tools import logger
 
 @released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(dotnet="2.29.0")
-@released(java={"spring-boot": "1.12.1", "*": "?"})
+@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -49,7 +49,7 @@ class Test_DsmHttp:
 
 
 @released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.12.1", "*": "?"})
+@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """

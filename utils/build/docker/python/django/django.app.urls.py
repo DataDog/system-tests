@@ -31,8 +31,16 @@ def sample_rate(request, i):
     return HttpResponse("OK")
 
 
+_TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
+
+
 @csrf_exempt
 def waf(request, *args, **kwargs):
+    if "value" in kwargs:
+        appsec_trace_utils.track_custom_event(
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+        )
+        return HttpResponse("Value tagged", status=int(kwargs["code"]), headers=request.GET.dict())
     return HttpResponse("Hello, World!")
 
 
@@ -211,6 +219,7 @@ urlpatterns = [
     path("waf/", waf),
     path("waf/<url>", waf),
     path("params/<appscan_fingerprint>", waf),
+    path("tag_value/<str:value>/<int:code>", waf),
     path("headers", headers),
     path("status", status_code),
     path("identify", identify),
@@ -228,7 +237,4 @@ urlpatterns = [
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
     path("custom_event", track_custom_event),
-    path("set_value/<str:value>", set_value),
-    path("set_value/<str:value>/<int:code>", set_value),
-    path("get_value", get_value),
 ]

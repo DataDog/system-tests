@@ -40,6 +40,7 @@ class Test_AppSecIPBlockingMaxed:
     request_number = 0
     remote_config_is_sent = False
 
+    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
 

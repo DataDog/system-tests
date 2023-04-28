@@ -9,7 +9,6 @@ import re
 import os
 
 from utils._context.core import context
-from utils._context._scenarios import current_scenario
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator
 
@@ -117,6 +116,7 @@ class _LibraryStdout(_LogsInterfaceValidator):
     def __init__(self):
         super().__init__("Weblog stdout")
 
+    def configure(self):
         p = "(?P<{}>{})".format
 
         self._skipped_patterns += [
@@ -161,8 +161,8 @@ class _LibraryStdout(_LogsInterfaceValidator):
 
     def _get_files(self):
         return [
-            f"{current_scenario.host_log_folder}/docker/weblog/stdout.log",
-            f"{current_scenario.host_log_folder}/docker/weblog/stderr.log",
+            f"{context.scenario.host_log_folder}/docker/weblog/stdout.log",
+            f"{context.scenario.host_log_folder}/docker/weblog/stderr.log",
         ]
 
     def _clean_line(self, line):
@@ -201,12 +201,12 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         result = []
 
         try:
-            files = os.listdir(f"{current_scenario.host_log_folder}/docker/weblog/logs/")
+            files = os.listdir(f"{context.scenario.host_log_folder}/docker/weblog/logs/")
         except FileNotFoundError:
             files = []
 
         for f in files:
-            filename = os.path.join(f"{current_scenario.host_log_folder}/docker/weblog/logs/", f)
+            filename = os.path.join(f"{context.scenario.host_log_folder}/docker/weblog/logs/", f)
 
             if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
                 result.append(filename)
@@ -229,7 +229,7 @@ class _AgentStdout(_LogsInterfaceValidator):
         self._parsers.append(re.compile(message))  # fall back
 
     def _get_files(self):
-        return [f"{current_scenario.host_log_folder}/docker/agent/stdout.log"]
+        return [f"{context.scenario.host_log_folder}/docker/agent/stdout.log"]
 
 
 ########################################################

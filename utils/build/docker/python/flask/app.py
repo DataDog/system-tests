@@ -37,28 +37,21 @@ def sample_rate(i):
     return "OK"
 
 
-@app.route("/waf", methods=["GET", "POST"])
-@app.route("/waf/", methods=["GET", "POST"])
-@app.route("/waf/<path:url>", methods=["GET", "POST"])
-@app.route("/params/<path>", methods=["GET", "POST"])
+_TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
+
+
+@app.route("/waf", methods=["GET", "POST", "OPTIONS"])
+@app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
+@app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
+@app.route("/params/<path>", methods=["GET", "POST", "OPTIONS"])
+@app.route("/tag_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
 def waf(*args, **kwargs):
+    if "value" in kwargs:
+        appsec_trace_utils.track_custom_event(
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["value"]}
+        )
+        return "Value tagged", kwargs["code"], flask_request.args
     return "Hello, World!\\n"
-
-
-VALUE_STORED = ""
-
-
-@app.route("/set_value/<string:value>", methods=["GET", "POST", "OPTIONS"])
-@app.route("/set_value/<string:value>/<int:code>", methods=["GET", "POST", "OPTIONS"])
-def set_value(value, code=200):
-    global VALUE_STORED
-    VALUE_STORED = value
-    return "Value set", code, flask_request.args
-
-
-@app.route("/get_value", methods=["GET", "POST", "OPTIONS"])
-def get_value(*args, **kwargs):
-    return VALUE_STORED
 
 
 @app.route("/read_file", methods=["GET"])
