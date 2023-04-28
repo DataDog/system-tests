@@ -231,12 +231,25 @@ class AgentContainer(TestedContainer):
             environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
             environment["DD_PROXY_HTTP"] = "http://proxy:8126"
 
+        if "AGENT_PORT" in os.environ:
+            agent_port = int(os.environ["AGENT_PORT"])
+        else:
+            agent_port = self.agent_port
+
+        if "AGENT_HOST" in os.environ:
+            agent_host = os.environ["AGENT_HOST"]
+        elif "DOCKER_HOST" in os.environ:
+            agent_host = os.environ["DOCKER_HOST"]
+            agent_host = self.domain.replace("ssh://docker@", "")
+        else:
+            agent_host = "localhost"
+
         super().__init__(
             image_name="system_tests/agent",
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
-            healthcheck=_HealthCheck(f"http://localhost:{self.agent_port}/info", 60, start_period=1),
+            healthcheck=_HealthCheck(f"http://{agent_host}:{agent_port}/info", 60, start_period=1),
             ports={f"{self.agent_port}/tcp": ("127.0.0.1", self.agent_port)},
         )
 
