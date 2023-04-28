@@ -509,10 +509,7 @@ class Test_Blocking_request_body:
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data="None")
-        self.block_req2 = weblog.post(
-            "/tag_value/tainted_value_body/200",
-            data={"value5": "bsldhkuqwgervf"},
-        )
+        self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"})
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""

@@ -14,7 +14,9 @@ if context.library == "cpp":
 _is_spring_native_weblog = re.fullmatch(r"spring-.+native", context.weblog_variant) is not None
 
 
-@released(dotnet="2.27.0", golang="1.47.0", java="1.8.0", nodejs="3.13.0", php_appsec="0.6.0", python="1.9.0", ruby="1.9.0")
+@released(
+    dotnet="2.27.0", golang="1.47.0", java="1.8.0", nodejs="3.13.0", php_appsec="0.6.0", python="1.9.0", ruby="1.9.0"
+)
 @irrelevant(_is_spring_native_weblog, reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UserLoginSuccessEvent:
@@ -50,7 +52,9 @@ class Test_UserLoginSuccessEvent:
         interfaces.library.validate_spans(self.r, validate_user_login_success_tags)
 
 
-@released(dotnet="2.27.0", golang="1.47.0", java="1.8.0", nodejs="3.13.0", php_appsec="0.6.0", python="1.9.0", ruby="1.9.0")
+@released(
+    dotnet="2.27.0", golang="1.47.0", java="1.8.0", nodejs="3.13.0", php_appsec="0.6.0", python="1.9.0", ruby="1.9.0"
+)
 @irrelevant(_is_spring_native_weblog, reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_UserLoginFailureEvent:
@@ -87,7 +91,9 @@ class Test_UserLoginFailureEvent:
         interfaces.library.validate_spans(self.r, validate_user_login_failure_tags)
 
 
-@released(dotnet="2.27.0", golang="1.47.0", java="1.8.0", nodejs="3.13.0", php_appsec="0.6.0", python="1.10.0", ruby="1.9.0")
+@released(
+    dotnet="2.27.0", golang="1.47.0", java="1.8.0", nodejs="3.13.0", php_appsec="0.6.0", python="1.10.0", ruby="1.9.0"
+)
 @irrelevant(_is_spring_native_weblog, reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_CustomEvent:
