@@ -250,7 +250,7 @@ class AgentContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment=environment,
             healthcheck=_HealthCheck(f"http://{agent_host}:{agent_port}/info", 60, start_period=1),
-            ports={f"{self.agent_port}/tcp": ("127.0.0.1", self.agent_port)},
+            ports={self.agent_port: f"{agent_port}/tcp"},
         )
 
         agent_version = self.image.env.get("SYSTEM_TESTS_AGENT_VERSION")
@@ -293,7 +293,7 @@ class WeblogContainer(TestedContainer):
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
             healthcheck=_HealthCheck(weblog._get_url('/'), 60),
-            ports={"7777/tcp": ("127.0.0.1", 7777), "7778/tcp": ("127.0.0.1", 7778)},
+            ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
