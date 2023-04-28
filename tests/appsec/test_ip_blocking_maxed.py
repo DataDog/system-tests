@@ -27,8 +27,7 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
     }
 )
 @irrelevant(
-    context.library == "java" and context.appsec_rules_file is not None,
-    reason="No Remote Config sub with custom rules file",
+    context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")

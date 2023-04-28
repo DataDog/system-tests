@@ -2,10 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import urllib
+from collections import defaultdict
+import json
 import os
 import random
 import string
+import urllib
 
 import requests
 import grpc
@@ -44,6 +46,16 @@ class _Weblog:
             self.domain = self.domain.replace("ssh://docker@", "")
         else:
             self.domain = "localhost"
+
+        self.responses = defaultdict(list)
+        self.current_nodeid = None  # will be used to store request made by a given nodeid
+
+    def save_requests(self, log_folder):
+        try:
+            with open(f"{log_folder}/weblog_responses.json", "w", encoding="utf-8") as f:
+                json.dump(dict(self.responses), f, indent=2)
+        except:
+            logger.exception("Can't save responses log")
 
     def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self.request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
@@ -97,6 +109,13 @@ class _Weblog:
             return _FailedQuery(request=r)
 
         logger.debug(f"Request {rid}: {r.status_code}")
+
+        self.responses[self.current_nodeid].append(
+            {
+                "request": {"method": method, "url": url, "headers": headers, "params": params, "data": data},
+                "status_code": r.status_code,
+            }
+        )
 
         return r
 
