@@ -4,7 +4,7 @@ Workbench designed to run advanced tests (integration, smoke, functionnal, fuzzi
 
 ## Requirements
 
-`bash`, `docker` and `python3.9`. More infos in the [documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/requirements.txt)
+`bash`, `docker` and `python3.9`. More infos in the [documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/requirements.md)
 
 ## How to use
 

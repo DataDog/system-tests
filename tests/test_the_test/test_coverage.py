@@ -52,7 +52,7 @@ class Test_CompleteCoverage:
 
 class Test_Errors:
     def test_duplicated(self):
-        message = "coverage has been declared twice for <class 'utils.test_the_test.test_coverage.Test_Errors.test_duplicated.<locals>.Test'>"
+        message = "coverage has been declared twice for <class 'tests.test_the_test.test_coverage.Test_Errors.test_duplicated.<locals>.Test'>"
         try:
 
             @coverage.basic
