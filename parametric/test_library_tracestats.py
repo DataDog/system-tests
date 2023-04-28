@@ -30,15 +30,16 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     return parametrize("library_env", [env])
 
 
+def _human_stats(stats: V06StatsAggr) -> str:
+    """Return human-readable stats for debugging stat aggregations."""
+    copy = stats.copy()
+    del copy["ErrorSummary"]
+    del copy["OkSummary"]
+    return str(copy)
+
+
 @scenarios.parametric
 class Test_Library_Tracestats:
-    def _human_stats(self, stats: V06StatsAggr) -> str:
-        """Return human-readable stats for debugging stat aggregations."""
-        copy = stats.copy()
-        del copy["ErrorSummary"]
-        del copy["OkSummary"]
-        return str(copy)
-
     @enable_tracestats()
     @missing_feature(context.library == "golang", reason="go sends an empty stats aggregation")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
