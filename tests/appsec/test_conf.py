@@ -26,7 +26,6 @@ class Test_StaticRuleSet:
 
     @missing_feature(library="golang", reason="standard logs not implemented")
     @missing_feature(library="ruby", reason="standard logs not implemented")
-    @missing_feature(library="dotnet", reason="Rules file is not parsed")
     @missing_feature(library="php", reason="Rules file is not parsed")
     @missing_feature(library="nodejs", reason="Rules file is not parsed")
     def test_basic_hardcoded_ruleset(self):

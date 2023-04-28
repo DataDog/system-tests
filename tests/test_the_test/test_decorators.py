@@ -10,7 +10,7 @@ from utils.tools import logger
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
-BASE_PATH = "utils/test_the_test/test_decorators.py"
+BASE_PATH = "tests/test_the_test/test_decorators.py"
 
 
 def is_skipped(item, reason):
