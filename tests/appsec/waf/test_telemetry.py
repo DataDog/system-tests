@@ -5,27 +5,39 @@ TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
 
 
+def _setup(self):
+    """
+    Common setup for all tests in this module. They all depend on the same set
+    of requests, which must be run only once.
+    """
+    # Run only once, even across multiple class instances.
+    if hasattr(Test_TelemetryMetrics, "__common_setup_done"):
+        return
+    r_plain = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
+    r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
+    r_blocked = weblog.get(
+        "/",
+        headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
+        # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
+        rid_in_user_agent=False,
+    )
+    Test_TelemetryMetrics.__common_setup_done = True
+
+
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
 @released(python="?", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
 @scenarios.appsec_waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
 
-    # This setup is shared for all tests in the suite.
-    def setup_all_telemetry_requests_are_successful(self):
-        self.r_plain = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
-        self.r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
-        self.r_blocked = weblog.get(
-            "/",
-            headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
-            # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
-            rid_in_user_agent=False,
-        )
+    setup_all_telemetry_requests_are_successful = _setup
 
     def test_all_telemetry_requests_are_successful(self):
         """Tests that all telemetry requests succeed."""
         for data in interfaces.library.get_telemetry_data():
             assert data["response"]["status_code"] == 202
+
+    setup_headers_are_correct = _setup
 
     @bug(context.library < "java@1.13.0", reason="Missing two headers")
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -35,6 +47,8 @@ class Test_TelemetryMetrics:
         for data in interfaces.library.get_telemetry_data():
             request_type = data["request"]["content"].get("request_type")
             _validate_headers(data["request"]["headers"], request_type)
+
+    setup_metric_waf_init = _setup
 
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -67,6 +81,8 @@ class Test_TelemetryMetrics:
         p = s["points"][0]
         assert p[1] == 1
 
+    setup_metric_waf_updates = _setup
+
     @irrelevant(reason="Test not implemented")
     @bug(context.library < "java@1.13.0", reason="Missing tags")
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -95,6 +111,8 @@ class Test_TelemetryMetrics:
         assert len(s["points"]) == 1
         p = s["points"][0]
         assert p[1] == 1
+
+    setup_metric_waf_requests = _setup
 
     @bug(context.library < "java@1.13.0", reason="Missing tags")
     @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
@@ -161,7 +179,7 @@ class Test_TelemetryMetrics:
             fallback_namespace = content["payload"].get("namespace")
             for serie in content["payload"]["series"]:
                 computed_namespace = serie.get("namespace", fallback_namespace)
-                # We inject here the computed namespace considering the fallback
+                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
                 serie["_computed_namespace"] = computed_namespace
                 if computed_namespace == namespace and serie["metric"] == metric:
                     series.append(serie)
