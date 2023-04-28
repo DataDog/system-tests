@@ -8,7 +8,7 @@ from utils.tools import logger
 
 @released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(dotnet="2.29.0")
-@released(java={"spring-boot": "1.12.1", "*": "?"})
+@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -27,7 +27,7 @@ class Test_DsmKafka:
         DsmHelper.assert_checkpoint_presence(
             hash_=3735318893869752335,
             parent_hash=4463699290244539355,
-            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
+            tags=("direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
@@ -49,7 +49,7 @@ class Test_DsmHttp:
 
 
 @released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
-@released(java={"spring-boot": "1.12.1", "*": "?"})
+@released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -64,12 +64,6 @@ class Test_DsmRabbitmq:
             hash_=6176024609184775446,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
-        )
-
-        DsmHelper.assert_checkpoint_presence(
-            hash_=3735318893869752335,
-            parent_hash=4463699290244539355,
-            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
