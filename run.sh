@@ -9,7 +9,7 @@ set -eu
 if [[ ${1:-} =~ ^[A-Z0-9_]+$ ]]; then
     # Retro comp: if the first argument is a list of capital letters, then we consider it's a scenario name
     # and we add the -S option, telling pytest that's a scenario name
-    RUNNER_ARGS="-S $@"
+    RUNNER_ARGS="/tests /parametric -S $@"
 else
     RUNNER_ARGS=$@
 fi
