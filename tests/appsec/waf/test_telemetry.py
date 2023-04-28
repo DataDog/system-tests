@@ -1,5 +1,5 @@
 from utils import interfaces, released, rfc, weblog, scenarios, context, bug, irrelevant, missing_feature
-
+from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
@@ -129,7 +129,7 @@ class Test_TelemetryMetrics:
             "request_blocked",
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
-        print(series)
+        logger.debug(series)
         # Depending on the timing, there might be more than 3 series. For example, if a warmup
         # request goes first, we might have two series for rule_triggered:false,blocked_request:false
         assert len(series) >= 3

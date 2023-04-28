@@ -729,7 +729,6 @@ class scenarios:
             # Python lib has different env var until we enable Telemetry Metrics by default
             "_DD_TELEMETRY_METRICS_ENABLED": "true",
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
-            "DD_APPSEC_RULES": None,
         },
     )
     # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
