@@ -621,8 +621,7 @@ jobs:
 
   test-the-tests-open-telemetry:
     runs-on: ubuntu-latest
-    if: ${{ false }}  # disable for now
-    #if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
+    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
     needs:
     - lint_and_test
     steps:
@@ -669,8 +668,7 @@ jobs:
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
   peformances:
     runs-on: ubuntu-latest
-    if: ${{ false }}  # disable for now
-    #if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
+    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
     needs:
     - lint_and_test
     env:
@@ -690,8 +688,7 @@ jobs:
         python tests/perfs/process.py
   fuzzer:
     runs-on: ubuntu-latest
-    if: ${{ false }}  # disable for now
-    #if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
+    if: github.event.action != 'opened' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
     needs:
     - lint_and_test
     env:

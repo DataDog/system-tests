@@ -45,24 +45,10 @@ class AgentRequestV06Stats(AgentRequest):
     body: V06StatsPayload
 
 
-@pytest.fixture(autouse=True)
-def skip_library(request, apm_test_server):
-    overrides = set([s.strip() for s in os.getenv("OVERRIDE_SKIPS", "").split(",")])
-    for marker in request.node.iter_markers("skip_library"):
-        skip_library = marker.args[0]
-        reason = marker.args[1]
-
-        # Have to use `originalname` since `name` will contain the parameterization
-        # eg. test_case[python]
-        if apm_test_server.lang == skip_library and request.node.originalname not in overrides:
-            pytest.skip("skipped {} on {}: {}".format(request.function.__name__, apm_test_server.lang, reason))
-
-
 def pytest_configure(config):
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
-    config.addinivalue_line("markers", "skip_library(library, reason): skip test for library")
 
 
 def _request_token(request):
@@ -301,7 +287,6 @@ RUN composer install
 
 def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     ruby_appdir = os.path.join("parametric", "apps", "ruby")
-    logger.info(f"RUBY APP DIR {ruby_appdir}")
     ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
 
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
@@ -360,8 +345,6 @@ def get_open_port():
 
 @pytest.fixture
 def apm_test_server(request, library_env, test_id):
-    logger.info(f"APM TEST SERVER: {context.scenario.library.library}")
-
     # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
     # in pytest.
     apm_test_library = _libs[context.scenario.library.library]  # request.param
