@@ -417,6 +417,13 @@ class KafkaContainer(TestedContainer):
                 "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
             },
             allow_old_container=True,
+            healthcheck={
+                "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "start_period": 15 * 1_000_000_000,
+                "interval": 2 * 1_000_000_000,
+                "timeout": 2 * 1_000_000_000,
+                "retries": 15,
+            },
         )
 
 
