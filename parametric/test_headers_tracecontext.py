@@ -109,7 +109,7 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
+    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_traceparent_header_name_valid_casing(self, test_agent, test_library):
         """
         harness sends a valid traceparent using different combination of casing
