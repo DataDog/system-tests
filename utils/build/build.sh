@@ -140,6 +140,16 @@ build() {
             fi
             pip install -r requirements.txt
 
+        elif [[ $IMAGE_NAME == proxy ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/proxy.Dockerfile \
+                -t system_tests/proxy \
+                $EXTRA_DOCKER_ARGS \
+                .
+
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
                 AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
