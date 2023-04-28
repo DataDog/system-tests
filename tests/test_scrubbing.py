@@ -68,8 +68,7 @@ class Test_UrlQuery:
         interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
 
 
-@released(nodejs="3.13.1", python="1.7.1")
-@missing_feature(library="dotnet", reason="Needs weblog endpoint")
+@released(nodejs="3.13.1", python="1.7.1", dotnet="2.29.0")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:

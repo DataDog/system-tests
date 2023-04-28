@@ -34,17 +34,21 @@ class TestedContainer:
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
+        self.image = ImageInfo(image_name)
+        self.healthcheck = healthcheck
+        self.environment = environment
+        self.kwargs = kwargs
+        self._container = None
+
+    def configure(self):
+
         self.stop_previous_container()
 
         Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
         Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
 
-        self.image = ImageInfo(image_name, dir_path=self.log_folder_path)
-        self.healthcheck = healthcheck
-        self.environment = self.image.env | (environment or {})
-
-        self.kwargs = kwargs
-        self._container = None
+        self.image.load()
+        self.image.save_image_info(self.log_folder_path)
 
     @property
     def container_name(self):
@@ -182,19 +186,24 @@ class TestedContainer:
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name, dir_path):
-        self.env = {}
+    def __init__(self, image_name):
+        self.env = None
         self.name = image_name
+
+    def load(self):
         try:
-            self._image = _client.images.get(image_name)
+            self._image = _client.images.get(self.name)
         except docker.errors.ImageNotFound:
-            logger.info(f"Image {image_name} has not been found locally")
-            self._image = _client.images.pull(image_name)
+            logger.info(f"Image {self.name} has not been found locally")
+            self._image = _client.images.pull(self.name)
+
+        self.env = {}
 
         for var in self._image.attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
             self.env[key] = value
 
+    def save_image_info(self, dir_path):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
             json.dump(self._image.attrs, f, indent=2)
 
@@ -224,11 +233,7 @@ class ProxyContainer(TestedContainer):
 class AgentContainer(TestedContainer):
     def __init__(self, host_log_folder, use_proxy=True) -> None:
 
-        if "DD_API_KEY" not in os.environ:
-            raise ValueError("DD_API_KEY is missing in env, please add it.")
-
         environment = {
-            "DD_API_KEY": os.environ["DD_API_KEY"],
             "DD_ENV": "system-tests",
             "DD_HOSTNAME": "test",
             "DD_SITE": self.dd_site,
@@ -249,11 +254,19 @@ class AgentContainer(TestedContainer):
             ports={f"{self.agent_port}/tcp": ("127.0.0.1", self.agent_port)},
         )
 
+        self.agent_version = None
+
+    def configure(self):
+        super().configure()
+
+        if "DD_API_KEY" not in os.environ:
+            raise ValueError("DD_API_KEY is missing in env, please add it.")
+
+        self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
+
         agent_version = self.image.env.get("SYSTEM_TESTS_AGENT_VERSION")
 
-        if not agent_version:
-            self.agent_version = None
-        else:
+        if agent_version:
             self.agent_version = Version(agent_version, "agent")
 
     @property
@@ -291,23 +304,13 @@ class WeblogContainer(TestedContainer):
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
+        self.appsec_rules_file = appsec_rules
+        self.additional_trace_header_tags = additional_trace_header_tags
 
-        self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
-
-        if self.library == "php":
-            self.php_appsec = Version(self.image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
-        else:
-            self.php_appsec = None
-
-        libddwaf_version = self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None)
-
-        if not libddwaf_version:
-            self.libddwaf_version = None
-        else:
-            self.libddwaf_version = Version(libddwaf_version, "libddwaf")
-
-        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules")
+        self.weblog_variant = ""
+        self.php_appsec = None
+        self.libddwaf_version = None
+        self.appsec_rules_version = None
 
         # Basic env set for all scenarios
         self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
@@ -315,24 +318,8 @@ class WeblogContainer(TestedContainer):
         if appsec_enabled:
             self.environment["DD_APPSEC_ENABLED"] = "true"
 
-        if self.library in ("cpp", "dotnet", "java", "python"):
-            self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
-        elif self.library in ("golang", "nodejs", "php", "ruby"):
-            self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
-        else:
-            self.environment["DD_TRACE_HEADER_TAGS"] = ""
-
-        if len(additional_trace_header_tags) != 0:
-            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(additional_trace_header_tags)
-
         if tracer_sampling_rate:
             self.environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
-
-        if appsec_rules:
-            self.environment["DD_APPSEC_RULES"] = str(appsec_rules)
-            self.appsec_rules_file = str(appsec_rules)
-        else:
-            self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
@@ -341,6 +328,34 @@ class WeblogContainer(TestedContainer):
         else:
             self.environment["DD_AGENT_HOST"] = "agent"
             self.environment["DD_TRACE_AGENT_PORT"] = 8127
+
+    def configure(self):
+        super().configure()
+        self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
+
+        if self.library == "php":
+            self.php_appsec = Version(self.image.env.get("SYSTEM_TESTS_PHP_APPSEC_VERSION"), "php_appsec")
+
+        if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
+            self.libddwaf_version = Version(libddwaf_version, "libddwaf")
+
+        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
+        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules")
+
+        if self.library in ("cpp", "dotnet", "java", "python"):
+            self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
+        elif self.library in ("golang", "nodejs", "php", "ruby"):
+            self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
+        else:
+            self.environment["DD_TRACE_HEADER_TAGS"] = ""
+
+        if len(self.additional_trace_header_tags) != 0:
+            self.environment["DD_TRACE_HEADER_TAGS"] += ",".join(self.additional_trace_header_tags)
+
+        if self.appsec_rules_file:
+            self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
+        else:
+            self.appsec_rules_file = self.image.env.get("DD_APPSEC_RULES", None)
 
     @property
     def library(self):
