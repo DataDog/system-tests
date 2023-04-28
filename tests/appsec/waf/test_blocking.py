@@ -109,7 +109,7 @@ HTML_DATA = """<!-- Sorry, you’ve been blocked -->
 </html>
 """
 
-# TODO version
+
 @released(dotnet="2.27.0", nodejs="3.19.0", php_appsec="0.7.0", python="?", ruby="?")
 @released(
     java={

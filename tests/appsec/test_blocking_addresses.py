@@ -5,7 +5,6 @@
 from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
-# TODO version
 @released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="1.0.0")
 @coverage.basic
 @scenarios.appsec_blocking
@@ -170,7 +169,7 @@ def _assert_custom_event_tag_absence():
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0",  # TODO version
+    nodejs="3.19.0",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -217,7 +216,7 @@ class Test_Blocking_request_method:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0",  # TODO version
+    nodejs="3.19.0",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -317,7 +316,7 @@ class Test_Blocking_request_path_params:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0",  # TODO version
+    nodejs="3.19.0",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -370,7 +369,7 @@ class Test_Blocking_request_query:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0",  # TODO version
+    nodejs="3.19.0",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
@@ -476,7 +475,7 @@ class Test_Blocking_request_cookies:
     dotnet="?",
     golang="?",
     java="?",
-    nodejs="3.19.0",  # TODO version
+    nodejs="3.19.0",
     php_appsec="?",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",

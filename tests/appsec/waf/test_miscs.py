@@ -94,7 +94,7 @@ class Test_MultipleAttacks:
 
 @released(golang={"gin": "1.37.0", "echo": "1.36.0", "chi": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0", php_appsec="0.1.0", python="1.1.0")
-@bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update") # TODO version
+@bug(context.library < "nodejs@3.19.0", reason="fixed in a waf update")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good

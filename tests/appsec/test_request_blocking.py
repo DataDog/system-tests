@@ -10,8 +10,6 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
-
-# TOOD version
 @released(cpp="?", dotnet="2.25.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="3.19.0")
 @released(
     java={

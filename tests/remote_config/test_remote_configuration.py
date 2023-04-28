@@ -309,7 +309,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         interfaces.library.validate_remote_configuration(validator=validate)
 
-# TODO version
+
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.19.0")
 @released(golang="?")
