@@ -464,13 +464,13 @@ class PerformanceScenario(EndToEndScenario):
         return result
 
     def _extra_weblog_warmup(self):
-        import requests
+        from utils import weblog
 
         WARMUP_REQUEST_COUNT = 10
         WARMUP_LAST_SLEEP_DURATION = 3
 
         for _ in range(WARMUP_REQUEST_COUNT):
-            requests.get("http://localhost:7777", timeout=10)
+            weblog.warmup_request(timeout=10)
             time.sleep(0.6)
 
         time.sleep(WARMUP_LAST_SLEEP_DURATION)

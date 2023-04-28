@@ -269,6 +269,8 @@ class WeblogContainer(TestedContainer):
         use_proxy=True,
     ) -> None:
 
+        from utils import weblog
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
@@ -278,7 +280,7 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck=_HealthCheck("http://localhost:7777", 60),
+            healthcheck=_HealthCheck(weblog._get_url('/'), 60),
             ports={"7777/tcp": ("127.0.0.1", 7777), "7778/tcp": ("127.0.0.1", 7778)},
         )
 

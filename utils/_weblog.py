@@ -36,10 +36,20 @@ class _GrpcQuery:
 
 
 class _Weblog:
-    _grpc_port = 7778
-
     def __init__(self):
-        if "DOCKER_HOST" in os.environ:
+        if "WEBLOG_PORT" in os.environ:
+            self.port = int(os.environ["WEBLOG_PORT"])
+        else:
+            self.port = 7777
+
+        if "WEBLOG_GRPC_PORT" in os.environ:
+            self._grpc_port = int(os.environ["WEBLOG_GRPC_PORT"])
+        else:
+            self._grpc_port = 7778
+
+        if "WEBLOG_HOST" in os.environ:
+            self.domain = os.environ["WEBLOG_HOST"]
+        elif "DOCKER_HOST" in os.environ:
             self.domain = os.environ["DOCKER_HOST"]
             self.domain = self.domain.replace("ssh://docker@", "")
         else:
@@ -63,7 +73,7 @@ class _Weblog:
         headers=None,
         stream=None,
         domain=None,
-        port=7777,
+        port=None,
         allow_redirects=True,
         **kwargs,
     ):
@@ -100,13 +110,19 @@ class _Weblog:
 
         return r
 
-    def _get_url(self, path, domain, port, query=None):
+    def warmup_request(self, domain=None, port=None, timeout=10):
+        requests.get(weblog._get_url('/', domain, port), timeout=timeout)
+
+    def _get_url(self, path, domain=None, port=None, query=None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative
         if path.startswith("/"):
             path = path[1:]
 
-        domain = domain if domain is not None else self.domain
+        if domain is None:
+            domain = self.domain
+        if port is None:
+            port = self.port
 
         res = f"http://{domain}:{port}/{path}"
 
