@@ -8,11 +8,12 @@ from parametric.spec.trace import find_trace_by_root
 from parametric.spec.trace import find_span
 from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
-from utils import scenarios
-from utils import missing_feature, context
+from utils import missing_feature, context, scenarios
+
+
 @scenarios.parametric
 class Test_Tracer:
-    
+
     parametrize = pytest.mark.parametrize
 
     @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
@@ -40,11 +41,10 @@ class Test_Tracer:
         assert child_span["name"] == "operation.child"
         assert child_span["meta"]["key"] == "val"
 
-
     @missing_feature(reason="Libraries use empty string for service")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])
-    def test_tracer_service_name_environment_variable(self,
-        library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+    def test_tracer_service_name_environment_variable(
+        self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """
         When DD_SERVICE is specified
@@ -62,10 +62,9 @@ class Test_Tracer:
         assert span["name"] == "operation"
         assert span["service"] == library_env["DD_SERVICE"]
 
-
     @parametrize("library_env", [{"DD_ENV": "prod"}])
-    def test_tracer_env_environment_variable(self,
-        library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+    def test_tracer_env_environment_variable(
+        self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """
         When DD_ENV is specified

@@ -236,13 +236,10 @@ WORKDIR "/client/."
 
 
 def java_library_factory(env: Dict[str, str], container_id: str, port: str):
+
     java_appdir = os.path.join("apps", "java")
     java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
-    java_reldir = os.path.join("parametric", java_appdir).replace("\\", "/")
-    protofile = os.path.join("parametric", "protos", "apm_test_client.proto").replace("\\", "/")
-    logger.info(f"java_reldir::{java_reldir}")
-    logger.info(f"java_dir::{java_dir}")
+
     return APMLibraryTestServer(
         lang="java",
         protocol="grpc",
@@ -255,17 +252,17 @@ WORKDIR /client
 # COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
 # COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
 RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/download/v1.12.1/dd-java-agent-1.12.1.jar
-COPY src src
-COPY build.sh .
-COPY pom.xml .
-COPY run.sh .
-COPY ../../protos/ src/main/proto/
+COPY apps/java/src src
+COPY apps/java/build.sh .
+COPY apps/java/pom.xml .
+COPY apps/java/run.sh .
+COPY protos/ src/main/proto/
 #COPY binaries /binaries
 RUN bash build.sh
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_dir,
-        container_build_context=java_dir,
+        container_build_context=os.getcwd() + "/parametric",
         volumes=[],
         env=env,
         port=port,
@@ -273,7 +270,7 @@ RUN bash build.sh
 
 
 def php_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    python_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
+    php_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
     env = env.copy()
     # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
     return APMLibraryTestServer(
@@ -294,15 +291,17 @@ RUN ./install.sh
 RUN composer install
 """,
         container_cmd=["php", "server.php"],
-        container_build_dir=python_dir,
-        volumes=[(os.path.join(python_dir, "server.php"), "/client/server.php"),],
+        container_build_dir=php_dir,
+        container_build_context=os.getcwd(),
+        volumes=[(os.path.join(php_dir, "server.php"), "/client/server.php"),],
         env=env,
         port=port,
     )
 
 
 def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    ruby_appdir = os.path.join("apps", "ruby")
+    ruby_appdir = os.path.join("parametric", "apps", "ruby")
+    logger.info(f"RUBY APP DIR {ruby_appdir}")
     ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
 
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
@@ -330,8 +329,8 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
             COPY ./server.rb /client/
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
-        container_build_dir=ruby_dir,
-        container_build_context=ruby_dir,
+        container_build_dir=os.getcwd() + "/parametric/apps/ruby",
+        container_build_context=os.getcwd() + "/parametric/apps/ruby",
         env=env,
         port=port,
     )
@@ -348,6 +347,7 @@ _libs = {
     "ruby": ruby_library_factory,
 }
 
+
 def get_open_port():
     # Not very nice and also not 100% correct but it works for now.
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -357,13 +357,14 @@ def get_open_port():
     s.close()
     return port
 
+
 @pytest.fixture
 def apm_test_server(request, library_env, test_id):
     logger.info(f"APM TEST SERVER: {context.scenario.library.library}")
 
     # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
     # in pytest.
-    apm_test_library = _libs[context.scenario.library.library] #request.param
+    apm_test_library = _libs[context.scenario.library.library]  # request.param
     yield apm_test_library(library_env, test_id, get_open_port())
 
 
