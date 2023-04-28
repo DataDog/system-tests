@@ -40,8 +40,8 @@ jobs:
       uses: actions/checkout@v3
     - name: Run lints
       uses: ./.github/actions/lint_code
-    - run: pip install -r requirements.txt
-    - run: PYTHONPATH="$PWD" SYSTEMTESTS_SCENARIO=TEST_THE_TEST pytest utils/test_the_test
+    - run: ./build.sh -i runner
+    - run: ./run.sh TEST_THE_TEST
   test-the-tests-main:
     runs-on: ubuntu-latest
     if: ${{ false }}  # disable for now

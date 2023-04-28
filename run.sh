@@ -6,14 +6,12 @@
 
 set -eu
 
-FIRST_ARGUMENT=${1:-DEFAULT}
-if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
-    export SYSTEMTESTS_SCENARIO=$FIRST_ARGUMENT
-    export RUNNER_ARGS="tests/ parametric/"
+if [[ ${1:-} =~ ^[A-Z0-9_]+$ ]]; then
+    # Retro comp: if the first argument is a list of capital letters, then we consider it's a scenario name
+    # and we add the -S option, telling pytest that's a scenario name
+    RUNNER_ARGS="-S $@"
 else
-    # Let user choose the target
-    export SYSTEMTESTS_SCENARIO="CUSTOM"
-    export RUNNER_ARGS=$@
+    RUNNER_ARGS=$@
 fi
 
 # clean any pycache folder

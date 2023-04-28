@@ -657,7 +657,6 @@ class scenarios:
 
     default = EndToEndScenario("DEFAULT", include_postgres_db=True)
     cgroup = CgroupScenario("CGROUP")
-    custom = EndToEndScenario("CUSTOM")
     sleep = EndToEndScenario("SLEEP")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
