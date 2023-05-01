@@ -167,6 +167,7 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session):
+    from utils import weblog
 
     if session.config.option.collectonly:
         return
@@ -200,6 +201,7 @@ def pytest_collection_finish(session):
         setup_method = getattr(item.instance, setup_method_name)
         logger.debug(f"Call {setup_method} for {item}")
         try:
+            weblog.current_nodeid = item.nodeid
             setup_method()
         except Exception:
             logger.exception("Unexpected failure during setup method call")
@@ -208,10 +210,21 @@ def pytest_collection_finish(session):
             raise
         else:
             terminal.write(".", bold=True, green=True)
+        finally:
+            weblog.current_nodeid = None
 
     terminal.write("\n\n")
 
     context.scenario.post_setup(session)
+
+
+def pytest_runtest_call(item):
+    from utils import weblog
+
+    if item.nodeid in weblog.responses:
+        for response in weblog.responses[item.nodeid]:
+            request = response["request"]
+            logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
 
 
 def pytest_json_modifyreport(json_report):

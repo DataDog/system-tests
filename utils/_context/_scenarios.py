@@ -421,6 +421,13 @@ class EndToEndScenario(_DockerScenario):
 
         interface.wait(timeout)
 
+    def close_targets(self):
+        from utils import weblog
+
+        super().close_targets()
+
+        weblog.save_requests(self.host_log_folder)
+
     @property
     def dd_site(self):
         return self.agent_container.dd_site

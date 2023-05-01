@@ -35,8 +35,6 @@ class Test_StaticRuleSet:
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_4:
     """ AppSec uses rule set 1.2.4 or higher """
 
@@ -45,8 +43,6 @@ class Test_RuleSet_1_2_4:
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_5:
     """ AppSec uses rule set 1.2.5 or higher """
 
