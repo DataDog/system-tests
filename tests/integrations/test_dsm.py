@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, context, bug, missing_feature, scenarios, released
+from utils import weblog, interfaces, scenarios, released
 from utils.tools import logger
 
 
@@ -27,7 +27,7 @@ class Test_DsmKafka:
         DsmHelper.assert_checkpoint_presence(
             hash_=3735318893869752335,
             parent_hash=4463699290244539355,
-            tags=("direction:in", "group:testgroup1", "partition:0", "topic:dsm-system-tests-queue", "type:kafka"),
+            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
