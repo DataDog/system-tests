@@ -847,3 +847,10 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
+
+
+if __name__ == "__main__":
+    for name in dir(scenarios):
+        if not name.startswith("_"):
+            scenario = getattr(scenarios, name)
+            print(scenario.name)
