@@ -76,6 +76,8 @@ jobs:
         - library: java
           weblog: vertx3
         - library: java
+          weblog: vertx4
+        - library: java
           weblog: spring-boot-jetty
         - library: java
           weblog: spring-boot
