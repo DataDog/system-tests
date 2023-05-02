@@ -495,7 +495,7 @@ class Test_ProductsDisabled:
                 ), "Product information is present telemetry data on app-started event when all products are disabled"
 
 
-@released(cpp="?", dotnet="?", golang="1.49.0", java="?", nodejs="?", php="?", python="?", ruby="1.4.0")
+@released(cpp="?", dotnet="?", golang="1.49.0", java="1.7.0", nodejs="?", php="?", python="?", ruby="1.4.0")
 @scenarios.telemetry_dependency_loaded_test_for_dependency_collection_disabled
 class Test_DependencyEnable:
     """ Tests on DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED flag """
