@@ -494,16 +494,24 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name, weblog_env) -> None:
-        self._required_containers = []
+    def __init__(self, name) -> None:
         super().__init__(name, use_proxy=True)
 
-        self._check_env_vars()
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
-        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self.weblog_container = WeblogContainer(self.host_log_folder)
+        self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
-        self._required_containers.append(OpenTelemetryCollectorContainer(self.host_log_folder))
+        self._required_containers.append(self.collector_container)
+
+    def configure(self):
+        super().configure()
+        self._check_env_vars()
+        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
+        self.weblog_container.environment["DD_SITE"] = dd_site
+        self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
+        self.collector_container.environment["DD_SITE"] = dd_site
 
     def _create_interface_folders(self):
         for interface in ("open_telemetry", "backend", "agent"):
@@ -571,11 +579,8 @@ class OpenTelemetryScenario(_DockerScenario):
         interface.wait(timeout)
 
     def _check_env_vars(self):
-        if os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO") != self.name:
-            return
-
         for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
-            if os.environ.get(env, "") == "":
+            if env not in os.environ:
                 raise Exception(f"Please set {env}, OTel E2E test requires 3 API keys and 3 APP keys")
 
     @property
@@ -850,16 +855,7 @@ class scenarios:
         backend_interface_timeout=5,
     )
 
-    apm_tracing_e2e_otel_span = EndToEndScenario(
-        "APM_TRACING_E2E_OTEL_SPAN",
-        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
-        backend_interface_timeout=5,
-    )
-
-    otel_tracing_e2e = OpenTelemetryScenario(
-        "OTEL_TRACING_E2E",
-        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY_2"), "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),},
-    )
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E")
 
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")

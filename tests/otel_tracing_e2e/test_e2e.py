@@ -1,3 +1,4 @@
+import base64
 import os
 from _validator import validate_all_traces
 from utils import context, weblog, interfaces, scenarios, irrelevant
@@ -50,7 +51,8 @@ class Test_OTel_E2E:
 
         validate_all_traces(traces_agent, traces_intake, traces_collector, self.use_128_bits_trace_id)
 
-    def _get_dd_trace_id(self, otel_trace_id=bytes) -> int:
+    def _get_dd_trace_id(self, otel_trace_id=str) -> int:
+        otel_trace_id_bytes = base64.b64decode(otel_trace_id)
         if self.use_128_bits_trace_id:
-            return int.from_bytes(otel_trace_id, "big")
-        return int.from_bytes(otel_trace_id[8:], "big")
+            return int.from_bytes(otel_trace_id_bytes, "big")
+        return int.from_bytes(otel_trace_id_bytes[8:], "big")

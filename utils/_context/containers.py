@@ -495,10 +495,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             image_name="otel/opentelemetry-collector-contrib:latest",
             name="collector",
             command="--config=/etc/otelcol-config.yml",
-            environment={
-                "DD_API_KEY": os.environ.get("DD_API_KEY_3"),
-                "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
-            },
+            environment={},
             volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},
