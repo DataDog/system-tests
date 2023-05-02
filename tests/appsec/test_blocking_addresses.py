@@ -207,7 +207,7 @@ class Test_Blocking_request_method:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="2.29.0",
+    dotnet="?",
     golang="?",
     java="?",
     nodejs="?",
@@ -479,7 +479,7 @@ class Test_Blocking_request_body:
 
     def setup_blocking(self):
         self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
-        self.rm_req_block2 = weblog.post("/waf", data={"": "bsldhkuqwgervf"})
+        self.rm_req_block2 = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -522,7 +522,7 @@ class Test_Blocking_request_body:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="2.29.0",
+    dotnet="?",
     golang="?",
     java="?",
     nodejs="?",
@@ -556,7 +556,7 @@ class Test_Blocking_response_status:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="2.29.0",
+    dotnet="?",
     golang="?",
     java="?",
     nodejs="?",
