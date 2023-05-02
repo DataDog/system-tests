@@ -1,7 +1,6 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import os
 import json
 
 import pytest
@@ -32,18 +31,23 @@ def _XML_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/reportJunit.xml"
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
+    )
+
+
 def pytest_configure(config):
 
     # First of all, we must get the current scenario
-    current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "DEFAULT")
 
     for name in dir(scenarios):
-        if name.upper() == current_scenario_name:
+        if name.upper() == config.option.scenario:
             context.scenario = getattr(scenarios, name)
             break
 
     if context.scenario is None:
-        pytest.exit(f"Scenario {current_scenario_name} does not exists", 1)
+        pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
     context.scenario.configure()
 
@@ -128,10 +132,6 @@ def pytest_collection_modifyitems(session, config, items):
 
         return None
 
-    if context.scenario == "CUSTOM":
-        # user has specifed which test to run, do nothing
-        return
-
     selected = []
     deselected = []
 
@@ -167,6 +167,7 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session):
+    from utils import weblog
 
     if session.config.option.collectonly:
         return
@@ -200,6 +201,7 @@ def pytest_collection_finish(session):
         setup_method = getattr(item.instance, setup_method_name)
         logger.debug(f"Call {setup_method} for {item}")
         try:
+            weblog.current_nodeid = item.nodeid
             setup_method()
         except Exception:
             logger.exception("Unexpected failure during setup method call")
@@ -208,10 +210,21 @@ def pytest_collection_finish(session):
             raise
         else:
             terminal.write(".", bold=True, green=True)
+        finally:
+            weblog.current_nodeid = None
 
     terminal.write("\n\n")
 
     context.scenario.post_setup(session)
+
+
+def pytest_runtest_call(item):
+    from utils import weblog
+
+    if item.nodeid in weblog.responses:
+        for response in weblog.responses[item.nodeid]:
+            request = response["request"]
+            logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
 
 
 def pytest_json_modifyreport(json_report):

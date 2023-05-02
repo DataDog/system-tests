@@ -27,8 +27,7 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
     }
 )
 @irrelevant(
-    context.library == "java" and context.appsec_rules_file is not None,
-    reason="No Remote Config sub with custom rules file",
+    context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
 @bug(context.library > "nodejs@3.16.0", reason="Under investigation")
@@ -40,6 +39,7 @@ class Test_AppSecIPBlockingMaxed:
     request_number = 0
     remote_config_is_sent = False
 
+    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
 

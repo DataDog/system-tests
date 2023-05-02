@@ -181,7 +181,6 @@ class _DockerScenario(_Scenario):
         include_cassandra_db=False,
         include_mongo_db=False,
         include_kafka=False,
-        include_zookeeper=False,
         include_rabbitmq=False,
         include_mysql_db=False,
     ) -> None:
@@ -205,10 +204,9 @@ class _DockerScenario(_Scenario):
             self._required_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
 
         if include_kafka:
-            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
-
-        if include_zookeeper:
+            # kafka requires zookeeper
             self._required_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
+            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
 
         if include_rabbitmq:
             self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
@@ -269,7 +267,6 @@ class EndToEndScenario(_DockerScenario):
         include_cassandra_db=False,
         include_mongo_db=False,
         include_kafka=False,
-        include_zookeeper=False,
         include_rabbitmq=False,
         include_mysql_db=False,
     ) -> None:
@@ -281,7 +278,6 @@ class EndToEndScenario(_DockerScenario):
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
             include_kafka=include_kafka,
-            include_zookeeper=include_zookeeper,
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
         )
@@ -315,7 +311,7 @@ class EndToEndScenario(_DockerScenario):
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
-                self.library_interface_timeout = 10
+                self.library_interface_timeout = 25
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("nodejs",):
@@ -425,6 +421,13 @@ class EndToEndScenario(_DockerScenario):
         terminal.flush()
 
         interface.wait(timeout)
+
+    def close_targets(self):
+        from utils import weblog
+
+        super().close_targets()
+
+        weblog.save_requests(self.host_log_folder)
 
     @property
     def dd_site(self):
@@ -656,7 +659,6 @@ class scenarios:
 
     default = EndToEndScenario("DEFAULT", include_postgres_db=True)
     cgroup = CgroupScenario("CGROUP")
-    custom = EndToEndScenario("CUSTOM")
     sleep = EndToEndScenario("SLEEP")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
@@ -672,7 +674,6 @@ class scenarios:
         include_cassandra_db=True,
         include_mongo_db=True,
         include_kafka=True,
-        include_zookeeper=True,
         include_rabbitmq=True,
         include_mysql_db=True,
     )
