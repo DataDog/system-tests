@@ -16,4 +16,4 @@ else
 fi
 
 echo "Running Maven build with profiles ${MAVEN_PROFILES}"
-mvn -q ${MAVEN_PROFILES} -Dclient.protobuf.path=src/main/proto/ package
+mvn -q "${MAVEN_PROFILES} -Dclient.protobuf.path=src/main/proto/" package
