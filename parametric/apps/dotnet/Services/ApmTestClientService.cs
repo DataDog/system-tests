@@ -27,6 +27,7 @@ namespace ApmTestClient.Services
         private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly PropertyInfo SpanContext = SpanType.GetProperty("Context", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly PropertyInfo Origin = SpanContextType.GetProperty("Origin", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
         // Propagator methods
         private static readonly MethodInfo SpanContextPropagatorInject = GenerateInjectMethod()!;
@@ -35,11 +36,10 @@ namespace ApmTestClient.Services
         private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
         private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly Dictionary<ulong, ISpan> Spans = new();
-        private readonly ILogger<ApmTestClientService> _logger;
 
-        private readonly SpanContextExtractor _spanContextExtractor = new SpanContextExtractor();
+        private readonly ILogger<ApmTestClientService> _logger;
+        private readonly SpanContextExtractor _spanContextExtractor = new();
 
         public ApmTestClientService(ILogger<ApmTestClientService> logger)
         {
@@ -82,7 +82,7 @@ namespace ApmTestClient.Services
                 Console.WriteLine($"creationSettings.Parent?.TraceId={creationSettings.Parent?.TraceId}");
             }
 
-            if (creationSettings.Parent is null && request.HasParentId && request.ParentId > 0)
+            if (creationSettings.Parent is null && request is { HasParentId: true, ParentId: > 0 })
             {
                 var parentSpan = Spans[request.ParentId];
                 creationSettings.Parent = new SpanContext(parentSpan.TraceId, parentSpan.SpanId, serviceName: parentSpan.ServiceName);
@@ -139,7 +139,7 @@ namespace ApmTestClient.Services
         {
             var span = Spans[request.SpanId];
             span.Error = true;
-            
+
             if (request.HasType)
             {
                 span.SetTag(Tags.ErrorType, request.Type);
@@ -172,6 +172,7 @@ namespace ApmTestClient.Services
 
             var injectHeadersReturn = new InjectHeadersReturn();
             var span = Spans[request.SpanId];
+
             if (span is not null)
             {
                 injectHeadersReturn.HttpHeaders = new();
@@ -180,8 +181,8 @@ namespace ApmTestClient.Services
                 // SpanContextPropagator.Instance.Inject(SpanContext context, TCarrier carrier, Action<TCarrier, string, string> setter)
                 // => TCarrier=Google.Protobuf.Collections.RepeatedField<HeaderTuple>
                 SpanContext? contextArg = span.Context as SpanContext;
-                Google.Protobuf.Collections.RepeatedField<HeaderTuple> carrierArg = injectHeadersReturn.HttpHeaders.HttpHeaders;
-                Action<Google.Protobuf.Collections.RepeatedField<HeaderTuple>, string, string> setterArg = (headers, key, value) => headers.Add(new HeaderTuple { Key = key, Value = value });
+                RepeatedField<HeaderTuple> carrierArg = injectHeadersReturn.HttpHeaders.HttpHeaders;
+                Action<RepeatedField<HeaderTuple>, string, string> setterArg = (headers, key, value) => headers.Add(new HeaderTuple { Key = key, Value = value });
 
                 var spanContextPropagator = GetSpanContextPropagator.GetValue(null);
                 SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, carrierArg, setterArg });
@@ -256,7 +257,7 @@ namespace ApmTestClient.Services
                     && parameters[1].ParameterType == genericArgs[0]
                     && parameters[2].ParameterType.Name == "Action`3")
                 {
-                    var carrierType = typeof(Google.Protobuf.Collections.RepeatedField<HeaderTuple>);
+                    var carrierType = typeof(RepeatedField<HeaderTuple>);
                     var actionType = typeof(Action<,,>);
 
                     var closedActionType = actionType.MakeGenericType(carrierType, typeof(string), typeof(string));
