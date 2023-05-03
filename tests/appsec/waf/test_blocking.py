@@ -1,3 +1,4 @@
+import os.path
 import re
 
 import pytest
@@ -8,106 +9,33 @@ from utils._context.core import context
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
-HTML_DATA = """<!-- Sorry, you’ve been blocked -->
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>You've been blocked</title>
-  <style>
-    a,
-    body,
-    div,
-    html,
-    span {
-      margin: 0;
-      padding: 0;
-      border: 0;
-      font-size: 100%;
-      font: inherit;
-      vertical-align: baseline
-    }
+_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    body {
-      background: -webkit-radial-gradient(26% 19%, circle, #fff, #f4f7f9);
-      background: radial-gradient(circle at 26% 19%, #fff, #f4f7f9);
-      display: -webkit-box;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-pack: center;
-      -ms-flex-pack: center;
-      justify-content: center;
-      -webkit-box-align: center;
-      -ms-flex-align: center;
-      align-items: center;
-      -ms-flex-line-pack: center;
-      align-content: center;
-      width: 100%;
-      min-height: 100vh;
-      line-height: 1;
-      flex-direction: column
-    }
+# Initial template version as found in Java, with different indentation to v1.
+BLOCK_TEMPLATE_HTML_V0 = open(os.path.join(_CUR_DIR, "blocked.v0.html"), "r").read().rstrip()
+BLOCK_TEMPLATE_HTML_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.html"), "r").read().rstrip()
+BLOCK_TEMPLATE_HTML_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r").read().rstrip()
+BLOCK_TEMPLATE_HTML_MIN_V2 = open(os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r").read().rstrip()
+BLOCK_TEMPLATE_JSON_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.json"), "r").read().rstrip()
+BLOCK_TEMPLATE_JSON_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r").read().rstrip()
 
-    p {
-      display: block
-    }
+BLOCK_TEMPLATE_HTML_ANY = {
+    BLOCK_TEMPLATE_HTML_V0,
+    BLOCK_TEMPLATE_HTML_V1,
+    BLOCK_TEMPLATE_HTML_MIN_V1,
+    BLOCK_TEMPLATE_HTML_MIN_V2,
+}
+BLOCK_TEMPLATE_JSON_ANY = {BLOCK_TEMPLATE_JSON_V1, BLOCK_TEMPLATE_JSON_MIN_V1}
 
-
-    main {
-      text-align: center;
-      flex: 1;
-      display: -webkit-box;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-pack: center;
-      -ms-flex-pack: center;
-      justify-content: center;
-      -webkit-box-align: center;
-      -ms-flex-align: center;
-      align-items: center;
-      -ms-flex-line-pack: center;
-      align-content: center;
-      flex-direction: column
-    }
-
-    p {
-      font-size: 18px;
-      line-height: normal;
-      color: #646464;
-      font-family: sans-serif;
-      font-weight: 400
-    }
-
-    a {
-      color: #4842b7
-    }
-
-    footer {
-      width: 100%;
-      text-align: center
-    }
-
-    footer p {
-      font-size: 16px
-    }
-  </style>
-</head>
-
-<body>
-<main>
-  <p>Sorry, you cannot access this page. Please contact the customer service team.</p>
-</main>
-<footer>
-  <p>Security provided by <a
-    href="https://www.datadoghq.com/product/security-platform/application-security-monitoring/"
-    target="_blank">Datadog</a></p>
-</footer>
-</body>
-
-</html>
-"""
+HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
+JSON_CONTENT_TYPES = {
+    "application/json",
+    "application/json; charset=utf-8",
+    "application/json;charset=utf-8",
+    # Python frameworks use text/json
+    "text/json",
+}
 
 
 @released(
@@ -150,13 +78,8 @@ class Test_Blocking:
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
-        # Python applications return text/json instead of standard application/json content type
-        assert re.match("^(application|text)/json", self.r_na.headers.get("content-type", "")) is not None
-        assert (
-            self.r_na.text.rstrip()
-            == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
-            'this page. Please contact the customer service team. Security provided by Datadog."}]}'
-        )
+        assert self.r_na.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_na.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
@@ -189,8 +112,8 @@ class Test_Blocking:
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
-        # Python applications return text/json instead of standard application/json content type
-        assert re.match("^(application|text)/json", self.r_aa.headers.get("content-type", "")) is not None
+        assert self.r_aa.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_aa.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_partial_json(self):
         # */* should be ignored because there are more specific matches for text/html and application/json
@@ -201,8 +124,8 @@ class Test_Blocking:
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
-        # Python applications return text/json instead of standard application/json content type
-        assert re.match("^(application|text)/json", self.r_apj.headers.get("content-type", "")) is not None
+        assert self.r_apj.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_apj.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_partial_html(self):
         self.r_aph = weblog.get(
@@ -216,7 +139,8 @@ class Test_Blocking:
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
-        assert self.r_aph.text == HTML_DATA
+        assert self.r_aph.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_aph.text.rstrip() in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_accept_full_json(self):
         self.r_afj = weblog.get(
@@ -230,8 +154,8 @@ class Test_Blocking:
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
-        # Python applications return text/json instead of standard application/json content type
-        assert re.match("^(application|text)/json", self.r_afj.headers.get("content-type", "")) is not None
+        assert self.r_afj.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_afj.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_full_html(self):
         self.r_afh = weblog.get(
@@ -247,7 +171,28 @@ class Test_Blocking:
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
-        assert re.match("^text/html", self.r_afh.headers.get("content-type", "")) is not None
+        assert self.r_afh.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_afh.text.rstrip() in BLOCK_TEMPLATE_HTML_ANY
+
+    def setup_json_template_v1(self):
+        self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
+
+    @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_json_template_v1(self):
+        """HTML block template is v1 minified"""
+        assert self.r_json_v1.status_code == 403
+        assert self.r_json_v1.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_json_v1.text.rstrip() == BLOCK_TEMPLATE_JSON_MIN_V1
+
+    def setup_html_template_v2(self):
+        self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
+
+    @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_html_template_v2(self):
+        """HTML block template is v1 minified"""
+        assert self.r_html_v2.status_code == 403
+        assert self.r_html_v2.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_html_v2.text.rstrip() == BLOCK_TEMPLATE_HTML_MIN_V2
 
 
 @rfc(
