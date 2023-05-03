@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ ! -f apm_test_client.proto ]; then
   cp ../../protos/apm_test_client.proto .
 fi
