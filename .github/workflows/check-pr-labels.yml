@@ -1,0 +1,15 @@
+name: Adds run-default-scenario label on new pull requests
+on:
+  pull_request:
+    branches:
+      - "**"
+    types:
+      - opened
+
+jobs:
+  check-pr-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: run-default-scenario
