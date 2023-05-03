@@ -206,18 +206,23 @@ def _validate_headers(headers, request_type):
         "DD-Client-Library-Language": expected_language,
         "DD-Client-Library-Version": "",
     }
+    expected_headers = {k.lower(): v for k, v in expected_headers.items()}
 
+    seen_headers = set()
     for key, value in headers:
-        if expected_headers.get(key) is not None:
-            expected_value = expected_headers.pop(key)
-            if isinstance(expected_value, set):
-                assert value in expected_value
-            elif expected_value != "":
-                assert value == expected_value
-            else:
-                assert value is not None, f"Empty `{key}` header"
+        lower_key = key.lower()
+        expected_value = expected_headers.get(lower_key)
+        if expected_value is None:
+            # Irrelevant header
+            continue
+        assert lower_key not in seen_headers, f"Duplicated header {lower_key}"
+        seen_headers.add(lower_key)
+        if isinstance(expected_value, set):
+            assert value in expected_value
+        elif expected_value != "":
+            assert value == expected_value
+        else:
+            assert value, f"Empty {key} header"
 
-    if len(expected_headers) > 0:
-        raise AssertionError(
-            "Headers %s not found in payload headers: %s" % ([header for header in expected_headers], headers)
-        )
+    missing_headers = set(expected_headers.keys()) - seen_headers
+    assert not missing_headers, f"Missing required headers: {missing_headers}"
