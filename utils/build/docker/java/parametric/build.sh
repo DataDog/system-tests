@@ -16,5 +16,6 @@ else
 fi
 
 echo "Running Maven build with profiles ${MAVEN_PROFILES}"
- # shellcheck disable=SC2059
+
+# shellcheck disable=SC2086
 mvn -q $MAVEN_PROFILES -Dclient.protobuf.path=src/main/proto/ package
