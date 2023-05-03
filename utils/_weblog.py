@@ -77,6 +77,7 @@ class _Weblog:
         domain=None,
         port=7777,
         allow_redirects=True,
+        rid_in_user_agent=True,
         **kwargs,
     ):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
@@ -90,7 +91,10 @@ class _Weblog:
                 break
 
         user_agent = headers.get(user_agent_key, "system_tests")
-        headers[user_agent_key] = f"{user_agent} rid/{rid}"
+        # Inject a request id (rid) to be able to correlate traces generated from this request.
+        # This behavior can be disabled with rid_in_user_agent=False, which should be rarely needed.
+        if rid_in_user_agent:
+            headers[user_agent_key] = f"{user_agent} rid/{rid}"
 
         if method == "GET" and params:
             url = self._get_url(path, domain, port, params)
