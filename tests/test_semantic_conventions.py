@@ -102,6 +102,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
     },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
+    "vertx4": {"netty.request": "netty", "vertx.route-handler": "vertx"},
 }
 
 
