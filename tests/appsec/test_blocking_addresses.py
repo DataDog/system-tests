@@ -173,7 +173,7 @@ def _assert_custom_event_tag_absence():
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
@@ -220,7 +220,7 @@ class Test_Blocking_request_method:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
@@ -270,7 +270,7 @@ class Test_Blocking_request_uri:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.13", "*": "?"},
     ruby="?",
 )
@@ -320,7 +320,7 @@ class Test_Blocking_request_path_params:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
@@ -373,7 +373,7 @@ class Test_Blocking_request_query:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
@@ -426,7 +426,7 @@ class Test_Blocking_request_headers:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
@@ -479,10 +479,11 @@ class Test_Blocking_request_cookies:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
 
@@ -535,10 +536,11 @@ class Test_Blocking_request_body:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
@@ -569,10 +571,11 @@ class Test_Blocking_response_status:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
@@ -598,7 +601,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(cpp="?", dotnet="2.29.0", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+@released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
