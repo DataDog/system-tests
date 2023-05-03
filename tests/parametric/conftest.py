@@ -23,6 +23,7 @@ from parametric._library_client import APMLibrary
 from utils import context
 from utils.tools import logger
 
+
 @pytest.fixture
 def test_id():
     import uuid
@@ -48,6 +49,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
+
 
 def _request_token(request):
     token = ""
@@ -170,10 +172,10 @@ RUN npm install {node_module}
 
 
 def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
-   
+
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
     golang_absolute_appdir = os.path.join(os.getcwd(), golang_appdir)
-    
+
     return APMLibraryTestServer(
         lang="golang",
         protocol="grpc",
@@ -229,7 +231,7 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
-    protofile = os.path.join("tests","parametric", "protos", "apm_test_client.proto").replace("\\", "/")
+    protofile = os.path.join("tests", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
 
     return APMLibraryTestServer(
         lang="java",
@@ -293,14 +295,14 @@ RUN composer install
 
 
 def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-   
+
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(os.getcwd(), ruby_appdir)
 
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
 
     shutil.copyfile(
-        os.path.join("tests","parametric", "protos", "apm_test_client.proto"),
+        os.path.join("tests", "parametric", "protos", "apm_test_client.proto"),
         os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
     )
     return APMLibraryTestServer(
@@ -341,7 +343,6 @@ _libs = {
 }
 
 
-
 def get_open_port():
     # Not very nice and also not 100% correct but it works for now.
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -356,7 +357,7 @@ def get_open_port():
 def apm_test_server(request, library_env, test_id):
     # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
     # in pytest.
-    apm_test_library = _libs[context.scenario.library.library] 
+    apm_test_library = _libs[context.scenario.library.library]
 
     yield apm_test_library(library_env, test_id, get_open_port())
 
