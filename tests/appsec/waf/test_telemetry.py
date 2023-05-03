@@ -1,4 +1,4 @@
-from utils import interfaces, released, rfc, weblog, scenarios, context, bug, irrelevant, missing_feature
+from utils import interfaces, released, rfc, weblog, scenarios, context, bug, missing_feature
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -81,7 +81,7 @@ class Test_TelemetryMetrics:
 
     setup_metric_waf_updates = _setup
 
-    @irrelevant(reason="Test not implemented")
+    @missing_feature(reason="Test not implemented")
     @bug(context.library < "java@1.13.0", reason="Missing tags")
     def test_metric_waf_updates(self):
         """Test waf.updates metric."""
