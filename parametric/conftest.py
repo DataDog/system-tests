@@ -211,24 +211,44 @@ def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
-        container_name="dotnet-test-client-%s" % container_id,
-        container_tag="dotnet6_0-test-client",
-        container_img=f"""
+        container_name=f"dotnet-test-client-{container_id}",
+        container_tag="dotnet7_0-test-client",
+        container_img="""
 FROM mcr.microsoft.com/dotnet/sdk:7.0
 WORKDIR /client
-COPY ["./ApmTestClient.csproj","./nuget.config","./*.nupkg", "./"]
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
-WORKDIR "/client/."
+COPY . ./
+RUN dotnet publish --no-restore --configuration Release --output out
+WORKDIR /client/out
+
+# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# Enable automatic instrumentation (required for OpenTelemetry tests)
+ENV CORECLR_ENABLE_PROFILING=1
+ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
+ENV CORECLR_PROFILER_PATH=/client/out/datadog/linux-x64/Datadog.Trace.ClrProfiler.Native.so
+ENV DD_DOTNET_TRACER_HOME=/client/out/datadog
+
+# disable gRPC, ASP.NET Core, and other instrumentations (to prevent unexpected spans)
+ENV DD_TRACE_Grpc_ENABLED=false
+ENV DD_TRACE_AspNetCore_ENABLED=false
+ENV DD_TRACE_Process_ENABLED=false
+
+# enable OpenTelemetry support (required for OpenTelemetry tests)
+ENV DD_TRACE_OTEL_ENABLED=true
 """,
-        container_cmd=["dotnet", "run"],
+        container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_dir,
         container_build_context=dotnet_dir,
         volumes=[(os.path.join(dotnet_dir), "/client"),],
         env=env,
         port=port,
     )
-    server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
+
     return server
 
 
