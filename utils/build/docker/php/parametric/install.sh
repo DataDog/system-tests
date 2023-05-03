@@ -4,7 +4,7 @@
 # It first looks at the /binaries directory to see if there is a file matching "datadog-php-tracer-*.tar.gz"
 # If there is no package in /binaries then the binaries are pulled from the specified release
 
-DDTRACE_VERSION=0.84.0
+#DDTRACE_VERSION=0.84.0
 PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-gnu.tar.gz')
 SETUP=/binaries/datadog-setup.php
 
