@@ -642,6 +642,7 @@ class PerformanceScenario(EndToEndScenario):
 
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
+
 class ParametricScenario(_Scenario):
     @property
     def host_log_folder(self):
@@ -650,7 +651,8 @@ class ParametricScenario(_Scenario):
     @property
     def library(self):
         return LibraryVersion(os.getenv("TEST_LIBRARY", "java"), "0.00")
-    
+
+
 class scenarios:
     empty_scenario = _Scenario("EMPTY_SCENARIO")
     todo = _Scenario("TODO")  # scenario that skips tests not yest executed
