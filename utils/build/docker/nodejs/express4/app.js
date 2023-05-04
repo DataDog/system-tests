@@ -1,5 +1,7 @@
 "use strict";
 
+const { Kafka } = require('kafkajs')
+
 const tracer = require("dd-trace").init({
   debug: true,
   experimental: {
@@ -132,6 +134,39 @@ app.get("/users", (req, res) => {
   } else {
     res.send(`Hello ${user.id}`)
   }
+});
+
+app.get("/dsm", async (req, res) => {
+  const kafka = new Kafka({
+    clientId: 'my-app',
+    brokers: ['kafka:9092'],
+  })
+
+  const producer = kafka.producer()
+
+  await producer.connect()
+  await producer.send({
+    topic: 'dsm-system-tests-queue',
+    messages: [
+      { value: 'hello world!' },
+    ],
+  })
+  await producer.disconnect()
+
+  const consumer = kafka.consumer({ groupId: 'testgroup1' })
+
+  await consumer.connect()
+  await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
+
+  await consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      console.log({
+        value: message.value.toString(),
+      })
+  },
+})
+
+
 });
 
 require("./iast")(app, tracer);
