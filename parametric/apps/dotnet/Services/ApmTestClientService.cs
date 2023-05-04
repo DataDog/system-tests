@@ -171,9 +171,8 @@ namespace ApmTestClient.Services
             }
 
             var injectHeadersReturn = new InjectHeadersReturn();
-            var span = Spans[request.SpanId];
 
-            if (span is not null)
+            if (Spans.TryGetValue(request.SpanId, out var span))
             {
                 injectHeadersReturn.HttpHeaders = new();
 
@@ -182,10 +181,12 @@ namespace ApmTestClient.Services
                 // => TCarrier=Google.Protobuf.Collections.RepeatedField<HeaderTuple>
                 SpanContext? contextArg = span.Context as SpanContext;
                 RepeatedField<HeaderTuple> carrierArg = injectHeadersReturn.HttpHeaders.HttpHeaders;
-                Action<RepeatedField<HeaderTuple>, string, string> setterArg = (headers, key, value) => headers.Add(new HeaderTuple { Key = key, Value = value });
+
+                static void Setter(RepeatedField<HeaderTuple> headers, string key, string value) =>
+                    headers.Add(new HeaderTuple { Key = key, Value = value });
 
                 var spanContextPropagator = GetSpanContextPropagator.GetValue(null);
-                SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, carrierArg, setterArg });
+                SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, carrierArg, (Action<RepeatedField<HeaderTuple>, string, string>)Setter });
             }
 
             return Task.FromResult(injectHeadersReturn);
