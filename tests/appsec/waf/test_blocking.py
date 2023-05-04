@@ -12,11 +12,13 @@ if context.library == "cpp":
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Initial template version as found in Java, with different indentation to v1.
+# Initial template version as found in dd-trace-java, with different indentation to v1.
 BLOCK_TEMPLATE_HTML_V0 = open(os.path.join(_CUR_DIR, "blocked.v0.html"), "r").read()
 BLOCK_TEMPLATE_HTML_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.html"), "r").read()
 BLOCK_TEMPLATE_HTML_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r").read()
 BLOCK_TEMPLATE_HTML_MIN_V2 = open(os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r").read()
+# Prettified as found in dd-trace-go
+BLOCK_TEMPLATE_JSON_V0 = open(os.path.join(_CUR_DIR, "blocked.v0.json"), "r").read()
 BLOCK_TEMPLATE_JSON_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.json"), "r").read()
 BLOCK_TEMPLATE_JSON_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r").read()
 
@@ -26,7 +28,7 @@ BLOCK_TEMPLATE_HTML_ANY = {
     BLOCK_TEMPLATE_HTML_MIN_V1,
     BLOCK_TEMPLATE_HTML_MIN_V2,
 }
-BLOCK_TEMPLATE_JSON_ANY = {BLOCK_TEMPLATE_JSON_V1, BLOCK_TEMPLATE_JSON_MIN_V1}
+BLOCK_TEMPLATE_JSON_ANY = {BLOCK_TEMPLATE_JSON_V0, BLOCK_TEMPLATE_JSON_V1, BLOCK_TEMPLATE_JSON_MIN_V1}
 
 HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
 JSON_CONTENT_TYPES = {
