@@ -1,5 +1,7 @@
 "use strict";
 
+const { Kafka } = require('kafkajs')
+
 const tracer = require("dd-trace").init({
   debug: true
 });
