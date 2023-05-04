@@ -5,7 +5,15 @@
 from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
-@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(
+    cpp="?",
+    dotnet="2.27.0",
+    php_appsec="0.7.0",
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    nodejs="?",
+    golang="?",
+    ruby="1.0.0",
+)
 @coverage.basic
 @scenarios.appsec_blocking
 @released(
