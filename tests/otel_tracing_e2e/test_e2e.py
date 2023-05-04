@@ -9,7 +9,7 @@ from utils import context, weblog, interfaces, scenarios, irrelevant
 class Test_OTel_E2E:
     def setup_main(self):
         self.use_128_bits_trace_id = False
-        self.r = weblog.get(path="/")
+        self.r = weblog.get(path="/basic")
 
     def test_main(self):
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
