@@ -22,6 +22,7 @@ class InterfaceValidator:
     def __init__(self, name):
         self.name = name
 
+        self._wait_conditions = []
         self._wait_for_event = threading.Event()
         self._wait_for_function = None
 
@@ -41,7 +42,13 @@ class InterfaceValidator:
         return f"{self.name} interface"
 
     def wait(self, timeout, stop_accepting_data=True):
-        time.sleep(timeout)
+        t0 = time.time()
+        while self._wait_conditions:
+            # Check all wait conditions and keep those that are not fulfilled.
+            self._wait_conditions = [cond for cond in self._wait_conditions if not cond()]
+            if time.time() - t0 > timeout:
+                logger.warn(f"Waiting for all interface wait conditions timed out")
+                break
         self.accept_data = not stop_accepting_data
 
     def ingest_file(self, src_path):

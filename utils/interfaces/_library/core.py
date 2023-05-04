@@ -41,6 +41,16 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready.set()
         return super().ingest_file(src_path)
 
+    def add_request_wait_condition(self, request):
+        """
+         Sets up a wait condition expecting at least one trace for the given request.
+         """
+
+        def waiter():
+            return bool(list(self.get_traces(request=request)))
+
+        self._wait_conditions.append(waiter)
+
     ############################################################
     def get_traces(self, request=None):
         paths = ["/v0.4/traces", "/v0.5/traces"]

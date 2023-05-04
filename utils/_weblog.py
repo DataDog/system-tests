@@ -15,6 +15,7 @@ import google.protobuf.struct_pb2 as pb
 
 from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
+from utils import interfaces
 
 
 class _FailedQuery:
@@ -120,6 +121,8 @@ class _Weblog:
                 "status_code": r.status_code,
             }
         )
+
+        interfaces.library.add_request_wait_condition(r)
 
         return r
 
