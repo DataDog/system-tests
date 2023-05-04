@@ -34,7 +34,7 @@ class OpenTelemetryInterfaceValidator(InterfaceValidator):
             for resource_span in data.get("request").get("content").get("resourceSpans"):
                 for scope_span in resource_span.get("scopeSpans"):
                     for span in scope_span.get("spans"):
-                        for attribute in span.get("attributes"):
+                        for attribute in span.get("attributes", []):
                             attr_key = attribute.get("key")
                             attr_val = attribute.get("value").get("stringValue")
                             if attr_key == "http.request.headers.user-agent" and rid in attr_val:
