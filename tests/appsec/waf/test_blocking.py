@@ -13,12 +13,12 @@ if context.library == "cpp":
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Initial template version as found in Java, with different indentation to v1.
-BLOCK_TEMPLATE_HTML_V0 = open(os.path.join(_CUR_DIR, "blocked.v0.html"), "r").read().rstrip()
-BLOCK_TEMPLATE_HTML_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.html"), "r").read().rstrip()
-BLOCK_TEMPLATE_HTML_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r").read().rstrip()
-BLOCK_TEMPLATE_HTML_MIN_V2 = open(os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r").read().rstrip()
-BLOCK_TEMPLATE_JSON_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.json"), "r").read().rstrip()
-BLOCK_TEMPLATE_JSON_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r").read().rstrip()
+BLOCK_TEMPLATE_HTML_V0 = open(os.path.join(_CUR_DIR, "blocked.v0.html"), "r").read()
+BLOCK_TEMPLATE_HTML_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.html"), "r").read()
+BLOCK_TEMPLATE_HTML_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r").read()
+BLOCK_TEMPLATE_HTML_MIN_V2 = open(os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r").read()
+BLOCK_TEMPLATE_JSON_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.json"), "r").read()
+BLOCK_TEMPLATE_JSON_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r").read()
 
 BLOCK_TEMPLATE_HTML_ANY = {
     BLOCK_TEMPLATE_HTML_V0,
@@ -79,7 +79,7 @@ class Test_Blocking:
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
         assert self.r_na.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_na.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
+        assert self.r_na.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
@@ -113,7 +113,7 @@ class Test_Blocking:
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
         assert self.r_aa.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_aa.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
+        assert self.r_aa.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_partial_json(self):
         # */* should be ignored because there are more specific matches for text/html and application/json
@@ -125,7 +125,7 @@ class Test_Blocking:
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
         assert self.r_apj.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_apj.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
+        assert self.r_apj.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_partial_html(self):
         self.r_aph = weblog.get(
@@ -140,7 +140,7 @@ class Test_Blocking:
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
         assert self.r_aph.headers.get("content-type", "") in HTML_CONTENT_TYPES
-        assert self.r_aph.text.rstrip() in BLOCK_TEMPLATE_HTML_ANY
+        assert self.r_aph.text in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_accept_full_json(self):
         self.r_afj = weblog.get(
@@ -155,7 +155,7 @@ class Test_Blocking:
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
         assert self.r_afj.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_afj.text.rstrip() in BLOCK_TEMPLATE_JSON_ANY
+        assert self.r_afj.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_full_html(self):
         self.r_afh = weblog.get(
@@ -172,7 +172,7 @@ class Test_Blocking:
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
         assert self.r_afh.headers.get("content-type", "") in HTML_CONTENT_TYPES
-        assert self.r_afh.text.rstrip() in BLOCK_TEMPLATE_HTML_ANY
+        assert self.r_afh.text in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
@@ -182,7 +182,7 @@ class Test_Blocking:
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
         assert self.r_json_v1.headers.get("content-type", "") in HTML_CONTENT_TYPES
-        assert self.r_json_v1.text.rstrip() == BLOCK_TEMPLATE_JSON_MIN_V1
+        assert self.r_json_v1.text == BLOCK_TEMPLATE_JSON_MIN_V1
 
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
@@ -192,7 +192,7 @@ class Test_Blocking:
         """HTML block template is v1 minified"""
         assert self.r_html_v2.status_code == 403
         assert self.r_html_v2.headers.get("content-type", "") in HTML_CONTENT_TYPES
-        assert self.r_html_v2.text.rstrip() == BLOCK_TEMPLATE_HTML_MIN_V2
+        assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
 
 
 @rfc(
