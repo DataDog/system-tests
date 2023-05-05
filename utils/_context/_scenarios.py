@@ -187,6 +187,7 @@ class _DockerScenario(_Scenario):
         super().__init__(name)
 
         self.use_proxy = use_proxy
+        self.proxy_state = proxy_state
         self._required_containers = []
 
         if self.use_proxy:

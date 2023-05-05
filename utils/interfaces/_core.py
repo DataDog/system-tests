@@ -5,6 +5,7 @@
 """ This file contains base class used to validate interfaces """
 
 import threading
+import typing
 import json
 import re
 import time
@@ -22,7 +23,12 @@ class InterfaceValidator:
     def __init__(self, name):
         self.name = name
 
-        self._wait_conditions = []
+        # A list of lists of wait condition. A wait condition returns true when it's done.
+        # When waiting for the setup stage to be ready, every condition will be checked until
+        # it passes (or times out). Every condition for each list needs to pass before we move
+        # to the next list.
+        self._wait_conditions: typing.List[typing.List[typing.Callable[[], bool]]] = [[]]
+
         self._wait_for_event = threading.Event()
         self._wait_for_function = None
 
@@ -45,7 +51,9 @@ class InterfaceValidator:
         t0 = time.time()
         while self._wait_conditions:
             # Check all wait conditions and keep those that are not fulfilled.
-            self._wait_conditions = [cond for cond in self._wait_conditions if not cond()]
+            self._wait_conditions[0] = [cond for cond in self._wait_conditions[0] if not cond()]
+            if not self._wait_conditions[0]:
+                self._wait_conditions = self._wait_conditions[1:]
             if time.time() - t0 > timeout:
                 logger.warn(f"Waiting for all interface wait conditions timed out")
                 break

@@ -5,6 +5,7 @@
 from collections import namedtuple
 import json
 import threading
+from typing import Any
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils.tools import logger
@@ -40,16 +41,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def ingest_file(self, src_path):
         self.ready.set()
         return super().ingest_file(src_path)
-
-    def add_request_wait_condition(self, request):
-        """
-         Sets up a wait condition expecting at least one trace for the given request.
-         """
-
-        def waiter():
-            return bool(list(self.get_traces(request=request)))
-
-        self._wait_conditions.append(waiter)
 
     ############################################################
     def get_traces(self, request=None):
@@ -379,6 +370,53 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
+
+    def wait(self, timeout, stop_accepting_data=True):
+        # self._add_more_telemetry_wait_condition()
+        super(LibraryInterfaceValidator, self).wait(timeout, stop_accepting_data)
+
+    def add_request_wait_condition(self, request):
+        """
+        Sets up a wait condition expecting at least one trace for the given request.
+        """
+
+        def waiter():
+            return bool(list(self.get_traces(request=request)))
+
+        self._wait_conditions[-1].append(waiter)
+
+    def add_remote_config_wait_condition(self, n_requests: int):
+        """
+        Waits for a given number of calls to remote config.
+        """
+
+        def waiter():
+            actual_n_requests = len(list(self.get_data(path_filters=r"/v\d+.\d+/config")))
+            return actual_n_requests >= n_requests
+
+        self._wait_conditions[-1].append(waiter)
+
+    def _add_more_telemetry_wait_condition(self):
+        """
+        Wait until an extra telemetry message is received after the first check.
+        This implies waiting at least one additional telemetrt heatbeat internal,
+        but should ensure that we have received every relevant event after tests
+        have finished
+        """
+
+        class Waiter:
+            def __init__(self, interface):
+                self.initial_telemetry_requests = None
+                self.interface = interface
+
+            def __call__(self, *args: Any, **kwargs: Any) -> Any:
+                n_requests = len(list(self.interface.get_telemetry_data()))
+                if self.initial_telemetry_requests is None:
+                    self.initial_telemetry_requests = n_requests
+                    return False
+                return self.initial_telemetry_requests < n_requests
+
+        self._wait_conditions.append([Waiter(self)])
 
 
 class _TraceIdUniquenessExceptions:
