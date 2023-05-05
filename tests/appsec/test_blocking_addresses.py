@@ -96,7 +96,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "php", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
-    @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="npe")
+    @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
