@@ -25,7 +25,7 @@ def _setup(self):
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(python="?", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
+@released(python="1.13.0", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_waf_telemetry
