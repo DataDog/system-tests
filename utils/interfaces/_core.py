@@ -54,8 +54,10 @@ class InterfaceValidator:
             self._wait_conditions[0] = [cond for cond in self._wait_conditions[0] if not cond()]
             if not self._wait_conditions[0]:
                 self._wait_conditions = self._wait_conditions[1:]
+            if not self._wait_conditions:
+                break
             if time.time() - t0 > timeout:
-                logger.warn(f"Waiting for all interface wait conditions timed out")
+                logger.warning(f"Waiting for {self.name} interface wait conditions timed out")
                 break
         self.accept_data = not stop_accepting_data
 
