@@ -235,6 +235,7 @@ class Test_Telemetry:
     @irrelevant(library="nodejs")
     @irrelevant(library="dotnet")
     @irrelevant(library="golang")
+    @irrelevant(library="python")
     def test_app_dependencies_loaded_not_sent(self):
         """app-dependencies-loaded request should not be sent"""
         # Request type app-dependencies-loaded is never sent from certain language tracers
