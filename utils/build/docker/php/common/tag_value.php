@@ -23,19 +23,8 @@ if (!is_numeric($response_code)) {
     'value' => $value
 ]);
 
-$params = explode('&', $_SERVER['QUERY_STRING']);
-
-if (is_array($params)) {
-    foreach ($params as $param) {
-	$header = $param;
-	if (strpos($param, '=') !== false) {
-		$exploded = explode('=', $param);
-		$key = $exploded[0] ?? '';
-		$value = $exploded[1] ?? '';
-		$header = ucwords($key) .  ": " . $value;
-	}
-        header($header);
-    }
+foreach ($_GET as $key => $value) {
+	header(ucwords($key) . ": " . $value);
 }
 
 if ($response_code !== 200) {
