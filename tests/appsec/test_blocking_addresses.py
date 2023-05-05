@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
+from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog, bug
 
 
 @released(
@@ -96,6 +96,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "php", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="npe")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
