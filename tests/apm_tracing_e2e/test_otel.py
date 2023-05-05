@@ -24,12 +24,11 @@ class Test_Otel_Span:
     # - spanId of 10000
     # - tags {'set_attributes':'true'}
     # - error tag with 'testing_ddotel_endOptions' message
-    # Parent span will have the following traits :
+    # Child span will have the following traits :
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
     def test_datadog_otel_span(self):
-        # Only the parent span should be submitted to the backend!
         spans = _get_spans_submitted(self.req)
         assert 2 == len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
 
@@ -49,37 +48,34 @@ class Test_Otel_Span:
         assert child.get("duration") != 1000
         assert parent.get("meta").get("span.kind") == 1
 
-    # def setup_distributed_otel_trace(self):
-    #     self.req = weblog.get(
-    #         "/e2e_otel_span/mixed_contrib",
-    #         {"shouldIndex": 1, "parentName": "parent.span.otel"},
-    #     )
-    #
-    # @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
-    # def test_distributed_otel_trace(self):
-    #     # Only the parent span should be submitted to the backend!
-    #     spans = _get_spans_submitted(self.req)
-    #     print(spans)
-    #     assert 3 == len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
-    #
-    #     # Assert the parent span sent by the agent.
-    #
-    #     parent = _get_span(spans, "parent.span.otel")
-    #     # parent = spans[0]
-    #     assert parent["name"] == "parent.span.otel"
-    #     assert parent.get("parentID") is None
-    #     assert parent["metrics"]["_dd.top_level"] == 1.0
-    #
-    #
-    #     # Assert the child sent by the agent.
-    #     roundtrip_span = _get_span(spans, "HTTP_GET")
-    #     assert roundtrip_span["name"] == "HTTP_GET"
-    #     assert roundtrip_span.get("parentID") == parent.get("spanID")
-    #
-    #     # Assert the child sent by the agent.
-    #     handler_span = _get_span(spans, "testOperation")
-    #     assert handler_span["name"] == "testOperation"
-    #     assert handler_span.get("parentID") == roundtrip_span.get("spanID")
+    def setup_distributed_otel_trace(self):
+        self.req = weblog.get(
+            "/e2e_otel_span/mixed_contrib",
+            {"shouldIndex": 1, "parentName": "parent.span.otel"},
+        )
+
+    @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
+    def test_distributed_otel_trace(self):
+        spans = _get_spans_submitted(self.req)
+        print(spans)
+        assert 3 == len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
+
+        # Assert the parent span sent by the agent.
+        parent = _get_span(spans, "parent.span.otel")
+        assert parent["name"] == "parent.span.otel"
+        assert parent.get("parentID") is None
+        assert parent["metrics"]["_dd.top_level"] == 1.0
+
+
+        # Assert the Roundtrip child span sent by the agent.
+        roundtrip_span = _get_span(spans, "HTTP_GET")
+        assert roundtrip_span["name"] == "HTTP_GET"
+        assert roundtrip_span.get("parentID") == parent.get("spanID")
+
+        # Assert the Handler function child span sent by the agent.
+        handler_span = _get_span(spans, "testOperation")
+        assert handler_span["name"] == "testOperation"
+        assert handler_span.get("parentID") == roundtrip_span.get("spanID")
 
 
 def _get_span(spans, span_name):
