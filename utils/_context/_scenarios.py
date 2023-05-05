@@ -325,6 +325,15 @@ class EndToEndScenario(_DockerScenario):
             else:
                 self.library_interface_timeout = 40
 
+        if self.use_proxy:
+            rc_scenario = self.proxy_state.get("mock_remote_config_backend")
+            if rc_scenario is not None:
+                from utils.proxy.core import MOCKED_RESPONSES
+
+                mocked_responses = MOCKED_RESPONSES.get(rc_scenario)
+                if mocked_responses:
+                    self.library.add_remote_config_wait_condition(len(mocked_responses))
+
     def print_test_context(self):
         from utils import weblog
 
