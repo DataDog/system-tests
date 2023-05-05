@@ -843,8 +843,9 @@ class scenarios:
 
     apm_tracing_e2e_otel_span = EndToEndScenario(
         "APM_TRACING_E2E_OTEL_SPAN",
-        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"), },
-        backend_interface_timeout=5)
+        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
+        backend_interface_timeout=5,
+    )
 
     otel_tracing_e2e = OpenTelemetryScenario(
         "OTEL_TRACING_E2E",
