@@ -9,6 +9,8 @@ from mitmproxy import master, options
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError
 
+from rc_mock import MOCKED_RESPONSES
+
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
 
@@ -30,42 +32,6 @@ class ObjectDumpEncoder(json.JSONEncoder):
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
-
-
-MOCKED_RESPONSES = {}
-
-with open("utils/proxy/rc_mocked_responses_live_debugging.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_LIVE_DEBUGGING"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_features.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_FEATURES"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_activate_only.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_ACTIVATE_ONLY"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_dd.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_DD"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_data.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_DATA"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_data_ip_blocking_maxed.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_DATA_IP_BLOCKING_MAXED"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_live_debugging_nocache.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_features_nocache.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_FEATURES_NO_CACHE"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_dd_nocache.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE"] = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_nocache.json", encoding="utf-8") as f:
-    MOCKED_RESPONSES["RC_MOCKED_RESPONSES_ASM_NO_CACHE"] = json.load(f)
 
 
 class _RequestLogger:
