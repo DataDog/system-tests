@@ -372,7 +372,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
     def wait(self, timeout, stop_accepting_data=True):
-        # self._add_more_telemetry_wait_condition()
+        self._add_more_telemetry_wait_condition()
         super(LibraryInterfaceValidator, self).wait(timeout, stop_accepting_data)
 
     def add_request_wait_condition(self, request):
