@@ -8,6 +8,8 @@ binaries/*
 venv
 /vendor/python
 
+.python-version
+
 # tools for http tunneling
 ngrok
 
