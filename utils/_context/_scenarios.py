@@ -169,6 +169,22 @@ class TestTheTestScenario(_Scenario):
         return "spring"
 
 
+class IngestFileEvent(FileSystemEventHandler):
+    """
+    Event handler for file ingestion into interfaces.
+    """
+
+    def __init__(self, interface) -> None:
+        super().__init__()
+        self.interface = interface
+
+    def on_modified(self, event):
+        if event.is_directory:
+            return
+
+        self.interface.ingest_file(event.src_path)
+
+
 class _DockerScenario(_Scenario):
     """ Scenario that tests docker containers """
 
@@ -214,6 +230,8 @@ class _DockerScenario(_Scenario):
         if include_mysql_db:
             self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
+        self._interface_watchdog = None
+
     def configure(self):
         super().configure()
 
@@ -232,6 +250,7 @@ class _DockerScenario(_Scenario):
         return warmups
 
     def close_targets(self):
+        self._stop_interface_watchdog()
         for container in reversed(self._required_containers):
             try:
                 container.remove()
@@ -239,12 +258,19 @@ class _DockerScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
     def collect_logs(self):
-
         for container in self._required_containers:
             try:
                 container.save_logs()
             except:
                 logger.exception(f"Fail to save logs for container {container}")
+
+    def _stop_interface_watchdog(self):
+        """
+        Stops the interface watchdog, if any was started.
+        """
+        if self._interface_watchdog is not None:
+            self._interface_watchdog.stop()
+            self._interface_watchdog = None
 
 
 class EndToEndScenario(_DockerScenario):
@@ -356,22 +382,15 @@ class EndToEndScenario(_DockerScenario):
     def _start_interface_watchdog(self):
         from utils import interfaces
 
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def on_modified(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
         observer = Observer()
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library", recursive=True)
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent", recursive=True)
-
+        observer.schedule(
+            IngestFileEvent(interfaces.library), path=f"{self.host_log_folder}/interfaces/library", recursive=True
+        )
+        observer.schedule(
+            IngestFileEvent(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent", recursive=True
+        )
         observer.start()
+        self._interface_watchdog = observer
 
     def _get_warmups(self):
         warmups = super()._get_warmups()
@@ -520,23 +539,14 @@ class OpenTelemetryScenario(_DockerScenario):
     def _start_interface_watchdog(self):
         from utils import interfaces
 
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def on_modified(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
         observer = Observer()
         observer.schedule(
-            Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
+            IngestFileEvent(interfaces.open_telemetry),
+            path=f"{self.host_log_folder}/interfaces/open_telemetry",
+            recursive=True,
         )
-
         observer.start()
+        self._interface_watchdog = observer
 
     def _get_warmups(self):
         warmups = super()._get_warmups()

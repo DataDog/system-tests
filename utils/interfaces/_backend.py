@@ -58,7 +58,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     # Called by the test setup to make sure the interface is ready.
     def wait(self, timeout):
-        super().wait(timeout, stop_accepting_data=False)
+        super().wait(timeout)
 
         from utils.interfaces import library
 

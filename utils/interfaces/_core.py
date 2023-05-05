@@ -29,8 +29,6 @@ class InterfaceValidator:
         self._data_list = []
         self._ingested_files = set()
 
-        self.accept_data = True
-
     def configure(self):
         pass
 
@@ -40,14 +38,10 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self, timeout, stop_accepting_data=True):
+    def wait(self, timeout):
         time.sleep(timeout)
-        self.accept_data = not stop_accepting_data
 
     def ingest_file(self, src_path):
-        if not self.accept_data:
-            return
-
         with self._lock:
             if src_path in self._ingested_files:
                 return
