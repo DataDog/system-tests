@@ -182,7 +182,7 @@ func main() {
 		parentSpan.SetAttributes(attribute.String("set_attributes", "true"))
 		ddotel.EndOptions(parentSpan, ddtracer.WithError(errors.New("testing_end_span_options")))
 
-		// Parent span will have the following traits :
+		// Child span will have the following traits :
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - duration of one second
 		// - span kind of SpanKind - Internal
@@ -217,7 +217,6 @@ func main() {
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
 
-		// Make a fresh root span!
 		parentCtx, parentSpan := tracer.Start(context.Background(), parentName, trace.WithAttributes(tags...))
 
 		h := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
