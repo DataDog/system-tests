@@ -796,7 +796,7 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES"},
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1"},
         library_interface_timeout=100,
     )
 
@@ -807,7 +807,7 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
         library_interface_timeout=100,
     )
@@ -818,7 +818,7 @@ class scenarios:
     # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-        proxy_state={"mock_remote_config_backend": "ASM_DD"},
+        proxy_state={"mock_remote_config_backend": "ASM_DD", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1"},
         weblog_env={"DD_APPSEC_RULES": None},
         library_interface_timeout=100,
     )
@@ -826,14 +826,22 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+        },
         library_interface_timeout=100,
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+        },
         library_interface_timeout=100,
     )
 
@@ -844,13 +852,14 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
         library_interface_timeout=100,
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_DD_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "ASM_DD_NO_CACHE", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1"},
         library_interface_timeout=100,
     )
 
