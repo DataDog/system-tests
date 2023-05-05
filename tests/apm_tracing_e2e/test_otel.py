@@ -17,9 +17,9 @@ class Test_Otel_Span:
 
     def setup_datadog_otel_span(self):
         self.req = weblog.get(
-            "/e2e_otel_span",
-            {"shouldIndex": 1, "parentName": "parent.span.otel", "childName": "child.span.otel"},
+            "/e2e_otel_span", {"shouldIndex": 1, "parentName": "parent.span.otel", "childName": "child.span.otel"},
         )
+
     # Parent span will have the following traits :
     # - spanId of 10000
     # - tags {'set_attributes':'true'}
@@ -35,24 +35,20 @@ class Test_Otel_Span:
         # Assert the parent span sent by the agent.
         parent = _get_span(spans, "parent.span.otel")
         assert parent.get("parentID") is None
-        assert parent.get("spanID") == 1000
+        assert parent.get("spanID") == "10000"
         assert parent.get("meta").get("set_attributes") == "true"
         assert parent.get("meta").get("error.message") == "testing_end_span_options"
         assert parent["metrics"]["_dd.top_level"] == 1.0
 
-
         # Assert the child sent by the agent.
         child = _get_span(spans, "child.span.otel")
-        assert child.get("parentID") == 1000
-        assert child.get("spanID") != 1000
-        assert child.get("duration") != 1000
-        assert parent.get("meta").get("span.kind") == 1
+        assert child.get("parentID") == parent.get("spanID")
+        assert child.get("spanID") != "10000"
+        assert child.get("duration") == "1000000000"
+        assert child.get("type") == "internal"
 
     def setup_distributed_otel_trace(self):
-        self.req = weblog.get(
-            "/e2e_otel_span/mixed_contrib",
-            {"shouldIndex": 1, "parentName": "parent.span.otel"},
-        )
+        self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"},)
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
@@ -65,7 +61,6 @@ class Test_Otel_Span:
         assert parent["name"] == "parent.span.otel"
         assert parent.get("parentID") is None
         assert parent["metrics"]["_dd.top_level"] == 1.0
-
 
         # Assert the Roundtrip child span sent by the agent.
         roundtrip_span = _get_span(spans, "HTTP_GET")

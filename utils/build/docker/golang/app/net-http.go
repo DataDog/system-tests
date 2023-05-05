@@ -187,7 +187,7 @@ func main() {
 		// - duration of one second
 		// - span kind of SpanKind - Internal
 		start := time.Now()
-		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(time.Now()), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
+		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
 		childSpan.End(oteltrace.WithTimestamp(start.Add(time.Second)))
 		parentSpan.End()
 
