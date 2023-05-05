@@ -19,11 +19,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebController {
   private final Tracer tracer = GlobalOpenTelemetry.getTracer("com.datadoghq.springbootnative");
 
+  // Home '/' is only used for health check, it generates and sends one span to proxy to indicate interfaces are ready.
   @RequestMapping("/")
-  private String home(@RequestHeader HttpHeaders headers) throws InterruptedException {
+  private String home(@RequestHeader HttpHeaders headers) {
+    tracer.spanBuilder("Healthcheck").setSpanKind(SpanKind.SERVER).startSpan().end();
+    return "Weblog is ready";
+  }
+
+  // Basic test scenario that generates a server span with a span link to a fake message span.
+  @RequestMapping("/basic")
+  private String basic(@RequestHeader HttpHeaders headers) throws InterruptedException {
     try (Scope scope = Context.current().makeCurrent()) {
       SpanContext spanContext = fakeAsyncWork(headers);
-      Span span = tracer.spanBuilder("WebController.home")
+      Span span = tracer.spanBuilder("WebController.basic")
               .setSpanKind(SpanKind.SERVER)
               .addLink(spanContext, Attributes.of(AttributeKey.stringKey("messaging.operation"), "publish"))
               .setAttribute(SemanticAttributes.HTTP_ROUTE, "/")
@@ -41,7 +49,7 @@ public class WebController {
 
   // Create a fake producer span and return its span context to test span links
   private SpanContext fakeAsyncWork(HttpHeaders headers) throws InterruptedException {
-    Span fakeSpan = tracer.spanBuilder("WebController.home.publish")
+    Span fakeSpan = tracer.spanBuilder("WebController.basic.publish")
             .setSpanKind(SpanKind.PRODUCER)
             .setAttribute("messaging.system", "rabbitmq")
             .setAttribute("messaging.operation", "publish")
