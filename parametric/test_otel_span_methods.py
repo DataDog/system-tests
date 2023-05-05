@@ -57,7 +57,6 @@ def test_otel_set_service_name(test_agent, test_library):
 @pytest.mark.skip_library("java", "Empty string attribute value are not supported")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("golang", 'Not going to be like this in GO"[\'val1', 'val2\']"')
 def test_otel_set_attributes_different_types(test_agent, test_library):
     """
         - Set attributes of multiple types for an otel span
@@ -89,18 +88,24 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     assert root_span["meta"]["str_val"] == "val"
     assert root_span["meta"]["str_val_empty"] == ""
     if root_span["meta"]["language"] == "go":
+        # in line with the standard Datadog tracing library tags
         assert root_span["meta"]["bool_val"] == "true"
+        assert root_span["meta"]["d_bool_val"] == "false"
+        assert root_span["meta"]["array_val_bool"] == "[true false]"
+        assert root_span["meta"]["array_val_str"] == "[val1 val2]"
+        assert root_span["meta"]["array_val_int"] == "[10 20]"
+        assert root_span["meta"]["array_val_double"] == "[10.1 20.2]"
     else:
         assert root_span["meta"]["bool_val"] == "True"
+        assert root_span["meta"]["array_val_bool"] == "[True, False]"
+        assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
+        assert root_span["meta"]["d_bool_val"] == "False"
+        assert root_span["meta"]["array_val_int"] == "[10, 20]"
+        assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
     assert root_span["metrics"]["int_val"] == 1
     assert root_span["metrics"]["int_val_zero"] == 0
     assert root_span["metrics"]["double_val"] == 4.2
-    assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
-    assert root_span["meta"]["array_val_int"] == "[10, 20]"
-    assert root_span["meta"]["array_val_bool"] == "[True, False]"
-    assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
     assert root_span["meta"]["d_str_val"] == "bye"
-    assert root_span["meta"]["d_bool_val"] == "False"
     assert root_span["metrics"]["d_int_val"] == 2
     assert root_span["metrics"]["d_double_val"] == 3.14
 
