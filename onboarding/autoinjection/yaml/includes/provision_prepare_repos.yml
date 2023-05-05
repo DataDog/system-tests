@@ -7,7 +7,7 @@
             [[ $(cat /etc/os-release) == *"22.04"* ]] && sudo apt-get update
 
             #Staging beta repository
-            sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datad0g.com beta 7" > datadog-beta.list
+            sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datad0g.com beta apm" > datadog-beta.list
             sudo cp datadog-beta.list /etc/apt/sources.list.d/
             #Production repository
             sudo echo "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.datadoghq.com stable 7" > datadog-stable.list
