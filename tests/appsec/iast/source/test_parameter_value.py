@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released, bug
+from utils import context, coverage, missing_feature, released, bug
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -25,11 +25,11 @@ if context.library == "cpp":
         "*": "?",
     }
 )
-@released(nodejs="?")
+@released(nodejs={"express4": "3.19.0", "*": "?"})
 class TestParameterValue:
     """Verify that request parameters are tainted"""
 
-    source_fixture = SourceFixture(
+    source_post_fixture = SourceFixture(
         http_method="POST",
         endpoint="/iast/source/parameter/test",
         request_kwargs={"data": {"table": "user"}},
@@ -38,9 +38,26 @@ class TestParameterValue:
         source_value="user",
     )
 
-    def setup_source_reported(self):
-        self.source_fixture.setup()
+    def setup_source_post_reported(self):
+        self.source_post_fixture.setup()
 
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    def test_source_reported(self):
-        self.source_fixture.test()
+    @missing_feature(context.weblog_variant == "express4", reason="Tainted as request body")
+    def test_source_post_reported(self):
+        self.source_post_fixture.test()
+
+    source_get_fixture = SourceFixture(
+        http_method="GET",
+        endpoint="/iast/source/parameter/test",
+        request_kwargs={"params": {"table": "user"}},
+        source_type="http.request.parameter",
+        source_name="table",
+        source_value="user",
+    )
+
+    def setup_source_get_reported(self):
+        self.source_get_fixture.setup()
+
+    @missing_feature(context.library.library == "java", reason="Pending to add GET test")
+    def test_source_get_reported(self):
+        self.source_get_fixture.test()
