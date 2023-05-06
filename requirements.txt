@@ -28,3 +28,11 @@ docker==6.0.0
 
 opentelemetry-proto==1.17.0
 paramiko==3.1.0
+
+
+#On Boarding requirements
+pulumi>=3.0.0,<4.0.0
+pulumi-aws>=5.0.0,<6.0.0
+pulumi-command>=0.7.0,<0.7.5
+pyyaml>=6.0.0,<6.5.0
+pyyaml-include==1.3

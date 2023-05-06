@@ -8,6 +8,9 @@ import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion
+from tests.onboarding.utils.provision_parser import Provision_parser, Provision_filter
+from tests.onboarding.utils.provision_matrix import ProvisionMatrix
+from pulumi import automation as auto
 
 from utils._context.containers import (
     WeblogContainer,
@@ -643,6 +646,54 @@ class PerformanceScenario(EndToEndScenario):
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
 
+class OnBoardingScenario(_Scenario):
+    def __init__(self, name) -> None:
+        super().__init__(name)
+        self.stack = None
+        self.provision_vms = list(ProvisionMatrix(Provision_filter(name)).get_infraestructure_provision())
+
+    @property
+    def host_log_folder(self):
+        return "logs_onboarding"
+
+    @property
+    def library(self):
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "java"), "0.00")
+
+    def session_start(self, session):
+        """ called at the very begning of the process """
+
+        project_name = "system-tests-onboarding"
+        stack_name = "testing"
+
+        self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        self.print_test_context()
+
+        self.print_info("Executing warmups...")
+
+        try:
+            self.stack = auto.create_or_select_stack(
+                stack_name=stack_name, project_name=project_name, program=self._get_warmups
+            )
+            up_res = self.stack.up(on_output=logger.info)
+        except:
+            self.collect_logs()
+            self.close_targets()
+            raise
+
+    def _get_warmups(self):
+
+        for provision_vm in self.provision_vms:
+            logger.info(f"Executing warmup {provision_vm.name}")
+            provision_vm.start()
+
+    def post_setup(self, session):
+        self.close_targets()
+
+    def close_targets(self):
+        self.stack.destroy(on_output=logger.info)
+
+
 class scenarios:
     empty_scenario = _Scenario("EMPTY_SCENARIO")
     todo = _Scenario("TODO")  # scenario that skips tests not yest executed
@@ -853,3 +904,5 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
+
+    onboarding = OnBoardingScenario("ONBOARDING")
