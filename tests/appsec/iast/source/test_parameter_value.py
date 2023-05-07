@@ -29,11 +29,15 @@ if context.library == "cpp":
 class TestParameterValue:
     """Verify that request parameters are tainted"""
 
+    expectedPostOrigin = "http.request.parameter"
+    if context.library.library == "nodejs":
+        expectedPostOrigin = "http.request.body"
+
     source_post_fixture = SourceFixture(
         http_method="POST",
         endpoint="/iast/source/parameter/test",
         request_kwargs={"data": {"table": "user"}},
-        source_type="http.request.parameter",
+        source_type=expectedPostOrigin,
         source_name="table",
         source_value="user",
     )
@@ -42,7 +46,6 @@ class TestParameterValue:
         self.source_post_fixture.setup()
 
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    @missing_feature(context.weblog_variant == "express4", reason="Tainted as request body")
     def test_source_post_reported(self):
         self.source_post_fixture.test()
 
