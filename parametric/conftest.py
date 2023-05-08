@@ -244,7 +244,7 @@ ENV DD_TRACE_OTEL_ENABLED=true
         container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_dir,
         container_build_context=dotnet_dir,
-        volumes=[(os.path.join(dotnet_dir), "/client"),],
+        volumes=[],
         env=env,
         port=port,
     )
