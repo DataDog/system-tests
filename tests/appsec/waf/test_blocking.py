@@ -80,7 +80,7 @@ class Test_Blocking:
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
-    @bug(context.library == "golang", reason="minify")
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library == "python", reason="Bug, minify and remove new line characters")
     def test_no_accept(self):
         """Blocking without an accept header"""
@@ -128,6 +128,7 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
         )
 
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
@@ -158,6 +159,7 @@ class Test_Blocking:
             },
         )
 
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
@@ -175,6 +177,7 @@ class Test_Blocking:
 
     @missing_feature(context.library == "php", reason="Support for quality not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
