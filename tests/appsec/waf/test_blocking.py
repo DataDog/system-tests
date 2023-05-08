@@ -31,6 +31,9 @@ BLOCK_TEMPLATE_HTML_ANY = {
 BLOCK_TEMPLATE_JSON_ANY = {
     BLOCK_TEMPLATE_JSON_V0,
     BLOCK_TEMPLATE_JSON_V1,
+    # Leading new line in python
+    "\n" + BLOCK_TEMPLATE_JSON_V1,
+    # No trailing new line in dotnet
     BLOCK_TEMPLATE_JSON_V1.rstrip(),
     BLOCK_TEMPLATE_JSON_MIN_V1,
 }
@@ -116,6 +119,7 @@ class Test_Blocking:
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
