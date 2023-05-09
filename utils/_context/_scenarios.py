@@ -8,8 +8,7 @@ import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion
-from tests.onboarding.utils.provision_parser import Provision_parser, Provision_filter
-from tests.onboarding.utils.provision_matrix import ProvisionMatrix
+from tests.onboarding.utils.provision_utils import ProvisionMatrix, Provision_filter
 from pulumi import automation as auto
 
 from utils._context.containers import (
@@ -658,7 +657,10 @@ class OnBoardingScenario(_Scenario):
 
     @property
     def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY", "java"), "0.00")
+        language = os.getenv("TEST_LIBRARY")
+        if language is None:
+            raise ValueError("You must set TEST_LIBRARY env variable!!")
+        return LibraryVersion(language, "0.0")
 
     def session_start(self, session):
         """ called at the very begning of the process """
@@ -905,4 +907,5 @@ class scenarios:
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
 
-    onboarding = OnBoardingScenario("ONBOARDING")
+    onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
+    onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")

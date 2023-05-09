@@ -2,13 +2,9 @@ import os
 from utils.tools import logger
 import pulumi
 import pulumi_aws as aws
-import pulumi_command as command
 from pulumi import Output
-
-import logging
-import logging.config
-import os
-from tests.onboarding.utils.provision_parser import Provision_parser, Provision_filter
+from tests.onboarding.utils.pulumi_utils import remote_install, pulumi_logger
+import pulumi_command as command
 
 
 class TestedVirtualMachine:
@@ -20,7 +16,9 @@ class TestedVirtualMachine:
         autoinjection_install_data,
         language_variant_install_data,
         weblog_install_data,
-        provision_filter,
+        prepare_repos_install,
+        prepare_docker_install,
+        installation_check_data,
     ) -> None:
         self.ec2_data = ec2_data
         self.agent_install_data = agent_install_data
@@ -31,7 +29,9 @@ class TestedVirtualMachine:
         self.ip = None
         self.datadog_config = DataDogConfig()
         self.aws_infra_config = AWSInfraConfig()
-        self.provision_filter = provision_filter
+        self.prepare_repos_install = prepare_repos_install
+        self.prepare_docker_install = prepare_docker_install
+        self.installation_check_data = installation_check_data
         self.name = (
             self.ec2_data["name"]
             + "__agent-"
@@ -47,12 +47,7 @@ class TestedVirtualMachine:
         )
 
     def start(self):
-
-        os_type = self.ec2_data["os_type"]
-        os_distro = self.ec2_data["os_distro"]
-        os_branch = self.ec2_data.get("os_branch", None)
-        provision_parser = Provision_parser(self.provision_filter)
-
+        logger.info("start...")
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,
@@ -63,8 +58,9 @@ class TestedVirtualMachine:
             tags={"Name": self.name,},
         )
 
-        pulumi.export("privateIp_" + self.provision_filter.provision_scenario + "__" + self.name, server.private_ip)
+        pulumi.export("privateIp_" + self.name, server.private_ip)
         Output.all(server.private_ip).apply(lambda args: self.set_ip(args[0]))
+        Output.all(server.private_ip).apply(lambda args: pulumi_logger("vms_desc").info(f"{args[0]}:{self.name}"))
 
         private_key_pem = (lambda path: open(path).read())(self.aws_infra_config.privateKeyPath)
         connection = command.remote.ConnectionArgs(
@@ -72,31 +68,31 @@ class TestedVirtualMachine:
         )
 
         # Prepare repositories
-        prepare_repos_install = provision_parser.ec2_prepare_repos_install_data(os_type, os_distro)
-        prepare_repos_installer = self._remote_install(
-            connection, "prepare-repos-installer_" + self.name, prepare_repos_install["install"], server
+        prepare_repos_installer = remote_install(
+            connection, "prepare-repos-installer_" + self.name, self.prepare_repos_install["install"], server
         )
 
         # Prepare docker installation if we need
-        prepare_docker_install = provision_parser.ec2_prepare_docker_install_data(os_type, os_distro)
-        prepare_docker_installer = self._remote_install(
+        prepare_docker_installer = remote_install(
             connection,
             "prepare-docker-installer_" + self.name,
-            prepare_docker_install["install"],
+            self.prepare_docker_install["install"],
             prepare_repos_installer,
         )
 
         # Install agent
-        agent_installer = self._remote_install(
+        agent_installer = remote_install(
             connection,
             "agent-installer_" + self.name,
             self.agent_install_data["install"],
             prepare_docker_installer,
             add_dd_keys=True,
+            dd_api_key=self.datadog_config.dd_api_key,
+            dd_site=self.datadog_config.dd_site,
         )
 
         # Install autoinjection
-        autoinjection_installer = self._remote_install(
+        autoinjection_installer = remote_install(
             connection,
             "autoinjection-installer_" + self.name,
             self.autoinjection_install_data["install"],
@@ -104,20 +100,17 @@ class TestedVirtualMachine:
         )
 
         # Extract installed component versions
-        installation_check_data = provision_parser.ec2_installation_checks_data(
-            self.language, os_type, os_distro, os_branch
-        )
-        self._remote_install(
+        remote_install(
             connection,
             "installation-check_" + self.name,
-            installation_check_data["install"],
+            self.installation_check_data["install"],
             autoinjection_installer,
             logger_name="pulumi_installed_versions",
         )
 
         # Install language variants (not mandatory)
         if "install" in self.language_variant_install_data:
-            lang_variant_installer = self._remote_install(
+            lang_variant_installer = remote_install(
                 connection,
                 "lang-variant-installer_" + self.name,
                 self.language_variant_install_data["install"],
@@ -127,96 +120,15 @@ class TestedVirtualMachine:
             lang_variant_installer = autoinjection_installer
 
         # Build weblog app
-        weblog_runner = self._remote_install(
+        weblog_runner = remote_install(
             connection,
             "run-weblog_" + self.name,
             self.weblog_install_data["install"],
             lang_variant_installer,
             add_dd_keys=True,
+            dd_api_key=self.datadog_config.dd_api_key,
+            dd_site=self.datadog_config.dd_site,
         )
-
-    def _remote_install(
-        self, connection, command_identifier, install_info, depends_on, add_dd_keys=False, logger_name=None
-    ):
-        # Do we need to add env variables?
-        if install_info is None:
-            return depends_on
-        if add_dd_keys:
-            command_exec = (
-                "DD_API_KEY="
-                + self.datadog_config.dd_api_key
-                + " DD_SITE="
-                + self.datadog_config.dd_site
-                + " "
-                + install_info["command"]
-            )
-        else:
-            command_exec = install_info["command"]
-
-        local_command = None
-        # Execute local command if we need
-        if "local-command" in install_info:
-            local_command = install_info["local-command"]
-
-        # Execute local script if we need
-        if "local-script" in install_info:
-            local_command = "sh " + install_info["local-script"]
-
-        if local_command:
-            webapp_build = command.local.Command(
-                "local-script_" + command_identifier,
-                create=local_command,
-                opts=pulumi.ResourceOptions(depends_on=[depends_on]),
-            )
-            webapp_build.stdout.apply(lambda outputlog: self.pulumi_logger("build_local_weblogs").info(outputlog))
-            depends_on = webapp_build
-
-        # Copy files from local to remote if we need
-        if "copy_files" in install_info:
-            for file_to_copy in install_info["copy_files"]:
-
-                # If we don't use remote_path, the remote_path will be a default remote user home
-                if "remote_path" in file_to_copy:
-                    remote_path = file_to_copy["remote_path"]
-                else:
-                    remote_path = os.path.basename(file_to_copy["local_path"])
-
-                # Launch copy file command
-                cmd_cp_webapp = command.remote.CopyFile(
-                    file_to_copy["name"] + "-" + command_identifier,
-                    connection=connection,
-                    local_path=file_to_copy["local_path"],
-                    remote_path=remote_path,
-                    opts=pulumi.ResourceOptions(depends_on=[depends_on]),
-                )
-            depends_on = cmd_cp_webapp
-
-        # Execute a basic command on our server.
-        cmd_exec_install = command.remote.Command(
-            command_identifier,
-            connection=connection,
-            create=command_exec,
-            opts=pulumi.ResourceOptions(depends_on=[depends_on]),
-        )
-        if logger_name:
-            cmd_exec_install.stdout.apply(lambda outputlog: self.pulumi_logger(logger_name).info(outputlog))
-        else:
-            # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
-            # same remote machine in the same log file
-            Output.all(connection.host, cmd_exec_install.stdout).apply(
-                lambda args: self.pulumi_logger(args[0]).info(args[1])
-            )
-
-        return cmd_exec_install
-
-    def pulumi_logger(self, log_name, level=logging.INFO):
-        formatter = logging.Formatter("%(message)s")
-        handler = logging.FileHandler(f"logs_onboarding/{log_name}.log")
-        handler.setFormatter(formatter)
-        specified_logger = logging.getLogger(log_name)
-        specified_logger.setLevel(level)
-        specified_logger.addHandler(handler)
-        return specified_logger
 
     def set_ip(self, instance_ip):
         self.ip = instance_ip
