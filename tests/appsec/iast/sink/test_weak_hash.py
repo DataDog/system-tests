@@ -2,14 +2,31 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import pytest
-from utils import weblog, interfaces, context, missing_feature, coverage, released, bug
-
+from utils import weblog, interfaces, context, bug, missing_feature, coverage, released
+from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
-# Weblog are ok for nodejs/express4 and java/spring-boot
+def _expected_location():
+    if context.library.library == "java":
+        return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
+
+    if context.library.library == "nodejs":
+        return "iast.js"
+
+    if context.library.library == "python":
+        if context.library.version >= "1.12.0":
+            return "iast.py"
+        else:
+            # old value: absolute path
+            if context.weblog_variant == "uwsgi-poc":
+                return "/app/./iast.py"
+            else:
+                return "/app/iast.py"
+
+
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="1.6.0", ruby="?")
 @released(nodejs={"express4": "3.11.0", "*": "?"})
@@ -26,29 +43,32 @@ if context.library == "cpp":
         "*": "?",
     }
 )
-class TestIastWeakHash:
-    """Verify IAST WEAK HASH detection feature"""
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+class TestWeakHash:
+    """Verify weak hash detection."""
 
-    @property
-    def expected_location(self):
-        if context.library.library == "java":
-            return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
+    sink_fixture = SinkFixture(
+        vulnerability_type="WEAK_HASH",
+        http_method="GET",
+        insecure_endpoint="/iast/insecure_hashing/test_md5_algorithm",
+        secure_endpoint="/iast/insecure_hashing/test_secure_algorithm",
+        data=None,
+        location_map=_expected_location,
+        evidence_map="md5",
+    )
 
-        if context.library.library == "nodejs":
-            return "iast.js"
+    def setup_insecure(self):
+        self.sink_fixture.setup_insecure()
 
-        if context.library.library == "python":
-            # temporary hack because dd-trace-py version is net yet increased
-            is_dev_version = "dev" in str(context.library)
+    def test_insecure(self):
+        self.sink_fixture.test_insecure()
 
-            if context.library.version >= "1.12.0" or is_dev_version:
-                return "iast.py"
-            else:
-                # old value: absolute path
-                if context.weblog_variant == "uwsgi-poc":
-                    return "/app/./iast.py"
-                else:
-                    return "/app/iast.py"
+    def setup_secure(self):
+        self.sink_fixture.setup_secure()
+
+    def test_secure(self):
+        self.sink_fixture.test_secure()
 
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
@@ -63,7 +83,8 @@ class TestIastWeakHash:
             self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,
             vulnerability_type="WEAK_HASH",
-            location_path=self.expected_location,
+            location_path=self.sink_fixture.expected_location,
+            evidence=self.sink_fixture.expected_evidence,
         )
 
     def setup_insecure_hash_multiple(self):
@@ -77,23 +98,5 @@ class TestIastWeakHash:
             self.r_insecure_hash_multiple,
             vulnerability_count=2,
             vulnerability_type="WEAK_HASH",
-            location_path=self.expected_location,
-        )
-
-    def setup_secure_hash(self):
-        self.r_secure_hash = weblog.get("/iast/insecure_hashing/test_secure_algorithm")
-
-    def test_secure_hash(self):
-        """Strong hash algorithm is not reported as insecure"""
-        interfaces.library.expect_no_vulnerabilities(self.r_secure_hash)
-
-    def setup_insecure_md5_hash(self):
-        self.r_insecure_md5_hash = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
-
-    @bug(context.weblog_variant == "spring-boot-openliberty")
-    def test_insecure_md5_hash(self):
-        """Test md5 weak hash algorithm reported as insecure"""
-
-        interfaces.library.expect_iast_vulnerabilities(
-            self.r_insecure_md5_hash, vulnerability_type="WEAK_HASH", evidence="md5"
+            location_path=self.sink_fixture.expected_location,
         )
