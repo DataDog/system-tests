@@ -118,6 +118,16 @@ app.get("/custom_event", (req: Request, res: Response) => {
   res.send("OK");
 });
 
+app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
+  require('dd-trace/packages/dd-trace/src/plugins/util/web').root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag);
+
+  for (const [k, v] of Object.entries(req.query)) {
+    res.set(k, v);
+  }
+
+  res.status(req.params.status || 200).send('Value tagged');
+});
+
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');
