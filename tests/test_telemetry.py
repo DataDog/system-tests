@@ -184,9 +184,9 @@ class Test_Telemetry:
             return data["request"]["content"].get("request_type") != "apm-onboarding-event"
 
         def save_data(data, container):
-            # payloads are identifed by their tracer_time/runtime_id
+            # payloads are identifed by their seq_id/runtime_id
             if not_onboarding_event(data):
-                key = data["request"]["content"]["tracer_time"], data["request"]["content"]["runtime_id"]
+                key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
         self.validate_library_telemetry_data(
@@ -226,8 +226,8 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests:
-                logger.error(f"tracer_time: {s}, runtime_id: {r}")
+            for s, r in self.library_requests.keys():
+                logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
