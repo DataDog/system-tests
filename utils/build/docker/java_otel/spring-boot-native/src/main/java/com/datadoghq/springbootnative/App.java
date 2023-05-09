@@ -24,15 +24,29 @@ public class App {
                 ResourceAttributes.SERVICE_NAME, "otel-system-tests-spring-boot",
                 ResourceAttributes.DEPLOYMENT_ENVIRONMENT, "system-tests"));
 
-        OtlpHttpSpanExporter intakeExporter = OtlpHttpSpanExporter.builder()
+        OtlpHttpSpanExporter agentExporter = 
+            OtlpHttpSpanExporter.builder()
+                .setEndpoint("http://proxy:8126/v1/traces")
+                .addHeader("dd-protocol", "otlp")
+                .addHeader("dd-otlp-path", "agent")
+                .build();
+        OtlpHttpSpanExporter intakeExporter = 
+            OtlpHttpSpanExporter.builder()
                 .setEndpoint("http://proxy:8126/api/v0.2/traces")  // send to the proxy first
                 .addHeader("dd-protocol", "otlp")
                 .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
+                .addHeader("dd-otlp-path", "intake")
+                .build();
+        OtlpHttpSpanExporter collectorExporter = 
+            OtlpHttpSpanExporter.builder()
+                .setEndpoint("http://proxy:8126/v1/traces")
+                .addHeader("dd-protocol", "otlp")
+                .addHeader("dd-otlp-path", "collector")
                 .build();
 
         SpanExporter loggingSpanExporter = OtlpJsonLoggingSpanExporter.create();
 
-        SpanExporter exporter = SpanExporter.composite(intakeExporter, loggingSpanExporter);
+        SpanExporter exporter = SpanExporter.composite(agentExporter, intakeExporter, collectorExporter, loggingSpanExporter);
 
         SpanProcessor processor = BatchSpanProcessor.builder(exporter)
                 .setMaxExportBatchSize(1)
