@@ -10,6 +10,7 @@ from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion
 from tests.onboarding.utils.provision_utils import ProvisionMatrix, Provision_filter
 from pulumi import automation as auto
+import inspect
 
 from utils._context.containers import (
     WeblogContainer,
@@ -690,9 +691,12 @@ class OnBoardingScenario(_Scenario):
             provision_vm.start()
 
     def post_setup(self, session):
+        logger.info(f"Executing post_setup")
+        logger.info(inspect.stack())
         self.close_targets()
 
     def close_targets(self):
+        logger.info(f"Pulumi stack down")
         self.stack.destroy(on_output=logger.info)
 
 

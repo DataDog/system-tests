@@ -148,8 +148,8 @@ class AWSInfraConfig:
 
 class DataDogConfig:
     def __init__(self) -> None:
-        self.dd_api_key = os.getenv("DD_API_KEY")
-        self.dd_app_key = os.getenv("DD_APP_KEY")
-        self.dd_site = os.getenv("DD_SITE", "datadoghq.com")
+        self.dd_api_key = os.getenv("DD_API_KEY_ONBOARDING")
+        self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
+        self.dd_site = os.getenv("DD_SITE_ONBOARDING", "datadoghq.com")
         if None in (self.dd_api_key, self.dd_app_key):
             raise ValueError("Datadog agent is not configured correctly")

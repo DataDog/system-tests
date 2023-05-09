@@ -8,6 +8,6 @@ import os
 
 
 @pytest.fixture(params=context.scenario.provision_vms)
-def onboardig_vm(request):
+def onboardig_vm_ip(request):
 
-    yield request.param
+    yield request.param.ip

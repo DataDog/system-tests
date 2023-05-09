@@ -118,41 +118,37 @@ def pytest_collection_modifyitems(session, config, items):
     """unselect items that are not included in the current scenario"""
 
     def get_declared_scenario(item):
-        declared_scenarios = []
         for marker in item.own_markers:
             if marker.name == "scenario":
-                declared_scenarios.append(marker.args[0])
+                return marker.args[0]
 
-        if not declared_scenarios:
-            for marker in item.parent.own_markers:
-                if marker.name == "scenario":
-                    declared_scenarios.append(marker.args[0])
-        if not declared_scenarios:
-            for marker in item.parent.parent.own_markers:
-                if marker.name == "scenario":
-                    declared_scenarios.append(marker.args[0])
-        if not declared_scenarios:
-            declared_scenarios.append(None)
+        for marker in item.parent.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
 
-        return declared_scenarios
+        for marker in item.parent.parent.own_markers:
+            if marker.name == "scenario":
+                return marker.args[0]
+
+        return None
 
     selected = []
     deselected = []
 
     for item in items:
-        for declared_scenario in get_declared_scenario(item):
+        declared_scenario = get_declared_scenario(item)
 
-            if (
-                declared_scenario == context.scenario.name
-                or declared_scenario is None
-                and context.scenario.name == "DEFAULT"
-            ):
-                logger.info(f"{item.nodeid} is included in {context.scenario}")
-                selected.append(item)
-                _collect_item_metadata(item)
-            else:
-                logger.debug(f"{item.nodeid} is not included in {context.scenario}")
-                deselected.append(item)
+        if (
+            declared_scenario == context.scenario.name
+            or declared_scenario is None
+            and context.scenario.name == "DEFAULT"
+        ):
+            logger.info(f"{item.nodeid} is included in {context.scenario}")
+            selected.append(item)
+            _collect_item_metadata(item)
+        else:
+            logger.debug(f"{item.nodeid} is not included in {context.scenario}")
+            deselected.append(item)
 
     items[:] = selected
     config.hook.pytest_deselected(items=deselected)
@@ -219,8 +215,6 @@ def pytest_collection_finish(session):
 
     terminal.write("\n\n")
 
-    context.scenario.post_setup(session)
-
 
 def pytest_runtest_call(item):
     from utils import weblog
@@ -261,7 +255,7 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
-
+    context.scenario.post_setup(session)
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
         open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
