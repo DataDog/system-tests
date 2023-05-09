@@ -67,7 +67,7 @@ namespace ApmTestClient.Services
 
         public override Task<StartSpanReturn> StartSpan(StartSpanArgs request, ServerCallContext context)
         {
-            var creationSettings = new SpanCreationSettings()
+            var creationSettings = new SpanCreationSettings
                                    {
                                        FinishOnClose = false,
                                    };
@@ -78,8 +78,6 @@ namespace ApmTestClient.Services
                 creationSettings.Parent = _spanContextExtractor.Extract(
                     request.HttpHeaders?.HttpHeaders!,
                     getter: GetHeaderValues);
-                Console.WriteLine($"creationSettings.Parent?.SpanId={creationSettings.Parent?.SpanId}");
-                Console.WriteLine($"creationSettings.Parent?.TraceId={creationSettings.Parent?.TraceId}");
             }
 
             if (creationSettings.Parent is null && request is { HasParentId: true, ParentId: > 0 })
@@ -260,9 +258,6 @@ namespace ApmTestClient.Services
                     parameters[2].ParameterType.Name == "Action`3")
                 {
                     var carrierType = typeof(RepeatedField<HeaderTuple>);
-                    var actionType = typeof(Action<,,>);
-
-                    var closedActionType = actionType.MakeGenericType(carrierType, typeof(string), typeof(string));
                     return method.MakeGenericMethod(carrierType);
                 }
             }
