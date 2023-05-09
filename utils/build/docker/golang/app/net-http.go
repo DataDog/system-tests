@@ -173,13 +173,13 @@ func main() {
 
 		// Parent span will have the following traits :
 		// - spanId of 10000
-		// - tags {'set_attributes':'true'}
+		// - tags {'attributes':'values'}
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - error tag with 'testing_end_span_options' message
 		parentCtx, parentSpan := tracer.Start(ddotel.ContextWithStartOptions(context.Background(),
 			ddtracer.WithSpanID(10000)), parentName,
 			trace.WithAttributes(tags...))
-		parentSpan.SetAttributes(attribute.String("set_attributes", "true"))
+		parentSpan.SetAttributes(attribute.String("attributes", "values"))
 		ddotel.EndOptions(parentSpan, ddtracer.WithError(errors.New("testing_end_span_options")))
 
 		// Child span will have the following traits :
