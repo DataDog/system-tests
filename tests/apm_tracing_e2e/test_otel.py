@@ -23,7 +23,7 @@ class Test_Otel_Span:
     # Parent span will have the following traits :
     # - spanId of 10000
     # - tags {'attributes':'values'}
-    # - error tag with 'testing_ddotel_endOptions' message
+    # - error tag with 'testing_end_span_options' message
     # Child span will have the following traits :
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
