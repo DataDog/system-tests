@@ -204,6 +204,25 @@ weblogs:
             - name: copy-docker-file
               local_path: weblog/java/test-app-java/Dockerfile
 
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_run.sh
+
+    - name: test-app-java-alpine
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-script: weblog/java/test-app-java/test-app-java_local_build.sh
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/java/test-app-java/test-app-java_docker_run.sh
+
+            - name: copy-docker-file
+              local_path: weblog/java/test-app-java/Dockerfile.alpine
+              remote_path: Dockerfile
+
             - name: copy-entrypoint-docker
               local_path: weblog/java/test-app-java/docker_entrypoint_docker.sh
 
@@ -211,6 +230,7 @@ weblogs:
               local_path: test-app-java.tar
 
           command: sh test-app-java_docker_run.sh
+
     - name: test-app-java-buildpack
       supported-language-versions:
         - 11

@@ -6,6 +6,7 @@ import docker
 from docker.errors import APIError
 from docker.models.containers import Container
 import pytest
+import requests
 
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
@@ -28,7 +29,14 @@ class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
-        self, name, image_name, host_log_folder, environment=None, allow_old_container=False, healthcheck=None, **kwargs
+        self,
+        name,
+        image_name,
+        host_log_folder,
+        environment=None,
+        allow_old_container=False,
+        healthcheck=None,
+        **kwargs,
     ) -> None:
         self.name = name
         self.host_log_folder = host_log_folder
@@ -417,6 +425,13 @@ class KafkaContainer(TestedContainer):
                 "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
             },
             allow_old_container=True,
+            healthcheck={
+                "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "start_period": 15 * 1_000_000_000,
+                "interval": 2 * 1_000_000_000,
+                "timeout": 2 * 1_000_000_000,
+                "retries": 15,
+            },
         )
 
 
@@ -466,3 +481,31 @@ class MySqlContainer(TestedContainer):
             host_log_folder=host_log_folder,
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
         )
+
+
+class OpenTelemetryCollectorContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="otel/opentelemetry-collector-contrib:latest",
+            name="collector",
+            command="--config=/etc/otelcol-config.yml",
+            environment={},
+            volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            host_log_folder=host_log_folder,
+            ports={"13133/tcp": ("0.0.0.0", 13133)},
+        )
+
+    # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
+    def wait_for_health(self):
+        time.sleep(20)  # It takes long for otel collector to start
+
+        for i in range(61):
+            try:
+                r = requests.get("http://localhost:13133", timeout=1)
+                logger.debug(f"Healthcheck #{i} on localhost:13133: {r}")
+                if r.status_code == 200:
+                    return
+            except Exception as e:
+                logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
+            time.sleep(1)
+        pytest.exit("localhost:13133 never answered to healthcheck request", 1)

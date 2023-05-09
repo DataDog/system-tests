@@ -20,6 +20,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
+    OpenTelemetryCollectorContainer,
     create_network,
 )
 
@@ -180,7 +181,6 @@ class _DockerScenario(_Scenario):
         include_cassandra_db=False,
         include_mongo_db=False,
         include_kafka=False,
-        include_zookeeper=False,
         include_rabbitmq=False,
         include_mysql_db=False,
     ) -> None:
@@ -204,10 +204,9 @@ class _DockerScenario(_Scenario):
             self._required_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
 
         if include_kafka:
-            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
-
-        if include_zookeeper:
+            # kafka requires zookeeper
             self._required_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
+            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
 
         if include_rabbitmq:
             self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
@@ -268,7 +267,6 @@ class EndToEndScenario(_DockerScenario):
         include_cassandra_db=False,
         include_mongo_db=False,
         include_kafka=False,
-        include_zookeeper=False,
         include_rabbitmq=False,
         include_mysql_db=False,
     ) -> None:
@@ -280,7 +278,6 @@ class EndToEndScenario(_DockerScenario):
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
             include_kafka=include_kafka,
-            include_zookeeper=include_zookeeper,
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
         )
@@ -314,7 +311,7 @@ class EndToEndScenario(_DockerScenario):
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
-                self.library_interface_timeout = 10
+                self.library_interface_timeout = 25
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("nodejs",):
@@ -497,15 +494,27 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name, weblog_env) -> None:
-        self._required_containers = []
+    def __init__(self, name) -> None:
         super().__init__(name, use_proxy=True)
 
-        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+        self.weblog_container = WeblogContainer(self.host_log_folder)
+        self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+        self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
+        self._required_containers.append(self.collector_container)
+
+    def configure(self):
+        super().configure()
+        self._check_env_vars()
+        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
+        self.weblog_container.environment["DD_SITE"] = dd_site
+        self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
+        self.collector_container.environment["DD_SITE"] = dd_site
 
     def _create_interface_folders(self):
-        for interface in ("open_telemetry", "backend"):
+        for interface in ("open_telemetry", "backend", "agent"):
             self.create_log_subfolder(f"interfaces/{interface}")
 
     def _start_interface_watchdog(self):
@@ -569,17 +578,18 @@ class OpenTelemetryScenario(_DockerScenario):
 
         interface.wait(timeout)
 
+    def _check_env_vars(self):
+        for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
+            if env not in os.environ:
+                raise Exception(f"Please set {env}, OTel E2E test requires 3 API keys and 3 APP keys")
+
     @property
     def library(self):
         return LibraryVersion("open_telemetry", "0.0.0")
 
     @property
-    def agent(self):
-        return LibraryVersion("agent", "0.0.0")
-
-    @property
     def agent_version(self):
-        return self.agent.version
+        return self.agent_container.agent_version
 
     @property
     def weblog_variant(self):
@@ -669,7 +679,6 @@ class scenarios:
         include_cassandra_db=True,
         include_mongo_db=True,
         include_kafka=True,
-        include_zookeeper=True,
         include_rabbitmq=True,
         include_mysql_db=True,
     )
@@ -728,7 +737,13 @@ class scenarios:
 
     appsec_waf_telemetry = EndToEndScenario(
         "APPSEC_WAF_TELEMETRY",
-        weblog_env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true", "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0"},
+        weblog_env={
+            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            # Python lib has different env var until we enable Telemetry Metrics by default
+            "_DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+        },
     )
     # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
     # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
@@ -840,10 +855,7 @@ class scenarios:
         backend_interface_timeout=5,
     )
 
-    otel_tracing_e2e = OpenTelemetryScenario(
-        "OTEL_TRACING_E2E",
-        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
-    )
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E")
 
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")

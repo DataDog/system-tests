@@ -1,9 +1,20 @@
 # Util functions to validate JSON trace data from OTel system tests
 
 import json
+import dictdiffer
+
+# Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent
+def validate_all_traces(
+    traces_agent: list[dict], traces_intake: list[dict], traces_collector: list[dict], use_128_bits_trace_id: bool
+):
+    spans_agent = validate_trace(traces_agent, use_128_bits_trace_id)
+    spans_intake = validate_trace(traces_intake, use_128_bits_trace_id)
+    spans_collector = validate_trace(traces_collector, use_128_bits_trace_id)
+    validate_spans_from_all_paths(spans_agent, spans_intake, spans_collector)
 
 
-def validate_trace(traces: list, use_128_bits_trace_id: bool):
+# Validates fields that we know the values upfront for one single trace from an OTLP ingestion path
+def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
     server_span = None
     message_span = None
     for trace in traces:
@@ -21,6 +32,7 @@ def validate_trace(traces: list, use_128_bits_trace_id: bool):
     validate_server_span(server_span)
     validate_message_span(message_span)
     validate_span_link(server_span, message_span)
+    return (server_span, message_span)
 
 
 def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
@@ -35,7 +47,6 @@ def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
         "deployment.environment": "system-tests",
         "_dd.ingestion_reason": "otel",
         "otel.status_code": "Unset",
-        "otel.user_agent": "OTel-OTLP-Exporter-Java/1.23.1",
         "otel.library.name": "com.datadoghq.springbootnative",
     }
     assert expected_tags.items() <= span.items()
@@ -54,24 +65,82 @@ def validate_trace_id(span: dict, use_128_bits_trace_id: bool):
 
 
 def validate_server_span(span: dict):
-    expected_tags = {"name": "WebController.home", "resource": "GET /"}
+    expected_tags = {"name": "WebController.basic", "resource": "GET /"}
     expected_meta = {"http.route": "/", "http.method": "GET"}
     assert expected_tags.items() <= span.items()
     assert expected_meta.items() <= span["meta"].items()
 
 
 def validate_message_span(span: dict):
-    expected_tags = {"name": "WebController.home.publish", "resource": "publish"}
+    expected_tags = {"name": "WebController.basic.publish", "resource": "publish"}
     expected_meta = {"messaging.operation": "publish", "messaging.system": "rabbitmq"}
     assert expected_tags.items() <= span.items()
     assert expected_meta.items() <= span["meta"].items()
 
 
 def validate_span_link(server_span: dict, message_span: dict):
-    span_links = json.loads(server_span["meta"]["_dd.span_links"])
-    assert len(span_links) == 1
-    span_link = span_links[0]
-    assert span_link["trace_id"] == message_span["meta"]["otel.trace_id"]
-    span_id_hex = f'{int(message_span["span_id"]):x}'  # span_id is an int in span but a hex in span_links
-    assert span_link["span_id"] == span_id_hex
-    assert span_link["attributes"] == {"messaging.operation": "publish"}
+    # TODO: enable check on span links once newer version of Agent is used in system tests
+    if "_dd.span_links" not in server_span["meta"]:
+        return
+
+    actual = json.loads(server_span["meta"]["_dd.span_links"])
+    expected = [
+        {
+            "trace_id": message_span["meta"]["otel.trace_id"],
+            "span_id": f'{int(message_span["span_id"]):x}',
+            "attributes": {"messaging.operation": "publish"},
+        }
+    ]
+    assert actual == expected
+
+
+# Validates fields that we don't know the values upfront for all 3 ingestion paths
+def validate_spans_from_all_paths(spans_agent: tuple, spans_intake: tuple, spans_collector: tuple):
+    validate_span_fields(spans_agent[0], spans_intake[0], "Agent server span", "Intake server span")
+    validate_span_fields(spans_agent[0], spans_collector[0], "Agent server span", "Collector server span")
+    validate_span_fields(spans_agent[1], spans_intake[1], "Agent message span", "Intake message span")
+    validate_span_fields(spans_agent[1], spans_collector[1], "Agent message span", "Intake message span")
+
+
+def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
+    assert span1["start"] == span2["start"]
+    assert span1["end"] == span2["end"]
+    assert span1["duration"] == span2["duration"]
+    assert span1["resource_hash"] == span2["resource_hash"]
+    validate_span_metas_metrics(span1["meta"], span2["meta"], span1["metrics"], span2["metrics"], name1, name2)
+
+
+KNOWN_UNMATCHED_METAS = [
+    "otel.user_agent",
+    "span.kind",
+    "_dd.agent_version",
+    "_dd.span_links",  # TODO: remove once Agent supports span links
+    "_dd.agent_rare_sampler.enabled",
+    "_dd.hostname",
+    "_dd.compute_stats",
+    "_dd.tracer_version",
+    "_dd.p.dm",
+    "_dd.agent_hostname",
+]
+KNOWN_UNMATCHED_METRICS = [
+    "_dd.agent_errors_sampler.target_tps",
+    "_dd.agent_priority_sampler.target_tps",
+    "_sampling_priority_rate_v1",
+    "_dd.otlp_sr",
+]
+
+
+def validate_span_metas_metrics(meta1: dict, meta2: dict, metrics1: dict, metrics2: dict, name1: str, name2: str):
+    # Exclude fields that are expected to have different values for different ingestion paths
+    for known_unmatched_meta in KNOWN_UNMATCHED_METAS:
+        meta1.pop(known_unmatched_meta, None)
+        meta2.pop(known_unmatched_meta, None)
+    for known_unmatched_metric in KNOWN_UNMATCHED_METRICS:
+        metrics1.pop(known_unmatched_metric, None)
+        metrics2.pop(known_unmatched_metric, None)
+
+    # Other fields should match
+    assert meta1 == meta2, f"Diff in metas between {name1} and {name2}: {list(dictdiffer.diff(meta1, meta2))}"
+    assert (
+        metrics1 == metrics2
+    ), f"Diff in metrics between {name1} and {name2}: {list(dictdiffer.diff(metrics1, metrics2))}"

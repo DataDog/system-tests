@@ -9,7 +9,7 @@ from utils import released, coverage, interfaces, scenarios, weblog
     nodejs="3.15.0",
     php="0.85.0",
     php_appsec="0.7.0",
-    python="?",
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
 @coverage.basic
