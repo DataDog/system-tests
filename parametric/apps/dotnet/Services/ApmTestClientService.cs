@@ -68,9 +68,9 @@ namespace ApmTestClient.Services
         public override Task<StartSpanReturn> StartSpan(StartSpanArgs request, ServerCallContext context)
         {
             var creationSettings = new SpanCreationSettings()
-            {
-                FinishOnClose = false,
-            };
+                                   {
+                                       FinishOnClose = false,
+                                   };
 
             if (request.HttpHeaders?.HttpHeaders.Count > 0)
             {
@@ -114,11 +114,12 @@ namespace ApmTestClient.Services
 
             Spans[span.SpanId] = span;
 
-            return Task.FromResult(new StartSpanReturn
-            {
-                SpanId = span.SpanId,
-                TraceId = span.TraceId,
-            });
+            return Task.FromResult(
+                new StartSpanReturn
+                {
+                    SpanId = span.SpanId,
+                    TraceId = span.TraceId,
+                });
         }
 
         public override Task<SpanSetMetaReturn> SpanSetMeta(SpanSetMetaArgs request, ServerCallContext context)
@@ -131,7 +132,7 @@ namespace ApmTestClient.Services
         public override Task<SpanSetMetricReturn> SpanSetMetric(SpanSetMetricArgs request, ServerCallContext context)
         {
             var span = Spans[request.SpanId];
-            SetMetric.Invoke(span, new object[] { request.Key, (double) request.Value});
+            SetMetric.Invoke(span, new object[] { request.Key, (double)request.Value });
             return Task.FromResult(new SpanSetMetricReturn());
         }
 
@@ -252,11 +253,11 @@ namespace ApmTestClient.Services
                 var parameters = method.GetParameters();
                 var genericArgs = method.GetGenericArguments();
 
-                if (parameters.Length == 3
-                    && genericArgs.Length == 1
-                    && parameters[0].ParameterType == typeof(SpanContext)
-                    && parameters[1].ParameterType == genericArgs[0]
-                    && parameters[2].ParameterType.Name == "Action`3")
+                if (parameters.Length == 3 &&
+                    genericArgs.Length == 1 &&
+                    parameters[0].ParameterType == typeof(SpanContext) &&
+                    parameters[1].ParameterType == genericArgs[0] &&
+                    parameters[2].ParameterType.Name == "Action`3")
                 {
                     var carrierType = typeof(RepeatedField<HeaderTuple>);
                     var actionType = typeof(Action<,,>);
