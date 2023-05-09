@@ -428,7 +428,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
 
             assert key.startswith("_dd.p.")
 
-            # adding "t.tid" to "tracestate" header is redundant and optional,
+            # adding "t.tid" to "tracestate" header is redundant,
             # but if it is present, assert the value matches "_dd.p.tid".
             assert (key == "_dd.p.tid" and "t.tid" not in dd_items4) or (
                 "t." + key[6:] + val.replace("=", ":") in dd_items4
