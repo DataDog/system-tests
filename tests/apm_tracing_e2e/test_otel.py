@@ -22,7 +22,7 @@ class Test_Otel_Span:
 
     # Parent span will have the following traits :
     # - spanId of 10000
-    # - tags {'set_attributes':'true'}
+    # - tags {'attributes':'values'}
     # - error tag with 'testing_ddotel_endOptions' message
     # Child span will have the following traits :
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
@@ -36,7 +36,7 @@ class Test_Otel_Span:
         parent = _get_span(spans, "parent.span.otel")
         assert parent.get("parentID") is None
         assert parent.get("spanID") == "10000"
-        assert parent.get("meta").get("set_attributes") == "true"
+        assert parent.get("meta").get("attributes") == "values"
         assert parent.get("meta").get("error.message") == "testing_end_span_options"
         assert parent["metrics"]["_dd.top_level"] == 1.0
 
@@ -62,7 +62,7 @@ class Test_Otel_Span:
         assert parent.get("parentID") is None
         assert parent["metrics"]["_dd.top_level"] == 1.0
 
-        # Assert the Roundtrip child span sent by the agent.
+        # Assert the Roundtrip child span sent by the agent, this span is created by an external OTel contrib package
         roundtrip_span = _get_span(spans, "HTTP_GET")
         assert roundtrip_span["name"] == "HTTP_GET"
         assert roundtrip_span.get("parentID") == parent.get("spanID")
