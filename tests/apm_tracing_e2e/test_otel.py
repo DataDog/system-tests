@@ -8,11 +8,7 @@ from utils import context, weblog, scenarios, missing_feature, irrelevant
 )
 @scenarios.apm_tracing_e2e_otel_span
 class Test_Otel_Span:
-    """This is a test that exercises the Single Span Ingestion Control feature.
-    Read more about Single Span at https://docs.datadoghq.com/tracing/trace_pipeline/ingestion_mechanisms/?tab=java#single-spans
-
-    The tests below depend on the `.single_span_submitted` suffix to be part of the `DD_SPAN_SAMPLING_RULES`
-    configuration defined for this scenario in `run.sh`.
+    """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API.
     """
 
     def setup_datadog_otel_span(self):
