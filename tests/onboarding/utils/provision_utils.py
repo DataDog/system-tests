@@ -12,6 +12,8 @@ class ProvisionMatrix:
         self.provision_parser = Provision_parser(provision_filter)
 
     def get_infraestructure_provision(self):
+        if os.getenv("TEST_LIBRARY") is None:
+            yield None
         for ec2_data in self.provision_parser.ec2_instances_data():
             # for every different agent instalation
             for agent_instalations in self.provision_parser.ec2_agent_install_data():
