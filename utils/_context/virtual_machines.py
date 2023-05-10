@@ -152,4 +152,4 @@ class DataDogConfig:
         self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
         self.dd_site = os.getenv("DD_SITE_ONBOARDING", "datadoghq.com")
         if None in (self.dd_api_key, self.dd_app_key):
-            raise ValueError("Datadog agent is not configured correctly")
+            logger.warn("Datadog agent is not configured correctly for auto-injection testing")
