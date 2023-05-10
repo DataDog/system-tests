@@ -8,7 +8,7 @@ import os
 
 
 @pytest.fixture(
-    params=getattr(context.scenario, "provision_vms", None), ids=getattr(context.scenario, "provision_vm_names", None)
+    params=getattr(context.scenario, "provision_vms", []), ids=getattr(context.scenario, "provision_vm_names", [])
 )
 def onboardig_vm(request):
 
