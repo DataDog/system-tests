@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-class TestCommandInjection:
+class TestSSRF
     """Test command injection detection."""
 
     sink_fixture = SinkFixture(
