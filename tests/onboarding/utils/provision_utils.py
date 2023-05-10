@@ -215,8 +215,6 @@ class Provision_filter:
     def __init__(self, provision_scenario, language=None, env=None, os_distro=None, weblog=None):
         self.provision_scenario = provision_scenario
         self.language = os.getenv("TEST_LIBRARY")
-        if self.language is None:
-            raise ValueError("You must set TEST_LIBRARY env variable!!")
         self.env = os.getenv("ONBOARDING_FILTER_ENV")
         self.os_distro = os.getenv("ONBOARDING_FILTER_OS_DISTRO")
         self.weblog = os.getenv("ONBOARDING_FILTER_WEBLOG")
