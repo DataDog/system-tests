@@ -61,30 +61,30 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
   console.log(url);
 
   axios.get(url)
-  .then((response: Response) => {
-    res.json({
-      url: url,
-      status_code: response.statusCode,
-      request_headers: null,
-      response_headers: null,
+    .then((response: Response) => {
+      res.json({
+        url: url,
+        status_code: response.statusCode,
+        request_headers: null,
+        response_headers: null,
+      });
+    })
+    .catch((error: Error) => {
+      console.log(error);
+      res.json({
+        url: url,
+        status_code: 500,
+        request_headers: null,
+        response_headers: null,
+      });
     });
-  })
-  .catch((error: Error) => {
-    console.log(error);
-    res.json({
-      url: url,
-      status_code: 500,
-      request_headers: null,
-      response_headers: null,
-    });
-  });
 });
 
 app.get('/load_dependency', (req: Request, res: Response) => {
   console.log('Load dependency endpoint');
   var glob = require("glob")
   res.send("Loaded a dependency")
- }); 
+});
 
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
@@ -122,10 +122,10 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
   require('dd-trace/packages/dd-trace/src/plugins/util/web').root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag);
 
   for (const [k, v] of Object.entries(req.query)) {
-    res.set(k, v);
+    res.set(k, v.toString());
   }
 
-  res.status(req.params.status || 200).send('Value tagged');
+  res.status(parseInt(req.params.status) || 200).send('Value tagged');
 });
 
 app.listen(7777, '0.0.0.0', () => {
