@@ -143,7 +143,7 @@ class AWSInfraConfig:
         self.instance_type = os.getenv("ONBOARDING_AWS_INFRA_INSTANCE_TYPE", "t2.medium")
 
         if None in (self.keyPairName, self.subnet_id, self.vpc_security_group_ids, self.privateKeyPath):
-            raise ValueError("AWS infastructure is not configured correctly")
+            logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
 
 
 class DataDogConfig:
