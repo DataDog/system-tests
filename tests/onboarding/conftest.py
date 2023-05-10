@@ -7,7 +7,7 @@ from utils.tools import logger
 import os
 
 
-@pytest.fixture(params=context.scenario.provision_vms)
-def onboardig_vm_ip(request):
+@pytest.fixture(params=context.scenario.provision_vms, ids=context.scenario.provision_vm_names)
+def onboardig_vm(request):
 
-    yield request.param.ip
+    yield request.param

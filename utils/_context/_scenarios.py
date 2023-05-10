@@ -651,6 +651,7 @@ class OnBoardingScenario(_Scenario):
         super().__init__(name)
         self.stack = None
         self.provision_vms = list(ProvisionMatrix(Provision_filter(name)).get_infraestructure_provision())
+        self.provision_vm_names = [vm.name for vm in self.provision_vms]
 
     @property
     def host_log_folder(self):
@@ -692,7 +693,6 @@ class OnBoardingScenario(_Scenario):
 
     def post_setup(self, session):
         logger.info(f"Executing post_setup")
-        logger.info(inspect.stack())
         self.close_targets()
 
     def close_targets(self):
