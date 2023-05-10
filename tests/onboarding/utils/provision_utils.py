@@ -67,6 +67,8 @@ class Provision_parser:
 
     def ec2_autoinjection_install_data(self):
         autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
+        if not autoinjection_language_data:
+            return None
         for autoinjection_env_data in autoinjection_language_data:
             if self.provision_filter.env and autoinjection_env_data["env"] != self.provision_filter.env:
                 continue
