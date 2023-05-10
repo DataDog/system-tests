@@ -922,6 +922,7 @@ class scenarios:
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
 
+
 if __name__ == "__main__":
     for name in dir(scenarios):
         if not name.startswith("_"):
