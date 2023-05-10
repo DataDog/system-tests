@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-class TestSSRF
+class TestSSRF:
     """Test command injection detection."""
 
     sink_fixture = SinkFixture(
@@ -21,7 +21,7 @@ class TestSSRF
         insecure_endpoint="/iast/ssrf/test_insecure",
         secure_endpoint="/iast/ssrf/test_secure",
         data={"url": "https://www.datadoghq.com"},
-        location_map={"nodejs": "iast.js",},
+        location_map={"java": "com.datadoghq.system_tests.iast.utils.SsrfExamples", "nodejs": "iast.js",},
     )
 
     def setup_insecure(self):
