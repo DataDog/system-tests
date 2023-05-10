@@ -2,10 +2,18 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
+from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog, bug
 
 
-@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(
+    cpp="?",
+    dotnet="2.27.0",
+    php_appsec="0.7.0",
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    nodejs="?",
+    golang="?",
+    ruby="1.0.0",
+)
 @coverage.basic
 @scenarios.appsec_blocking
 @released(
@@ -88,6 +96,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "php", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
@@ -160,7 +169,7 @@ def _assert_custom_event_tag_absence():
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -257,7 +266,7 @@ class Test_Blocking_request_uri:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -307,7 +316,7 @@ class Test_Blocking_request_path_params:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -360,7 +369,7 @@ class Test_Blocking_request_query:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -413,7 +422,7 @@ class Test_Blocking_request_headers:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -466,7 +475,7 @@ class Test_Blocking_request_cookies:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -479,7 +488,7 @@ class Test_Blocking_request_body:
 
     def setup_blocking(self):
         self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
-        self.rm_req_block2 = weblog.post("/waf", data={"": "bsldhkuqwgervf"})
+        self.rm_req_block2 = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -589,7 +598,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+@released(cpp="?", dotnet="2.29.0", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 

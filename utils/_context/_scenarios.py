@@ -23,6 +23,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
+    OpenTelemetryCollectorContainer,
     create_network,
 )
 
@@ -496,15 +497,27 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name, weblog_env) -> None:
-        self._required_containers = []
+    def __init__(self, name) -> None:
         super().__init__(name, use_proxy=True)
 
-        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+        self.weblog_container = WeblogContainer(self.host_log_folder)
+        self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+        self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
+        self._required_containers.append(self.collector_container)
+
+    def configure(self):
+        super().configure()
+        self._check_env_vars()
+        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
+        self.weblog_container.environment["DD_SITE"] = dd_site
+        self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
+        self.collector_container.environment["DD_SITE"] = dd_site
 
     def _create_interface_folders(self):
-        for interface in ("open_telemetry", "backend"):
+        for interface in ("open_telemetry", "backend", "agent"):
             self.create_log_subfolder(f"interfaces/{interface}")
 
     def _start_interface_watchdog(self):
@@ -568,17 +581,18 @@ class OpenTelemetryScenario(_DockerScenario):
 
         interface.wait(timeout)
 
+    def _check_env_vars(self):
+        for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
+            if env not in os.environ:
+                raise Exception(f"Please set {env}, OTel E2E test requires 3 API keys and 3 APP keys")
+
     @property
     def library(self):
         return LibraryVersion("open_telemetry", "0.0.0")
 
     @property
-    def agent(self):
-        return LibraryVersion("agent", "0.0.0")
-
-    @property
     def agent_version(self):
-        return self.agent.version
+        return self.agent_container.agent_version
 
     @property
     def weblog_variant(self):
@@ -711,9 +725,6 @@ class scenarios:
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario("PERFORMANCES")
-
-    # scenario for weblog arch that does not support Appsec
-    appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
@@ -898,10 +909,7 @@ class scenarios:
         backend_interface_timeout=5,
     )
 
-    otel_tracing_e2e = OpenTelemetryScenario(
-        "OTEL_TRACING_E2E",
-        weblog_env={"DD_API_KEY": os.environ.get("DD_API_KEY"), "DD_SITE": os.environ.get("DD_SITE"),},
-    )
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E")
 
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")
@@ -913,3 +921,9 @@ class scenarios:
 
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
+
+if __name__ == "__main__":
+    for name in dir(scenarios):
+        if not name.startswith("_"):
+            scenario = getattr(scenarios, name)
+            print(scenario.name)

@@ -26,6 +26,14 @@ namespace weblog
             return Content($"Hello post world, value was {model.Value}");
         }
 
+        [HttpPost]
+        [Consumes("application/octet-stream", "text/plain")]
+        public IActionResult IndexRaw()
+        {
+            return Content($"Hello post world");
+        }
+
+
         //dont remove, some system tests queries dont have a content type and we get an AmbiguousRouteException
         [HttpPost]
         public IActionResult IndexAll(Model model)
