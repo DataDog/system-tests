@@ -30,10 +30,10 @@ class TestCookieName:
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/cookiename/test",
-        request_kwargs={"cookies": {"cookie-source-name": "cookie-source-value"}},
+        request_kwargs={"cookies": {"user": "unused"}},
         source_type="http.request.cookie.name",
-        source_name="cookie-source-name",
-        source_value="cookie-source-name",
+        source_name="user",
+        source_value="user",
     )
 
     def setup_source_reported(self):
