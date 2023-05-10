@@ -16,7 +16,7 @@ class OpenTelemetryInterfaceValidator(InterfaceValidator):
     """ Validated communication between open telemetry and datadog backend"""
 
     def __init__(self):
-        super().__init__("agent")
+        super().__init__("open_telemetry")
         self.ready = threading.Event()
 
     def ingest_file(self, src_path):
