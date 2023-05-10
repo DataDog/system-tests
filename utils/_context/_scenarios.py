@@ -669,9 +669,6 @@ class scenarios:
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario("PERFORMANCES")
 
-    # scenario for weblog arch that does not support Appsec
-    appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
-
     integrations = EndToEndScenario(
         "INTEGRATIONS",
         weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
