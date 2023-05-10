@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(dotnet="?", java="1.14.0", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
 class TestSSRF:
     """Test command injection detection."""
 
@@ -33,6 +33,13 @@ class TestSSRF:
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
-    @missing_feature(reason="Endpoint not implemented")
+    @missing_feature(library="nodejs", reason="Endpoint not implemented")
     def test_secure(self):
         self.sink_fixture.test_secure()
+
+    def setup_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.setup_telemetry_metric_instrumented_sink()
+
+    @released(dotnet="?", golang="?", java="1.14.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.test_telemetry_metric_instrumented_sink()

@@ -45,3 +45,22 @@ class TestHeaderValue:
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     def test_source_reported(self):
         self.source_fixture.test()
+
+    def setup_telemetry_metric_instrumented_source(self):
+        self.source_fixture.setup_telemetry_metric_instrumented_source()
+
+    @released(
+        java={
+            "spring-boot": "1.13.0",
+            "spring-boot-jetty": "1.13.0",
+            "spring-boot-openliberty": "1.13.0",
+            "spring-boot-wildfly": "1.13.0",
+            "spring-boot-undertow": "1.13.0",
+            "resteasy-netty3": "1.13.0",
+            "jersey-grizzly2": "1.13.0",
+            "vertx3": "1.13.0",
+            "*": "?",
+        }
+    )
+    def test_telemetry_metric_instrumented_source(self):
+        self.source_fixture.test_telemetry_metric_instrumented_source()

@@ -66,3 +66,41 @@ class TestParameterValue:
     @missing_feature(context.library.library == "java", reason="Pending to add GET test")
     def test_source_get_reported(self):
         self.source_get_fixture.test()
+
+    def setup_post_telemetry_metric_instrumented_source(self):
+        self.source_post_fixture.setup_telemetry_metric_instrumented_source()
+
+    @released(
+        java={
+            "spring-boot": "1.13.0",
+            "spring-boot-jetty": "1.13.0",
+            "spring-boot-openliberty": "1.13.0",
+            "spring-boot-wildfly": "1.13.0",
+            "spring-boot-undertow": "1.13.0",
+            "resteasy-netty3": "1.13.0",
+            "jersey-grizzly2": "1.13.0",
+            "vertx3": "1.13.0",
+            "*": "?",
+        }
+    )
+    def test_post_telemetry_metric_instrumented_source(self):
+        self.source_post_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.setup_telemetry_metric_executed_source()
+
+    @released(
+        java={
+            "spring-boot": "1.13.0",
+            "spring-boot-jetty": "1.13.0",
+            "spring-boot-openliberty": "1.13.0",
+            "spring-boot-wildfly": "1.13.0",
+            "spring-boot-undertow": "1.13.0",
+            "resteasy-netty3": "1.13.0",
+            "jersey-grizzly2": "1.13.0",
+            "vertx3": "1.13.0",
+            "*": "?",
+        }
+    )
+    def test_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.test_telemetry_metric_executed_source()

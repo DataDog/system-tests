@@ -45,3 +45,10 @@ class TestCookieValue:
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     def test_source_reported(self):
         self.source_fixture.test()
+
+    def setup_telemetry_metric_instrumented_source(self):
+        self.source_fixture.setup_telemetry_metric_instrumented_source()
+
+    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_telemetry_metric_instrumented_source(self):
+        self.source_fixture.test_telemetry_metric_instrumented_source()
