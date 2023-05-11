@@ -33,10 +33,10 @@ class TestHeaderValue:
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/header/test",
-        request_kwargs={"headers": {"random-key": "header-source"}},
+        request_kwargs={"headers": {"table": "user"}},
         source_type="http.request.header",
-        source_name="random-key",
-        source_value="header-source",
+        source_name="table",
+        source_value="user",
     )
 
     def setup_source_reported(self):

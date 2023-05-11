@@ -32,10 +32,10 @@ class TestParameterValue:
     source_fixture = SourceFixture(
         http_method="POST",
         endpoint="/iast/source/parameter/test",
-        request_kwargs={"data": {"source": "parameter"}},
+        request_kwargs={"data": {"table": "user"}},
         source_type="http.request.parameter",
-        source_name="source",
-        source_value="parameter",
+        source_name="table",
+        source_value="user",
     )
 
     def setup_source_reported(self):
