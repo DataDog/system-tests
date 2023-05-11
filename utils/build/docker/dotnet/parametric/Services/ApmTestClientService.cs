@@ -73,6 +73,8 @@ namespace ApmTestClient.Services
 
         public override Task<StartSpanReturn> StartSpan(StartSpanArgs request, ServerCallContext context)
         {
+            _logger.LogInformation("StartSpan: {Request}", request);
+
             var creationSettings = new SpanCreationSettings
                                    {
                                        FinishOnClose = false,
