@@ -35,6 +35,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
+    parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
 
 
 def pytest_configure(config):
@@ -49,7 +50,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure()
+    context.scenario.configure(config.option.replay)
 
     config.option.json_report_file = _JSON_REPORT_FILE()
     config.option.xmlpath = _XML_REPORT_FILE()

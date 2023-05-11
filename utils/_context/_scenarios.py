@@ -24,7 +24,6 @@ from utils._context.containers import (
     create_network,
 )
 
-from utils._context.library_version import LibraryVersion
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
@@ -34,8 +33,12 @@ class _Scenario:
     def __init__(self, name) -> None:
         self.name = name
         self.terminal = None
+        self.replay = False
 
     def create_log_subfolder(self, subfolder):
+        if self.replay:
+            return
+
         path = os.path.join(self.host_log_folder, subfolder)
 
         shutil.rmtree(path, ignore_errors=True)
@@ -47,7 +50,8 @@ class _Scenario:
 
         return test_method
 
-    def configure(self):
+    def configure(self, replay):
+        self.replay = replay
         self.create_log_subfolder("")
 
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
@@ -60,6 +64,9 @@ class _Scenario:
 
         self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
         self.print_test_context()
+
+        if self.replay:
+            return
 
         self.print_info("Executing warmups...")
 
@@ -214,8 +221,8 @@ class _DockerScenario(_Scenario):
         if include_mysql_db:
             self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
-    def configure(self):
-        super().configure()
+    def configure(self, replay):
+        super().configure(replay)
 
         for container in reversed(self._required_containers):
             container.configure()
@@ -303,10 +310,10 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def configure(self):
+    def configure(self, replay):
         from utils import interfaces
 
-        super().configure()
+        super().configure(replay)
         interfaces.library_stdout.configure()
 
         if self.library_interface_timeout is None:
@@ -398,6 +405,9 @@ class EndToEndScenario(_DockerScenario):
 
     def post_setup(self):
         from utils import interfaces
+
+        if self.replay:
+            return
 
         if self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
@@ -506,8 +516,8 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_collector = include_collector
         self.include_intake = include_intake
 
-    def configure(self):
-        super().configure()
+    def configure(self, replay):
+        super().configure(replay)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
