@@ -3,9 +3,59 @@
   "metadata": {
     "rules_version": "1.2.6"
   },
+  "custom_rules": [
+    {
+      "id": "custom_rule1",
+      "name": "custom_rule1",
+      "tags": {
+        "tag1": "flow1",
+        "type": "type1"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies"
+              },
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "custom_rule1"
+          }
+        }
+      ]
+    },
+    {
+      "id": "custom_rule2",
+      "name": "custom_rule2",
+      "tags": {
+        "tag1": "flow2",
+        "type": "type2"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies"
+              },
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "custom_rule2"
+          }
+        }
+      ]
+    }
+  ],
   "exclusions": [
     {
-      "id": 1,
+      "id": "1",
       "rules_target": [
         {
           "tags": {
@@ -20,7 +70,9 @@
             "inputs": [
               {
                 "address": "server.request.query",
-                "key_path": ["activate_exclusion"]
+                "key_path": [
+                  "activate_exclusion"
+                ]
               }
             ],
             "regex": "true"
@@ -30,12 +82,14 @@
       "inputs": [
         {
           "address": "server.request.query",
-          "key_path": ["excluded_key"]
+          "key_path": [
+            "excluded_key"
+          ]
         }
       ]
     },
     {
-      "id": 2,
+      "id": "2",
       "rules_target": [
         {
           "rule_id": "easy-to-match-rule-bbbb",
@@ -1344,7 +1398,6 @@
       ],
       "transformers": []
     },
-
     {
       "id": "easy-to-match-rule-aaaa",
       "name": "noname",

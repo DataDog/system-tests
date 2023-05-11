@@ -95,7 +95,7 @@ class SchemaValidator:
                 for message in messages:
                     logger.error(f"* {message}")
 
-                raise Exception(f"Schema is invalid in {data['log_filename']}")
+                raise ValueError(f"Schema is invalid in {data['log_filename']}")
 
         logger.debug(f"{data['log_filename']} schema validation ok")
 

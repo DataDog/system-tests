@@ -500,8 +500,6 @@ def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Issue: Does not reset dm to DEFAULT")
-@pytest.mark.skip_library("golang", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("nodejs", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("php", "Issue: Does not drop dm")
 @pytest.mark.skip_library("python", "Issue: Does not reset dm to DEFAULT")

@@ -208,6 +208,7 @@ further.
 ## Troubleshooting
 
 - Ensure docker is running.
+- Ensure you do not have a datadog agent running outside the tests (`ps aux | grep 'datadog'` can help you check this).
 - Exiting the tests abruptly maybe leave some docker containers running. Use `docker ps` to find and `docker kill` any
   containers that may still be running.
 

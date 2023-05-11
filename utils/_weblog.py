@@ -2,9 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import urllib
-import string
+from collections import defaultdict
+import json
+import os
 import random
+import string
+import urllib
+
 import requests
 import grpc
 import google.protobuf.struct_pb2 as pb
@@ -34,7 +38,24 @@ class _GrpcQuery:
 
 
 class _Weblog:
-    _grpc_target = "weblog:7778"
+    _grpc_port = 7778
+
+    def __init__(self):
+        if "DOCKER_HOST" in os.environ:
+            self.domain = os.environ["DOCKER_HOST"]
+            self.domain = self.domain.replace("ssh://docker@", "")
+        else:
+            self.domain = "localhost"
+
+        self.responses = defaultdict(list)
+        self.current_nodeid = None  # will be used to store request made by a given nodeid
+
+    def save_requests(self, log_folder):
+        try:
+            with open(f"{log_folder}/weblog_responses.json", "w", encoding="utf-8") as f:
+                json.dump(dict(self.responses), f, indent=2)
+        except:
+            logger.exception("Can't save responses log")
 
     def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self.request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
@@ -53,9 +74,10 @@ class _Weblog:
         data=None,
         headers=None,
         stream=None,
-        domain="weblog",
+        domain=None,
         port=7777,
         allow_redirects=True,
+        rid_in_user_agent=True,
         **kwargs,
     ):
         # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
@@ -69,7 +91,10 @@ class _Weblog:
                 break
 
         user_agent = headers.get(user_agent_key, "system_tests")
-        headers[user_agent_key] = f"{user_agent} rid/{rid}"
+        # Inject a request id (rid) to be able to correlate traces generated from this request.
+        # This behavior can be disabled with rid_in_user_agent=False, which should be rarely needed.
+        if rid_in_user_agent:
+            headers[user_agent_key] = f"{user_agent} rid/{rid}"
 
         if method == "GET" and params:
             url = self._get_url(path, domain, port, params)
@@ -89,6 +114,13 @@ class _Weblog:
 
         logger.debug(f"Request {rid}: {r.status_code}")
 
+        self.responses[self.current_nodeid].append(
+            {
+                "request": {"method": method, "url": url, "headers": headers, "params": params, "data": data},
+                "status_code": r.status_code,
+            }
+        )
+
         return r
 
     def _get_url(self, path, domain, port, query=None):
@@ -96,6 +128,8 @@ class _Weblog:
         # Make all absolute paths to be relative
         if path.startswith("/"):
             path = path[1:]
+
+        domain = domain if domain is not None else self.domain
 
         res = f"http://{domain}:{port}/{path}"
 
@@ -110,7 +144,7 @@ class _Weblog:
         # We cannot set the user agent for each request. For now, start a new channel for each query
         _grpc_client = grpcapi.WeblogStub(
             grpc.insecure_channel(
-                self._grpc_target,
+                f"{self.domain}:{self._grpc_port}",
                 options=(("grpc.enable_http_proxy", 0), ("grpc.primary_user_agent", f"system_tests rid/{rid}")),
             )
         )

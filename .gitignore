@@ -1,10 +1,14 @@
 .idea
 .env
+.envrc
 __pycache__
 binaries/*
 !binaries/README.md
 
 venv
+/vendor/python
+
+.python-version
 
 # tools for http tunneling
 ngrok
@@ -36,3 +40,4 @@ dist/
 
 # Visual Studio
 .vs/
+.config/dotnet-tools.json

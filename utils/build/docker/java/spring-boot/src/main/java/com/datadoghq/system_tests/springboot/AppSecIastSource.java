@@ -1,146 +1,94 @@
 package com.datadoghq.system_tests.springboot;
 
-import com.datadoghq.system_tests.springboot.iast.utils.TestBean;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.datadoghq.system_tests.iast.utils.SqlExamples;
+import com.datadoghq.system_tests.iast.utils.TestBean;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
+@SuppressWarnings("Convert2MethodRef")
 @RestController
 @RequestMapping("/iast/source")
 public class AppSecIastSource {
 
-    @Autowired
-    private DataSource dataSource;
+    private final SqlExamples sql;
+
+    public AppSecIastSource(final DataSource dataSource) {
+        this.sql = new SqlExamples(dataSource);
+    }
 
 
     @PostMapping("/parameter/test")
-    String sourceParameter(final ServletRequest request) throws SQLException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        final String source = request.getParameter("source");
-        try (final Connection con = dataSource.getConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USER WHERE USERNAME = '" + source + "' AND PASSWORD = '" + source + "'";
-            statement.executeQuery(sql);
-        }
-        return String.format("Request Parameters => source: %s", source);
+    String sourceParameter(final ServletRequest request) {
+        final String table = request.getParameter("table");
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Parameters => source: %s", table);
     }
 
     @PostMapping("/parametername/test")
-    String sourceParameterName(final ServletRequest request) throws SQLException  {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
+    String sourceParameterName(final ServletRequest request) {
         List<String> parameterNames = Collections.list(request.getParameterNames());
-        try (final Connection con = dataSource.getConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USER WHERE USERNAME = '" + parameterNames.get(0) + "' AND PASSWORD = '" + parameterNames.get(0) + "'";
-            statement.executeQuery(sql);
-        }
+        final String table = parameterNames.get(0);
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Parameter Names => %s", parameterNames);
     }
 
     @GetMapping("/headername/test")
-    String sourceHeaderName(final HttpServletRequest request) throws SQLException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
+    String sourceHeaderName(final HttpServletRequest request) {
         List<String> headerNames = Collections.list(request.getHeaderNames());
-        String headerName =  headerNames.stream().filter(name -> name.equals("random-key")).findFirst().get();
-        try (final Connection con = dataSource.getConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USER WHERE USERNAME = '" + headerName + "' AND PASSWORD = '" + headerName + "'";
-            statement.executeQuery(sql);
-        }
+        String table = find(headerNames, header -> header.equalsIgnoreCase("user"));
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Headers => %s", headerNames);
     }
 
     @GetMapping("/header/test")
-    String sourceHeaders(@RequestHeader("random-key") String header) throws SQLException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        try (final Connection con = dataSource.getConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USER WHERE USERNAME = '" + header + "' AND PASSWORD = '" + header + "'";
-            statement.executeQuery(sql);
-        }
-        return String.format("Request Headers => %s", header);
+    String sourceHeaders(@RequestHeader("table") String table) {
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Headers => %s", table);
     }
 
     @GetMapping("/cookiename/test")
-    String sourceCookieName(final HttpServletRequest request) throws SQLException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            String name = cookie.getName();
-            try (final Connection con = dataSource.getConnection()) {
-                final Statement statement = con.createStatement();
-                final String sql = "SELECT * FROM USER WHERE USERNAME = '" + name + "' AND PASSWORD = '" + name + "'";
-                statement.executeQuery(sql);
-            }
-            break;
-        }
+    String sourceCookieName(final HttpServletRequest request) {
+        List<Cookie> cookies = Arrays.asList(request.getCookies());
+        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("user"), Cookie::getName);
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Cookies => %s", cookies);
     }
 
     @GetMapping("/cookievalue/test")
-    String sourceCookieValue(final HttpServletRequest request) throws SQLException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            String value = cookie.getValue();
-            try (final Connection con = dataSource.getConnection()) {
-                final Statement statement = con.createStatement();
-                final String sql = "SELECT * FROM USER WHERE USERNAME = '" + value + "' AND PASSWORD = '" + value + "'";
-                statement.executeQuery(sql);
-            }
-            break;
-        }
+    String sourceCookieValue(final HttpServletRequest request) {
+        List<Cookie> cookies = Arrays.asList(request.getCookies());
+        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("table"), Cookie::getValue);
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Cookies => %s", cookies);
     }
 
     @PostMapping("/body/test")
-    String sourceBody(@RequestBody TestBean testBean) throws SQLException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        String name = testBean.getName();
+    String sourceBody(@RequestBody TestBean testBean) {
         String value = testBean.getValue();
-        try (final Connection con = dataSource.getConnection()) {
-            final Statement statement = con.createStatement();
-            final String sql = "SELECT * FROM USER WHERE USERNAME = '" + name + "' AND PASSWORD = '" + value + "'";
-            statement.executeQuery(sql);
-        }
-        return String.format("@RequestBody to Test bean -> name: %s, value:%", name, value);
+        sql.insecureSql(value, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("@RequestBody to Test bean -> value:%s", value);
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private <E> String find(final Collection<E> list,
+                            final Predicate<E> matcher,
+                            final Function<E, String> provider) {
+        return provider.apply(list.stream().filter(matcher).findFirst().get());
+    }
+
+    private String find(final Collection<String> list,
+                        final Predicate<String> matcher) {
+        return find(list, matcher, Function.identity());
     }
 
 }

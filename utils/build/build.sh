@@ -27,6 +27,7 @@ readonly DEFAULT_python=flask-poc
 readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
+readonly DEFAULT_java_otel=spring-boot-native
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
@@ -128,7 +129,18 @@ build() {
         echo "-----------------------"
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]]; then
-            docker build -f utils/build/docker/runner.Dockerfile -t system_tests/runner $EXTRA_DOCKER_ARGS .
+            if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+              if [ ! -d "venv/" ]
+              then
+                  echo "Build virtual env"
+                  python3.9 -m venv venv
+              fi
+
+              source venv/bin/activate
+              python -m pip install --upgrade pip
+            fi
+            pip install -r requirements.txt
+
         elif [[ $IMAGE_NAME == agent ]]; then
             if [ -f ./binaries/agent-image ]; then
                 AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
@@ -138,7 +150,9 @@ build() {
 
             echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
-            docker build \
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
@@ -148,7 +162,7 @@ build() {
 
             SYSTEM_TESTS_AGENT_VERSION=$(docker run --rm system_tests/agent /opt/datadog-agent/bin/agent/agent version)
 
-            docker build \
+            docker buildx build \
                 --build-arg SYSTEM_TESTS_AGENT_VERSION="$SYSTEM_TESTS_AGENT_VERSION" \
                 -f utils/build/docker/set-system-tests-agent-env.Dockerfile \
                 -t system_tests/agent \
@@ -177,6 +191,8 @@ build() {
             DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
@@ -190,7 +206,9 @@ build() {
             if test -f "binaries/waf_rule_set.json"; then
                 SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
-                docker build \
+                docker buildx build \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
@@ -212,7 +230,9 @@ build() {
             SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
             SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
 
-            docker build \
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
@@ -237,7 +257,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
+        cpp|dotnet|golang|java|java_otel|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;

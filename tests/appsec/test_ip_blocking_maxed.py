@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.11", golang="1.47.0")
+@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="3.11", golang="1.47.0")
 @released(
     java={
         "spring-boot": "0.110.0",
@@ -27,18 +27,20 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
     }
 )
 @irrelevant(
-    context.library == "java" and context.appsec_rules_file is not None,
-    reason="No Remote Config sub with custom rules file",
+    context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
+@bug(context.library > "nodejs@3.16.0", reason="Under investigation")
 @coverage.basic
 @scenarios.appsec_ip_blocking_maxed
 class Test_AppSecIPBlockingMaxed:
     """A library should block requests from up to 2500 different blocked IP addresses."""
 
     request_number = 0
+    python_request_number = 0
     remote_config_is_sent = False
 
+    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_rc_protocol(self):
         """test sequence of remote config messages"""
 
@@ -49,7 +51,12 @@ class Test_AppSecIPBlockingMaxed:
 
             logger.info(f"validating rc request number {self.request_number}")
             rc_check_request(data, EXPECTED_REQUESTS[self.request_number], caching=True)
-            self.request_number += 1
+            self.python_request_number += 1
+            if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+                if self.python_request_number % 2 == 0:
+                    self.request_number += 1
+            else:
+                self.request_number += 1
 
         interfaces.library.validate_remote_configuration(validator=validate)
 

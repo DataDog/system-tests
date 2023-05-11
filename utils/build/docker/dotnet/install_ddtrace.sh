@@ -13,15 +13,15 @@ if [ $(ls /binaries/Datadog.Trace.ClrProfiler.Native.so | wc -l) = 1 ]; then
     echo "Install from local folder"
     cp -r /binaries/* /opt/datadog/
 else
-    if [ $(ls datadog-dotnet-apm-*.tar.gz | wc -l) = 1 ]; then
-        echo "Install ddtrace from $(ls datadog-dotnet-apm-*.tar.gz)"
+    if [ $(ls datadog-dotnet-apm*.tar.gz | wc -l) = 1 ]; then
+        echo "Install ddtrace from $(ls datadog-dotnet-apm*.tar.gz)"
     else
         echo "Install ddtrace from github releases"
         DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-dotnet)"
         curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz --output datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
     fi
 
-    tar xzf $(ls datadog-dotnet-apm-*.tar.gz) -C /opt/datadog
+    tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
 fi
 
 apt-get install -y binutils #we need 'strings' command to extract assembly version which is part of binutils package
