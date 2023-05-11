@@ -214,7 +214,9 @@ def pytest_collection_finish(session):
             weblog.current_nodeid = None
 
     terminal.write("\n\n")
-    context.scenario.post_setup(session)
+
+    if not context.scenario.name.startswith("ONBOARDING"):
+        context.scenario.post_setup(session)
 
 
 def pytest_runtest_call(item):
@@ -256,7 +258,10 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    # context.scenario.post_setup(session)
+
+    if context.scenario.name.startswith("ONBOARDING"):
+        context.scenario.post_setup(session)
+
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
         open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
