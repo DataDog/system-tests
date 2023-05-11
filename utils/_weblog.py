@@ -49,6 +49,7 @@ class _Weblog:
 
         self.responses = defaultdict(list)
         self.current_nodeid = None  # will be used to store request made by a given nodeid
+        self.replay = False
 
     def save_requests(self, log_folder):
         try:
