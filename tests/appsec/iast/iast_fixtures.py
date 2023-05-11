@@ -55,3 +55,23 @@ class SinkFixture:
     def test_secure(self):
         if self.secure_request is None:
             interfaces.library.expect_no_vulnerabilities(self.secure_request)
+
+
+class SourceFixture:
+    def __init__(self, http_method, endpoint, request_kwargs, source_type, source_name, source_value):
+        self.http_method = http_method
+        self.endpoint = endpoint
+        self.request_kwargs = request_kwargs
+        self.source_type = source_type
+        self.source_name = source_name
+        self.source_value = source_value
+        self.request = None
+
+    def setup(self):
+        if self.request is None:
+            self.request = weblog.request(method=self.http_method, path=self.endpoint, **self.request_kwargs)
+
+    def test(self):
+        interfaces.library.expect_iast_sources(
+            self.request, source_count=1, origin=self.source_type, name=self.source_name, value=self.source_value,
+        )

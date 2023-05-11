@@ -3,9 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-import re
-from utils import weblog, interfaces, context, coverage, released, missing_feature
-
+from utils import context, coverage, released
+from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -25,13 +24,20 @@ if context.library == "cpp":
     }
 )
 @released(nodejs="?")
-class TestRequestParameterName:
+class TestParameterName:
     """Verify that request parameters are tainted"""
 
-    def setup_parametername(self):
-        self.r = weblog.post("/iast/source/parametername/test", data={"source": "parameterName"})
+    source_fixture = SourceFixture(
+        http_method="POST",
+        endpoint="/iast/source/parametername/test",
+        request_kwargs={"data": {"user": "unused"}},
+        source_type="http.request.parameter.name",
+        source_name="user",
+        source_value=None,
+    )
 
-    def test_parametername(self):
-        interfaces.library.expect_iast_sources(
-            self.r, source_count=1, name="source", origin="http.request.parameter.name",
-        )
+    def setup_source_reported(self):
+        self.source_fixture.setup()
+
+    def test_source_reported(self):
+        self.source_fixture.test()

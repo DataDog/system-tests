@@ -86,7 +86,7 @@ class _Scenario:
     def _get_warmups(self):
         return []
 
-    def post_setup(self, session):
+    def post_setup(self):
         """ called after test setup """
 
     def collect_logs(self):
@@ -396,29 +396,27 @@ class EndToEndScenario(_DockerScenario):
                 raise Exception("Datadog agent not ready")
             logger.debug("Agent ready")
 
-    def post_setup(self, session):
+    def post_setup(self):
         from utils import interfaces
 
         if self.use_proxy:
-            self._wait_interface(interfaces.library, session, self.library_interface_timeout)
-            self._wait_interface(interfaces.agent, session, self.agent_interface_timeout)
-            self._wait_interface(interfaces.backend, session, self.backend_interface_timeout)
+            self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
             self.collect_logs()
 
-            self._wait_interface(interfaces.library_stdout, session, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, session, 0)
-            self._wait_interface(interfaces.agent_stdout, session, 0)
+            self._wait_interface(interfaces.library_stdout, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, 0)
+            self._wait_interface(interfaces.agent_stdout, 0)
         else:
             self.collect_logs()
 
         self.close_targets()
 
-    @staticmethod
-    def _wait_interface(interface, session, timeout):
-        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-        terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        terminal.flush()
+    def _wait_interface(self, interface, timeout):
+        self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        self.terminal.flush()
 
         interface.wait(timeout)
 
@@ -557,24 +555,22 @@ class OpenTelemetryScenario(_DockerScenario):
                 raise Exception("Open telemetry interface not ready")
             logger.debug("Open telemetry ready")
 
-    def post_setup(self, session):
+    def post_setup(self):
         from utils import interfaces
 
         if self.use_proxy:
-            self._wait_interface(interfaces.open_telemetry, session, 5)
+            self._wait_interface(interfaces.open_telemetry, 5)
 
             self.collect_logs()
 
-            self._wait_interface(interfaces.library_stdout, session, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, session, 0)
+            self._wait_interface(interfaces.library_stdout, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, 0)
         else:
             self.collect_logs()
 
-    @staticmethod
-    def _wait_interface(interface, session, timeout):
-        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-        terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        terminal.flush()
+    def _wait_interface(self, interface, timeout):
+        self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        self.terminal.flush()
 
         interface.wait(timeout)
 
@@ -668,9 +664,6 @@ class scenarios:
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario("PERFORMANCES")
-
-    # scenario for weblog arch that does not support Appsec
-    appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
@@ -862,3 +855,10 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
+
+
+if __name__ == "__main__":
+    for name in dir(scenarios):
+        if not name.startswith("_"):
+            scenario = getattr(scenarios, name)
+            print(scenario.name)
