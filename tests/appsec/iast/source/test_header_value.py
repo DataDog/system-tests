@@ -2,10 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
-import re
-from utils import weblog, interfaces, context, coverage, released, missing_feature, bug
 
+import pytest
+from utils import context, coverage, released, bug
+from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -27,18 +27,21 @@ if context.library == "cpp":
     }
 )
 @released(nodejs="?")
-class TestRequestCookieValue:
-    """Verify that request cookies are tainted"""
+class TestHeaderValue:
+    """Verify that request headers are tainted"""
 
-    def setup_cookie_value(self):
-        self.r = weblog.get("/iast/source/cookievalue/test", cookies={"cookie-source-name": "cookie-source-value"})
+    source_fixture = SourceFixture(
+        http_method="GET",
+        endpoint="/iast/source/header/test",
+        request_kwargs={"headers": {"random-key": "header-source"}},
+        source_type="http.request.header",
+        source_name="random-key",
+        source_value="header-source",
+    )
+
+    def setup_source_reported(self):
+        self.source_fixture.setup()
 
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    def test_cookie_value(self):
-        interfaces.library.expect_iast_sources(
-            self.r,
-            source_count=1,
-            name="cookie-source-name",
-            origin="http.request.cookie.value",
-            value="cookie-source-value",
-        )
+    def test_source_reported(self):
+        self.source_fixture.test()
