@@ -204,6 +204,7 @@ def pytest_collection_finish(session):
         try:
             weblog.current_nodeid = item.nodeid
             setup_method()
+            weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")
             terminal.write("x", bold=True, red=True)

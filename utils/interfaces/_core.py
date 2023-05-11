@@ -45,8 +45,8 @@ class InterfaceValidator:
         self.accept_data = not stop_accepting_data
 
     def ingest_file(self, src_path):
-        if not self.accept_data:
-            return
+        # if not self.accept_data:
+        #     return
 
         with self._lock:
             if src_path in self._ingested_files:
@@ -84,6 +84,7 @@ class InterfaceValidator:
                     data = json.load(f)
 
                 self._data_list.append(data)
+                logger.info(f"{self.name} interface gets {file_path}")
 
     def get_data(self, path_filters=None):
 
