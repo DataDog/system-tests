@@ -3,9 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-import re
-from utils import weblog, interfaces, context, coverage, released, missing_feature
-
+from utils import context, coverage, released
+from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -25,17 +24,20 @@ if context.library == "cpp":
     }
 )
 @released(nodejs="?")
-class TestRequestCookieName:
+class TestCookieName:
     """Verify that request cookies are tainted"""
 
-    def setup_cookie_name(self):
-        self.r = weblog.get("/iast/source/cookiename/test", cookies={"cookie-source-name": "cookie-source-value"})
+    source_fixture = SourceFixture(
+        http_method="GET",
+        endpoint="/iast/source/cookiename/test",
+        request_kwargs={"cookies": {"user": "unused"}},
+        source_type="http.request.cookie.name",
+        source_name="user",
+        source_value="user",
+    )
 
-    def test_cookie_name(self):
-        interfaces.library.expect_iast_sources(
-            self.r,
-            source_count=1,
-            name="cookie-source-name",
-            origin="http.request.cookie.name",
-            value="cookie-source-name",
-        )
+    def setup_source_reported(self):
+        self.source_fixture.setup()
+
+    def test_source_reported(self):
+        self.source_fixture.test()

@@ -7,7 +7,7 @@ namespace weblog
     {
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
         {
-            routeBuilder.MapGet("/waf", async context =>
+            routeBuilder.MapGet("/waf/{s?}", async context =>
             {
                 await context.Response.WriteAsync("Hello world!\\n");
             });

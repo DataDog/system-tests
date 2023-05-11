@@ -1,3 +1,4 @@
+import os.path
 import re
 
 import pytest
@@ -8,109 +9,53 @@ from utils._context.core import context
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
-HTML_DATA = """<!-- Sorry, you’ve been blocked -->
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>You've been blocked</title>
-  <style>
-    a,
-    body,
-    div,
-    html,
-    span {
-      margin: 0;
-      padding: 0;
-      border: 0;
-      font-size: 100%;
-      font: inherit;
-      vertical-align: baseline
-    }
+_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    body {
-      background: -webkit-radial-gradient(26% 19%, circle, #fff, #f4f7f9);
-      background: radial-gradient(circle at 26% 19%, #fff, #f4f7f9);
-      display: -webkit-box;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-pack: center;
-      -ms-flex-pack: center;
-      justify-content: center;
-      -webkit-box-align: center;
-      -ms-flex-align: center;
-      align-items: center;
-      -ms-flex-line-pack: center;
-      align-content: center;
-      width: 100%;
-      min-height: 100vh;
-      line-height: 1;
-      flex-direction: column
-    }
+BLOCK_TEMPLATE_HTML_V0_JAVA = open(os.path.join(_CUR_DIR, "blocked.v0.java.html"), "r").read()
+BLOCK_TEMPLATE_HTML_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.html"), "r").read()
+BLOCK_TEMPLATE_HTML_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.html"), "r").read()
+BLOCK_TEMPLATE_HTML_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r").read()
+BLOCK_TEMPLATE_HTML_MIN_V2 = open(os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r").read()
 
-    p {
-      display: block
-    }
+BLOCK_TEMPLATE_JSON_V0_GO = open(os.path.join(_CUR_DIR, "blocked.v0.go.json"), "r").read()
+BLOCK_TEMPLATE_JSON_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.json"), "r").read()
+BLOCK_TEMPLATE_JSON_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.json"), "r").read()
+BLOCK_TEMPLATE_JSON_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r").read()
+
+BLOCK_TEMPLATE_HTML_ANY = {
+    BLOCK_TEMPLATE_HTML_V0_JAVA,
+    BLOCK_TEMPLATE_HTML_V0_PYTHON,
+    BLOCK_TEMPLATE_HTML_V1,
+    BLOCK_TEMPLATE_HTML_MIN_V1,
+    BLOCK_TEMPLATE_HTML_MIN_V2,
+}
+BLOCK_TEMPLATE_JSON_ANY = {
+    BLOCK_TEMPLATE_JSON_V0_GO,
+    BLOCK_TEMPLATE_JSON_V0_PYTHON,
+    BLOCK_TEMPLATE_JSON_V1,
+    # No trailing new line in dotnet
+    BLOCK_TEMPLATE_JSON_V1.rstrip(),
+    BLOCK_TEMPLATE_JSON_MIN_V1,
+}
+
+HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
+JSON_CONTENT_TYPES = {
+    "application/json",
+    "application/json; charset=utf-8",
+    "application/json;charset=utf-8",
+    # Python frameworks use text/json
+    "text/json",
+}
 
 
-    main {
-      text-align: center;
-      flex: 1;
-      display: -webkit-box;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-pack: center;
-      -ms-flex-pack: center;
-      justify-content: center;
-      -webkit-box-align: center;
-      -ms-flex-align: center;
-      align-items: center;
-      -ms-flex-line-pack: center;
-      align-content: center;
-      flex-direction: column
-    }
-
-    p {
-      font-size: 18px;
-      line-height: normal;
-      color: #646464;
-      font-family: sans-serif;
-      font-weight: 400
-    }
-
-    a {
-      color: #4842b7
-    }
-
-    footer {
-      width: 100%;
-      text-align: center
-    }
-
-    footer p {
-      font-size: 16px
-    }
-  </style>
-</head>
-
-<body>
-<main>
-  <p>Sorry, you cannot access this page. Please contact the customer service team.</p>
-</main>
-<footer>
-  <p>Security provided by <a
-    href="https://www.datadoghq.com/product/security-platform/application-security-monitoring/"
-    target="_blank">Datadog</a></p>
-</footer>
-</body>
-
-</html>
-"""
-
-
-@released(dotnet="2.27.0", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(
+    dotnet="2.27.0",
+    nodejs="?",
+    php_appsec="0.7.0",
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    ruby="?",
+)
 @released(
     java={
         "spring-boot": "0.112.0",
@@ -139,16 +84,13 @@ class Test_Blocking:
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
-    @bug(context.library == "golang", reason="minify")
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
+    @bug(context.library == "python", reason="Bug, minify and remove new line characters")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
-        assert re.match("^application/json", self.r_na.headers.get("content-type", "")) is not None
-        assert (
-            self.r_na.text.rstrip()
-            == '{"errors": [{"title": "You\'ve been blocked", "detail": "Sorry, you cannot access '
-            'this page. Please contact the customer service team. Security provided by Datadog."}]}'
-        )
+        assert self.r_na.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_na.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
@@ -178,10 +120,12 @@ class Test_Blocking:
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
-        assert re.match("^application/json", self.r_aa.headers.get("content-type", "")) is not None
+        assert self.r_aa.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_aa.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_partial_json(self):
         # */* should be ignored because there are more specific matches for text/html and application/json
@@ -189,10 +133,12 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
         )
 
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
-        assert re.match("^application/json", self.r_apj.headers.get("content-type", "")) is not None
+        assert self.r_apj.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_apj.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_partial_html(self):
         self.r_aph = weblog.get(
@@ -202,10 +148,12 @@ class Test_Blocking:
     @missing_feature(context.library == "php", reason="Support for partial html not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "python", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
-        assert self.r_aph.text == HTML_DATA
+        assert self.r_aph.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_aph.text in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_accept_full_json(self):
         self.r_afj = weblog.get(
@@ -216,10 +164,12 @@ class Test_Blocking:
             },
         )
 
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
-        assert re.match("^application/json", self.r_afj.headers.get("content-type", "")) is not None
+        assert self.r_afj.headers.get("content-type", "") in JSON_CONTENT_TYPES
+        assert self.r_afj.text in BLOCK_TEMPLATE_JSON_ANY
 
     def setup_accept_full_html(self):
         self.r_afh = weblog.get(
@@ -232,10 +182,32 @@ class Test_Blocking:
 
     @missing_feature(context.library == "php", reason="Support for quality not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
+    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
-        assert re.match("^text/html", self.r_afh.headers.get("content-type", "")) is not None
+        assert self.r_afh.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_afh.text in BLOCK_TEMPLATE_HTML_ANY
+
+    def setup_json_template_v1(self):
+        self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
+
+    @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_json_template_v1(self):
+        """HTML block template is v1 minified"""
+        assert self.r_json_v1.status_code == 403
+        assert self.r_json_v1.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_json_v1.text == BLOCK_TEMPLATE_JSON_MIN_V1
+
+    def setup_html_template_v2(self):
+        self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
+
+    @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_html_template_v2(self):
+        """HTML block template is v1 minified"""
+        assert self.r_html_v2.status_code == 403
+        assert self.r_html_v2.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
 
 
 @rfc(

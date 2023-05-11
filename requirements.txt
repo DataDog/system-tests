@@ -45,14 +45,11 @@ ddtrace==1.10.2
 Flask==2.0.0
 frozenlist==1.3.1
 grpcio==1.53.0
-#grpcio-tools==1.53.0
 idna==3.4
 iniconfig==1.1.1
 itsdangerous==2.1.2
 Jinja2==3.1.2
-#jsonschema==3.2.0
 MarkupSafe==2.1.1
-#msgpack==1.0.4
 multidict==6.0.2
 mypy-extensions==0.4.3
 numpy==1.23.3
@@ -60,18 +57,13 @@ packaging==21.3
 pathspec==0.10.1
 platformdirs==2.5.2
 pluggy==1.0.0
-#protobuf==4.22.1
 py==1.11.0
 pyparsing==3.0.9
 pyrsistent==0.18.1
-#pytest==7.1.3
 pytest-xdist==3.2.1
-#pytest-json-report==1.2.1
 pytest-metadata==2.0.2
 pytest-split==0.8.1
 regex==2022.9.13
-#requests==2.28.1
-#requests-toolbelt==0.9.1
 six==1.16.0
 tenacity==8.0.1
 toml==0.10.2
@@ -80,6 +72,6 @@ typed-ast==1.5.4
 typing_extensions==4.3.0
 urllib3==1.26.12
 Werkzeug==2.0.1
-#yarl==1.8.1
 
 -r parametric/apps/python_http/requirements.txt
+dictdiffer==0.9.0

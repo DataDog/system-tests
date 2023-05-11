@@ -5,7 +5,6 @@
 from utils import weblog, interfaces, released, irrelevant
 
 
-@released(golang="1.43.0", java="0.97.0", nodejs="3.1.0", php="0.74.0", python="0.59.1", ruby="1.8.0")
 @irrelevant(library="cpp")
 class Test_Basic:
     """ Make sure the spans endpoint is successful """

@@ -16,11 +16,14 @@ import jakarta.xml.bind.annotation.XmlValue;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -32,6 +35,7 @@ import static com.datadoghq.jersey.Main.DATA_SOURCE;
 import static com.datadoghq.jersey.Main.LDAP_CONTEXT;
 
 
+@SuppressWarnings("Convert2MethodRef")
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
@@ -313,64 +317,47 @@ public class MyResource {
 
     @POST
     @Path("/iast/source/parameter/test")
-    public String sourceParameter(@FormParam("source") final String source) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        sql.insecureSql(source, source, (statement, sql) -> statement.executeQuery(sql));
+    public String sourceParameter(@FormParam("table") final String source) {
+        sql.insecureSql(source, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Parameters => source: %s", source);
     }
 
     @GET
     @Path("/iast/source/header/test")
-    public String sourceHeaders(@HeaderParam("random-key") String header) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        sql.insecureSql(header, header, (statement, sql) -> statement.executeQuery(sql));
+    public String sourceHeaders(@HeaderParam("table") String header) {
+        sql.insecureSql(header, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Headers => %s", header);
     }
 
     @GET
     @Path("/iast/source/cookievalue/test")
-    public String sourceCookieValue(@CookieParam("cookie-source-name") final String value) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        sql.insecureSql(value, value, (statement, sql) -> statement.executeQuery(sql));
+    public String sourceCookieValue(@CookieParam("table") final String value) {
+        sql.insecureSql(value, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Cookies => %s", value);
     }
 
     @GET
     @Path("/iast/source/cookiename/test")
     public String sourceCookieName(@Context final HttpHeaders headers) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        Map<String, Cookie> cookies = headers.getCookies();
-        for (Cookie cookie : cookies.values()) {
-            String name = cookie.getName();
-            sql.insecureSql(name, name, (statement, sql) -> statement.executeQuery(sql));
-            break;
-        }
+        Collection<Cookie> cookies = headers.getCookies().values();
+        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("user"), Cookie::getName);
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Cookies => %s", cookies);
     }
 
     @POST
     @Path("/iast/source/body/test")
     public String sourceBody(TestBean testBean) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         System.out.println("Inside body test testbean: " + testBean);
-        String name = testBean.getName();
         String value = testBean.getValue();
-        sql.insecureSql(name, value, (statement, sql) -> statement.executeQuery(sql));
-        return String.format("@RequestBody to Test bean -> name: %s, value:%", name, value);
+        sql.insecureSql(value, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("@RequestBody to Test bean -> value:%", value);
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private <E> String find(final Collection<E> list,
+                            final Predicate<E> matcher,
+                            final Function<E, String> provider) {
+        return provider.apply(list.stream().filter(matcher).findFirst().get());
     }
 }
