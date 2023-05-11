@@ -24,17 +24,30 @@ class _FailedQuery:
 
 
 # some GRPC request wrapper to fit into validator model
-class _GrpcRequest:
-    def __init__(self, request, rid):
-        self.content = request
+class GrpcRequest:
+    def __init__(self, data):
+        # self.content = request
         # fake the HTTP header model
-        self.headers = {"user-agent": f"rid/{rid}"}
+        self.headers = {"user-agent": f"rid/{data['rid']}"}
 
 
-class _GrpcQuery:
-    def __init__(self, rid, request, response):
-        self.request = _GrpcRequest(request, rid)
-        self.response = response
+class GrpcResponse:
+    def __init__(self, data):
+        self.request = GrpcRequest(data["request"])
+        self.response = data["response"]
+
+
+class HttpRequest:
+    def __init__(self, data):
+        self.headers = data.get("headers", {})
+        self.method = data["method"]
+        self.url = data["url"]
+
+
+class HttpResponse:
+    def __init__(self, data):
+        self.request = HttpRequest(data["request"])
+        self.status_code = data["status_code"]
 
 
 class _Weblog:
@@ -51,7 +64,16 @@ class _Weblog:
         self.current_nodeid = None  # will be used to store request made by a given nodeid
         self.replay = False
 
+    def init_replay_mode(self, log_folder):
+        self.replay = True
+
+        with open(f"{log_folder}/weblog_responses.json", "r", encoding="utf-8") as f:
+            self.responses = json.load(f)
+
     def save_requests(self, log_folder):
+        if self.replay:
+            return
+
         try:
             with open(f"{log_folder}/weblog_responses.json", "w", encoding="utf-8") as f:
                 json.dump(dict(self.responses), f, indent=2)
@@ -81,7 +103,10 @@ class _Weblog:
         rid_in_user_agent=True,
         **kwargs,
     ):
-        # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
+
+        if self.replay:
+            return self.get_request_from_logs()
+
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = headers or {}
 
@@ -124,6 +149,12 @@ class _Weblog:
 
         return r
 
+    def get_request_from_logs(self):
+        return HttpResponse(self.responses[self.current_nodeid].pop(0))
+
+    def get_grpc_request_from_logs(self):
+        return GrpcResponse(self.responses[self.current_nodeid].pop(0))
+
     def _get_url(self, path, domain, port, query=None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative
@@ -140,6 +171,10 @@ class _Weblog:
         return res
 
     def grpc(self, string_value):
+
+        if self.replay:
+            return self.get_grpc_request_from_logs()
+
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
@@ -154,13 +189,21 @@ class _Weblog:
 
         request = pb.Value(string_value=string_value)  # pylint: disable=no-member
 
+        data = {
+            "request": {"rid": rid, "string_value": string_value},
+        }
+
         try:
-            response = _grpc_client.Unary(request)
+            _grpc_client.Unary(request)
+            data["response"] = "TODO"
+
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            return _GrpcQuery(rid, request, None)
+            data["response"] = None
 
-        return _GrpcQuery(rid, request, response)
+        self.responses[self.current_nodeid].append(data)
+
+        return GrpcResponse(data)
 
 
 weblog = _Weblog()
