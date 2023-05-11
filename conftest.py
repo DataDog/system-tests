@@ -225,7 +225,10 @@ def pytest_runtest_call(item):
     if item.nodeid in weblog.responses:
         for response in weblog.responses[item.nodeid]:
             request = response["request"]
-            logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
+            if "method" in request:
+                logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
+            else:
+                logger.info("weblog GRPC request")
 
 
 def pytest_json_modifyreport(json_report):

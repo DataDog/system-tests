@@ -59,6 +59,11 @@ class _Scenario:
 
         logger.addHandler(handler)
 
+        if replay:
+            from utils import weblog
+
+            weblog.init_replay_mode(self.host_log_folder)
+
     def session_start(self, session):
         """ called at the very begning of the process """
 
@@ -407,6 +412,7 @@ class EndToEndScenario(_DockerScenario):
         from utils import interfaces
 
         if self.replay:
+            interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
             return
 
         if self.use_proxy:

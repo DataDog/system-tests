@@ -72,6 +72,19 @@ class InterfaceValidator:
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
 
+    def load_data_from_logs(self, folder_path):
+        from os import listdir
+        from os.path import isfile, join
+
+        for filename in listdir(folder_path):
+            file_path = join(folder_path, filename)
+            if isfile(file_path):
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                self._data_list.append(data)
+
     def get_data(self, path_filters=None):
 
         if path_filters is not None:
