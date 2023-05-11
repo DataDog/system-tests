@@ -103,7 +103,7 @@ elif [[ $SCENARIO == "ONBOARDING_SCENARIOS" ]]; then
 elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
     # If the first argument is a list of capital letters, then we consider it's a scenario name
     # and we add the -S option, telling pytest that's a scenario name
-    pytest tests/ -S $1 ${@:2}
+    pytest -S $1 ${@:2}
 
 else
     # otherwise, a simple proxy to pytest
