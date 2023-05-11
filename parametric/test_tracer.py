@@ -1,7 +1,6 @@
 from typing import Dict
 
 import pytest
-import time
 
 from parametric.spec.trace import Span
 from parametric.spec.trace import find_trace_by_root

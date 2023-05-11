@@ -393,6 +393,18 @@ class _TestAgentAPI:
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
+    def set_remote_config(self, path, payload):
+        resp = self._session.post(
+            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,}
+        )
+        assert resp.status_code == 202
+
+    def telemetry(self, clear=False, **kwargs):
+        resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
+        if clear:
+            self.clear()
+        return resp.json()
+
     def traces(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
@@ -447,7 +459,7 @@ class _TestAgentAPI:
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
-    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
+    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 200) -> List[Trace]:
         """Wait for `num` to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -466,8 +478,26 @@ class _TestAgentAPI:
                     if clear:
                         self.clear()
                     return sorted(traces, key=lambda trace: trace[0]["start"])
-            time.sleep(0.1)
-        raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+            time.sleep(0.01)
+        raise AssertionError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+
+    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
+        """Wait for a given telemetry event type to be available in the test agent. Returns all events
+        that were received by the test agent.
+        """
+        for i in range(wait_loops):
+            try:
+                events = self.telemetry(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                for event in events:
+                    if event["request_type"] == event_name:
+                        if clear:
+                            self.clear()
+                        return events
+            time.sleep(0.01)
+        raise AssertionError("Telemetry event %r not found" % event_name)
 
 
 @contextlib.contextmanager
@@ -638,7 +668,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.9.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,
@@ -735,7 +765,11 @@ def test_server(
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
     }
-    env.update(apm_test_server.env)
+    test_server_env = {}
+    for k, v in apm_test_server.env.items():
+        if v is not None:
+            test_server_env[k] = v
+    env.update(test_server_env)
 
     with docker_run(
         image=apm_test_server.container_tag,
