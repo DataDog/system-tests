@@ -6,17 +6,6 @@
 
 set -eu
 
-<<<<<<< HEAD
-if [[ ${1:-} =~ ^[A-Z0-9_]+$ ]]; then
-    # Retro comp: if the first argument is a list of capital letters, then we consider it's a scenario name
-    # and we add the -S option, telling pytest that's a scenario name
-    RUNNER_ARGS="tests/ -S $@"
-else
-    RUNNER_ARGS=$@
-fi
-
-=======
->>>>>>> main
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 
