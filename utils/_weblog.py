@@ -17,12 +17,6 @@ from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 
-class _FailedQuery:
-    def __init__(self, request):
-        self.request = request
-        self.status_code = None
-
-
 # some GRPC request wrapper to fit into validator model
 class GrpcRequest:
     def __init__(self, data):
@@ -104,6 +98,9 @@ class _Weblog:
         **kwargs,
     ):
 
+        if self.current_nodeid is None:
+            raise Exception("Weblog calls can only be done during setup")
+
         if self.replay:
             return self.get_request_from_logs()
 
@@ -127,6 +124,11 @@ class _Weblog:
         else:
             url = self._get_url(path, domain, port)
 
+        response_data = {
+            "request": {"method": method, "url": url, "headers": headers, "params": params, "data": data},
+            "status_code": None,
+        }
+
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
             r = req.prepare()
@@ -134,20 +136,16 @@ class _Weblog:
             logger.debug(f"Sending request {rid}: {method} {url}")
 
             r = requests.Session().send(r, timeout=5, stream=stream, allow_redirects=allow_redirects)
+            response_data["status_code"] = r.status_code
+
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            return _FailedQuery(request=r)
+        else:
+            logger.debug(f"Request {rid}: {r.status_code}")
 
-        logger.debug(f"Request {rid}: {r.status_code}")
+        self.responses[self.current_nodeid].append(response_data)
 
-        self.responses[self.current_nodeid].append(
-            {
-                "request": {"method": method, "url": url, "headers": headers, "params": params, "data": data},
-                "status_code": r.status_code,
-            }
-        )
-
-        return r
+        return HttpResponse(response_data)
 
     def get_request_from_logs(self):
         return HttpResponse(self.responses[self.current_nodeid].pop(0))
@@ -175,6 +173,9 @@ class _Weblog:
         if self.replay:
             return self.get_grpc_request_from_logs()
 
+        if self.current_nodeid is None:
+            raise Exception("Weblog calls can only be done during setup")
+
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
@@ -189,21 +190,21 @@ class _Weblog:
 
         request = pb.Value(string_value=string_value)  # pylint: disable=no-member
 
-        data = {
+        response_data = {
             "request": {"rid": rid, "string_value": string_value},
         }
 
         try:
             _grpc_client.Unary(request)
-            data["response"] = "TODO"
+            response_data["response"] = "TODO"
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            data["response"] = None
+            response_data["response"] = None
 
-        self.responses[self.current_nodeid].append(data)
+        self.responses[self.current_nodeid].append(response_data)
 
-        return GrpcResponse(data)
+        return GrpcResponse(response_data)
 
 
 weblog = _Weblog()

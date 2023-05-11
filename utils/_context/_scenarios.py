@@ -413,6 +413,7 @@ class EndToEndScenario(_DockerScenario):
 
         if self.replay:
             interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
+            interfaces.agent.load_data_from_logs(f"{self.host_log_folder}/interfaces/agent")
             return
 
         if self.use_proxy:
