@@ -30,7 +30,7 @@ class TestBody:
     source_fixture = SourceFixture(
         http_method="POST",
         endpoint="/iast/source/body/test",
-        request_kwargs={"json": {"name": "nameTest", "value": "valueTest"}},
+        request_kwargs={"json": {"name": "table", "value": "user"}},
         source_type="http.request.body",
         source_name=None,
         source_value=None,

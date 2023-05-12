@@ -216,7 +216,8 @@ def pytest_collection_finish(session):
     terminal.write("\n\n")
 
     if not context.scenario.name.startswith("ONBOARDING"):
-        context.scenario.post_setup(session)
+        context.scenario.post_setup()
+    context.scenario.post_setup()
 
 
 def pytest_runtest_call(item):

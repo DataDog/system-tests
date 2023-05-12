@@ -30,9 +30,9 @@ class TestParameterName:
     source_fixture = SourceFixture(
         http_method="POST",
         endpoint="/iast/source/parametername/test",
-        request_kwargs={"data": {"source": "parameterName"}},
+        request_kwargs={"data": {"user": "unused"}},
         source_type="http.request.parameter.name",
-        source_name="source",
+        source_name="user",
         source_value=None,
     )
 
