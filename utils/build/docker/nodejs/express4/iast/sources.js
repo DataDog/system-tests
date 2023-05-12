@@ -55,22 +55,18 @@ function init (app, tracer) {
 
     app.get('/iast/source/cookiename/test', (req, res) => {
         let vulnParam = ''
-        console.log('req.cookies', req.query)
         Object.keys(req.cookies).forEach((key) => {
             vulnParam += key
         })
-        console.log('vulnParam', vulnParam)
         execSync('ls #' + vulnParam)
         res.send('OK')
     });
 
     app.get('/iast/source/cookievalue/test', (req, res) => {
         let vulnParam = ''
-        console.log('req.cookies', req.query)
         Object.keys(req.cookies).forEach((key) => {
             vulnParam += req.cookies[key]
         })
-        console.log('vulnParam', vulnParam)
         execSync('ls #' + vulnParam)
         res.send('OK')
     });
