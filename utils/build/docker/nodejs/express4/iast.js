@@ -1,8 +1,11 @@
+'use strict'
+
 const { Client, Pool } = require('pg')
 const { readFileSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto');
-const { execSync } = require('child_process')
+const { execSync } = require('child_process');
+const https = require('http');
 
 function initData () {
   const query = readFileSync(join(__dirname, 'resources', 'iast-data.sql')).toString()
@@ -103,13 +106,19 @@ function init (app, tracer) {
   app.post('/iast/cmdi/test_insecure', (req, res) => {
     const result = execSync(req.body.cmd)
     res.send(result.toString())
-  })
+  });
 
   app.post('/iast/path_traversal/test_insecure', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
     const stats = fs.statSync(req.body.path)
     res.send(JSON.stringify(stats))
+  });
+
+  app.post('/iast/ssrf/test_insecure', (req, res) => {
+    https.get(req.body.url, () => {
+      res.send('OK')
+    })
   });
 
 }

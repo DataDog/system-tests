@@ -7,6 +7,10 @@ import ast
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
 from google.protobuf.json_format import MessageToDict
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
+    ExportTraceServiceRequest,
+    ExportTraceServiceResponse,
+)
 from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from utils.tools import logger
 
@@ -105,6 +109,17 @@ def deserialize_http_message(path, message, data, interface, key):
         _convert_bytes_values(result)
 
         return result
+
+    dd_protocol = get_header_value("dd-protocol", message["headers"])
+    if content_type == "application/x-protobuf" and dd_protocol == "otlp":
+        # Raw data can be either a str like "b'\n\x\...'" or bytes
+        content = eval(data) if isinstance(data, str) else data
+        return MessageToDict(ExportTraceServiceRequest.FromString(content))
+
+    if content_type == "application/x-protobuf" and path == "/v1/traces":
+        # Raw data can be either a str like "b'\n\x\...'" or bytes
+        content = eval(data) if isinstance(data, str) else data
+        return MessageToDict(ExportTraceServiceResponse.FromString(content))
 
     if content_type == "application/x-protobuf" and path == "/api/v0.2/traces":
         return MessageToDict(TracePayload.FromString(data))

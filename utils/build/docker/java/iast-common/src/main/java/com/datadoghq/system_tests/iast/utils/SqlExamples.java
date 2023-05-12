@@ -16,15 +16,22 @@ public class SqlExamples {
         this.dataSource = dataSource;
     }
 
-    public Object insecureSql(final String username, final String password) {
-        return insecureSql(username, password, ((statement, sql) -> statement.executeQuery(sql)));
+    public Object insecureSql(final String table, final StatementHandler handler) {
+        try (final Connection con = dataSource.getConnection()) {
+            final Statement statement = con.createStatement();
+            final String sql = "SELECT * FROM " + table;
+            final ResultSet result = handler.executeQuery(statement, sql);
+            return fetchUsers(result);
+        } catch (final Exception e) {
+            throw new UndeclaredThrowableException(e);
+        }
     }
 
-    public Object insecureSql(final String username, final String password, final StatementHandler code) {
+    public Object insecureSql(final String username, final String password) {
         try (final Connection con = dataSource.getConnection()) {
             final Statement statement = con.createStatement();
             final String sql = "SELECT * FROM USER WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "'";
-            final ResultSet result = code.handle(statement, sql);
+            final ResultSet result = statement.executeQuery(sql);
             return fetchUsers(result);
         } catch (final Exception e) {
             throw new UndeclaredThrowableException(e);
@@ -56,6 +63,6 @@ public class SqlExamples {
     }
 
     public interface StatementHandler {
-        ResultSet handle(Statement statement, String sql) throws SQLException;
+        ResultSet executeQuery(Statement statement, String query) throws SQLException;
     }
 }

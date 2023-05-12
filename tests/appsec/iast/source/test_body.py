@@ -3,9 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-import re
-from utils import weblog, interfaces, context, coverage, released, missing_feature
-
+from utils import context, coverage, released
+from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -25,13 +24,20 @@ if context.library == "cpp":
     }
 )
 @released(nodejs="?")
-class TestRequestBody:
+class TestBody:
     """Verify that request json body is tainted"""
 
-    def setup_body(self):
-        self.r = weblog.post("/iast/source/body/test", json={"name": "nameTest", "value": "valueTest"})
+    source_fixture = SourceFixture(
+        http_method="POST",
+        endpoint="/iast/source/body/test",
+        request_kwargs={"json": {"name": "table", "value": "user"}},
+        source_type="http.request.body",
+        source_name=None,
+        source_value=None,
+    )
 
-    def test_body(self):
-        interfaces.library.expect_iast_sources(
-            self.r, source_count=1, origin="http.request.body",
-        )
+    def setup_source_reported(self):
+        self.source_fixture.setup()
+
+    def test_source_reported(self):
+        self.source_fixture.test()

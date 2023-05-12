@@ -24,12 +24,14 @@ public class AppSecIast {
     private final PathExamples pathExamples;
     private final CryptoExamples cryptoExamples;
     private volatile LDAPExamples ldapExamples;
+    private final SsrfExamples ssrfExamples;
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
         this.cmdExamples = new CmdExamples();
         this.pathExamples = new PathExamples();
         this.cryptoExamples = new CryptoExamples();
+        this.ssrfExamples = new SsrfExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -139,6 +141,12 @@ public class AppSecIast {
         }
         final String path = request.getParameter("path");
         return pathExamples.insecurePathTraversal(path);
+    }
+
+    @PostMapping("/ssrf/test_insecure")
+    String insecureSsrf(final ServletRequest request) {
+        final String url = request.getParameter("url");
+        return ssrfExamples.insecureUrl(url);
     }
 
     /**
