@@ -46,6 +46,7 @@ public class MyResource {
     private final LDAPExamples ldap = new LDAPExamples(LDAP_CONTEXT);
     private final CmdExamples cmd = new CmdExamples();
     private final PathExamples path = new PathExamples();
+    private final SsrfExamples ssrf = new SsrfExamples();
 
     @GET
     public String hello() {
@@ -313,6 +314,12 @@ public class MyResource {
             span.setTag("appsec.event", true);
         }
         return this.path.insecurePathTraversal(path);
+    }
+
+    @POST
+    @Path("/iast/ssrf/test_insecure")
+    public String insecureSsrf(@FormParam("url") final String url) {
+        return this.ssrf.insecureUrl(url);
     }
 
     @POST
