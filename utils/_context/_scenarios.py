@@ -230,7 +230,7 @@ class _DockerScenario(_Scenario):
         super().configure(replay)
 
         for container in reversed(self._required_containers):
-            container.configure()
+            container.configure(replay)
 
     def _get_warmups(self):
 
