@@ -10,11 +10,20 @@ import string
 import urllib
 
 import requests
+from requests.structures import CaseInsensitiveDict
 import grpc
 import google.protobuf.struct_pb2 as pb
 
 from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
+
+
+class ResponseEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, CaseInsensitiveDict):
+            return dict(o.items())
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, o)
 
 
 # some GRPC request wrapper to fit into validator model
@@ -33,7 +42,7 @@ class GrpcResponse:
 
 class HttpRequest:
     def __init__(self, data):
-        self.headers = data.get("headers", {})
+        self.headers = CaseInsensitiveDict(data.get("headers", {}))
         self.method = data["method"]
         self.url = data["url"]
 
@@ -42,6 +51,8 @@ class HttpResponse:
     def __init__(self, data):
         self.request = HttpRequest(data["request"])
         self.status_code = data["status_code"]
+        self.headers = CaseInsensitiveDict(data.get("headers", {}))
+        self.text = data["text"]
 
 
 class _Weblog:
@@ -70,7 +81,7 @@ class _Weblog:
 
         try:
             with open(f"{log_folder}/weblog_responses.json", "w", encoding="utf-8") as f:
-                json.dump(dict(self.responses), f, indent=2)
+                json.dump(dict(self.responses), f, indent=2, cls=ResponseEncoder)
         except:
             logger.exception("Can't save responses log")
 
@@ -125,8 +136,10 @@ class _Weblog:
             url = self._get_url(path, domain, port)
 
         response_data = {
-            "request": {"method": method, "url": url, "headers": headers, "params": params, "data": data},
+            "request": {"method": method, "url": url, "headers": headers, "params": params},
             "status_code": None,
+            "headers": {},
+            "text": None,
         }
 
         try:
@@ -137,6 +150,8 @@ class _Weblog:
 
             r = requests.Session().send(r, timeout=5, stream=stream, allow_redirects=allow_redirects)
             response_data["status_code"] = r.status_code
+            response_data["headers"] = r.headers
+            response_data["text"] = r.text
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")

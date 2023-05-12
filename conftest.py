@@ -50,10 +50,14 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure(config.option.replay)
+    # collect only : we collect tests. As now, it only works with replay mode
+    # on collectonly mode, the configuration step is exactly the step on replay mode
+    # so let's tell the scenario we are in replay mode
+    context.scenario.configure(config.option.replay or config.option.collectonly)
 
-    config.option.json_report_file = _JSON_REPORT_FILE()
-    config.option.xmlpath = _XML_REPORT_FILE()
+    if not config.option.replay and not config.option.collectonly:
+        config.option.json_report_file = _JSON_REPORT_FILE()
+        config.option.xmlpath = _XML_REPORT_FILE()
 
 
 # Called at the very begening
@@ -262,6 +266,9 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
+
+    if session.config.option.collectonly or session.config.option.replay:
+        return
 
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
