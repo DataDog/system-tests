@@ -31,8 +31,10 @@ class InterfaceValidator:
 
         self.accept_data = True
 
-    def configure(self):
-        pass
+        self.replay = False
+
+    def configure(self, replay):
+        self.replay = replay
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -76,7 +78,7 @@ class InterfaceValidator:
         from os import listdir
         from os.path import isfile, join
 
-        for filename in listdir(folder_path):
+        for filename in sorted(listdir(folder_path)):
             file_path = join(folder_path, filename)
             if isfile(file_path):
 
@@ -120,6 +122,9 @@ class InterfaceValidator:
             raise Exception("Test has not been validated by any data")
 
     def wait_for(self, wait_for_function, timeout):
+
+        if self.replay:
+            return
 
         # first, try existing data
         with self._lock:

@@ -116,7 +116,8 @@ class _LibraryStdout(_LogsInterfaceValidator):
     def __init__(self):
         super().__init__("Weblog stdout")
 
-    def configure(self):
+    def configure(self, replay):
+        super().configure(replay)
         p = "(?P<{}>{})".format
 
         self._skipped_patterns += [
