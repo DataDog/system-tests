@@ -319,7 +319,10 @@ class EndToEndScenario(_DockerScenario):
         from utils import interfaces
 
         super().configure(replay)
-        interfaces.library_stdout.configure()
+
+        interfaces.agent.configure(replay)
+        interfaces.library.configure(replay)
+        interfaces.backend.configure(replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
