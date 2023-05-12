@@ -64,16 +64,6 @@ class TestHeaderValue:
     def setup_telemetry_metric_executed_source(self):
         self.source_fixture.setup_telemetry_metric_executed_source()
 
-    @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-    @released(
-        java={
-            "spring-boot": "1.13.0",
-            "spring-boot-jetty": "1.13.0",
-            "spring-boot-openliberty": "1.13.0",
-            "spring-boot-wildfly": "1.13.0",
-            "spring-boot-undertow": "1.13.0",
-            "*": "?",
-        }
-    )
+    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_telemetry_metric_executed_source(self):
         self.source_fixture.test_telemetry_metric_executed_source()
