@@ -12,6 +12,8 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", java="1.14.0", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestSSRF:
     """Test command injection detection."""
 
@@ -41,5 +43,7 @@ class TestSSRF:
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
     @released(dotnet="?", golang="?", java="1.14.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
