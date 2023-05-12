@@ -9,7 +9,7 @@ ami:
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
   os_type: linux
-  os_distro: deb
+  os_distro: deb_
 
 - name: amazon-linux-x86
   ami_id: ami-0dfcb1ef8550277af
@@ -141,6 +141,7 @@ autoinjection:
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+            sudo apt install -y git
         
         - os_type: linux
           os_distro: rpm
@@ -152,6 +153,7 @@ autoinjection:
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64  datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+            sudo yum -y install git #we need to deploy weblog
 
     - env: prod
       install: 
@@ -164,7 +166,7 @@ autoinjection:
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
-        
+            sudo apt install -y git
         - os_type: linux
           os_distro: rpm
           copy_files:
@@ -175,6 +177,7 @@ autoinjection:
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+            sudo yum -y install git #we need to deploy weblog
 language-variants:
   - java: 
     - name: OpenJDK11
@@ -273,5 +276,16 @@ weblogs:
               local_path: test-app-dotnet.tar
 
           command: sh test-app-dotnet_docker_run.sh
+
+    - name: dotnet-core-simple-sample
+      install: 
+        - os_type: linux
+          command: |
+                #https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/docker/building-net-docker-images?view=aspnetcore-5.0#the-dockerfile
+                git clone https://github.com/dotnet/dotnet-docker
+                cd dotnet-docker/samples/aspnetapp
+                sudo docker build -t aspnetapp .
+                sudo docker run -d --rm -p 5985:80 --name aspnetcore_sample aspnetapp
+
 
 installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml

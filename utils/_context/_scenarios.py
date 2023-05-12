@@ -8,9 +8,8 @@ import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion
-from tests.onboarding.utils.provision_utils import ProvisionMatrix, Provision_filter
+from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 from pulumi import automation as auto
-import inspect
 
 from utils._context.containers import (
     WeblogContainer,
@@ -74,6 +73,9 @@ class _Scenario:
             self.collect_logs()
             self.close_targets()
             raise
+
+    def pytest_sessionfinish(self, session):
+        """ called at the end of the process  """
 
     def print_test_context(self):
         self.terminal.write_sep("=", "test context", bold=True)
@@ -660,7 +662,7 @@ class OnBoardingScenario(_Scenario):
     def __init__(self, name) -> None:
         super().__init__(name)
         self.stack = None
-        self.provision_vms = list(ProvisionMatrix(Provision_filter(name)).get_infraestructure_provision())
+        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(name)).get_infrastructure_provision())
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
 
     @property
@@ -674,20 +676,19 @@ class OnBoardingScenario(_Scenario):
             raise ValueError("You must set TEST_LIBRARY env variable!!")
         return LibraryVersion(language, "0.0")
 
-    def session_start(self, session):
-        """ called at the very begning of the process """
+    def _start_pulumi(self):
+        def pulumi_start_program():
+
+            for provision_vm in self.provision_vms:
+                logger.info(f"Executing warmup {provision_vm.name}")
+                provision_vm.start()
 
         project_name = "system-tests-onboarding"
         stack_name = "testing"
 
-        self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-        self.print_test_context()
-
-        self.print_info("Executing warmups...")
-
         try:
             self.stack = auto.create_or_select_stack(
-                stack_name=stack_name, project_name=project_name, program=self._get_warmups
+                stack_name=stack_name, project_name=project_name, program=pulumi_start_program
             )
             up_res = self.stack.up(on_output=logger.info)
         except:
@@ -696,13 +697,10 @@ class OnBoardingScenario(_Scenario):
             raise
 
     def _get_warmups(self):
+        return [self._start_pulumi]
 
-        for provision_vm in self.provision_vms:
-            logger.info(f"Executing warmup {provision_vm.name}")
-            provision_vm.start()
-
-    def post_setup(self, session):
-        logger.info(f"Executing post_setup")
+    def pytest_sessionfinish(self, session):
+        logger.info(f"Closing onboarding scenario")
         self.close_targets()
 
     def close_targets(self):

@@ -9,9 +9,9 @@ from utils._context.virtual_machines import TestedVirtualMachine
 class ProvisionMatrix:
     def __init__(self, provision_filter):
         self.provision_filter = provision_filter
-        self.provision_parser = Provision_parser(provision_filter)
+        self.provision_parser = ProvisionParser(provision_filter)
 
-    def get_infraestructure_provision(self):
+    def get_infrastructure_provision(self):
         if not os.getenv("TEST_LIBRARY"):
             return None
         for ec2_data in self.provision_parser.ec2_instances_data():
@@ -42,7 +42,7 @@ class ProvisionMatrix:
                             )
 
 
-class Provision_parser:
+class ProvisionParser:
     def __init__(self, provision_filter):
         self.provision_filter = provision_filter
         self.config_data = self._load_provision()
@@ -215,7 +215,7 @@ class Provision_parser:
         return config_data
 
 
-class Provision_filter:
+class ProvisionFilter:
     def __init__(self, provision_scenario, language=None, env=None, os_distro=None, weblog=None):
         self.provision_scenario = provision_scenario
         self.language = os.getenv("TEST_LIBRARY")

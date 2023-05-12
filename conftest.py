@@ -215,8 +215,6 @@ def pytest_collection_finish(session):
 
     terminal.write("\n\n")
 
-    if not context.scenario.name.startswith("ONBOARDING"):
-        context.scenario.post_setup()
     context.scenario.post_setup()
 
 
@@ -260,8 +258,7 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
-    if context.scenario.name.startswith("ONBOARDING"):
-        context.scenario.post_setup(session)
+    context.scenario.pytest_sessionfinish(session)
 
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},

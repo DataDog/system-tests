@@ -1,10 +1,6 @@
 import pytest
-from typing import List, Tuple
 import requests
-
 from utils import context
-from utils.tools import logger
-import os
 
 
 @pytest.fixture(

@@ -3,8 +3,8 @@ from utils.tools import logger
 import pulumi
 import pulumi_aws as aws
 from pulumi import Output
-from tests.onboarding.utils.pulumi_utils import remote_install, pulumi_logger
 import pulumi_command as command
+from utils.onboarding.pulumi_utils import remote_install, pulumi_logger
 
 
 class TestedVirtualMachine:
