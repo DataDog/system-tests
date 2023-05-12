@@ -50,11 +50,11 @@ class SinkFixture:
         )
 
     def setup_secure(self):
-        self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
+        if self.secure_request is None:
+            self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
 
     def test_secure(self):
-        if self.secure_request is None:
-            interfaces.library.expect_no_vulnerabilities(self.secure_request)
+        interfaces.library.expect_no_vulnerabilities(self.secure_request)
 
 
 class SourceFixture:
