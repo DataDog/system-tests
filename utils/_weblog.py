@@ -163,10 +163,23 @@ class _Weblog:
         return HttpResponse(response_data)
 
     def get_request_from_logs(self):
-        return HttpResponse(self.responses[self.current_nodeid].pop(0))
+        return HttpResponse(self._pop_response_data_from_logs())
 
     def get_grpc_request_from_logs(self):
-        return GrpcResponse(self.responses[self.current_nodeid].pop(0))
+        return GrpcResponse(self._pop_response_data_from_logs())
+
+    def _pop_response_data_from_logs(self):
+        if self.current_nodeid not in self.responses:
+            raise ValueError(
+                f"I do not have any request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
+            )
+
+        if len(self.responses[self.current_nodeid]) == 0:
+            raise ValueError(
+                f"I have no more request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
+            )
+
+        return self.responses[self.current_nodeid].pop(0)
 
     def _get_url(self, path, domain, port, query=None):
         """Return a query with the passed host"""
