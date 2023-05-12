@@ -43,7 +43,6 @@ class TestParameterName:
     def test_source_post_reported(self):
         self.source_post_fixture.test()
 
-
     source_get_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/parametername/test",

@@ -29,17 +29,19 @@ if context.library == "cpp":
 class TestParameterValue:
     """Verify that request parameters are tainted"""
 
-    expectedPostOrigin = "http.request.parameter"
+    expected_source_value = "user"
+    expected_post_origin = "http.request.parameter"
     if context.library.library == "nodejs":
-        expectedPostOrigin = "http.request.body"
+        expected_post_origin = "http.request.body"
+        expected_source_value = None  # In test case in node the value is redacted
 
     source_post_fixture = SourceFixture(
         http_method="POST",
         endpoint="/iast/source/parameter/test",
         request_kwargs={"data": {"table": "user"}},
-        source_type=expectedPostOrigin,
+        source_type=expected_post_origin,
         source_name="table",
-        source_value="user",
+        source_value=expected_source_value,
     )
 
     def setup_source_post_reported(self):
@@ -55,7 +57,7 @@ class TestParameterValue:
         request_kwargs={"params": {"table": "user"}},
         source_type="http.request.parameter",
         source_name="table",
-        source_value="user",
+        source_value=expected_source_value,
     )
 
     def setup_source_get_reported(self):
