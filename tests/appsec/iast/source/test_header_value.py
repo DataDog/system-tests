@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "1.5.0",
@@ -26,7 +26,6 @@ if context.library == "cpp":
         "*": "?",
     }
 )
-@released(nodejs="?")
 class TestHeaderValue:
     """Verify that request headers are tainted"""
 
@@ -61,3 +60,20 @@ class TestHeaderValue:
     )
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_telemetry_metric_executed_source(self):
+        self.source_fixture.setup_telemetry_metric_executed_source()
+
+    @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @released(
+        java={
+            "spring-boot": "1.13.0",
+            "spring-boot-jetty": "1.13.0",
+            "spring-boot-openliberty": "1.13.0",
+            "spring-boot-wildfly": "1.13.0",
+            "spring-boot-undertow": "1.13.0",
+            "*": "?",
+        }
+    )
+    def test_telemetry_metric_executed_source(self):
+        self.source_fixture.test_telemetry_metric_executed_source()

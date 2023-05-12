@@ -66,9 +66,23 @@ class TestParameterName:
     def test_post_telemetry_metric_instrumented_source(self):
         self.source_post_fixture.test_telemetry_metric_instrumented_source()
 
+    def setup_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.setup_telemetry_metric_executed_source()
+
+    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.test_telemetry_metric_executed_source()
+
     def setup_get_telemetry_metric_instrumented_source(self):
         self.source_get_fixture.setup_telemetry_metric_instrumented_source()
 
     @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_get_telemetry_metric_instrumented_source(self):
         self.source_get_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_get_telemetry_metric_executed_source(self):
+        self.source_get_fixture.setup_telemetry_metric_executed_source()
+
+    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_get_telemetry_metric_executed_source(self):
+        self.source_get_fixture.test_telemetry_metric_executed_source()
