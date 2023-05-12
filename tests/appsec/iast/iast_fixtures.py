@@ -86,12 +86,12 @@ class SinkFixture:
         expected_namespace = "iast"
         expected_metric = "executed.sink"
         series = _find_telemetry_metric_series("generate-metrics", expected_namespace, expected_metric)
-        assert len(series) >= 1
-        logging.debug(f"Metrics: {series}")
+        assert series, f"Got no series for metric {expected_metric}"
+        logging.debug("Series: %s", series)
         expected_tag = f"vulnerability_type:{self.vulnerability_type}"
-        relevant_series = [s for s in series if expected_tag in s["tags"]]
-        assert len(relevant_series) >= 1
-        for s in relevant_series:
+        series = [s for s in series if expected_tag in s["tags"]]
+        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True
@@ -150,12 +150,12 @@ class SourceFixture:
         expected_namespace = "iast"
         expected_metric = "executed.source"
         series = _find_telemetry_metric_series("generate-metrics", expected_namespace, expected_metric)
-        assert len(series) >= 1
-        logging.debug(f"Metrics: {series}")
+        assert series, f"Got no series for metric {expected_metric}"
+        logging.debug("Series: %s", series)
         expected_tag = f"source_type:{self.source_type}"
-        relevant_series = [s for s in series if expected_tag in s["tags"]]
-        assert len(relevant_series) >= 1
-        for s in relevant_series:
+        series = [s for s in series if expected_tag in s["tags"]]
+        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        for s in series:
             assert s["_computed_namespace"] == expected_namespace
             assert s["metric"] == expected_metric
             assert s["common"] is True

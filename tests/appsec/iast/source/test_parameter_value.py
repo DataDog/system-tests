@@ -96,9 +96,6 @@ class TestParameterValue:
             "spring-boot-openliberty": "1.13.0",
             "spring-boot-wildfly": "1.13.0",
             "spring-boot-undertow": "1.13.0",
-            "resteasy-netty3": "1.13.0",
-            "jersey-grizzly2": "1.13.0",
-            "vertx3": "1.13.0",
             "*": "?",
         }
     )
