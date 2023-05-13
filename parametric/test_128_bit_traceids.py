@@ -119,7 +119,8 @@ def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
     assert dd_p_tid is None
 
 
-@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("dotnet", "Optional feature not implemented")
+@pytest.mark.skip_library("golang", "Optional feature not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -449,7 +450,8 @@ def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
     assert dd_p_tid == "640cfd8d00000000"
 
 
-@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("dotnet", "Optional feature not implemented")
+@pytest.mark.skip_library("golang", "Optional feature not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "inconsistent_tid is not implemented for w3c")
@@ -502,7 +504,8 @@ def test_w3c_128_bit_propagation_tid_malformed(test_agent, test_library):
     assert dd_p_tid == "640cfd8d00000000"
 
 
-@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("dotnet", "Optional feature not implemented")
+@pytest.mark.skip_library("golang", "Optional feature not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "malformed_tid is not implemented")
