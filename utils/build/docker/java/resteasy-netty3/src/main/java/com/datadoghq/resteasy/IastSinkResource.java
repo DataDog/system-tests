@@ -5,6 +5,7 @@ import com.datadoghq.system_tests.iast.utils.SqlExamples;
 import com.datadoghq.system_tests.iast.utils.PathExamples;
 import com.datadoghq.system_tests.iast.utils.LDAPExamples;
 import com.datadoghq.system_tests.iast.utils.CmdExamples;
+import com.datadoghq.system_tests.iast.utils.SsrfExamples;
 
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -26,6 +27,7 @@ public class IastSinkResource {
     private final LDAPExamples ldap = new LDAPExamples(LDAP_CONTEXT);
     private final CmdExamples cmd = new CmdExamples();
     private final PathExamples path = new PathExamples();
+    private final SsrfExamples ssrf = new SsrfExamples();
 
     @GET
     @Path("/insecure_hashing/deduplicate")
@@ -138,5 +140,11 @@ public class IastSinkResource {
             span.setTag("appsec.event", true);
         }
         return this.path.insecurePathTraversal(path);
+    }
+
+    @POST
+    @Path("/ssrf/test_insecure")
+    public String insecureSsrf(@FormParam("url") final String url) {
+        return this.ssrf.insecureUrl(url);
     }
 }

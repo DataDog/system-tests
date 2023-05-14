@@ -27,7 +27,7 @@ if context.library == "cpp":
 )
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-class TestIastWeakCipher:
+class TestWeakCipher:
     """Verify weak cipher detection."""
 
     sink_fixture = SinkFixture(
