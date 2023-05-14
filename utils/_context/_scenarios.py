@@ -21,6 +21,7 @@ from utils._context.containers import (
     RabbitMqContainer,
     MySqlContainer,
     OpenTelemetryCollectorContainer,
+    SqlServerContainer,
     create_network,
 )
 
@@ -183,6 +184,7 @@ class _DockerScenario(_Scenario):
         include_kafka=False,
         include_rabbitmq=False,
         include_mysql_db=False,
+        include_sqlserver=False,
     ) -> None:
         super().__init__(name)
 
@@ -213,6 +215,9 @@ class _DockerScenario(_Scenario):
 
         if include_mysql_db:
             self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+
+        if include_sqlserver:
+            self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
     def configure(self):
         super().configure()
@@ -269,6 +274,7 @@ class EndToEndScenario(_DockerScenario):
         include_kafka=False,
         include_rabbitmq=False,
         include_mysql_db=False,
+        include_sqlserver=False,
     ) -> None:
         super().__init__(
             name,
@@ -280,6 +286,7 @@ class EndToEndScenario(_DockerScenario):
             include_kafka=include_kafka,
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
+            include_sqlserver=include_sqlserver,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -678,6 +685,7 @@ class scenarios:
         include_kafka=True,
         include_rabbitmq=True,
         include_mysql_db=True,
+        include_sqlserver=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
