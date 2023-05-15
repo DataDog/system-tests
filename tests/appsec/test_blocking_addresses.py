@@ -11,7 +11,7 @@ from utils import context, coverage, interfaces, irrelevant, missing_feature, re
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     nodejs="?",
-    golang="1.50.0",
+    golang="1.51.0",
     ruby="1.0.0",
 )
 @coverage.basic

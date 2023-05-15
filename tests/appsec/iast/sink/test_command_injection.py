@@ -37,7 +37,7 @@ class TestCommandInjection:
         insecure_endpoint="/iast/cmdi/test_insecure",
         secure_endpoint="/iast/cmdi/test_secure",
         data={"cmd": "ls"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.CmdExamples", "nodejs": "iast.js",},
+        location_map={"java": "com.datadoghq.system_tests.iast.utils.CmdExamples", "nodejs": "iast/index.js",},
     )
 
     def setup_insecure(self):
