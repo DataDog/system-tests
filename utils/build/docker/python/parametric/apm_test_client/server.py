@@ -42,9 +42,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         if request.origin not in ["", None]:
             trace_id = parent.trace_id if parent else None
             parent_id = parent.span_id if parent else None
-            parent = Context(
-                trace_id=trace_id, span_id=parent_id, dd_origin=request.origin
-            )
+            parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=request.origin)
 
         if request.http_headers.ByteSize() > 0:
             headers = {}
@@ -153,9 +151,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
         ctx = otel_span.get_span_context()
         self._otel_spans[ctx.span_id] = otel_span
-        return apm_test_client_pb2.OtelStartSpanReturn(
-            span_id=ctx.span_id, trace_id=ctx.trace_id
-        )
+        return apm_test_client_pb2.OtelStartSpanReturn(span_id=ctx.span_id, trace_id=ctx.trace_id)
 
     def OtelEndSpan(self, request, context):
         span = self._otel_spans.get(request.id)
@@ -168,9 +164,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
 
     def OtelIsRecording(self, request, context):
         span = self._otel_spans.get(request.span_id)
-        return apm_test_client_pb2.OtelIsRecordingReturn(
-            is_recording=span.is_recording()
-        )
+        return apm_test_client_pb2.OtelIsRecordingReturn(is_recording=span.is_recording())
 
     def OtelSpanContext(self, request, context):
         span = self._otel_spans[request.span_id]
@@ -217,7 +211,7 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
     def _get_attributes_from_request(self, request):
         attributes = {}
         for k, v in request.attributes.key_vals.items():
-            vals = [getattr(val, val.WhichOneof('val')) for val in v.val]
+            vals = [getattr(val, val.WhichOneof("val")) for val in v.val]
             attributes[k] = vals[0] if len(vals) == 1 else vals
         return attributes
 
@@ -231,9 +225,7 @@ def configure_otel_tracer():
 
 def serve(port: str):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
-    apm_test_client_pb2_grpc.add_APMClientServicer_to_server(
-        APMClientServicer(), server
-    )
+    apm_test_client_pb2_grpc.add_APMClientServicer_to_server(APMClientServicer(), server)
     configure_otel_tracer()
     server.add_insecure_port("[::]:%s" % port)
     server.start()
