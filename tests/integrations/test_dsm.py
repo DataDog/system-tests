@@ -18,12 +18,7 @@ class Test_DsmKafka:
         self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_kafka(self):
-        print(self.r)
-        print(self.r.content)
-        logger.info(f"exectute dsm tests {self.r}, {self.r.content}")
-        logger.info(f"exectute dsm tests {self.r.status_code}")
-        print(self.r.status_code)
-        assert str(self.r.content, "UTF-8") == "ok"
+        assert self.r.text == "ok"
 
         consumer_hash = 5700134256996109392 if context.library == "nodejs" else 4463699290244539355
         producer_hash = 13592025863925263556 if context.library == "nodejs" else 16645700936287432977
@@ -49,7 +44,7 @@ class Test_DsmHttp:
         self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_http(self):
-        assert str(self.r.content, "UTF-8") == "ok"
+        assert self.r.text == "ok"
 
         DsmHelper.assert_checkpoint_presence(
             hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
@@ -66,7 +61,7 @@ class Test_DsmRabbitmq:
         self.r = weblog.get("/dsm?integration=rabbitmq")
 
     def test_dsm_rabbitmq(self):
-        assert str(self.r.content, "UTF-8") == "ok"
+        assert self.r.text == "ok"
 
         DsmHelper.assert_checkpoint_presence(
             hash_=6176024609184775446,
