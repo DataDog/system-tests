@@ -176,7 +176,7 @@ def _assert_custom_event_tag_absence():
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.50.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -224,7 +224,7 @@ class Test_Blocking_request_method:
 @released(
     cpp="?",
     dotnet="?",
-    golang="1.50.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -275,7 +275,7 @@ class Test_Blocking_request_uri:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.50.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -326,7 +326,7 @@ class Test_Blocking_request_path_params:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.50.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -380,7 +380,7 @@ class Test_Blocking_request_query:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.50.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -434,7 +434,7 @@ class Test_Blocking_request_headers:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.50.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
     php_appsec="?",
