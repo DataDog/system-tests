@@ -21,6 +21,8 @@ otlp_config:\n\
   traces:\n\
     enabled: true\n\
     span_name_as_resource_name: true\n\
+  metrics:\n\
+    enabled: true\n\
 ' >> /etc/datadog-agent/datadog.yaml
 
 # Proxy conf
