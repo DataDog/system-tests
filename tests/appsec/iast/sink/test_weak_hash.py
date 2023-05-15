@@ -14,7 +14,7 @@ def _expected_location():
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
     if context.library.library == "nodejs":
-        return "iast.js"
+        return "iast/index.js"
 
     if context.library.library == "python":
         if context.library.version >= "1.12.0":
