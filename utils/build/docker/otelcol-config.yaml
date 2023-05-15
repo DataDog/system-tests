@@ -28,3 +28,11 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [datadog, logging]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, logging]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, logging]
