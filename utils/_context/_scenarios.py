@@ -323,6 +323,9 @@ class EndToEndScenario(_DockerScenario):
         interfaces.agent.configure(replay)
         interfaces.library.configure(replay)
         interfaces.backend.configure(replay)
+        interfaces.library_stdout.configure(replay)
+        interfaces.library_dotnet_managed.configure(replay)
+        interfaces.agent_stdout.configure(replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -418,6 +421,11 @@ class EndToEndScenario(_DockerScenario):
             interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
             interfaces.agent.load_data_from_logs(f"{self.host_log_folder}/interfaces/agent")
             interfaces.backend.load_data_from_logs(f"{self.host_log_folder}/interfaces/backend")
+
+            self._wait_interface(interfaces.library_stdout, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, 0)
+            self._wait_interface(interfaces.agent_stdout, 0)
+
             return
 
         if self.use_proxy:
