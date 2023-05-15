@@ -10,7 +10,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "1.1.0",
@@ -24,6 +24,7 @@ if context.library == "cpp":
         "*": "?",
     }
 )
+@released(nodejs={"express4": "3.19.0", "*": "?"})
 @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestPathTraversal:
@@ -35,7 +36,7 @@ class TestPathTraversal:
         insecure_endpoint="/iast/path_traversal/test_insecure",
         secure_endpoint="/iast/path_traversal/test_secure",
         data={"path": "/var/log"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.PathExamples", "nodejs": "iast.js",},
+        location_map={"java": "com.datadoghq.system_tests.iast.utils.PathExamples", "nodejs": "iast/index.js",},
     )
 
     def setup_insecure(self):
