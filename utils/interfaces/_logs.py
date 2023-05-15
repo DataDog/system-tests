@@ -280,13 +280,10 @@ class _LogAbsence:
 class Test:
     def test_main(self):
         """Test example"""
-        # i = _LibraryStdout()
-        # i.wait()
-        # i.assert_presence(r".*")
-
-        i = _AgentStdout()
+        i = _LibraryStdout()
+        i.configure(False)
         i.wait(0)
-        i.assert_presence(r"FIPS mode is disabled")
+        i.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 
 if __name__ == "__main__":
