@@ -1,6 +1,6 @@
 from typing import List
 from typing import TypedDict
-from parametric.protos import apm_test_client_pb2 as pb
+from utils.parametric.protos import apm_test_client_pb2 as pb
 
 OTEL_UNSET_CODE = "UNSET"
 OTEL_ERROR_CODE = "ERROR"

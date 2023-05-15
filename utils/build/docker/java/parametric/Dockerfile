@@ -9,6 +9,6 @@ COPY utils/build/docker/java/parametric/src src
 COPY utils/build/docker/java/parametric/build.sh .
 COPY utils/build/docker/java/parametric/pom.xml .
 COPY utils/build/docker/java/parametric/run.sh .
-COPY tests/parametric/protos/apm_test_client.proto src/main/proto/
+COPY utils/parametric/protos/apm_test_client.proto src/main/proto/
 COPY binaries /binaries
 RUN bash build.sh

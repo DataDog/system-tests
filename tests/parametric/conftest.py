@@ -13,12 +13,12 @@ import urllib.parse
 import requests
 import pytest
 
-from parametric.spec.trace import V06StatsPayload
-from parametric.spec.trace import Trace
-from parametric.spec.trace import decode_v06_stats
-from parametric._library_client import APMLibraryClientGRPC
-from parametric._library_client import APMLibraryClientHTTP
-from parametric._library_client import APMLibrary
+from utils.parametric.spec.trace import V06StatsPayload
+from utils.parametric.spec.trace import Trace
+from utils.parametric.spec.trace import decode_v06_stats
+from utils.parametric._library_client import APMLibraryClientGRPC
+from utils.parametric._library_client import APMLibraryClientHTTP
+from utils.parametric._library_client import APMLibrary
 
 from utils import context
 from utils.tools import logger
@@ -162,7 +162,7 @@ RUN npm install {node_module}
         container_build_context=nodejs_absolute_appdir,
         volumes=[
             (
-                os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
+                os.path.join(os.getcwd(), "utils", "parametric", "protos", "apm_test_client.proto"),
                 "/client/apm_test_client.proto",
             ),
         ],
@@ -231,7 +231,7 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
-    protofile = os.path.join("tests", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
+    protofile = os.path.join("utils", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
 
     return APMLibraryTestServer(
         lang="java",
@@ -302,7 +302,7 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
 
     shutil.copyfile(
-        os.path.join("tests", "parametric", "protos", "apm_test_client.proto"),
+        os.path.join("utils", "parametric", "protos", "apm_test_client.proto"),
         os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
     )
     return APMLibraryTestServer(

@@ -209,9 +209,9 @@ class OtelStartSpanArgs(BaseModel):
     name: str
     parent_id: int
     span_kind: int
-    service: str = ""  # Not used but defined in protos/apm-test-client.protos
-    resource: str = ""  # Not used but defined in protos/apm-test-client.protos
-    type: str = ""  # Not used but defined in protos/apm-test-client.protos
+    service: str = "" # Not used but defined in protos/apm-test-client.protos
+    resource: str = "" # Not used but defined in protos/apm-test-client.protos
+    type: str = "" # Not used but defined in protos/apm-test-client.protos
     timestamp: int
     http_headers: List[Tuple[str, str]]
     attributes: dict
@@ -229,7 +229,7 @@ def otel_start_span(args: OtelStartSpanArgs):
     if args.parent_id:
         parent_span = otel_spans[args.parent_id]
     elif args.http_headers:
-        headers = {k: v for k, v in args.http_headers}
+        headers = {k:v for k,v in args.http_headers}
         ddcontext = HTTPPropagator.extract(headers)
         parent_span = OtelNonRecordingSpan(
             OtelSpanContext(
