@@ -570,6 +570,11 @@ jobs:
       run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED      
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run all scenarios in replay mode
+      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh TRACER_RELEASE_SCENARIOS --replay      
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Compress logs
       if: steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
