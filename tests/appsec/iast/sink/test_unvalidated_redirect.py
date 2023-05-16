@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released, missing_feature, bug
+from utils import context, coverage, released
 from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
