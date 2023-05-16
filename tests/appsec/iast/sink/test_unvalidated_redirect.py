@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", java="1.1.0", nodejs="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", java="?", nodejs="?")
 class TestUnvalidatedRedirect:
     """Verify Unvalidated redirect detection."""
 
