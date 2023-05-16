@@ -54,6 +54,17 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/tag_value/{tag}/{status}", func(w http.ResponseWriter, r *http.Request) {
+		ctx := chi.RouteContext(r.Context())
+		tag := ctx.URLParam("tag")
+		status, _ := strconv.Atoi(ctx.URLParam("status"))
+
+		span, _ := tracer.SpanFromContext(r.Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		w.WriteHeader(status)
+		w.Write([]byte("Value tagged"))
+	})
+
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		if c := r.URL.Query().Get("code"); c != "" {
 			if code, err := strconv.Atoi(c); err == nil {

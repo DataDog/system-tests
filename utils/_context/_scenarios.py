@@ -492,28 +492,40 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name) -> None:
+    def __init__(self, name, include_agent=True, include_collector=True, include_intake=True) -> None:
         super().__init__(name, use_proxy=True)
-
-        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+        if include_agent:
+            self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+            self._required_containers.append(self.agent_container)
+        if include_collector:
+            self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+            self._required_containers.append(self.collector_container)
         self.weblog_container = WeblogContainer(self.host_log_folder)
-        self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
-        self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
-        self._required_containers.append(self.collector_container)
+        self.include_agent = include_agent
+        self.include_collector = include_collector
+        self.include_intake = include_intake
 
     def configure(self):
         super().configure()
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
-        self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
-        self.weblog_container.environment["DD_SITE"] = dd_site
-        self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
-        self.collector_container.environment["DD_SITE"] = dd_site
+        if self.include_intake:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = True
+            self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
+            self.weblog_container.environment["DD_SITE"] = dd_site
+        if self.include_collector:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = True
+            self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
+            self.collector_container.environment["DD_SITE"] = dd_site
+        if self.include_agent:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
 
     def _create_interface_folders(self):
-        for interface in ("open_telemetry", "backend", "agent"):
+        for interface in ("open_telemetry", "backend"):
             self.create_log_subfolder(f"interfaces/{interface}")
+        if self.include_agent:
+            self.create_log_subfolder("interfaces/agent")
 
     def _start_interface_watchdog(self):
         from utils import interfaces
@@ -585,7 +597,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version
+        return self.agent_container.agent_version if self.include_agent else None
 
     @property
     def weblog_variant(self):

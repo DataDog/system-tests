@@ -23,8 +23,8 @@ if context.library == "cpp":
         "*": "?",
     }
 )
-@released(nodejs="?")
-class TestBody:
+@released(nodejs={"express4": "3.19.0", "*": "?"})
+class TestRequestBody:
     """Verify that request json body is tainted"""
 
     source_fixture = SourceFixture(
