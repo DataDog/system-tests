@@ -45,7 +45,7 @@ class TestRequestBody:
     def setup_telemetry_metric_instrumented_source(self):
         self.source_fixture.setup_telemetry_metric_instrumented_source()
 
-    @released(java="?")
+    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 

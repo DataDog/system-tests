@@ -70,6 +70,7 @@ class TestParameterValue:
     def setup_post_telemetry_metric_instrumented_source(self):
         self.source_post_fixture.setup_telemetry_metric_instrumented_source()
 
+    @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     @released(
         java={
             "spring-boot": "1.13.0",
