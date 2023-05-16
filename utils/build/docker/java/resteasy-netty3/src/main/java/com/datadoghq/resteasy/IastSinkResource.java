@@ -1,11 +1,6 @@
 package com.datadoghq.resteasy;
 
-import com.datadoghq.system_tests.iast.utils.CryptoExamples;
-import com.datadoghq.system_tests.iast.utils.SqlExamples;
-import com.datadoghq.system_tests.iast.utils.PathExamples;
-import com.datadoghq.system_tests.iast.utils.LDAPExamples;
-import com.datadoghq.system_tests.iast.utils.CmdExamples;
-import com.datadoghq.system_tests.iast.utils.SsrfExamples;
+import com.datadoghq.system_tests.iast.utils.*;
 
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -28,6 +23,7 @@ public class IastSinkResource {
     private final CmdExamples cmd = new CmdExamples();
     private final PathExamples path = new PathExamples();
     private final SsrfExamples ssrf = new SsrfExamples();
+    private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
     @GET
     @Path("/insecure_hashing/deduplicate")
@@ -146,5 +142,17 @@ public class IastSinkResource {
     @Path("/ssrf/test_insecure")
     public String insecureSsrf(@FormParam("url") final String url) {
         return this.ssrf.insecureUrl(url);
+    }
+
+    @GET
+    @Path("/weak_randomness/test_insecure")
+    public String weakRandom() {
+        return this.weakRandomness.weakRandom();
+    }
+
+    @GET
+    @Path("/weak_randomness/test_secure")
+    public String secureRandom() {
+        return this.weakRandomness.secureRandom();
     }
 }
