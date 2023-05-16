@@ -1,14 +1,14 @@
 'use strict'
 
 const { Client, Pool } = require('pg')
-const { readFileSync } = require('fs')
+const { readFileSync, statSync } = require('fs')
 const { join } = require('path')
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 const https = require('http');
 
 function initData () {
-  const query = readFileSync(join(__dirname, 'resources', 'iast-data.sql')).toString()
+  const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
   const client = new Client()
   return client.connect().then(() => {
     return client.query(query)
@@ -47,16 +47,15 @@ function init (app, tracer) {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
   
-    res.send(crypto.createHash('sha256').update('insecure').digest('hex'));
+    res.send(crypto.createHash('sha256').update('secure').digest('hex'));
   });
   
   
   app.get('/iast/insecure_hashing/test_md5_algorithm', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
-    console.log('insecure_hashing/test_md5_algorithm')
-    crypto.createHash('md5-sha1').update('aaa').digest('hex')
   
+    console.error('/iast/insecure_hashing/test_md5_algorithm')
     res.send(crypto.createHash('md5').update('insecure').digest('hex'));
   });
   
@@ -111,7 +110,7 @@ function init (app, tracer) {
   app.post('/iast/path_traversal/test_insecure', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
-    const stats = fs.statSync(req.body.path)
+    const stats = statSync(req.body.path)
     res.send(JSON.stringify(stats))
   });
 
@@ -120,6 +119,8 @@ function init (app, tracer) {
       res.send('OK')
     })
   });
+
+  require('./sources')(app, tracer);
 
 }
 

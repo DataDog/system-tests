@@ -47,6 +47,15 @@ func main() {
 		ctx.Writer.Write([]byte("OK"))
 	})
 
+	r.Any("/tag_value/:tag/:status", func(ctx *gin.Context) {
+		tag := ctx.Param("tag")
+		status, _ := strconv.Atoi(ctx.Param("status"))
+		span, _ := tracer.SpanFromContext(ctx.Request.Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		ctx.Writer.WriteHeader(status)
+		ctx.Writer.Write([]byte("Value tagged"))
+	})
+
 	r.Any("/status", func(ctx *gin.Context) {
 		if c := ctx.Request.URL.Query().Get("code"); c != "" {
 			if code, err := strconv.Atoi(c); err == nil {
