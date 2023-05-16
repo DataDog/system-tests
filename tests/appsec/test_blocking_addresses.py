@@ -11,7 +11,7 @@ from utils import context, coverage, interfaces, irrelevant, missing_feature, re
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     nodejs="?",
-    golang="1.51.0",
+    golang="1.51.0-rc.1",
     ruby="1.0.0",
 )
 @coverage.basic
@@ -176,7 +176,7 @@ def _assert_custom_event_tag_absence():
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.51.0",
+    golang="1.51.0-rc.1",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -224,7 +224,7 @@ class Test_Blocking_request_method:
 @released(
     cpp="?",
     dotnet="?",
-    golang="1.51.0",
+    golang="1.51.0-rc.1",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -275,7 +275,7 @@ class Test_Blocking_request_uri:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.51.0",
+    golang="1.51.0-rc.1",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -326,7 +326,7 @@ class Test_Blocking_request_path_params:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.51.0",
+    golang="1.51.0-rc.1",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -380,7 +380,7 @@ class Test_Blocking_request_query:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.51.0",
+    golang="1.51.0-rc.1",
     java="?",
     nodejs="?",
     php_appsec="?",
@@ -434,7 +434,7 @@ class Test_Blocking_request_headers:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.51.0",
+    golang="1.51.0-rc.1",
     java="?",
     nodejs="?",
     php_appsec="?",
