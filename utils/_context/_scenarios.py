@@ -850,8 +850,6 @@ class scenarios:
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E")
 
-    apm_tracing_e2e_otel_span = EndToEndScenario("APM_TRACING_E2E_OTEL_SPAN")
-
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")
     )

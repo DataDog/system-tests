@@ -6,7 +6,6 @@ from utils import context, weblog, scenarios, missing_feature, irrelevant
     context.weblog_variant not in "net-http",
     reason="The /e2e_otel_span endpoint is only implemented in Go net/http at the moment.",
 )
-@scenarios.apm_tracing_e2e_otel_span
 class Test_Otel_Span:
     """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API.
     """
@@ -49,7 +48,6 @@ class Test_Otel_Span:
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
         spans = _get_spans_submitted(self.req)
-        print(spans)
         assert 3 == len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
