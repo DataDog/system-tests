@@ -3,38 +3,38 @@
         - os_type: linux
           os_distro: rpm
           command: |
-              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-java': '$(rpm -q datadog-apm-library-java)'}"
+              echo "$(hostname -I):{'datadog-agent':'$(rpm -q datadog-agent)','datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-java': '$(rpm -q datadog-apm-library-java)','docker':'$(docker -v || true)'}"
         - os_type: linux
           os_distro: deb
           command: |
-              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-java| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-java':'${version_lang//'Version:'/}'}"
+              version_agent=$(dpkg -s datadog-agent | grep Version) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-java| grep Version) && echo "$(hostname -I):{'datadog-agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-java':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
   - nodejs:
       - install:
         - os_type: linux
           os_distro: rpm
           command: |
-              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-js': '$(rpm -q datadog-apm-library-js)'}"
+              echo "$(hostname -I):{'datadog-agent':'$(rpm -q datadog-agent)','datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-js': '$(rpm -q datadog-apm-library-js)','docker':'$(docker -v || true)'}"
         - os_type: linux
           os_distro: deb
           command: |
-              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-js| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-js':'${version_lang//'Version:'/}'}"
+              version_agent=$(dpkg -s datadog-agent | grep Version) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-js| grep Version) && echo "$(hostname -I):{'datadog-agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-js':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
   - dotnet:
       - install:
         - os_type: linux
           os_distro: rpm
           command: |
-              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-dotnet': '$(rpm -q datadog-apm-library-dotnet)'}"
+              echo "$(hostname -I):{'datadog-agent':'$(rpm -q datadog-agent)','datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-dotnet': '$(rpm -q datadog-apm-library-dotnet)','docker':'$(docker -v || true)'}"
         - os_type: linux
           os_distro: deb
           command: |
-              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-dotnet| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-dotnet':'${version_lang//'Version:'/}'}"
+              version_agent=$(dpkg -s datadog-agent | grep Version) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-dotnet| grep Version) && echo "$(hostname -I):{'datadog-agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-dotnet':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
   - python:
       - install:
         - os_type: linux
           os_distro: rpm
           command: |
-              echo "$(hostname -I):{'datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-python': '$(rpm -q datadog-apm-library-python)'}"
+              echo "$(hostname -I):{'datadog-agent':'$(rpm -q datadog-agent)','datadog-apm-inject':'$(rpm -q datadog-apm-inject)','datadog-apm-library-python': '$(rpm -q datadog-apm-library-python)','docker':'$(docker -v || true)'}"
         - os_type: linux
           os_distro: deb
           command: |
-              version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-python| grep Version) && echo "$(hostname -I):{'datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-python':'${version_lang//'Version:'/}'}"
+              version_agent=$(dpkg -s datadog-agent | grep Version) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-python| grep Version) && echo "$(hostname -I):{'datadog-agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-python':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
