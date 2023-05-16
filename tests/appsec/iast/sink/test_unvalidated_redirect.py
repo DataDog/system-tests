@@ -21,7 +21,7 @@ class TestUnvalidatedRedirect:
         insecure_endpoint="/iast/unvalidated_redirect/test_insecure_header",
         secure_endpoint="/iast/unvalidated_redirect/test_secure_header",
         data={"location": "http://dummy.location.com"},
-        location_map={"java": "com.datadoghq.system_tests.springboot.AppSecIast"},
+        location_map={"java": {"spring-boot": "com.datadoghq.system_tests.springboot.AppSecIast"}},
     )
     sink_fixture_redirect = SinkFixture(
         vulnerability_type="UNVALIDATED_REDIRECT",
@@ -29,7 +29,7 @@ class TestUnvalidatedRedirect:
         insecure_endpoint="/iast/unvalidated_redirect/test_insecure_redirect",
         secure_endpoint="/iast/unvalidated_redirect/test_secure_redirect",
         data={"location": "http://dummy.location.com"},
-        location_map={"java": "com.datadoghq.system_tests.springboot.AppSecIast"},
+        location_map={"java": {"spring-boot": "com.datadoghq.system_tests.springboot.AppSecIast"}},
     )
 
     def setup_insecure_header(self):
