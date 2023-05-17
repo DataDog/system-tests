@@ -267,6 +267,7 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
+    context.scenario.pytest_sessionfinish(session)
     if session.config.option.collectonly or session.config.option.replay:
         return
 
