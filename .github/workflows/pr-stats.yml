@@ -1,7 +1,7 @@
 name: Pull Request Stats
 
 on:
-  push: {}
+  pull_request: {}
 
 jobs:
   stats:
