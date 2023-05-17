@@ -31,8 +31,10 @@ class InterfaceValidator:
 
         self.accept_data = True
 
-    def configure(self):
-        pass
+        self.replay = False
+
+    def configure(self, replay):
+        self.replay = replay
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -45,8 +47,8 @@ class InterfaceValidator:
         self.accept_data = not stop_accepting_data
 
     def ingest_file(self, src_path):
-        if not self.accept_data:
-            return
+        # if not self.accept_data:
+        #     return
 
         with self._lock:
             if src_path in self._ingested_files:
@@ -71,6 +73,20 @@ class InterfaceValidator:
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
+
+    def load_data_from_logs(self, folder_path):
+        from os import listdir
+        from os.path import isfile, join
+
+        for filename in sorted(listdir(folder_path)):
+            file_path = join(folder_path, filename)
+            if isfile(file_path):
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                self._data_list.append(data)
+                logger.info(f"{self.name} interface gets {file_path}")
 
     def get_data(self, path_filters=None):
 
@@ -106,6 +122,9 @@ class InterfaceValidator:
             raise Exception("Test has not been validated by any data")
 
     def wait_for(self, wait_for_function, timeout):
+
+        if self.replay:
+            return
 
         # first, try existing data
         with self._lock:
