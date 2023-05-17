@@ -1,0 +1,11 @@
+source "https://rubygems.org"
+
+sha = ENV['RUBY_DDTRACE_SHA']
+if sha && !sha.empty?
+  gem 'ddtrace', git: 'https://github.com/Datadog/dd-trace-rb.git', ref: sha
+else
+  gem 'ddtrace'
+end
+
+gem 'grpc'
+gem 'grpc-tools'

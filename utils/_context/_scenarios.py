@@ -748,6 +748,16 @@ class OnBoardingScenario(_Scenario):
         self.stack.destroy(on_output=logger.info)
 
 
+class ParametricScenario(_Scenario):
+    def configure(self, replay):
+        super().configure(replay)
+        assert "TEST_LIBRARY" in os.environ
+
+    @property
+    def library(self):
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "0.00")
+
+
 class scenarios:
     empty_scenario = _Scenario("EMPTY_SCENARIO")
     todo = _Scenario("TODO")  # scenario that skips tests not yest executed
@@ -952,6 +962,7 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
+    parametric = ParametricScenario("PARAMETRIC")
 
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
