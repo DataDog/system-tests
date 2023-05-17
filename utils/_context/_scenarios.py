@@ -665,16 +665,13 @@ class OnBoardingScenario(_Scenario):
         self.provision_vms = list(ProvisionMatrix(ProvisionFilter(name)).get_infrastructure_provision())
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
 
-    @property
-    def host_log_folder(self):
-        return "logs_onboarding"
+    def configure(self):
+        super().configure()
+        assert "TEST_LIBRARY" in os.environ
 
     @property
     def library(self):
-        language = os.getenv("TEST_LIBRARY")
-        if language is None:
-            raise ValueError("You must set TEST_LIBRARY env variable!!")
-        return LibraryVersion(language, "0.0")
+        return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
 
     def _start_pulumi(self):
         def pulumi_start_program():
@@ -913,6 +910,7 @@ class scenarios:
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
 
+    # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
 
