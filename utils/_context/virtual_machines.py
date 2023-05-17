@@ -27,8 +27,8 @@ class TestedVirtualMachine:
         self.language_variant_install_data = language_variant_install_data
         self.weblog_install_data = weblog_install_data
         self.ip = None
-        self.datadog_config = DataDogConfig()
-        self.aws_infra_config = AWSInfraConfig()
+        self.datadog_config = None
+        self.aws_infra_config = None
         self.prepare_repos_install = prepare_repos_install
         self.prepare_docker_install = prepare_docker_install
         self.installation_check_data = installation_check_data
@@ -46,8 +46,13 @@ class TestedVirtualMachine:
             + self.weblog_install_data["name"]
         )
 
+    def configure(self):
+        self.datadog_config = DataDogConfig()
+        self.aws_infra_config = AWSInfraConfig()
+
     def start(self):
         logger.info("start...")
+        self.configure()
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,

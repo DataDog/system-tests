@@ -14,6 +14,7 @@ class TestOnboardingInstallBaseTest:
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         logger.info(f"Launching test for : [{onboardig_vm.ip}]")
         logger.info(f"Waiting for weblog available [{onboardig_vm.ip}]")
+        # TODO move this wait command to the scenario warmup. How to do this? Pulumi is working in parallel and async, in the scenario warmup we don't have the server IP
         wait_for_port(5985, onboardig_vm.ip, 60.0)
         logger.info(f"[{onboardig_vm.ip}]: Weblog app is ready!")
         logger.info(f"Making a request to weblog [{onboardig_vm.ip}]")
