@@ -331,7 +331,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         metric: str,
         dd_api_key=None,
         dd_app_key=None,
-        retries=5,
+        retries=10,
         sleep_interval_multiplier=2.0,
         initial_delay_s=10.0,
     ):
