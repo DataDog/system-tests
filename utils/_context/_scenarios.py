@@ -666,13 +666,13 @@ class PerformanceScenario(EndToEndScenario):
 
 
 class ParametricScenario(_Scenario):
-    @property
-    def host_log_folder(self):
-        return "logs_parametric"
+    def configure(self):
+        super().configure()
+        assert "TEST_LIBRARY"  in os.environ
 
     @property
     def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY", "java"), "0.00")
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "0.00")
 
 
 class scenarios:

@@ -84,16 +84,8 @@ jobs:
         - uses: actions/setup-python@v4
           with:
             python-version: '3.9'
-        - uses: actions/cache@v3 # TODO: Use a lockfile instead of requirements.txt
-          id: cache-pip
-          with:
-            path: ${{ env.pythonLocation }}
-            key: ${{ env.pythonLocation }}-${{ matrix.client }}-pip-${{ hashFiles('parametric/requirements.txt') }}
-        - name: Install
-          run: |
-            python -m venv venv
-            source venv/bin/activate
-            pip install wheel && pip install -r requirements.txt && pip cache purge
+        - name: Build
+          run: ./build.sh -i runner
         - name: Run
           run: ./run.sh PARAMETRIC
         - name: Compress logs
