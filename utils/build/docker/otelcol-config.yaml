@@ -12,6 +12,10 @@ exporters:
       key: ${DD_API_KEY}
       site: ${DD_SITE}
       fail_on_invalid_key: true
+    metrics:
+      histograms:
+        mode: distributions
+        send_aggregation_metrics: true
   logging:
     verbosity: detailed
 
