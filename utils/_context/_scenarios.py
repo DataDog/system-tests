@@ -668,7 +668,7 @@ class PerformanceScenario(EndToEndScenario):
 class ParametricScenario(_Scenario):
     def configure(self):
         super().configure()
-        assert "TEST_LIBRARY"  in os.environ
+        assert "TEST_LIBRARY" in os.environ
 
     @property
     def library(self):
