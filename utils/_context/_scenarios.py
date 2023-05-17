@@ -26,7 +26,6 @@ from utils._context.containers import (
     create_network,
 )
 
-from utils._context.library_version import LibraryVersion
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
@@ -36,8 +35,12 @@ class _Scenario:
     def __init__(self, name) -> None:
         self.name = name
         self.terminal = None
+        self.replay = False
 
     def create_log_subfolder(self, subfolder):
+        if self.replay:
+            return
+
         path = os.path.join(self.host_log_folder, subfolder)
 
         shutil.rmtree(path, ignore_errors=True)
@@ -49,7 +52,8 @@ class _Scenario:
 
         return test_method
 
-    def configure(self):
+    def configure(self, replay):
+        self.replay = replay
         self.create_log_subfolder("")
 
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
@@ -57,11 +61,19 @@ class _Scenario:
 
         logger.addHandler(handler)
 
+        if replay:
+            from utils import weblog
+
+            weblog.init_replay_mode(self.host_log_folder)
+
     def session_start(self, session):
         """ called at the very begning of the process """
 
         self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
         self.print_test_context()
+
+        if self.replay:
+            return
 
         self.print_info("Executing warmups...")
 
@@ -219,11 +231,11 @@ class _DockerScenario(_Scenario):
         if include_mysql_db:
             self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
-    def configure(self):
-        super().configure()
+    def configure(self, replay):
+        super().configure(replay)
 
         for container in reversed(self._required_containers):
-            container.configure()
+            container.configure(replay)
 
     def _get_warmups(self):
 
@@ -308,11 +320,17 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def configure(self):
+    def configure(self, replay):
         from utils import interfaces
 
-        super().configure()
-        interfaces.library_stdout.configure()
+        super().configure(replay)
+
+        interfaces.agent.configure(replay)
+        interfaces.library.configure(replay)
+        interfaces.backend.configure(replay)
+        interfaces.library_stdout.configure(replay)
+        interfaces.library_dotnet_managed.configure(replay)
+        interfaces.agent_stdout.configure(replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -403,6 +421,17 @@ class EndToEndScenario(_DockerScenario):
 
     def post_setup(self):
         from utils import interfaces
+
+        if self.replay:
+            interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
+            interfaces.agent.load_data_from_logs(f"{self.host_log_folder}/interfaces/agent")
+            interfaces.backend.load_data_from_logs(f"{self.host_log_folder}/interfaces/backend")
+
+            self._wait_interface(interfaces.library_stdout, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, 0)
+            self._wait_interface(interfaces.agent_stdout, 0)
+
+            return
 
         if self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
@@ -497,28 +526,40 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name) -> None:
+    def __init__(self, name, include_agent=True, include_collector=True, include_intake=True) -> None:
         super().__init__(name, use_proxy=True)
-
-        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+        if include_agent:
+            self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+            self._required_containers.append(self.agent_container)
+        if include_collector:
+            self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+            self._required_containers.append(self.collector_container)
         self.weblog_container = WeblogContainer(self.host_log_folder)
-        self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
-        self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
-        self._required_containers.append(self.collector_container)
+        self.include_agent = include_agent
+        self.include_collector = include_collector
+        self.include_intake = include_intake
 
-    def configure(self):
-        super().configure()
+    def configure(self, replay):
+        super().configure(replay)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
-        self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
-        self.weblog_container.environment["DD_SITE"] = dd_site
-        self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
-        self.collector_container.environment["DD_SITE"] = dd_site
+        if self.include_intake:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = True
+            self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
+            self.weblog_container.environment["DD_SITE"] = dd_site
+        if self.include_collector:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = True
+            self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
+            self.collector_container.environment["DD_SITE"] = dd_site
+        if self.include_agent:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
 
     def _create_interface_folders(self):
-        for interface in ("open_telemetry", "backend", "agent"):
+        for interface in ("open_telemetry", "backend"):
             self.create_log_subfolder(f"interfaces/{interface}")
+        if self.include_agent:
+            self.create_log_subfolder("interfaces/agent")
 
     def _start_interface_watchdog(self):
         from utils import interfaces
@@ -590,7 +631,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version
+        return self.agent_container.agent_version if self.include_agent else None
 
     @property
     def weblog_variant(self):
