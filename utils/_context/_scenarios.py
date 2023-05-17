@@ -8,6 +8,8 @@ import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion
+from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+from pulumi import automation as auto
 
 from utils._context.containers import (
     WeblogContainer,
@@ -83,6 +85,9 @@ class _Scenario:
             self.collect_logs()
             self.close_targets()
             raise
+
+    def pytest_sessionfinish(self, session):
+        """ called at the end of the process  """
 
     def print_test_context(self):
         self.terminal.write_sep("=", "test context", bold=True)
@@ -694,6 +699,55 @@ class PerformanceScenario(EndToEndScenario):
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
 
+class OnBoardingScenario(_Scenario):
+    def __init__(self, name) -> None:
+        super().__init__(name)
+        self.stack = None
+        self.provision_vms = []
+        self.provision_vm_names = []
+
+    def configure(self, replay):
+        super().configure(replay)
+        assert "TEST_LIBRARY" in os.environ
+        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
+        self.provision_vm_names = [vm.name for vm in self.provision_vms]
+
+    @property
+    def library(self):
+        return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+
+    def _start_pulumi(self):
+        def pulumi_start_program():
+
+            for provision_vm in self.provision_vms:
+                logger.info(f"Executing warmup {provision_vm.name}")
+                provision_vm.start()
+
+        project_name = "system-tests-onboarding"
+        stack_name = "testing"
+
+        try:
+            self.stack = auto.create_or_select_stack(
+                stack_name=stack_name, project_name=project_name, program=pulumi_start_program
+            )
+            up_res = self.stack.up(on_output=logger.info)
+        except:
+            self.collect_logs()
+            self.close_targets()
+            raise
+
+    def _get_warmups(self):
+        return [self._start_pulumi]
+
+    def pytest_sessionfinish(self, session):
+        logger.info(f"Closing onboarding scenario")
+        self.close_targets()
+
+    def close_targets(self):
+        logger.info(f"Pulumi stack down")
+        self.stack.destroy(on_output=logger.info)
+
+
 class ParametricScenario(_Scenario):
     def configure(self, replay):
         super().configure(replay)
@@ -909,6 +963,10 @@ class scenarios:
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
     parametric = ParametricScenario("PARAMETRIC")
+
+    # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
+    onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
+    onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
 
 
 if __name__ == "__main__":
