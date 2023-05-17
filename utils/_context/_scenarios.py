@@ -706,8 +706,8 @@ class OnBoardingScenario(_Scenario):
         self.provision_vms = []
         self.provision_vm_names = []
 
-    def configure(self):
-        super().configure()
+    def configure(self, replay):
+        super().configure(replay)
         assert "TEST_LIBRARY" in os.environ
         self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
