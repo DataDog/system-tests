@@ -662,12 +662,14 @@ class OnBoardingScenario(_Scenario):
     def __init__(self, name) -> None:
         super().__init__(name)
         self.stack = None
-        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(name)).get_infrastructure_provision())
-        self.provision_vm_names = [vm.name for vm in self.provision_vms]
+        self.provision_vms = []
+        self.provision_vm_names = []
 
     def configure(self):
         super().configure()
         assert "TEST_LIBRARY" in os.environ
+        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
+        self.provision_vm_names = [vm.name for vm in self.provision_vms]
 
     @property
     def library(self):
