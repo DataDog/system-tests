@@ -112,7 +112,7 @@ RUN python3.9 -m pip install %s
 
 
 def python_http_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    python_appdir = os.path.join("utils", "build", "docker", "python", "parametric_http")
+    python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
     python_absolute_appdir = os.path.join(os.getcwd(), python_appdir)
     # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
