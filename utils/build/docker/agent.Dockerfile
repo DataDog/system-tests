@@ -23,6 +23,9 @@ otlp_config:\n\
     span_name_as_resource_name: true\n\
   metrics:\n\
     enabled: true\n\
+    histograms:\n\
+      mode: distributions\n\
+      send_count_sum_metrics: true\n\
 ' >> /etc/datadog-agent/datadog.yaml
 
 # Proxy conf

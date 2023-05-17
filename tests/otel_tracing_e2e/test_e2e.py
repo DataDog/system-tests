@@ -69,7 +69,15 @@ class Test_OTelMetricE2E:
     def setup_main(self):
         self.start = int(time.time())
         self.r = weblog.get(path="/basic/metric")
-        self.expected_metrics = ["example.counter", "example.histogram"]
+        self.expected_metrics = [
+            "example.counter",
+            "example.histogram",
+            "example.histogram.sum",
+            "example.histogram.count",
+            # TODO: enable send_aggregation_metrics and verify max and min once newer version of Agent is released
+            # "example.histogram.min",
+            # "example.histogram.max",
+        ]
 
     def test_main(self):
         end = int(time.time())
