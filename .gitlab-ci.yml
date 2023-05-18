@@ -17,8 +17,8 @@
   #tags: ["arch:amd64"]
   before_script:
     # Setup AWS Credentials
-    #- apk add bash jq git unzip curl
-    #- pip install pyyaml awscli
+    - apk add bash jq git unzip curl pulumi
+    - pip install pyyaml awscli
     - mkdir -p ~/.aws
     - set +x
     - echo "STEP 0.1"
@@ -44,9 +44,11 @@ onboarding_scenarios1:
       - echo "PROBANDO PROBANDO"
 
 onboarding_scenarios:
-    image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+    #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+    image: tiangolo/docker-with-compose
     extends: .onboarding_template
-    tags: ["arch:amd64"]
+    #tags: ["arch:amd64"]
+    tags: ["runner:docker"]
     only:
       - schedules
     variables:
