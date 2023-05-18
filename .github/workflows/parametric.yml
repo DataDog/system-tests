@@ -34,8 +34,8 @@ jobs:
        #OK - python
        #OK - python_http
         #- dotnet
-        - golang
-        #- java
+        #OK- golang
+        - java
        # OK - nodejs
         #- ruby
       fail-fast: false
@@ -72,8 +72,8 @@ jobs:
            #OK - python
            #OK - python_http
             #- dotnet
-            - golang
-            #- java
+           #OK - golang
+            - java
            # OK - nodejs
             #- ruby
           fail-fast: false
