@@ -30,10 +30,10 @@ jobs:
     strategy:
       matrix:
         client:
-        - php
+       # - php
        #OK - python
        #OK - python_http
-        - dotnet
+       # - dotnet
         #OK- golang
         #OK- java
        # OK - nodejs
@@ -68,10 +68,10 @@ jobs:
         strategy:
           matrix:
             client:
-            - php
+           # - php
            #OK - python
            #OK - python_http
-            - dotnet
+           # - dotnet
            #OK - golang
            #OK - java
            # OK - nodejs

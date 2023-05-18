@@ -309,7 +309,7 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
 
     shutil.copyfile(
-        os.path.join("utils", "parametric", "protos", "apm_test_client.proto"),
+        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
         os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
     )
     return APMLibraryTestServer(
