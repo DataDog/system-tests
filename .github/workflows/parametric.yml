@@ -32,11 +32,11 @@ jobs:
         client:
         #- php
        #OK - python
-        #- python_http
+        - python_http
         #- dotnet
         #- golang
         #- java
-        - nodejs
+       # OK - nodejs
         #- ruby
       fail-fast: false
     defaults:
@@ -70,7 +70,7 @@ jobs:
             client:
             #- php
            #OK - python
-            #- python_http
+            - python_http
             #- dotnet
             #- golang
             #- java

@@ -52,6 +52,9 @@ from tests.parametric.conftest import (
     test_library,
 )
 
+""" DEPRECATED!!!
+    THIS FILE WILL BE REMOVED. WILL BE REPLACED BY test/parametric """
+
 
 @pytest.fixture(autouse=True)
 def skip_library(request, apm_test_server):
