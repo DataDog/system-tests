@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
 
-@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.26.0", php="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.26.0", ruby="?")
 @missing_feature(
     context.library in ["python"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )
@@ -26,6 +26,11 @@ class Test_Dbm:
             self.requests = [
                 weblog.get("/dbm", params={"integration": "mysql"}),
                 weblog.get("/dbm", params={"integration": "npgsql"}),
+            ]
+        elif self.library_name == "php":
+            self.requests = [
+                weblog.get("/dbm", params={"integration": "pdo"}),
+                weblog.get("/dbm", params={"integration": "mysqli"}),
             ]
 
     def test_trace_payload(self):
