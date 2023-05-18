@@ -17,6 +17,8 @@
   #tags: ["arch:amd64"]
   before_script:
     # Setup AWS Credentials
+    - apk add bash jq git unzip curl
+    - pip install pyyaml awscli
     - mkdir -p ~/.aws
     - set +x
     - echo "STEP 0.1"
