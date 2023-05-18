@@ -13,33 +13,32 @@ import urllib.parse
 import requests
 import pytest
 
-from parametric.spec.trace import V06StatsPayload
-from parametric.spec.trace import Trace
-from parametric.spec.trace import decode_v06_stats
-from parametric._library_client import APMLibraryClientGRPC
-from parametric._library_client import APMLibraryClientHTTP
-from parametric._library_client import APMLibrary
-
-
-@pytest.fixture
-def test_id():
-    import uuid
-
-    yield str(uuid.uuid4())[0:6]
-
-
-class AgentRequest(TypedDict):
-    method: str
-    url: str
-    headers: Dict[str, str]
-    body: str
-
-
-class AgentRequestV06Stats(AgentRequest):
-    method: str
-    url: str
-    headers: Dict[str, str]
-    body: V06StatsPayload
+from utils.parametric.spec.trace import V06StatsPayload
+from utils.parametric.spec.trace import Trace
+from utils.parametric.spec.trace import decode_v06_stats
+from utils.parametric._library_client import APMLibraryClientGRPC
+from utils.parametric._library_client import APMLibraryClientHTTP
+from utils.parametric._library_client import APMLibrary
+from tests.parametric.conftest import (
+    test_id,
+    AgentRequest,
+    AgentRequestV06Stats,
+    _request_token,
+    APMLibraryTestServer,
+    library_env,
+    node_library_factory,
+    python_library_factory,
+    python_http_library_factory,
+    golang_library_factory,
+    dotnet_library_factory,
+    java_library_factory,
+    php_library_factory,
+    ruby_library_factory,
+    get_open_port,
+    pytest_runtest_makereport,
+    test_server_log_file,
+    test_server,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -62,274 +61,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "skip_library(library, reason): skip test for library")
 
 
-def _request_token(request):
-    token = ""
-    token += request.module.__name__
-    token += ".%s" % request.cls.__name__ if request.cls else ""
-    token += ".%s" % request.node.name
-    return token
-
-
-@dataclasses.dataclass
-class APMLibraryTestServer:
-    # The library of the interface.
-    lang: str
-    # The interface that this test server implements.
-    protocol: Union[Literal["grpc"], Literal["http"]]
-    container_name: str
-    container_tag: str
-    container_img: str
-    container_cmd: List[str]
-    container_build_dir: str
-    container_build_context: str = "."
-    port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
-    env: Dict[str, str] = dataclasses.field(default_factory=dict)
-    volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
-
-
-@pytest.fixture
-def library_env() -> Dict[str, str]:
-    return {}
-
-
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
-
-
-def python_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    python_dir = os.path.join(os.path.dirname(__file__), "apps", "python")
-    # By default run parametric tests against the development branch
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
-    return APMLibraryTestServer(
-        lang="python",
-        protocol="grpc",
-        container_name="python-test-library-%s" % container_id,
-        container_tag="python-test-library",
-        container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /client
-RUN pyenv global 3.9.11
-RUN python3.9 -m pip install grpcio==1.46.3 grpcio-tools==1.46.3
-RUN python3.9 -m pip install %s
-"""
-        % (python_package,),
-        container_cmd="python3.9 -m apm_test_client".split(" "),
-        container_build_dir=python_dir,
-        container_build_context=python_dir,
-        volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
-        env=env,
-        port=port,
-    )
-
-
-def python_http_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    python_dir = os.path.join(os.path.dirname(__file__), "apps", "python_http")
-    # By default run parametric tests against the development branch
-    python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
-    return APMLibraryTestServer(
-        lang="python",
-        protocol="http",
-        container_name="python-test-library-http-%s" % container_id,
-        container_tag="python-test-library",
-        container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /client
-RUN pyenv global 3.9.11
-RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
-RUN python3.9 -m pip install %s
-"""
-        % (python_package,),
-        container_cmd="python3.9 -m apm_test_client".split(" "),
-        container_build_dir=python_dir,
-        container_build_context=python_dir,
-        volumes=[(os.path.join(python_dir, "apm_test_client"), "/client/apm_test_client"),],
-        env=env,
-        port=port,
-    )
-
-
-def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    nodejs_appdir = os.path.join("apps", "nodejs")
-    nodejs_dir = os.path.join(os.path.dirname(__file__), nodejs_appdir)
-    node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
-    return APMLibraryTestServer(
-        lang="nodejs",
-        protocol="grpc",
-        container_name="node-test-client-%s" % container_id,
-        container_tag="node-test-client",
-        container_img=f"""
-FROM node:18.10-slim
-WORKDIR /client
-COPY ./package.json /client/
-COPY ./package-lock.json /client/
-COPY ./*.js /client/
-COPY ./npm/* /client/
-RUN npm install
-RUN npm install {node_module}
-""",
-        container_cmd=["node", "server.js"],
-        container_build_dir=nodejs_dir,
-        container_build_context=nodejs_dir,
-        volumes=[
-            (
-                os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
-                "/client/apm_test_client.proto",
-            ),
-        ],
-        port=port,
-        env=env,
-    )
-
-
-def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
-    go_appdir = os.path.join("apps", "golang")
-    go_dir = os.path.join(os.path.dirname(__file__), go_appdir)
-    return APMLibraryTestServer(
-        lang="golang",
-        protocol="grpc",
-        container_name="go-test-library-%s" % container_id,
-        container_tag="go118-test-library",
-        container_img=f"""
-FROM golang:1.18
-WORKDIR /client
-COPY ./go.mod /client
-COPY ./go.sum /client
-COPY . /client
-RUN go install
-""",
-        container_cmd=["main"],
-        container_build_dir=go_dir,
-        container_build_context=go_dir,
-        volumes=[(os.path.join(go_dir), "/client"),],
-        env=env,
-        port=port,
-    )
-
-
-def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
-    dotnet_appdir = os.path.join("apps", "dotnet")
-    dotnet_dir = os.path.join(os.path.dirname(__file__), dotnet_appdir)
-    server = APMLibraryTestServer(
-        lang="dotnet",
-        protocol="grpc",
-        container_name="dotnet-test-client-%s" % container_id,
-        container_tag="dotnet6_0-test-client",
-        container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:6.0
-WORKDIR /client
-COPY ["./ApmTestClient.csproj","./nuget.config","./*.nupkg", "./"]
-RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
-WORKDIR "/client/."
-""",
-        container_cmd=["dotnet", "run"],
-        container_build_dir=dotnet_dir,
-        container_build_context=dotnet_dir,
-        volumes=[(os.path.join(dotnet_dir), "/client"),],
-        env=env,
-        port=port,
-    )
-    server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
-    return server
-
-
-def java_library_factory(env: Dict[str, str], container_id: str, port: str):
-    java_appdir = os.path.join("apps", "java")
-    java_dir = os.path.join(os.path.dirname(__file__), java_appdir)
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
-    java_reldir = os.path.join("parametric", java_appdir).replace("\\", "/")
-    protofile = os.path.join("parametric", "protos", "apm_test_client.proto").replace("\\", "/")
-    return APMLibraryTestServer(
-        lang="java",
-        protocol="grpc",
-        container_name="java-test-client-%s" % container_id,
-        container_tag="java8-test-client",
-        container_img=f"""
-# FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
-FROM maven:3-jdk-8
-WORKDIR /client
-# COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
-# COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/download/v1.12.1/dd-java-agent-1.12.1.jar
-COPY {java_reldir}/src src
-COPY {java_reldir}/build.sh .
-COPY {java_reldir}/pom.xml .
-COPY {java_reldir}/run.sh .
-COPY {protofile} src/main/proto/
-COPY binaries /binaries
-RUN bash build.sh
-""",
-        container_cmd=["./run.sh"],
-        container_build_dir=java_dir,
-        volumes=[],
-        env=env,
-        port=port,
-    )
-
-
-def php_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    python_dir = os.path.join(os.path.dirname(__file__), "apps", "php")
-    env = env.copy()
-    # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
-    return APMLibraryTestServer(
-        lang="php",
-        protocol="http",
-        container_name="php-test-library-%s" % container_id,
-        container_tag="php-test-library",
-        container_img="""
-FROM datadog/dd-trace-ci:php-8.2_buster
-WORKDIR /tmp
-ENV DD_TRACE_CLI_ENABLED=1
-ADD ./parametric/apps/php/composer.json .
-ADD ./parametric/apps/php/composer.lock .
-ADD ./parametric/apps/php/server.php .
-ADD ./parametric/apps/php/install.sh .
-COPY binaries /binaries
-RUN ./install.sh
-RUN composer install
-""",
-        container_cmd=["php", "server.php"],
-        container_build_dir=python_dir,
-        volumes=[(os.path.join(python_dir, "server.php"), "/client/server.php"),],
-        env=env,
-        port=port,
-    )
-
-
-def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    ruby_appdir = os.path.join("apps", "ruby")
-    ruby_dir = os.path.join(os.path.dirname(__file__), ruby_appdir)
-
-    ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
-
-    shutil.copyfile(
-        os.path.join(os.path.dirname(__file__), "protos", "apm_test_client.proto"),
-        os.path.join(ruby_appdir, "apm_test_client.proto"),
-    )
-    return APMLibraryTestServer(
-        lang="ruby",
-        protocol="grpc",
-        container_name="ruby-test-client-%s" % container_id,
-        container_tag="ruby-test-client",
-        container_img=f"""
-            FROM ruby:3.2.1-bullseye
-            WORKDIR /client
-            RUN gem install ddtrace # Install a baseline ddtrace version, to cache all dependencies
-            COPY ./Gemfile /client/
-            COPY ./install_dependencies.sh /client/
-            ENV RUBY_DDTRACE_SHA='{ddtrace_sha}'
-            RUN bash install_dependencies.sh # Cache dependencies before copying application code
-            COPY ./apm_test_client.proto /client/
-            COPY ./generate_proto.sh /client/
-            RUN bash generate_proto.sh
-            COPY ./server.rb /client/
-            """,
-        container_cmd=["bundle", "exec", "ruby", "server.rb"],
-        container_build_dir=ruby_dir,
-        container_build_context=ruby_dir,
-        env=env,
-        port=port,
-    )
-
 
 _libs = {
     "dotnet": dotnet_library_factory,
@@ -348,16 +80,6 @@ for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,php,python,
     _enabled_libs.append((_lang, _libs[_lang]))
 
 
-def get_open_port():
-    # Not very nice and also not 100% correct but it works for now.
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("", 0))
-    s.listen(1)
-    port = s.getsockname()[1]
-    s.close()
-    return port
-
-
 @pytest.fixture(
     params=list(factory for lang, factory in _enabled_libs), ids=list(lang for lang, factory in _enabled_libs)
 )
@@ -367,22 +89,6 @@ def apm_test_server(request, library_env, test_id):
     apm_test_library = request.param
 
     yield apm_test_library(library_env, test_id, get_open_port())
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    outcome = yield
-    report = outcome.get_result()
-
-
-@pytest.fixture
-def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
-    with tempfile.NamedTemporaryFile(mode="w+") as f:
-        yield f
-        f.seek(0)
-        request.node._report_sections.append(
-            ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
-        )
 
 
 class _TestAgentAPI:
@@ -678,76 +384,6 @@ def test_agent(
                 yield client
         else:
             yield client
-
-
-@pytest.fixture
-def test_server(
-    docker,
-    docker_network: str,
-    tmp_path,
-    test_agent_port: str,
-    test_agent_container_name: str,
-    apm_test_server: APMLibraryTestServer,
-    test_server_log_file: TextIO,
-):
-    # Write dockerfile to the build directory
-    # Note that this needs to be done as the context cannot be
-    # specified if Dockerfiles are read from stdin.
-    dockf_path = os.path.join(apm_test_server.container_build_dir, "Dockerfile")
-    with open(dockf_path, "w") as dockf:
-        dockf.write(apm_test_server.container_img)
-    # Build the container
-    docker = shutil.which("docker")
-    root_path = ".."
-    cmd = [
-        docker,
-        "build",
-        "--progress=plain",  # use plain output to assist in debugging
-        "-t",
-        apm_test_server.container_tag,
-        "-f",
-        dockf_path,
-        apm_test_server.container_build_context,
-    ]
-    test_server_log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
-    test_server_log_file.flush()
-
-    env = os.environ.copy()
-    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
-
-    p = subprocess.run(
-        cmd,
-        cwd=root_path,
-        text=True,
-        input=apm_test_server.container_img,
-        stdout=test_server_log_file,
-        stderr=test_server_log_file,
-        env=env,
-    )
-    if p.returncode != 0:
-        test_server_log_file.seek(0)
-        pytest.fail("".join(test_server_log_file.readlines()), pytrace=False)
-
-    env = {
-        "DD_TRACE_DEBUG": "true",
-        "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
-        "DD_AGENT_HOST": test_agent_container_name,
-        "DD_TRACE_AGENT_PORT": test_agent_port,
-        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
-    }
-    env.update(apm_test_server.env)
-
-    with docker_run(
-        image=apm_test_server.container_tag,
-        name=apm_test_server.container_name,
-        cmd=apm_test_server.container_cmd,
-        env=env,
-        ports=[(apm_test_server.port, apm_test_server.port)],
-        volumes=apm_test_server.volumes,
-        log_file=test_server_log_file,
-        network_name=docker_network,
-    ):
-        yield apm_test_server
 
 
 @pytest.fixture

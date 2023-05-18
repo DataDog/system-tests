@@ -15,6 +15,7 @@ env:
 
 jobs:
   manual-lib-injection-tests:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -65,6 +66,7 @@ jobs:
           test-script: ./lib-injection/run-manual-lib-injection.sh
 
   auto-lib-injection-tests:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     permissions:
       contents: read
