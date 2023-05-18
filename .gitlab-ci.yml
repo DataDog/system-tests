@@ -46,7 +46,7 @@ onboarding_scenarios1:
 onboarding_scenarios:
     image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
     extends: .onboarding_template
-    tags: ["runner:docker"]
+    tags: ["arch:amd64"]
     only:
       - schedules
     variables:
