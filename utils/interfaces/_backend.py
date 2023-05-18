@@ -117,7 +117,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         data = self._wait_for_trace(
             rid=rid,
             trace_id=dd_trace_id,
-            retries=8,
+            retries=10,
             sleep_interval_multiplier=2.0,
             dd_api_key=dd_api_key,
             dd_app_key=dd_app_key,
