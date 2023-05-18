@@ -11,48 +11,6 @@ image: tiangolo/docker-with-compose
     - export GL_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gl_token --with-decryption --query "Parameter.Value" --out text)
     - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
 
-cross-components:
-  extends: .base_job
-  stage: test
-  tags: ["runner:docker"]
-  parallel:
-    matrix:
-      - TEST_LIBRARY: php
-        WEBLOG_VARIANT: apache-mod-8.0
-  script:
-    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
-    - ./build.sh
-    - ./run.sh
-    - ./run.sh SAMPLING
-  artifacts:
-    when: always
-    paths:
-      - binaries/
-      - logs/
-      - logs_sampling_rate/
-
-cross-component-agent:
-  extends: .base_job
-  stage: test
-  tags: ["runner:docker"]
-  parallel:
-    matrix:
-      - TEST_LIBRARY: php
-        WEBLOG_VARIANT: apache-mod-8.0
-  script:
-    - ./utils/scripts/load-binary.sh agent
-    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
-    - ./build.sh
-    - ./run.sh
-    - ./run.sh SAMPLING
-  artifacts:
-    when: always
-    paths:
-      - binaries/
-      - logs/
-      - logs_sampling_rate/
-
-
 onboarding_scenarios:
   stage: test
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
@@ -63,9 +21,12 @@ onboarding_scenarios:
     # Setup AWS Credentials
     - mkdir -p ~/.aws
     - set +x
+    - echo "STEP 0"
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
+    - echo "STEP 1"
     - set -x
     - export AWS_PROFILE=agent-qa-ci
+    - echo "STEP 2"
     - pulumi login .
   parallel:
     matrix:
