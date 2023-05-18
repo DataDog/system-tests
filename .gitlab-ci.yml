@@ -15,8 +15,6 @@ cross-components:
   extends: .base_job
   stage: test
   tags: ["runner:docker"]
-  only:
-    - schedules
   parallel:
     matrix:
       - TEST_LIBRARY: php
@@ -37,8 +35,6 @@ cross-component-agent:
   extends: .base_job
   stage: test
   tags: ["runner:docker"]
-  only:
-    - schedules
   parallel:
     matrix:
       - TEST_LIBRARY: php
@@ -55,3 +51,30 @@ cross-component-agent:
       - binaries/
       - logs/
       - logs_sampling_rate/
+
+
+onboarding_scenarios:
+  stage: test
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  only:
+    - schedules
+  before_script:
+    # Setup AWS Credentials
+    - mkdir -p ~/.aws
+    - set +x
+    - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
+    - set -x
+    - export AWS_PROFILE=agent-qa-ci
+    - pulumi login .
+  parallel:
+    matrix:
+      - TEST_LIBRARY: nodejs
+  script:
+    - build.sh -i runner
+    - run.sh ONBOARDING_HOST
+  artifacts:
+    when: always
+    paths:
+      - logs/
+      - logs_onboarding_host/
