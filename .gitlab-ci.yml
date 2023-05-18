@@ -1,4 +1,4 @@
-image: tiangolo/docker-with-compose
+#image: tiangolo/docker-with-compose
 
 .base_job:
   # image: $CI_IMAGE
