@@ -32,9 +32,9 @@ jobs:
         client:
         #- php
        #OK - python
-        - python_http
+       #OK - python_http
         #- dotnet
-        #- golang
+        - golang
         #- java
        # OK - nodejs
         #- ruby
@@ -70,11 +70,11 @@ jobs:
             client:
             #- php
            #OK - python
-            - python_http
+           #OK - python_http
             #- dotnet
-            #- golang
+            - golang
             #- java
-            - nodejs
+           # OK - nodejs
             #- ruby
           fail-fast: false
         env:

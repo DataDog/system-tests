@@ -181,7 +181,7 @@ RUN npm install {node_module}
 def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
-    golang_absolute_appdir = os.path.join(os.getcwd(), golang_appdir)
+    golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
 
     return APMLibraryTestServer(
         lang="golang",
