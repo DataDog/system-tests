@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, missing_feature, released
+from utils import context, coverage, missing_feature, released, bug
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -62,27 +62,27 @@ class TestParameterName:
     def setup_post_telemetry_metric_instrumented_source(self):
         self.source_post_fixture.setup_telemetry_metric_instrumented_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @bug(library="java", reason="Not working as expected")
     def test_post_telemetry_metric_instrumented_source(self):
         self.source_post_fixture.test_telemetry_metric_instrumented_source()
 
     def setup_post_telemetry_metric_executed_source(self):
         self.source_post_fixture.setup_telemetry_metric_executed_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @bug(library="java", reason="Not working as expected")
     def test_post_telemetry_metric_executed_source(self):
         self.source_post_fixture.test_telemetry_metric_executed_source()
 
     def setup_get_telemetry_metric_instrumented_source(self):
         self.source_get_fixture.setup_telemetry_metric_instrumented_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @bug(library="java", reason="Not working as expected")
     def test_get_telemetry_metric_instrumented_source(self):
         self.source_get_fixture.test_telemetry_metric_instrumented_source()
 
     def setup_get_telemetry_metric_executed_source(self):
         self.source_get_fixture.setup_telemetry_metric_executed_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @bug(library="java", reason="Not working as expected")
     def test_get_telemetry_metric_executed_source(self):
         self.source_get_fixture.test_telemetry_metric_executed_source()

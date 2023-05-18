@@ -4,7 +4,7 @@
 
 
 import pytest
-from utils import context, coverage, released, bug
+from utils import context, coverage, released, bug, missing_feature
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -48,22 +48,14 @@ class TestHeaderValue:
     def setup_telemetry_metric_instrumented_source(self):
         self.source_fixture.setup_telemetry_metric_instrumented_source()
 
-    @released(
-        java={
-            "spring-boot": "1.13.0",
-            "spring-boot-jetty": "1.13.0",
-            "spring-boot-openliberty": "1.13.0",
-            "spring-boot-wildfly": "1.13.0",
-            "spring-boot-undertow": "1.13.0",
-            "*": "?",
-        }
-    )
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
+    @missing_feature(not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 
     def setup_telemetry_metric_executed_source(self):
         self.source_fixture.setup_telemetry_metric_executed_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @bug(library="java", reason="Not working as expected")
     def test_telemetry_metric_executed_source(self):
         self.source_fixture.test_telemetry_metric_executed_source()

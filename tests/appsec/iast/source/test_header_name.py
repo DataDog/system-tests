@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released
+from utils import context, coverage, released, bug
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -45,13 +45,13 @@ class TestHeaderName:
     def setup_telemetry_metric_instrumented_source(self):
         self.source_fixture.setup_telemetry_metric_instrumented_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @bug(library="java", reason="Not working as expected")
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 
     def setup_telemetry_metric_executed_source(self):
         self.source_fixture.setup_telemetry_metric_executed_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @bug(library="java", reason="Not working as expected")
     def test_telemetry_metric_executed_source(self):
         self.source_fixture.test_telemetry_metric_executed_source()

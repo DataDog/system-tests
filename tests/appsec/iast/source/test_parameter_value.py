@@ -70,33 +70,17 @@ class TestParameterValue:
     def setup_post_telemetry_metric_instrumented_source(self):
         self.source_post_fixture.setup_telemetry_metric_instrumented_source()
 
-    @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-    @released(
-        java={
-            "spring-boot": "1.13.0",
-            "spring-boot-jetty": "1.13.0",
-            "spring-boot-openliberty": "1.13.0",
-            "spring-boot-wildfly": "1.13.0",
-            "spring-boot-undertow": "1.13.0",
-            "*": "?",
-        }
-    )
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
+    @missing_feature(not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(library="nodejs", reason="Not implemented")
     def test_post_telemetry_metric_instrumented_source(self):
         self.source_post_fixture.test_telemetry_metric_instrumented_source()
 
     def setup_post_telemetry_metric_executed_source(self):
         self.source_post_fixture.setup_telemetry_metric_executed_source()
 
-    @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
-    @released(
-        java={
-            "spring-boot": "1.13.0",
-            "spring-boot-jetty": "1.13.0",
-            "spring-boot-openliberty": "1.13.0",
-            "spring-boot-wildfly": "1.13.0",
-            "spring-boot-undertow": "1.13.0",
-            "*": "?",
-        }
-    )
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
+    @missing_feature(not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(library="nodejs", reason="Not implemented")
     def test_post_telemetry_metric_executed_source(self):
         self.source_post_fixture.test_telemetry_metric_executed_source()
