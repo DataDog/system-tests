@@ -28,7 +28,6 @@ e2e:
     - set -x
     - export AWS_PROFILE=agent-qa-profile
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
-    - pulumi logout --all
   parallel:
       matrix:
         - TEST_LIBRARY: nodejs
