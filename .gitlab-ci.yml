@@ -31,7 +31,15 @@
     - echo "STEP 2"
     - pulumi login .
 
-
+onboarding_scenarios1:
+    image: tiangolo/docker-with-compose
+    extends: .base_job
+    stage: test
+    tags: ["runner:docker"]
+    only:
+      - schedules
+    script:
+      - echo "PROBANDO PROBANDO"
 
 onboarding_scenarios:
     extends: .onboarding_template
