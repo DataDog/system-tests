@@ -84,9 +84,15 @@ def library_env() -> Dict[str, str]:
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 
+def _get_base_directory():
+    """Workaround until the parametric tests are fully migrated"""
+    current_directory = os.getcwd()
+    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
+
+
 def python_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
-    python_absolute_appdir = os.path.join(os.getcwd(), python_appdir)
+    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
@@ -139,11 +145,9 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
-    current_directory = os.getcwd()
-    base_directory = f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
 
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
-    nodejs_absolute_appdir = os.path.join(base_directory, nodejs_appdir)
+    nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
@@ -165,7 +169,7 @@ RUN npm install {node_module}
         container_build_context=nodejs_absolute_appdir,
         volumes=[
             (
-                os.path.join(base_directory, "utils", "parametric", "protos", "apm_test_client.proto"),
+                os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
                 "/client/apm_test_client.proto",
             ),
         ],
