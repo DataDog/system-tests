@@ -10,6 +10,7 @@ import string
 import urllib
 
 import requests
+from requests.structures import CaseInsensitiveDict
 import grpc
 import google.protobuf.struct_pb2 as pb
 
@@ -17,24 +18,41 @@ from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 
-class _FailedQuery:
-    def __init__(self, request):
-        self.request = request
-        self.status_code = None
+class ResponseEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, CaseInsensitiveDict):
+            return dict(o.items())
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, o)
 
 
 # some GRPC request wrapper to fit into validator model
-class _GrpcRequest:
-    def __init__(self, request, rid):
-        self.content = request
+class GrpcRequest:
+    def __init__(self, data):
+        # self.content = request
         # fake the HTTP header model
-        self.headers = {"user-agent": f"rid/{rid}"}
+        self.headers = {"user-agent": f"rid/{data['rid']}"}
 
 
-class _GrpcQuery:
-    def __init__(self, rid, request, response):
-        self.request = _GrpcRequest(request, rid)
-        self.response = response
+class GrpcResponse:
+    def __init__(self, data):
+        self.request = GrpcRequest(data["request"])
+        self.response = data["response"]
+
+
+class HttpRequest:
+    def __init__(self, data):
+        self.headers = CaseInsensitiveDict(data.get("headers", {}))
+        self.method = data["method"]
+        self.url = data["url"]
+
+
+class HttpResponse:
+    def __init__(self, data):
+        self.request = HttpRequest(data["request"])
+        self.status_code = data["status_code"]
+        self.headers = CaseInsensitiveDict(data.get("headers", {}))
+        self.text = data["text"]
 
 
 class _Weblog:
@@ -49,11 +67,21 @@ class _Weblog:
 
         self.responses = defaultdict(list)
         self.current_nodeid = None  # will be used to store request made by a given nodeid
+        self.replay = False
+
+    def init_replay_mode(self, log_folder):
+        self.replay = True
+
+        with open(f"{log_folder}/weblog_responses.json", "r", encoding="utf-8") as f:
+            self.responses = json.load(f)
 
     def save_requests(self, log_folder):
+        if self.replay:
+            return
+
         try:
             with open(f"{log_folder}/weblog_responses.json", "w", encoding="utf-8") as f:
-                json.dump(dict(self.responses), f, indent=2)
+                json.dump(dict(self.responses), f, indent=2, cls=ResponseEncoder)
         except:
             logger.exception("Can't save responses log")
 
@@ -80,7 +108,13 @@ class _Weblog:
         rid_in_user_agent=True,
         **kwargs,
     ):
-        # rid = str(uuid.uuid4()) Do NOT use uuid, it sometimes can looks like credit card number
+
+        if self.current_nodeid is None:
+            raise Exception("Weblog calls can only be done during setup")
+
+        if self.replay:
+            return self.get_request_from_logs()
+
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = headers or {}
 
@@ -101,6 +135,13 @@ class _Weblog:
         else:
             url = self._get_url(path, domain, port)
 
+        response_data = {
+            "request": {"method": method, "url": url, "headers": headers, "params": params},
+            "status_code": None,
+            "headers": {},
+            "text": None,
+        }
+
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
             r = req.prepare()
@@ -108,20 +149,37 @@ class _Weblog:
             logger.debug(f"Sending request {rid}: {method} {url}")
 
             r = requests.Session().send(r, timeout=5, stream=stream, allow_redirects=allow_redirects)
+            response_data["status_code"] = r.status_code
+            response_data["headers"] = r.headers
+            response_data["text"] = r.text
+
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            return _FailedQuery(request=r)
+        else:
+            logger.debug(f"Request {rid}: {r.status_code}")
 
-        logger.debug(f"Request {rid}: {r.status_code}")
+        self.responses[self.current_nodeid].append(response_data)
 
-        self.responses[self.current_nodeid].append(
-            {
-                "request": {"method": method, "url": url, "headers": headers, "params": params, "data": data},
-                "status_code": r.status_code,
-            }
-        )
+        return HttpResponse(response_data)
 
-        return r
+    def get_request_from_logs(self):
+        return HttpResponse(self._pop_response_data_from_logs())
+
+    def get_grpc_request_from_logs(self):
+        return GrpcResponse(self._pop_response_data_from_logs())
+
+    def _pop_response_data_from_logs(self):
+        if self.current_nodeid not in self.responses:
+            raise ValueError(
+                f"I do not have any request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
+            )
+
+        if len(self.responses[self.current_nodeid]) == 0:
+            raise ValueError(
+                f"I have no more request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
+            )
+
+        return self.responses[self.current_nodeid].pop(0)
 
     def _get_url(self, path, domain, port, query=None):
         """Return a query with the passed host"""
@@ -139,6 +197,13 @@ class _Weblog:
         return res
 
     def grpc(self, string_value):
+
+        if self.replay:
+            return self.get_grpc_request_from_logs()
+
+        if self.current_nodeid is None:
+            raise Exception("Weblog calls can only be done during setup")
+
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
@@ -153,13 +218,21 @@ class _Weblog:
 
         request = pb.Value(string_value=string_value)  # pylint: disable=no-member
 
+        response_data = {
+            "request": {"rid": rid, "string_value": string_value},
+        }
+
         try:
-            response = _grpc_client.Unary(request)
+            _grpc_client.Unary(request)
+            response_data["response"] = "TODO"
+
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            return _GrpcQuery(rid, request, None)
+            response_data["response"] = None
 
-        return _GrpcQuery(rid, request, response)
+        self.responses[self.current_nodeid].append(response_data)
+
+        return GrpcResponse(response_data)
 
 
 weblog = _Weblog()

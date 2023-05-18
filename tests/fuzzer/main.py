@@ -48,11 +48,11 @@ def main():
     create_network()
 
     agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    agent.configure()
+    agent.configure(False)
     agent.start()
 
     weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    weblog.configure()
+    weblog.configure(False)
     weblog.start()
 
     Fuzzer(
