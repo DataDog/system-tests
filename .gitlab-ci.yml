@@ -10,57 +10,33 @@
     - export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd_api_key --with-decryption --query "Parameter.Value" --out text)
     - export GL_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gl_token --with-decryption --query "Parameter.Value" --out text)
     - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
-
-.onboarding_template:
-  stage: test
+variables:
+  # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
+  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: helm-charts
+e2e:
+  only:
+      - schedules
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   before_script:
+    - apt-get update
+    - apt-get install -y jq
     # Setup AWS Credentials
-    #- apk add bash jq git unzip curl pulumi
-    #- pip install pyyaml awscli
     - mkdir -p ~/.aws
     - set +x
-    - echo "STEP 0.1"
-    - aws --version && docker --version 
-    - echo "STEP 0.2"
-    - export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd_api_key --with-decryption --query "Parameter.Value" --out text)
-    - echo "STEP 0.3"
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
-    - echo "STEP 1"
     - set -x
-    - export AWS_PROFILE=agent-qa-ci
-    - echo "STEP 2"
-    - pulumi login --local
-
-onboarding_scenarios1:
-    image: tiangolo/docker-with-compose
-    extends: .base_job
-    stage: test
-    tags: ["runner:docker"]
-    only:
-      - schedules
-    script:
-      - echo "PROBANDO PROBANDO"
-
-onboarding_scenarios:
-    stage: test
-   # image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-#    image: tiangolo/docker-with-compose
-    extends: .onboarding_template
-    #tags: ["arch:amd64"]
-   # tags: ["runner:docker"]
-    only:
-      - schedules
-    variables:
-      TARGETS: ./containers
-    parallel:
+    - export AWS_PROFILE=agent-qa-profile
+    - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
+    - pulumi logout --all
+  parallel:
       matrix:
         - TEST_LIBRARY: nodejs
-    script:
+  script:
+      - echo "Success"
       - build.sh -i runner
       - run.sh ONBOARDING_HOST
-    artifacts:
+  artifacts:
       when: always
       paths:
         - logs/
