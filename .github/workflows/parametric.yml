@@ -30,13 +30,13 @@ jobs:
     strategy:
       matrix:
         client:
-       # - php
-       #OK - python
-       #OK - python_http
-       # - dotnet
-        #OK- golang
-        #OK- java
-       # OK - nodejs
+        - php
+        - python
+        - python_http
+        - dotnet
+        - golang
+        - java
+        - nodejs
         - ruby
       fail-fast: false
     defaults:
@@ -68,13 +68,13 @@ jobs:
         strategy:
           matrix:
             client:
-           # - php
-           #OK - python
-           #OK - python_http
-           # - dotnet
-           #OK - golang
-           #OK - java
-           # OK - nodejs
+            - php
+            - python
+            - python_http
+            - dotnet
+            - golang
+            - java
+            - nodejs
             - ruby
           fail-fast: false
         env:
