@@ -207,7 +207,7 @@ RUN go install
 
 def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
-    dotnet_absolute_appdir = os.path.join(os.getcwd(), dotnet_appdir)
+    dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
@@ -271,7 +271,7 @@ RUN bash build.sh
 
 def php_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     php_appdir = os.path.join("utils", "build", "docker", "php", "parametric")
-    php_absolute_appdir = os.path.join(os.getcwd(), php_appdir)
+    php_absolute_appdir = os.path.join(_get_base_directory(), php_appdir)
     php_reldir = php_appdir.replace("\\", "/")
     env = env.copy()
     # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
@@ -294,7 +294,7 @@ RUN composer install
 """,
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
-        container_build_context=os.getcwd(),
+        container_build_context=_get_base_directory(),
         volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
         env=env,
         port=port,
@@ -304,7 +304,7 @@ RUN composer install
 def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
 
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
-    ruby_absolute_appdir = os.path.join(os.getcwd(), ruby_appdir)
+    ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
 
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
 

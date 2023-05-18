@@ -30,14 +30,14 @@ jobs:
     strategy:
       matrix:
         client:
-        #- php
+        - php
        #OK - python
        #OK - python_http
-        #- dotnet
+        - dotnet
         #OK- golang
-        - java
+        #OK- java
        # OK - nodejs
-        #- ruby
+        - ruby
       fail-fast: false
     defaults:
       run:
@@ -68,14 +68,14 @@ jobs:
         strategy:
           matrix:
             client:
-            #- php
+            - php
            #OK - python
            #OK - python_http
-            #- dotnet
+            - dotnet
            #OK - golang
-            - java
+           #OK - java
            # OK - nodejs
-            #- ruby
+            - ruby
           fail-fast: false
         env:
           TEST_LIBRARY: ${{ matrix.client }}
