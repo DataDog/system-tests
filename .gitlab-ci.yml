@@ -12,7 +12,7 @@
     - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
 
 .onboarding_template:
-  stage: e2e
+  stage: test
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   before_script:
@@ -44,7 +44,7 @@ onboarding_scenarios1:
       - echo "PROBANDO PROBANDO"
 
 onboarding_scenarios:
-    stage: e2e
+    stage: test
    # image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
 #    image: tiangolo/docker-with-compose
     extends: .onboarding_template
