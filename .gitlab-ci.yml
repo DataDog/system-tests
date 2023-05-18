@@ -11,12 +11,10 @@ image: tiangolo/docker-with-compose
     - export GL_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gl_token --with-decryption --query "Parameter.Value" --out text)
     - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
 
-onboarding_scenarios:
+.onboarding_template:
   stage: test
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
-  only:
-    - schedules
   before_script:
     # Setup AWS Credentials
     - mkdir -p ~/.aws
@@ -32,14 +30,23 @@ onboarding_scenarios:
     - export AWS_PROFILE=agent-qa-ci
     - echo "STEP 2"
     - pulumi login .
-  parallel:
-    matrix:
-      - TEST_LIBRARY: nodejs
-  script:
-    - build.sh -i runner
-    - run.sh ONBOARDING_HOST
-  artifacts:
-    when: always
-    paths:
-      - logs/
-      - logs_onboarding_host/
+
+
+
+onboarding_scenarios:
+    extends: .onboarding_template
+    only:
+      - schedules
+    variables:
+      TARGETS: ./containers
+    parallel:
+      matrix:
+        - TEST_LIBRARY: nodejs
+    script:
+      - build.sh -i runner
+      - run.sh ONBOARDING_HOST
+    artifacts:
+      when: always
+      paths:
+        - logs/
+        - logs_onboarding_host/
