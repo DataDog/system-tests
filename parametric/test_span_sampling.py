@@ -1,13 +1,13 @@
 import pytest
-from parametric.spec.trace import SAMPLING_PRIORITY_KEY
-from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
-from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
-from parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-from parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
-from parametric.spec.trace import MANUAL_DROP_KEY
-from parametric.spec.trace import USER_KEEP
-from parametric.spec.trace import Span
-from parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
+from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
+from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
+from utils.parametric.spec.trace import MANUAL_DROP_KEY
+from utils.parametric.spec.trace import USER_KEEP
+from utils.parametric.spec.trace import Span
+from utils.parametric.spec.trace import find_span_in_traces
 import time
 import json
 

@@ -1,6 +1,6 @@
 import pytest
-from parametric.spec.trace import Span
-from parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import Span
+from utils.parametric.spec.trace import find_span_in_traces
 
 
 @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",}])
