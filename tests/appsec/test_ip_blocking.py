@@ -53,7 +53,11 @@ class Test_AppSecIPBlocking:
             logger.info(f"validating rc request number {self.request_number}")
             rc_check_request(data, EXPECTED_REQUESTS[self.request_number], caching=True)
             self.python_request_number += 1
-            if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+            if (
+                context.library == "python"
+                and context.library < "python@1.15.0"
+                and context.weblog_variant != "uwsgi-poc"
+            ):
                 if self.python_request_number % 2 == 0:
                     self.request_number += 1
             else:
