@@ -21,7 +21,9 @@ onboarding_scenarios:
     # Setup AWS Credentials
     - mkdir -p ~/.aws
     - set +x
-    - echo "STEP 0"
+    - echo "STEP 0.1"
+    - aws --version && docker --version && docker-compose --version
+    - echo "STEP 0.2"
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
     - echo "STEP 1"
     - set -x
