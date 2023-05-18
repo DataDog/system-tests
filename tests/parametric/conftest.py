@@ -139,8 +139,11 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+    current_directory = os.getcwd()
+    base_directory = f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
+
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
-    nodejs_absolute_appdir = os.path.join(os.getcwd(), "..", nodejs_appdir)
+    nodejs_absolute_appdir = os.path.join(base_directory, nodejs_appdir)
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
@@ -162,7 +165,7 @@ RUN npm install {node_module}
         container_build_context=nodejs_absolute_appdir,
         volumes=[
             (
-                os.path.join(os.getcwd(), "..", "utils", "parametric", "protos", "apm_test_client.proto"),
+                os.path.join(base_directory, "utils", "parametric", "protos", "apm_test_client.proto"),
                 "/client/apm_test_client.proto",
             ),
         ],
