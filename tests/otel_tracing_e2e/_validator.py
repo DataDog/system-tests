@@ -112,6 +112,7 @@ def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str):
 
 KNOWN_UNMATCHED_METAS = [
     "otel.user_agent",
+    "otel.source",
     "span.kind",
     "_dd.agent_version",
     "_dd.span_links",  # TODO: remove once Agent supports span links
