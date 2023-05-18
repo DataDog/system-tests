@@ -234,7 +234,7 @@ WORKDIR "/client/."
 
 def java_library_factory(env: Dict[str, str], container_id: str, port: str):
     java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
-    java_absolute_appdir = os.path.join(os.getcwd(), java_appdir)
+    java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
@@ -262,7 +262,7 @@ RUN bash build.sh
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
-        container_build_context=os.getcwd(),
+        container_build_context=_get_base_directory(),
         volumes=[],
         env=env,
         port=port,
