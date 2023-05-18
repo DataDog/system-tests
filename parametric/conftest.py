@@ -41,6 +41,15 @@ from tests.parametric.conftest import (
     _TestAgentAPI,
     docker_run,
     docker,
+    docker_network_log_file,
+    docker_network_name,
+    docker_network,
+    test_agent_port,
+    test_agent_log_file,
+    test_agent_container_name,
+    test_agent,
+    test_server_timeout,
+    test_library,
 )
 
 
@@ -92,157 +101,3 @@ def apm_test_server(request, library_env, test_id):
     apm_test_library = request.param
 
     yield apm_test_library(library_env, test_id, get_open_port())
-
-
-@pytest.fixture()
-def docker_network_log_file(request) -> TextIO:
-    with tempfile.NamedTemporaryFile(mode="w+") as f:
-        yield f
-
-
-@pytest.fixture()
-def docker_network_name(test_id) -> str:
-    return "apm_shared_tests_network_%s" % test_id
-
-
-@pytest.fixture()
-def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_name: str) -> str:
-    # Initial check to see if docker network already exists
-    cmd = [
-        docker,
-        "network",
-        "inspect",
-        docker_network_name,
-    ]
-    docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
-    docker_network_log_file.flush()
-    r = subprocess.run(cmd, stderr=docker_network_log_file)
-    if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
-        pytest.fail(
-            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
-        )
-    elif r.returncode == 1:
-        cmd = [
-            shutil.which("docker"),
-            "network",
-            "create",
-            "--driver",
-            "bridge",
-            docker_network_name,
-        ]
-        docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
-        docker_network_log_file.flush()
-        r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
-        if r.returncode != 0:
-            pytest.fail(
-                "Could not create docker network %r, see the log file %r"
-                % (docker_network_name, docker_network_log_file.name),
-                pytrace=False,
-            )
-    yield docker_network_name
-    cmd = [
-        shutil.which("docker"),
-        "network",
-        "rm",
-        docker_network_name,
-    ]
-    docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
-    docker_network_log_file.flush()
-    r = subprocess.run(cmd, stdout=docker_network_log_file, stderr=docker_network_log_file)
-    if r.returncode != 0:
-        pytest.fail(
-            "Failed to remove docker network %r, see the log file %r"
-            % (docker_network_name, docker_network_log_file.name),
-            pytrace=False,
-        )
-
-
-@pytest.fixture
-def test_agent_port() -> str:
-    return "8126"
-
-
-@pytest.fixture
-def test_agent_log_file(request) -> Generator[TextIO, None, None]:
-    with tempfile.NamedTemporaryFile(mode="w+") as f:
-        yield f
-        f.seek(0)
-        request.node._report_sections.append(("teardown", f"Test Agent Output", "".join(f.readlines())))
-
-
-@pytest.fixture
-def test_agent_container_name(test_id) -> str:
-    return "ddapm-test-agent-%s" % test_id
-
-
-@pytest.fixture
-def test_agent(
-    docker_network: str, request, test_agent_container_name: str, test_agent_port, test_agent_log_file: TextIO,
-):
-    env = {}
-    if os.getenv("DEV_MODE") is not None:
-        env["SNAPSHOT_CI"] = "0"
-
-    # Not all clients (go for example) submit the tracer version
-    # go client doesn't submit content length header
-    env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
-
-    test_agent_external_port = get_open_port()
-    with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
-        name=test_agent_container_name,
-        cmd=[],
-        env=env,
-        volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
-        ports=[(test_agent_external_port, test_agent_port)],
-        log_file=test_agent_log_file,
-        network_name=docker_network,
-    ):
-        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port)
-        # Wait for the agent to start
-        for i in range(20):
-            try:
-                resp = client.info()
-            except requests.exceptions.ConnectionError:
-                time.sleep(0.1)
-            else:
-                if resp["version"] != "test":
-                    pytest.fail(
-                        "Agent version %r is running instead of the test agent. Stop the agent on port %r and try again."
-                        % (resp["version"], test_agent_port)
-                    )
-                break
-        else:
-            pytest.fail(
-                "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
-            )
-
-        # If the snapshot mark is on the test case then do a snapshot test
-        marks = [m for m in request.node.iter_markers(name="snapshot")]
-        assert len(marks) < 2, "Multiple snapshot marks detected"
-        if marks:
-            snap = marks[0]
-            assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
-            if "token" not in snap.kwargs:
-                snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
-            with client.snapshot_context(**snap.kwargs):
-                yield client
-        else:
-            yield client
-
-
-@pytest.fixture
-def test_server_timeout() -> int:
-    return 60
-
-
-@pytest.fixture
-def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
-    if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
-    elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
-    else:
-        raise ValueError("interface %s not supported" % test_server.protocol)
-    tracer = APMLibrary(client, test_server.lang)
-    yield tracer
