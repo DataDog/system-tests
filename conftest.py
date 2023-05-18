@@ -35,6 +35,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
+    parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
 
 
 def pytest_configure(config):
@@ -49,10 +50,14 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure()
+    # collect only : we collect tests. As now, it only works with replay mode
+    # on collectonly mode, the configuration step is exactly the step on replay mode
+    # so let's tell the scenario we are in replay mode
+    context.scenario.configure(config.option.replay or config.option.collectonly)
 
-    config.option.json_report_file = _JSON_REPORT_FILE()
-    config.option.xmlpath = _XML_REPORT_FILE()
+    if not config.option.replay and not config.option.collectonly:
+        config.option.json_report_file = _JSON_REPORT_FILE()
+        config.option.xmlpath = _XML_REPORT_FILE()
 
 
 # Called at the very begening
@@ -203,6 +208,7 @@ def pytest_collection_finish(session):
         try:
             weblog.current_nodeid = item.nodeid
             setup_method()
+            weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")
             terminal.write("x", bold=True, red=True)
@@ -224,7 +230,10 @@ def pytest_runtest_call(item):
     if item.nodeid in weblog.responses:
         for response in weblog.responses[item.nodeid]:
             request = response["request"]
-            logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
+            if "method" in request:
+                logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
+            else:
+                logger.info("weblog GRPC request")
 
 
 def pytest_json_modifyreport(json_report):
@@ -257,6 +266,10 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
+
+    context.scenario.pytest_sessionfinish(session)
+    if session.config.option.collectonly or session.config.option.replay:
+        return
 
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
