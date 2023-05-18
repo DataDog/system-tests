@@ -13,7 +13,7 @@
 
 .onboarding_template:
   stage: test
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   before_script:
     # Setup AWS Credentials
@@ -43,6 +43,7 @@ onboarding_scenarios1:
 
 onboarding_scenarios:
     extends: .onboarding_template
+    tags: ["runner:docker"]
     only:
       - schedules
     variables:
