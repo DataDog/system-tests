@@ -34,8 +34,8 @@ e2e:
         - TEST_LIBRARY: nodejs
   script:
       - echo "Success"
-      - build.sh -i runner
-      - run.sh ONBOARDING_HOST
+      - ./build.sh -i runner
+      - ./run.sh ONBOARDING_HOST
   artifacts:
       when: always
       paths:
