@@ -12,7 +12,8 @@
     - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
 variables:
   # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: helm-charts
+  # KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: helm-charts
+   TEST: 1
 e2e:
   only:
       - schedules
@@ -26,7 +27,6 @@ e2e:
     - set +x
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
     - set -x
-
     - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
     - export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
     - export ONBOARDING_AWS_INFRA_KEYPAIR_NAME=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-keypair-name --with-decryption --query "Parameter.Value" --out text)
