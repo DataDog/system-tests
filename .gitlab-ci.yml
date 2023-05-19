@@ -35,6 +35,7 @@ e2e:
     - export AWS_PROFILE=agent-qa-ci
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
     #- pulumi new --offline --yes --force
+    - pulumi stack init
     - pulumi config set aws:region us-east-1
 
   parallel:
