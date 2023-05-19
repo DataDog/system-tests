@@ -26,8 +26,17 @@ e2e:
     - set +x
     - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
     - set -x
-    - export AWS_PROFILE=agent-qa-profile
+
+    - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+    - export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+    - export ONBOARDING_AWS_INFRA_KEYPAIR_NAME=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-keypair-name --with-decryption --query "Parameter.Value" --out text)
+    - export ONBOARDING_AWS_INFRA_SUBNET_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-subnet-id --with-decryption --query "Parameter.Value" --out text)
+    - export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-securiy-groups-id --with-decryption --query "Parameter.Value" --out text)
+    - export ONBOARDING_AWS_INFRA_KEY_PATH=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-key-path --with-decryption --query "Parameter.Value" --out text)
+
+    - export AWS_PROFILE=agent-qa-ci
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
+
   parallel:
       matrix:
         - TEST_LIBRARY: nodejs
