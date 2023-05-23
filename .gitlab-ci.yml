@@ -38,6 +38,7 @@ e2e:
     #- pulumi new --offline --yes --force
     #- pulumi stack init "testing"
     #- pulumi config set aws:region us-east-1
+    - pulumi config set aws:skipMetadataApiCheck false
 
   parallel:
       matrix:
