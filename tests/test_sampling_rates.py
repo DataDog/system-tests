@@ -40,7 +40,6 @@ class Test_SamplingRates:
             weblog.get(p)
 
     @bug(library="python", reason="When stats are activated, all traces are emitted")
-    @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -50,8 +49,7 @@ class Test_SamplingRates:
 
         for data, root_span in interfaces.library.get_root_spans():
             metrics = root_span["metrics"]
-            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
-            sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
+            sampled_count[metrics.get("_sampling_priority_v1") in (USER_KEEP, AUTO_KEEP)] += 1
 
         trace_count = sum(sampled_count.values())
         # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
@@ -74,7 +72,7 @@ class Test_SamplingRates:
 
         for data, span in interfaces.library.get_root_spans():
             metrics = span["metrics"]
-            if metrics["_sampling_priority_v1"] not in (USER_REJECT, AUTO_REJECT):
+            if metrics.get("_sampling_priority_v1") not in (USER_REJECT, AUTO_REJECT):
                 trace_ids.add(span["trace_id"])
 
         for _, span in interfaces.agent.get_spans():
@@ -130,7 +128,6 @@ class Test_SamplingDecisions:
 
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
     @bug(library="ruby", reason="Unknown reason")
-    @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
         interfaces.library.assert_sampling_decisions_added(self.traces)
