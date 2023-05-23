@@ -23,6 +23,9 @@ from utils import (
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
+
 
 @released(golang="1.38.1", dotnet="2.7.0", java="0.100.0", nodejs="2.6.0")
 @released(php_appsec="0.3.2", python="1.2.1", ruby="1.0.0")

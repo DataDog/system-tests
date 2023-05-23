@@ -20,6 +20,7 @@ if context.library == "cpp":
         "spring-boot-wildfly": "1.7.0",
         "spring-boot-undertow": "1.7.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
