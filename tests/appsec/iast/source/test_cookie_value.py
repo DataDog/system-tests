@@ -23,6 +23,7 @@ if context.library == "cpp":
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -33,10 +34,10 @@ class TestCookieValue:
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/cookievalue/test",
-        request_kwargs={"cookies": {"cookie-source-name": "cookie-source-value"}},
+        request_kwargs={"cookies": {"table": "user"}},
         source_type="http.request.cookie.value",
-        source_name="cookie-source-name",
-        source_value="cookie-source-value",
+        source_name="table",
+        source_value="user",
     )
 
     def setup_source_reported(self):

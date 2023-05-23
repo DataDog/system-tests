@@ -1,5 +1,4 @@
 import os.path
-import re
 
 import pytest
 
@@ -9,6 +8,8 @@ from utils._context.core import context
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -194,17 +195,17 @@ class Test_Blocking:
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
 
-    @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @released(java="1.14.0", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_json_template_v1(self):
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
-        assert self.r_json_v1.headers.get("content-type", "") in HTML_CONTENT_TYPES
+        assert self.r_json_v1.headers.get("content-type", "") in JSON_CONTENT_TYPES
         assert self.r_json_v1.text == BLOCK_TEMPLATE_JSON_MIN_V1
 
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
 
-    @released(java="?", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @released(java="1.14.0", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_html_template_v2(self):
         """HTML block template is v1 minified"""
         assert self.r_html_v2.status_code == 403

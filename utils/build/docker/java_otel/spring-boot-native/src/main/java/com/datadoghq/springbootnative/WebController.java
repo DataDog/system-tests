@@ -27,7 +27,7 @@ public class WebController {
   }
 
   // Basic test scenario that generates a server span with a span link to a fake message span.
-  @RequestMapping("/basic")
+  @RequestMapping("/basic/trace")
   private String basic(@RequestHeader HttpHeaders headers) throws InterruptedException {
     try (Scope scope = Context.current().makeCurrent()) {
       SpanContext spanContext = fakeAsyncWork(headers);

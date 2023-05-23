@@ -59,6 +59,13 @@ class _BackendInterfaceValidator(InterfaceValidator):
     # Called by the test setup to make sure the interface is ready.
     def wait(self, timeout):
         super().wait(timeout, stop_accepting_data=False)
+        self._init_rid_to_library_trace_ids()
+
+    def load_data_from_logs(self, folder_path):
+        super().load_data_from_logs(folder_path)
+        self._init_rid_to_library_trace_ids()
+
+    def _init_rid_to_library_trace_ids(self):
 
         from utils.interfaces import library
 

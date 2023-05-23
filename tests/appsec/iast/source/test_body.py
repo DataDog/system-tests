@@ -20,17 +20,18 @@ if context.library == "cpp":
         "spring-boot-wildfly": "1.7.0",
         "spring-boot-undertow": "1.7.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
-@released(nodejs="?")
-class TestBody:
+@released(nodejs={"express4": "3.19.0", "*": "?"})
+class TestRequestBody:
     """Verify that request json body is tainted"""
 
     source_fixture = SourceFixture(
         http_method="POST",
         endpoint="/iast/source/body/test",
-        request_kwargs={"json": {"name": "nameTest", "value": "valueTest"}},
+        request_kwargs={"json": {"name": "table", "value": "user"}},
         source_type="http.request.body",
         source_name=None,
         source_value=None,

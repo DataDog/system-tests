@@ -20,6 +20,7 @@ if context.library == "cpp":
         "spring-boot-wildfly": "1.5.0",
         "spring-boot-undertow": "1.5.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -30,9 +31,9 @@ class TestHeaderName:
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/headername/test",
-        request_kwargs={"headers": {"random-key": "header-name"}},
+        request_kwargs={"headers": {"user": "unused"}},
         source_type="http.request.header.name",
-        source_name="random-key",
+        source_name="user",
         source_value=None,
     )
 

@@ -24,6 +24,7 @@ readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
+readonly DEFAULT_python_http=
 readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
@@ -292,7 +293,7 @@ fi
 
 WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
-if [[ ! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" ]]; then
+if [[ (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
     echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
     echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
     exit 1

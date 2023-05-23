@@ -20,6 +20,7 @@ if context.library == "cpp":
         "spring-boot-wildfly": "1.5.0",
         "spring-boot-undertow": "1.5.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -30,10 +31,10 @@ class TestCookieName:
     source_fixture = SourceFixture(
         http_method="GET",
         endpoint="/iast/source/cookiename/test",
-        request_kwargs={"cookies": {"cookie-source-name": "cookie-source-value"}},
+        request_kwargs={"cookies": {"user": "unused"}},
         source_type="http.request.cookie.name",
-        source_name="cookie-source-name",
-        source_value="cookie-source-name",
+        source_name="user",
+        source_value="user",
     )
 
     def setup_source_reported(self):

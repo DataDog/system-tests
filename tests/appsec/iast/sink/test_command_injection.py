@@ -22,6 +22,7 @@ if context.library == "cpp":
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -37,7 +38,7 @@ class TestCommandInjection:
         insecure_endpoint="/iast/cmdi/test_insecure",
         secure_endpoint="/iast/cmdi/test_secure",
         data={"cmd": "ls"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.CmdExamples", "nodejs": "iast.js",},
+        location_map={"java": "com.datadoghq.system_tests.iast.utils.CmdExamples", "nodejs": "iast/index.js",},
     )
 
     def setup_insecure(self):
