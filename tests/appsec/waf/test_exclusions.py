@@ -1,4 +1,8 @@
 from utils import scenarios, released, weblog, interfaces, missing_feature, context
+import pytest
+
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @released(java="1.6.0", dotnet="2.26.0", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?", cpp="?")

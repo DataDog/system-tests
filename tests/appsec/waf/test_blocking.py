@@ -1,5 +1,4 @@
 import os.path
-import re
 
 import pytest
 
@@ -9,6 +8,8 @@ from utils._context.core import context
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
