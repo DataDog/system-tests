@@ -619,7 +619,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="?")
+@released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="?")
 @irrelevant(reason="test not implemented")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
