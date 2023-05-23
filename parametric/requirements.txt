@@ -39,7 +39,7 @@ pytest-json-report==1.2.1
 pytest-metadata==2.0.2
 pytest-split==0.8.1
 regex==2022.9.13
-requests==2.28.1
+requests==2.31.0
 requests-toolbelt==0.9.1
 six==1.16.0
 tenacity==8.0.1
