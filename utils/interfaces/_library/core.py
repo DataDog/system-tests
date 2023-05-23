@@ -5,6 +5,7 @@
 from collections import namedtuple
 import json
 import threading
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
@@ -16,7 +17,7 @@ from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.sampling import (
     _TracesSamplingDecisionValidator,
     _AddSamplingDecisionValidator,
-    _DistributedTracesDeterministicSamplingDecisisonValidator,
+    _DistributedTracesDeterministicSamplingDecisionValidator,
 )
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
@@ -36,9 +37,9 @@ class LibraryInterfaceValidator(InterfaceValidator):
         self.ready = threading.Event()
         self.uniqueness_exceptions = _TraceIdUniquenessExceptions()
 
-    def append_data(self, data):
+    def ingest_file(self, src_path):
         self.ready.set()
-        return super().append_data(data)
+        return super().ingest_file(src_path)
 
     ############################################################
     def get_traces(self, request=None):
@@ -243,7 +244,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def assert_deterministic_sampling_decisions(self, traces):
         # TODO: move this into test class
-        validator = _DistributedTracesDeterministicSamplingDecisisonValidator(traces)
+        validator = _DistributedTracesDeterministicSamplingDecisionValidator(traces)
         self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
         validator.final_check()
 

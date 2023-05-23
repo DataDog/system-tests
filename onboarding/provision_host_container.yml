@@ -1,0 +1,277 @@
+ami:
+- name: ubuntu-x86-22.04
+  ami_id: ami-0557a15b87f6559cf
+  user: ubuntu
+  os_type: linux
+  os_distro: deb
+
+- name: ubuntu-x86-18.04
+  ami_id: ami-0263e4deb427da90e
+  user: ubuntu
+  os_type: linux
+  os_distro: deb
+
+- name: amazon-linux-x86
+  ami_id: ami-0dfcb1ef8550277af
+  user: ec2-user
+  os_type: linux
+  os_distro: rpm
+
+prepare-repos:
+  install: !include autoinjection/yaml/includes/provision_prepare_repos.yml
+
+prepare-docker:
+  install: !include autoinjection/yaml/includes/provision_prepare_docker.yml
+
+agent:
+
+  - env: prod
+    install:
+      - os_type: linux
+        command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+        #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+autoinjection: 
+  - java: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |    
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-java
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - nodejs: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - dotnet: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject  datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject  datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+language-variants:
+  - java: 
+    - name: OpenJDK11
+      version: 11
+      install: 
+        - os_type: linux
+          os_distro: deb
+          command: sudo apt-get -y install openjdk-11-jdk-headless
+
+        - os_type: linux
+          os_distro: rpm
+          command: sudo amazon-linux-extras install java-openjdk11
+
+weblogs:
+  - java: 
+
+    - name: test-app-java
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-script: weblog/java/test-app-java/test-app-java_local_build.sh
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/java/test-app-java/test-app-java_docker_run.sh
+
+            - name: copy-docker-file
+              local_path: weblog/java/test-app-java/Dockerfile
+
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_run.sh
+
+    - name: test-app-java-alpine
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-script: weblog/java/test-app-java/test-app-java_local_build.sh
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/java/test-app-java/test-app-java_docker_run.sh
+
+            - name: copy-docker-file
+              local_path: weblog/java/test-app-java/Dockerfile.alpine
+              remote_path: Dockerfile
+
+            - name: copy-entrypoint-docker
+              local_path: weblog/java/test-app-java/docker_entrypoint_docker.sh
+
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_run.sh
+
+    - name: test-app-java-buildpack
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-script: weblog/java/test-app-java/test-app-java_local_build.sh
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/java/test-app-java/test-app-java_docker_run_buildpack.sh
+
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_run_buildpack.sh
+
+  - nodejs: 
+    - name: test-app-nodejs
+      install: 
+        - os_type: linux
+          local-script: weblog/nodejs/test-app-nodejs/test-app-nodejs_local_build.sh
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/nodejs/test-app-nodejs/test-app-nodejs_docker_run.sh
+
+            - name: copy-nodejs-app
+              local_path: test-app-nodejs.tar
+
+          command: sh test-app-nodejs_docker_run.sh
+
+  - dotnet: 
+    - name: test-app-dotnet
+      install: 
+        - os_type: linux
+          local-script: weblog/dotnet/test-app-dotnet/test-app-dotnet_local_build.sh
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: weblog/dotnet/test-app-dotnet/test-app-dotnet_docker_run.sh
+
+            - name: copy-dotnet-app
+              local_path: test-app-dotnet.tar
+
+          command: sh test-app-dotnet_docker_run.sh
+
+installation_checks: !include autoinjection/yaml/includes/provision_installation_checks.yml

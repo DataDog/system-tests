@@ -16,23 +16,25 @@ from ._deserializer import deserialize
 class InterfaceValidator:
     """Validate an interface
 
-    proxy uses append_data() method to add data from interfaces
-
     One instance of this list handle only one interface
     """
 
     def __init__(self, name):
         self.name = name
 
-        self.message_counter = 0
-
         self._wait_for_event = threading.Event()
         self._wait_for_function = None
 
         self._lock = threading.RLock()
         self._data_list = []
+        self._ingested_files = set()
 
         self.accept_data = True
+
+        self.replay = False
+
+    def configure(self, replay):
+        self.replay = replay
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -44,33 +46,49 @@ class InterfaceValidator:
         time.sleep(timeout)
         self.accept_data = not stop_accepting_data
 
-    # data collector thread domain
-    def append_data(self, data):
-        if not self.accept_data:
-            return
+    def ingest_file(self, src_path):
+        # if not self.accept_data:
+        #     return
 
         with self._lock:
-            count = self.message_counter
-            self.message_counter += 1
+            if src_path in self._ingested_files:
+                return
 
-        log_filename = f"logs/interfaces/{self.name}/{count:03d}_{data['path'].replace('/', '_')}.json"
-        data["log_filename"] = log_filename
-        logger.debug(f"{self.name}'s interface receive data on {data['host']}{data['path']}: {log_filename}")
+            logger.debug(f"Ingesting {src_path}")
 
-        deserialize(data, self.name)
+            with open(src_path, "r", encoding="utf-8") as f:
+                try:
+                    data = json.load(f)
+                except json.decoder.JSONDecodeError:
+                    # the file may not be finished
+                    return
 
-        with open(log_filename, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
+            deserialize(data, self.name)
 
-        self._data_list.append(data)
+            with open(src_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
+
+            self._data_list.append(data)
+            self._ingested_files.add(src_path)
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
 
-        return data
+    def load_data_from_logs(self, folder_path):
+        from os import listdir
+        from os.path import isfile, join
+
+        for filename in sorted(listdir(folder_path)):
+            file_path = join(folder_path, filename)
+            if isfile(file_path):
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                self._data_list.append(data)
+                logger.info(f"{self.name} interface gets {file_path}")
 
     def get_data(self, path_filters=None):
-        # TODO remove filter_empty_requests (never filter, even if it's empty)
 
         if path_filters is not None:
             if isinstance(path_filters, str):
@@ -89,14 +107,24 @@ class InterfaceValidator:
             try:
                 if validator(data) is True:
                     return
-            except Exception:
-                logger.error(f"{data['log_filename']} did not validate this test", exc_info=True)
+            except Exception as e:
+                logger.error(f"{data['log_filename']} did not validate this test")
+
+                if isinstance(e, ValidationError):
+                    if isinstance(e.extra_info, (dict, list)):
+                        logger.info(json.dumps(e.extra_info, indent=2))
+                    elif isinstance(e.extra_info, (str, int, float)):
+                        logger.info(e.extra_info)
+
                 raise
 
         if not success_by_default:
             raise Exception("Test has not been validated by any data")
 
     def wait_for(self, wait_for_function, timeout):
+
+        if self.replay:
+            return
 
         # first, try existing data
         with self._lock:

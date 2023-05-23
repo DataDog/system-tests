@@ -126,6 +126,33 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
     content
 </string>
 ```
+
+## \[GET, POST, OPTIONS\] /set_tag/%s/%d
+
+This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path. 
+
+This endpoint must accept all query parameters and all content types.
+
+The first path parameter must be written in the span with the tag `appsec.events.system_tests_appsec_event.value` and the parameter as value.
+
+The second path parameter must be used as a response status code.
+
+All query parameters (key, value) must be used as (key, value) in the response headers.
+
+The following text should be written to the body of the response:
+
+```
+Value tagged
+```
+
+Example :
+```
+/set_tag/tainted_value/418?Content-Language=fr&custom_field=myvalue
+```
+must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with reponse headers populated with `Content-Language=fr` and `custom_field=myvalue`.
+
+The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on reponse status code or response header content.
+
 ## `GET /iast/insecure_hashing/deduplicate`
 
 Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hashing) in a loop.
@@ -165,12 +192,14 @@ is executed successfully.
 Expected query params:
   - `integration`: Name of DBM supported library
     - Possible Values: `psycopg`
-  - `cursor_method`: Method used to execute database statements
+  - `operation`: Method used to execute database statements
     - Possible Values: `execute`, `executemany`
 
 
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
+  - mysql (ADO.NET driver for MySQL)
+  - npgsql (ADO.NET Data Provider for PostgreSQL)
 
 ## GET /dsm
 

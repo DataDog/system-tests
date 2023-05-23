@@ -4,5 +4,6 @@
     "python.testing.unittestEnabled": false,
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "java.compile.nullAnalysis.mode": "disabled"
 }

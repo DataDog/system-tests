@@ -68,18 +68,18 @@ class Test_UrlQuery:
         interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
 
 
-@released(nodejs="3.13.1", python="1.7.1")
-@missing_feature(library="dotnet", reason="Needs weblog endpoint")
+@released(nodejs="3.13.1", python="1.7.1", dotnet="2.29.0")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
     """ PII in url field are removed on distant calls """
 
     def setup_main(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://leak-name-url:leak-password-url@runner:8126"})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://leak-name-url:leak-password-url@agent:8127"})
 
     @missing_feature(
-        context.weblog_variant in ("vertx3", "resteasy-netty3", "jersey-grizzly2"), reason="Need weblog endpoint"
+        context.weblog_variant in ("vertx3", "vertx4", "resteasy-netty3", "jersey-grizzly2"),
+        reason="Need weblog endpoint",
     )
     def test_main(self):
         """ check that not data is leaked """
@@ -89,7 +89,7 @@ class Test_UrlField:
             for span in trace:
                 if span.get("type") == "http":
                     logger.info(f"span found: {span}")
-                    return "runner:8126" in span["meta"]["http.url"]
+                    return "agent:8127" in span["meta"]["http.url"]
 
         # check that the distant call is reported
         interfaces.library.validate_traces(self.r, validate_report)
@@ -97,8 +97,8 @@ class Test_UrlField:
         # the initial request contains leak-password-url is reported, but it's not the issue
         # we whitelist this value
         whitelist_pattern = (
-            r"(http://(weblog|[a-z0-9]+):7777/make_distant_call\?)?"
-            r"url=http%3A%2F%2Fleak-name-url%3Aleak-password-url%40runner%3A8126"
+            r"(http://[a-z0-9\.]+:7777/make_distant_call\?)?"
+            r"url=http%3A%2F%2Fleak-name-url%3Aleak-password-url%40agent%3A8127"
         )
 
         interfaces.library.validate(validate_no_leak("leak-password-url", whitelist_pattern), success_by_default=True)

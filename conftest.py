@@ -1,13 +1,13 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import os
 import json
 
+import pytest
 from pytest_jsonreport.plugin import JSONReport
 
-from utils import context, interfaces
-from utils._context._scenarios import current_scenario
+from utils import context
+from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
@@ -22,13 +22,51 @@ _release_versions = {}
 _coverages = {}
 _rfcs = {}
 
+
+def _JSON_REPORT_FILE():
+    return f"{context.scenario.host_log_folder}/report.json"
+
+
+def _XML_REPORT_FILE():
+    return f"{context.scenario.host_log_folder}/reportJunit.xml"
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
+    )
+    parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
+
+
+def pytest_configure(config):
+
+    # First of all, we must get the current scenario
+
+    for name in dir(scenarios):
+        if name.upper() == config.option.scenario:
+            context.scenario = getattr(scenarios, name)
+            break
+
+    if context.scenario is None:
+        pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
+
+    # collect only : we collect tests. As now, it only works with replay mode
+    # on collectonly mode, the configuration step is exactly the step on replay mode
+    # so let's tell the scenario we are in replay mode
+    context.scenario.configure(config.option.replay or config.option.collectonly)
+
+    if not config.option.replay and not config.option.collectonly:
+        config.option.json_report_file = _JSON_REPORT_FILE()
+        config.option.xmlpath = _XML_REPORT_FILE()
+
+
 # Called at the very begening
 def pytest_sessionstart(session):
 
     if session.config.option.collectonly:
         return
 
-    current_scenario.session_start(session)
+    context.scenario.session_start(session)
 
 
 # called when each test item is collected
@@ -99,17 +137,17 @@ def pytest_collection_modifyitems(session, config, items):
 
         return None
 
-    if context.scenario == "CUSTOM":
-        # user has specifed which test to run, do nothing
-        return
-
     selected = []
     deselected = []
 
     for item in items:
         declared_scenario = get_declared_scenario(item)
 
-        if declared_scenario == context.scenario or declared_scenario is None and context.scenario == "DEFAULT":
+        if (
+            declared_scenario == context.scenario.name
+            or declared_scenario is None
+            and context.scenario.name == "DEFAULT"
+        ):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
             _collect_item_metadata(item)
@@ -134,78 +172,68 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session):
+    from utils import weblog
 
     if session.config.option.collectonly:
         return
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
-    terminal.write_line("Executing weblog warmup...")
+    last_file = ""
+    for item in session.items:
 
-    try:
-        current_scenario.execute_warmups()
+        if _item_is_skipped(item):
+            continue
 
-        last_file = ""
-        for item in session.items:
+        if not item.instance:  # item is a method bounded to a class
+            continue
 
-            if _item_is_skipped(item):
-                continue
+        # the test metohd name is like test_xxxx
+        # we replace the test_ by setup_, and call it if it exists
 
-            if not item.instance:  # item is a method bounded to a class
-                continue
+        setup_method_name = f"setup_{item.name[5:]}"
 
-            # the test metohd name is like test_xxxx
-            # we replace the test_ by setup_, and call it if it exists
+        if not hasattr(item.instance, setup_method_name):
+            continue
 
-            setup_method_name = f"setup_{item.name[5:]}"
+        if last_file != item.location[0]:
+            if len(last_file) == 0:
+                terminal.write_sep("-", "tests setup", bold=True)
 
-            if not hasattr(item.instance, setup_method_name):
-                continue
+            terminal.write(f"\n{item.location[0]} ")
+            last_file = item.location[0]
 
-            if last_file != item.location[0]:
-                if len(last_file) == 0:
-                    terminal.write_sep("-", "Tests setup", bold=True)
+        setup_method = getattr(item.instance, setup_method_name)
+        logger.debug(f"Call {setup_method} for {item}")
+        try:
+            weblog.current_nodeid = item.nodeid
+            setup_method()
+            weblog.current_nodeid = None
+        except Exception:
+            logger.exception("Unexpected failure during setup method call")
+            terminal.write("x", bold=True, red=True)
+            context.scenario.close_targets()
+            raise
+        else:
+            terminal.write(".", bold=True, green=True)
+        finally:
+            weblog.current_nodeid = None
 
-                terminal.write(f"\n{item.location[0]} ")
-                last_file = item.location[0]
+    terminal.write("\n\n")
 
-            setup_method = getattr(item.instance, setup_method_name)
-            logger.debug(f"Call {setup_method} for {item}")
-            try:
-                setup_method()
-            except Exception:
-                logger.exception("Unexpected failure during setup method call")
-                terminal.write("x", bold=True, red=True)
-                raise
+    context.scenario.post_setup()
+
+
+def pytest_runtest_call(item):
+    from utils import weblog
+
+    if item.nodeid in weblog.responses:
+        for response in weblog.responses[item.nodeid]:
+            request = response["request"]
+            if "method" in request:
+                logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
             else:
-                terminal.write(".", bold=True, green=True)
-
-        terminal.write("\n\n")
-
-        if current_scenario.use_interfaces:
-            _wait_interface(interfaces.library, session, current_scenario.library_interface_timeout)
-            _wait_interface(interfaces.agent, session, current_scenario.agent_interface_timeout)
-            _wait_interface(interfaces.backend, session, current_scenario.backend_interface_timeout)
-
-            current_scenario.collect_logs()
-
-            _wait_interface(interfaces.library_stdout, session, 0)
-            _wait_interface(interfaces.library_dotnet_managed, session, 0)
-            _wait_interface(interfaces.agent_stdout, session, 0)
-
-    except:
-        current_scenario.collect_logs()
-        raise
-    finally:
-        current_scenario.close_targets()
-
-
-def _wait_interface(interface, session, timeout):
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-    terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-    terminal.flush()
-
-    interface.wait(timeout)
+                logger.info("weblog GRPC request")
 
 
 def pytest_json_modifyreport(json_report):
@@ -239,32 +267,30 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
+    context.scenario.pytest_sessionfinish(session)
+    if session.config.option.collectonly or session.config.option.replay:
+        return
+
     json.dump(
         {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-        open("logs/known_versions.json", "w", encoding="utf-8"),
+        open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
         indent=2,
     )
 
     _pytest_junit_modifyreport()
 
-    if "SYSTEMTESTS_SCENARIO" in os.environ:  # means the we are running test_the_test
-        # TODO : shutdown proxy
-        ...
-
 
 def _pytest_junit_modifyreport():
-    json_report_path = "logs/report.json"
-    junit_report_path = "logs/reportJunit.xml"
 
-    with open(json_report_path, encoding="utf-8") as f:
+    with open(_JSON_REPORT_FILE(), encoding="utf-8") as f:
         json_report = json.load(f)
         junit_modifyreport(
             json_report,
-            junit_report_path,
+            _XML_REPORT_FILE(),
             _skip_reasons,
             _docs,
             _rfcs,
             _coverages,
             _release_versions,
-            junit_properties=current_scenario.get_junit_properties(),
+            junit_properties=context.scenario.get_junit_properties(),
         )

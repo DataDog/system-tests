@@ -10,7 +10,7 @@ COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 
 WORKDIR /app
 
-RUN apt-get update && apt-get -y install jq
+RUN apt-get update && apt-get -y install jq socat
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 

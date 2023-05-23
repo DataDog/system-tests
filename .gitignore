@@ -1,10 +1,14 @@
 .idea
 .env
+.envrc
 __pycache__
 binaries/*
 !binaries/README.md
 
 venv
+/vendor/python
+
+.python-version
 
 # tools for http tunneling
 ngrok
@@ -25,6 +29,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 dist/
+reportJunit.xml
+.report.json
 
 !lib-injection/build/docker/ruby/lib_injection_rails_app/bin
 !utils/build/docker/ruby/rails52/bin
@@ -36,3 +42,4 @@ dist/
 
 # Visual Studio
 .vs/
+.config/dotnet-tools.json

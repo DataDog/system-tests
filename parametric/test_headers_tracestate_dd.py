@@ -427,7 +427,12 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             val = tag[index:]
 
             assert key.startswith("_dd.p.")
-            assert "t." + key[6:] + val.replace("=", ":") in dd_items4
+
+            # adding "t.tid" to "tracestate" header is redundant,
+            # but if it is present, assert the value matches "_dd.p.tid".
+            assert (key == "_dd.p.tid" and "t.tid" not in dd_items4) or (
+                "t." + key[6:] + val.replace("=", ":") in dd_items4
+            )
 
 
 @temporary_enable_propagationstyle_default()
@@ -500,8 +505,6 @@ def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
 
 
 @temporary_enable_propagationstyle_default()
-@pytest.mark.skip_library("dotnet", "Issue: Does not reset dm to DEFAULT")
-@pytest.mark.skip_library("golang", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("nodejs", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("php", "Issue: Does not drop dm")
 @pytest.mark.skip_library("python", "Issue: Does not reset dm to DEFAULT")

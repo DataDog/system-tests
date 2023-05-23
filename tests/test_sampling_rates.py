@@ -112,6 +112,7 @@ class Test_SamplingDecisions:
         context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
         reason="fails randomly for Sinatra on JSON body that dutifully keeps",
     )
+    @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 

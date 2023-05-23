@@ -26,7 +26,6 @@ class Test_StaticRuleSet:
 
     @missing_feature(library="golang", reason="standard logs not implemented")
     @missing_feature(library="ruby", reason="standard logs not implemented")
-    @missing_feature(library="dotnet", reason="Rules file is not parsed")
     @missing_feature(library="php", reason="Rules file is not parsed")
     @missing_feature(library="nodejs", reason="Rules file is not parsed")
     def test_basic_hardcoded_ruleset(self):
@@ -35,15 +34,7 @@ class Test_StaticRuleSet:
         stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 
-@released(golang="?", dotnet="?", java="?", nodejs="?", php="?", python="?", ruby="?")
-@coverage.not_implemented
-class Test_FleetManagement:
-    """ApppSec supports Fleet management"""
-
-
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_4:
     """ AppSec uses rule set 1.2.4 or higher """
 
@@ -52,8 +43,6 @@ class Test_RuleSet_1_2_4:
 
 
 @coverage.basic
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_RuleSet_1_2_5:
     """ AppSec uses rule set 1.2.5 or higher """
 

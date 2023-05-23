@@ -6,66 +6,107 @@
 
 set -eu
 
-# set .env if exists. Allow users to keep their conf via env vars
-if test -f ".env"; then
-    source .env
-fi
-
-if [ -z "${DD_API_KEY:-}" ]; then
-    echo "DD_API_KEY is missing in env, please add it."
-    exit 1
-fi
-
-FIRST_ARGUMENT=${1:-DEFAULT}
-if [[ $FIRST_ARGUMENT =~ ^[A-Z0-9_]+$ ]]; then
-    export SYSTEMTESTS_SCENARIO=$FIRST_ARGUMENT
-    export RUNNER_ARGS="tests/"
-
-    if [ $SYSTEMTESTS_SCENARIO = "DEFAULT" ]; then
-        export SYSTEMTESTS_LOG_FOLDER=logs
-    else
-        export SYSTEMTESTS_LOG_FOLDER="logs_$(echo $SYSTEMTESTS_SCENARIO | tr '[:upper:]' '[:lower:]')"
-    fi
-else
-    # Let user choose the target
-    export SYSTEMTESTS_SCENARIO="CUSTOM"
-    export RUNNER_ARGS=$@
-    export SYSTEMTESTS_LOG_FOLDER=logs
-fi
-
-export HOST_PWD=$(pwd)
-
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 
-# Clean logs/ folder
-rm -rf $SYSTEMTESTS_LOG_FOLDER
+if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+   source venv/bin/activate
+fi
 
-interfaces=(agent library backend)
-for interface in ${interfaces[@]}
-do
-    mkdir -p $SYSTEMTESTS_LOG_FOLDER/interfaces/$interface
-done
+# All the purpose if this script is to handle set of scenarios
+# convention: a set of scenarios must ends with _SCENARIOS
 
-mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/runner
-mkdir -p $SYSTEMTESTS_LOG_FOLDER/docker/weblog/logs
-chmod -R 777 $SYSTEMTESTS_LOG_FOLDER
+APPSEC_SCENARIOS=(
+    APPSEC_MISSING_RULES
+    APPSEC_CORRUPTED_RULES
+    APPSEC_CUSTOM_RULES
+    APPSEC_BLOCKING
+    APPSEC_RULES_MONITORING_WITH_ERRORS
+    APPSEC_DISABLED
+    APPSEC_CUSTOM_OBFUSCATION
+    APPSEC_RATE_LIMITER
+    APPSEC_WAF_TELEMETRY
+    APPSEC_IP_BLOCKING
+    APPSEC_IP_BLOCKING_MAXED
+    APPSEC_REQUEST_BLOCKING
+    APPSEC_RUNTIME_ACTIVATION
+)
 
-echo ============ Run $SYSTEMTESTS_SCENARIO tests ===================
-echo "ℹ️  Log folder is ./${SYSTEMTESTS_LOG_FOLDER}"
+REMOTE_CONFIG_SCENARIOS=(
+    REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
+    REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+    REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+    REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+    REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
+    REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
+)
 
-docker inspect system_tests/weblog > $SYSTEMTESTS_LOG_FOLDER/weblog_image.json
-docker inspect system_tests/agent > $SYSTEMTESTS_LOG_FOLDER/agent_image.json
+TELEMETRY_SCENARIOS=(
+    TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
+    TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
+    TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
+    TELEMETRY_LOG_GENERATION_DISABLED
+    TELEMETRY_METRIC_GENERATION_DISABLED
+)
 
-docker-compose up --force-recreate runner
-docker-compose logs runner > $SYSTEMTESTS_LOG_FOLDER/docker/runner/stdout.log
+# Scenarios to run before a tracer release, basically, all stable scenarios
+TRACER_RELEASE_SCENARIOS=(
+    DEFAULT 
+    TRACE_PROPAGATION_STYLE_W3C 
+    PROFILING 
+    LIBRARY_CONF_CUSTOM_HEADERS_SHORT 
+    LIBRARY_CONF_CUSTOM_HEADERS_LONG
+    INTEGRATIONS
+    CGROUP
+    APM_TRACING_E2E_SINGLE_SPAN
+    APM_TRACING_E2E 
+    "${APPSEC_SCENARIOS[@]}"
+    "${REMOTE_CONFIG_SCENARIOS[@]}"
+    "${TELEMETRY_SCENARIOS[@]}"
+)
 
-# Getting runner exit code.
-EXIT_CODE=$(docker-compose ps -q runner | xargs docker inspect -f '{{ .State.ExitCode }}')
+# Scenarios to run on tracers PR.
+# Those scenarios are the one that offer the best probability-to-catch-bug/time-to-run ratio
+TRACER_ESSENTIAL_SCENARIOS=(
+    DEFAULT
+    APPSEC_BLOCKING
+    REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
+    TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
+    INTEGRATIONS
+)
 
-# Stop all containers
-docker-compose down --remove-orphans
+ONBOARDING_SCENARIOS=(
+    ONBOARDING_HOST
+    ONBOARDING_HOST_CONTAINER
+)
 
-# Exit with runner's status
-echo "Exiting with ${EXIT_CODE}"
-exit $EXIT_CODE
+readonly SCENARIO=${1:-}
+
+if [[ $SCENARIO == "TRACER_RELEASE_SCENARIOS" ]]; then
+    for scenario in "${TRACER_RELEASE_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
+elif [[ $SCENARIO == "TRACER_ESSENTIAL_SCENARIOS" ]]; then
+    for scenario in "${TRACER_ESSENTIAL_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
+elif [[ $SCENARIO == "APPSEC_SCENARIOS" ]]; then
+    for scenario in "${APPSEC_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
+elif [[ $SCENARIO == "REMOTE_CONFIG_SCENARIOS" ]]; then
+    for scenario in "${REMOTE_CONFIG_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
+elif [[ $SCENARIO == "TELEMETRY_SCENARIOS" ]]; then
+    for scenario in "${TELEMETRY_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
+elif [[ $SCENARIO == "ONBOARDING_SCENARIOS" ]]; then
+    for scenario in "${ONBOARDING_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
+elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
+    # If the first argument is a list of capital letters, then we consider it's a scenario name
+    # and we add the -S option, telling pytest that's a scenario name
+    #We remove the warning from the output until the protobuf bug is fixed and we can upgrade the dependencies to the latest version of pulumi
+    pytest -p no:warnings -S $1 ${@:2}
+
+else
+    # otherwise, a simple proxy to pytest
+    pytest -p no:warnings $@
+fi

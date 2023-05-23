@@ -1,0 +1,21 @@
+[Unit]
+Description=DotNet Weblog App Service
+After=syslog.target network.target
+
+[Service]
+SuccessExitStatus=143
+
+User=MY_USER
+Group=MY_USER
+
+Type=simple
+
+Environment=DD_CONFIG_SOURCES=BASIC
+Environment=DD_INJECT_DEBUG=TRUE
+Environment=ASPNETCORE_URLS=http://+:5985
+WorkingDirectory=/home/MY_USER/publish
+ExecStart=/bin/bash -c 'dotnet MinimalWebApp.dll'
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target

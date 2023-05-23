@@ -1,0 +1,20 @@
+name: "Pull docker images"
+description: "Pull docker images"
+runs:
+  using: composite
+  steps:
+    - name: Pull images needed for default scenario
+      shell: bash
+      run: |
+        docker pull mitmproxy/mitmproxy
+        docker pull postgres:latest
+    - name: Pull images needed for all scenarios
+      shell: bash
+      if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
+      run: |
+        docker pull mongo:latest
+        docker pull bitnami/kafka:3.1
+        docker pull bitnami/zookeeper:latest
+        docker pull cassandra:latest
+        docker pull rabbitmq:3-management-alpine
+        docker pull mysql/mysql-server:latest
