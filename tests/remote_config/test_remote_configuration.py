@@ -32,7 +32,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 class Test_Agent:
     """ misc test on agent/remote config features"""
 
-    @missing_feature(library="nodejs", reason="nodejs tracer does not call /info")
+    @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
     @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
