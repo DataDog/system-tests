@@ -6,6 +6,12 @@
 
 set -eu
 
+echo "-------------------------------------------"
+export | cut -d"=" -f1 | awk '{print $3}'
+echo "-----------------EXPORT DONE--------------------------"
+
+ 
+
 # clean any pycache folder
 find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 
