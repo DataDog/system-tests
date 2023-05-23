@@ -207,7 +207,7 @@ class Test_Blocking:
 
     @released(java="1.14.0", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
     def test_html_template_v2(self):
-        """HTML block template is v1 minified"""
+        """HTML block template is v2 minified"""
         assert self.r_html_v2.status_code == 403
         assert self.r_html_v2.headers.get("content-type", "") in HTML_CONTENT_TYPES
         assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
