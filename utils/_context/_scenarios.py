@@ -730,6 +730,7 @@ class OnBoardingScenario(_Scenario):
             self.stack = auto.create_or_select_stack(
                 stack_name=stack_name, project_name=project_name, program=pulumi_start_program
             )
+            self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
         except:
             self.collect_logs()
