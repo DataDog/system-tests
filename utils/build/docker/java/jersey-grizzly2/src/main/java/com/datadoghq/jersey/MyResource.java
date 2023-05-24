@@ -47,6 +47,7 @@ public class MyResource {
     private final CmdExamples cmd = new CmdExamples();
     private final PathExamples path = new PathExamples();
     private final SsrfExamples ssrf = new SsrfExamples();
+    private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
     @GET
     public String hello() {
@@ -320,6 +321,18 @@ public class MyResource {
     @Path("/iast/ssrf/test_insecure")
     public String insecureSsrf(@FormParam("url") final String url) {
         return this.ssrf.insecureUrl(url);
+    }
+
+    @GET
+    @Path("/iast/weak_randomness/test_insecure")
+    public String weakRandom() {
+        return this.weakRandomness.weakRandom();
+    }
+
+    @GET
+    @Path("/iast/weak_randomness/test_secure")
+    public String secureRandom() {
+        return this.weakRandomness.secureRandom();
     }
 
     @POST

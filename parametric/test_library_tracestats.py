@@ -9,8 +9,8 @@ import msgpack
 import pytest
 
 
-from parametric.spec.trace import SPAN_MEASURED_KEY
-from parametric.spec.trace import V06StatsAggr
+from utils.parametric.spec.trace import SPAN_MEASURED_KEY
+from utils.parametric.spec.trace import V06StatsAggr
 
 
 parametrize = pytest.mark.parametrize

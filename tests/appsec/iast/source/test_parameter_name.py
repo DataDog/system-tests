@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, missing_feature, released
+from utils import context, coverage, missing_feature, released, bug
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -20,6 +20,7 @@ if context.library == "cpp":
         "spring-boot-wildfly": "1.5.0",
         "spring-boot-undertow": "1.5.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -58,3 +59,31 @@ class TestParameterName:
     @missing_feature(context.library.library == "java", reason="Pending to add GET test")
     def test_source_get_reported(self):
         self.source_get_fixture.test()
+
+    def setup_post_telemetry_metric_instrumented_source(self):
+        self.source_post_fixture.setup_telemetry_metric_instrumented_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_post_telemetry_metric_instrumented_source(self):
+        self.source_post_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.setup_telemetry_metric_executed_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.test_telemetry_metric_executed_source()
+
+    def setup_get_telemetry_metric_instrumented_source(self):
+        self.source_get_fixture.setup_telemetry_metric_instrumented_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_get_telemetry_metric_instrumented_source(self):
+        self.source_get_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_get_telemetry_metric_executed_source(self):
+        self.source_get_fixture.setup_telemetry_metric_executed_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_get_telemetry_metric_executed_source(self):
+        self.source_get_fixture.test_telemetry_metric_executed_source()

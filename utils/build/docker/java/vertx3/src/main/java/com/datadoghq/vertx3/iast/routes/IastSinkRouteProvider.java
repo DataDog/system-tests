@@ -29,6 +29,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         final PathExamples path = new PathExamples();
         final SqlExamples sql = new SqlExamples(dataSource);
         final SsrfExamples ssrf = new SsrfExamples();
+        final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
         router.route("/iast/*").handler(BodyHandler.create());
 
@@ -81,6 +82,12 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         });
         router.post("/iast/ssrf/test_insecure").handler(ctx ->
                 ctx.response().end(ssrf.insecureUrl(ctx.request().getParam("url")))
+        );
+        router.get("/iast/weak_randomness/test_insecure").handler(ctx ->
+                ctx.response().end(weakRandomness.weakRandom())
+        );
+        router.get("/iast/weak_randomness/test_secure").handler(ctx ->
+                ctx.response().end(weakRandomness.secureRandom())
         );
     }
 }
