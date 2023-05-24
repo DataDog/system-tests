@@ -38,6 +38,7 @@ BLOCK_TEMPLATE_JSON_ANY = {
     # No trailing new line in dotnet
     BLOCK_TEMPLATE_JSON_V1.rstrip(),
     BLOCK_TEMPLATE_JSON_MIN_V1,
+    BLOCK_TEMPLATE_JSON_MIN_V1.rstrip(),
 }
 
 HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
@@ -200,7 +201,7 @@ class Test_Blocking:
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
         assert self.r_json_v1.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_json_v1.text == BLOCK_TEMPLATE_JSON_MIN_V1
+        assert self.r_json_v1.text == BLOCK_TEMPLATE_JSON_MIN_V1.rstrip()
 
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
