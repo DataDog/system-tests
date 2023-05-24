@@ -53,6 +53,10 @@ class TestedVirtualMachine:
     def start(self):
         logger.info("start...")
         self.configure()
+
+        logger.info("SUBNETS ID")
+        logger.info(aws.ec2.getSubnetIds(self.aws_infra_config.vpc_id))
+
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,
@@ -146,6 +150,7 @@ class AWSInfraConfig:
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
         self.privateKeyPath = os.getenv("ONBOARDING_AWS_INFRA_KEY_PATH")
         self.instance_type = os.getenv("ONBOARDING_AWS_INFRA_INSTANCE_TYPE", "t2.medium")
+        self.vpc_id = os.getenv("ONBOARDING_AWS_INFRA_VPC_ID")
 
         if None in (self.keyPairName, self.subnet_id, self.vpc_security_group_ids, self.privateKeyPath):
             logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
