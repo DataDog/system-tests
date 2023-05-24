@@ -2,9 +2,9 @@ from typing import Any
 
 import pytest
 
-from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from parametric.utils.headers import make_single_request_and_get_inject_headers
-from parametric.utils.test_agent import get_span
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.parametric.headers import make_single_request_and_get_inject_headers
+from utils.parametric.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
 

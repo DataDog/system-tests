@@ -11,8 +11,8 @@ from typing import Any
 
 import pytest
 
-from parametric.spec.tracecontext import get_tracecontext
-from parametric.utils.headers import make_single_request_and_get_inject_headers
+from utils.parametric.spec.tracecontext import get_tracecontext
+from utils.parametric.headers import make_single_request_and_get_inject_headers
 
 parametrize = pytest.mark.parametrize
 

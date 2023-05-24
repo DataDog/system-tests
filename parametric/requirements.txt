@@ -51,4 +51,4 @@ urllib3==1.26.12
 Werkzeug==2.0.1
 yarl==1.8.1
 
--r apps/python_http/requirements.txt
+-r ../utils/build/docker/python_http/parametric/requirements.txt

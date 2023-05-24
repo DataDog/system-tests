@@ -1,9 +1,0 @@
-{
-  "minimum-stability":"dev",
-  "require": {
-    "league/uri-components": "^2",
-    "amphp/http-server": "3.x-dev",
-    "amphp/http-server-router": "2.x-dev",
-    "amphp/log": "2.x-dev"
-  }
-}
