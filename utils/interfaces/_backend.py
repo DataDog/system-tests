@@ -364,9 +364,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
             f"Backend did not provide metric series after {retries} retries: {data['path']}. Status is {status_code}."
         )
 
-    # Queries the backend log search API and returns the matched log.
-    def get_logs(self, rid: str, dd_api_key=None, dd_app_key=None, retries=5, sleep_interval_multiplier=2.0):
-        path = f"/api/v2/logs/events?query={rid}"
+    # Queries the backend log search API and returns the log matching the given query.
+    def get_logs(self, query: str, dd_api_key=None, dd_app_key=None, retries=5, sleep_interval_multiplier=2.0):
+        path = f"/api/v2/logs/events?query={query}"
         sleep_interval_s = 1
         current_retry = 1
         while current_retry <= retries:
@@ -378,13 +378,11 @@ class _BackendInterfaceValidator(InterfaceValidator):
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
             if status_code != 404 and status_code != 200:
-                raise ValueError(f"Backend did not provide metric: {data['path']}. Status is {status_code}.")
+                raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
             if status_code != 404:
                 logs = data["response"]["content"]["data"]
-                # Log search can sometimes return wrong results. Retry if expected log is not present.
-                for log in logs:
-                    if rid in log["attributes"]["message"]:
-                        return log
+                if len(logs) == 1:
+                    return logs[0]
 
             time.sleep(sleep_interval_s)
             sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
