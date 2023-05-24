@@ -4,7 +4,7 @@
 
 
 import pytest
-from utils import context, coverage, released, bug
+from utils import context, coverage, released, bug, missing_feature
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "1.5.0",
@@ -27,7 +27,6 @@ if context.library == "cpp":
         "*": "?",
     }
 )
-@released(nodejs="?")
 class TestHeaderValue:
     """Verify that request headers are tainted"""
 
@@ -46,3 +45,18 @@ class TestHeaderValue:
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     def test_source_reported(self):
         self.source_fixture.test()
+
+    def setup_telemetry_metric_instrumented_source(self):
+        self.source_fixture.setup_telemetry_metric_instrumented_source()
+
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
+    @missing_feature(not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    def test_telemetry_metric_instrumented_source(self):
+        self.source_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_telemetry_metric_executed_source(self):
+        self.source_fixture.setup_telemetry_metric_executed_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_telemetry_metric_executed_source(self):
+        self.source_fixture.test_telemetry_metric_executed_source()
