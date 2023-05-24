@@ -84,9 +84,15 @@ def library_env() -> Dict[str, str]:
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 
+def _get_base_directory():
+    """Workaround until the parametric tests are fully migrated"""
+    current_directory = os.getcwd()
+    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
+
+
 def python_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
-    python_absolute_appdir = os.path.join(os.getcwd(), python_appdir)
+    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
@@ -113,7 +119,7 @@ RUN python3.9 -m pip install %s
 
 def python_http_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
-    python_absolute_appdir = os.path.join(os.getcwd(), python_appdir)
+    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
@@ -139,8 +145,9 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
-    nodejs_absolute_appdir = os.path.join(os.getcwd(), nodejs_appdir)
+    nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
@@ -162,7 +169,7 @@ RUN npm install {node_module}
         container_build_context=nodejs_absolute_appdir,
         volumes=[
             (
-                os.path.join(os.getcwd(), "utils", "parametric", "protos", "apm_test_client.proto"),
+                os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
                 "/client/apm_test_client.proto",
             ),
         ],
@@ -174,7 +181,7 @@ RUN npm install {node_module}
 def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
-    golang_absolute_appdir = os.path.join(os.getcwd(), golang_appdir)
+    golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
 
     return APMLibraryTestServer(
         lang="golang",
@@ -200,7 +207,7 @@ RUN go install
 
 def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
-    dotnet_absolute_appdir = os.path.join(os.getcwd(), dotnet_appdir)
+    dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
@@ -227,7 +234,7 @@ WORKDIR "/client/."
 
 def java_library_factory(env: Dict[str, str], container_id: str, port: str):
     java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
-    java_absolute_appdir = os.path.join(os.getcwd(), java_appdir)
+    java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
@@ -255,7 +262,7 @@ RUN bash build.sh
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
-        container_build_context=os.getcwd(),
+        container_build_context=_get_base_directory(),
         volumes=[],
         env=env,
         port=port,
@@ -264,7 +271,7 @@ RUN bash build.sh
 
 def php_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     php_appdir = os.path.join("utils", "build", "docker", "php", "parametric")
-    php_absolute_appdir = os.path.join(os.getcwd(), php_appdir)
+    php_absolute_appdir = os.path.join(_get_base_directory(), php_appdir)
     php_reldir = php_appdir.replace("\\", "/")
     env = env.copy()
     # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
@@ -287,7 +294,7 @@ RUN composer install
 """,
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
-        container_build_context=os.getcwd(),
+        container_build_context=_get_base_directory(),
         volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
         env=env,
         port=port,
@@ -297,12 +304,12 @@ RUN composer install
 def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
 
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
-    ruby_absolute_appdir = os.path.join(os.getcwd(), ruby_appdir)
+    ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
 
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
 
     shutil.copyfile(
-        os.path.join("utils", "parametric", "protos", "apm_test_client.proto"),
+        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
         os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
     )
     return APMLibraryTestServer(

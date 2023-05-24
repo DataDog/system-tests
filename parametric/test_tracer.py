@@ -3,11 +3,11 @@ from typing import Dict
 import pytest
 import time
 
-from parametric.spec.trace import Span
-from parametric.spec.trace import find_trace_by_root
-from parametric.spec.trace import find_span
-from .conftest import _TestAgentAPI
-from .conftest import APMLibrary
+from utils.parametric.spec.trace import Span
+from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.trace import find_span
+from tests.parametric.conftest import _TestAgentAPI
+from tests.parametric.conftest import APMLibrary
 
 
 parametrize = pytest.mark.parametrize

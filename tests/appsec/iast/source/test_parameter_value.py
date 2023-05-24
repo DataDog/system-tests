@@ -22,6 +22,7 @@ if context.library == "cpp":
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -66,3 +67,21 @@ class TestParameterValue:
     @missing_feature(context.library.library == "java", reason="Pending to add GET test")
     def test_source_get_reported(self):
         self.source_get_fixture.test()
+
+    def setup_post_telemetry_metric_instrumented_source(self):
+        self.source_post_fixture.setup_telemetry_metric_instrumented_source()
+
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
+    @missing_feature(not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(library="nodejs", reason="Not implemented")
+    def test_post_telemetry_metric_instrumented_source(self):
+        self.source_post_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.setup_telemetry_metric_executed_source()
+
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented")
+    @missing_feature(not context.weblog_variant.startswith("spring-boot"), reason="Not implemented")
+    @missing_feature(library="nodejs", reason="Not implemented")
+    def test_post_telemetry_metric_executed_source(self):
+        self.source_post_fixture.test_telemetry_metric_executed_source()
