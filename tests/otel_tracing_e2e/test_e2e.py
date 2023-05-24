@@ -126,6 +126,7 @@ class Test_OTelLogE2E:
         # The 3rd account has logs and traces sent by OTel Collector
         log_collector = interfaces.backend.get_logs(
             query=f"trace_id:{dd_trace_id}",
+            rid=rid,
             dd_api_key=os.environ["DD_API_KEY_3"],
             dd_app_key=os.environ["DD_APP_KEY_3"],
         )

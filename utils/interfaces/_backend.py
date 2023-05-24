@@ -365,7 +365,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
         )
 
     # Queries the backend log search API and returns the log matching the given query.
-    def get_logs(self, query: str, dd_api_key=None, dd_app_key=None, retries=5, sleep_interval_multiplier=2.0):
+    def get_logs(
+        self, query: str, rid: str, dd_api_key=None, dd_app_key=None, retries=8, sleep_interval_multiplier=2.0
+    ):
         path = f"/api/v2/logs/events?query={query}"
         sleep_interval_s = 1
         current_retry = 1
@@ -381,8 +383,10 @@ class _BackendInterfaceValidator(InterfaceValidator):
                 raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
             if status_code != 404:
                 logs = data["response"]["content"]["data"]
-                if len(logs) == 1:
-                    return logs[0]
+                # Log search can sometimes return wrong results. Retry if expected log is not present.
+                for log in logs:
+                    if rid in log["attributes"]["message"]:
+                        return log
 
             time.sleep(sleep_interval_s)
             sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
