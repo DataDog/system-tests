@@ -54,13 +54,13 @@ class TestedVirtualMachine:
         logger.info("start...")
         self.configure()
 
-        logger.info("SUBNETS ID")
-        logger.info(aws.ec2.get_subnets())
+        # logger.info("SUBNETS ID")
+        # logger.info(aws.ec2.get_subnets())
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
-            subnet_id=self.aws_infra_config.subnet_id,
+            # subnet_id=self.aws_infra_config.subnet_id,
             key_name=self.aws_infra_config.keyPairName,
             ami=self.ec2_data["ami_id"],
             tags={"Name": self.name,},
