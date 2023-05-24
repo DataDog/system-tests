@@ -13,6 +13,9 @@ from .utils import rules
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
+
 
 @released({"gin": "1.37.0", "*": "1.35.0"})
 @released(dotnet="1.28.6", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="1.2.1")
