@@ -13,17 +13,6 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
     ruby="?",
 )
 @missing_feature(library="java", reason="/users endpoint is not implemented on java weblog")
-@bug(library="php")
-@bug(context.library >= "golang@1.50.0", reason="Doesn't work for versions >= 1.50.0")
-# @bug(
-#     library="dotnet", reason="Doesnt block any user with agent == 7.44, blocks some but not all user with agent == 7.46"
-# )
-# @bug(
-#     library="nodejs", reason="Doesnt block any user with agent == 7.44, blocks some but not all user with agent == 7.46"
-# )
-# @bug(
-#     library="python", reason="Doesnt block any user with agent == 7.44, blocks some but not all user with agent == 7.46"
-# )
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
 class Test_UserBlocking_FullDenylist:
