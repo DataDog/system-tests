@@ -120,14 +120,16 @@ class Test_OTelLogE2E:
 
     def test_main(self):
         rid = get_rid_from_request(self.r)
-        # The 3rd account has logs and traces sent by OTel Collector
-        log_collector = interfaces.backend.get_logs(
-            rid=rid, dd_api_key=os.environ["DD_API_KEY_3"], dd_app_key=os.environ["DD_APP_KEY_3"],
-        )
-        otel_log_trace_attrs = validate_log(log_collector, rid)
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
         dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
+        # The 3rd account has logs and traces sent by OTel Collector
+        log_collector = interfaces.backend.get_logs(
+            query=f"trace_id:{dd_trace_id}",
+            dd_api_key=os.environ["DD_API_KEY_3"],
+            dd_app_key=os.environ["DD_APP_KEY_3"],
+        )
+        otel_log_trace_attrs = validate_log(log_collector, rid)
         trace = interfaces.backend.assert_otlp_trace_exist(
             request=self.r,
             dd_trace_id=dd_trace_id,
