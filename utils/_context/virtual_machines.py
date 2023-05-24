@@ -55,8 +55,7 @@ class TestedVirtualMachine:
         self.configure()
 
         logger.info("SUBNETS ID")
-        logger.info(aws.ec2.getSubnetIds(self.aws_infra_config.vpc_id))
-
+        logger.info(aws.ec2.get_subnet(id=self.aws_infra_config.vpc_id))
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,
