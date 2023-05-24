@@ -2,12 +2,12 @@ import time
 
 import pytest
 
-from parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
-from parametric.spec.otel_trace import OtelSpan
-from parametric.spec.otel_trace import SK_PRODUCER
-from parametric.spec.trace import find_span
-from parametric.spec.trace import find_trace_by_root
-from parametric.utils.test_agent import get_span
+from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
+from utils.parametric.spec.otel_trace import OtelSpan
+from utils.parametric.spec.otel_trace import SK_PRODUCER
+from utils.parametric.spec.trace import find_span
+from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.test_agent import get_span
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")

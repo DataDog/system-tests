@@ -51,12 +51,13 @@ jobs:
       with:
         python-version: '3.9'
     - uses: actions/cache@v3 # TODO: Use a lockfile instead of requirements.txt
+      if: ${{ false }}  # disable for now
       id: cache-pip
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ env.pythonLocation }}-${{ matrix.client }}-pip-${{ hashFiles('parametric/requirements.txt') }}
     - name: Install
-      if: steps.cache-pip.outputs.cache-hit != 'true'
+      #if: steps.cache-pip.outputs.cache-hit != 'true'
       run: pip install wheel && pip install -r requirements.txt && pip cache purge
     - name: Run
       run: ./run.sh

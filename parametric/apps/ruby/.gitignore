@@ -1,5 +1,0 @@
-Dockerfile
-apm_test_client.proto
-apm_test_client_pb.rb
-apm_test_client_services_pb.rb
-Gemfile.lock
