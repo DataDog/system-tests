@@ -45,7 +45,7 @@ e2e:
 
   parallel:
       matrix:
-        - TEST_LIBRARY: nodejs
+        - TEST_LIBRARY: [nodejs,java]
   script:
       - echo "Success"
       - ./build.sh -i runner
