@@ -69,7 +69,8 @@ class TestedVirtualMachine:
             instance_type=self.aws_infra_config.instance_type,
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
             subnet_id=self.aws_infra_config.subnet_id,
-            key_name=self.aws_infra_config.keyPairName,
+            # key_name=self.aws_infra_config.keyPairName,
+            key_name=aws_key.key_name,
             ami=self.ec2_data["ami_id"],
             tags={"Name": self.name,},
         )
