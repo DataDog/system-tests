@@ -32,7 +32,7 @@ with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-
 class Test_Agent:
     """ misc test on agent/remote config features"""
 
-    @missing_feature(library="nodejs", reason="nodejs tracer does not call /info")
+    @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
     @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
@@ -311,7 +311,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@released(cpp="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@released(cpp="?", dotnet="2.15.0", java="1.4.0", php_appsec="0.7.0", python="?", ruby="?", nodejs="3.19.0")
 @released(golang="?")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_asm_dd
@@ -384,6 +384,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", golang="?", java="?", php="?", python="?", ruby="?", nodejs="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @coverage.basic
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
@@ -413,6 +414,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @released(cpp="?", dotnet="2.15.0", java="?", php_appsec="0.7.0", python="?", ruby="?", nodejs="?")
+@irrelevant(library="nodejs", reason="cache is implemented")
 @irrelevant(library="dotnet", reason="cache is implemented")
 @irrelevant(library="php", reason="cache is implemented")
 @irrelevant(library="golang", reason="cache is implemented")
