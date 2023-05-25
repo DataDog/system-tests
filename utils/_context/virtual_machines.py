@@ -59,7 +59,7 @@ class TestedVirtualMachine:
         ssh_key = tls.PrivateKey(self.name, algorithm="RSA", rsa_bits=4096,)
         aws_key = aws.ec2.KeyPair(
             self.name,
-            key_name=self.aws_infra_config.keyPairName,
+            key_name=self.name,  # self.aws_infra_config.keyPairName,
             public_key=ssh_key.public_key_openssh,
             opts=pulumi.ResourceOptions(parent=ssh_key),
         )
