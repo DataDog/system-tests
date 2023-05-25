@@ -9,7 +9,7 @@ if context.weblog_variant == "akka-http":
     java="1.6.0",
     dotnet="2.26.0",
     golang="?",
-    nodejs="?",
+    nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.12", "flask-poc": "1.12", "*": "?"},
     ruby="?",
