@@ -5,7 +5,7 @@ import { Request, Response } from "express";
 const tracer = require('dd-trace').init({ debug: true });
 
 const app = require('express')();
-var axios = require('axios');
+const axios = require('axios');
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
@@ -80,12 +80,6 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
     });
 });
 
-app.get('/load_dependency', (req: Request, res: Response) => {
-  console.log('Load dependency endpoint');
-  var glob = require("glob")
-  res.send("Loaded a dependency")
-});
-
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
 
@@ -116,6 +110,28 @@ app.get("/custom_event", (req: Request, res: Response) => {
   tracer.appsec.trackCustomEvent(eventName, { metadata0: "value0", metadata1: "value1" });
 
   res.send("OK");
+});
+
+app.get("/users", (req: Request, res: Response) => {
+  let user: { id?: any } = {}
+  if (req.query['user']) {
+    user.id = req.query['user']
+  } else {
+    user.id = 'anonymous'
+  }
+
+  const shouldBlock = tracer.appsec.isUserBlocked(user)
+  if (shouldBlock) {
+    tracer.appsec.blockRequest(req, res)
+  } else {
+    res.send(`Hello ${user.id}`)
+  }
+});
+
+app.get('/load_dependency', (req: Request, res: Response) => {
+  console.log('Load dependency endpoint');
+  const glob = require("glob")
+  res.send("Loaded a dependency")
 });
 
 app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {

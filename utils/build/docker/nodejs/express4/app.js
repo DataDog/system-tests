@@ -13,7 +13,8 @@ const tracer = require("dd-trace").init({
 });
 
 const app = require("express")();
-var axios = require('axios');
+const axios = require('axios');
+
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
@@ -66,6 +67,7 @@ app.get("/status", (req, res) => {
 app.get("/make_distant_call", (req, res) => {
   const url = req.query.url;
   console.log(url);
+
   axios.get(url)
     .then(response => {
       res.json({
@@ -134,11 +136,9 @@ app.get("/users", (req, res) => {
   }
 });
 
-require("./iast")(app, tracer);
-
 app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint');
-  var glob = require("glob")
+  const glob = require("glob")
   res.send("Loaded a dependency")
 });
 
@@ -151,6 +151,8 @@ app.all('/tag_value/:tag/:status', (req, res) => {
 
   res.status(req.params.status || 200).send('Value tagged');
 });
+
+require("./iast")(app, tracer);
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
