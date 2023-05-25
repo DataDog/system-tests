@@ -5,6 +5,7 @@ import pulumi_aws as aws
 from pulumi import Output
 import pulumi_command as command
 from utils.onboarding.pulumi_utils import remote_install, pulumi_logger
+import pulumi_tls as tls
 
 
 class TestedVirtualMachine:
@@ -53,6 +54,16 @@ class TestedVirtualMachine:
     def start(self):
         logger.info("start...")
         self.configure()
+
+        logger.info("Creating SSH key")
+        ssh_key = tls.PrivateKey(self.name, algorithm="RSA", rsa_bits=4096,)
+        aws_key = aws.ec2.KeyPair(
+            self.name,
+            key_name=self.aws_infra_config.keyPairName,
+            public_key=ssh_key.public_key_openssh,
+            opts=pulumi.ResourceOptions(parent=ssh_key),
+        )
+
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,
@@ -67,7 +78,8 @@ class TestedVirtualMachine:
         Output.all(server.private_ip).apply(lambda args: self.set_ip(args[0]))
         Output.all(server.private_ip).apply(lambda args: pulumi_logger("vms_desc").info(f"{args[0]}:{self.name}"))
 
-        private_key_pem = (lambda path: open(path).read())(self.aws_infra_config.privateKeyPath)
+        # private_key_pem = (lambda path: open(path).read())(self.aws_infra_config.privateKeyPath)
+        private_key_pem = ssh_key.private_key_pem
         connection = command.remote.ConnectionArgs(
             host=server.private_ip, user=self.ec2_data["user"], private_key=private_key_pem, dial_error_limit=-1,
         )
