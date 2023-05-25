@@ -20,6 +20,7 @@ class TestedVirtualMachine:
         prepare_repos_install,
         prepare_docker_install,
         installation_check_data,
+        provision_scenario,
     ) -> None:
         self.ec2_data = ec2_data
         self.agent_install_data = agent_install_data
@@ -33,6 +34,7 @@ class TestedVirtualMachine:
         self.prepare_repos_install = prepare_repos_install
         self.prepare_docker_install = prepare_docker_install
         self.installation_check_data = installation_check_data
+        self.provision_scenario = provision_scenario
         self.name = (
             self.ec2_data["name"]
             + "__agent-"
@@ -77,7 +79,9 @@ class TestedVirtualMachine:
 
         pulumi.export("privateIp_" + self.name, server.private_ip)
         Output.all(server.private_ip).apply(lambda args: self.set_ip(args[0]))
-        Output.all(server.private_ip).apply(lambda args: pulumi_logger("vms_desc").info(f"{args[0]}:{self.name}"))
+        Output.all(server.private_ip).apply(
+            lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{self.name}")
+        )
 
         # private_key_pem = (lambda path: open(path).read())(self.aws_infra_config.privateKeyPath)
         private_key_pem = ssh_key.private_key_pem
@@ -87,7 +91,11 @@ class TestedVirtualMachine:
 
         # Prepare repositories
         prepare_repos_installer = remote_install(
-            connection, "prepare-repos-installer_" + self.name, self.prepare_repos_install["install"], server
+            connection,
+            "prepare-repos-installer_" + self.name,
+            self.prepare_repos_install["install"],
+            server,
+            scenario_name=self.provision_scenario,
         )
 
         # Prepare docker installation if we need
@@ -96,6 +104,7 @@ class TestedVirtualMachine:
             "prepare-docker-installer_" + self.name,
             self.prepare_docker_install["install"],
             prepare_repos_installer,
+            scenario_name=self.provision_scenario,
         )
 
         # Install agent
@@ -107,6 +116,7 @@ class TestedVirtualMachine:
             add_dd_keys=True,
             dd_api_key=self.datadog_config.dd_api_key,
             dd_site=self.datadog_config.dd_site,
+            scenario_name=self.provision_scenario,
         )
 
         # Install autoinjection
@@ -115,6 +125,7 @@ class TestedVirtualMachine:
             "autoinjection-installer_" + self.name,
             self.autoinjection_install_data["install"],
             agent_installer,
+            scenario_name=self.provision_scenario,
         )
 
         # Extract installed component versions
@@ -124,6 +135,7 @@ class TestedVirtualMachine:
             self.installation_check_data["install"],
             autoinjection_installer,
             logger_name="pulumi_installed_versions",
+            scenario_name=self.provision_scenario,
         )
 
         # Install language variants (not mandatory)
@@ -133,6 +145,7 @@ class TestedVirtualMachine:
                 "lang-variant-installer_" + self.name,
                 self.language_variant_install_data["install"],
                 autoinjection_installer,
+                scenario_name=self.provision_scenario,
             )
         else:
             lang_variant_installer = autoinjection_installer
@@ -146,6 +159,7 @@ class TestedVirtualMachine:
             add_dd_keys=True,
             dd_api_key=self.datadog_config.dd_api_key,
             dd_site=self.datadog_config.dd_site,
+            scenario_name=self.provision_scenario,
         )
 
     def set_ip(self, instance_ip):

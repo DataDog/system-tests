@@ -18,6 +18,7 @@ def remote_install(
     logger_name=None,
     dd_api_key=None,
     dd_site=None,
+    scenario_name=None,
 ):
     # Do we need to add env variables?
     if install_info is None:
@@ -42,7 +43,7 @@ def remote_install(
             create=local_command,
             opts=pulumi.ResourceOptions(depends_on=[depends_on]),
         )
-        webapp_build.stdout.apply(lambda outputlog: pulumi_logger("build_local_weblogs").info(outputlog))
+        webapp_build.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, "build_local_weblogs").info(outputlog))
         depends_on = webapp_build
 
     # Copy files from local to remote if we need
@@ -73,18 +74,20 @@ def remote_install(
         opts=pulumi.ResourceOptions(depends_on=[depends_on]),
     )
     if logger_name:
-        cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(logger_name).info(outputlog))
+        cmd_exec_install.stdout.apply(lambda outputlog: pulumi_logger(scenario_name, logger_name).info(outputlog))
     else:
         # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
         # same remote machine in the same log file
-        Output.all(connection.host, cmd_exec_install.stdout).apply(lambda args: pulumi_logger(args[0]).info(args[1]))
+        Output.all(connection.host, cmd_exec_install.stdout).apply(
+            lambda args: pulumi_logger(scenario_name, args[0]).info(args[1])
+        )
 
     return cmd_exec_install
 
 
-def pulumi_logger(log_name, level=logging.INFO):
+def pulumi_logger(scenario_name, log_name, level=logging.INFO):
     formatter = logging.Formatter("%(message)s")
-    handler = logging.FileHandler(f"logs_onboarding/{log_name}.log")
+    handler = logging.FileHandler(f"logs_{scenario_name}/{log_name}.log")
     handler.setFormatter(formatter)
     specified_logger = logging.getLogger(log_name)
     specified_logger.setLevel(level)
