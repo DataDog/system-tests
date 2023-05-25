@@ -28,6 +28,8 @@ public class AppSecIast {
     private final CryptoExamples cryptoExamples;
     private volatile LDAPExamples ldapExamples;
     private final SsrfExamples ssrfExamples;
+    private final WeakRandomnessExamples weakRandomnessExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -35,6 +37,7 @@ public class AppSecIast {
         this.pathExamples = new PathExamples();
         this.cryptoExamples = new CryptoExamples();
         this.ssrfExamples = new SsrfExamples();
+        this.weakRandomnessExamples = new WeakRandomnessExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -192,6 +195,16 @@ public class AppSecIast {
     String insecureSsrf(final ServletRequest request) {
         final String url = request.getParameter("url");
         return ssrfExamples.insecureUrl(url);
+    }
+
+    @GetMapping("/weak_randomness/test_insecure")
+    String insecureRandom() {
+        return weakRandomnessExamples.weakRandom();
+    }
+
+    @GetMapping("/weak_randomness/test_secure")
+    String secureRandom() {
+        return weakRandomnessExamples.secureRandom();
     }
 
     /**

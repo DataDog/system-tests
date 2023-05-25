@@ -80,6 +80,8 @@ jobs:
           weblog: spring-boot-wildfly
         - library: java
           weblog: spring-boot-undertow
+        - library: java
+          weblog: akka-http
         - library: nodejs
           weblog: express4
         - library: nodejs
