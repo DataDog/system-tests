@@ -1,14 +1,12 @@
 "use strict";
 
-const { Kafka } = require('kafkajs')
-
 const tracer = require("dd-trace").init({
   debug: true
 });
 
 const app = require("express")();
 const { Kafka } = require("kafkajs")
-var axios = require('axios');
+const axios = require('axios');
 const fs = require('fs');
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));

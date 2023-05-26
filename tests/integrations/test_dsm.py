@@ -77,7 +77,7 @@ class DsmHelper:
         assert isinstance(tags, tuple)
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
-
+        
         for data in interfaces.agent.get_dsm_data():
             logger.info(data)
             for stats_bucket in data["request"]["content"]["Stats"]:
