@@ -1,7 +1,5 @@
 "use strict";
 
-const { Kafka } = require('kafkajs')
-
 const tracer = require("dd-trace").init({
   debug: true,
   experimental: {
@@ -15,6 +13,7 @@ const tracer = require("dd-trace").init({
 });
 
 const app = require("express")();
+const { Kafka } = require("kafkajs")
 var axios = require('axios');
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));
@@ -163,10 +162,9 @@ app.get("/dsm", async (req, res) => {
       console.log({
         value: message.value.toString(),
       })
-  },
-})
-
-
+    },
+  })
+  res.send('ok')
 });
 
 require("./iast")(app, tracer);
