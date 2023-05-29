@@ -968,6 +968,7 @@ class scenarios:
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
+    onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER")
 
 
 if __name__ == "__main__":

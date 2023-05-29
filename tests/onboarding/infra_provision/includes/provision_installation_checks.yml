@@ -7,7 +7,7 @@
         - os_type: linux
           os_distro: deb
           command: |
-              version_agent=$(dpkg -s datadog-agent | grep Version) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-java| grep Version) && echo "$(hostname -I):{'datadog-agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-java':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
+              version_agent=$(dpkg -s datadog-agent | grep Version || true) && version=$(dpkg -s datadog-apm-inject | grep Version) && version_lang=$(dpkg -s datadog-apm-library-java| grep Version) && echo "$(hostname -I):{'datadog-agent':'${version_agent//'Version:'/}','datadog-apm-inject':'${version//'Version:'/}','datadog-apm-library-java':'${version_lang//'Version:'/}','docker':'$(docker -v || true)'}"
   - nodejs:
       - install:
         - os_type: linux

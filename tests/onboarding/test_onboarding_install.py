@@ -23,6 +23,11 @@ class TestOnboardingInstallBaseTest:
         wait_backend_trace_id(request_uuid, 60.0)
 
 
+@scenarios.onboarding_container
+class TestOnboardingInstallContainer(TestOnboardingInstallBaseTest):
+    pass
+
+
 @scenarios.onboarding_host_container
 class TestOnboardingInstallHostContainer(TestOnboardingInstallBaseTest):
     pass
