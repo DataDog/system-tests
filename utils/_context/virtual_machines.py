@@ -6,6 +6,7 @@ from pulumi import Output
 import pulumi_command as command
 from utils.onboarding.pulumi_utils import remote_install, pulumi_logger
 import pulumi_tls as tls
+from random import randint
 
 
 class TestedVirtualMachine:
@@ -57,22 +58,31 @@ class TestedVirtualMachine:
         logger.info("start...")
         self.configure()
 
-        logger.info("Creating SSH key")
-        ssh_key = tls.PrivateKey(self.name, algorithm="RSA", rsa_bits=4096,)
-        aws_key = aws.ec2.KeyPair(
-            self.name,
-            key_name=self.name,  # self.aws_infra_config.keyPairName,
-            public_key=ssh_key.public_key_openssh,
-            opts=pulumi.ResourceOptions(parent=ssh_key),
-        )
+        # SSH Keys: Two options. 1. Use your own keypair and pem file. 2. Create a new one and automatically destroy after the test
+        if self.aws_infra_config.privateKeyPath and self.aws_infra_config.keyPairName:
+            logger.info("Using a existing key pair")
+            key_name = self.aws_infra_config.keyPairName
+            private_key_pem = (lambda path: open(path).read())(self.aws_infra_config.privateKeyPath)
+        else:
+            logger.info("Creating new ssh key")
+            key_name = self.name + str(randint(0, 10000))
+            ssh_key = tls.PrivateKey(key_name, algorithm="RSA", rsa_bits=4096)
+            private_key_pem = ssh_key.private_key_pem
+            aws_key = aws.ec2.KeyPair(
+                key_name,
+                key_name=key_name,
+                public_key=ssh_key.public_key_openssh,
+                opts=pulumi.ResourceOptions(parent=ssh_key),
+            )
+            # key_name=aws_key.key_name #don't need?? delete it!!! and delete aws_key
 
+        # Startup VM and prepare connection
         server = aws.ec2.Instance(
             self.name,
             instance_type=self.aws_infra_config.instance_type,
             vpc_security_group_ids=self.aws_infra_config.vpc_security_group_ids,
             subnet_id=self.aws_infra_config.subnet_id,
-            # key_name=self.aws_infra_config.keyPairName,
-            key_name=aws_key.key_name,
+            key_name=key_name,
             ami=self.ec2_data["ami_id"],
             tags={"Name": self.name,},
         )
@@ -83,8 +93,6 @@ class TestedVirtualMachine:
             lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{self.name}")
         )
 
-        # private_key_pem = (lambda path: open(path).read())(self.aws_infra_config.privateKeyPath)
-        private_key_pem = ssh_key.private_key_pem
         connection = command.remote.ConnectionArgs(
             host=server.private_ip, user=self.ec2_data["user"], private_key=private_key_pem, dial_error_limit=-1,
         )
@@ -168,14 +176,15 @@ class TestedVirtualMachine:
 
 class AWSInfraConfig:
     def __init__(self) -> None:
+        # Optional parameters. You can use for local testing
         self.keyPairName = os.getenv("ONBOARDING_AWS_INFRA_KEYPAIR_NAME")
+        self.privateKeyPath = os.getenv("ONBOARDING_AWS_INFRA_KEY_PATH")
+        # Mandatory parameters
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
-        self.privateKeyPath = os.getenv("ONBOARDING_AWS_INFRA_KEY_PATH")
         self.instance_type = os.getenv("ONBOARDING_AWS_INFRA_INSTANCE_TYPE", "t2.medium")
-        self.vpc_id = os.getenv("ONBOARDING_AWS_INFRA_VPC_ID")
 
-        if None in (self.keyPairName, self.subnet_id, self.vpc_security_group_ids, self.privateKeyPath):
+        if None in (self.subnet_id, self.vpc_security_group_ids):
             logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
 
 
