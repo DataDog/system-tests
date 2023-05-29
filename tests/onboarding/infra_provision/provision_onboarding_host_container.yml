@@ -128,6 +128,56 @@ autoinjection:
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-js
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - python: 
+    - env: dev
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+
+          command: |    
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-python
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+    - env: prod
+      install: 
+        - os_type: linux
+          os_distro: deb
+          copy_files:
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-python
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+
+          command: |
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-stable" datadog-apm-inject datadog-apm-library-python
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+
+
   - dotnet: 
     - env: dev
       install: 
@@ -262,6 +312,20 @@ weblogs:
               local_path: test-app-nodejs.tar
 
           command: sh test-app-nodejs_docker_run.sh
+
+  - python: 
+    - name: test-app-python
+      install: 
+        - os_type: linux
+          local-command: tar cvf test-app-python.tar -C lib-injection/build/docker/python/dd-lib-python-init-test-django .
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python_docker_run.sh
+
+            - name: copy-python-app
+              local_path: test-app-python.tar
+
+          command: sh test-app-python_docker_run.sh
 
   - dotnet: 
     - name: test-app-dotnet
