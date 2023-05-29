@@ -51,9 +51,10 @@ autoinjection:
           command: |          
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-java
             dd-host-install
-            #Verify package signature. Fails if it isn't V4
-            yumdownloader datadog-apm-inject
+            echo "Verify package signature. Fails if it isn't V4"
+            yumdownloader datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64
             rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
+            echo "Package signature verified!"
 
     - env: prod
       install: 
