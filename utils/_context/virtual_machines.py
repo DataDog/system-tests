@@ -74,7 +74,7 @@ class TestedVirtualMachine:
                 public_key=ssh_key.public_key_openssh,
                 opts=pulumi.ResourceOptions(parent=ssh_key),
             )
-            # key_name=aws_key.key_name #don't need?? delete it!!! and delete aws_key
+            key_name = aws_key.key_name  # don't need?? delete it!!! and delete aws_key
 
         # Startup VM and prepare connection
         server = aws.ec2.Instance(
