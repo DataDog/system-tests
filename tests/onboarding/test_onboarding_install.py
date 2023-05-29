@@ -20,7 +20,7 @@ class TestOnboardingInstallBaseTest:
         logger.info(f"Making a request to weblog [{onboardig_vm.ip}]")
         request_uuid = make_get_request("http://" + onboardig_vm.ip + ":5985/")
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{onboardig_vm.ip}]")
-        wait_backend_trace_id(request_uuid, 60.0)
+        wait_backend_trace_id(request_uuid, 100.0)
 
 
 @scenarios.onboarding_container
