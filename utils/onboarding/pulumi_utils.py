@@ -7,6 +7,18 @@ from pulumi import Output
 
 import logging
 import logging.config
+from random import randint
+
+
+def remote_docker_login(user, password, connection, depends_on):
+    command_exec = f"sudo docker login --username={user} --password={password}"
+    cmd_exec_install = command.remote.Command(
+        "docker_loging" + str(randint(0, 10000)),
+        connection=connection,
+        create=command_exec,
+        opts=pulumi.ResourceOptions(depends_on=[depends_on]),
+    )
+    return cmd_exec_install
 
 
 def remote_install(

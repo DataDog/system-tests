@@ -4,7 +4,7 @@ import pulumi
 import pulumi_aws as aws
 from pulumi import Output
 import pulumi_command as command
-from utils.onboarding.pulumi_utils import remote_install, pulumi_logger
+from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
 import pulumi_tls as tls
 from random import randint
 
@@ -114,6 +114,13 @@ class TestedVirtualMachine:
             prepare_repos_installer,
             scenario_name=self.provision_scenario,
         )
+        if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
+            prepare_docker_installer = remote_docker_login(
+                self.datadog_config.docker_login,
+                self.datadog_config.docker_login_pass,
+                connection,
+                prepare_docker_installer,
+            )
 
         # Install agent
         agent_installer = remote_install(
@@ -192,6 +199,8 @@ class DataDogConfig:
     def __init__(self) -> None:
         self.dd_api_key = os.getenv("DD_API_KEY_ONBOARDING")
         self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
+        self.docker_login = os.getenv("DOCKER_LOGIN")
+        self.docker_login_pass = os.getenv("DOCKER_LOGIN_PASS")
         self.dd_site = os.getenv("DD_SITE_ONBOARDING", "datadoghq.com")
         if None in (self.dd_api_key, self.dd_app_key):
             logger.warn("Datadog agent is not configured correctly for auto-injection testing")

@@ -30,6 +30,9 @@ e2e:
     - export ONBOARDING_AWS_INFRA_SUBNET_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-subnet-id --with-decryption --query "Parameter.Value" --out text)
     - export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-securiy-groups-id --with-decryption --query "Parameter.Value" --out text)
     - export PULUMI_CONFIG_PASSPHRASE=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.pulumi-config-passphrase --with-decryption --query "Parameter.Value" --out text) 
+    #Avoid dockerhub rate limits
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
     #- export AWS_SDK_LOAD_CONFIG=1
     - export AWS_PROFILE=agent-qa-ci
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
