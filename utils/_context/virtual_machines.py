@@ -116,6 +116,7 @@ class TestedVirtualMachine:
         )
         if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
             prepare_docker_installer = remote_docker_login(
+                "docker-login_" + self.name,
                 self.datadog_config.docker_login,
                 self.datadog_config.docker_login_pass,
                 connection,

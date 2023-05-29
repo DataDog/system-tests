@@ -10,13 +10,11 @@ import logging.config
 from random import randint
 
 
-def remote_docker_login(user, password, connection, depends_on):
-    command_exec = f"sudo docker login --username={user} --password={password}"
+def remote_docker_login(command_id, user, password, connection, depends_on):
+    # Workaround: Sometimes I get "docker" command not found. Wait some seconds?
+    command_exec = f"sleep 5 && sudo docker login --username={user} --password={password} || true"
     cmd_exec_install = command.remote.Command(
-        "docker_loging" + str(randint(0, 10000)),
-        connection=connection,
-        create=command_exec,
-        opts=pulumi.ResourceOptions(depends_on=[depends_on]),
+        command_id, connection=connection, create=command_exec, opts=pulumi.ResourceOptions(depends_on=[depends_on]),
     )
     return cmd_exec_install
 
