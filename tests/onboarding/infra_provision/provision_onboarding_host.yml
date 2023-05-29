@@ -269,7 +269,7 @@ weblogs:
         - 3
       install: 
         - os_type: linux
-          local-script: tar cvf test-app-python.tar -C lib-injection/build/docker/python/dd-lib-python-init-test-django .
+          local-command: tar cvf test-app-python.tar -C lib-injection/build/docker/python/dd-lib-python-init-test-django .
           copy_files:
             - name: copy-service
               local_path: tests/onboarding/weblog/python/test-app-python-django/test-app-python.service
