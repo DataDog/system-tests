@@ -4,6 +4,24 @@
 
 from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
+# Compatibility matrix for blocking across Java variants, to be reused for multiple test suites.
+# Body and path parameters not included, since they were added later.
+_released_java_blocking = released(
+    java={
+        "spring-boot": "0.110.0",
+        "sprint-boot-jetty": "0.111.0",
+        "spring-boot-undertow": "0.111.0",
+        # Supported since 0.111.0 but bugged in <0.115.0.
+        "spring-boot-openliberty": "0.115.0",
+        "ratpack": "1.6.0",
+        "jersey-grizzly2": "1.7.0",
+        "resteasy-netty3": "1.7.0",
+        "vertx3": "1.7.0",
+        "vertx4": "1.7.0",
+        "*": "?",
+    }
+)
+
 
 @released(
     cpp="?",
@@ -16,19 +34,8 @@ from utils import bug, context, coverage, interfaces, irrelevant, missing_featur
 )
 @coverage.basic
 @scenarios.appsec_blocking
-@released(
-    java={
-        "spring-boot": "0.110.0",
-        "sprint-boot-jetty": "0.111.0",
-        "spring-boot-undertow": "0.111.0",
-        "spring-boot-openliberty": "0.115.0",
-        "ratpack": "1.6.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "*": "?",
-    }
-)
+@_released_java_blocking
+@bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -54,7 +61,9 @@ class Test_BlockingAddresses:
     def setup_path_params(self):
         self.pp_req = weblog.get("/params/AiKfOeRcvG45")
 
-    @missing_feature(library="java", reason="When supported, path parameter detection happens on subsequent WAF run")
+    @missing_feature(
+        context.library < "java@1.15.0", reason="When supported, path parameter detection happens on subsequent WAF run"
+    )
     @missing_feature(library="nodejs", reason="Not supported yet")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -86,7 +95,7 @@ class Test_BlockingAddresses:
     def setup_request_body_urlencoded(self):
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
@@ -99,7 +108,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "php", reason="Don't support multipart yet")
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
     @missing_feature(library="nodejs", reason="Not supported yet")
     @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
@@ -183,12 +192,12 @@ def _assert_custom_event_tag_absence():
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.12.0",
 )
+@_released_java_blocking
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -231,12 +240,12 @@ class Test_Blocking_request_method:
     cpp="?",
     dotnet="?",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.15", "flask-poc": "1.15", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -270,6 +279,7 @@ class Test_Blocking_request_uri:
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
+    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -289,7 +299,7 @@ class Test_Blocking_request_uri:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
+    java="1.15.0",
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.13", "*": "?"},
@@ -341,12 +351,12 @@ class Test_Blocking_request_path_params:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -376,6 +386,7 @@ class Test_Blocking_request_query:
         self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
+    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -395,12 +406,12 @@ class Test_Blocking_request_query:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -430,6 +441,7 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
+    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -449,12 +461,12 @@ class Test_Blocking_request_headers:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -484,6 +496,7 @@ class Test_Blocking_request_cookies:
         self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
+    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -503,7 +516,7 @@ class Test_Blocking_request_cookies:
     cpp="?",
     dotnet="2.29.0",
     golang="?",
-    java="?",
+    java="1.15.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
@@ -538,7 +551,7 @@ class Test_Blocking_request_body:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data="None")
+        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data={"good": "value"})
         self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"})
 
     def test_blocking_before(self):

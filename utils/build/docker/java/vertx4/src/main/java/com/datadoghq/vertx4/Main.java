@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx4.iast.routes.IastSourceRouteProvider;
+import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import io.vertx.core.Vertx;
@@ -58,10 +59,19 @@ public class Main {
                         .putHeader("content-length", "42")
                         .putHeader("content-language", "en-US")
                         .end("012345678901234567890123456789012345678901"));
+        router.routeWithRegex("/tag_value/(?<value>[^/]+)/(?<code>[0-9]+)")
+                .produces("text/plain")
+                .handler(ctx -> {
+                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("value"));
+                    ctx.response()
+                            .setStatusCode(Integer.parseInt(ctx.pathParam("code")))
+                            .end("Value tagged");
+                });
         router.getWithRegex("/params(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?")
                 .produces("text/plain")
                 .handler(ctx ->
                         ctx.response().setStatusCode(200).end(ctx.pathParams().toString()));
+        router.getWithRegex("/waf(?:/.*)?").handler(ctx -> ctx.response().end("Hello world!"));
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")
                 .produces("text/plain")
@@ -144,4 +154,14 @@ public class Main {
     private static final DataSource DATA_SOURCE = new SqlServer().start();
 
     private static final InitialDirContext LDAP_CONTEXT = new LdapServer().start();
+
+    private static void setRootSpanTag(final String key, final String value) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) span).getLocalRootSpan();
+            if (rootSpan != null) {
+                rootSpan.setTag(key, value);
+            }
+        }
+    }
 }

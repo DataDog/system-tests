@@ -1,5 +1,7 @@
 package com.datadoghq.ratpack;
 
+import datadog.trace.api.interceptor.MutableSpan;
+import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ratpack.http.HttpMethod;
@@ -44,6 +46,16 @@ public class Main {
         h.put("metadata0", "value0");
         h.put("metadata1", "value1");
         return h;
+    }
+
+    private static void setRootSpanTag(final String key, final String value) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) span).getLocalRootSpan();
+            if (rootSpan != null) {
+                rootSpan.setTag(key, value);
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -106,7 +118,13 @@ public class Main {
                             Response response = ctx.getResponse();
                             response.send("application/json", (new ObjectMapper()).writeValueAsString(result));
                         })
-                        .path("waf", ctx -> {
+                        .path("tag_value/:value/:code", ctx -> {
+                            final String value = ctx.getPathTokens().get("value");
+                            final int code = Integer.parseInt(ctx.getPathTokens().get("code"));
+                            setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+                            ctx.getResponse().status(code).send("Value tagged");
+                        })
+                        .path("waf/:params?", ctx -> {
                             HttpMethod method = ctx.getRequest().getMethod();
                             if (method.equals(HttpMethod.GET)) {
 
