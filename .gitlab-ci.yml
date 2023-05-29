@@ -40,10 +40,10 @@ e2e:
 
   parallel:
       matrix:
-        #- TEST_LIBRARY: [nodejs,java,python,dotnet]
-        #  SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
-        - TEST_LIBRARY: [nodejs]
-          SCENARIO: [ONBOARDING_HOST_CONTAINER]
+        - TEST_LIBRARY: [nodejs,java,python,dotnet]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+        #- TEST_LIBRARY: [nodejs]
+        #  SCENARIO: [ONBOARDING_HOST_CONTAINER]
   script:
       - echo "Success"
       - ./build.sh -i runner
@@ -53,3 +53,4 @@ e2e:
       paths:
         - logs_onboarding_host/
         - logs_onboarding_host_container/
+        - logs_onboarding_container/
