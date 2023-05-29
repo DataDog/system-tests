@@ -120,6 +120,19 @@ function init (app, tracer) {
     })
   });
 
+
+  app.get('/iast/insecure-cookie/test_insecure', (req, res) => {
+    res.cookie('insecure', 'cookie')
+    res.send('OK')
+  });
+
+  app.get('/iast/insecure-cookie/test_insecure', (req, res) => {
+    res.clearCookie('insecure')
+    res.setHeader('set-cookie', 'secure=cookie; Secure')
+    res.cookie('secure2', 'value', { secure: true })
+    res.send('OK')
+  });
+
   require('./sources')(app, tracer);
 
 }
