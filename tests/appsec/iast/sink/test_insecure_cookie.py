@@ -24,6 +24,15 @@ class TestInsecureCookie:
         location_map={"nodejs": "iast/index.js",},
     )
 
+    sink_fixture_empty_cookie = SinkFixture(
+        vulnerability_type="INSECURE_COOKIE",
+        http_method="GET",
+        insecure_endpoint="",
+        secure_endpoint="/iast/insecure-cookie/test_empty_cookie",
+        data={},
+        location_map={"nodejs": "iast/index.js",},
+    )
+
     def setup_insecure(self):
         self.sink_fixture.setup_insecure()
 
@@ -35,6 +44,12 @@ class TestInsecureCookie:
 
     def test_secure(self):
         self.sink_fixture.test_secure()
+
+    def setup_empty_cookie(self):
+        self.sink_fixture_empty_cookie.setup_secure()
+
+    def test_empty_cookie(self):
+        self.sink_fixture_empty_cookie.test_secure()
 
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
