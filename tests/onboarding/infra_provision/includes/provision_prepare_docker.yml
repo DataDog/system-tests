@@ -18,8 +18,11 @@
           "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt-get update
+        echo "RMM BEFORE 0"
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        echo "RMM BEFORE CURL"
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+        echo "RMM OK. INSTALLED!!!!"
     - os_type: linux
       os_distro: rpm
       command: |    
