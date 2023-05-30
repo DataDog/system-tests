@@ -97,12 +97,21 @@ class TestedVirtualMachine:
             host=server.private_ip, user=self.ec2_data["user"], private_key=private_key_pem, dial_error_limit=-1,
         )
 
+        # Prepare repositories
+        prepare_repos_installer = remote_install(
+            connection,
+            "prepare-repos-installer_" + self.name,
+            self.prepare_repos_install["install"],
+            server,
+            scenario_name=self.provision_scenario,
+        )
+
         # Prepare docker installation if we need
         prepare_docker_installer = remote_install(
             connection,
             "prepare-docker-installer_" + self.name,
             self.prepare_docker_install["install"],
-            server,
+            prepare_repos_installer,
             scenario_name=self.provision_scenario,
         )
         if self.prepare_docker_install["install"] is not None and self.datadog_config.docker_login:
@@ -113,14 +122,6 @@ class TestedVirtualMachine:
                 connection,
                 prepare_docker_installer,
             )
-        # Prepare repositories
-        prepare_repos_installer = remote_install(
-            connection,
-            "prepare-repos-installer_" + self.name,
-            self.prepare_repos_install["install"],
-            prepare_docker_installer,
-            scenario_name=self.provision_scenario,
-        )
 
         # Install agent
         agent_installer = remote_install(
