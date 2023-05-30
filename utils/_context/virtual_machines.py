@@ -64,6 +64,7 @@ class TestedVirtualMachine:
             key_name = self.aws_infra_config.keyPairName
             private_key_pem = (lambda path: open(path).read())(self.aws_infra_config.privateKeyPath)
         else:
+            # TODO Instead creating ssh for each test, create only one per scenario
             logger.info("Creating new ssh key")
             key_name = self.name + str(randint(0, 10000))
             ssh_key = tls.PrivateKey(key_name, algorithm="RSA", rsa_bits=4096)

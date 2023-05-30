@@ -40,7 +40,7 @@ e2e:
   parallel:
       matrix:
         - TEST_LIBRARY: [nodejs,java,python,dotnet]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+          SCENARIO: [ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
        # - TEST_LIBRARY: [java]
        #   SCENARIO: [ONBOARDING_CONTAINER]
   script:
