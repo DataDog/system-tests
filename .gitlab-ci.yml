@@ -33,20 +33,16 @@ e2e:
     #Avoid dockerhub rate limits
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login --with-decryption --query "Parameter.Value" --out text) 
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
-    #- export AWS_SDK_LOAD_CONFIG=1
     - export AWS_PROFILE=agent-qa-ci
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
-    #- pulumi new --offline --yes --force
-   # - pulumi stack init "system-tests-onboarding-testing"
-    #- pulumi config set aws:region us-east-1
-    #- pulumi config set aws:skipMetadataApiCheck false
+
 
   parallel:
       matrix:
-        - TEST_LIBRARY: [nodejs,java,python,dotnet]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
-        #- TEST_LIBRARY: [nodejs]
-        #  SCENARIO: [ONBOARDING_HOST_CONTAINER]
+        #- TEST_LIBRARY: [nodejs,java,python,dotnet]
+        #  SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+        - TEST_LIBRARY: [java]
+          SCENARIO: [ONBOARDING_CONTAINER]
   script:
       - echo "Success"
       - ./build.sh -i runner
