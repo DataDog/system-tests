@@ -43,3 +43,6 @@ reportJunit.xml
 # Visual Studio
 .vs/
 .config/dotnet-tools.json
+
+# Node.js
+node_modules/
