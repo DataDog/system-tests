@@ -74,7 +74,7 @@ def remote_install(
                 remote_path=remote_path,
                 opts=pulumi.ResourceOptions(depends_on=[depends_on]),
             )
-        depends_on = cmd_cp_webapp
+            depends_on = cmd_cp_webapp
 
     # Execute a basic command on our server.
     cmd_exec_install = command.remote.Command(
