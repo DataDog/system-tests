@@ -14,7 +14,8 @@ variables:
   # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
    TEST: 1
-e2e:
+
+.base_job_onboarding:
   only:
       - schedules
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
@@ -35,21 +36,47 @@ e2e:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
     - export AWS_PROFILE=agent-qa-ci
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
-
-
-  parallel:
-      matrix:
-        - TEST_LIBRARY: [nodejs,java,python,dotnet]
-          SCENARIO: [ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
-       # - TEST_LIBRARY: [java]
-       #   SCENARIO: [ONBOARDING_CONTAINER]
-  script:
-      - echo "Success"
-      - ./build.sh -i runner
-      - ./run.sh $SCENARIO
   artifacts:
       when: always
       paths:
         - logs_onboarding_host/
         - logs_onboarding_host_container/
         - logs_onboarding_container/
+
+#Tested with parallel/matrix but flakyness arise. Seems related with: https://github.com/pulumi/pulumi/issues/8633
+onboarding_java:
+  extends: .base_job_onboarding
+  variables:
+      TEST_LIBRARY: java
+  script:
+      - echo "Success"
+      - ./build.sh -i runner
+      - ./run.sh ONBOARDING_HOST_CONTAINER
+      - ./run.sh ONBOARDING_CONTAINER
+onboarding_python:
+  extends: .base_job_onboarding
+  variables:
+      TEST_LIBRARY: python
+  script:
+      - echo "Success"
+      - ./build.sh -i runner
+      - ./run.sh ONBOARDING_HOST_CONTAINER
+      - ./run.sh ONBOARDING_CONTAINER
+onboarding_nodejs:
+  extends: .base_job_onboarding
+  variables:
+      TEST_LIBRARY: nodejs
+  script:
+      - echo "Success"
+      - ./build.sh -i runner
+      - ./run.sh ONBOARDING_HOST_CONTAINER
+      - ./run.sh ONBOARDING_CONTAINER
+onboarding_dotnet:
+  extends: .base_job_onboarding
+  variables:
+      TEST_LIBRARY: dotnet
+  script:
+      - echo "Success"
+      - ./build.sh -i runner
+      - ./run.sh ONBOARDING_HOST_CONTAINER
+      - ./run.sh ONBOARDING_CONTAINER
