@@ -89,8 +89,8 @@ class TestedVirtualMachine:
 
         pulumi.export("privateIp_" + self.name, server.private_ip)
         Output.all(server.private_ip).apply(lambda args: self.set_ip(args[0]))
-        Output.all(server.private_ip).apply(
-            lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{self.name}")
+        Output.all(server.private_ip, self.name).apply(
+            lambda args: pulumi_logger(self.provision_scenario, "vms_desc").info(f"{args[0]}:{args[1]}")
         )
 
         connection = command.remote.ConnectionArgs(
