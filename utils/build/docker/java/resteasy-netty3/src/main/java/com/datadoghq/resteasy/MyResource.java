@@ -21,8 +21,6 @@ import java.util.List;
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
-    String superSecretAccessKey = "insecure";
-
 
     @GET
     public String hello() {
