@@ -19,7 +19,6 @@ if context.weblog_variant == "akka-http":
 
 @released(golang="1.38.0", dotnet="2.9.0", java="0.100.0", nodejs="2.8.0")
 @released(php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1, ruby="1.8.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Monitoring:
