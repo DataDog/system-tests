@@ -40,10 +40,10 @@ def _expected_location():
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakHash:
     """Verify weak hash detection."""
@@ -100,3 +100,19 @@ class TestWeakHash:
             vulnerability_type="WEAK_HASH",
             location_path=self.sink_fixture.expected_location,
         )
+
+    def setup_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.setup_telemetry_metric_instrumented_sink()
+
+    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    def test_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.test_telemetry_metric_instrumented_sink()
+
+    def setup_telemetry_metric_executed_sink(self):
+        self.sink_fixture.setup_telemetry_metric_executed_sink()
+
+    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    def test_telemetry_metric_executed_sink(self):
+        self.sink_fixture.test_telemetry_metric_executed_sink()

@@ -11,6 +11,9 @@ from .waf.utils import rules
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
+
 
 @coverage.not_testable
 class Test_OneVariableInstallation:
@@ -18,7 +21,6 @@ class Test_OneVariableInstallation:
 
 
 @released(dotnet="1.29.0", java="0.87.0", nodejs="2.0.0", php_appsec="0.1.0", python="?", ruby="1.8.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StaticRuleSet:
@@ -52,7 +54,7 @@ class Test_RuleSet_1_2_5:
 
 @released(dotnet="2.7.0", golang="1.38.0", java="0.99.0", nodejs="2.5.0")
 @released(php_appsec="0.3.0", python="1.2.1", ruby="1.0.0")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_RuleSet_1_3_1:
@@ -82,7 +84,7 @@ class Test_RuleSet_1_3_1:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @coverage.basic
 @released(java="0.100.0", nodejs="2.7.0", python="1.1.2")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_ConfigurationVariables:
     """ Configuration environment variables """

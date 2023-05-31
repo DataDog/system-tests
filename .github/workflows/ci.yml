@@ -79,6 +79,8 @@ jobs:
           weblog: spring-boot-wildfly
         - library: java
           weblog: spring-boot-undertow
+        - library: java
+          weblog: akka-http
         - library: nodejs
           weblog: express4
         - library: nodejs
@@ -414,8 +416,6 @@ jobs:
     strategy:
       matrix:
         variant:
-        - library: java
-          weblog: spring-boot-native
         - library: java
           weblog: spring-boot-3-native
         version:
