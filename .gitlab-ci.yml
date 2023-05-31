@@ -36,6 +36,13 @@ variables:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
     - export AWS_PROFILE=agent-qa-ci
     - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
+  script:
+    - echo "Starting onboarding scenarios"
+    - ./build.sh -i runner
+    - ./run.sh ONBOARDING_HOST
+    - ./run.sh ONBOARDING_HOST_CONTAINER
+    - ./run.sh ONBOARDING_CONTAINER
+    - echo "Finished onboarding scenarios!"
   artifacts:
       when: always
       paths:
@@ -48,35 +55,18 @@ onboarding_java:
   extends: .base_job_onboarding
   variables:
       TEST_LIBRARY: java
-  script:
-      - echo "Success"
-      - ./build.sh -i runner
-      - ./run.sh ONBOARDING_HOST_CONTAINER
-      - ./run.sh ONBOARDING_CONTAINER
+
 onboarding_python:
   extends: .base_job_onboarding
   variables:
       TEST_LIBRARY: python
-  script:
-      - echo "Success"
-      - ./build.sh -i runner
-      - ./run.sh ONBOARDING_HOST_CONTAINER
-      - ./run.sh ONBOARDING_CONTAINER
+
 onboarding_nodejs:
   extends: .base_job_onboarding
   variables:
       TEST_LIBRARY: nodejs
-  script:
-      - echo "Success"
-      - ./build.sh -i runner
-      - ./run.sh ONBOARDING_HOST_CONTAINER
-      - ./run.sh ONBOARDING_CONTAINER
+      
 onboarding_dotnet:
   extends: .base_job_onboarding
   variables:
       TEST_LIBRARY: dotnet
-  script:
-      - echo "Success"
-      - ./build.sh -i runner
-      - ./run.sh ONBOARDING_HOST_CONTAINER
-      - ./run.sh ONBOARDING_CONTAINER
