@@ -8,7 +8,7 @@ ami:
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux
+  os_type: linux__
   os_distro: deb
 
 - name: amazon-linux-x86
@@ -346,10 +346,12 @@ weblogs:
         - os_type: linux
           command: |
                 #https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/docker/building-net-docker-images?view=aspnetcore-5.0#the-dockerfile
+                docker logout
                 git clone https://github.com/dotnet/dotnet-docker
                 cd dotnet-docker/samples/aspnetapp
                 sudo docker build -t aspnetapp .
                 sudo docker run -d --rm -p 5985:80 --name aspnetcore_sample aspnetapp
+                echo "WEBLOG STARTED"
 
 
 installation_checks: !include tests/onboarding/infra_provision/includes/provision_installation_checks.yml

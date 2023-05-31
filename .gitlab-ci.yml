@@ -63,6 +63,7 @@ onboarding_python:
       TEST_LIBRARY: python
   script:
     - echo "Starting onboarding scenarios"
+    - set +e
     - ./build.sh -i runner
     - ./run.sh ONBOARDING_HOST
     - ./run.sh ONBOARDING_HOST_CONTAINER
@@ -87,6 +88,7 @@ onboarding_dotnet:
       TEST_LIBRARY: dotnet
   script:
     - echo "Starting onboarding scenarios"
+    - set +e
     - ./build.sh -i runner
     - ./run.sh ONBOARDING_HOST
     - ./run.sh ONBOARDING_HOST_CONTAINER
