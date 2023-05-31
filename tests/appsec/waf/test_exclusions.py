@@ -15,7 +15,6 @@ if context.weblog_variant == "akka-http":
     ruby="?",
     cpp="?",
 )
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_custom_rules
 class Test_Exclusions:
