@@ -23,6 +23,7 @@ if context.library == "cpp":
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -45,3 +46,17 @@ class TestCookieValue:
     @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
     def test_source_reported(self):
         self.source_fixture.test()
+
+    def setup_telemetry_metric_instrumented_source(self):
+        self.source_fixture.setup_telemetry_metric_instrumented_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_telemetry_metric_instrumented_source(self):
+        self.source_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_telemetry_metric_executed_source(self):
+        self.source_fixture.setup_telemetry_metric_executed_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_telemetry_metric_executed_source(self):
+        self.source_fixture.test_telemetry_metric_executed_source()

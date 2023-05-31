@@ -22,10 +22,10 @@ if context.library == "cpp":
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     },
 )
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakCipher:
     """Verify weak cipher detection."""
@@ -36,7 +36,7 @@ class TestWeakCipher:
         insecure_endpoint="/iast/insecure_cipher/test_insecure_algorithm",
         secure_endpoint="/iast/insecure_cipher/test_secure_algorithm",
         data=None,
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.CryptoExamples", "nodejs": "iast.js",},
+        location_map={"java": "com.datadoghq.system_tests.iast.utils.CryptoExamples", "nodejs": "iast/index.js",},
         evidence_map={"nodejs": "des-ede-cbc", "java": "Blowfish",},
     )
 
@@ -51,3 +51,19 @@ class TestWeakCipher:
 
     def test_secure(self):
         self.sink_fixture.test_secure()
+
+    def setup_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.setup_telemetry_metric_instrumented_sink()
+
+    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    def test_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.test_telemetry_metric_instrumented_sink()
+
+    def setup_telemetry_metric_executed_sink(self):
+        self.sink_fixture.setup_telemetry_metric_executed_sink()
+
+    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    def test_telemetry_metric_executed_sink(self):
+        self.sink_fixture.test_telemetry_metric_executed_sink()

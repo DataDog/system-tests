@@ -30,7 +30,7 @@ func main() {
 	})
 
 	r.Any("/waf", waf)
-	r.Any("/waf/", waf)
+	r.Any("/waf/*", waf)
 
 	r.Any("/users", func(c echo.Context) error {
 		userID := c.QueryParam("user")
@@ -47,6 +47,14 @@ func main() {
 
 	r.Any("/params/:i", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
+	})
+
+	r.Any("/tag_value/:tag/:status", func(c echo.Context) error {
+		tag := c.Param("tag")
+		status, _ := strconv.Atoi(c.Param("status"))
+		span, _ := tracer.SpanFromContext(c.Request().Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		return c.String(status, "Value tagged")
 	})
 
 	r.Any("/status", func(c echo.Context) error {

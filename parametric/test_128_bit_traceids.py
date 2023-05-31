@@ -1,7 +1,7 @@
 import pytest
 
-from parametric.utils.headers import make_single_request_and_get_inject_headers
-from parametric.utils.test_agent import get_span
+from utils.parametric.headers import make_single_request_and_get_inject_headers
+from utils.parametric.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
 POWER_2_64 = 18446744073709551616

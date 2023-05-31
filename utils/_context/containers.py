@@ -2,6 +2,8 @@ import os
 import json
 from pathlib import Path
 import time
+from functools import lru_cache
+
 import docker
 from docker.errors import APIError
 from docker.models.containers import Container
@@ -11,18 +13,22 @@ import requests
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
 
-_client = docker.DockerClient.from_env()
+
+@lru_cache
+def _get_client():
+    return docker.DockerClient.from_env()
+
 
 _NETWORK_NAME = "system-tests_default"
 
 
 def create_network():
-    for _ in _client.networks.list(names=[_NETWORK_NAME,]):
+    for _ in _get_client().networks.list(names=[_NETWORK_NAME,]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
         return
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    _client.networks.create(_NETWORK_NAME, check_duplicate=True)
+    _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 class TestedContainer:
@@ -48,15 +54,18 @@ class TestedContainer:
         self.kwargs = kwargs
         self._container = None
 
-    def configure(self):
+    def configure(self, replay):
 
-        self.stop_previous_container()
+        if not replay:
+            self.stop_previous_container()
 
-        Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
-        Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
+            Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
+            Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
 
-        self.image.load()
-        self.image.save_image_info(self.log_folder_path)
+            self.image.load()
+            self.image.save_image_info(self.log_folder_path)
+        else:
+            self.image.load_from_logs(self.log_folder_path)
 
     @property
     def container_name(self):
@@ -67,7 +76,7 @@ class TestedContainer:
         return f"./{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
-        for container in _client.containers.list(all=True, filters={"name": self.container_name}):
+        for container in _get_client().containers.list(all=True, filters={"name": self.container_name}):
             if container.name == self.container_name:
                 logger.debug(f"Container {self.container_name} found")
                 return container
@@ -96,7 +105,7 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = _client.containers.run(
+        self._container = _get_client().containers.run(
             image=self.image.name,
             name=self.container_name,
             hostname=self.name,
@@ -200,14 +209,23 @@ class ImageInfo:
 
     def load(self):
         try:
-            self._image = _client.images.get(self.name)
+            self._image = _get_client().images.get(self.name)
         except docker.errors.ImageNotFound:
             logger.info(f"Image {self.name} has not been found locally")
-            self._image = _client.images.pull(self.name)
+            self._image = _get_client().images.pull(self.name)
 
+        self._init_from_attrs(self._image.attrs)
+
+    def load_from_logs(self, dir_path):
+        with open(f"{dir_path}/image.json", encoding="utf-8", mode="r") as f:
+            attrs = json.load(f)
+
+        self._init_from_attrs(attrs)
+
+    def _init_from_attrs(self, attrs):
         self.env = {}
 
-        for var in self._image.attrs["Config"]["Env"]:
+        for var in attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
             self.env[key] = value
 
@@ -264,8 +282,8 @@ class AgentContainer(TestedContainer):
 
         self.agent_version = None
 
-    def configure(self):
-        super().configure()
+    def configure(self, replay):
+        super().configure(replay)
 
         if "DD_API_KEY" not in os.environ:
             raise ValueError("DD_API_KEY is missing in env, please add it.")
@@ -337,8 +355,8 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_AGENT_HOST"] = "agent"
             self.environment["DD_TRACE_AGENT_PORT"] = 8127
 
-    def configure(self):
-        super().configure()
+    def configure(self, replay):
+        super().configure(replay)
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
         if self.library == "php":
