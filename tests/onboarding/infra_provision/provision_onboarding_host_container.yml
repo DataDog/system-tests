@@ -346,7 +346,7 @@ weblogs:
         - os_type: linux
           command: |
                 #https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/docker/building-net-docker-images?view=aspnetcore-5.0#the-dockerfile
-                docker logout
+                sudo docker logout
                 git clone https://github.com/dotnet/dotnet-docker
                 cd dotnet-docker/samples/aspnetapp
                 sudo docker build -t aspnetapp .
