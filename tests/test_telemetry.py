@@ -250,10 +250,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    def setup_app_heartbeat(self):
-        time.sleep(20)
-
-    @flaky(True, reason="The test is way too flaky")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
