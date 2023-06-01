@@ -263,7 +263,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
             self.python_request_number += 1
             if (
                 context.library == "python"
-                and context.library <= "python@1.14.0rc2"
+                and context.library < "python@1.14.0rc2"
                 and context.weblog_variant != "uwsgi-poc"
             ):
                 if self.python_request_number % 2 == 0:
