@@ -1,0 +1,2 @@
+#On Boarding requirements
+pulumi==3.58.0

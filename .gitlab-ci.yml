@@ -56,6 +56,7 @@ onboarding_nodejs:
        # - TEST_LIBRARY: [java]
        #   SCENARIO: [ONBOARDING_CONTAINER]
   script:
+      - pip3 install -r utils/onboarding/requirements.txt
       - echo "Success"
       - ./build.sh -i runner
       - ./run.sh $SCENARIO
