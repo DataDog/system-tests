@@ -254,7 +254,7 @@ class Test_Blocking_request_uri:
 
     def setup_non_blocking(self):
         self.rm_req_nonblock1 = weblog.get("/waf/legit")
-        self.rm_req_nonblock2 = weblog.get("/waf/http")
+        self.rm_req_nonblock2 = weblog.get("/waf/passlist")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
