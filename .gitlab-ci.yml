@@ -49,15 +49,20 @@ variables:
 
 onboarding_nodejs:
   extends: .base_job_onboarding
-  variables:
-      TEST_LIBRARY: nodejs
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [nodejs]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+       # - TEST_LIBRARY: [java]
+       #   SCENARIO: [ONBOARDING_CONTAINER]
   script:
-    - echo "Starting onboarding scenarios"
-    - pulumi version
-    - ./build.sh -i runner
-    - ./run.sh ONBOARDING_HOST
-    - ./run.sh ONBOARDING_HOST_CONTAINER
-    - ./run.sh ONBOARDING_CONTAINER
-    - echo "Finished onboarding scenarios!"
-
+      - echo "Success"
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO
+  artifacts:
+      when: always
+      paths:
+        - logs_onboarding_host/
+        - logs_onboarding_host_container/
+        - logs_onboarding_container/
 
