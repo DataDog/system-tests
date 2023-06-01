@@ -66,6 +66,7 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.skip_library("golang", "fix not merged yet see PR #1969")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
