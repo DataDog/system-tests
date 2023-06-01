@@ -60,7 +60,7 @@ onboarding_java:
 onboarding_python:
   extends: .base_job_onboarding
   variables:
-      TEST_LIBRARY: java
+      TEST_LIBRARY: python
   script:
      - echo "Starting onboarding scenarios"
      - ./build.sh -i runner
