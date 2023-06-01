@@ -239,6 +239,8 @@ jobs:
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
@@ -490,6 +492,8 @@ jobs:
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
