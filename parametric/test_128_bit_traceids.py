@@ -424,7 +424,7 @@ def test_w3c_128_bit_propagation_tid_consistent(test_agent, test_library):
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.parametrize(
     "library_env",
-    [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true", }],
+    [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
 )
 def test_w3c_128_bit_propagation_tid_in_parent(test_agent, test_library):
     """Ensure that only root span contains the tid.
