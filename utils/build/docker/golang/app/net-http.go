@@ -165,8 +165,6 @@ func main() {
 		}
 
 		p := ddotel.NewTracerProvider()
-		defer p.ForceFlush(time.Second, func(ok bool) {})
-		defer p.Shutdown()
 		tracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
@@ -190,7 +188,7 @@ func main() {
 		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
 		childSpan.End(oteltrace.WithTimestamp(start.Add(time.Second)))
 		parentSpan.End()
-
+		p.ForceFlush(time.Second, func(ok bool) {})
 		w.Write([]byte("OK"))
 	})
 
@@ -212,7 +210,6 @@ func main() {
 		}
 
 		p := ddotel.NewTracerProvider()
-		defer p.ForceFlush(time.Second, func(ok bool) {})
 		tracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
@@ -250,8 +247,7 @@ func main() {
 			return
 		}
 		parentSpan.End()
-
-		p.Shutdown()
+		p.ForceFlush(time.Second, func(ok bool) {})
 		w.Write([]byte("OK"))
 	})
 
