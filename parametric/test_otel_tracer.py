@@ -1,9 +1,9 @@
 import pytest
 
-from parametric.spec.trace import find_trace_by_root
-from parametric.spec.trace import find_span_in_traces
-from parametric.spec.trace import find_span
-from parametric.spec.otel_trace import OtelSpan
+from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import find_span
+from utils.parametric.spec.otel_trace import OtelSpan
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")

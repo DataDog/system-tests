@@ -33,6 +33,7 @@ if [[ "${PYTEST_SPLITS:-}" && "${PYTEST_GROUP:-}" ]]; then
     CMD="${cmd} --splits $PYTEST_SPLITS --group $PYTEST_GROUP"
 fi
 
-CMD="$CMD -c $PWD/conftest.py $ARGS"
+#We remove the warning from the output until the protobuf bug is fixed and we can upgrade the dependencies to the latest version of pulumi
+CMD="$CMD -p no:warnings -c $PWD/conftest.py $ARGS"
 
 eval "$CMD"

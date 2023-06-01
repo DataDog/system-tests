@@ -1,7 +1,16 @@
-from utils import scenarios, released, interfaces, weblog
+from utils import interfaces, released, scenarios, weblog
 
 
-@released(java="?", dotnet="2.30.0", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?", cpp="?")
+@released(
+    java="?",
+    dotnet="2.30.0",
+    golang="1.51.0",
+    nodejs="4.1.0",
+    php_appsec="0.8.1",
+    python={"django-poc": "1.12", "flask-poc": "1.12", "*": "?"},
+    ruby="?",
+    cpp="?",
+)
 @scenarios.appsec_custom_rules
 class Test_CustomRules:
     """Includes a version of the WAF supporting custom rules"""

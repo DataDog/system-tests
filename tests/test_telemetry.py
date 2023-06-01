@@ -13,7 +13,6 @@ from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersM
 )
 @missing_feature(library="cpp")
 @missing_feature(library="php")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -149,7 +148,6 @@ class Test_Telemetry:
             if diff > 1:
                 raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_app_started(self):
         """Request type app-started is sent on startup at least once"""
@@ -184,9 +182,9 @@ class Test_Telemetry:
             return data["request"]["content"].get("request_type") != "apm-onboarding-event"
 
         def save_data(data, container):
-            # payloads are identifed by their tracer_time/runtime_id
+            # payloads are identifed by their seq_id/runtime_id
             if not_onboarding_event(data):
-                key = data["request"]["content"]["tracer_time"], data["request"]["content"]["runtime_id"]
+                key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
         self.validate_library_telemetry_data(
@@ -226,8 +224,8 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests:
-                logger.error(f"tracer_time: {s}, runtime_id: {r}")
+            for s, r in self.library_requests.keys():
+                logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
@@ -250,10 +248,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    def setup_app_heartbeat(self):
-        time.sleep(20)
-
-    @flaky(True, reason="The test is way too flaky")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -475,7 +469,6 @@ class Test_Telemetry:
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="php")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="golang", reason="products info is always in app-started for golang")
 class Test_ProductsDisabled:

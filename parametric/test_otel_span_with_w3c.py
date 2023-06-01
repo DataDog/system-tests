@@ -2,9 +2,9 @@ import time
 
 import pytest
 
-from parametric.spec.otel_trace import SK_PRODUCER
-from parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from parametric.utils.test_agent import get_span
+from utils.parametric.spec.otel_trace import SK_PRODUCER
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.parametric.test_agent import get_span
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
