@@ -381,6 +381,32 @@
       "on_match": [
         "block"
       ]
+    },
+    {
+      "id": "tst-037-011",
+      "name": "Test block on uri that should not block",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000011",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "^http"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
     }
   ],
   "actions": [
