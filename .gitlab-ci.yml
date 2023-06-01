@@ -59,13 +59,14 @@ onboarding_java:
 
 onboarding_python:
   extends: .base_job_onboarding
-  parallel:
-      matrix:
-        - SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+  variables:
+      TEST_LIBRARY: java
   script:
      - echo "Starting onboarding scenarios"
      - ./build.sh -i runner
-     - TEST_LIBRARY=python ./run.sh $SCENARIO
+     - ./run.sh ONBOARDING_HOST
+     - ./run.sh ONBOARDING_HOST_CONTAINER
+     - ./run.sh ONBOARDING_CONTAINER
      - echo "Finished onboarding scenarios!"
 
 onboarding_nodejs:
