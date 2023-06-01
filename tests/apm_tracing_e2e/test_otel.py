@@ -6,6 +6,7 @@ from utils import context, weblog, scenarios, missing_feature, irrelevant
     context.weblog_variant not in "net-http",
     reason="The /e2e_otel_span endpoint is only implemented in Go net/http at the moment.",
 )
+@scenarios.apm_tracing_e2e_otel
 class Test_Otel_Span:
     """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API.
     """
