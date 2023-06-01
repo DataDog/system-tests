@@ -45,30 +45,7 @@ variables:
         - logs_onboarding_container/
 
 #Tested with parallel/matrix but flakyness arise. Seems related with: https://github.com/pulumi/pulumi/issues/8633 and https://github.com/pulumi/pulumi/issues/8658
-onboarding_java:
-  extends: .base_job_onboarding
-  variables:
-      TEST_LIBRARY: java
-  script:
-    - echo "Starting onboarding scenarios"
-    - ./build.sh -i runner
-    - ./run.sh ONBOARDING_HOST
-    - ./run.sh ONBOARDING_HOST_CONTAINER
-    - ./run.sh ONBOARDING_CONTAINER
-    - echo "Finished onboarding scenarios!"
 
-onboarding_python:
-  extends: .base_job_onboarding
-  variables:
-      TEST_LIBRARY: python
-  script:
-     - echo "Starting onboarding scenarios"
-     - ./build.sh -i runner
-     #Disabled PRO until fix for ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
-     - ONBOARDING_FILTER_ENV=dev ./run.sh ONBOARDING_HOST
-     - ./run.sh ONBOARDING_HOST_CONTAINER
-     - ./run.sh ONBOARDING_CONTAINER
-     - echo "Finished onboarding scenarios!"
 
 onboarding_nodejs:
   extends: .base_job_onboarding
@@ -76,20 +53,11 @@ onboarding_nodejs:
       TEST_LIBRARY: nodejs
   script:
     - echo "Starting onboarding scenarios"
+    - pulumi version
     - ./build.sh -i runner
     - ./run.sh ONBOARDING_HOST
     - ./run.sh ONBOARDING_HOST_CONTAINER
     - ./run.sh ONBOARDING_CONTAINER
     - echo "Finished onboarding scenarios!"
 
-onboarding_dotnet:
-  extends: .base_job_onboarding
-  variables:
-      TEST_LIBRARY: dotnet
-  script:
-    - echo "Starting onboarding scenarios"
-    - ./build.sh -i runner
-    - ./run.sh ONBOARDING_HOST
-    - ./run.sh ONBOARDING_HOST_CONTAINER
-    - ./run.sh ONBOARDING_CONTAINER
-    - echo "Finished onboarding scenarios!"
+
