@@ -59,6 +59,13 @@ public class MyResource {
         return tagValue(value, code);
     }
 
+    @POST
+    @Path("/tag_value/{value}/{code}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response tagValuePost(@PathParam("value") String value, @PathParam("code") int code, MultivaluedMap<String, String> form) {
+        return tagValue(value, code);
+    }
+
     @GET
     @Path("/params/{params: .*}")
     public String params(@PathParam("params") List<PathSegment> params) {

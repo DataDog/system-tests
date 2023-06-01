@@ -9,7 +9,7 @@ from utils import bug, context, coverage, interfaces, irrelevant, missing_featur
 _released_java_blocking = released(
     java={
         "spring-boot": "0.110.0",
-        "sprint-boot-jetty": "0.111.0",
+        "spring-boot-jetty": "0.111.0",
         "spring-boot-undertow": "0.111.0",
         # Supported since 0.111.0 but bugged in <0.115.0.
         "spring-boot-openliberty": "0.115.0",
@@ -36,6 +36,7 @@ _released_java_blocking = released(
 @scenarios.appsec_blocking
 @_released_java_blocking
 @bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -110,6 +111,10 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "php", reason="Don't support multipart yet")
     @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
     @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(
+        context.weblog_variant in ("spring-boot-jetty", "jersey-grizzly2", "resteasy-netty3", "ratpack"),
+        reason="Blocking on multipart not supported yet",
+    )
     @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_multipart(self):
@@ -198,6 +203,7 @@ def _assert_custom_event_tag_absence():
     ruby="1.12.0",
 )
 @_released_java_blocking
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -246,6 +252,7 @@ class Test_Blocking_request_method:
     ruby="1.0.0",
 )
 @_released_java_blocking
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -305,6 +312,7 @@ class Test_Blocking_request_uri:
     python={"django-poc": "1.10", "flask-poc": "1.13", "*": "?"},
     ruby="1.0.0",
 )
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
 class Test_Blocking_request_path_params:
@@ -357,6 +365,7 @@ class Test_Blocking_request_path_params:
     ruby="1.0.0",
 )
 @_released_java_blocking
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -412,6 +421,7 @@ class Test_Blocking_request_query:
     ruby="1.0.0",
 )
 @_released_java_blocking
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -467,6 +477,7 @@ class Test_Blocking_request_headers:
     ruby="1.0.0",
 )
 @_released_java_blocking
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -522,6 +533,8 @@ class Test_Blocking_request_cookies:
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@bug(weblog_variant="jersey-grizzly2", reason="Blocking leads to error 500")
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -544,11 +557,14 @@ class Test_Blocking_request_body:
         self.rm_req_nonblock2 = weblog.post(
             "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"}
         )
+        self.rm_req_nonblock3 = weblog.post("/waf", data={"good": "value"})
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
-            assert response.status_code == 200
+            # Some frameworks will correctly bark 415 at invalid urlencoded-data
+            assert response.status_code in (200, 415)
+        assert self.rm_req_nonblock3.status_code == 200
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data={"good": "value"})
@@ -579,6 +595,7 @@ class Test_Blocking_request_body:
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.10.0",
 )
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
@@ -614,6 +631,7 @@ class Test_Blocking_response_status:
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""

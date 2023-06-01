@@ -121,13 +121,14 @@ public class Main {
                         .path("tag_value/:value/:code", ctx -> {
                             final String value = ctx.getPathTokens().get("value");
                             final int code = Integer.parseInt(ctx.getPathTokens().get("code"));
-                            setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-                            ctx.getResponse().status(code).send("Value tagged");
+                            WafPostHandler.consumeParsedBody(ctx).then(v -> {
+                                setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+                                ctx.getResponse().status(code).send("Value tagged");
+                            });
                         })
                         .path("waf/:params?", ctx -> {
                             HttpMethod method = ctx.getRequest().getMethod();
                             if (method.equals(HttpMethod.GET)) {
-
                                 ctx.getResponse().send("text/plain", "(empty url params)");
                             } else if (method.equals(HttpMethod.POST)) {
                                 ctx.insert(new WafPostHandler());

@@ -10,6 +10,7 @@ import io.opentracing.util.GlobalTracer;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 import javax.naming.directory.InitialDirContext;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
@@ -60,8 +62,10 @@ public class Main {
                         .putHeader("content-language", "en-US")
                         .end("012345678901234567890123456789012345678901"));
         router.routeWithRegex("/tag_value/(?<value>[^/]+)/(?<code>[0-9]+)")
+                .handler(BodyHandler.create())
                 .produces("text/plain")
                 .handler(ctx -> {
+                    consumeParsedBody(ctx);
                     setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("value"));
                     ctx.response()
                             .setStatusCode(Integer.parseInt(ctx.pathParam("code")))
@@ -71,7 +75,11 @@ public class Main {
                 .produces("text/plain")
                 .handler(ctx ->
                         ctx.response().setStatusCode(200).end(ctx.pathParams().toString()));
-        router.getWithRegex("/waf(?:/.*)?").handler(ctx -> ctx.response().end("Hello world!"));
+        router.getWithRegex("/waf(?:/(.*))?").handler(ctx -> {
+            // Consume path params
+            ctx.pathParams().toString();
+            ctx.response().end("Hello world!");
+        });
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")
                 .produces("text/plain")
@@ -162,6 +170,21 @@ public class Main {
             if (rootSpan != null) {
                 rootSpan.setTag(key, value);
             }
+        }
+    }
+
+    private static void consumeParsedBody(final RoutingContext ctx) {
+        String contentType = ctx.request().getHeader("Content-Type");
+        if (contentType == null) {
+            return;
+        }
+        contentType = contentType.toLowerCase(Locale.ROOT);
+        if (contentType.contains("json")) {
+            ctx.getBodyAsJson();
+        } else if (contentType.equals("application/x-www-form-urlencoded")) {
+            ctx.request().formAttributes();
+        } else {
+            ctx.getBodyAsString();
         }
     }
 }
