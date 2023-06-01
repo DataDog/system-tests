@@ -18,8 +18,6 @@ variables:
 .base_job_onboarding:
   only:
       - schedules
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  tags: ["arch:amd64"]
   before_script:
     - apt-get update
     - apt-get install -y jq
@@ -47,6 +45,8 @@ variables:
 #Tested with parallel/matrix but flakyness arise. Seems related with: https://github.com/pulumi/pulumi/issues/8633 and https://github.com/pulumi/pulumi/issues/8658
 onboarding_java:
   extends: .base_job_onboarding
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64","java"]
   variables:
       TEST_LIBRARY: java
   script:
@@ -59,6 +59,8 @@ onboarding_java:
 
 onboarding_python:
   extends: .base_job_onboarding
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64","python"]
   variables:
       TEST_LIBRARY: python
   script:
@@ -72,6 +74,8 @@ onboarding_python:
 
 onboarding_nodejs:
   extends: .base_job_onboarding
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64","nodejs"]
   variables:
       TEST_LIBRARY: nodejs
   script:
@@ -84,6 +88,8 @@ onboarding_nodejs:
 
 onboarding_dotnet:
   extends: .base_job_onboarding
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64","dotnet"]
   variables:
       TEST_LIBRARY: dotnet
   script:
