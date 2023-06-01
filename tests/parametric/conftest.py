@@ -211,10 +211,10 @@ def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
-        container_name="dotnet-test-client-%s" % container_id,
-        container_tag="dotnet6_0-test-client",
-        container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+        container_name=f"dotnet-test-client-{container_id}",
+        container_tag="dotnet7_0-test-client",
+        container_img="""
+FROM mcr.microsoft.com/dotnet/sdk:7.0
 WORKDIR /client
 COPY ["./ApmTestClient.csproj","./nuget.config","./*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
