@@ -1,5 +1,5 @@
 from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert_msg
-from utils import context, weblog, scenarios, missing_feature, irrelevant
+from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant
 
 
 @missing_feature(
@@ -26,7 +26,7 @@ class Test_Otel_Span:
     # - span kind of SpanKind - Internal
     def test_datadog_otel_span(self):
         spans = _get_spans_submitted(self.req)
-        assert 2 == len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
+        assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
         parent = _get_span(spans, "parent.span.otel")
@@ -43,13 +43,17 @@ class Test_Otel_Span:
         assert child.get("duration") == "1000000000"
         assert child.get("type") == "internal"
 
+        # Assert the spans received from the backend!
+        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter='')
+        assert 2 == len(spans), _assert_msg(2, len(spans))
+
     def setup_distributed_otel_trace(self):
         self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"},)
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
         spans = _get_spans_submitted(self.req)
-        assert 3 == len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
+        assert 3 <= len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
 
         # Assert the parent span sent by the agent.
         parent = _get_span(spans, "parent.span.otel")
@@ -66,6 +70,10 @@ class Test_Otel_Span:
         handler_span = _get_span(spans, "testOperation")
         assert handler_span["name"] == "testOperation"
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
+
+        # Assert the spans received from the backend!
+        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter='')
+        assert 3 == len(spans), _assert_msg(3, len(spans))
 
 
 def _get_span(spans, span_name):

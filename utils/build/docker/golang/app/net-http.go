@@ -168,6 +168,7 @@ func main() {
 		tracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
+		defer p.ForceFlush(time.Second, func(ok bool) {})
 
 		// Parent span will have the following traits :
 		// - spanId of 10000
@@ -188,7 +189,7 @@ func main() {
 		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
 		childSpan.End(oteltrace.WithTimestamp(start.Add(time.Second)))
 		parentSpan.End()
-		p.ForceFlush(time.Second, func(ok bool) {})
+
 		w.Write([]byte("OK"))
 	})
 
@@ -213,6 +214,7 @@ func main() {
 		tracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
+		defer p.ForceFlush(time.Second, func(ok bool) {})
 
 		parentCtx, parentSpan := tracer.Start(context.Background(), parentName, trace.WithAttributes(tags...))
 
@@ -247,7 +249,7 @@ func main() {
 			return
 		}
 		parentSpan.End()
-		p.ForceFlush(time.Second, func(ok bool) {})
+
 		w.Write([]byte("OK"))
 	})
 
