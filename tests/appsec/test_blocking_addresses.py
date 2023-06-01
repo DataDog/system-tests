@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog, bug
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
 @released(
@@ -253,11 +253,13 @@ class Test_Blocking_request_uri:
             interfaces.library.assert_waf_attack(response, rule="tst-037-002")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock = weblog.get("/waf/legit")
+        self.rm_req_nonblock1 = weblog.get("/waf/legit")
+        self.rm_req_nonblock2 = weblog.get("/waf/http")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
-        assert self.rm_req_nonblock.status_code == 200
+        assert self.rm_req_nonblock1.status_code == 200
+        assert self.rm_req_nonblock2.status_code == 200
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
@@ -620,6 +622,7 @@ class Test_Blocking_response_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
 @released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="?")
+@missing_feature(reason="Test not implemented yet")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
