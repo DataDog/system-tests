@@ -5,7 +5,7 @@ tar xvf test-app-python.tar
 
 pip3 install django
 echo "Testing weblog with python version:"
-/usr/bin/python3 --version
+python --version
 sudo sed -i "s/MY_USER/$(whoami)/g" test-app-python.service 
 sudo cp test-app-python.service /etc/systemd/system/test-app-python.service
 sudo systemctl daemon-reload

@@ -64,7 +64,8 @@ onboarding_python:
   script:
      - echo "Starting onboarding scenarios"
      - ./build.sh -i runner
-     - ./run.sh ONBOARDING_HOST
+     #Disabled PRO until fix for ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
+     - ONBOARDING_FILTER_ENV=dev ./run.sh ONBOARDING_HOST
      - ./run.sh ONBOARDING_HOST_CONTAINER
      - ./run.sh ONBOARDING_CONTAINER
      - echo "Finished onboarding scenarios!"
