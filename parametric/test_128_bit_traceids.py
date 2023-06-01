@@ -1,6 +1,7 @@
 import pytest
 
 from utils.parametric.headers import make_single_request_and_get_inject_headers
+from utils.parametric.spec.trace import find_span_in_traces, Span
 from utils.parametric.test_agent import get_span
 
 parametrize = pytest.mark.parametrize
@@ -422,7 +423,37 @@ def test_w3c_128_bit_propagation_tid_consistent(test_agent, test_library):
     assert propagation_error is None
 
 
-@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("php", "not implemented")
+@pytest.mark.skip_library("python", "not implemented")
+@pytest.mark.skip_library("python_http", "not implemented")
+@pytest.mark.parametrize(
+    "library_env",
+    [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true", }],
+)
+def test_w3c_128_bit_propagation_tid_in_parent(test_agent, test_library):
+    """Ensure that only root span contains the tid.
+    """
+    with test_library:
+        with test_library.start_span(name="parent", service="service", resource="resource") as parent:
+            with test_library.start_span(name="child", service="service", parent_id=parent.span_id):
+                pass
+
+    traces = test_agent.wait_for_num_traces(1, clear=True)
+    parent = find_span_in_traces(traces, Span(name="parent", service="service"))
+    child = find_span_in_traces(traces, Span(name="child", service="service"))
+
+    parent_tid = parent["meta"].get("_dd.p.tid")
+    child_tid = child["meta"].get("_dd.p.tid")
+    propagation_error = parent["meta"].get("_dd.propagation_error")
+
+    assert parent_tid is not None
+    assert child_tid is None
+    assert propagation_error is None
+
+
+@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
