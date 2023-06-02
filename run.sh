@@ -99,6 +99,9 @@ elif [[ $SCENARIO == "TELEMETRY_SCENARIOS" ]]; then
 elif [[ $SCENARIO == "ONBOARDING_SCENARIOS" ]]; then
     for scenario in "${ONBOARDING_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
 
+elif [[ $SCENARIO == "APPSEC_IP_BLOCKING_MAXED" ]] || [[ $SCENARIO == "APPSEC_IP_BLOCKING" ]]; then
+    pytest -S "${APPSEC_SCENARIOS[9]}";
+
 elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
     # If the first argument is a list of capital letters, then we consider it's a scenario name
     # and we add the -S option, telling pytest that's a scenario name
