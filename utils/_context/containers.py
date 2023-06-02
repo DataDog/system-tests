@@ -62,6 +62,7 @@ class TestedContainer:
         self, name, image_name, host_log_folder, environment=None, allow_old_container=False, healthcheck=None, **kwargs
     ) -> None:
         self.name = name
+        self.host_project_dir = os.environ.get('HOST_PROJECT_DIR', '.')
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
@@ -83,7 +84,7 @@ class TestedContainer:
 
     @property
     def log_folder_path(self):
-        return f"./{self.host_log_folder}/docker/{self.name}"
+        return f"{self.host_project_dir}/{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
         for container in _client.containers.list(all=True, filters={"name": self.container_name}):
@@ -193,6 +194,8 @@ class ImageInfo:
 
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, proxy_state) -> None:
+        self.host_project_dir = os.environ.get('HOST_PROJECT_DIR', '.')
+
         super().__init__(
             image_name="system_tests/proxy",
             name="proxy",
@@ -205,7 +208,7 @@ class ProxyContainer(TestedContainer):
             },
             working_dir="/app",
             volumes={
-                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                f"{self.host_project_dir}/{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
             },
             ports={"11111/tcp": ("127.0.0.1", 11111)},
             command="python utils/proxy/core.py",
@@ -283,12 +286,16 @@ class WeblogContainer(TestedContainer):
 
         from utils import weblog
 
+        self.host_project_dir = os.environ.get('HOST_PROJECT_DIR', '.')
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},},
+            volumes={
+                f"{self.host_project_dir}/{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},
+            },
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],

@@ -67,7 +67,7 @@ class _Scenario:
         self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
         self.terminal.write_sep("=", "test context", bold=True)
         self.print_info(f"Scenario: {self.name}")
-        self.print_info(f"Logs folder: ./{self.host_log_folder}")
+        self.print_info(f"Logs folder: {self.host_log_folder}")
 
     def print_info(self, info):
         """ print info in stdout """
