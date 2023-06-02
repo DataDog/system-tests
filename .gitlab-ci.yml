@@ -51,7 +51,7 @@ onboarding_nodejs:
   extends: .base_job_onboarding
   parallel:
       matrix:
-        - TEST_LIBRARY: [nodejs]
+        - TEST_LIBRARY: [nodejs,java]
           SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
        # - TEST_LIBRARY: [java]
        #   SCENARIO: [ONBOARDING_CONTAINER]
