@@ -1,5 +1,9 @@
-FROM ghcr.io/datadog/system-tests-apps-ruby/sinatra14:latest
+FROM ghcr.io/datadog/dd-trace-rb/ruby:2.4.10-dd
 
+RUN mkdir -p /app
+WORKDIR /app
+
+COPY utils/build/docker/ruby/sinatra14/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
