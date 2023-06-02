@@ -1,0 +1,9 @@
+source 'https://rubygems.org'
+
+gem 'sinatra', '~> 1.4.0'
+gem 'rack-contrib'
+gem 'pry'
+gem 'puma'
+
+gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
+gem 'msgpack'
