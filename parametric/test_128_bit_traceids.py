@@ -33,7 +33,6 @@ def test_datadog_128_bit_propagation(test_agent, test_library):
     assert dd_p_tid == "640cfd8d00000000"
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -62,11 +61,11 @@ def test_datadog_128_bit_propagation_tid_long(test_agent, test_library):
     assert dd_p_tid is None
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.skip_library("golang", "fix not merged yet see PR #1969")
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
@@ -91,7 +90,6 @@ def test_datadog_128_bit_propagation_tid_short(test_agent, test_library):
     assert dd_p_tid is None
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -121,11 +119,16 @@ def test_datadog_128_bit_propagation_tid_chars(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Optional feature not implemented")
-@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("golang", "Optional feature not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
+@pytest.mark.skip_library(
+    "golang",
+    "XXXX tag would be discarded by the length rule;"
+    "16-character invalid tag would have propagation error = malformed",
+)
 @pytest.mark.parametrize(
     "library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
 )
@@ -181,7 +184,6 @@ def test_datadog_128_bit_generation_disabled(test_agent, test_library):
     assert dd_p_tid is None
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -203,7 +205,6 @@ def test_datadog_128_bit_generation_enabled(test_agent, test_library):
     validate_dd_p_tid(dd_p_tid)
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -268,7 +269,6 @@ def test_b3single_128_bit_generation_disabled(test_agent, test_library):
     check_64_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
@@ -287,7 +287,6 @@ def test_b3single_128_bit_generation_enabled(test_agent, test_library):
     check_128_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.parametrize(
@@ -346,7 +345,6 @@ def test_b3multi_128_bit_generation_disabled(test_agent, test_library):
     check_64_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -364,7 +362,6 @@ def test_b3multi_128_bit_generation_enabled(test_agent, test_library):
     check_128_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
@@ -447,7 +444,6 @@ def test_w3c_128_bit_propagation_tid_in_parent(test_agent, test_library):
     assert propagation_error is None
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -477,7 +473,7 @@ def test_w3c_128_bit_propagation_tid_inconsistent(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Optional feature not implemented")
-@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("golang", "Optional feature not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "inconsistent_tid is not implemented for w3c")
@@ -502,7 +498,6 @@ def test_w3c_128_bit_propagation_tid_inconsistent_optional_tag(test_agent, test_
     assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "inconsistent_tid 640cfd8d0000ffff"
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
@@ -531,7 +526,7 @@ def test_w3c_128_bit_propagation_tid_malformed(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Optional feature not implemented")
-@pytest.mark.skip_library("golang", "not implemented")
+@pytest.mark.skip_library("golang", "Optional feature not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python", "malformed_tid is not implemented")
@@ -596,7 +591,6 @@ def test_w3c_128_bit_generation_disabled(test_agent, test_library):
     check_64_bit_trace_id(fields[1], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
 
-@pytest.mark.skip_library("golang", "not implemented")
 @pytest.mark.skip_library("php", "Issue: Traces not available from test agent")
 @pytest.mark.skip_library("python_http", "not implemented")
 @pytest.mark.skip_library("ruby", "not implemented")
