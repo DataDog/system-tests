@@ -45,17 +45,46 @@ variables:
         - logs_onboarding_container/
 
 #Tested with parallel/matrix but flakyness arise. Seems related with: https://github.com/pulumi/pulumi/issues/8633 and https://github.com/pulumi/pulumi/issues/8658
-
-
 onboarding_all:
   extends: .base_job_onboarding
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [nodejs,java, dotnet]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+       # - TEST_LIBRARY: [java]
+       #   SCENARIO: [ONBOARDING_CONTAINER]
   script:
-      - echo "PULUMI AVAILABLE PLUGINS:::::::::::::"
+      - echo "PULUMI AVAILABLE PLUGINS:"
       - pulumi plugin ls
       - pulumi plugin install resource command
-      - echo "AFTER INSTALL PULUMI AVAILABLE PLUGINS:::::::::::::"
+      - pulumi plugin install resource aws 5.41.0
+      - echo "AFTER INSTALL PULUMI PLUGINS::""
       - pulumi plugin ls
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO
+  artifacts:
+      when: always
+      paths:
+        - logs_onboarding_host/
+        - logs_onboarding_host_container/
+        - logs_onboarding_container/
 
+onboarding_python:
+  extends: .base_job_onboarding
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [ python]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+  script:
+      - echo "PULUMI AVAILABLE PLUGINS:"
+      - pulumi plugin ls
+      - pulumi plugin install resource command
+      - pulumi plugin install resource aws 5.41.0
+      - echo "AFTER INSTALL PULUMI PLUGINS::""
+      - pulumi plugin ls
+      - ./build.sh -i runner
+      #Disabled PRO until fix for ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
+      - ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
   artifacts:
       when: always
       paths:
