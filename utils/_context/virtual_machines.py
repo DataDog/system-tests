@@ -56,7 +56,6 @@ class TestedVirtualMachine:
     def start(self):
         logger.info("start...")
         self.configure()
-        logger.info(f"QUE PASAAAAAAA----{PulumiSSH.keypair_name} ----- ")
         # Startup VM and prepare connection
         server = aws.ec2.Instance(
             self.name,
