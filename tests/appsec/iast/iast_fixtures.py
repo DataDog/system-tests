@@ -1,4 +1,5 @@
 from utils import weblog, interfaces, context
+from utils.tools import logging
 
 
 def _get_expectation(d):
@@ -50,11 +51,55 @@ class SinkFixture:
         )
 
     def setup_secure(self):
-        self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
+        if self.secure_request is None:
+            self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
 
     def test_secure(self):
-        if self.secure_request is None:
-            interfaces.library.expect_no_vulnerabilities(self.secure_request)
+        interfaces.library.expect_no_vulnerabilities(self.secure_request)
+
+    def setup_telemetry_metric_instrumented_sink(self):
+        self.setup_insecure()
+
+    def test_telemetry_metric_instrumented_sink(self):
+        expected_namespace = "iast"
+        expected_metric = "instrumented.sink"
+        series = _find_telemetry_metric_series("generate-metrics", expected_namespace, expected_metric)
+        assert series, f"Got no series for metric {expected_metric}"
+        logging.debug("Series: %s", series)
+        expected_tag = f"vulnerability_type:{self.vulnerability_type}"
+        series = [s for s in series if expected_tag in s["tags"]]
+        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        for s in series:
+            assert s["_computed_namespace"] == expected_namespace
+            assert s["metric"] == expected_metric
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert set(s["tags"]) == {expected_tag}
+            assert len(s["points"]) == 1
+            p = s["points"][0]
+            assert p[1] >= 1
+
+    def setup_telemetry_metric_executed_sink(self):
+        self.setup_insecure()
+
+    def test_telemetry_metric_executed_sink(self):
+        expected_namespace = "iast"
+        expected_metric = "executed.sink"
+        series = _find_telemetry_metric_series("generate-metrics", expected_namespace, expected_metric)
+        assert series, f"Got no series for metric {expected_metric}"
+        logging.debug("Series: %s", series)
+        expected_tag = f"vulnerability_type:{self.vulnerability_type}"
+        series = [s for s in series if expected_tag in s["tags"]]
+        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        for s in series:
+            assert s["_computed_namespace"] == expected_namespace
+            assert s["metric"] == expected_metric
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert set(s["tags"]) == {expected_tag}
+            assert len(s["points"]) == 1
+            p = s["points"][0]
+            assert p[1] >= 1
 
 
 class SourceFixture:
@@ -75,3 +120,63 @@ class SourceFixture:
         interfaces.library.expect_iast_sources(
             self.request, source_count=1, origin=self.source_type, name=self.source_name, value=self.source_value,
         )
+
+    def setup_telemetry_metric_instrumented_source(self):
+        self.setup()
+
+    def test_telemetry_metric_instrumented_source(self):
+        expected_namespace = "iast"
+        expected_metric = "instrumented.source"
+        series = _find_telemetry_metric_series("generate-metrics", expected_namespace, expected_metric)
+        assert series, f"Got no series for metric {expected_metric}"
+        logging.debug("Series: %s", series)
+        expected_tag = f"source_type:{self.source_type}"
+        series = [s for s in series if expected_tag in s["tags"]]
+        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        for s in series:
+            assert s["_computed_namespace"] == expected_namespace
+            assert s["metric"] == expected_metric
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert set(s["tags"]) == {expected_tag}
+            assert len(s["points"]) == 1
+            p = s["points"][0]
+            assert p[1] >= 1
+
+    def setup_telemetry_metric_executed_source(self):
+        self.setup()
+
+    def test_telemetry_metric_executed_source(self):
+        expected_namespace = "iast"
+        expected_metric = "executed.source"
+        series = _find_telemetry_metric_series("generate-metrics", expected_namespace, expected_metric)
+        assert series, f"Got no series for metric {expected_metric}"
+        logging.debug("Series: %s", series)
+        expected_tag = f"source_type:{self.source_type}"
+        series = [s for s in series if expected_tag in s["tags"]]
+        assert series, f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        for s in series:
+            assert s["_computed_namespace"] == expected_namespace
+            assert s["metric"] == expected_metric
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert set(s["tags"]) == {expected_tag}
+            assert len(s["points"]) == 1
+            p = s["points"][0]
+            assert p[1] >= 1
+
+
+def _find_telemetry_metric_series(request_type, namespace, metric):
+    series = []
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") != request_type:
+            continue
+        fallback_namespace = content["payload"].get("namespace")
+        for serie in content["payload"]["series"]:
+            computed_namespace = serie.get("namespace", fallback_namespace)
+            # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+            serie["_computed_namespace"] = computed_namespace
+            if computed_namespace == namespace and serie["metric"] == metric:
+                series.append(serie)
+    return series

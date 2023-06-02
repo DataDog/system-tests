@@ -4,10 +4,15 @@
 
 from utils import weblog, context, coverage, interfaces, released, scenarios, missing_feature, bug
 
+import pytest
+
 
 # dd.rc.targets.key.id=TEST_KEY_ID
 # dd.rc.targets.key=1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c
 # private key: a78bd01afe0dc0baa6904e1b65448a6bbe160e07f7fc375c3bcb3ec08f008cc5
+
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
 @scenarios.appsec_runtime_activation
@@ -19,7 +24,6 @@ from utils import weblog, context, coverage, interfaces, released, scenarios, mi
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",
 )
 @bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_RuntimeActivation:

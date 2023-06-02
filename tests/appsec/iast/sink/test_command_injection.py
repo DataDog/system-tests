@@ -22,11 +22,11 @@ if context.library == "cpp":
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
 @released(nodejs={"express4": "3.11.0", "*": "?"})
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestCommandInjection:
     """Test command injection detection."""
@@ -37,7 +37,7 @@ class TestCommandInjection:
         insecure_endpoint="/iast/cmdi/test_insecure",
         secure_endpoint="/iast/cmdi/test_secure",
         data={"cmd": "ls"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.CmdExamples", "nodejs": "iast.js",},
+        location_map={"java": "com.datadoghq.system_tests.iast.utils.CmdExamples", "nodejs": "iast/index.js",},
     )
 
     def setup_insecure(self):
@@ -49,6 +49,22 @@ class TestCommandInjection:
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
-    @missing_feature(reason="Endpoint not implemented")
+    @missing_feature(library="nodejs", reason="Endpoint not implemented")
     def test_secure(self):
         self.sink_fixture.test_secure()
+
+    def setup_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.setup_telemetry_metric_instrumented_sink()
+
+    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    def test_telemetry_metric_instrumented_sink(self):
+        self.sink_fixture.test_telemetry_metric_instrumented_sink()
+
+    def setup_telemetry_metric_executed_sink(self):
+        self.sink_fixture.setup_telemetry_metric_executed_sink()
+
+    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+    def test_telemetry_metric_executed_sink(self):
+        self.sink_fixture.test_telemetry_metric_executed_sink()

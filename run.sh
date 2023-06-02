@@ -75,6 +75,11 @@ TRACER_ESSENTIAL_SCENARIOS=(
     INTEGRATIONS
 )
 
+ONBOARDING_SCENARIOS=(
+    ONBOARDING_HOST
+    ONBOARDING_HOST_CONTAINER
+)
+
 readonly SCENARIO=${1:-}
 
 if [[ $SCENARIO == "TRACER_RELEASE_SCENARIOS" ]]; then
@@ -92,12 +97,16 @@ elif [[ $SCENARIO == "REMOTE_CONFIG_SCENARIOS" ]]; then
 elif [[ $SCENARIO == "TELEMETRY_SCENARIOS" ]]; then
     for scenario in "${TELEMETRY_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
 
+elif [[ $SCENARIO == "ONBOARDING_SCENARIOS" ]]; then
+    for scenario in "${ONBOARDING_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
 elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
     # If the first argument is a list of capital letters, then we consider it's a scenario name
     # and we add the -S option, telling pytest that's a scenario name
-    pytest -S $1 ${@:2}
+    #We remove the warning from the output until the protobuf bug is fixed and we can upgrade the dependencies to the latest version of pulumi
+    pytest -p no:warnings -S $1 ${@:2}
 
 else
     # otherwise, a simple proxy to pytest
-    pytest $@
+    pytest -p no:warnings $@
 fi

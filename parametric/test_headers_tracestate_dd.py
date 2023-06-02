@@ -2,8 +2,8 @@ from typing import Any
 
 import pytest
 
-from parametric.spec.tracecontext import get_tracecontext
-from parametric.utils.headers import make_single_request_and_get_inject_headers
+from utils.parametric.spec.tracecontext import get_tracecontext
+from utils.parametric.headers import make_single_request_and_get_inject_headers
 
 parametrize = pytest.mark.parametrize
 
@@ -427,7 +427,12 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
             val = tag[index:]
 
             assert key.startswith("_dd.p.")
-            assert "t." + key[6:] + val.replace("=", ":") in dd_items4
+
+            # adding "t.tid" to "tracestate" header is redundant,
+            # but if it is present, assert the value matches "_dd.p.tid".
+            assert (key == "_dd.p.tid" and "t.tid" not in dd_items4) or (
+                "t." + key[6:] + val.replace("=", ":") in dd_items4
+            )
 
 
 @temporary_enable_propagationstyle_default()

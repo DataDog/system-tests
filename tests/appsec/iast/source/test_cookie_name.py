@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released
+from utils import context, coverage, released, bug
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -20,6 +20,7 @@ if context.library == "cpp":
         "spring-boot-wildfly": "1.5.0",
         "spring-boot-undertow": "1.5.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
@@ -41,3 +42,17 @@ class TestCookieName:
 
     def test_source_reported(self):
         self.source_fixture.test()
+
+    def setup_telemetry_metric_instrumented_source(self):
+        self.source_fixture.setup_telemetry_metric_instrumented_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_telemetry_metric_instrumented_source(self):
+        self.source_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_telemetry_metric_executed_source(self):
+        self.source_fixture.setup_telemetry_metric_executed_source()
+
+    @bug(library="java", reason="Not working as expected")
+    def test_telemetry_metric_executed_source(self):
+        self.source_fixture.test_telemetry_metric_executed_source()

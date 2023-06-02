@@ -1,8 +1,20 @@
-from utils import scenarios, released, weblog, interfaces, missing_feature, context
+import pytest
+from utils import context, interfaces, missing_feature, released, scenarios, weblog
+
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 
-@released(java="1.6.0", dotnet="2.26.0", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?", cpp="?")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@released(
+    java="1.6.0",
+    dotnet="2.26.0",
+    golang="?",
+    nodejs="3.19.0",
+    php_appsec="0.7.0",
+    python={"django-poc": "1.12", "flask-poc": "1.12", "*": "?"},
+    ruby="?",
+    cpp="?",
+)
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_custom_rules
 class Test_Exclusions:

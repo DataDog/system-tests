@@ -127,7 +127,7 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
 </string>
 ```
 
-## \[GET, POST, OPTIONS\] /set_tag/%s/%d
+## \[GET, POST, OPTIONS\] /tag_value/%s/%d
 
 This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path. 
 
@@ -147,7 +147,7 @@ Value tagged
 
 Example :
 ```
-/set_tag/tainted_value/418?Content-Language=fr&custom_field=myvalue
+/tag_value/tainted_value/418?Content-Language=fr&custom_field=myvalue
 ```
 must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with reponse headers populated with `Content-Language=fr` and `custom_field=myvalue`.
 

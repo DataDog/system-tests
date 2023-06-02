@@ -20,11 +20,12 @@ if context.library == "cpp":
         "spring-boot-wildfly": "1.7.0",
         "spring-boot-undertow": "1.7.0",
         "vertx3": "1.12.0",
+        "akka-http": "1.12.0",
         "*": "?",
     }
 )
-@released(nodejs="?")
-class TestBody:
+@released(nodejs={"express4": "3.19.0", "*": "?"})
+class TestRequestBody:
     """Verify that request json body is tainted"""
 
     source_fixture = SourceFixture(
@@ -41,3 +42,17 @@ class TestBody:
 
     def test_source_reported(self):
         self.source_fixture.test()
+
+    def setup_telemetry_metric_instrumented_source(self):
+        self.source_fixture.setup_telemetry_metric_instrumented_source()
+
+    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_telemetry_metric_instrumented_source(self):
+        self.source_fixture.test_telemetry_metric_instrumented_source()
+
+    def setup_telemetry_metric_executed_source(self):
+        self.source_fixture.setup_telemetry_metric_executed_source()
+
+    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    def test_telemetry_metric_executed_source(self):
+        self.source_fixture.test_telemetry_metric_executed_source()
