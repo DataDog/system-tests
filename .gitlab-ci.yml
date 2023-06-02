@@ -58,7 +58,7 @@ onboarding_all:
       - pulumi plugin ls
       - pulumi plugin install resource command
       - pulumi plugin install resource aws 5.41.0
-      - echo "AFTER INSTALL PULUMI PLUGINS::""
+      - echo "AFTER INSTALL PULUMI PLUGINS::"
       - pulumi plugin ls
       - ./build.sh -i runner
       - ./run.sh $SCENARIO
@@ -80,7 +80,7 @@ onboarding_python:
       - pulumi plugin ls
       - pulumi plugin install resource command
       - pulumi plugin install resource aws 5.41.0
-      - echo "AFTER INSTALL PULUMI PLUGINS::""
+      - echo "AFTER INSTALL PULUMI PLUGINS::"
       - pulumi plugin ls
       - ./build.sh -i runner
       #Disabled PRO until fix for ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
