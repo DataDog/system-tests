@@ -108,6 +108,20 @@ public class MyResource {
         return object.toString();
     }
 
+    @POST
+    @Path("/waf")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public String postWafBin(byte[] data) {
+        return "Hello world!";
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public String postWafString(String data) {
+        return data;
+    }
+
     @GET
     @Path("/status")
     public Response status(@QueryParam("code") Integer code) {

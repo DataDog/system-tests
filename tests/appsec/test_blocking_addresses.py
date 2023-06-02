@@ -533,7 +533,6 @@ class Test_Blocking_request_cookies:
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
-@bug(weblog_variant="jersey-grizzly2", reason="Blocking leads to error 500")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 class Test_Blocking_request_body:
@@ -559,11 +558,14 @@ class Test_Blocking_request_body:
         )
         self.rm_req_nonblock3 = weblog.post("/waf", data={"good": "value"})
 
+    @bug(
+        context.weblog_variant in ("jersey-grizzly2", "resteasy-netty3"),
+        reason="Blocks on text/plain if parsed to a String",
+    )
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
-            # Some frameworks will correctly bark 415 at invalid urlencoded-data
-            assert response.status_code in (200, 415)
+            assert response.status_code == 200
         assert self.rm_req_nonblock3.status_code == 200
 
     def setup_blocking_before(self):
