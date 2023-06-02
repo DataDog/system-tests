@@ -553,20 +553,26 @@ class Test_Blocking_request_body:
         self.rm_req_nonblock1 = weblog.post(
             "/waf", data=b'\x00{"value3": "bsldhkuqwgervf"}\xFF', headers={"content-type": "application/octet-stream"}
         )
-        self.rm_req_nonblock2 = weblog.post(
+        self.rm_req_nonblock2 = weblog.post("/waf", data={"good": "value"})
+
+    def test_non_blocking(self):
+        """Test if requests that should not be blocked are not blocked"""
+        assert self.rm_req_nonblock1.status_code == 200
+        assert self.rm_req_nonblock2.status_code == 200
+
+    def setup_non_blocking_plain_text(self):
+        self.rm_req_nonblock_plain_text = weblog.post(
             "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"}
         )
-        self.rm_req_nonblock3 = weblog.post("/waf", data={"good": "value"})
 
-    @bug(
+    @irrelevant(
         context.weblog_variant in ("jersey-grizzly2", "resteasy-netty3"),
         reason="Blocks on text/plain if parsed to a String",
     )
-    def test_non_blocking(self):
-        """Test if requests that should not be blocked are not blocked"""
-        for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
-            assert response.status_code == 200
-        assert self.rm_req_nonblock3.status_code == 200
+    def test_non_blocking_plain_text(self):
+        # TODO: This test is pending a better definition of when text/plain is considered parsed body,
+        # which depends on application logic.
+        assert self.rm_req_nonblock_plain_text.status_code == 200
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data={"good": "value"})
