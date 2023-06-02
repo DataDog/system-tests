@@ -34,4 +34,4 @@ class PulumiSSH(object):
                 opts=pulumi.ResourceOptions(parent=ssh_key),
             )
             PulumiSSH.key_name = aws_key.key_name
-            PulumiSSH.aws_key_resource = pulumi.ResourceOptions(depends_on=[PulumiSSH.aws_key])
+            PulumiSSH.aws_key_resource = pulumi.ResourceOptions(depends_on=[aws_key])
