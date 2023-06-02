@@ -425,6 +425,8 @@ def test_w3c_128_bit_propagation_tid_consistent(test_agent, test_library):
 
 @pytest.mark.skip_library("ruby", "not implemented")
 @pytest.mark.skip_library("nodejs", "not implemented")
+@pytest.mark.skip_library("dotnet", "not implemented")
+@pytest.mark.skip_library("java", "not implemented")
 @pytest.mark.skip_library("php", "not implemented")
 @pytest.mark.skip_library("python", "not implemented")
 @pytest.mark.skip_library("python_http", "not implemented")
