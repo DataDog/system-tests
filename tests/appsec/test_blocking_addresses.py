@@ -254,12 +254,17 @@ class Test_Blocking_request_uri:
 
     def setup_non_blocking(self):
         self.rm_req_nonblock1 = weblog.get("/waf/legit")
-        self.rm_req_nonblock2 = weblog.get("/waf/http")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         assert self.rm_req_nonblock1.status_code == 200
-        assert self.rm_req_nonblock2.status_code == 200
+
+    def setup_test_blocking_uri_raw(self):
+        self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
+
+    def test_test_blocking_uri_raw(self):
+        interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
+        assert self.rm_req_uri_raw.status_code == 403
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
