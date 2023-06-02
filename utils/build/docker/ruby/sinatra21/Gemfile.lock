@@ -14,7 +14,7 @@ GEM
       ffi (~> 1.0)
     method_source (1.0.0)
     msgpack (1.4.4)
-    mustermann (1.1.1)
+    mustermann (2.0.2)
       ruby2_keywords (~> 0.0.1)
     nio4r (2.5.8)
     pry (0.14.1)
@@ -22,18 +22,18 @@ GEM
       method_source (~> 1.0)
     puma (5.6.1)
       nio4r (~> 2.0)
-    rack (2.2.3)
+    rack (2.2.7)
     rack-contrib (2.3.0)
       rack (~> 2.0)
-    rack-protection (2.1.0)
+    rack-protection (2.2.3)
       rack
     ruby2_keywords (0.0.5)
-    sinatra (2.1.0)
-      mustermann (~> 1.0)
+    sinatra (2.2.3)
+      mustermann (~> 2.0)
       rack (~> 2.2)
-      rack-protection (= 2.1.0)
+      rack-protection (= 2.2.3)
       tilt (~> 2.0)
-    tilt (2.0.10)
+    tilt (2.1.0)
 
 PLATFORMS
   aarch64-linux
@@ -44,7 +44,7 @@ DEPENDENCIES
   pry
   puma
   rack-contrib
-  sinatra (~> 2.1.0)
+  sinatra (~> 2.2.3)
 
 BUNDLED WITH
    2.3.3
