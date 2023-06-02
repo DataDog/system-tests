@@ -398,7 +398,7 @@
                 "address": "server.request.uri.raw"
               }
             ],
-            "regex": "^http"
+            "regex": "^/waf/uri_raw_should_not_include_scheme_domain_and_port$"
           },
           "operator": "match_regex"
         }
