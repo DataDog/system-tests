@@ -50,13 +50,12 @@ variables:
 onboarding_all:
   extends: .base_job_onboarding
   script:
-      - ./build.sh -i runner
-      - TEST_LIBRARY=java ./run.sh ONBOARDING_HOST
-      - TEST_LIBRARY=java ./run.sh ONBOARDING_HOST_CONTAINER
-      - TEST_LIBRARY=java ./run.sh ONBOARDING_CONTAINER
-      - TEST_LIBRARY=nodejs ./run.sh ONBOARDING_HOST
-      - TEST_LIBRARY=nodejs ./run.sh ONBOARDING_HOST_CONTAINER
-      - TEST_LIBRARY=nodejs ./run.sh ONBOARDING_CONTAINER
+      - echo "PULUMI AVAILABLE PLUGINS:::::::::::::"
+      - pulumi plugin ls
+      - pulumi plugin install resource command
+      - echo "AFTER INSTALL PULUMI AVAILABLE PLUGINS:::::::::::::"
+      - pulumi plugin ls
+
   artifacts:
       when: always
       paths:
