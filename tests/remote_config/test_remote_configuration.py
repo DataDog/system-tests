@@ -266,12 +266,9 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
                 and str(context.library) < "python@1.14.0rc2"
                 and context.weblog_variant != "uwsgi-poc"
             ):
-                logger.info(f"python_request_number request number {self.python_request_number}. {context.library}")
-                logger.info(f"context.library conds {context.library == 'python'}. {context.library < 'python@1.14.0rc2'}")
                 if self.python_request_number % 2 == 0:
                     self.request_number += 1
             else:
-                logger.info(f"request_number {self.python_request_number}. {context.library}")
                 self.request_number += 1
 
             return False
