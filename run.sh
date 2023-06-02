@@ -100,7 +100,8 @@ elif [[ $SCENARIO == "ONBOARDING_SCENARIOS" ]]; then
     for scenario in "${ONBOARDING_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
 
 elif [[ $SCENARIO == "APPSEC_IP_BLOCKING_MAXED" ]] || [[ $SCENARIO == "APPSEC_IP_BLOCKING" ]]; then
-    pytest -S "${APPSEC_SCENARIOS[9]}";
+    # Those scenario has been renamed. Keep the compatibility, waiting for other CI to update.
+    pytest -S APPSEC_BLOCKING_FULL_DENYLIST ${@:2};
 
 elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
     # If the first argument is a list of capital letters, then we consider it's a scenario name
