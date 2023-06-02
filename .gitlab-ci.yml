@@ -52,7 +52,7 @@ onboarding_nodejs:
   parallel:
       matrix:
         - TEST_LIBRARY: [nodejs]
-          SCENARIO: [ONBOARDING_HOST]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
        # - TEST_LIBRARY: [java]
        #   SCENARIO: [ONBOARDING_CONTAINER]
   script:

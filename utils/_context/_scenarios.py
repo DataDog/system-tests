@@ -9,6 +9,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+from utils.onboarding.pulumi_ssh import PulumiSSH
 from pulumi import automation as auto
 
 from utils._context.containers import (
@@ -718,7 +719,8 @@ class OnBoardingScenario(_Scenario):
 
     def _start_pulumi(self):
         def pulumi_start_program():
-
+            # Static loading of keypairs for ec2 machines
+            PulumiSSH.load()
             for provision_vm in self.provision_vms:
                 logger.info(f"Executing warmup {provision_vm.name}")
                 provision_vm.start()
