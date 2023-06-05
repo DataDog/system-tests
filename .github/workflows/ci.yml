@@ -33,7 +33,6 @@ jobs:
     - run: ./run.sh TEST_THE_TEST
 
   test-the-tests-main:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -409,7 +408,6 @@ jobs:
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
 
   test-the-tests-graalvm:
-    if: ${{ false }}  # disable for now
     runs-on:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
@@ -418,8 +416,6 @@ jobs:
     strategy:
       matrix:
         variant:
-        - library: java
-          weblog: spring-boot-native
         - library: java
           weblog: spring-boot-3-native
         version:
@@ -627,9 +623,8 @@ jobs:
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
 
   test-the-tests-open-telemetry:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
-    #if: github.event.action != 'opened' && contains(github.event.pull_request.labels.*.name, 'opentelemetry')
+    if: github.event.action != 'opened' && contains(github.event.pull_request.labels.*.name, 'opentelemetry')
     needs:
     - lint_and_test
     steps:
@@ -655,6 +650,28 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run OTEL_METRIC_E2E scenario
+      if: always() && steps.build.outcome == 'success'
+      run: ./run.sh OTEL_METRIC_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run OTEL_LOG_E2E scenario
+      if: always() && steps.build.outcome == 'success'
+      run: ./run.sh OTEL_LOG_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Compress logs
       if: always() && steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
@@ -666,12 +683,11 @@ jobs:
         path: artifact.tar.gz
 
   post_test-the-tests:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - test-the-tests-main
     - test-the-tests-graalvm
-    #if: always() && github.ref == 'refs/heads/main'
+    if: always() && github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -682,9 +698,8 @@ jobs:
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
 
   peformances:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
-    #if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
+    if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
     needs:
     - lint_and_test
     env:
@@ -704,9 +719,8 @@ jobs:
         python tests/perfs/process.py
 
   fuzzer:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
-    #if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
+    if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
     needs:
     - lint_and_test
     env:

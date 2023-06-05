@@ -17,7 +17,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   lints:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -25,7 +24,6 @@ jobs:
     - name: Run lints
       uses: ./.github/actions/lint_code
   parametric:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lints
@@ -64,7 +62,6 @@ jobs:
     - name: Run
       run: ./run.sh
   parametric_poc:
-        if: ${{ false }}  # disable for now
         runs-on: ubuntu-latest
         needs:
         - lints

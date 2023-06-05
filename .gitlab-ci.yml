@@ -1,7 +1,5 @@
-#image: tiangolo/docker-with-compose
-
 .base_job:
-  # image: $CI_IMAGE
+  image: tiangolo/docker-with-compose
   needs: []
   before_script:
     - apk add bash jq git unzip curl
@@ -48,7 +46,54 @@ variables:
         - logs_onboarding_host_container/
         - logs_onboarding_container/
 
-#Tested with parallel/matrix but flakyness arise. Seems related with: https://github.com/pulumi/pulumi/issues/8633 and https://github.com/pulumi/pulumi/issues/8658
+
+
+cross-components:
+  extends: .base_job
+  stage: test
+  tags: ["runner:docker"]
+  only:
+    - schedules
+  parallel:
+    matrix:
+      - TEST_LIBRARY: php
+        WEBLOG_VARIANT: apache-mod-8.0
+  script:
+    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
+    - ./build.sh
+    - ./run.sh
+    - ./run.sh SAMPLING
+  artifacts:
+    when: always
+    paths:
+      - binaries/
+      - logs/
+      - logs_sampling_rate/
+
+cross-component-agent:
+  extends: .base_job
+  stage: test
+  tags: ["runner:docker"]
+  only:
+    - schedules
+  parallel:
+    matrix:
+      - TEST_LIBRARY: php
+        WEBLOG_VARIANT: apache-mod-8.0
+  script:
+    - ./utils/scripts/load-binary.sh agent
+    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
+    - ./build.sh
+    - ./run.sh
+    - ./run.sh SAMPLING
+  artifacts:
+    when: always
+    paths:
+      - binaries/
+      - logs/
+      - logs_sampling_rate/
+
+
 onboarding_nodejs:
   extends: .base_job_onboarding
   parallel:
@@ -86,5 +131,5 @@ onboarding_dotnet:
           SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
   script:
       - ./build.sh -i runner
-      #Disabled Amazon linux until fix ISSUE 
+      #Disabled Amazon linux until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7440
       - ONBOARDING_FILTER_OS_DISTRO=deb ./run.sh $SCENARIO
