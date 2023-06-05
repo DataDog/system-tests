@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="3.11", golang="1.47.0")
+@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="3.11.0", golang="1.47.0")
 @released(
     java={
         "spring-boot": "0.110.0",
@@ -30,7 +30,7 @@ with open("tests/appsec/rc_expected_requests_block_ip_maxed_asm_data.json", enco
     context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
-@bug(context.library > "nodejs@3.16.0", reason="Under investigation")
+@bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
 @scenarios.appsec_ip_blocking_maxed
 class Test_AppSecIPBlockingMaxed:
@@ -52,7 +52,11 @@ class Test_AppSecIPBlockingMaxed:
             logger.info(f"validating rc request number {self.request_number}")
             rc_check_request(data, EXPECTED_REQUESTS[self.request_number], caching=True)
             self.python_request_number += 1
-            if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+            if (
+                context.library == "python"
+                and str(context.library) < "python@1.14.0rc2"
+                and context.weblog_variant != "uwsgi-poc"
+            ):
                 if self.python_request_number % 2 == 0:
                     self.request_number += 1
             else:
