@@ -98,6 +98,12 @@ public class Main {
                         ctx.response().setStatusCode(200).end(jsonObject.toString());
                     }
                 });
+        for (final String contentType : new String[]{ "text/plain", "application/octet-stream"}) {
+            router.post("/waf").consumes(contentType).handler(ctx -> {
+                var body = ctx.getBody();
+                ctx.response().setStatusCode(200).end(body.toString());
+            });
+        }
         router.get("/status")
                 .handler(ctx -> {
                     String codeString = ctx.request().getParam("code");
