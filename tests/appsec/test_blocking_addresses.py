@@ -234,7 +234,7 @@ class Test_Blocking_request_method:
     java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    python={"django-poc": "1.15", "flask-poc": "1.15", "*": "?"},
     ruby="?",
 )
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -262,7 +262,6 @@ class Test_Blocking_request_uri:
     def setup_test_blocking_uri_raw(self):
         self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
 
-    @bug(library="python", reason="python may include scheme, domain and port in uri.raw")
     def test_test_blocking_uri_raw(self):
         interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
         assert self.rm_req_uri_raw.status_code == 403
