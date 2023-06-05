@@ -260,12 +260,12 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
             rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
 
-            # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers).
-            #  It generates two payloads for each request number.
-            #  We're working to update this behavior in this propossal:
-            #  https://docs.google.com/document/d/1zeh7g_c_4Oj9EUuf8kQEW_qbZl9PCH4hJHiVYnoLy6I/edit
             self.python_request_number += 1
-            if context.library == "python" and context.weblog_variant != "uwsgi-poc":
+            if (
+                context.library == "python"
+                and str(context.library) < "python@1.14.0rc2"
+                and context.weblog_variant != "uwsgi-poc"
+            ):
                 if self.python_request_number % 2 == 0:
                     self.request_number += 1
             else:
