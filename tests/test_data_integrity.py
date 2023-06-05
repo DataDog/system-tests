@@ -69,7 +69,6 @@ class Test_TraceHeaders:
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
-    @scenarios.cgroup
     @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
     @missing_feature(context.library == "java" and context.weblog_variant != "spring-boot", reason="Missing endpoint")
     @missing_feature(context.library == "nodejs" and context.weblog_variant != "express4", reason="Missing endpoint")

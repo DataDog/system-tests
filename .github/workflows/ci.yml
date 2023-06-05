@@ -219,11 +219,6 @@ jobs:
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run CGROUP scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh CGROUP
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && matrix.variant.library != 'python' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
@@ -361,7 +356,6 @@ jobs:
       run: |
         ./run.sh DEFAULT --replay
         ./run.sh PROFILING --replay
-        ./run.sh CGROUP --replay
         # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
         ./run.sh INTEGRATIONS --replay
         ./run.sh APM_TRACING_E2E_OTEL --replay
@@ -466,11 +460,6 @@ jobs:
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run CGROUP scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh CGROUP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
