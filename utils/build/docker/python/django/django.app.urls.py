@@ -3,7 +3,7 @@ import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from django.db import connection
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from iast import (
@@ -192,6 +192,17 @@ def track_custom_event(request):
     return HttpResponse("OK")
 
 
+def read_file(request):
+
+    if "file" not in request.GET:
+        return HttpResponseBadRequest("Please provide a file parameter")
+
+    filename = request.GET["file"]
+
+    with open(filename, "r") as f:
+        return HttpResponse(f.read())
+
+
 VALUE_STORED = ""
 
 
@@ -237,4 +248,5 @@ urlpatterns = [
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
     path("custom_event", track_custom_event),
+    path("read_file", read_file),
 ]

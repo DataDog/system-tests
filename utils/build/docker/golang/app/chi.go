@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 
@@ -168,6 +169,18 @@ func main() {
 		parentSpan.Finish(tracer.FinishTime(time.Now().Add(duration * 2)))
 
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/read_file", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("file")
+		content, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+			return
+		}
+		w.Write([]byte(content))
 	})
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
