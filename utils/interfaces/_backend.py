@@ -117,7 +117,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
         data = self._wait_for_trace(
             rid=rid,
             trace_id=dd_trace_id,
-            retries=8,
+            retries=10,
             sleep_interval_multiplier=2.0,
             dd_api_key=dd_api_key,
             dd_app_key=dd_app_key,
@@ -181,7 +181,7 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         return self.rid_to_library_trace_ids[rid]
 
-    def _request(self, method, path, json_payload=None, dd_api_key=None, dd_app_key=None):
+    def _request(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
         if dd_api_key is None:
             dd_api_key = os.environ["DD_API_KEY"]
         if dd_app_key is None:
@@ -191,11 +191,18 @@ class _BackendInterfaceValidator(InterfaceValidator):
             "DD-APPLICATION-KEY": dd_app_key,
         }
 
-        r = requests.request(method, url=f"{self.dd_site_url}{path}", headers=headers, json=json_payload, timeout=10)
+        if host is None:
+            host = self.dd_site_url
+        r = requests.request(method, url=f"{host}{path}", headers=headers, json=json_payload, timeout=10)
 
+        if "?" in path:
+            path, query = path.split("?", 1)
+        else:
+            query = ""
         data = {
-            "host": self.dd_site_url,
+            "host": host,
             "path": path,
+            "query": query,
             "request": {"content": json_payload},
             "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers),},
             "log_filename": f"{self._log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
@@ -314,3 +321,81 @@ class _BackendInterfaceValidator(InterfaceValidator):
         }
 
         return self._request("POST", path, json_payload=request_data)
+
+    # Queries the backend metric timeseries API and returns the matched series.
+    def query_timeseries(
+        self,
+        rid: str,
+        start: int,
+        end: int,
+        metric: str,
+        dd_api_key=None,
+        dd_app_key=None,
+        retries=10,
+        sleep_interval_multiplier=2.0,
+        initial_delay_s=10.0,
+    ):
+        query = metric + "{rid:" + rid + "}"
+        path = f"/api/v1/query?from={start}&to={end}&query={query}"
+        sleep_interval_s = 1
+        current_retry = 1
+        # It takes very long for metric timeseries to be query-able.
+        time.sleep(initial_delay_s)
+        while current_retry <= retries:
+            logger.info(f"Retry {current_retry}")
+            current_retry += 1
+            data = self._request(
+                "GET", host=self._get_logs_metrics_api_host(), path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key
+            )
+            # We should retry fetching from the backend as long as the response is 404.
+            status_code = data["response"]["status_code"]
+            if status_code != 404 and status_code != 200:
+                raise ValueError(f"Backend did not provide metric: {data['path']}. Status is {status_code}.")
+            if status_code != 404:
+                resp_content = data["response"]["content"]
+                # There may be delay in metric query, retry when series are not present
+                if len(resp_content["series"]) > 0:
+                    return resp_content
+
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
+
+        raise Exception(
+            f"Backend did not provide metric series after {retries} retries: {data['path']}. Status is {status_code}."
+        )
+
+    # Queries the backend log search API and returns the log matching the given query.
+    def get_logs(
+        self, query: str, rid: str, dd_api_key=None, dd_app_key=None, retries=8, sleep_interval_multiplier=2.0
+    ):
+        path = f"/api/v2/logs/events?query={query}"
+        sleep_interval_s = 1
+        current_retry = 1
+        while current_retry <= retries:
+            logger.info(f"Retry {current_retry}")
+            current_retry += 1
+            data = self._request(
+                "GET", host=self._get_logs_metrics_api_host(), path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key
+            )
+            # We should retry fetching from the backend as long as the response is 404.
+            status_code = data["response"]["status_code"]
+            if status_code != 404 and status_code != 200:
+                raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
+            if status_code != 404:
+                logs = data["response"]["content"]["data"]
+                # Log search can sometimes return wrong results. Retry if expected log is not present.
+                for log in logs:
+                    if rid in log["attributes"]["message"]:
+                        return log
+
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
+
+        raise Exception(
+            f"Backend did not provide logs after {retries} retries: {data['path']}. Status is {status_code}."
+        )
+
+    @staticmethod
+    def _get_logs_metrics_api_host() -> str:
+        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        return f"https://api.{dd_site}"

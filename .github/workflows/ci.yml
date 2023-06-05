@@ -639,6 +639,28 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run OTEL_METRIC_E2E scenario
+      if: always() && steps.build.outcome == 'success'
+      run: ./run.sh OTEL_METRIC_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run OTEL_LOG_E2E scenario
+      if: always() && steps.build.outcome == 'success'
+      run: ./run.sh OTEL_LOG_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Compress logs
       if: always() && steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)

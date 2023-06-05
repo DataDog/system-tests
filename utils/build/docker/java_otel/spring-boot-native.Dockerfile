@@ -20,7 +20,7 @@ COPY ./utils/build/docker/java_otel/spring-boot-native/src ./src
 RUN /opt/apache-maven-3.8.6/bin/mvn clean package
 
 # Set up required args
-RUN echo "1.23.1" > SYSTEM_TESTS_LIBRARY_VERSION
+RUN echo "1.26.0" > SYSTEM_TESTS_LIBRARY_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
