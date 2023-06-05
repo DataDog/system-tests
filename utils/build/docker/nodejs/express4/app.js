@@ -7,6 +7,7 @@ const tracer = require("dd-trace").init({
 const app = require("express")();
 const { Kafka } = require("kafkajs")
 var axios = require('axios');
+const fs = require('fs');
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
@@ -195,6 +196,17 @@ app.all('/tag_value/:tag/:status', (req, res) => {
   }
 
   res.status(req.params.status || 200).send('Value tagged');
+});
+
+app.get('/read_file', (req, res) => {
+  const path = req.query['file'];
+  fs.readFile(path, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send("ko");
+    }
+    res.send(data);
+  });
 });
 
 require("./iast")(app, tracer);

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"os"
 
 	"github.com/gorilla/mux"
 
@@ -140,6 +141,18 @@ func main() {
 			name = q
 		}
 		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	m.HandleFunc("/read_file", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("file")
+		content, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+			return
+		}
+		w.Write([]byte(content))
 	})
 
 	initDatadog()
