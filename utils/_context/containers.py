@@ -243,7 +243,7 @@ class AgentContainer(TestedContainer):
             agent_host = os.environ["AGENT_HOST"]
         elif "DOCKER_HOST" in os.environ:
             agent_host = os.environ["DOCKER_HOST"]
-            agent_host = self.domain.replace("ssh://docker@", "")
+            agent_host = agent_host.replace("ssh://docker@", "")
         else:
             agent_host = "localhost"
 
