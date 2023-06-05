@@ -87,4 +87,4 @@ onboarding_dotnet:
   script:
       - ./build.sh -i runner
       #Disabled Amazon linux until fix ISSUE 
-      - ONBOARDING_FILTER_OS_DISTRO=rpm ./run.sh $SCENARIO
+      - ONBOARDING_FILTER_OS_DISTRO=deb ./run.sh $SCENARIO

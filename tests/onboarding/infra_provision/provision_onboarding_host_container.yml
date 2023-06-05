@@ -8,7 +8,7 @@ ami:
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux__
+  os_type: linux
   os_distro: deb
 
 - name: amazon-linux-x86
@@ -53,7 +53,7 @@ autoinjection:
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
           command: |    
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-java
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-java
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 
@@ -101,7 +101,7 @@ autoinjection:
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
           command: |
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-js
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-js
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 
@@ -149,7 +149,7 @@ autoinjection:
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
           command: |    
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64 datadog-apm-library-python
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-python
             dd-host-container-install
             sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 
@@ -200,10 +200,11 @@ autoinjection:
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
           command: |
-            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject-0.5~pipeline.15611679.beta.d1fdbb53-1.x86_64  datadog-apm-library-dotnet
-            dd-host-container-install
-            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+            #sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-dotnet
+            #dd-host-container-install
+            #sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
             sudo yum -y install git #we need to deploy weblog
+            echo "testing"
 
     - env: prod
       install: 
