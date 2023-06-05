@@ -12,7 +12,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="?", golang="1.47.0")
+@released(cpp="?", dotnet="2.16.0", php_appsec="0.7.0", python="1.10.0", ruby="?", nodejs="3.11.0", golang="1.47.0")
 @released(
     java={
         "spring-boot": "0.110.0",
@@ -32,6 +32,7 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
     context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
 @bug(context.weblog_variant == "uds-echo")
+@bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
 @scenarios.appsec_ip_blocking
 class Test_AppSecIPBlocking:
