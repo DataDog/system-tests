@@ -22,7 +22,6 @@ class PulumiSSH(object):
             logger.info("Using a existing key pair")
             PulumiSSH.keypair_name = user_provided_keyPairName
             PulumiSSH.private_key_pem = (lambda path: open(path).read())(user_provided_privateKeyPath)
-            PulumiSSH.aws_key_resource = pulumi.ResourceOptions(custom_timeouts=CustomTimeouts(create="20m"))
         else:
             logger.info("Creating new ssh key")
             key_name = "onboarding_test_key_name" + str(randint(0, 1000000))
@@ -35,6 +34,4 @@ class PulumiSSH(object):
                 opts=pulumi.ResourceOptions(parent=ssh_key),
             )
             PulumiSSH.keypair_name = aws_key.key_name
-            PulumiSSH.aws_key_resource = pulumi.ResourceOptions(
-                depends_on=[aws_key], custom_timeouts=CustomTimeouts(create="20m")
-            )
+            PulumiSSH.aws_key_resource = pulumi.ResourceOptions(depends_on=[aws_key])

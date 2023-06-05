@@ -200,11 +200,10 @@ autoinjection:
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
 
           command: |
-            #sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-dotnet
-            #dd-host-container-install
-            #sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+            sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-dotnet
+            dd-host-container-install
+            sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
             sudo yum -y install git #we need to deploy weblog
-            echo "testing"
 
     - env: prod
       install: 
