@@ -7,7 +7,7 @@ import time
 import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from utils._context.library_version import LibraryVersion
+from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 from pulumi import automation as auto
 
@@ -638,7 +638,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version if self.include_agent else None
+        return self.agent_container.agent_version if self.include_agent else Version("0.0.0", "agent")
 
     @property
     def weblog_variant(self):
@@ -952,6 +952,7 @@ class scenarios:
 
     # APM tracing end-to-end scenarios
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5)
+    apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", backend_interface_timeout=5)
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
@@ -962,6 +963,8 @@ class scenarios:
     )
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False)
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False)
 
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")
