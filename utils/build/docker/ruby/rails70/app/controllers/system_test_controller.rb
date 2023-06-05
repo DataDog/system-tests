@@ -120,4 +120,12 @@ class SystemTestController < ApplicationController
 
     render plain: 'Value tagged', status: status_code
   end
+
+  def users
+    user_id = request.params["user"]
+
+    Datadog::Kit::Identity.set_user(id: user_id)
+
+    render plain: 'Hello, user!'
+  end
 end

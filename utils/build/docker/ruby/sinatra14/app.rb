@@ -163,4 +163,12 @@ end
 
     'Value tagged'
   end
+
+  get '/users' do
+    user_id = request.params["user"]
+
+    Datadog::Kit::Identity.set_user(id: user_id)
+
+    'Hello, user!'
+  end
 end
