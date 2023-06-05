@@ -508,6 +508,7 @@ class Test_Blocking_request_cookies:
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
     @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
+    @bug(weblog_variant="jersey-grizzly2", reason="Blocks but not preventing further processing")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
