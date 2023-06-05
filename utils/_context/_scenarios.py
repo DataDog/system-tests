@@ -8,8 +8,7 @@ from pulumi import automation as auto
 import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
-from utils._context.library_version import LibraryVersion
+from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 
 from utils._context.containers import (
@@ -636,7 +635,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version if self.include_agent else None
+        return self.agent_container.agent_version if self.include_agent else Version("0.0.0", "agent")
 
     @property
     def weblog_variant(self):
@@ -1022,7 +1021,10 @@ class scenarios:
         doc="",
     )
 
+
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False)
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False)
 
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2"), doc=""
