@@ -141,3 +141,16 @@ onboarding_dotnet:
       - ./build.sh -i runner
       #Disabled Amazon linux until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7440
       - ONBOARDING_FILTER_OS_DISTRO=deb ./run.sh $SCENARIO
+
+
+onboarding_push_results_tests:
+  extends: .base_job_onboarding
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [nodejs]
+          SCENARIO: [ONBOARDING_HOST]
+  script:
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO
+      - mkdir system-tests-dashboard
+      - git clone git@gitlab.ddbuild.io:DataDog/system-tests-dashboard.git system-tests-dashboard
