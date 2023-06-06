@@ -847,14 +847,9 @@ class scenarios:
     # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
     # So, we set  DD_APPSEC_RULES to None to enable loading rules from remote config.
     # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
-    appsec_ip_blocking = EndToEndScenario(
-        "APPSEC_IP_BLOCKING",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA"},
-        weblog_env={"DD_APPSEC_RULES": None},
-    )
-    appsec_ip_blocking_maxed = EndToEndScenario(
-        "APPSEC_IP_BLOCKING_MAXED",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_IP_BLOCKING_MAXED"},
+    appsec_blocking_full_denylist = EndToEndScenario(
+        "APPSEC_BLOCKING_FULL_DENYLIST",
+        proxy_state={"mock_remote_config_backend": "APPSEC_BLOCKING_FULL_DENYLIST"},
         weblog_env={"DD_APPSEC_RULES": None},
     )
 
