@@ -35,7 +35,7 @@ class Test_BlockingAddresses:
     def setup_request_method(self):
         self.rm_req = weblog.request("OPTIONS")
 
-    @missing_feature(context.library == "ruby")
+    @missing_feature(context.library < "ruby@1.12.0")
     def test_request_method(self):
         """can block on server.request.method"""
 
@@ -187,7 +187,7 @@ def _assert_custom_event_tag_absence():
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.12.0",
 )
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_method:
@@ -235,7 +235,7 @@ class Test_Blocking_request_method:
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.15", "flask-poc": "1.15", "*": "?"},
-    ruby="?",
+    ruby="1.0.0",
 )
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_uri:
@@ -293,9 +293,10 @@ class Test_Blocking_request_uri:
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.13", "*": "?"},
-    ruby="?",
+    ruby="1.0.0",
 )
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+@irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -344,7 +345,7 @@ class Test_Blocking_request_path_params:
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.0.0",
 )
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_query:
@@ -398,7 +399,7 @@ class Test_Blocking_request_query:
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.0.0",
 )
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_headers:
@@ -452,7 +453,7 @@ class Test_Blocking_request_headers:
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.0.0",
 )
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_cookies:
@@ -506,7 +507,7 @@ class Test_Blocking_request_cookies:
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.0.0",
 )
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 class Test_Blocking_request_body:
@@ -563,7 +564,7 @@ class Test_Blocking_request_body:
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.10.0",
 )
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
@@ -598,7 +599,7 @@ class Test_Blocking_response_status:
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.0.0",
 )
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:
@@ -626,7 +627,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="?")
+@released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="1.0.0")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
