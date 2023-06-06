@@ -150,13 +150,13 @@ onboarding_push_results_tests:
         - TEST_LIBRARY: [nodejs]
           SCENARIO: [ONBOARDING_HOST]
   script:
-     # - ./build.sh -i runner
-     # - ./run.sh $SCENARIO
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO
       - mkdir system-tests-dashboard
       - git clone https://robertomonteromiguel:${GITHUB_TOKEN}@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
       - cd system-tests-dashboard
       - git checkout robertomonteromiguel/onboarding_tests_reports
-      - export SCENARIO_SUFIX=$(echo "$scenario" | tr '[:upper:]' '[:lower:]')
+      - export SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
       - mkdir -p reports/onboarding/$TEST_LIBRARY/$SCENARIO_SUFIX
       - echo "ls reports/onboarding/"
       - ls reports/onboarding/
