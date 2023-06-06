@@ -153,5 +153,9 @@ onboarding_push_results_tests:
      # - ./build.sh -i runner
      # - ./run.sh $SCENARIO
       - mkdir system-tests-dashboard
-      - git clone https://robertomonteromiguel:${GITHUB_TOKEN}@github.com/DataDog/system-tests-dashboard.git
+      - git clone https://robertomonteromiguel:${GITHUB_TOKEN}@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
+      - ls
+      - cd system-tests-dashboard
+      - ls
+      - git checkout robertomonteromiguel/onboarding_tests_reports
 
