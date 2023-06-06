@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"time"
+	"os"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -251,6 +252,18 @@ func main() {
 		parentSpan.End()
 
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/read_file", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("file")
+		content, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatalln(err)
+			w.WriteHeader(500)
+			return
+		}
+		w.Write([]byte(content))
 	})
 
 	initDatadog()

@@ -7,7 +7,7 @@ from tests.remote_config.test_remote_configuration import rc_check_request
 from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
 from utils.tools import logger
 
-with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") as f:
+with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8") as f:
     EXPECTED_REQUESTS = json.load(f)
 
 
@@ -16,10 +16,8 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 @released(
     java={
         "spring-boot": "0.110.0",
-        "uds-spring-boot": "0.110.0",
         "sprint-boot-jetty": "0.111.0",
         "spring-boot-undertow": "0.111.0",
-        "spring-boot-wildfly": "0.111.0",
         "spring-boot-openliberty": "0.115.0",
         "ratpack": "1.7.0",
         "jersey-grizzly2": "1.7.0",
@@ -34,9 +32,9 @@ with open("tests/appsec/rc_expected_requests_asm_data.json", encoding="utf-8") a
 @bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
-@scenarios.appsec_ip_blocking
-class Test_AppSecIPBlocking:
-    """A library should block requests from blocked IP addresses."""
+@scenarios.appsec_blocking_full_denylist
+class Test_AppSecIPBlockingFullDenylist:
+    """A library should block requests from up to 2500 different blocked IP addresses."""
 
     request_number = 0
     python_request_number = 0
@@ -68,7 +66,10 @@ class Test_AppSecIPBlocking:
 
     def setup_blocked_ips(self):
         NOT_BLOCKED_IP = "42.42.42.3"
-        BLOCKED_IPS = ["42.42.42.1", "42.42.42.2"]
+
+        # Generate the list of 10 * 125 = 1250 blocked ips that are found in the rc_mocked_responses_asm_data_full_denylist.json
+        # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
+        BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(10) for b in range(125)]
 
         def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":
@@ -84,7 +85,7 @@ class Test_AppSecIPBlocking:
                     config_states = data["request"]["content"]["client"]["state"]["config_states"]
 
                     for state in config_states:
-                        if state["id"] == "ASM_DATA-base":
+                        if state["id"] == "ASM_DATA-third":
                             return True
 
             return False
@@ -95,6 +96,19 @@ class Test_AppSecIPBlocking:
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
 
+    @released(
+        java={
+            "spring-boot": "0.111.0",
+            "spring-boot-jetty": "0.111.0",
+            "spring-boot-undertow": "0.111.0",
+            "spring-boot-openliberty": "0.115.0",
+            "ratpack": "1.7.0",
+            "jersey-grizzly2": "1.7.0",
+            "resteasy-netty3": "1.7.0",
+            "vertx3": "1.7.0",
+            "*": "?",
+        }
+    )
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

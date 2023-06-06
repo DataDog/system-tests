@@ -642,34 +642,6 @@ class OpenTelemetryScenario(_DockerScenario):
         return self.weblog_container.weblog_variant
 
 
-class CgroupScenario(EndToEndScenario):
-
-    # cgroup test
-    # require a dedicated warmup. Need to check the stability before
-    # merging it into the default scenario
-
-    def _get_warmups(self):
-        warmups = super()._get_warmups()
-        warmups.append(self._wait_for_weblog_cgroup_file)
-        return warmups
-
-    def _wait_for_weblog_cgroup_file(self):
-        max_attempts = 10  # each attempt = 1 second
-        attempt = 0
-
-        filename = f"{self.host_log_folder}/docker/weblog/logs/weblog.cgroup"
-        while attempt < max_attempts and not os.path.exists(filename):
-
-            logger.debug(f"{filename} is missing, wait")
-            time.sleep(1)
-            attempt += 1
-
-        if attempt == max_attempts:
-            pytest.exit("Failed to access cgroup file from weblog container", 1)
-
-        return True
-
-
 class PerformanceScenario(EndToEndScenario):
     def __init__(self, name, doc) -> None:
         super().__init__(name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy=False)
@@ -769,7 +741,6 @@ class scenarios:
         include_postgres_db=True,
         doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
     )
-    cgroup = CgroupScenario("CGROUP", doc="test cgroup data reporting. Must be merged inside default scenario")
     sleep = EndToEndScenario(
         "SLEEP",
         doc="Fake scenario that spawn tracer and agentm then sleep indefinitly. Help you to manually test container",
@@ -893,9 +864,10 @@ class scenarios:
         },
         doc="Enable Telemetry feature for WAF",
     )
-    appsec_ip_blocking = EndToEndScenario(
-        "APPSEC_IP_BLOCKING",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA"},
+
+    appsec_blocking_full_denylist = EndToEndScenario(
+        "APPSEC_BLOCKING_FULL_DENYLIST",
+        proxy_state={"mock_remote_config_backend": "APPSEC_BLOCKING_FULL_DENYLIST"},
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
@@ -905,12 +877,6 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-    )
-    appsec_ip_blocking_maxed = EndToEndScenario(
-        "APPSEC_IP_BLOCKING_MAXED",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_IP_BLOCKING_MAXED"},
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="",
     )
 
     appsec_request_blocking = EndToEndScenario(

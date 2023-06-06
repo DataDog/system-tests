@@ -26,8 +26,7 @@ APPSEC_SCENARIOS=(
     APPSEC_CUSTOM_OBFUSCATION
     APPSEC_RATE_LIMITER
     APPSEC_WAF_TELEMETRY
-    APPSEC_IP_BLOCKING
-    APPSEC_IP_BLOCKING_MAXED
+    APPSEC_BLOCKING_FULL_DENYLIST
     APPSEC_REQUEST_BLOCKING
     APPSEC_RUNTIME_ACTIVATION
 )
@@ -57,7 +56,6 @@ TRACER_RELEASE_SCENARIOS=(
     LIBRARY_CONF_CUSTOM_HEADERS_SHORT 
     LIBRARY_CONF_CUSTOM_HEADERS_LONG
     INTEGRATIONS
-    CGROUP
     APM_TRACING_E2E_SINGLE_SPAN
     APM_TRACING_E2E 
     APM_TRACING_E2E_OTEL
@@ -100,6 +98,10 @@ elif [[ $SCENARIO == "TELEMETRY_SCENARIOS" ]]; then
 
 elif [[ $SCENARIO == "ONBOARDING_SCENARIOS" ]]; then
     for scenario in "${ONBOARDING_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+
+elif [[ $SCENARIO == "APPSEC_IP_BLOCKING_MAXED" ]] || [[ $SCENARIO == "APPSEC_IP_BLOCKING" ]]; then
+    # Those scenario has been renamed. Keep the compatibility, waiting for other CI to update.
+    pytest -S APPSEC_BLOCKING_FULL_DENYLIST ${@:2};
 
 elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
     # If the first argument is a list of capital letters, then we consider it's a scenario name
