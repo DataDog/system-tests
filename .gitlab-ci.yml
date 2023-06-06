@@ -156,11 +156,14 @@ onboarding_push_results_tests:
       - git clone https://robertomonteromiguel:${GITHUB_TOKEN}@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
       - cd system-tests-dashboard
       - git checkout robertomonteromiguel/onboarding_tests_reports
-      - mkdir -p reports/onboarding/$TEST_LIBRARY/${scenario,,}
+      - export SCENARIO_SUFIX=$(echo "$scenario" | tr '[:upper:]' '[:lower:]')
+      - mkdir -p reports/onboarding/$TEST_LIBRARY/$SCENARIO_SUFIX
       - echo "ls reports/onboarding/"
       - ls reports/onboarding/
       - echo "other ls"
       - ls reports/onboarding/$TEST_LIBRARY/
-      - cop ../logs_${scenario,,}/report.json reports/onboarding/$TEST_LIBRARY/${scenario,,}/${scenario,,}.json
-      - echo "DONE"
+      - cp ../logs_${SCENARIO_SUFIX}/report.json reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/${SCENARIO_SUFIX}.json
+      - echo "DONE 0"
+      - ls reports/onboarding/$TEST_LIBRARY/$SCENARIO_SUFIX
+      - echo "DONE DONE!!!!!!!"
 
