@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"os"
 
 	"github.com/labstack/echo/v4"
 
@@ -136,6 +137,18 @@ func main() {
 		}
 		appsec.TrackCustomEvent(ctx.Request().Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 		return nil
+	})
+
+	r.GET("/read_file", func(ctx echo.Context) error {
+		path := ctx.QueryParam("file")
+		content, err := os.ReadFile(path)
+
+		if err != nil {
+			log.Fatalln(err)
+			return ctx.String(500, "KO")
+		}
+
+		return ctx.String(http.StatusOK, string(content))
 	})
 
 	initDatadog()
