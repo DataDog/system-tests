@@ -163,7 +163,9 @@ onboarding_push_results_tests:
       - echo "other ls"
       - ls reports/onboarding/$TEST_LIBRARY/
       - cp ../logs_${SCENARIO_SUFIX}/report.json reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/${SCENARIO_SUFIX}.json
-      - echo "DONE 0"
-      - ls reports/onboarding/$TEST_LIBRARY/$SCENARIO_SUFIX
-      - echo "DONE DONE!!!!!!!"
-
+      - cp ../logs_${SCENARIO_SUFIX}/pulumi_installed_versions.log reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/
+      - cp ../logs_${SCENARIO_SUFIX}/vms_desc.log reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/
+      - git add reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/
+      - git commit -m "add onboarding report"
+      - git push
+      - echo "DONE !!!"
