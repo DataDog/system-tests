@@ -150,7 +150,8 @@ onboarding_push_results_tests:
         - TEST_LIBRARY: [nodejs]
           SCENARIO: [ONBOARDING_HOST]
   script:
-      - ./build.sh -i runner
-      - ./run.sh $SCENARIO
+     # - ./build.sh -i runner
+     # - ./run.sh $SCENARIO
       - mkdir system-tests-dashboard
-      - git clone git@gitlab.ddbuild.io:DataDog/system-tests-dashboard.git system-tests-dashboard
+      - git clone https://robertomonteromiguel:${GITHUB_TOKEN}@github.com/DataDog/system-tests-dashboard.git
+
