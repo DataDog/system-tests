@@ -157,6 +157,10 @@ onboarding_push_results_tests:
       - cd system-tests-dashboard
       - git checkout robertomonteromiguel/onboarding_tests_reports
       - mkdir -p reports/onboarding/$TEST_LIBRARY/${scenario,,}
-      - copy ../logs_${scenario,,}/report.json reports/onboarding/$TEST_LIBRARY/${scenario,,}/${scenario,,}.json
+      - echo "ls reports/onboarding/"
+      - ls reports/onboarding/
+      - echo "other ls"
+      - ls reports/onboarding/$TEST_LIBRARY/
+      - cop ../logs_${scenario,,}/report.json reports/onboarding/$TEST_LIBRARY/${scenario,,}/${scenario,,}.json
       - echo "DONE"
 
