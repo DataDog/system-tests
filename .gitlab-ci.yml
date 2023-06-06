@@ -140,7 +140,7 @@ onboarding_dotnet:
   script:
       - ./build.sh -i runner
       #Disabled Amazon linux until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7440
-      - ONBOARDING_FILTER_OS_DISTRO=deb ./run.sh $SCENARIO
+      - ONBOARDING_FILTER_OS_DISTRO=deb ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
 
 
 onboarding_push_results_tests:
@@ -151,7 +151,7 @@ onboarding_push_results_tests:
           SCENARIO: [ONBOARDING_HOST]
   script:
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO
+      - ONBOARDING_FILTER_OS_DISTRO=rpm  ../run.sh $SCENARIO
       - mkdir system-tests-dashboard
       - git clone https://robertomonteromiguel:${GITHUB_TOKEN}@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
       - cd system-tests-dashboard
@@ -165,6 +165,8 @@ onboarding_push_results_tests:
       - cp ../logs_${SCENARIO_SUFIX}/report.json reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/${SCENARIO_SUFIX}.json
       - cp ../logs_${SCENARIO_SUFIX}/pulumi_installed_versions.log reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/
       - cp ../logs_${SCENARIO_SUFIX}/vms_desc.log reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/
+      - git config user.name robertomonteromiguel
+      - git config user.email roberto.montero@datadoghq.com
       - echo "git status before"
       - git status
       - git add reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/
