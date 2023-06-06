@@ -22,6 +22,9 @@ module Rails42
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
     config.active_record.raise_in_transactional_callbacks = true
+
+    # With Rails 4 there is an issue with the Rack::Lock middleware
+    # For more information check https://github.com/rails/rails/issues/20660
     config.middleware.delete Rack::Lock
   end
 end

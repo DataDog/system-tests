@@ -32,6 +32,10 @@ module Rails32
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
+    #
+    # With Rails 3 there is an issue with the Rack::Lock middleware
+    # To disable it we need to enable concurrency
+    # For more information check https://github.com/rails/rails/issues/20660
     config.allow_concurrency = true
 
     # Configure the default encoding used in templates for Ruby 1.9.

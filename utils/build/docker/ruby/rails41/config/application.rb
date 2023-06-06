@@ -20,6 +20,8 @@ module Rails41
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
     #
+    # With Rails 4 there is an issue with the Rack::Lock middleware
+    # For more information check https://github.com/rails/rails/issues/20660
     config.middleware.delete Rack::Lock
   end
 end
