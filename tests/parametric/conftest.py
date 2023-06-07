@@ -247,7 +247,7 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
         container_tag="java8-test-client",
         container_img=f"""
 # FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
-FROM maven:3-jdk-8
+FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
 # COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
 # COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
@@ -255,10 +255,10 @@ RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/Dat
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
-COPY {java_reldir}/run.sh .
 COPY {protofile} src/main/proto/
 COPY binaries /binaries
 RUN bash build.sh
+COPY {java_reldir}/run.sh .
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,

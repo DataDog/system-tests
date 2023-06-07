@@ -1,6 +1,6 @@
 
 # FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
-FROM maven:3-jdk-8
+FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
 # COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
 # COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
@@ -8,7 +8,7 @@ RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/Dat
 COPY utils/build/docker/java/parametric/src src
 COPY utils/build/docker/java/parametric/build.sh .
 COPY utils/build/docker/java/parametric/pom.xml .
-COPY utils/build/docker/java/parametric/run.sh .
 COPY utils/parametric/protos/apm_test_client.proto src/main/proto/
 COPY binaries /binaries
 RUN bash build.sh
+COPY utils/build/docker/java/parametric/run.sh .
