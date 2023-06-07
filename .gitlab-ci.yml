@@ -1,7 +1,5 @@
-image: tiangolo/docker-with-compose
-
 .base_job:
-  # image: $CI_IMAGE
+  image: tiangolo/docker-with-compose
   needs: []
   before_script:
     - apk add bash jq git unzip curl
@@ -10,6 +8,45 @@ image: tiangolo/docker-with-compose
     - export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd_api_key --with-decryption --query "Parameter.Value" --out text)
     - export GL_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gl_token --with-decryption --query "Parameter.Value" --out text)
     - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
+variables:
+  # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
+   KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
+   TEST: 1
+
+.base_job_onboarding:
+  only:
+      - web
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  before_script:
+    - apt-get update
+    - apt-get install -y jq
+    # Setup AWS Credentials
+    - mkdir -p ~/.aws
+    - aws ssm get-parameter --region us-east-1 --name ci.system-tests.agent-qa-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
+    - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+    - export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+    - export ONBOARDING_AWS_INFRA_SUBNET_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-subnet-id --with-decryption --query "Parameter.Value" --out text)
+    - export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.aws-infra-securiy-groups-id --with-decryption --query "Parameter.Value" --out text)
+    - export PULUMI_CONFIG_PASSPHRASE=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.pulumi-config-passphrase --with-decryption --query "Parameter.Value" --out text) 
+    #Install plugins for PULUMI you need connect to gh. Sometimes this problem arises: GitHub rate limit exceeded
+    - export GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
+    #Avoid dockerhub rate limits
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass --with-decryption --query "Parameter.Value" --out text) 
+    - export AWS_PROFILE=agent-qa-ci
+    - pulumi login --local #"s3://dd-pulumi-state?region=us-east-1&awssdk=v2&profile=$AWS_PROFILE"
+    - pulumi plugin install resource command
+    - pulumi plugin install resource aws 5.41.0
+
+  artifacts:
+      when: always
+      paths:
+        - logs_onboarding_host/
+        - logs_onboarding_host_container/
+        - logs_onboarding_container/
+
+
 
 cross-components:
   extends: .base_job
@@ -55,3 +92,44 @@ cross-component-agent:
       - binaries/
       - logs/
       - logs_sampling_rate/
+
+
+onboarding_nodejs:
+  extends: .base_job_onboarding
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [nodejs]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+  script:
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO
+onboarding_java:
+  extends: .base_job_onboarding
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [java]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+  script:
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO
+onboarding_python:
+  extends: .base_job_onboarding
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [ python]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+  script:
+      - ./build.sh -i runner
+      #Disabled PRO until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
+      - ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
+
+onboarding_dotnet:
+  extends: .base_job_onboarding
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [ dotnet]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+  script:
+      - ./build.sh -i runner
+      #Disabled Amazon linux until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7440
+      - ONBOARDING_FILTER_OS_DISTRO=deb ./run.sh $SCENARIO
