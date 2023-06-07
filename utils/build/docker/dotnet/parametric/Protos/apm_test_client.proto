@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "com.datadoghq.client";
+option csharp_namespace = "ApmTestClient";
 
 // Interface of APM clients to be used for shared testing.
 service APMClient {
