@@ -69,9 +69,9 @@ class Test_AppSecIPBlockingFullDenylist:
     def setup_blocked_ips(self):
         NOT_BLOCKED_IP = "42.42.42.3"
 
-        # Generate the list of 10 * 125 = 1250 blocked ips that are found in the rc_mocked_responses_asm_data_full_denylist.json
+        # Generate the list of 100 * 125 = 12500 blocked ips that are found in the rc_mocked_responses_asm_data_full_denylist.json
         # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
-        BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(10) for b in range(125)]
+        BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(100) for b in range(125)]
 
         def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":

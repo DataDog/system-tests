@@ -18,6 +18,7 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
 class Test_UserBlocking_FullDenylist:
     NOT_BLOCKED_USER = "regularUser"
     remote_config_is_sent = False
+    NUM_OF_BLOCKED_USERS = 2500
 
     def _remote_config_asm_payload(self, data):
         if data["path"] == "/v0.7/config":
@@ -57,7 +58,7 @@ class Test_UserBlocking_FullDenylist:
         interfaces.library.wait_for(self._remote_config_asm_payload, timeout=30)
         interfaces.library.wait_for(self._remote_config_is_applied, timeout=30)
 
-        self.r_blocked_requests = [weblog.get("/users", params={"user": i}) for i in range(1250)]
+        self.r_blocked_requests = [weblog.get("/users", params={"user": i}) for i in range(NUM_OF_BLOCKED_USERS)]
 
     def test_blocking_test(self):
         """Test with a denylisted user"""
