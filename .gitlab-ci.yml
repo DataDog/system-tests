@@ -133,6 +133,19 @@ onboarding_python:
       - ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
       - sh utils/scripts/push_reports_dashboard.sh
 
+onboarding_dotnet_host:
+  extends: .base_job_onboarding
+  only:
+    - web
+  parallel:
+      matrix:
+        - TEST_LIBRARY: [ dotnet]
+          SCENARIO: [ONBOARDING_HOST]
+  script:
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO
+      - sh utils/scripts/push_reports_dashboard.sh
+
 onboarding_dotnet:
   extends: .base_job_onboarding
   only:
@@ -140,7 +153,7 @@ onboarding_dotnet:
   parallel:
       matrix:
         - TEST_LIBRARY: [ dotnet]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
+          SCENARIO: [ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER]
   script:
       - ./build.sh -i runner
       #Disabled Amazon linux until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7440

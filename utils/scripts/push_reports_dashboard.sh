@@ -8,6 +8,7 @@ mkdir system-tests-dashboard
 git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/DataDog/system-tests-dashboard.git system-tests-dashboard
 cd system-tests-dashboard
 git checkout robertomonteromiguel/onboarding_tests_reports
+git pull
 export SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
 mkdir -p reports/onboarding/$TEST_LIBRARY/$SCENARIO_SUFIX
 cp ../logs_${SCENARIO_SUFIX}/report.json reports/onboarding/$TEST_LIBRARY/${SCENARIO_SUFIX}/${SCENARIO_SUFIX}.json
