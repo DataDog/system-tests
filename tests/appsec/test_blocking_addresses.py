@@ -1,8 +1,12 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import pytest
 
 from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
+
+if context.weblog_variant == "akka-http":
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 # Compatibility matrix for blocking across Java variants, to be reused for multiple test suites.
 # Body and path parameters not included, since they were added later.
@@ -11,6 +15,7 @@ _released_java_blocking = released(
         "spring-boot": "0.110.0",
         "spring-boot-jetty": "0.111.0",
         "spring-boot-undertow": "0.111.0",
+        "spring-boot-wildfly": "0.111.0",
         # Supported since 0.111.0 but bugged in <0.115.0.
         "spring-boot-openliberty": "0.115.0",
         "ratpack": "1.6.0",
@@ -113,15 +118,9 @@ class Test_BlockingAddresses:
     @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
     @missing_feature(library="nodejs", reason="Not supported yet")
     @missing_feature(
-        context.weblog_variant
-        in (
-            "spring-boot-jetty",
-            "spring-boot-undertow",
-            "spring-boot-openliberty",
-            "jersey-grizzly2",
-            "resteasy-netty3",
-            "ratpack",
-        ),
+        context.library < "java@1.16.0"
+        and context.weblog_variant
+        in ("spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly", "spring-boot-openliberty",),
         reason="Blocking on multipart not supported yet",
     )
     @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
@@ -519,6 +518,10 @@ class Test_Blocking_request_cookies:
         self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
+    @bug(
+        context.weblog_variant == "jersey-grizzly2" and context.library < "java@1.16.0",
+        reason="Blocks but not preventing further processing",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -609,7 +612,6 @@ class Test_Blocking_request_body:
     cpp="?",
     dotnet="?",
     golang="?",
-    java="?",
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
@@ -624,6 +626,7 @@ class Test_Blocking_response_status:
     def setup_blocking(self):
         self.rm_req_block = {status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)}
 
+    @missing_feature(library="java", reason="Can't block on response status")
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         for code, response in self.rm_req_block.items():
@@ -646,7 +649,6 @@ class Test_Blocking_response_status:
     cpp="?",
     dotnet="?",
     golang="?",
-    java="?",
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
@@ -662,6 +664,7 @@ class Test_Blocking_response_headers:
         self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=en-us")
         self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
 
+    @missing_feature(library="java", reason="Can't block on response headers")
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):

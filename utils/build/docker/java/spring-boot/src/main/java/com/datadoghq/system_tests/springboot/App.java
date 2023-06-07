@@ -1,7 +1,9 @@
 package com.datadoghq.system_tests.springboot;
 
-import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
+import static com.mongodb.client.model.Filters.eq;
+
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
+import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -9,15 +11,38 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.Trace;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import ognl.Ognl;
 import ognl.OgnlException;
 import org.bson.Document;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,34 +60,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
-
 import org.springframework.web.servlet.view.RedirectView;
-
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.mongodb.client.model.Filters.eq;
 
 
 @RestController
@@ -109,6 +107,12 @@ public class App {
     @PostMapping(value = "/waf",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     String postWafUrlencoded(@RequestParam MultiValueMap<String, String> body) {
+        return body.toString();
+    }
+
+    @PostMapping(value = "/waf",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    String postWafMultipart(@RequestParam MultiValueMap<String, String> body) {
         return body.toString();
     }
 
@@ -162,6 +166,17 @@ public class App {
                 .trackCustomEvent(eventName, METADATA);
 
         return "ok";
+    }
+
+    @GetMapping("/users")
+    String users(@RequestParam String user, @RequestHeader("user-agent") String userAgent) {
+        // associate this span with the request
+        Span span = GlobalTracer.get().activeSpan();
+        span.setTag("http.request.headers.user-agent", userAgent);
+
+        ((MutableSpan)span).getLocalRootSpan().setTag("usr.id", user);
+        Blocking.forUser(user).blockIfMatch();
+        return user;
     }
 
     @JacksonXmlRootElement

@@ -1,26 +1,23 @@
 package com.datadoghq.ratpack;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
-import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
-import ratpack.http.HttpMethod;
-import ratpack.http.Response;
-import ratpack.server.RatpackServer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.InetAddress;
-import java.util.logging.LogManager;
-
-import java.util.HashMap;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.LogManager;
+import ratpack.http.HttpMethod;
+import ratpack.http.Response;
+import ratpack.server.RatpackServer;
 import ratpack.util.MultiValueMap;
 
 /**
@@ -165,6 +162,19 @@ public class Main {
                                     .trackCustomEvent(
                                             qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                             ctx.getResponse().send("ok");
+                        })
+                        .get("users", ctx -> {
+                            Span span = GlobalTracer.get().activeSpan();
+                            span.setTag("http.request.headers.user-agent",
+                                    ctx.getRequest().getHeaders().get("user-agent"));
+                            String user = ctx.getRequest().getQueryParams().get("user");
+                            if (user == null) {
+                                ctx.getResponse().status(400).send("text/plain", "<no user param>");
+                            } else {
+                                ((MutableSpan)span).getLocalRootSpan().setTag("usr.id", user);
+                                Blocking.forUser(user).blockIfMatch();
+                                ctx.getResponse().send("text/plain", user);
+                            }
                         })
                 )
         );

@@ -2,6 +2,20 @@ package com.datadoghq.resteasy;
 
 import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.logging.LogManager;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.naming.directory.InitialDirContext;
+import javax.sql.DataSource;
+import javax.ws.rs.core.Application;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -10,27 +24,9 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.resteasy.core.SynchronousDispatcher;
 import org.jboss.resteasy.logging.Logger;
 import org.jboss.resteasy.plugins.server.netty.HttpServerPipelineFactory;
-import org.jboss.resteasy.plugins.server.netty.HttpsServerPipelineFactory;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.plugins.server.netty.RequestDispatcher;
 import org.jboss.resteasy.spi.ResteasyDeployment;
-
-import javax.naming.directory.InitialDirContext;
-import javax.sql.DataSource;
-import javax.ws.rs.core.Application;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.logging.LogManager;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Main {
     static {

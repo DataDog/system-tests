@@ -1,21 +1,26 @@
 package com.datadoghq.system_tests.springboot;
 
-import com.datadoghq.system_tests.iast.utils.*;
+import com.datadoghq.system_tests.iast.utils.CmdExamples;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import com.datadoghq.system_tests.iast.utils.LDAPExamples;
+import com.datadoghq.system_tests.iast.utils.PathExamples;
+import com.datadoghq.system_tests.iast.utils.SqlExamples;
+import com.datadoghq.system_tests.iast.utils.SsrfExamples;
+import com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import java.io.IOException;
+import java.util.Hashtable;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.util.Hashtable;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/iast")

@@ -62,7 +62,7 @@ JSON_CONTENT_TYPES = {
     java={
         "spring-boot": "0.112.0",
         "uds-spring-boot": "0.112.0",
-        "sprint-boot-jetty": "0.112.0",
+        "spring-boot-jetty": "0.112.0",
         "spring-boot-undertow": "0.112.0",
         "spring-boot-wildfly": "0.112.0",
         "spring-boot-openliberty": "1.3.0",
@@ -70,6 +70,7 @@ JSON_CONTENT_TYPES = {
         "jersey-grizzly2": "1.7.0",
         "resteasy-netty3": "1.7.0",
         "vertx3": "1.7.0",
+        "vertx4": "1.13.0",
         "*": "?",
     }
 )

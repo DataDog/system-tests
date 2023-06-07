@@ -1,5 +1,7 @@
 package com.datadoghq.ratpack;
 
+import static ratpack.jackson.Jackson.fromJson;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -16,14 +18,12 @@ import ratpack.parse.Parse;
 import ratpack.parse.ParserSupport;
 import ratpack.registry.Registry;
 
-import static ratpack.jackson.Jackson.fromJson;
-
 public class WafPostHandler implements Handler {
 
     @Override
     public void handle(Context ctx) throws Exception {
         MediaType contentType = ctx.getRequest().getContentType();
-        if (contentType.isForm()) {
+        if (contentType.isForm() || contentType.getType().equals("multipart/form-data")) {
             ctx.insert(FormHandler.INSTANCE);
         } else if (contentType.isJson()) {
             ctx.insert(JsonHandler.INSTANCE);

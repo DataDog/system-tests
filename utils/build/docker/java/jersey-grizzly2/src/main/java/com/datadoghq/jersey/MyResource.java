@@ -1,11 +1,21 @@
 package com.datadoghq.jersey;
 
-import com.datadoghq.system_tests.iast.utils.*;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import jakarta.json.JsonValue;
-import jakarta.ws.rs.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.PathSegment;
@@ -13,12 +23,14 @@ import jakarta.ws.rs.core.Response;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
-
-import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+
 
 @SuppressWarnings("Convert2MethodRef")
 @Path("/")
@@ -96,6 +108,17 @@ public class MyResource {
 
     @POST
     @Path("/waf")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public String postWafMultipart(FormDataMultiPart formData) {
+        Map<String, List<String>> data = formData.getFields().entrySet().stream().collect(Collectors.toMap(
+                e -> e.getKey(),
+                e -> e.getValue().stream().map(x -> x.getValue()).collect(Collectors.toList())
+        ));
+        return data.toString();
+    }
+
+    @POST
+    @Path("/waf")
     @Consumes(MediaType.APPLICATION_JSON)
     public String postWafJson(JsonValue node) {
         return node.toString();
@@ -162,6 +185,20 @@ public class MyResource {
                 .trackCustomEvent(eventName, METADATA);
 
         return "ok";
+    }
+
+    @GET
+    @Path("/users")
+    public Response users(@NotNull @QueryParam("user") String user,
+                          @HeaderParam("user-agent") String userAgent) {
+
+        // associate this span with the request
+        Span span = GlobalTracer.get().activeSpan();
+        span.setTag("http.request.headers.user-agent", userAgent);
+
+        ((MutableSpan)span).getLocalRootSpan().setTag("usr.id", user);
+        Blocking.forUser(user).blockIfMatch();
+        return Response.status(200).entity(user).build();
     }
 
     @XmlRootElement(name = "string")

@@ -1,10 +1,24 @@
 package com.datadoghq.resteasy;
 
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
-
-import javax.ws.rs.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
@@ -13,16 +27,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 
-import java.util.HashMap;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Map;
-import java.util.List;
-
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
-
     @GET
     public String hello() {
         var tracer = GlobalTracer.get();
@@ -88,6 +95,13 @@ public class MyResource {
     @Path("/waf")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String postWafUrlencoded(MultivaluedMap<String, String> form) {
+        return form.toString();
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public String postWafMultipart(Map<String, String> form) {
         return form.toString();
     }
 
@@ -159,6 +173,20 @@ public class MyResource {
                 .trackCustomEvent(eventName, METADATA);
 
         return "ok";
+    }
+
+    @GET
+    @Path("/users")
+    public Response users(@QueryParam("user") String user,
+                          @HeaderParam("user-agent") String userAgent) {
+
+        // associate this span with the request
+        Span span = GlobalTracer.get().activeSpan();
+        span.setTag("http.request.headers.user-agent", userAgent);
+
+        ((MutableSpan)span).getLocalRootSpan().setTag("usr.id", user);
+        Blocking.forUser(user).blockIfMatch();
+        return Response.status(200).entity(user).build();
     }
 
     @XmlRootElement(name = "string")

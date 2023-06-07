@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -12,19 +13,17 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-
-import javax.naming.directory.InitialDirContext;
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.stream.Stream;
+import javax.naming.directory.InitialDirContext;
+import javax.sql.DataSource;
 
 public class Main {
     static {
@@ -146,6 +145,23 @@ public class Main {
                     datadog.trace.api.GlobalTracer.getEventTracker()
                             .trackCustomEvent(event_name, METADATA);
                     ctx.response().end("ok");
+                });
+        router.get("/users")
+                .handler(ctx -> {
+                    // associate this span with the request
+                    String userAgent = ctx.request().getHeader("user-agent");
+                    Span span = GlobalTracer.get().activeSpan();
+                    span.setTag("http.request.headers.user-agent", userAgent);
+
+                    String user = ctx.request().getParam("user");
+                    if (user == null) {
+                        ctx.response().setStatusCode(400).end("<no user param>");
+                        return;
+                    }
+
+                    ((MutableSpan)span).getLocalRootSpan().setTag("usr.id", user);
+                    Blocking.forUser(user).blockIfMatch();
+                    ctx.response().end(user);
                 });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
