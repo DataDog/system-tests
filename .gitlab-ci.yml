@@ -98,7 +98,7 @@ cross-component-agent:
 onboarding_nodejs:
   extends: .base_job_onboarding
   only:
-    - never
+    - web
   parallel:
       matrix:
         - TEST_LIBRARY: [nodejs]
@@ -110,7 +110,7 @@ onboarding_nodejs:
 onboarding_java:
   extends: .base_job_onboarding
   only:
-    - never
+    - web
   parallel:
       matrix:
         - TEST_LIBRARY: [java]
