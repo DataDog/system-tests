@@ -63,7 +63,7 @@ class SystemTestController < ApplicationController
       Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
     )
 
-    render plain: 'Hello, world!'
+    render text: 'Hello, world!'
   end
 
   def user_login_failure_event
@@ -71,13 +71,13 @@ class SystemTestController < ApplicationController
       Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: "value0", metadata1: "value1"
     )
 
-    render plain: 'Hello, world!'
+    render text: 'Hello, world!'
   end
 
   def custom_event
     Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace,  metadata0: "value0", metadata1: "value1")
 
-    render plain: 'Hello, world!'
+    render text: 'Hello, world!'
   end
 
   def tag_value
@@ -92,6 +92,6 @@ class SystemTestController < ApplicationController
       response.headers[key] = value
     end
 
-    render plain: 'Value tagged', status: status_code
+    render text: 'Value tagged', status: status_code
   end
 end

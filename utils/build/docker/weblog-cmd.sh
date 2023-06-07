@@ -15,9 +15,4 @@ echo "Configuration script executed from: ${PWD}"
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
 
-if [ ${SYSTEMTESTS_SCENARIO:-DEFAULT} = "CGROUP" ]; then
-    echo "Get cgroup info"
-    cat /proc/self/cgroup > /var/log/system-tests/weblog.cgroup
-fi
-
 ./app.sh

@@ -8,10 +8,10 @@
     - export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd_api_key --with-decryption --query "Parameter.Value" --out text)
     - export GL_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gl_token --with-decryption --query "Parameter.Value" --out text)
     - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
-variables:
-  # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-   KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
-   TEST: 1
+  variables:
+    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
+    TEST: 1
 
 .base_job_onboarding:
   only:
@@ -48,8 +48,6 @@ variables:
         - logs_onboarding_host/
         - logs_onboarding_host_container/
         - logs_onboarding_container/
-
-
 
 cross-components:
   extends: .base_job
@@ -108,6 +106,7 @@ onboarding_nodejs:
   script:
       - ./build.sh -i runner
       - ./run.sh $SCENARIO
+      - sh utils/scripts/push_reports_dashboard.sh
 onboarding_java:
   extends: .base_job_onboarding
   only:
@@ -119,10 +118,11 @@ onboarding_java:
   script:
       - ./build.sh -i runner
       - ./run.sh $SCENARIO
+      - sh utils/scripts/push_reports_dashboard.sh
 onboarding_python:
   extends: .base_job_onboarding
   only:
-    - never
+    - web
   parallel:
       matrix:
         - TEST_LIBRARY: [ python]
@@ -131,11 +131,12 @@ onboarding_python:
       - ./build.sh -i runner
       #Disabled PRO until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
       - ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
+      - sh utils/scripts/push_reports_dashboard.sh
 
 onboarding_dotnet:
   extends: .base_job_onboarding
   only:
-    - never
+    - web
   parallel:
       matrix:
         - TEST_LIBRARY: [ dotnet]
@@ -144,15 +145,4 @@ onboarding_dotnet:
       - ./build.sh -i runner
       #Disabled Amazon linux until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7440
       - ONBOARDING_FILTER_OS_DISTRO=deb ./run.sh $SCENARIO
-
-
-onboarding_push_results_tests:
-  extends: .base_job_onboarding
-  parallel:
-      matrix:
-        - TEST_LIBRARY: [nodejs]
-          SCENARIO: [ONBOARDING_HOST]
-  script:
-      - ./build.sh -i runner
-      - ONBOARDING_FILTER_OS_DISTRO=rpm ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
       - sh utils/scripts/push_reports_dashboard.sh
