@@ -39,6 +39,7 @@ class ProvisionMatrix:
                                 prepare_repos_install,
                                 prepare_docker_install,
                                 installation_check_data,
+                                self.provision_filter.provision_scenario.lower(),
                             )
 
 
@@ -205,7 +206,6 @@ class ProvisionParser:
 
     def _load_provision(self):
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
-        self.provision_filter.provision_scenario
         # Open the file and load the file
         provision_file = (
             "tests/onboarding/infra_provision/provision_" + self.provision_filter.provision_scenario.lower() + ".yml"
