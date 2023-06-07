@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature
+from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, bug
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -56,7 +56,7 @@ JSON_CONTENT_TYPES = {
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.11.0",
 )
 @released(
     java={
@@ -87,6 +87,7 @@ class Test_Blocking:
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library == "python", reason="Bug, minify and remove new line characters")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
@@ -122,6 +123,7 @@ class Test_Blocking:
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
@@ -135,6 +137,7 @@ class Test_Blocking:
         )
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
@@ -151,6 +154,7 @@ class Test_Blocking:
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
     @missing_feature(context.library == "python", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -167,6 +171,7 @@ class Test_Blocking:
         )
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
@@ -185,6 +190,7 @@ class Test_Blocking:
     @missing_feature(context.library == "php", reason="Support for quality not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
+    @missing_feature(context.library == "ruby", reason="Support for quality not implemented")
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
