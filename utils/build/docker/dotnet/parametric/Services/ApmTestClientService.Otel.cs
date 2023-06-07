@@ -131,6 +131,7 @@ public partial class ApmTestClientService
                 TraceId = activity.TraceId.ToString(),
                 SpanId = activity.SpanId.ToString(),
 
+                // TODO:
                 // TraceFlags = null,
                 // TraceState = null,
                 // Remote = false
@@ -165,6 +166,7 @@ public partial class ApmTestClientService
 
         foreach ((string key, ListVal value) in request.Attributes.KeyVals)
         {
+            // tags only support one value, so we only use the first one
             AttrVal? first = value.Val.FirstOrDefault();
 
             if (first != null)
@@ -172,6 +174,7 @@ public partial class ApmTestClientService
                 switch (first.ValCase)
                 {
                     case AttrVal.ValOneofCase.None:
+                        // no value to set
                         break;
                     case AttrVal.ValOneofCase.BoolVal:
                         activity.SetTag(key, first.BoolVal);
