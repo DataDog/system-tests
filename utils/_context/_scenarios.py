@@ -233,10 +233,10 @@ class _DockerScenario(_Scenario):
 
         if include_mysql_db:
             self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
-       
+
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
-           
+
     def configure(self, replay):
         super().configure(replay)
 

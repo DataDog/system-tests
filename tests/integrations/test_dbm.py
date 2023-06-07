@@ -26,7 +26,7 @@ class Test_Dbm:
             self.requests = [
                 weblog.get("/dbm", params={"integration": "npgsql"}),
                 weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "sqlclient"})
+                weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
 
     def test_trace_payload(self):
