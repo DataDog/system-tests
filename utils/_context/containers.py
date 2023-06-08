@@ -30,6 +30,7 @@ def create_network():
     logger.debug(f"Create network {_NETWORK_NAME}")
     _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
+
 class _HealthCheck:
     def __init__(self, url, retries, interval=1, start_period=0):
         self.url = url
@@ -60,6 +61,7 @@ class _HealthCheck:
             f"interval={self.interval}, start_period={self.start_period})"
         )
 
+
 class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
@@ -74,7 +76,7 @@ class TestedContainer:
         **kwargs,
     ) -> None:
         self.name = name
-        self.host_project_dir = os.environ.get('HOST_PROJECT_DIR', '.')
+        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
@@ -266,7 +268,7 @@ class ImageInfo:
 
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, proxy_state) -> None:
-        self.host_project_dir = os.environ.get('HOST_PROJECT_DIR', '.')
+        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
 
         super().__init__(
             image_name="system_tests/proxy",
@@ -280,7 +282,10 @@ class ProxyContainer(TestedContainer):
             },
             working_dir="/app",
             volumes={
-                f"{self.host_project_dir}/{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                f"{self.host_project_dir}/{host_log_folder}/interfaces/": {
+                    "bind": f"/app/{host_log_folder}/interfaces",
+                    "mode": "rw",
+                },
             },
             ports={"11111/tcp": ("127.0.0.1", 11111)},
             command="python utils/proxy/core.py",
@@ -362,7 +367,7 @@ class WeblogContainer(TestedContainer):
 
         from utils import weblog
 
-        self.host_project_dir = os.environ.get('HOST_PROJECT_DIR', '.')
+        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
 
         super().__init__(
             image_name="system_tests/weblog",
@@ -370,7 +375,10 @@ class WeblogContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment=environment or {},
             volumes={
-                f"{self.host_project_dir}/{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw"},
+                f"{self.host_project_dir}/{host_log_folder}/docker/weblog/logs/": {
+                    "bind": "/var/log/system-tests",
+                    "mode": "rw",
+                },
             },
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally

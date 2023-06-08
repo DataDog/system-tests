@@ -192,7 +192,7 @@ class _Weblog:
         return self.responses[self.current_nodeid].pop(0)
 
     def warmup_request(self, domain=None, port=None, timeout=10):
-        requests.get(weblog._get_url('/', domain, port), timeout=timeout)
+        requests.get(weblog._get_url("/", domain, port), timeout=timeout)
 
     def _get_url(self, path, domain=None, port=None, query=None):
         """Return a query with the passed host"""
