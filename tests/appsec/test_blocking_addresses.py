@@ -297,7 +297,6 @@ class Test_Blocking_request_uri:
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -408,7 +407,6 @@ class Test_Blocking_request_query:
         self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -465,7 +463,6 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -522,8 +519,6 @@ class Test_Blocking_request_cookies:
         self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="NPE when blocking on /tag_value")
-    @bug(weblog_variant="jersey-grizzly2", reason="Blocks but not preventing further processing")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
