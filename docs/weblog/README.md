@@ -126,6 +126,33 @@ In particular, it accepts and parse JSON and XML content. A typical XML content 
     content
 </string>
 ```
+
+## \[GET, POST, OPTIONS\] /tag_value/%s/%d
+
+This endpoint must accept two required parameters (the first is a string, the second is an integer) and are part of the URL path. 
+
+This endpoint must accept all query parameters and all content types.
+
+The first path parameter must be written in the span with the tag `appsec.events.system_tests_appsec_event.value` and the parameter as value.
+
+The second path parameter must be used as a response status code.
+
+All query parameters (key, value) must be used as (key, value) in the response headers.
+
+The following text should be written to the body of the response:
+
+```
+Value tagged
+```
+
+Example :
+```
+/tag_value/tainted_value/418?Content-Language=fr&custom_field=myvalue
+```
+must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with reponse headers populated with `Content-Language=fr` and `custom_field=myvalue`.
+
+The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on reponse status code or response header content.
+
 ## `GET /iast/insecure_hashing/deduplicate`
 
 Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hashing) in a loop.
@@ -165,12 +192,14 @@ is executed successfully.
 Expected query params:
   - `integration`: Name of DBM supported library
     - Possible Values: `psycopg`
-  - `cursor_method`: Method used to execute database statements
+  - `operation`: Method used to execute database statements
     - Possible Values: `execute`, `executemany`
 
 
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
+  - mysql (ADO.NET driver for MySQL)
+  - npgsql (ADO.NET Data Provider for PostgreSQL)
 
 ## GET /dsm
 
@@ -241,3 +270,19 @@ The following query parameters are optional:
 - `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
 
 This endpoint is used for the Single Spans tests (`test_single_span.py`).
+
+## GET /e2e_otel_span
+
+This endpoint will create two spans, a parent span (which is a root-span), and a child span.
+The spans created are not sub-spans of the main root span automatically created by system-tests, but 
+they will have the same `user-agent` containing the request ID in order to allow assertions on them.
+
+The following query parameters are required:
+- `parentName`: The name of the parent span (root-span).
+- `childName`: The name of the child span (the parent of this span is the root-span identified by `parentName`).
+
+The following query parameters are optional:
+- `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
+
+This endpoint is used for the OTel API tests (`test_otel.py`). In the body of the endpoint, multiple properties are set on the span to verify that the API works correctly.
+To read more about the specific values being used, check `test_otel.py` for up-to-date information.

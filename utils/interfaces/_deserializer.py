@@ -7,6 +7,18 @@ import ast
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
 from google.protobuf.json_format import MessageToDict
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
+    ExportTraceServiceRequest,
+    ExportTraceServiceResponse,
+)
+from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import (
+    ExportMetricsServiceRequest,
+    ExportMetricsServiceResponse,
+)
+from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
+    ExportLogsServiceRequest,
+    ExportLogsServiceResponse,
+)
 from utils.interfaces._decoders.protobuf_schemas import TracePayload
 from utils.tools import logger
 
@@ -106,8 +118,25 @@ def deserialize_http_message(path, message, data, interface, key):
 
         return result
 
-    if content_type == "application/x-protobuf" and path == "/api/v0.2/traces":
-        return MessageToDict(TracePayload.FromString(data))
+    if content_type == "application/x-protobuf":
+        # Raw data can be either a str like "b'\n\x\...'" or bytes
+        content = eval(data) if isinstance(data, str) else data
+        assert isinstance(content, bytes)
+        dd_protocol = get_header_value("dd-protocol", message["headers"])
+        if dd_protocol == "otlp" and "traces" in path:
+            return MessageToDict(ExportTraceServiceRequest.FromString(content))
+        if dd_protocol == "otlp" and "metrics" in path:
+            return MessageToDict(ExportMetricsServiceRequest.FromString(content))
+        if dd_protocol == "otlp" and "logs" in path:
+            return MessageToDict(ExportLogsServiceRequest.FromString(content))
+        if path == "/v1/traces":
+            return MessageToDict(ExportTraceServiceResponse.FromString(content))
+        if path == "/v1/metrics":
+            return MessageToDict(ExportMetricsServiceResponse.FromString(content))
+        if path == "/v1/logs":
+            return MessageToDict(ExportLogsServiceResponse.FromString(content))
+        if path == "/api/v0.2/traces":
+            return MessageToDict(TracePayload.FromString(content))
 
     if content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
         return []

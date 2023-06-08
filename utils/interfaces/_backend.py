@@ -27,9 +27,9 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
     @property
     def _log_folder(self):
-        from utils._context._scenarios import current_scenario
+        from utils import context
 
-        return f"{current_scenario.host_log_folder}/interfaces/backend"
+        return f"{context.scenario.host_log_folder}/interfaces/backend"
 
     @staticmethod
     def _get_dd_site_api_host():
@@ -59,6 +59,13 @@ class _BackendInterfaceValidator(InterfaceValidator):
     # Called by the test setup to make sure the interface is ready.
     def wait(self, timeout):
         super().wait(timeout, stop_accepting_data=False)
+        self._init_rid_to_library_trace_ids()
+
+    def load_data_from_logs(self, folder_path):
+        super().load_data_from_logs(folder_path)
+        self._init_rid_to_library_trace_ids()
+
+    def _init_rid_to_library_trace_ids(self):
 
         from utils.interfaces import library
 
@@ -94,6 +101,28 @@ class _BackendInterfaceValidator(InterfaceValidator):
             len(traces) >= min_traces_len
         ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
         return traces
+
+    def assert_otlp_trace_exist(
+        self, request: requests.Request, dd_trace_id: str, dd_api_key: str = None, dd_app_key: str = None
+    ) -> dict:
+        """Attempts to fetch from the backend, ALL the traces that the OpenTelemetry SDKs sent to Datadog
+        during the execution of the given request.
+
+        The assosiation of the traces with a request is done through propagating the request ID (inside user agent)
+        on all the submitted traces. This is done automatically, unless you create root spans manually, which in
+        that case you need to manually propagate the user agent to the new spans.
+        """
+
+        rid = get_rid_from_request(request)
+        data = self._wait_for_trace(
+            rid=rid,
+            trace_id=dd_trace_id,
+            retries=10,
+            sleep_interval_multiplier=2.0,
+            dd_api_key=dd_api_key,
+            dd_app_key=dd_app_key,
+        )
+        return data["response"]["content"]["trace"]
 
     def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
         """Attempts to fetch single span events using the given `query_filter` as part of the search query.
@@ -152,18 +181,28 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         return self.rid_to_library_trace_ids[rid]
 
-    def _request(self, method, path, json_payload=None):
-
+    def _request(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
+        if dd_api_key is None:
+            dd_api_key = os.environ["DD_API_KEY"]
+        if dd_app_key is None:
+            dd_app_key = os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"])
         headers = {
-            "DD-API-KEY": os.environ["DD_API_KEY"],
-            "DD-APPLICATION-KEY": os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"]),
+            "DD-API-KEY": dd_api_key,
+            "DD-APPLICATION-KEY": dd_app_key,
         }
 
-        r = requests.request(method, url=f"{self.dd_site_url}{path}", headers=headers, json=json_payload, timeout=10)
+        if host is None:
+            host = self.dd_site_url
+        r = requests.request(method, url=f"{host}{path}", headers=headers, json=json_payload, timeout=10)
 
+        if "?" in path:
+            path, query = path.split("?", 1)
+        else:
+            query = ""
         data = {
-            "host": self.dd_site_url,
+            "host": host,
             "path": path,
+            "query": query,
             "request": {"content": json_payload},
             "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers),},
             "log_filename": f"{self._log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
@@ -180,21 +219,21 @@ class _BackendInterfaceValidator(InterfaceValidator):
 
         return data
 
-    def _get_backend_trace_data(self, rid, trace_id):
+    def _get_backend_trace_data(self, rid, trace_id, dd_api_key=None, dd_app_key=None):
         path = f"/api/v1/trace/{trace_id}"
-        result = self._request("GET", path=path)
+        result = self._request("GET", path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key)
         result["rid"] = rid
 
         return result
 
-    def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier):
+    def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier, dd_api_key=None, dd_app_key=None):
         sleep_interval_s = 1
         current_retry = 1
         while current_retry <= retries:
             logger.info(f"Retry {current_retry}")
             current_retry += 1
 
-            data = self._get_backend_trace_data(rid, trace_id)
+            data = self._get_backend_trace_data(rid, trace_id, dd_api_key, dd_app_key)
 
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
@@ -282,3 +321,81 @@ class _BackendInterfaceValidator(InterfaceValidator):
         }
 
         return self._request("POST", path, json_payload=request_data)
+
+    # Queries the backend metric timeseries API and returns the matched series.
+    def query_timeseries(
+        self,
+        rid: str,
+        start: int,
+        end: int,
+        metric: str,
+        dd_api_key=None,
+        dd_app_key=None,
+        retries=10,
+        sleep_interval_multiplier=2.0,
+        initial_delay_s=10.0,
+    ):
+        query = metric + "{rid:" + rid + "}"
+        path = f"/api/v1/query?from={start}&to={end}&query={query}"
+        sleep_interval_s = 1
+        current_retry = 1
+        # It takes very long for metric timeseries to be query-able.
+        time.sleep(initial_delay_s)
+        while current_retry <= retries:
+            logger.info(f"Retry {current_retry}")
+            current_retry += 1
+            data = self._request(
+                "GET", host=self._get_logs_metrics_api_host(), path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key
+            )
+            # We should retry fetching from the backend as long as the response is 404.
+            status_code = data["response"]["status_code"]
+            if status_code != 404 and status_code != 200:
+                raise ValueError(f"Backend did not provide metric: {data['path']}. Status is {status_code}.")
+            if status_code != 404:
+                resp_content = data["response"]["content"]
+                # There may be delay in metric query, retry when series are not present
+                if len(resp_content["series"]) > 0:
+                    return resp_content
+
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
+
+        raise Exception(
+            f"Backend did not provide metric series after {retries} retries: {data['path']}. Status is {status_code}."
+        )
+
+    # Queries the backend log search API and returns the log matching the given query.
+    def get_logs(
+        self, query: str, rid: str, dd_api_key=None, dd_app_key=None, retries=8, sleep_interval_multiplier=2.0
+    ):
+        path = f"/api/v2/logs/events?query={query}"
+        sleep_interval_s = 1
+        current_retry = 1
+        while current_retry <= retries:
+            logger.info(f"Retry {current_retry}")
+            current_retry += 1
+            data = self._request(
+                "GET", host=self._get_logs_metrics_api_host(), path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key
+            )
+            # We should retry fetching from the backend as long as the response is 404.
+            status_code = data["response"]["status_code"]
+            if status_code != 404 and status_code != 200:
+                raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
+            if status_code != 404:
+                logs = data["response"]["content"]["data"]
+                # Log search can sometimes return wrong results. Retry if expected log is not present.
+                for log in logs:
+                    if rid in log["attributes"]["message"]:
+                        return log
+
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
+
+        raise Exception(
+            f"Backend did not provide logs after {retries} retries: {data['path']}. Status is {status_code}."
+        )
+
+    @staticmethod
+    def _get_logs_metrics_api_host() -> str:
+        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        return f"https://api.{dd_site}"

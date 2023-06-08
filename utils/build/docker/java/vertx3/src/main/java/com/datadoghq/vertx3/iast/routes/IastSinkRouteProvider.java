@@ -28,6 +28,8 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         final LDAPExamples ldap = new LDAPExamples(ldapContext);
         final PathExamples path = new PathExamples();
         final SqlExamples sql = new SqlExamples(dataSource);
+        final SsrfExamples ssrf = new SsrfExamples();
+        final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
         router.route("/iast/*").handler(BodyHandler.create());
 
@@ -78,5 +80,14 @@ public class IastSinkRouteProvider implements Consumer<Router> {
             final String pathParam = request.getParam("path");
             ctx.response().end(path.insecurePathTraversal(pathParam));
         });
+        router.post("/iast/ssrf/test_insecure").handler(ctx ->
+                ctx.response().end(ssrf.insecureUrl(ctx.request().getParam("url")))
+        );
+        router.get("/iast/weak_randomness/test_insecure").handler(ctx ->
+                ctx.response().end(weakRandomness.weakRandom())
+        );
+        router.get("/iast/weak_randomness/test_secure").handler(ctx ->
+                ctx.response().end(weakRandomness.secureRandom())
+        );
     }
 }

@@ -34,5 +34,7 @@ COPY utils/build/docker/dotnet/app.sh app.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_DATA_STREAMS_ENABLED=true
 
+RUN apt-get update && apt-get install -y curl
+
 CMD [ "./app.sh" ]
 

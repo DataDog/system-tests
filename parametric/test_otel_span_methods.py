@@ -2,20 +2,18 @@ import time
 
 import pytest
 
-from parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
-from parametric.spec.otel_trace import OtelSpan
-from parametric.spec.otel_trace import SK_PRODUCER
-from parametric.spec.trace import find_span
-from parametric.spec.trace import find_trace_by_root
-from parametric.utils.test_agent import get_span
+from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
+from utils.parametric.spec.otel_trace import OtelSpan
+from utils.parametric.spec.otel_trace import SK_PRODUCER
+from utils.parametric.spec.trace import find_span
+from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.test_agent import get_span
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_start_span(test_agent, test_library):
     """
         - Start/end a span with start and end options
@@ -38,7 +36,6 @@ def test_otel_start_span(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_set_service_name(test_agent, test_library):
@@ -57,11 +54,9 @@ def test_otel_set_service_name(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("java", "Empty string attribute value are not supported")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_set_attributes_different_types(test_agent, test_library):
     """
         - Set attributes of multiple types for an otel span
@@ -92,16 +87,25 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
 
     assert root_span["meta"]["str_val"] == "val"
     assert root_span["meta"]["str_val_empty"] == ""
-    assert root_span["meta"]["bool_val"] == "True"
+    if root_span["meta"]["language"] == "go":
+        # in line with the standard Datadog tracing library tags
+        assert root_span["meta"]["bool_val"] == "true"
+        assert root_span["meta"]["d_bool_val"] == "false"
+        assert root_span["meta"]["array_val_bool"] == "[true false]"
+        assert root_span["meta"]["array_val_str"] == "[val1 val2]"
+        assert root_span["meta"]["array_val_int"] == "[10 20]"
+        assert root_span["meta"]["array_val_double"] == "[10.1 20.2]"
+    else:
+        assert root_span["meta"]["bool_val"] == "True"
+        assert root_span["meta"]["array_val_bool"] == "[True, False]"
+        assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
+        assert root_span["meta"]["d_bool_val"] == "False"
+        assert root_span["meta"]["array_val_int"] == "[10, 20]"
+        assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
     assert root_span["metrics"]["int_val"] == 1
     assert root_span["metrics"]["int_val_zero"] == 0
     assert root_span["metrics"]["double_val"] == 4.2
-    assert root_span["meta"]["array_val_str"] == "['val1', 'val2']"
-    assert root_span["meta"]["array_val_int"] == "[10, 20]"
-    assert root_span["meta"]["array_val_bool"] == "[True, False]"
-    assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
     assert root_span["meta"]["d_str_val"] == "bye"
-    assert root_span["meta"]["d_bool_val"] == "False"
     assert root_span["metrics"]["d_int_val"] == 2
     assert root_span["metrics"]["d_double_val"] == 3.14
 
@@ -109,9 +113,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_span_is_recording(test_agent, test_library):
     """
     Test functionality of ending a span.
@@ -128,10 +130,8 @@ def test_otel_span_is_recording(test_agent, test_library):
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_span_finished_end_options(test_agent, test_library):
     """
     Test functionality of ending a span with end options.
@@ -156,8 +156,6 @@ def test_otel_span_finished_end_options(test_agent, test_library):
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_span_end(test_agent, test_library):
     """
     Test functionality of ending a span. After ending:
@@ -190,8 +188,6 @@ def test_otel_span_end(test_agent, test_library):
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_set_span_status_error(test_agent, test_library):
     """
         This test verifies that setting the status of a span
@@ -216,8 +212,9 @@ def test_otel_set_span_status_error(test_agent, test_library):
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
+@pytest.mark.skip_library(
+    "python", "Default state of otel spans is OK, updating the status from OK to ERROR is supported"
+)
 def test_otel_set_span_status_ok(test_agent, test_library):
     """
         This test verifies that setting the status of a span
@@ -243,8 +240,6 @@ def test_otel_set_span_status_ok(test_agent, test_library):
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("nodejs", "Not implemented")
-@pytest.mark.skip_library("python", "Not implemented")
-@pytest.mark.skip_library("golang", "Remove after https://github.com/DataDog/dd-trace-go/pull/1839 is merged")
 def test_otel_get_span_context(test_agent, test_library):
     """
         This test verifies retrieving the span context of a span

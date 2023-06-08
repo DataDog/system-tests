@@ -2,10 +2,18 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
+from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
-@released(cpp="?", dotnet="2.27.0", php_appsec="0.7.0", python="?", nodejs="?", golang="?", ruby="1.0.0")
+@released(
+    cpp="?",
+    dotnet="2.27.0",
+    php_appsec="0.7.0",
+    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    nodejs="3.19.0",
+    golang="1.51.0",
+    ruby="1.0.0",
+)
 @coverage.basic
 @scenarios.appsec_blocking
 @released(
@@ -47,7 +55,9 @@ class Test_BlockingAddresses:
         self.pp_req = weblog.get("/params/AiKfOeRcvG45")
 
     @missing_feature(library="java", reason="When supported, path parameter detection happens on subsequent WAF run")
+    @missing_feature(library="nodejs", reason="Not supported yet")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
+    @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
     def test_path_params(self):
         """can block on server.request.path_params"""
 
@@ -66,6 +76,7 @@ class Test_BlockingAddresses:
     def setup_cookies(self):
         self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
 
+    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_cookies(self):
         """can block on server.request.cookies"""
 
@@ -76,6 +87,7 @@ class Test_BlockingAddresses:
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
 
@@ -86,7 +98,11 @@ class Test_BlockingAddresses:
         self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
 
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
+    @missing_feature(context.library == "php", reason="Don't support multipart yet")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(library="nodejs", reason="Not supported yet")
+    @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
+    @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
@@ -98,7 +114,9 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "dotnet", reason="only support blocking on 404 status at the moment")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
+    @missing_feature(library="nodejs", reason="Not supported yet")
     def test_response_status(self):
         """can block on server.response.status"""
 
@@ -110,6 +128,8 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby", reason="Not working")
+    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_not_found(self):
         """can block on server.response.status"""
 
@@ -123,6 +143,8 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
     @missing_feature(context.library == "dotnet", reason="Address not supported yet")
+    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 
@@ -134,19 +156,40 @@ class Test_BlockingAddresses:
         assert False
 
 
+def _assert_custom_event_tag_presence(expected_value):
+    def wrapper(span):
+        tag = "appsec.events.system_tests_appsec_event.value"
+        assert tag in span["meta"], f"Can't find {tag} in span's meta"
+        value = span["meta"][tag]
+        assert value == expected_value
+        return True
+
+    return wrapper
+
+
+def _assert_custom_event_tag_absence():
+    def wrapper(span):
+        tag = "appsec.events.system_tests_appsec_event.value"
+        assert tag not in span["meta"], f"Found {tag} in span's meta"
+        return True
+
+    return wrapper
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
-    golang="?",
+    dotnet="2.29.0",
+    golang="1.51.0",
     java="?",
-    nodejs="?",
-    php_appsec="?",
+    nodejs="3.19.0",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
@@ -166,18 +209,19 @@ class Test_Blocking_request_method:
         assert self.rm_req_nonblock.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.request("GET", path="/set_value/clean_value_3876")
-        self.block_req2 = weblog.request("OPTIONS", path="/set_value/tainted_value_6512")
-        self.check_req = weblog.request("GET", path="/get_value")
+        self.set_req1 = weblog.request("GET", path="/tag_value/clean_value_3876/200")
+        self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3876"))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-006")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3876"
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -186,13 +230,14 @@ class Test_Blocking_request_method:
 @released(
     cpp="?",
     dotnet="?",
-    golang="?",
+    golang="1.51.0",
     java="?",
-    nodejs="?",
-    php_appsec="?",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    nodejs="3.19.0",
+    php_appsec="0.7.0",
+    python={"django-poc": "1.15", "flask-poc": "1.15", "*": "?"},
     ruby="?",
 )
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
@@ -208,25 +253,33 @@ class Test_Blocking_request_uri:
             interfaces.library.assert_waf_attack(response, rule="tst-037-002")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock = weblog.get("/waf/legit")
+        self.rm_req_nonblock1 = weblog.get("/waf/legit")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
-        assert self.rm_req_nonblock.status_code == 200
+        assert self.rm_req_nonblock1.status_code == 200
+
+    def setup_test_blocking_uri_raw(self):
+        self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
+
+    def test_test_blocking_uri_raw(self):
+        interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
+        assert self.rm_req_uri_raw.status_code == 403
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3877")
-        self.block_req2 = weblog.get("/set_value/tainted_value_6512.git")
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3877"))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-002")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3877"
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -234,20 +287,21 @@ class Test_Blocking_request_uri:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
-    golang="?",
+    dotnet="2.29.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
-    php_appsec="?",
-    python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
+    php_appsec="0.7.0",
+    python={"django-poc": "1.10", "flask-poc": "1.13", "*": "?"},
     ruby="?",
 )
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
     def setup_blocking(self):
         self.rm_req_block1 = weblog.get("/params/AiKfOeRcvG45")
-        self.rm_req_block2 = weblog.get("/set_value/AiKfOeRcvG45")
+        self.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -257,28 +311,26 @@ class Test_Blocking_request_path_params:
 
     def setup_non_blocking(self):
         # query parameters are not a part of path parameters
-        self.rm_req_nonblock = weblog.get("/set_value/noharm?value=AiKfOeRcvG45")
+        self.rm_req_nonblock = weblog.get("/waf/noharm?value=AiKfOeRcvG45")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         assert self.rm_req_nonblock.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3878")
-        self.block_req2 = weblog.get("/set_value/tainted_value_AiKfOeRcvG45")
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3878/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
-    @missing_feature(
-        context.library == "python" and context.weblog_variant == "flask-poc", reason="Block at the end of the request"
-    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3878"))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-007")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3878", globals()
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -286,14 +338,15 @@ class Test_Blocking_request_path_params:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
-    golang="?",
+    dotnet="2.29.0",
+    golang="1.51.0",
     java="?",
-    nodejs="?",
-    php_appsec="?",
+    nodejs="3.19.0",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -309,7 +362,7 @@ class Test_Blocking_request_query:
 
     def setup_non_blocking(self):
         # path parameters are not a part of query parameters
-        self.rm_req_nonblock1 = weblog.get("/set_value/xtrace")
+        self.rm_req_nonblock1 = weblog.get("/waf/xtrace")
         # query parameters are blocking only on value not parameter name
         self.rm_req_nonblock2 = weblog.get("/waf?xtrace=foo")
 
@@ -319,18 +372,19 @@ class Test_Blocking_request_query:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3879")
-        self.block_req2 = weblog.get("/set_value/tainted_value_a1b2c3?foo=xtrace")
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3879"))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-001")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3879", globals()
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -338,14 +392,15 @@ class Test_Blocking_request_query:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
-    golang="?",
+    dotnet="2.29.0",
+    golang="1.51.0",
     java="?",
-    nodejs="?",
-    php_appsec="?",
+    nodejs="3.19.0",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -371,18 +426,19 @@ class Test_Blocking_request_headers:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3880")
-        self.block_req2 = weblog.get("/set_value/tainted_value_xyz", headers={"foo": "asldhkuqwgervf"})
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3880"))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-003")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3880", globals()
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -390,14 +446,15 @@ class Test_Blocking_request_headers:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
-    golang="?",
+    dotnet="2.29.0",
+    golang="1.51.0",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -423,18 +480,19 @@ class Test_Blocking_request_cookies:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.get("/set_value/clean_value_3881")
-        self.block_req2 = weblog.get("/set_value/tainted_value_cookies", cookies={"foo": "jdfoSDGFkivRG_234"})
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
+        self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3881"))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-008")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3881", globals()
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -442,24 +500,21 @@ class Test_Blocking_request_cookies:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.29.0",
     golang="?",
     java="?",
-    nodejs="?",
-    php_appsec="?",
+    nodejs="3.19.0",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 class Test_Blocking_request_body:
-    """Test if blocking is supported on server.request.body address"""
+    """Test if blocking is supported on server.request.body address for urlencoded body"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.post(
-            "/waf", data='{"value1": "bsldhkuqwgervf"}', headers={"content-type": "text/json"}
-        )
-        self.rm_req_block2 = weblog.post(
-            "/waf", data='{"value2": "bsldhkuqwgervf"}', headers={"content-type": "application/json"}
-        )
+        self.rm_req_block1 = weblog.post("/waf", data={"value1": "bsldhkuqwgervf"})
+        self.rm_req_block2 = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -482,22 +537,19 @@ class Test_Blocking_request_body:
             assert response.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.post("/set_value/clean_value_3882", data="None")
-        self.block_req2 = weblog.post(
-            "/set_value/tainted_value_body",
-            data='{"value5": "bsldhkuqwgervf"}',
-            headers={"content-type": "application/json"},
-        )
-        self.check_req = weblog.get("/get_value")
+        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data="None")
+        self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"})
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
-        assert self.set_req1.content == b"Value set"
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+        # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-004")
-        assert self.check_req.status_code == 200
-        assert self.check_req.content == b"clean_value_3882", globals()
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -509,15 +561,16 @@ class Test_Blocking_request_body:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
     def setup_blocking(self):
-        self.rm_req_block = {status: weblog.get(f"/set_value/anything/{status}") for status in (415, 416, 417, 418)}
+        self.rm_req_block = {status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)}
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -526,7 +579,7 @@ class Test_Blocking_response_status:
             interfaces.library.assert_waf_attack(response, rule="tst-037-005")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock = {status: weblog.get(f"/set_value/anything/{status}") for status in (411, 412, 413, 414)}
+        self.rm_req_nonblock = {status: weblog.get(f"/tag_value/anything/{status}") for status in (411, 412, 413, 414)}
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
@@ -543,16 +596,17 @@ class Test_Blocking_response_status:
     golang="?",
     java="?",
     nodejs="?",
-    php_appsec="?",
+    php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
+@irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
     def setup_blocking(self):
-        self.rm_req_block1 = weblog.get(f"/set_value/anything?content-language=en-us")
-        self.rm_req_block2 = weblog.get(f"/set_value/anything?content-language=krypton")
+        self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=en-us")
+        self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -561,8 +615,8 @@ class Test_Blocking_response_headers:
             interfaces.library.assert_waf_attack(response, rule="tst-037-009")
 
     def setup_non_blocking(self):
-        self.rm_req_nonblock1 = weblog.get(f"/set_value/anything?content-color=en-us")
-        self.rm_req_nonblock2 = weblog.get(f"/set_value/anything?content-language=fr")
+        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=en-us")
+        self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
@@ -572,7 +626,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @coverage.not_implemented
-@released(cpp="?", dotnet="?", php_appsec="?", python="?", nodejs="?", golang="?", ruby="?")
+@released(cpp="?", dotnet="2.29.0", php_appsec="0.7.0", python="?", nodejs="3.19.0", golang="?", ruby="?")
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 

@@ -4,7 +4,8 @@ FROM python:3.9
 RUN python --version && curl --version
 
 # install hello world app
-RUN pip install flask uwsgi requests pycryptodome psycopg2
+# Tracer does not support flask 2.3.0 or higher, pin the flask version for now
+RUN pip install flask==2.2.4 uwsgi requests pycryptodome psycopg2
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py

@@ -25,9 +25,11 @@ readonly DEFAULT_DOCKER_MODE=0
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
+readonly DEFAULT_python_http=
 readonly DEFAULT_ruby=rails70
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
+readonly DEFAULT_java_otel=spring-boot-native
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
@@ -278,7 +280,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
+        cpp|dotnet|golang|java|java_otel|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
@@ -315,7 +317,7 @@ fi
 
 WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" ]]; then
+if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
     echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
     echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
     exit 1

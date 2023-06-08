@@ -7,6 +7,9 @@ import time
 import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from utils._context.library_version import LibraryVersion, Version
+from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+from pulumi import automation as auto
 
 from utils._context.containers import (
     WeblogContainer,
@@ -18,42 +21,30 @@ from utils._context.containers import (
     ZooKeeperContainer,
     CassandraContainer,
     RabbitMqContainer,
+    MySqlContainer,
+    OpenTelemetryCollectorContainer,
     create_network,
 )
 
-from utils._context.library_version import LibraryVersion
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
-current_scenario = None
+update_environ_with_local_env()
 
 
 class _Scenario:
     def __init__(self, name) -> None:
         self.name = name
         self.terminal = None
-
-        if os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO") == self.name:
-            global current_scenario
-            current_scenario = self
-
-            self.create_log_subfolder("")
-
-            handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
-            handler.setFormatter(get_log_formatter())
-
-            logger.addHandler(handler)
-
-            update_environ_with_local_env()
+        self.replay = False
 
     def create_log_subfolder(self, subfolder):
+        if self.replay:
+            return
+
         path = os.path.join(self.host_log_folder, subfolder)
 
         shutil.rmtree(path, ignore_errors=True)
         Path(path).mkdir(parents=True, exist_ok=True)
-
-    @property
-    def is_current_scenario(self):
-        return current_scenario is self
 
     def __call__(self, test_method):
         # handles @scenarios.scenario_name
@@ -61,10 +52,44 @@ class _Scenario:
 
         return test_method
 
+    def configure(self, replay):
+        self.replay = replay
+        self.create_log_subfolder("")
+
+        handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
+        handler.setFormatter(get_log_formatter())
+
+        logger.addHandler(handler)
+
+        if replay:
+            from utils import weblog
+
+            weblog.init_replay_mode(self.host_log_folder)
+
     def session_start(self, session):
         """ called at the very begning of the process """
-        # called at the very begning of the process
+
         self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
+        self.print_test_context()
+
+        if self.replay:
+            return
+
+        self.print_info("Executing warmups...")
+
+        try:
+            for warmup in self._get_warmups():
+                logger.info(f"Executing warmup {warmup}")
+                warmup()
+        except:
+            self.collect_logs()
+            self.close_targets()
+            raise
+
+    def pytest_sessionfinish(self, session):
+        """ called at the end of the process  """
+
+    def print_test_context(self):
         self.terminal.write_sep("=", "test context", bold=True)
         self.print_info(f"Scenario: {self.name}")
         self.print_info(f"Logs folder: {self.host_log_folder}")
@@ -78,19 +103,7 @@ class _Scenario:
     def _get_warmups(self):
         return []
 
-    def execute_warmups(self):
-        """ Called before any setup """
-
-        try:
-            for warmup in self._get_warmups():
-                logger.info(f"Executing warmup {warmup}")
-                warmup()
-        except:
-            self.collect_logs()
-            self.close_targets()
-            raise
-
-    def post_setup(self, session):
+    def post_setup(self):
         """ called after test setup """
 
     def collect_logs(self):
@@ -103,21 +116,54 @@ class _Scenario:
     def host_log_folder(self):
         return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}"
 
+    # Set of properties used in test decorators
+    @property
+    def dd_site(self):
+        return ""
+
     @property
     def library(self):
-        return None
+        return LibraryVersion("undefined")
 
     @property
     def agent_version(self):
-        return None
+        return ""
 
     @property
     def weblog_variant(self):
-        return None
+        return ""
 
     @property
     def php_appsec(self):
-        return None
+        return ""
+
+    @property
+    def tracer_sampling_rate(self):
+        return 0
+
+    @property
+    def appsec_rules_file(self):
+        return ""
+
+    @property
+    def uds_socket(self):
+        return ""
+
+    @property
+    def libddwaf_version(self):
+        return ""
+
+    @property
+    def appsec_rules_version(self):
+        return ""
+
+    @property
+    def uds_mode(self):
+        return False
+
+    @property
+    def telemetry_heartbeat_interval(self):
+        return 0
 
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
@@ -152,12 +198,10 @@ class _DockerScenario(_Scenario):
         include_cassandra_db=False,
         include_mongo_db=False,
         include_kafka=False,
-        include_zookeeper=False,
         include_rabbitmq=False,
+        include_mysql_db=False,
     ) -> None:
         super().__init__(name)
-        if not self.is_current_scenario:
-            return
 
         self.use_proxy = use_proxy
         self._required_containers = []
@@ -177,13 +221,21 @@ class _DockerScenario(_Scenario):
             self._required_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
 
         if include_kafka:
-            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
-
-        if include_zookeeper:
+            # kafka requires zookeeper
             self._required_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
+            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
 
         if include_rabbitmq:
             self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+
+        if include_mysql_db:
+            self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+
+    def configure(self, replay):
+        super().configure(replay)
+
+        for container in reversed(self._required_containers):
+            container.configure(replay)
 
     def _get_warmups(self):
 
@@ -232,8 +284,8 @@ class EndToEndScenario(_DockerScenario):
         include_cassandra_db=False,
         include_mongo_db=False,
         include_kafka=False,
-        include_zookeeper=False,
         include_rabbitmq=False,
+        include_mysql_db=False,
     ) -> None:
         super().__init__(
             name,
@@ -243,12 +295,9 @@ class EndToEndScenario(_DockerScenario):
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
             include_kafka=include_kafka,
-            include_zookeeper=include_zookeeper,
             include_rabbitmq=include_rabbitmq,
+            include_mysql_db=include_mysql_db,
         )
-
-        if not self.is_current_scenario:
-            return
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
 
@@ -269,12 +318,23 @@ class EndToEndScenario(_DockerScenario):
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
+        self.library_interface_timeout = library_interface_timeout
 
-        if library_interface_timeout is not None:
-            self.library_interface_timeout = library_interface_timeout
-        else:
+    def configure(self, replay):
+        from utils import interfaces
+
+        super().configure(replay)
+
+        interfaces.agent.configure(replay)
+        interfaces.library.configure(replay)
+        interfaces.backend.configure(replay)
+        interfaces.library_stdout.configure(replay)
+        interfaces.library_dotnet_managed.configure(replay)
+        interfaces.agent_stdout.configure(replay)
+
+        if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
-                self.library_interface_timeout = 80
+                self.library_interface_timeout = 25
             elif self.weblog_container.library.library in ("golang",):
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("nodejs",):
@@ -287,10 +347,10 @@ class EndToEndScenario(_DockerScenario):
             else:
                 self.library_interface_timeout = 40
 
-    def session_start(self, session):
+    def print_test_context(self):
         from utils import weblog
 
-        super().session_start(session)
+        super().print_test_context()
 
         logger.debug(f"Docker host is {weblog.domain}")
 
@@ -359,31 +419,51 @@ class EndToEndScenario(_DockerScenario):
                 raise Exception("Datadog agent not ready")
             logger.debug("Agent ready")
 
-    def post_setup(self, session):
+    def post_setup(self):
         from utils import interfaces
 
+        if self.replay:
+            interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
+            interfaces.agent.load_data_from_logs(f"{self.host_log_folder}/interfaces/agent")
+            interfaces.backend.load_data_from_logs(f"{self.host_log_folder}/interfaces/backend")
+
+            self._wait_interface(interfaces.library_stdout, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, 0)
+            self._wait_interface(interfaces.agent_stdout, 0)
+
+            return
+
         if self.use_proxy:
-            self._wait_interface(interfaces.library, session, self.library_interface_timeout)
-            self._wait_interface(interfaces.agent, session, self.agent_interface_timeout)
-            self._wait_interface(interfaces.backend, session, self.backend_interface_timeout)
+            self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
             self.collect_logs()
 
-            self._wait_interface(interfaces.library_stdout, session, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, session, 0)
-            self._wait_interface(interfaces.agent_stdout, session, 0)
+            self._wait_interface(interfaces.library_stdout, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, 0)
+            self._wait_interface(interfaces.agent_stdout, 0)
         else:
             self.collect_logs()
 
         self.close_targets()
 
-    @staticmethod
-    def _wait_interface(interface, session, timeout):
-        terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-        terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        terminal.flush()
+    def _wait_interface(self, interface, timeout):
+        self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        self.terminal.flush()
 
         interface.wait(timeout)
+
+    def close_targets(self):
+        from utils import weblog
+
+        super().close_targets()
+
+        weblog.save_requests(self.host_log_folder)
+
+    @property
+    def dd_site(self):
+        return self.agent_container.dd_site
 
     @property
     def library(self):
@@ -401,6 +481,34 @@ class EndToEndScenario(_DockerScenario):
     def php_appsec(self):
         return self.weblog_container.php_appsec
 
+    @property
+    def tracer_sampling_rate(self):
+        return self.weblog_container.tracer_sampling_rate
+
+    @property
+    def appsec_rules_file(self):
+        return self.weblog_container.appsec_rules_file
+
+    @property
+    def uds_socket(self):
+        return self.weblog_container.uds_socket
+
+    @property
+    def libddwaf_version(self):
+        return self.weblog_container.libddwaf_version
+
+    @property
+    def appsec_rules_version(self):
+        return self.weblog_container.appsec_rules_version
+
+    @property
+    def uds_mode(self):
+        return self.weblog_container.uds_mode
+
+    @property
+    def telemetry_heartbeat_interval(self):
+        return self.weblog_container.telemetry_heartbeat_interval
+
     def get_junit_properties(self):
         result = super().get_junit_properties()
 
@@ -413,6 +521,121 @@ class EndToEndScenario(_DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
+
+
+class OpenTelemetryScenario(_DockerScenario):
+    """ Scenario for testing opentelemetry"""
+
+    def __init__(self, name, include_agent=True, include_collector=True, include_intake=True) -> None:
+        super().__init__(name, use_proxy=True)
+        if include_agent:
+            self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+            self._required_containers.append(self.agent_container)
+        if include_collector:
+            self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+            self._required_containers.append(self.collector_container)
+        self.weblog_container = WeblogContainer(self.host_log_folder)
+        self._required_containers.append(self.weblog_container)
+        self.include_agent = include_agent
+        self.include_collector = include_collector
+        self.include_intake = include_intake
+
+    def configure(self, replay):
+        super().configure(replay)
+        self._check_env_vars()
+        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        if self.include_intake:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = True
+            self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
+            self.weblog_container.environment["DD_SITE"] = dd_site
+        if self.include_collector:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = True
+            self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
+            self.collector_container.environment["DD_SITE"] = dd_site
+        if self.include_agent:
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
+
+    def _create_interface_folders(self):
+        for interface in ("open_telemetry", "backend"):
+            self.create_log_subfolder(f"interfaces/{interface}")
+        if self.include_agent:
+            self.create_log_subfolder("interfaces/agent")
+
+    def _start_interface_watchdog(self):
+        from utils import interfaces
+
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def on_modified(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+        observer = Observer()
+        observer.schedule(
+            Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
+        )
+
+        observer.start()
+
+    def _get_warmups(self):
+        warmups = super()._get_warmups()
+
+        warmups.insert(0, self._create_interface_folders)
+        warmups.insert(1, self._start_interface_watchdog)
+        warmups.append(self._wait_for_app_readiness)
+
+        return warmups
+
+    def _wait_for_app_readiness(self):
+        from utils import interfaces  # import here to avoid circular import
+
+        if self.use_proxy:
+            logger.debug("Wait for app readiness")
+
+            if not interfaces.open_telemetry.ready.wait(40):
+                raise Exception("Open telemetry interface not ready")
+            logger.debug("Open telemetry ready")
+
+    def post_setup(self):
+        from utils import interfaces
+
+        if self.use_proxy:
+            self._wait_interface(interfaces.open_telemetry, 5)
+
+            self.collect_logs()
+
+            self._wait_interface(interfaces.library_stdout, 0)
+            self._wait_interface(interfaces.library_dotnet_managed, 0)
+        else:
+            self.collect_logs()
+
+    def _wait_interface(self, interface, timeout):
+        self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
+        self.terminal.flush()
+
+        interface.wait(timeout)
+
+    def _check_env_vars(self):
+        for env in ["DD_API_KEY", "DD_APP_KEY", "DD_API_KEY_2", "DD_APP_KEY_2", "DD_API_KEY_3", "DD_APP_KEY_3"]:
+            if env not in os.environ:
+                raise Exception(f"Please set {env}, OTel E2E test requires 3 API keys and 3 APP keys")
+
+    @property
+    def library(self):
+        return LibraryVersion("open_telemetry", "0.0.0")
+
+    @property
+    def agent_version(self):
+        return self.agent_container.agent_version if self.include_agent else Version("0.0.0", "agent")
+
+    @property
+    def weblog_variant(self):
+        return self.weblog_container.weblog_variant
 
 
 class CgroupScenario(EndToEndScenario):
@@ -476,6 +699,65 @@ class PerformanceScenario(EndToEndScenario):
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
 
+class OnBoardingScenario(_Scenario):
+    def __init__(self, name) -> None:
+        super().__init__(name)
+        self.stack = None
+        self.provision_vms = []
+        self.provision_vm_names = []
+
+    def configure(self, replay):
+        super().configure(replay)
+        assert "TEST_LIBRARY" in os.environ
+        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
+        self.provision_vm_names = [vm.name for vm in self.provision_vms]
+
+    @property
+    def library(self):
+        return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+
+    def _start_pulumi(self):
+        def pulumi_start_program():
+
+            for provision_vm in self.provision_vms:
+                logger.info(f"Executing warmup {provision_vm.name}")
+                provision_vm.start()
+
+        project_name = "system-tests-onboarding"
+        stack_name = "testing"
+
+        try:
+            self.stack = auto.create_or_select_stack(
+                stack_name=stack_name, project_name=project_name, program=pulumi_start_program
+            )
+            up_res = self.stack.up(on_output=logger.info)
+        except:
+            self.collect_logs()
+            self.close_targets()
+            raise
+
+    def _get_warmups(self):
+        return [self._start_pulumi]
+
+    def pytest_sessionfinish(self, session):
+        logger.info(f"Closing onboarding scenario")
+        self.close_targets()
+
+    def close_targets(self):
+        logger.info(f"Pulumi stack down")
+        self.stack.destroy(on_output=logger.info)
+
+
+class ParametricScenario(_Scenario):
+    def configure(self, replay):
+        super().configure(replay)
+        assert "TEST_LIBRARY" in os.environ
+
+    @property
+    def library(self):
+        return LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "0.00")
+
+
 class scenarios:
     empty_scenario = _Scenario("EMPTY_SCENARIO")
     todo = _Scenario("TODO")  # scenario that skips tests not yest executed
@@ -483,14 +765,10 @@ class scenarios:
 
     default = EndToEndScenario("DEFAULT", include_postgres_db=True)
     cgroup = CgroupScenario("CGROUP")
-    custom = EndToEndScenario("CUSTOM")
     sleep = EndToEndScenario("SLEEP")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario("PERFORMANCES")
-
-    # scenario for weblog arch that does not support Appsec
-    appsec_unsupported = EndToEndScenario("APPSEC_UNSUPORTED")
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
@@ -499,8 +777,8 @@ class scenarios:
         include_cassandra_db=True,
         include_mongo_db=True,
         include_kafka=True,
-        include_zookeeper=True,
         include_rabbitmq=True,
+        include_mysql_db=True,
     )
 
     profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
@@ -557,7 +835,13 @@ class scenarios:
 
     appsec_waf_telemetry = EndToEndScenario(
         "APPSEC_WAF_TELEMETRY",
-        weblog_env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true", "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0"},
+        weblog_env={
+            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            # Python lib has different env var until we enable Telemetry Metrics by default
+            "_DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+        },
     )
     # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
     # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
@@ -660,6 +944,7 @@ class scenarios:
 
     # APM tracing end-to-end scenarios
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5)
+    apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", backend_interface_timeout=5)
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
@@ -669,6 +954,10 @@ class scenarios:
         backend_interface_timeout=5,
     )
 
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False)
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False)
+
     library_conf_custom_headers_short = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")
     )
@@ -676,10 +965,15 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
     )
+    parametric = ParametricScenario("PARAMETRIC")
+
+    # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
+    onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
+    onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
 
 
-if current_scenario is None:
-    current_scenario_name = os.environ.get("SYSTEMTESTS_SCENARIO", "EMPTY_SCENARIO")
-    raise ValueError(f"Scenario {current_scenario_name} does not exists")
-
-logger.info(f"Current scenario is {current_scenario}")
+if __name__ == "__main__":
+    for name in dir(scenarios):
+        if not name.startswith("_"):
+            scenario = getattr(scenarios, name)
+            print(scenario.name)

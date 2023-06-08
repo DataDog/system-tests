@@ -35,7 +35,6 @@ def validate_no_leak(needle, whitelist_pattern=None):
 @released(dotnet="2.13.0", golang="1.40.0", java="0.107.1", nodejs="3.0.0")
 @released(php="0.76.0", python="1.6.0rc1.dev", ruby="1.0.0")
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@bug(weblog_variant="spring-boot-undertow", reason="APMJAVA-877")
 @coverage.good
 class Test_UrlQuery:
     """ PII values in query parameter are all removed"""
@@ -68,8 +67,7 @@ class Test_UrlQuery:
         interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
 
 
-@released(nodejs="3.13.1", python="1.7.1")
-@missing_feature(library="dotnet", reason="Needs weblog endpoint")
+@released(nodejs="3.13.1", python="1.7.1", dotnet="2.29.0")
 @missing_feature(library="ruby", reason="Needs weblog endpoint")
 @coverage.basic
 class Test_UrlField:
@@ -79,7 +77,7 @@ class Test_UrlField:
         self.r = weblog.get("/make_distant_call", params={"url": "http://leak-name-url:leak-password-url@agent:8127"})
 
     @missing_feature(
-        context.weblog_variant in ("vertx3", "resteasy-netty3", "jersey-grizzly2"), reason="Need weblog endpoint"
+        context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint",
     )
     def test_main(self):
         """ check that not data is leaked """
