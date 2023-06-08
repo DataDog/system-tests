@@ -12,7 +12,7 @@ pytestmark = pytest.mark.parametrize(
           "CORECLR_ENABLE_PROFILING": "1"}] # required in .NET
 )
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'operation'")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_start_span_with_w3c(test_agent, test_library):
