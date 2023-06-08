@@ -60,7 +60,7 @@ cross-components:
   stage: test
   tags: ["runner:docker"]
   only:
-    - never
+    - schedules
   parallel:
     matrix:
       - TEST_LIBRARY: php
@@ -82,7 +82,7 @@ cross-component-agent:
   stage: test
   tags: ["runner:docker"]
   only:
-    - never
+    - schedules
   parallel:
     matrix:
       - TEST_LIBRARY: php

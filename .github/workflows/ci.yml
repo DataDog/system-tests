@@ -23,7 +23,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   lint_and_test:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -34,7 +33,6 @@ jobs:
     - run: ./run.sh TEST_THE_TEST
 
   test-the-tests-main:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - lint_and_test
@@ -408,7 +406,6 @@ jobs:
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
 
   test-the-tests-graalvm:
-    if: ${{ false }}  # disable for now
     runs-on:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
@@ -681,7 +678,6 @@ jobs:
         path: artifact.tar.gz
 
   post_test-the-tests:
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     needs:
     - test-the-tests-main
@@ -698,8 +694,7 @@ jobs:
 
   peformances:
     runs-on: ubuntu-latest
-    if: ${{ false }}  # disable for now
-    #if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
+    if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
     needs:
     - lint_and_test
     env:
@@ -720,8 +715,7 @@ jobs:
 
   fuzzer:
     runs-on: ubuntu-latest
-    if: ${{ false }}  # disable for now
-    #if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
+    if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
     needs:
     - lint_and_test
     env:
