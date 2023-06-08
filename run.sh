@@ -241,6 +241,8 @@ function main() {
         esac
     done
 
+    # TODO: remove duplicates
+
     # TODO: upgrade the dependencies to the latest version of pulumi once the protobuf bug is fixed
     # In the meantime remove the warning from the output
     pytest_args+=( '-p' 'no:warnings' )
@@ -252,7 +254,10 @@ function main() {
     else
         run_mode='direct'
 
+        # cleanups
         clean_pycache
+
+        # ensure environment
         if ! is_using_nix; then
             activate_venv
         fi
