@@ -38,6 +38,7 @@ reportJunit.xml
 /utils/build/docker/dotnet/app.csproj.user
 
 # VSCode
+.vscode/
 .ionide/
 
 # Visual Studio

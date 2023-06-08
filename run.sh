@@ -230,6 +230,17 @@ function main() {
         scenarios+=('DEFAULT')
     fi
 
+    # backward compatibility with scenarios that have been removed/renamed
+    # TODO: remove once all CIs have been updated
+    for i in "${!scenarios[@]}"; do
+        case "${scenarios["${i}"]}" in
+            APPSEC_IP_BLOCKING_MAXED|APPSEC_IP_BLOCKING)
+                scenarios+=(APPSEC_BLOCKING_FULL_DENYLIST)
+                unset "scenarios[${i}]"
+                ;;
+        esac
+    done
+
     # TODO: upgrade the dependencies to the latest version of pulumi once the protobuf bug is fixed
     # In the meantime remove the warning from the output
     pytest_args+=( '-p' 'no:warnings' )
@@ -270,8 +281,7 @@ APPSEC_SCENARIOS:
   - APPSEC_CUSTOM_OBFUSCATION
   - APPSEC_RATE_LIMITER
   - APPSEC_WAF_TELEMETRY
-  - APPSEC_IP_BLOCKING
-  - APPSEC_IP_BLOCKING_MAXED
+    APPSEC_BLOCKING_FULL_DENYLIST
   - APPSEC_REQUEST_BLOCKING
   - APPSEC_RUNTIME_ACTIVATION
 
@@ -300,9 +310,8 @@ TRACER_RELEASE_SCENARIOS:
   - LIBRARY_CONF_CUSTOM_HEADERS_SHORT
   - LIBRARY_CONF_CUSTOM_HEADERS_LONG
   - INTEGRATIONS
-  - CGROUP
   - APM_TRACING_E2E_SINGLE_SPAN
-  - APM_TRACING_E2E 
+  - APM_TRACING_E2E
   - APM_TRACING_E2E_OTEL
   - "${APPSEC_SCENARIOS[@]}"
   - "${REMOTE_CONFIG_SCENARIOS[@]}"
@@ -321,3 +330,4 @@ TRACER_ESSENTIAL_SCENARIOS:
 ONBOARDING_SCENARIOS:
   - ONBOARDING_HOST
   - ONBOARDING_HOST_CONTAINER
+  - ONBOARDING_CONTAINER

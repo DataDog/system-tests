@@ -9,6 +9,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+from utils.onboarding.pulumi_ssh import PulumiSSH
 from pulumi import automation as auto
 
 from utils._context.containers import (
@@ -638,34 +639,6 @@ class OpenTelemetryScenario(_DockerScenario):
         return self.weblog_container.weblog_variant
 
 
-class CgroupScenario(EndToEndScenario):
-
-    # cgroup test
-    # require a dedicated warmup. Need to check the stability before
-    # merging it into the default scenario
-
-    def _get_warmups(self):
-        warmups = super()._get_warmups()
-        warmups.append(self._wait_for_weblog_cgroup_file)
-        return warmups
-
-    def _wait_for_weblog_cgroup_file(self):
-        max_attempts = 10  # each attempt = 1 second
-        attempt = 0
-
-        filename = f"{self.host_log_folder}/docker/weblog/logs/weblog.cgroup"
-        while attempt < max_attempts and not os.path.exists(filename):
-
-            logger.debug(f"{filename} is missing, wait")
-            time.sleep(1)
-            attempt += 1
-
-        if attempt == max_attempts:
-            pytest.exit("Failed to access cgroup file from weblog container", 1)
-
-        return True
-
-
 class PerformanceScenario(EndToEndScenario):
     """ A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"""
 
@@ -718,7 +691,8 @@ class OnBoardingScenario(_Scenario):
 
     def _start_pulumi(self):
         def pulumi_start_program():
-
+            # Static loading of keypairs for ec2 machines
+            PulumiSSH.load()
             for provision_vm in self.provision_vms:
                 logger.info(f"Executing warmup {provision_vm.name}")
                 provision_vm.start()
@@ -730,6 +704,7 @@ class OnBoardingScenario(_Scenario):
             self.stack = auto.create_or_select_stack(
                 stack_name=stack_name, project_name=project_name, program=pulumi_start_program
             )
+            self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
         except:
             self.collect_logs()
@@ -764,7 +739,6 @@ class scenarios:
     test_the_test = TestTheTestScenario("TEST_THE_TEST")
 
     default = EndToEndScenario("DEFAULT", include_postgres_db=True)
-    cgroup = CgroupScenario("CGROUP")
     sleep = EndToEndScenario("SLEEP")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
@@ -847,14 +821,9 @@ class scenarios:
     # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
     # So, we set  DD_APPSEC_RULES to None to enable loading rules from remote config.
     # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
-    appsec_ip_blocking = EndToEndScenario(
-        "APPSEC_IP_BLOCKING",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA"},
-        weblog_env={"DD_APPSEC_RULES": None},
-    )
-    appsec_ip_blocking_maxed = EndToEndScenario(
-        "APPSEC_IP_BLOCKING_MAXED",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_IP_BLOCKING_MAXED"},
+    appsec_blocking_full_denylist = EndToEndScenario(
+        "APPSEC_BLOCKING_FULL_DENYLIST",
+        proxy_state={"mock_remote_config_backend": "APPSEC_BLOCKING_FULL_DENYLIST"},
         weblog_env={"DD_APPSEC_RULES": None},
     )
 
@@ -970,6 +939,7 @@ class scenarios:
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
+    onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER")
 
 
 if __name__ == "__main__":
