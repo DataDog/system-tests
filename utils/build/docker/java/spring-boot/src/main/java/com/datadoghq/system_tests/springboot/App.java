@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.server.PathParam;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,7 +102,7 @@ public class App {
     }
 
     @RequestMapping("/waf/{param}")
-    String wafWithParams(@PathParam("param") String param) {
+    String wafWithParams(@PathVariable("param") String param) {
         return "Hello World!";
     }
 
