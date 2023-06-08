@@ -7,7 +7,7 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
-class TestOnboardingInstallBaseTest:
+class _OnboardingInstallBaseTest:
     def test_for_traces(self, onboardig_vm):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
             After starting application we can see application HTTP requests traces in the backend.
@@ -24,15 +24,15 @@ class TestOnboardingInstallBaseTest:
 
 
 @scenarios.onboarding_container
-class TestOnboardingInstallContainer(TestOnboardingInstallBaseTest):
+class TestOnboardingInstallContainer(_OnboardingInstallBaseTest):
     pass
 
 
 @scenarios.onboarding_host_container
-class TestOnboardingInstallHostContainer(TestOnboardingInstallBaseTest):
+class TestOnboardingInstallHostContainer(_OnboardingInstallBaseTest):
     pass
 
 
 @scenarios.onboarding_host
-class TestOnboardingInstallHost(TestOnboardingInstallBaseTest):
+class TestOnboardingInstallHost(_OnboardingInstallBaseTest):
     pass
