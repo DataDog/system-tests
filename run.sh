@@ -90,7 +90,7 @@ function section() {
 function lookup_scenario_group() {
     local group="${1}"
 
-    section __GROUPS__ | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [print(s) for s in g]' "${group}"
+    section __GROUPS__ | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [[print(t) for t in s] if isinstance(s, list) else print(s) for s in g]' "${group}"
 }
 
 function upcase() {
@@ -258,6 +258,13 @@ function main() {
         fi
     fi
 
+    echo "Run plan:"
+    echo "  mode: ${run_mode}"
+    echo "  scenarios:"
+    for scenario in "${scenarios[@]}"; do
+        echo "    - ${scenario}"
+    done
+
     for scenario in "${scenarios[@]}"; do
         run_scenario "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
@@ -271,7 +278,7 @@ exit
 
 __GROUPS__
 # Scenarios covering AppSec
-APPSEC_SCENARIOS:
+APPSEC_SCENARIOS: &appsec_scenarios
   - APPSEC_MISSING_RULES
   - APPSEC_CORRUPTED_RULES
   - APPSEC_CUSTOM_RULES
@@ -281,12 +288,12 @@ APPSEC_SCENARIOS:
   - APPSEC_CUSTOM_OBFUSCATION
   - APPSEC_RATE_LIMITER
   - APPSEC_WAF_TELEMETRY
-    APPSEC_BLOCKING_FULL_DENYLIST
+  - APPSEC_BLOCKING_FULL_DENYLIST
   - APPSEC_REQUEST_BLOCKING
   - APPSEC_RUNTIME_ACTIVATION
 
 # Scenarios covering Remote Configuration
-REMOTE_CONFIG_SCENARIOS:
+REMOTE_CONFIG_SCENARIOS: &remote_config_scenarios
   - REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
   - REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
   - REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
@@ -295,7 +302,7 @@ REMOTE_CONFIG_SCENARIOS:
   - REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
 
 # Scenarios covering Telemetry
-TELEMETRY_SCENARIOS:
+TELEMETRY_SCENARIOS: &telemetry_scenarios
   - TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
   - TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
   - TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
@@ -313,9 +320,9 @@ TRACER_RELEASE_SCENARIOS:
   - APM_TRACING_E2E_SINGLE_SPAN
   - APM_TRACING_E2E
   - APM_TRACING_E2E_OTEL
-  - "${APPSEC_SCENARIOS[@]}"
-  - "${REMOTE_CONFIG_SCENARIOS[@]}"
-  - "${TELEMETRY_SCENARIOS[@]}"
+  - *appsec_scenarios
+  - *remote_config_scenarios
+  - *telemetry_scenarios
 
 # Scenarios to run on tracers PR.
 # Those scenarios are the one that offer the best probability-to-catch-bug/time-to-run ratio
