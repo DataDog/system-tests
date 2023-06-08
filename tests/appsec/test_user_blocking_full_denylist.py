@@ -58,7 +58,7 @@ class Test_UserBlocking_FullDenylist:
         interfaces.library.wait_for(self._remote_config_asm_payload, timeout=30)
         interfaces.library.wait_for(self._remote_config_is_applied, timeout=30)
 
-        self.r_blocked_requests = [weblog.get("/users", params={"user": i}) for i in range(NUM_OF_BLOCKED_USERS)]
+        self.r_blocked_requests = [weblog.get("/users", params={"user": i}) for i in range(self.NUM_OF_BLOCKED_USERS)]
 
     def test_blocking_test(self):
         """Test with a denylisted user"""
