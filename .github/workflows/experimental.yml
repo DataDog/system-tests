@@ -84,6 +84,7 @@ jobs:
           - TestCase3
           - TestCase4
           - TestCase5
+          - TestCase6
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.variant.library }}

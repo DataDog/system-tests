@@ -211,24 +211,42 @@ def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
-        container_name="dotnet-test-client-%s" % container_id,
-        container_tag="dotnet6_0-test-client",
-        container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+        container_name=f"dotnet-test-client-{container_id}",
+        container_tag="dotnet7_0-test-client",
+        container_img="""
+FROM mcr.microsoft.com/dotnet/sdk:7.0
 WORKDIR /client
-COPY ["./ApmTestClient.csproj","./nuget.config","./*.nupkg", "./"]
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
-WORKDIR "/client/."
+COPY . ./
+RUN dotnet publish --no-restore --configuration Release --output out
+WORKDIR /client/out
+
+# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# Set up automatic instrumentation (required for OpenTelemetry tests),
+# but don't enable it globally
+ENV CORECLR_ENABLE_PROFILING=0
+ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
+ENV CORECLR_PROFILER_PATH=/client/out/datadog/linux-x64/Datadog.Trace.ClrProfiler.Native.so
+ENV DD_DOTNET_TRACER_HOME=/client/out/datadog
+
+# disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
+ENV DD_TRACE_Grpc_ENABLED=false
+ENV DD_TRACE_AspNetCore_ENABLED=false
+ENV DD_TRACE_Process_ENABLED=false
 """,
-        container_cmd=["dotnet", "run"],
+        container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=dotnet_absolute_appdir,
-        volumes=[(os.path.join(dotnet_absolute_appdir), "/client"),],
+        volumes=[],
         env=env,
         port=port,
     )
-    server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
+
     return server
 
 
@@ -247,7 +265,7 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
         container_tag="java8-test-client",
         container_img=f"""
 # FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
-FROM maven:3-jdk-8
+FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
 # COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
 # COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
@@ -255,10 +273,10 @@ RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/Dat
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
-COPY {java_reldir}/run.sh .
 COPY {protofile} src/main/proto/
 COPY binaries /binaries
 RUN bash build.sh
+COPY {java_reldir}/run.sh .
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
