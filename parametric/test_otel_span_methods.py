@@ -9,6 +9,11 @@ from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
 
+pytestmark = pytest.mark.parametrize(
+    "library_env",
+        [{"DD_TRACE_OTEL_ENABLED": "true",  # required in some tracers (.NET, Python?)
+          "CORECLR_ENABLE_PROFILING": "1"}] # required in .NET
+)
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")

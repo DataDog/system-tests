@@ -6,6 +6,11 @@ from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.test_agent import get_span
 
+pytestmark = pytest.mark.parametrize(
+    "library_env",
+        [{"DD_TRACE_OTEL_ENABLED": "true",  # required in some tracers (.NET, Python?)
+          "CORECLR_ENABLE_PROFILING": "1"}] # required in .NET
+)
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
