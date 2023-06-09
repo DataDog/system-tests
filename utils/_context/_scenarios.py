@@ -1,33 +1,31 @@
-from logging import FileHandler
 import os
-from pathlib import Path
 import shutil
 import time
+from logging import FileHandler
+from pathlib import Path
 
 import pytest
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from utils._context.library_version import LibraryVersion, Version
-from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
-from utils.onboarding.pulumi_ssh import PulumiSSH
 from pulumi import automation as auto
-
 from utils._context.containers import (
-    WeblogContainer,
     AgentContainer,
-    ProxyContainer,
-    PostgresContainer,
-    MongoContainer,
-    KafkaContainer,
-    ZooKeeperContainer,
     CassandraContainer,
-    RabbitMqContainer,
+    KafkaContainer,
+    MongoContainer,
     MySqlContainer,
     OpenTelemetryCollectorContainer,
+    PostgresContainer,
+    ProxyContainer,
+    RabbitMqContainer,
+    WeblogContainer,
+    ZooKeeperContainer,
     create_network,
 )
-
-from utils.tools import logger, get_log_formatter, update_environ_with_local_env
+from utils._context.library_version import LibraryVersion, Version
+from utils.onboarding.provision_utils import ProvisionFilter, ProvisionMatrix
+from utils.onboarding.pulumi_ssh import PulumiSSH
+from utils.tools import get_log_formatter, logger, update_environ_with_local_env
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 update_environ_with_local_env()
 
@@ -68,7 +66,7 @@ class _Scenario:
             weblog.init_replay_mode(self.host_log_folder)
 
     def session_start(self, session):
-        """ called at the very begning of the process """
+        """called at the very begning of the process"""
 
         self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
         self.print_test_context()
@@ -88,7 +86,7 @@ class _Scenario:
             raise
 
     def pytest_sessionfinish(self, session):
-        """ called at the end of the process  """
+        """called at the end of the process"""
 
     def print_test_context(self):
         self.terminal.write_sep("=", "test context", bold=True)
@@ -96,7 +94,7 @@ class _Scenario:
         self.print_info(f"Logs folder: ./{self.host_log_folder}")
 
     def print_info(self, info):
-        """ print info in stdout """
+        """print info in stdout"""
         logger.info(info)
         if self.terminal is not None:
             self.terminal.write_line(info)
@@ -105,13 +103,13 @@ class _Scenario:
         return []
 
     def post_setup(self):
-        """ called after test setup """
+        """called after test setup"""
 
     def collect_logs(self):
-        """ Called after setup """
+        """Called after setup"""
 
     def close_targets(self):
-        """ called after setup"""
+        """called after setup"""
 
     @property
     def host_log_folder(self):
@@ -188,7 +186,7 @@ class TestTheTestScenario(_Scenario):
 
 
 class _DockerScenario(_Scenario):
-    """ Scenario that tests docker containers """
+    """Scenario that tests docker containers"""
 
     def __init__(
         self,
@@ -239,7 +237,6 @@ class _DockerScenario(_Scenario):
             container.configure(replay)
 
     def _get_warmups(self):
-
         warmups = super()._get_warmups()
 
         warmups.append(create_network)
@@ -257,7 +254,6 @@ class _DockerScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
     def collect_logs(self):
-
         for container in self._required_containers:
             try:
                 container.save_logs()
@@ -266,7 +262,7 @@ class _DockerScenario(_Scenario):
 
 
 class EndToEndScenario(_DockerScenario):
-    """ Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent """
+    """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
 
     def __init__(
         self,
@@ -525,7 +521,7 @@ class EndToEndScenario(_DockerScenario):
 
 
 class OpenTelemetryScenario(_DockerScenario):
-    """ Scenario for testing opentelemetry"""
+    """Scenario for testing opentelemetry"""
 
     def __init__(self, name, include_agent=True, include_collector=True, include_intake=True) -> None:
         super().__init__(name, use_proxy=True)
@@ -640,7 +636,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
 
 class PerformanceScenario(EndToEndScenario):
-    """ A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"""
+    """A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"""
 
     def __init__(self, name) -> None:
         super().__init__(name, appsec_enabled=self.appsec_enabled, use_proxy=False)
@@ -761,7 +757,10 @@ class scenarios:
 
     trace_propagation_style_w3c = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
-        weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
+        weblog_env={
+            "DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",
+        },
     )
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
@@ -780,10 +779,16 @@ class scenarios:
         "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
     )
     telemetry_log_generation_disabled = EndToEndScenario(
-        "TELEMETRY_LOG_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
+        "TELEMETRY_LOG_GENERATION_DISABLED",
+        weblog_env={
+            "DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",
+        },
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",},
+        "TELEMETRY_METRIC_GENERATION_DISABLED",
+        weblog_env={
+            "DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",
+        },
     )
 
     # ASM scenarios
@@ -844,6 +849,13 @@ class scenarios:
         },
     )
 
+    appsec_api_security = EndToEndScenario(
+        "APPSEC_API_SECURITY",
+        appsec_enabled=True,
+        weblog_env={"_DD_API_SECURITY_ENABLED": "true", "DD_TRACE_DEBUG": "true"},
+        appsec_rules="/appsec_api_security_appsec_rule.json",
+    )
+
     # Remote config scenarios
     # library timeout is set to 100 seconds
     # default polling interval for tracers is very low (5 seconds)
@@ -883,14 +895,20 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+        },
         library_interface_timeout=100,
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+        },
         library_interface_timeout=100,
     )
 
