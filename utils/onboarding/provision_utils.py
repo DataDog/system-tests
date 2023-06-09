@@ -46,6 +46,9 @@ class ProvisionMatrix:
 class ProvisionParser:
     def __init__(self, provision_filter):
         self.provision_filter = provision_filter
+        # If the scenario name has suffix "AUTO_INSTALL" the parser behaviour will change
+        self.auto_install_suffix = "_AUTO_INSTALL"
+        self.is_auto_install = provision_filter.provision_scenario.endswith(self.auto_install_suffix)
         self.config_data = self._load_provision()
 
     def ec2_instances_data(self):
@@ -63,11 +66,19 @@ class ProvisionParser:
         self.provision_filter.os_branch = ami_data.get("os_branch", None)
 
     def ec2_agent_install_data(self):
-        for agent_data in self._filter_provision_data(self.config_data, "agent"):
-            yield agent_data
+        if self.is_auto_install:
+            yield {}
+        else:
+            for agent_data in self._filter_provision_data(self.config_data, "agent"):
+                yield agent_data
 
     def ec2_autoinjection_install_data(self):
-        autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
+        autoinjection_language_data = {}
+        if self.is_auto_install:
+            # Read agent_auto_install node
+            autoinjection_language_data = self._get_autoinstall_data_for_current_lang()
+        else:
+            autoinjection_language_data = self._get_autoinjection_data_for_current_lang()
         if not autoinjection_language_data:
             return None
         for autoinjection_env_data in autoinjection_language_data:
@@ -79,6 +90,11 @@ class ProvisionParser:
                 continue
 
             yield {"env": autoinjection_env_data["env"], "install": filteredInstalations[0]}
+
+    def _get_autoinstall_data_for_current_lang(self):
+        for autoinjection_language_data in self.config_data["agent_auto_install"]:
+            if self.provision_filter.language in autoinjection_language_data:
+                return autoinjection_language_data[self.provision_filter.language]
 
     def _get_autoinjection_data_for_current_lang(self):
         for autoinjection_language_data in self.config_data["autoinjection"]:
@@ -104,6 +120,9 @@ class ProvisionParser:
         return language_variants_data_result
 
     def ec2_prepare_repos_install_data(self):
+        # If we are using AUTO_INSTALL, the agent script will configure the repos automatically
+        if self.is_auto_install:
+            return {}
         filteredInstalations = self._filter_install_data(self.config_data["prepare-repos"], exact_match=False)
         return dict(install=filteredInstalations[0])
 
@@ -206,9 +225,12 @@ class ProvisionParser:
 
     def _load_provision(self):
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
-        # Open the file and load the file
+
+        # Open the file associated with the scenario name. Remember that we remove the suffix "AUTO_INSTALLL", we use the same provision
         provision_file = (
-            "tests/onboarding/infra_provision/provision_" + self.provision_filter.provision_scenario.lower() + ".yml"
+            "tests/onboarding/infra_provision/provision_"
+            + self.provision_filter.provision_scenario.removesuffix(self.auto_install_suffix).lower()
+            + ".yml"
         )
         with open(provision_file) as f:
             config_data = yaml.load(f, Loader=yaml.FullLoader)

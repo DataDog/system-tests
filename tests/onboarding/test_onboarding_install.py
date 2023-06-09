@@ -36,3 +36,8 @@ class TestOnboardingInstallHostContainer(_OnboardingInstallBaseTest):
 @scenarios.onboarding_host
 class TestOnboardingInstallHost(_OnboardingInstallBaseTest):
     pass
+
+
+@scenarios.onboarding_host_auto_install
+class TestOnboardingInstallHostAutoInstall(_OnboardingInstallBaseTest):
+    pass

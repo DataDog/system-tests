@@ -9,7 +9,7 @@ ami:
 - name: ubuntu-x86-18.04
   ami_id: ami-0263e4deb427da90e
   user: ubuntu
-  os_type: linux
+  os_type: linux_
   os_distro: deb
 
 - name: amazon-linux-x86
@@ -35,6 +35,42 @@ agent:
       - os_type: linux
         command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
         #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+
+agent_auto_install:
+  - nodejs: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: sh execute_install_script_dev.sh js
+
+  - java: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: sh execute_install_script_dev.sh java
+  - python: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: sh execute_install_script_dev.sh python
+  - dotnet: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: sh execute_install_script_dev.sh dotnet
 
 autoinjection:
   - java: 

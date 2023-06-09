@@ -38,7 +38,11 @@ class TestedVirtualMachine:
         self.name = (
             self.ec2_data["name"]
             + "__agent-"
-            + self.agent_install_data["env"]
+            + (
+                self.agent_install_data["env"]
+                if "env" in self.agent_install_data
+                else "auto-install-" + self.autoinjection_install_data["env"]
+            )
             + "__autoinjection-"
             + self.language
             + "-"
@@ -81,14 +85,17 @@ class TestedVirtualMachine:
             dial_error_limit=-1,
         )
 
-        # Prepare repositories
-        prepare_repos_installer = remote_install(
-            connection,
-            "prepare-repos-installer_" + self.name,
-            self.prepare_repos_install["install"],
-            server,
-            scenario_name=self.provision_scenario,
-        )
+        # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
+        if "install" in self.prepare_repos_install:
+            prepare_repos_installer = remote_install(
+                connection,
+                "prepare-repos-installer_" + self.name,
+                self.prepare_repos_install["install"],
+                server,
+                scenario_name=self.provision_scenario,
+            )
+        else:
+            prepare_repos_installer = server
 
         # Prepare docker installation if we need
         prepare_docker_installer = remote_install(
@@ -107,17 +114,20 @@ class TestedVirtualMachine:
                 prepare_docker_installer,
             )
 
-        # Install agent
-        agent_installer = remote_install(
-            connection,
-            "agent-installer_" + self.name,
-            self.agent_install_data["install"],
-            prepare_docker_installer,
-            add_dd_keys=True,
-            dd_api_key=self.datadog_config.dd_api_key,
-            dd_site=self.datadog_config.dd_site,
-            scenario_name=self.provision_scenario,
-        )
+        # Install agent. If we are using agent autoinstall script, agent install info will be empty, due to we load the install process on auto injection node
+        if "install" in self.agent_install_data:
+            agent_installer = remote_install(
+                connection,
+                "agent-installer_" + self.name,
+                self.agent_install_data["install"],
+                prepare_docker_installer,
+                add_dd_keys=True,
+                dd_api_key=self.datadog_config.dd_api_key,
+                dd_site=self.datadog_config.dd_site,
+                scenario_name=self.provision_scenario,
+            )
+        else:
+            agent_installer = prepare_docker_installer
 
         # Install autoinjection
         autoinjection_installer = remote_install(
@@ -125,6 +135,9 @@ class TestedVirtualMachine:
             "autoinjection-installer_" + self.name,
             self.autoinjection_install_data["install"],
             agent_installer,
+            add_dd_keys=True,
+            dd_api_key=self.datadog_config.dd_api_key,
+            dd_site=self.datadog_config.dd_site,
             scenario_name=self.provision_scenario,
         )
 
