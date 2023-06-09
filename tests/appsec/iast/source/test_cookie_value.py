@@ -12,7 +12,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
         "spring-boot": "1.5.0",
@@ -27,7 +27,6 @@ if context.library == "cpp":
         "*": "?",
     }
 )
-@released(nodejs="?")
 class TestCookieValue:
     """Verify that request cookies are tainted"""
 
