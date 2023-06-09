@@ -181,7 +181,7 @@ def _span_similarity(s1: Span, s2: Span) -> int:
     return score
 
 
-def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
+def find_similar_trace_by_root(traces: List[Trace], span: Span) -> Trace:
     """Return the trace from `traces` with root span most similar to `span`."""
     assert len(traces) > 0
 
@@ -196,7 +196,14 @@ def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
     return max_score_trace
 
 
-def find_span(trace: Trace, span: Span) -> Span:
+def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
+    """Return the trace from `traces` with root span matching all fields of `span`."""
+    trace = find_similar_trace_by_root(traces, span)
+    _assert_span_match(span, root_span(trace))
+    return trace
+
+
+def find_similar_span(trace: Trace, span: Span) -> Span:
     """Return a span from the trace which most closely matches `span`."""
     assert len(trace) > 0
 
@@ -210,14 +217,19 @@ def find_span(trace: Trace, span: Span) -> Span:
     return max_similarity_span
 
 
-def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
+def find_span(trace: Trace, span: Span) -> Span:
+    """Return a span from the trace matches all fields in `span`."""
+    return _assert_span_match(span, find_similar_span(trace, span))
+
+
+def find_similar_span_in_traces(traces: List[Trace], span: Span) -> Span:
     """Return a span from the traces which most closely matches `span`."""
     assert len(traces) > 0
 
     max_similarity = -math.inf
     max_similarity_span = None
     for trace in traces:
-        similar_span = find_span(trace, span)
+        similar_span = find_similar_span(trace, span)
         if max_similarity_span is None:
             max_similarity_span = similar_span
         similarity = _span_similarity(span, max_similarity_span)
@@ -225,6 +237,23 @@ def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
             max_similarity_span = similar_span
             max_similarity = similarity
     return max_similarity_span
+
+
+def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
+    """Return a span from the traces that matches all fields in `span`."""
+    return _assert_span_match(span, find_similar_span_in_traces(traces, span))
+
+
+def _assert_span_match(span: Span, similar: Span) -> Span:
+    for var in Span.__annotations__:
+        if not var.startswith("__"):
+            val = span.get(var)
+            s_val = similar.get(var)
+            if val != None and val != s_val:
+                assert val == s_val, "Span field '{}' mismatch '{}' != '{}'\nSpan   : {}\nSimilar: {}".format(
+                    var, val, s_val, span, similar,
+                )
+    return similar
 
 
 def span_has_no_parent(span: Span) -> bool:
