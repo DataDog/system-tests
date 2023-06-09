@@ -43,6 +43,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -458,6 +461,18 @@ public class App {
         return "Loaded Dependency\n".concat(klass.toString());
     }
 
+    @RequestMapping("/read_file")
+    public ResponseEntity<String> readFile(@RequestParam String file) {
+        String content;
+        try {
+            content = new Scanner(new File(file)).useDelimiter("\\Z").next();
+        }
+        catch (FileNotFoundException ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(content, HttpStatus.OK);
+    }
 
     @Bean
     @ConditionalOnProperty(

@@ -199,7 +199,11 @@ function deploy-agents-auto() {
 function apply-config-auto() {
     echo "[Auto Config] Triggering config change"
     config_name="${CONFIG_NAME:-config}"
-    kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/${config_name}.yaml
+    if [ ${INJECT_ALL} == "1" ]; then
+        kubectl apply -f ${BASE_DIR}/build/docker/all/${config_name}.yaml
+    else
+        kubectl apply -f ${BASE_DIR}/build/docker/${TEST_LIBRARY}/${config_name}.yaml
+    fi
     echo "[Auto Config] Waiting on the cluster agent to pick up the changes"
     sleep 120
     echo "[Auto Config] apply-config-auto: waiting for deployments/test-${TEST_LIBRARY}-deployment available"
@@ -295,6 +299,9 @@ function check-for-pod-metadata() {
     if [[ $enabled != "\"true\"" ]]; then
         echo "[Test] annotation 'admission.datadoghq.com/enabled' wasn't \"true\", got \"${enabled}\""
         exit 1
+    fi
+    if [ ${INJECT_ALL} == "1" ]; then
+        library="all"
     fi
     kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.version"
     kubectl get ${pod} -ojson | jq .metadata.annotations | grep "admission.datadoghq.com/${library}-lib.config.v1"
