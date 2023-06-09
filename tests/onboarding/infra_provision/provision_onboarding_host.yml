@@ -171,28 +171,12 @@ autoinjection:
         - os_type: linux
           os_distro: deb
           command: |
-            #Install pyenv
-            sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-            curl https://pyenv.run | bash
-            export PYENV_ROOT="$HOME/.pyenv"
-            export PATH="$PYENV_ROOT/bin:$PATH"
-            eval "$(pyenv init -)"
-
-            #Install autoinjection
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
             dd-host-install || true
 
         - os_type: linux
           os_distro: rpm
-          command: |
-            #Install pyenv
-            sudo yum install -y gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel git
-            git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-            export PYENV_ROOT="$HOME/.pyenv"
-            export PATH="$PYENV_ROOT/bin:$PATH"
-            eval "$(pyenv init -)"
-            
-            #Install autoinjection
+          command: |         
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-python
             dd-host-install
 language-variants:
@@ -235,22 +219,23 @@ language-variants:
           command: dotnet --info  
 
   - python: 
-    - name: Python3.5.10
-      version: 3.5.10
-      install: 
-        - os_type: linux
-          os_distro: deb
-          command: export PATH="~/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && pyenv install 3.5.10 && pyenv global 3.5.10 && python --version && echo "DONE"
-
-        - os_type: linux
-          os_distro: rpm
-          command: sudo yum -y install python3
-
     - name: Python_3.8.15
       version: 3.8.15
       install: 
         - os_type: linux
-          command: export PATH="~/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && pyenv install 3.8.15 && pyenv global 3.8.15
+          os_distro: deb
+          copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/lang/python_install.sh 
+          command: sh python_install.sh deb 3.8.15
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/lang/python_install.sh
+          command: sh python_install.sh rpm 3.8.15
+
 
 weblogs:
   - java: 

@@ -54,6 +54,7 @@ variables:
         - logs_onboarding_host/
         - logs_onboarding_host_container/
         - logs_onboarding_container/
+        - logs_onboarding_host_auto_install/
 
 cross-components:
   extends: .base_job
