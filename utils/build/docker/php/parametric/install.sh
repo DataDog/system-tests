@@ -21,6 +21,7 @@ if [ "$PKG" == "" ]; then
   fi
   curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
   SETUP=datadog-setup.php
+  unset PKG
 fi
-echo "Installing php package $PKG with setup script $SETUP"
-php $SETUP --php-bin=all $([ "$PKG" = "" ] || echo --file="$PKG")
+echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
+php $SETUP --php-bin=all ${PKG+"--file=$PKG"}
