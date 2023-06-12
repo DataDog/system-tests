@@ -77,31 +77,32 @@ TRACER_ESSENTIAL_SCENARIOS=(
 ONBOARDING_SCENARIOS=(
     ONBOARDING_HOST
     ONBOARDING_HOST_CONTAINER
+    ONBOARDING_CONTAINER
 )
 
 readonly SCENARIO=${1:-}
 
 if [[ $SCENARIO == "TRACER_RELEASE_SCENARIOS" ]]; then
-    for scenario in "${TRACER_RELEASE_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+    for scenario in "${TRACER_RELEASE_SCENARIOS[@]}"; do pytest -p no:warnings -S $scenario ${@:2}; done
 
 elif [[ $SCENARIO == "TRACER_ESSENTIAL_SCENARIOS" ]]; then
-    for scenario in "${TRACER_ESSENTIAL_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+    for scenario in "${TRACER_ESSENTIAL_SCENARIOS[@]}"; do pytest -p no:warnings -S $scenario ${@:2}; done
 
 elif [[ $SCENARIO == "APPSEC_SCENARIOS" ]]; then
-    for scenario in "${APPSEC_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+    for scenario in "${APPSEC_SCENARIOS[@]}"; do pytest -p no:warnings -S $scenario ${@:2}; done
 
 elif [[ $SCENARIO == "REMOTE_CONFIG_SCENARIOS" ]]; then
-    for scenario in "${REMOTE_CONFIG_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+    for scenario in "${REMOTE_CONFIG_SCENARIOS[@]}"; do pytest -p no:warnings -S $scenario ${@:2}; done
 
 elif [[ $SCENARIO == "TELEMETRY_SCENARIOS" ]]; then
-    for scenario in "${TELEMETRY_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+    for scenario in "${TELEMETRY_SCENARIOS[@]}"; do pytest -p no:warnings -S $scenario ${@:2}; done
 
 elif [[ $SCENARIO == "ONBOARDING_SCENARIOS" ]]; then
-    for scenario in "${ONBOARDING_SCENARIOS[@]}"; do pytest -S $scenario ${@:2}; done
+    for scenario in "${ONBOARDING_SCENARIOS[@]}"; do pytest -p no:warnings -S $scenario ${@:2}; done
 
 elif [[ $SCENARIO == "APPSEC_IP_BLOCKING_MAXED" ]] || [[ $SCENARIO == "APPSEC_IP_BLOCKING" ]]; then
     # Those scenario has been renamed. Keep the compatibility, waiting for other CI to update.
-    pytest -S APPSEC_BLOCKING_FULL_DENYLIST ${@:2};
+    pytest -p no:warnings -S APPSEC_BLOCKING_FULL_DENYLIST ${@:2};
 
 elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
     # If the first argument is a list of capital letters, then we consider it's a scenario name

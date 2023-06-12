@@ -10,6 +10,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+from utils.onboarding.pulumi_ssh import PulumiSSH
 
 from utils._context.containers import (
     WeblogContainer,
@@ -692,7 +693,8 @@ class OnBoardingScenario(_Scenario):
 
     def _start_pulumi(self):
         def pulumi_start_program():
-
+            # Static loading of keypairs for ec2 machines
+            PulumiSSH.load()
             for provision_vm in self.provision_vms:
                 logger.info(f"Executing warmup {provision_vm.name}")
                 provision_vm.start()
@@ -704,6 +706,7 @@ class OnBoardingScenario(_Scenario):
             self.stack = auto.create_or_select_stack(
                 stack_name=stack_name, project_name=project_name, program=pulumi_start_program
             )
+            self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
         except:
             self.collect_logs()
@@ -1006,6 +1009,7 @@ class scenarios:
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST", doc="")
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER", doc="")
+    onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER", doc="")
 
 
 def _main():
