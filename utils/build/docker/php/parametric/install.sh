@@ -23,4 +23,4 @@ if [ "$PKG" == "" ]; then
   SETUP=datadog-setup.php
 fi
 echo "Installing php package $PKG with setup script $SETUP"
-php $SETUP --php-bin=all "$([ "$PKG" = "" ] || echo --file="$PKG")"
+php $SETUP --php-bin=all $([ "$PKG" = "" ] || echo --file="$PKG")
