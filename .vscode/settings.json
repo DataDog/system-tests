@@ -5,5 +5,10 @@
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "python.formatting.provider": "black",
-    "java.compile.nullAnalysis.mode": "disabled"
+    "java.compile.nullAnalysis.mode": "disabled",
+    "python.testing.pytestArgs": [
+        "tests",
+        "--replay"
+    ],
+    "python.testing.pytestEnabled": true
 }
