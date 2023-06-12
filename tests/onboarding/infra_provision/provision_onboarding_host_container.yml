@@ -31,6 +31,49 @@ agent:
         command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
         #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
+agent_auto_install:
+  - nodejs: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_container_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: sh execute_install_script_container_dev.sh js && sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - java: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_container_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: sh execute_install_script_container_dev.sh java && sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - python: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_container_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: | 
+          sh execute_install_script_container_dev.sh python
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - dotnet: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_container_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: sh execute_install_script_container_dev.sh dotnet && sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 autoinjection: 
   - java: 
     - env: dev

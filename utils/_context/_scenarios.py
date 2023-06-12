@@ -941,6 +941,7 @@ class scenarios:
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
     onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER")
     onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL")
+    onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL")
 
 
 if __name__ == "__main__":
