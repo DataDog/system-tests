@@ -358,7 +358,7 @@ jobs:
         ./run.sh PROFILING --replay
         # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
         ./run.sh INTEGRATIONS --replay
-        ./run.sh APM_TRACING_E2E_OTEL --replay
+        # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
