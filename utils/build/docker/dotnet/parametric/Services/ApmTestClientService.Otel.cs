@@ -107,11 +107,13 @@ public partial class ApmTestClientService
 
         var activity = FindActivity(request.SpanId);
 
-        return Task.FromResult(
-            new OtelIsRecordingReturn
-            {
-                IsRecording = activity.Recorded
-            });
+        var result = new OtelIsRecordingReturn
+                     {
+                         IsRecording = activity.Recorded
+                     };
+
+        _logger.LogInformation("OtelIsRecordingReturn: {Result}", result);
+        return Task.FromResult(result);
     }
 
     public override Task<OtelSpanContextReturn> OtelSpanContext(OtelSpanContextArgs request, ServerCallContext context)
@@ -125,17 +127,19 @@ public partial class ApmTestClientService
 
         var activity = FindActivity(request.SpanId);
 
-        return Task.FromResult(
-            new OtelSpanContextReturn
-            {
-                TraceId = activity.TraceId.ToString(),
-                SpanId = activity.SpanId.ToString(),
+        var result = new OtelSpanContextReturn
+                     {
+                         TraceId = activity.TraceId.ToString(),
+                         SpanId = activity.SpanId.ToString(),
 
-                // TODO:
-                // TraceFlags = null,
-                // TraceState = null,
-                // Remote = false
-            });
+                         // TODO:
+                         // TraceFlags = null,
+                         // TraceState = null,
+                         // Remote = false
+                     };
+
+        _logger.LogInformation("OtelSpanContextReturn: {Result}", result);
+        return Task.FromResult(result);
     }
 
     public override Task<OtelSetStatusReturn> OtelSetStatus(OtelSetStatusArgs request, ServerCallContext context)
@@ -145,6 +149,7 @@ public partial class ApmTestClientService
         var activity = FindActivity(request.SpanId);
         activity.SetStatus((ActivityStatusCode)int.Parse(request.Code), request.Description);
 
+        _logger.LogInformation("OtelSetStatusReturn");
         return Task.FromResult(new OtelSetStatusReturn());
     }
 
@@ -155,6 +160,7 @@ public partial class ApmTestClientService
         var activity = FindActivity(request.SpanId);
         activity.DisplayName = request.Name;
 
+        _logger.LogInformation("OtelSetNameReturn");
         return Task.FromResult(new OtelSetNameReturn());
     }
 
@@ -192,6 +198,7 @@ public partial class ApmTestClientService
             }
         }
 
+        _logger.LogInformation("OtelSetAttributesReturn");
         return Task.FromResult(new OtelSetAttributesReturn());
     }
 
@@ -200,6 +207,8 @@ public partial class ApmTestClientService
         _logger.LogInformation("OtelFlushSpans: {Request}", request);
 
         await FlushSpans();
+
+        _logger.LogInformation("OtelFlushSpansReturn");
         return new OtelFlushSpansReturn { Success = true };
     }
 
@@ -208,6 +217,8 @@ public partial class ApmTestClientService
         _logger.LogInformation("OtelFlushTraceStats: {Request}", request);
 
         await FlushTraceStats();
+
+        _logger.LogInformation("OtelFlushTraceStatsReturn");
         return new OtelFlushTraceStatsReturn();
     }
 }
