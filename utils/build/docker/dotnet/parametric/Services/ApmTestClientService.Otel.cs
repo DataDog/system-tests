@@ -164,32 +164,30 @@ public partial class ApmTestClientService
 
         var activity = FindActivity(request.SpanId);
 
-        foreach ((string key, ListVal value) in request.Attributes.KeyVals)
+        foreach ((string key, ListVal values) in request.Attributes.KeyVals)
         {
             // tags only support one value, so we only use the first one
-            AttrVal? first = value.Val.FirstOrDefault();
-
-            if (first != null)
+            if (values.Val.FirstOrDefault() is { } value)
             {
-                switch (first.ValCase)
+                switch (value.ValCase)
                 {
                     case AttrVal.ValOneofCase.None:
                         // no value to set
                         break;
                     case AttrVal.ValOneofCase.BoolVal:
-                        activity.SetTag(key, first.BoolVal);
+                        activity.SetTag(key, value.BoolVal);
                         break;
                     case AttrVal.ValOneofCase.StringVal:
-                        activity.SetTag(key, first.StringVal);
+                        activity.SetTag(key, value.StringVal);
                         break;
                     case AttrVal.ValOneofCase.DoubleVal:
-                        activity.SetTag(key, first.DoubleVal);
+                        activity.SetTag(key, value.DoubleVal);
                         break;
                     case AttrVal.ValOneofCase.IntegerVal:
-                        activity.SetTag(key, first.IntegerVal);
+                        activity.SetTag(key, value.IntegerVal);
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException($"Enum value out of range: OtelSetAttributesArgs.Attributes.KeyVals[\"{key}\"][0] = {first.ValCase}.");
+                        throw new ArgumentOutOfRangeException($"Enum value out of range: OtelSetAttributesArgs.Attributes.KeyVals[\"{key}\"][0] = {value.ValCase}.");
                 }
             }
         }
