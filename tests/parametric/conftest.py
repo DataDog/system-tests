@@ -466,7 +466,7 @@ class _TestAgentAPI:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
     def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
-        """Wait for `num` to be received from the test agent.
+        """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
 
@@ -486,6 +486,30 @@ class _TestAgentAPI:
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+
+    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
+        """Wait for `num` spans to be received from the test agent.
+
+        Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
+
+        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
+        """
+        num_received = None
+        for i in range(wait_loops):
+            try:
+                traces = self.traces(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                num_received = 0
+                for trace in traces:
+                    num_received += len(trace)
+                if num_received == num:
+                    if clear:
+                        self.clear()
+                    return sorted(traces, key=lambda trace: trace[0]["start"])
+            time.sleep(0.1)
+        raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
 
 @contextlib.contextmanager
