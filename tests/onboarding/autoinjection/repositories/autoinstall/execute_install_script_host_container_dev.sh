@@ -8,5 +8,5 @@ sed  "s/-eq 7/== \"apm\"/g" install_script_agent7_autoinject_temp.sh > install_s
 chmod 755 install_script_agent7_autoinject.sh
 ./install_script_agent7.sh
 echo "Agent install done"
-DD_REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta DD_AGENT_MAJOR_VERSION=apm DD_APM_LIBRARIES="$LANG" DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true DD_NO_AGENT_INSTALL=true ./install_script_agent7_autoinject.sh
+DD_REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta DD_AGENT_MAJOR_VERSION=apm DD_APM_LIBRARIES="$LANG" DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=true ./install_script_agent7_autoinject.sh
 echo "lib-injection install done"
