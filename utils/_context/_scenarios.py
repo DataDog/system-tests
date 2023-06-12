@@ -757,10 +757,7 @@ class scenarios:
 
     trace_propagation_style_w3c = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
-        weblog_env={
-            "DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",
-        },
+        weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
     )
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
@@ -779,16 +776,10 @@ class scenarios:
         "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
     )
     telemetry_log_generation_disabled = EndToEndScenario(
-        "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={
-            "DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",
-        },
+        "TELEMETRY_LOG_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_DISABLED",
-        weblog_env={
-            "DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",
-        },
+        "TELEMETRY_METRIC_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",},
     )
 
     # ASM scenarios
@@ -895,20 +886,14 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
-        },
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
-        },
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
     )
 
