@@ -34,6 +34,56 @@ agent:
 
         command: cat docker-compose-agent-prod.yml
 
+agent_auto_install:
+  - nodejs: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: |
+          sh execute_install_script_dev.sh js "false" "true"  #NO Install host inject. YES install container inject
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - java: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: |
+          sh execute_install_script_dev.sh java "false" "true" #NO Install host inject. YES install container inject
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - python: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: | 
+          sh execute_install_script_dev.sh python "false" "true" #NO Install host inject. YES install container inject
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - dotnet: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+        command: |
+          sh execute_install_script_dev.sh dotnet "false" "true" #NO Install host inject. YES install container inject
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
 autoinjection: 
   - java: 
     - env: dev

@@ -44,7 +44,7 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: sh execute_install_script_dev.sh js
+        command: sh execute_install_script_dev.sh js "true" "false" #Install host inject. NO install container inject
 
   - java: 
     - env: dev
@@ -53,7 +53,7 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: sh execute_install_script_dev.sh java
+        command: sh execute_install_script_dev.sh java "true" "false" #Install host inject. NO install container inject
   - python: 
     - env: dev
       install:
@@ -61,7 +61,7 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: sh execute_install_script_dev.sh python
+        command: sh execute_install_script_dev.sh python "true" "false" #Install host inject. NO install container inject
   - dotnet: 
     - env: dev
       install:
@@ -69,7 +69,7 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: sh execute_install_script_dev.sh dotnet
+        command: sh execute_install_script_dev.sh dotnet "true" "false" #Install host inject. NO install container inject
 
 autoinjection:
   - java: 
