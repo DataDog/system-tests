@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using ApmTestClient.DuckTypes;
 using Datadog.Trace.DuckTyping;
@@ -81,6 +82,8 @@ public partial class ApmTestClientService
         {
             throw new ApplicationException("Failed to start activity. Make sure there are listeners registered.");
         }
+
+        activity.ActivityTraceFlags = ActivityTraceFlags.Recorded;
 
         _logger.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
 
