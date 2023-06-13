@@ -1,31 +1,33 @@
+from logging import FileHandler
 import os
+from pathlib import Path
 import shutil
 import time
-from logging import FileHandler
-from pathlib import Path
 
-import pytest
 from pulumi import automation as auto
+import pytest
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from utils._context.library_version import LibraryVersion, Version
+from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
+from utils.onboarding.pulumi_ssh import PulumiSSH
+
 from utils._context.containers import (
+    WeblogContainer,
     AgentContainer,
-    CassandraContainer,
-    KafkaContainer,
+    ProxyContainer,
+    PostgresContainer,
     MongoContainer,
+    KafkaContainer,
+    ZooKeeperContainer,
+    CassandraContainer,
+    RabbitMqContainer,
     MySqlContainer,
     OpenTelemetryCollectorContainer,
-    PostgresContainer,
-    ProxyContainer,
-    RabbitMqContainer,
-    WeblogContainer,
-    ZooKeeperContainer,
     create_network,
 )
-from utils._context.library_version import LibraryVersion, Version
-from utils.onboarding.provision_utils import ProvisionFilter, ProvisionMatrix
-from utils.onboarding.pulumi_ssh import PulumiSSH
-from utils.tools import get_log_formatter, logger, update_environ_with_local_env
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
+
+from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
 
@@ -67,7 +69,7 @@ class _Scenario:
             weblog.init_replay_mode(self.host_log_folder)
 
     def session_start(self, session):
-        """called at the very begning of the process"""
+        """ called at the very begning of the process """
 
         self.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
         self.print_test_context()
@@ -87,7 +89,7 @@ class _Scenario:
             raise
 
     def pytest_sessionfinish(self, session):
-        """called at the end of the process"""
+        """ called at the end of the process  """
 
     def print_test_context(self):
         self.terminal.write_sep("=", "test context", bold=True)
@@ -95,7 +97,7 @@ class _Scenario:
         self.print_info(f"Logs folder: ./{self.host_log_folder}")
 
     def print_info(self, info):
-        """print info in stdout"""
+        """ print info in stdout """
         logger.info(info)
         if self.terminal is not None:
             self.terminal.write_line(info)
@@ -104,13 +106,13 @@ class _Scenario:
         return []
 
     def post_setup(self):
-        """called after test setup"""
+        """ called after test setup """
 
     def collect_logs(self):
-        """Called after setup"""
+        """ Called after setup """
 
     def close_targets(self):
-        """called after setup"""
+        """ called after setup"""
 
     @property
     def host_log_folder(self):
@@ -187,7 +189,7 @@ class TestTheTestScenario(_Scenario):
 
 
 class _DockerScenario(_Scenario):
-    """Scenario that tests docker containers"""
+    """ Scenario that tests docker containers """
 
     def __init__(
         self,
@@ -239,6 +241,7 @@ class _DockerScenario(_Scenario):
             container.configure(replay)
 
     def _get_warmups(self):
+
         warmups = super()._get_warmups()
 
         warmups.append(create_network)
@@ -256,6 +259,7 @@ class _DockerScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
     def collect_logs(self):
+
         for container in self._required_containers:
             try:
                 container.save_logs()
@@ -264,7 +268,7 @@ class _DockerScenario(_Scenario):
 
 
 class EndToEndScenario(_DockerScenario):
-    """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
+    """ Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent """
 
     def __init__(
         self,
@@ -525,7 +529,7 @@ class EndToEndScenario(_DockerScenario):
 
 
 class OpenTelemetryScenario(_DockerScenario):
-    """Scenario for testing opentelemetry"""
+    """ Scenario for testing opentelemetry"""
 
     def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
         super().__init__(name, doc=doc, use_proxy=True)
@@ -895,13 +899,6 @@ class scenarios:
             "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
         },
         doc="",
-    )
-
-    appsec_api_security = EndToEndScenario(
-        "APPSEC_API_SECURITY",
-        appsec_enabled=True,
-        weblog_env={"_DD_API_SECURITY_ENABLED": "true", "DD_TRACE_DEBUG": "true"},
-        appsec_rules="/appsec_api_security_appsec_rule.json",
     )
 
     appsec_api_security = EndToEndScenario(
