@@ -160,9 +160,15 @@ public partial class ApmTestClientService
     {
         _logger.LogInformation("OtelSetStatus: {Request}", request);
 
-        var activity = FindActivity(request.SpanId);
-        var statusCode = (ActivityStatusCode)int.Parse(request.Code);
-        activity.SetStatus(statusCode, request.Description);
+        if (Enum.TryParse(request.Code, ignoreCase: true, out ActivityStatusCode statusCode))
+        {
+            var activity = FindActivity(request.SpanId);
+            activity.SetStatus(statusCode, request.Description);
+        }
+        else
+        {
+            throw new ApplicationException($"Invalid value for ActivityStatusCode: {request.Code}");
+        }
 
         _logger.LogInformation("OtelSetStatusReturn");
         return Task.FromResult(new OtelSetStatusReturn());
