@@ -4,7 +4,7 @@ INSTALL_AGENT="true"
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        dotnet|java|nodejs|python) LIBRARY_LANG="$1";;
+        dotnet|java|js|python) LIBRARY_LANG="$1";;
         -l|--host-inject) HOST_INSTALL="$2"; shift ;;
         -i|--container-inject) CONTAINER_INSTALL="$2"; shift ;;
         -w|--install-agent) INSTALL_AGENT="$2"; shift ;;
