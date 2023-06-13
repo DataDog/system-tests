@@ -234,7 +234,6 @@ def test_otel_set_span_status_ok(test_agent, test_library):
     assert span.get("name") == "ok_span"
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 def test_otel_get_span_context(test_agent, test_library):
