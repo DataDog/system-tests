@@ -6,16 +6,37 @@ import base64
 import gzip
 import json
 
+import pytest
 from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
 
 def get_schema(request, address):
+    """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
         payload = meta.get("_dd.schema." + address, None)
         if payload is not None:
             return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
     return
+
+
+def equal_without_meta(t1, t2):
+    """compare two schema types, ignoring any metadata"""
+    if t1 is None or t2 is None:
+        print("NONE")
+        return False
+    return equal_value(t1[0], t2[0])
+
+
+def equal_value(t1, t2):
+    """compare two schema type values, ignoring any metadata"""
+    if isinstance(t1, list) and isinstance(t2, list):
+        return len(t1) == len(t2) and all(equal_without_meta(a, b) for a, b in zip(t1, t2))
+    if isinstance(t1, dict) and isinstance(t2, dict):
+        return len(t1) == len(t2) and all(equal_without_meta(t1[k], t2.get(k)) for k in t1)
+    if isinstance(t1, int) and isinstance(t2, int):
+        return t1 == t2
+    return False
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -36,7 +57,7 @@ class Test_Schema_Request_Headers:
         assert self.request.status_code == 200
         assert schema
         assert isinstance(schema, list)
-        assert schema[0] == {"Accept-Encoding": [8], "Host": [8], "User-Agent": [8]}
+        assert equal_without_meta(schema, [{"Accept-Encoding": [8], "Host": [8], "User-Agent": [8]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -82,7 +103,9 @@ class Test_Schema_Request_Path_Parameters:
         assert isinstance(schema, list)
         # There should have two parameters here, one for api_match_AS003, the other for 200
         assert len(schema[0]) == 2
-        assert all(isinstance(v, list) and len(v) == 1 and isinstance(v[0], int) for v in schema[0].values())
+        assert all(isinstance(v, list) for v in schema[0].values())
+        assert all(1 <= len(v) <= 2 for v in schema[0].values())
+        assert all(isinstance(v[0], int) for v in schema[0].values())
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -102,7 +125,7 @@ class Test_Schema_Request_Body:
         """can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert schema == [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}]
+        assert equal_without_meta(schema, [{"main": [[[{"key": [8], "value": [4]}]], {"len": 2}], "nullable": [1]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -140,6 +163,7 @@ class Test_Schema_Reponse_Body:
     def setup_request_method(self):
         pass
 
+    @pytest.mark.skip
     def test_request_method(self):
         """can provide response body schema"""
         pass

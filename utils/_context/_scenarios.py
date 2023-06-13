@@ -906,6 +906,10 @@ class scenarios:
         appsec_enabled=True,
         weblog_env={"_DD_API_SECURITY_ENABLED": "true", "DD_TRACE_DEBUG": "true"},
         appsec_rules="/appsec_api_security_appsec_rule.json",
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        _DD_API_SECURITY_ENABLED is set to true.
+        """,
     )
 
     # Remote config scenarios
