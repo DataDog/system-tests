@@ -25,43 +25,61 @@ public partial class ApmTestClientService
     {
         _logger.LogInformation("OtelStartSpan: {Request}", request);
 
-        ActivityContext parentActivity = default;
+        ActivityContext? localParentContext = null;
+        ActivityContext? remoteParentContext = null;
 
-        if (request.HttpHeaders?.HttpHeaders is { } headers)
+        // try getting parent context from parent id (local parent)
+        if (request is { HasParentId: true, ParentId: > 0 })
         {
-            var parentContext = _spanContextExtractor.Extract(headers, getter: GetHeaderValues)
-                                                     .DuckCast<IDuckSpanContext>();
+            var parentActivity = FindActivity(request.ParentId);
+            localParentContext = parentActivity.Context;
+        }
 
-            _logger.LogInformation("Extracted SpanContext: {ParentContext}", parentContext);
+        // try extracting parent context from headers (remote parent)
+        if (request.HttpHeaders?.HttpHeaders is { Count: > 0 } headers)
+        {
+            var extractedContext = _spanContextExtractor.Extract(headers, getter: GetHeaderValues)
+                                                        .DuckCast<IDuckSpanContext>();
 
-            if (parentContext is not null)
+            _logger.LogInformation("Extracted SpanContext: {ParentContext}", extractedContext);
+
+            if (extractedContext is not null)
             {
-                var parentTraceId = ActivityTraceId.CreateFromString(parentContext.RawTraceId);
-                var parentSpanId = ActivitySpanId.CreateFromString(parentContext.RawSpanId);
-                var flags = parentContext.SamplingPriority > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+                var parentTraceId = ActivityTraceId.CreateFromString(extractedContext.RawTraceId);
+                var parentSpanId = ActivitySpanId.CreateFromString(extractedContext.RawSpanId);
+                var flags = extractedContext.SamplingPriority > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
 
-                parentActivity = new ActivityContext(
+                remoteParentContext = new ActivityContext(
                     parentTraceId,
                     parentSpanId,
                     flags,
-                    parentContext.AdditionalW3CTraceState,
+                    extractedContext.AdditionalW3CTraceState,
                     isRemote: true);
             }
         }
 
+        // sanity check that we didn't receive both a local and remote parent
+        if (localParentContext != null && remoteParentContext != null)
+        {
+            throw new ApplicationException(
+                "Both ParentId and HttpHeaders were provided to OtelStartSpan(). " +
+                "Provide one or the other, but not both.");
+        }
+
         var startTime = request.HasTimestamp ? DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp) : default;
+        var parentContext = localParentContext ?? remoteParentContext ?? default;
 
         var activity = ApmTestClientActivitySource.StartActivity(
             request.Name,
             ActivityKind.Internal,
-            parentActivity,
+            parentContext,
             tags: null,
             links: null,
             startTime);
 
         if (activity is null)
         {
-            throw new ApplicationException("Failed to start activity.");
+            throw new ApplicationException("Failed to start activity. Make sure there are listeners registered.");
         }
 
         _logger.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
@@ -140,7 +158,8 @@ public partial class ApmTestClientService
         _logger.LogInformation("OtelSetStatus: {Request}", request);
 
         var activity = FindActivity(request.SpanId);
-        activity.SetStatus((ActivityStatusCode)int.Parse(request.Code), request.Description);
+        var statusCode = (ActivityStatusCode)int.Parse(request.Code);
+        activity.SetStatus(statusCode, request.Description);
 
         _logger.LogInformation("OtelSetStatusReturn");
         return Task.FromResult(new OtelSetStatusReturn());
