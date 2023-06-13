@@ -501,6 +501,18 @@ class MySqlContainer(TestedContainer):
         )
 
 
+class SqlServerContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="mcr.microsoft.com/mssql/server:latest",
+            name="sqlserver",
+            environment={"SA_PASSWORD": "Strong!Passw0rd", "ACCEPT_EULA": "Y",},
+            allow_old_container=True,
+            host_log_folder=host_log_folder,
+            ports={"1433/tcp": ("127.0.0.1", 1433)},
+        )
+
+
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
