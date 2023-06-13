@@ -35,7 +35,6 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
     assert root_span["duration"] == duration_ns
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")

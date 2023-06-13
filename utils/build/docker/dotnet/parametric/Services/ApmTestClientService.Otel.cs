@@ -120,22 +120,15 @@ public partial class ApmTestClientService
     {
         _logger.LogInformation("OtelSpanContext: {Request}", request);
 
-        // TODO:
-        // var w3CTraceContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.W3CTraceContextPropagator, Datadog.Trace", throwOnError: true);
-        // FieldInfo? field = w3CTraceContextPropagatorType!.GetField("Instance", BindingFlags.Public | BindingFlags.Static);
-        // var w3CTraceContextPropagator = field!.GetValue(null).DuckCast<IDuckW3CTraceContextPropagator>();
-
         var activity = FindActivity(request.SpanId);
 
         var result = new OtelSpanContextReturn
                      {
                          TraceId = activity.TraceId.ToString(),
                          SpanId = activity.SpanId.ToString(),
-
-                         // TODO:
-                         // TraceFlags = null,
-                         // TraceState = null,
-                         // Remote = false
+                         TraceFlags = ((int)activity.ActivityTraceFlags).ToString("x2"),
+                         TraceState = activity.TraceStateString ?? "",
+                         Remote = activity.HasRemoteParent
                      };
 
         _logger.LogInformation("OtelSpanContextReturn: {Result}", result);
