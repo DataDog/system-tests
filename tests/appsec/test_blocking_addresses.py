@@ -254,7 +254,7 @@ class Test_Blocking_request_method:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.32.0",
     golang="1.51.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
@@ -607,7 +607,7 @@ class Test_Blocking_request_body:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.32.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -644,7 +644,7 @@ class Test_Blocking_response_status:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.32.0",
     golang="?",
     java="?",
     nodejs="?",

@@ -222,7 +222,7 @@ class Test_Blocking:
 @rfc(
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
-@released(java="1.11.0", dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
+@released(java="1.11.0", dotnet="2.32.0", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_blocking
