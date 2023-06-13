@@ -139,6 +139,24 @@ function init (app, tracer) {
     res.send('OK')
   });
 
+  app.post('/iast/unvalidated_redirect/test_secure_header', (req, res) => {
+    res.setHeader('location', 'http://dummy.location.com')
+    res.send('OK')
+  });
+
+  app.post('/iast/unvalidated_redirect/test_insecure_header', (req, res) => {
+    res.setHeader('location', req.body.location)
+    res.send('OK')
+  });
+
+  app.post('/iast/unvalidated_redirect/test_secure_redirect', (req, res) => {
+    res.redirect('http://dummy.location.com')
+  });
+
+  app.post('/iast/unvalidated_redirect/test_insecure_redirect', (req, res) => {
+    res.redirect(req.body.location)
+  });
+
   require('./sources')(app, tracer);
 
 }
