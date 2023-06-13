@@ -42,7 +42,7 @@ agent_auto_install:
             - name: copy-docker-config
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
         command: |
-          sh execute_install_script_dev.sh js "true" "true" #Install host inject and install container inject
+          bash execute_install_script_dev.sh js --host-inject true --container-inject true 
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml 
   - java: 
     - env: dev
@@ -54,7 +54,7 @@ agent_auto_install:
             - name: copy-docker-config
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
         command: |
-          sh execute_install_script_dev.sh java "true" "true"  #Install host inject and install container inject
+          bash execute_install_script_dev.sh java --host-inject true --container-inject true 
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - python: 
     - env: dev
@@ -66,7 +66,7 @@ agent_auto_install:
             - name: copy-docker-config
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
         command: | 
-          sh execute_install_script_dev.sh python "true" "true"  #Install host inject and install container inject
+          bash execute_install_script_dev.sh python --host-inject true --container-inject true 
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - dotnet: 
     - env: dev
@@ -78,7 +78,7 @@ agent_auto_install:
             - name: copy-docker-config
               local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
         command: |
-          sh execute_install_script_dev.sh dotnet "true" "true"  #Install host inject and install container inject
+          bash execute_install_script_dev.sh dotnet --host-inject true --container-inject true 
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
 autoinjection: 
   - java: 
