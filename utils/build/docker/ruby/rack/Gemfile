@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+
+gem 'rack-contrib'
+gem 'puma'
+gem 'pry'
+
+gem 'ddtrace', '~> 1.0.0.a'

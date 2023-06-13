@@ -198,8 +198,9 @@ Expected query params:
 
 Supported Libraries:
   - pyscopg (Python PostgreSQL adapter)
-  - mysql (ADO.NET driver for MySQL)
   - npgsql (ADO.NET Data Provider for PostgreSQL)
+  - mysql (ADO.NET driver for MySQL)
+  - sqlclient (Microsoft Data Provider for SQLServer & Azure SQL Database)
 
 ## GET /dsm
 
@@ -270,3 +271,19 @@ The following query parameters are optional:
 - `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
 
 This endpoint is used for the Single Spans tests (`test_single_span.py`).
+
+## GET /e2e_otel_span
+
+This endpoint will create two spans, a parent span (which is a root-span), and a child span.
+The spans created are not sub-spans of the main root span automatically created by system-tests, but 
+they will have the same `user-agent` containing the request ID in order to allow assertions on them.
+
+The following query parameters are required:
+- `parentName`: The name of the parent span (root-span).
+- `childName`: The name of the child span (the parent of this span is the root-span identified by `parentName`).
+
+The following query parameters are optional:
+- `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
+
+This endpoint is used for the OTel API tests (`test_otel.py`). In the body of the endpoint, multiple properties are set on the span to verify that the API works correctly.
+To read more about the specific values being used, check `test_otel.py` for up-to-date information.

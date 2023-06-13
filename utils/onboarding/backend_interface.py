@@ -13,7 +13,7 @@ def _query_for_trace_id(trace_id):
         "DD-APPLICATION-KEY": os.getenv("DD_APP_KEY_ONBOARDING"),
     }
     r = requests.get(f"{host}{path}", headers=headers, timeout=10)
-    logger.info(f"Request path [{host}{path}] with headers [{headers}]")
+    logger.info(f"Request path [{host}{path}]")
     logger.info("Trying to find trace_id [{}] in backend with result status [{}]".format(trace_id, r.status_code))
     return r.status_code
 
