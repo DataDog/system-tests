@@ -5,11 +5,13 @@ from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.otel_trace import OtelSpan
 
+# this global mark applies to all tests in this file.
+#   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
+#   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env",
-        [{"DD_TRACE_OTEL_ENABLED": "true",  # required in some tracers (.NET, Python?)
-          "CORECLR_ENABLE_PROFILING": "1"}] # required in .NET
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
 )
+
 
 @pytest.mark.skip_library("dotnet", "Span names don't match expectations")
 @pytest.mark.skip_library("ruby", "Not implemented")

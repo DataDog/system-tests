@@ -9,11 +9,13 @@ from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
 
+# this global mark applies to all tests in this file.
+#   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
+#   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env",
-        [{"DD_TRACE_OTEL_ENABLED": "true",  # required in some tracers (.NET, Python?)
-          "CORECLR_ENABLE_PROFILING": "1"}] # required in .NET
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
 )
+
 
 @pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'operation'")
 @pytest.mark.skip_library("php", "Not implemented")
@@ -113,7 +115,9 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     assert root_span["metrics"]["d_double_val"] == 3.14
 
 
-@pytest.mark.skip_library("dotnet", ".NET's native implementation does not change IsRecording to false after ending a span.")
+@pytest.mark.skip_library(
+    "dotnet", ".NET's native implementation does not change IsRecording to false after ending a span."
+)
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_span_is_recording(test_agent, test_library):
@@ -130,7 +134,9 @@ def test_otel_span_is_recording(test_agent, test_library):
             assert not parent.is_recording()
 
 
-@pytest.mark.skip_library("dotnet", ".NET's native implementation does not change IsRecording to false after ending a span.")
+@pytest.mark.skip_library(
+    "dotnet", ".NET's native implementation does not change IsRecording to false after ending a span."
+)
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 def test_otel_span_finished_end_options(test_agent, test_library):

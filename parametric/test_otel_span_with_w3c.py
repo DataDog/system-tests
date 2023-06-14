@@ -6,11 +6,13 @@ from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.test_agent import get_span
 
+# this global mark applies to all tests in this file.
+#   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
+#   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env",
-        [{"DD_TRACE_OTEL_ENABLED": "true",  # required in some tracers (.NET, Python?)
-          "CORECLR_ENABLE_PROFILING": "1"}] # required in .NET
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
 )
+
 
 @pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'operation'")
 @pytest.mark.skip_library("php", "Not implemented")
