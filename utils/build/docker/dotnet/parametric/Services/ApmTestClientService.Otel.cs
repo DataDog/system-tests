@@ -130,7 +130,7 @@ public partial class ApmTestClientService
 
         var result = new OtelIsRecordingReturn
                      {
-                         IsRecording = activity.Recorded
+                         IsRecording = activity.IsAllDataRequested
                      };
 
         _logger.LogInformation("OtelIsRecordingReturn: {Result}", result);
