@@ -14,7 +14,7 @@ def get_schema(request, address):
     """get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        payload = meta.get("_dd.schema." + address, None)
+        payload = meta.get("_dd.appsec.s." + address, None)
         if payload is not None:
             return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
     return
