@@ -18,3 +18,4 @@ runs:
         docker pull cassandra:latest
         docker pull rabbitmq:3-management-alpine
         docker pull mysql/mysql-server:latest
+        docker pull mcr.microsoft.com/mssql/server:latest

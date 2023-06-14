@@ -27,7 +27,6 @@ VARIANT_COMPONENT_MAP = {
     "uwsgi-poc": "flask",
     "django-poc": "django",
     "gin": "gin-gonic/gin",
-    "gorilla": "gorilla/mux",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
     "sinatra": {"rack.request": "rack"},
