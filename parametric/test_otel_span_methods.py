@@ -116,7 +116,7 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
 
 
 @pytest.mark.skip_library(
-    "dotnet", ".NET's native implementation does not change IsRecording to false after ending a span."
+    "dotnet", ".NET's native implementation does not change IsAllDataRequested to false after ending a span."
 )
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
@@ -135,7 +135,7 @@ def test_otel_span_is_recording(test_agent, test_library):
 
 
 @pytest.mark.skip_library(
-    "dotnet", ".NET's native implementation does not change IsRecording to false after ending a span."
+    "dotnet", ".NET's native implementation does not change IsAllDataRequested to false after ending a span."
 )
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
