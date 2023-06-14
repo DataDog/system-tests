@@ -24,14 +24,14 @@ class Test_Dbm:
             ]
         elif self.library_name == "dotnet":
             self.requests = [
-                weblog.get("/dbm", params={"integration": "npgsql"}),
+                weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
                 weblog.get("/dbm", params={"integration": "mysql"}),
                 weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
 
     def test_trace_payload(self):
         for r in self.requests:
-            assert r.status_code == 200
+            assert r.status_code == 200, f"{r.request.url} is not successful"
             for _, _, span in interfaces.library.get_spans(request=r):
                 if span.get("span_type") != "sql":
                     return
