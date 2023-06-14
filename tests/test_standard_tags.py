@@ -155,7 +155,9 @@ class Test_StandardTagsRoute:
         # specify the route syntax if needed
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
-        if context.library == "golang" and context.weblog_variant not in ["gorilla", "chi"]:
+        if context.library == "golang" and context.weblog_variant not in [
+            "chi",
+        ]:
             tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"

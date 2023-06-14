@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-chi/chi/v5 v5.0.7
-	github.com/gorilla/mux v1.8.0
 	github.com/labstack/echo/v4 v4.9.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.42.0
 	go.opentelemetry.io/otel v1.16.0
