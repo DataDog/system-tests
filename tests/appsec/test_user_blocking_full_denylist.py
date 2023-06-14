@@ -10,7 +10,7 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
     php="0.86.3",
     php_appsec="0.7.2",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
+    ruby="1.11.0",
 )
 @missing_feature(library="java", reason="/users endpoint is not implemented on java weblog")
 @coverage.basic
@@ -59,6 +59,7 @@ class Test_UserBlocking_FullDenylist:
 
         self.r_blocked_requests = [weblog.get("/users", params={"user": i}) for i in range(1250)]
 
+    @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 
