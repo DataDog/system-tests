@@ -4,6 +4,24 @@
 
 from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
 
+# Compatibility matrix for blocking across Java variants, to be reused for multiple test suites.
+# Body and path parameters not included, since they were added later.
+_released_java_blocking = released(
+    java={
+        "spring-boot": "0.110.0",
+        "spring-boot-jetty": "0.111.0",
+        "spring-boot-undertow": "0.111.0",
+        # Supported since 0.111.0 but bugged in <0.115.0.
+        "spring-boot-openliberty": "0.115.0",
+        "ratpack": "1.6.0",
+        "jersey-grizzly2": "1.7.0",
+        "resteasy-netty3": "1.7.0",
+        "vertx3": "1.7.0",
+        "vertx4": "1.7.0",
+        "*": "?",
+    }
+)
+
 
 @released(
     cpp="?",
@@ -16,19 +34,10 @@ from utils import bug, context, coverage, interfaces, irrelevant, missing_featur
 )
 @coverage.basic
 @scenarios.appsec_blocking
-@released(
-    java={
-        "spring-boot": "0.110.0",
-        "sprint-boot-jetty": "0.111.0",
-        "spring-boot-undertow": "0.111.0",
-        "spring-boot-openliberty": "0.115.0",
-        "ratpack": "1.6.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "*": "?",
-    }
-)
+@_released_java_blocking
+@bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
@@ -54,7 +63,9 @@ class Test_BlockingAddresses:
     def setup_path_params(self):
         self.pp_req = weblog.get("/params/AiKfOeRcvG45")
 
-    @missing_feature(library="java", reason="When supported, path parameter detection happens on subsequent WAF run")
+    @missing_feature(
+        context.library < "java@1.15.0", reason="When supported, path parameter detection happens on subsequent WAF run"
+    )
     @missing_feature(library="nodejs", reason="Not supported yet")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -86,7 +97,7 @@ class Test_BlockingAddresses:
     def setup_request_body_urlencoded(self):
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
@@ -99,8 +110,20 @@ class Test_BlockingAddresses:
 
     @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
     @missing_feature(context.library == "php", reason="Don't support multipart yet")
-    @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
+    @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
     @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(
+        context.weblog_variant
+        in (
+            "spring-boot-jetty",
+            "spring-boot-undertow",
+            "spring-boot-openliberty",
+            "jersey-grizzly2",
+            "resteasy-netty3",
+            "ratpack",
+        ),
+        reason="Blocking on multipart not supported yet",
+    )
     @bug(context.library == "python" and context.weblog_variant == "django-poc", reason="Django bug in multipart body")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_multipart(self):
@@ -183,12 +206,14 @@ def _assert_custom_event_tag_absence():
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.12.0",
 )
+@_released_java_blocking
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -231,12 +256,14 @@ class Test_Blocking_request_method:
     cpp="?",
     dotnet="?",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.15", "flask-poc": "1.15", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -289,12 +316,14 @@ class Test_Blocking_request_uri:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
+    java="1.15.0",
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.13", "*": "?"},
     ruby="1.0.0",
 )
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
 class Test_Blocking_request_path_params:
@@ -341,12 +370,14 @@ class Test_Blocking_request_path_params:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -395,12 +426,14 @@ class Test_Blocking_request_query:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -449,12 +482,14 @@ class Test_Blocking_request_headers:
     cpp="?",
     dotnet="2.29.0",
     golang="1.51.0",
-    java="?",
     nodejs="?",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@_released_java_blocking
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -503,12 +538,14 @@ class Test_Blocking_request_cookies:
     cpp="?",
     dotnet="2.29.0",
     golang="?",
-    java="?",
+    java="1.15.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -528,17 +565,29 @@ class Test_Blocking_request_body:
         self.rm_req_nonblock1 = weblog.post(
             "/waf", data=b'\x00{"value3": "bsldhkuqwgervf"}\xFF', headers={"content-type": "application/octet-stream"}
         )
-        self.rm_req_nonblock2 = weblog.post(
-            "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"}
-        )
+        self.rm_req_nonblock2 = weblog.post("/waf", data={"good": "value"})
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
-        for response in (self.rm_req_nonblock1, self.rm_req_nonblock2):
-            assert response.status_code == 200
+        assert self.rm_req_nonblock1.status_code == 200
+        assert self.rm_req_nonblock2.status_code == 200
+
+    def setup_non_blocking_plain_text(self):
+        self.rm_req_nonblock_plain_text = weblog.post(
+            "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"}
+        )
+
+    @irrelevant(
+        context.weblog_variant in ("jersey-grizzly2", "resteasy-netty3"),
+        reason="Blocks on text/plain if parsed to a String",
+    )
+    def test_non_blocking_plain_text(self):
+        # TODO: This test is pending a better definition of when text/plain is considered parsed body,
+        # which depends on application logic.
+        assert self.rm_req_nonblock_plain_text.status_code == 200
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data="None")
+        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data={"good": "value"})
         self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"})
 
     def test_blocking_before(self):
@@ -566,6 +615,8 @@ class Test_Blocking_request_body:
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.10.0",
 )
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
@@ -601,6 +652,8 @@ class Test_Blocking_response_status:
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
 )
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
