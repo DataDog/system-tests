@@ -912,8 +912,11 @@ class scenarios:
     appsec_api_security = EndToEndScenario(
         "APPSEC_API_SECURITY",
         appsec_enabled=True,
-        weblog_env={"_DD_API_SECURITY_ENABLED": "true", "DD_TRACE_DEBUG": "true"},
-        appsec_rules="/appsec_api_security_appsec_rule.json",
+        weblog_env={
+            "_DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "true",
+            "_DD_API_SECURITY_INTERVAL_PER_ROUTE": "0.0",
+        },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if
         _DD_API_SECURITY_ENABLED is set to true.
