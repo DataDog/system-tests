@@ -7,7 +7,6 @@ from utils.parametric.spec.otel_trace import OtelSpan
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 def test_otel_simple_trace(test_agent, test_library):
@@ -49,7 +48,6 @@ def test_otel_simple_trace(test_agent, test_library):
 
 
 @pytest.mark.skip_library("dotnet", "Not implemented")
-@pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_force_flush_otel(test_agent, test_library):
