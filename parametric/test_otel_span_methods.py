@@ -9,8 +9,15 @@ from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.test_agent import get_span
 
+# this global mark applies to all tests in this file.
+#   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
+#   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
+pytestmark = pytest.mark.parametrize(
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+)
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+
+@pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'operation'")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_start_span(test_agent, test_library):
@@ -33,7 +40,7 @@ def test_otel_start_span(test_agent, test_library):
     assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'parent_span'")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_set_service_name(test_agent, test_library):
@@ -50,7 +57,7 @@ def test_otel_set_service_name(test_agent, test_library):
     assert root_span["service"] == "new_service"
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'operation'")
 @pytest.mark.skip_library("nodejs", "Empty string attribute value are not supported")
 @pytest.mark.skip_library("java", "Empty string attribute value are not supported")
 @pytest.mark.skip_library("php", "Not implemented")
@@ -108,7 +115,9 @@ def test_otel_set_attributes_different_types(test_agent, test_library):
     assert root_span["metrics"]["d_double_val"] == 3.14
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library(
+    "dotnet", ".NET's native implementation does not change IsAllDataRequested to false after ending a span."
+)
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_span_is_recording(test_agent, test_library):
@@ -125,7 +134,9 @@ def test_otel_span_is_recording(test_agent, test_library):
             assert not parent.is_recording()
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library(
+    "dotnet", ".NET's native implementation does not change IsAllDataRequested to false after ending a span."
+)
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 def test_otel_span_finished_end_options(test_agent, test_library):
@@ -148,7 +159,7 @@ def test_otel_span_finished_end_options(test_agent, test_library):
     assert s.get("duration") == duration * 1_000
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'parent'")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_span_end(test_agent, test_library):
@@ -179,7 +190,7 @@ def test_otel_span_end(test_agent, test_library):
     assert child["parent_id"] == parent_span["span_id"]
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("dotnet", ".NET's native implementation is unsetting the error message.")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 def test_otel_set_span_status_error(test_agent, test_library):
@@ -202,7 +213,7 @@ def test_otel_set_span_status_error(test_agent, test_library):
     assert s.get("name") == "error_span"
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+@pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'ok_span'")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library(
@@ -229,7 +240,6 @@ def test_otel_set_span_status_ok(test_agent, test_library):
     assert span.get("name") == "ok_span"
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 def test_otel_get_span_context(test_agent, test_library):

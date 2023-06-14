@@ -6,8 +6,15 @@ from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.test_agent import get_span
 
+# this global mark applies to all tests in this file.
+#   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
+#   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
+pytestmark = pytest.mark.parametrize(
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+)
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
+
+@pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'operation'")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
 def test_otel_start_span_with_w3c(test_agent, test_library):
@@ -30,7 +37,6 @@ def test_otel_start_span_with_w3c(test_agent, test_library):
     assert root_span["duration"] == duration_ns
 
 
-@pytest.mark.skip_library("dotnet", "Not implemented")
 @pytest.mark.skip_library("java", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
