@@ -79,4 +79,5 @@ Rails32::Application.routes.draw do
     send(request_method, '/tag_value/:key/:status_code' => 'system_test#tag_value')
   end
   match '/tag_value/:key/:status_code' => 'system_test#tag_value', via: :options
+  get '/users' => 'system_test#users'
 end
