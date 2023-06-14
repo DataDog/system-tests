@@ -4,7 +4,6 @@
 # It first looks at the /binaries directory to see if there is a file matching "datadog-php-tracer-*.tar.gz"
 # If there is no package in /binaries then the binaries are pulled from the specified release
 
-#DDTRACE_VERSION=0.84.0
 PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-gnu.tar.gz')
 SETUP=/binaries/datadog-setup.php
 
@@ -20,9 +19,9 @@ if [ "$PKG" == "" ]; then
   else
     ARCH=x86_64
   fi
-  # curl -LO https://github.com/DataDog/dd-trace-php/releases/download/${DDTRACE_VERSION}/datadog-setup.php
-  curl -LO https://output.circle-artifacts.com/output/job/b4a03600-2305-4605-827e-0d8daaaf8785/artifacts/0/datadog-setup.php 
+  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
   SETUP=datadog-setup.php
+  unset PKG
 fi
-echo "Installing php package $PKG with setup script $SETUP"
-php $SETUP --php-bin=all "$([ "$PKG" = "" ] || echo --file="$PKG")"
+echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
+php $SETUP --php-bin=all ${PKG+"--file=$PKG"}
