@@ -127,7 +127,10 @@
             ],
             "regex": "en-us|krypton"
           },
-          "operator": "match_regex"
+          "operator": "match_regex",
+          "options": {
+            "case_sensitive": true
+          }
         }
       ],
       "transformers": [],
