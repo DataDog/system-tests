@@ -11,25 +11,24 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?")
-@released(nodejs={"express4": "4.1.0", "*": "?"})
-class TestInsecureCookie:
-    """Test insecure cookie detection."""
+@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+class TestNoSamesiteCookie:
+    """Test No SameSite cookie detection."""
 
     sink_fixture = SinkFixture(
-        vulnerability_type="INSECURE_COOKIE",
+        vulnerability_type="NO_SAMESITE_COOKIE",
         http_method="GET",
-        insecure_endpoint="/iast/insecure-cookie/test_insecure",
-        secure_endpoint="/iast/insecure-cookie/test_secure",
+        insecure_endpoint="/iast/no-samesite-cookie/test_insecure",
+        secure_endpoint="/iast/no-samesite-cookie/test_secure",
         data={},
         location_map={"nodejs": "iast/index.js",},
     )
 
     sink_fixture_empty_cookie = SinkFixture(
-        vulnerability_type="INSECURE_COOKIE",
+        vulnerability_type="NO_HTTPONLY_COOKIE",
         http_method="GET",
         insecure_endpoint="",
-        secure_endpoint="/iast/insecure-cookie/test_empty_cookie",
+        secure_endpoint="/iast/no-samesite-cookie/test_empty_cookie",
         data={},
         location_map={"nodejs": "iast/index.js",},
     )
