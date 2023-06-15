@@ -47,7 +47,7 @@ variables:
     - echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> .env_ci
   after_script:
     - export $(cat .env_ci | egrep -v "(^#.*|^$)" | xargs) 
-    - sh utils/scripts/push_reports_dashboard.sh
+   #Avoid pushing results to system-tests-dashboard until next iteration: - sh utils/scripts/push_reports_dashboard.sh
   artifacts:
       when: always
       paths:
