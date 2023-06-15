@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#This script is needed only for this reason: https://datadoghq.atlassian.net/browse/AP-2165
+
 INSTALL_AGENT="true"
 
 while [[ "$#" -gt 0 ]]; do

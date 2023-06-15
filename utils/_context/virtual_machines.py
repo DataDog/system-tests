@@ -17,6 +17,7 @@ class TestedVirtualMachine:
         autoinjection_install_data,
         language_variant_install_data,
         weblog_install_data,
+        prepare_init_config_install,
         prepare_repos_install,
         prepare_docker_install,
         installation_check_data,
@@ -31,6 +32,7 @@ class TestedVirtualMachine:
         self.ip = None
         self.datadog_config = None
         self.aws_infra_config = None
+        self.prepare_init_config_install = prepare_init_config_install
         self.prepare_repos_install = prepare_repos_install
         self.prepare_docker_install = prepare_docker_install
         self.installation_check_data = installation_check_data
@@ -84,6 +86,14 @@ class TestedVirtualMachine:
             private_key=PulumiSSH.private_key_pem,
             dial_error_limit=-1,
         )
+        # We apply initial configurations to the VM before starting with the installation proccess
+        prepare_init_config_installer = remote_install(
+            connection,
+            "prepare_init_config_installer_" + self.name,
+            self.prepare_init_config_install["install"],
+            server,
+            scenario_name=self.provision_scenario,
+        )
 
         # Prepare repositories, if we need (ie if we use agent auto install script, we don't need to prepare repos manually)
         if "install" in self.prepare_repos_install:
@@ -91,11 +101,11 @@ class TestedVirtualMachine:
                 connection,
                 "prepare-repos-installer_" + self.name,
                 self.prepare_repos_install["install"],
-                server,
+                prepare_init_config_installer,
                 scenario_name=self.provision_scenario,
             )
         else:
-            prepare_repos_installer = server
+            prepare_repos_installer = prepare_init_config_installer
 
         # Prepare docker installation if we need
         prepare_docker_installer = remote_install(

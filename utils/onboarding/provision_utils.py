@@ -26,6 +26,7 @@ class ProvisionMatrix:
                         for weblog_instalations in self.provision_parser.ec2_weblogs_install_data(
                             language_variants_instalations["version"]
                         ):
+                            prepare_init_config = self.provision_parser.ec2_prepare_init_config_install_data()
                             prepare_repos_install = self.provision_parser.ec2_prepare_repos_install_data()
                             prepare_docker_install = self.provision_parser.ec2_prepare_docker_install_data()
                             installation_check_data = self.provision_parser.ec2_installation_checks_data()
@@ -36,6 +37,7 @@ class ProvisionMatrix:
                                 autoinjection_instalations,
                                 language_variants_instalations,
                                 weblog_instalations,
+                                prepare_init_config,
                                 prepare_repos_install,
                                 prepare_docker_install,
                                 installation_check_data,
@@ -118,6 +120,10 @@ class ProvisionParser:
             language_variants_data_result.append(dict(version=None, name="None"))
 
         return language_variants_data_result
+
+    def ec2_prepare_init_config_install_data(self):
+        filteredInstalations = self._filter_install_data(self.config_data["init-config"], exact_match=False)
+        return dict(install=filteredInstalations[0])
 
     def ec2_prepare_repos_install_data(self):
         # If we are using AUTO_INSTALL, the agent script will configure the repos automatically
