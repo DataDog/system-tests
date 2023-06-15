@@ -135,6 +135,7 @@ class Test_BlockingAddresses:
     def setup_response_status(self):
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
+    @missing_feature(context.library < "dotnet@2.32.0")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
@@ -161,6 +162,7 @@ class Test_BlockingAddresses:
     def setup_response_header(self):
         self.rsh_req = weblog.get(path="/headers")
 
+    @missing_feature(context.library < "dotnet@2.32.0")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
