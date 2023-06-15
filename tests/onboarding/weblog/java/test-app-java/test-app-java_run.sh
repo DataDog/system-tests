@@ -9,5 +9,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable test-app-java.service
 sudo systemctl start test-app-java.service
 sudo systemctl status test-app-java.service
-
+ps -fea|grep java
 echo "RUN DONE"

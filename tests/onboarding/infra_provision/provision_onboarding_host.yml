@@ -25,6 +25,9 @@ ami:
   os_distro: rpm
   os_branch: amazon-netcore6
 
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
+
 prepare-repos:
   install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
 
@@ -36,6 +39,41 @@ agent:
         command: bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
         #dev agent: command: REPO_URL=datad0g.com DD_AGENT_DIST_CHANNEL=beta bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
+agent_auto_install:
+  - nodejs: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh js --host-inject true --container-inject false 
+
+  - java: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh java --host-inject true --container-inject false 
+  - python: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh python --host-inject true --container-inject false 
+  - dotnet: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+        command: bash execute_install_script_dev.sh dotnet --host-inject true --container-inject false 
+
 autoinjection:
   - java: 
     - env: dev
@@ -44,7 +82,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
@@ -62,7 +100,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-java
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
@@ -80,7 +118,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-js
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
@@ -94,7 +132,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-js
-            dd-host-install || true
+            dd-host-install 
 
         - os_type: linux
           os_distro: rpm
@@ -123,7 +161,7 @@ autoinjection:
           os_distro: deb
           command: |
             sudo apt install -y -t stable datadog-apm-inject datadog-apm-library-python
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
@@ -135,28 +173,12 @@ autoinjection:
         - os_type: linux
           os_distro: deb
           command: |
-            #Install pyenv
-            sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-            curl https://pyenv.run | bash
-            export PYENV_ROOT="$HOME/.pyenv"
-            export PATH="$PYENV_ROOT/bin:$PATH"
-            eval "$(pyenv init -)"
-
-            #Install autoinjection
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-python
-            dd-host-install || true
+            dd-host-install
 
         - os_type: linux
           os_distro: rpm
-          command: |
-            #Install pyenv
-            sudo yum install -y gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel git
-            git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-            export PYENV_ROOT="$HOME/.pyenv"
-            export PATH="$PYENV_ROOT/bin:$PATH"
-            eval "$(pyenv init -)"
-            
-            #Install autoinjection
+          command: |         
             sudo yum -y install --disablerepo="*" --enablerepo="datadog-staging" datadog-apm-inject datadog-apm-library-python
             dd-host-install
 language-variants:
@@ -166,7 +188,7 @@ language-variants:
       install: 
         - os_type: linux
           os_distro: deb
-          command: sudo apt-get -y install openjdk-11-jdk-headless
+          command: sudo apt-get -y install openjdk-11-jdk
 
         - os_type: linux
           os_distro: rpm
@@ -199,22 +221,23 @@ language-variants:
           command: dotnet --info  
 
   - python: 
-    - name: Python3.5.10
-      version: 3.5.10
-      install: 
-        - os_type: linux
-          os_distro: deb
-          command: export PATH="~/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && pyenv install 3.5.10 && pyenv global 3.5.10 && python --version && echo "DONE"
-
-        - os_type: linux
-          os_distro: rpm
-          command: sudo yum -y install python3
-
     - name: Python_3.8.15
       version: 3.8.15
       install: 
         - os_type: linux
-          command: export PATH="~/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && pyenv install 3.8.15 && pyenv global 3.8.15
+          os_distro: deb
+          copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/lang/python_install.sh 
+          command: sh python_install.sh deb 3.8.15
+
+        - os_type: linux
+          os_distro: rpm
+          copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/lang/python_install.sh
+          command: sh python_install.sh rpm 3.8.15
+
 
 weblogs:
   - java: 
