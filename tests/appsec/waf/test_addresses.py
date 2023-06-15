@@ -97,9 +97,8 @@ class Test_UrlRaw:
 @released(golang={"gin": "1.37.0", "chi": "1.36.0", "echo": "1.36.0", "*": "1.34.0"})
 @released(dotnet="1.28.6", java="0.87.0")
 @released(nodejs="2.0.0", php_appsec="0.1.0")
-@released(python="1.1.0rc2.dev")
+@released(python="1.6")
 @flaky(context.library <= "php@0.68.2")
-@bug(library="python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.good
 class Test_Headers:

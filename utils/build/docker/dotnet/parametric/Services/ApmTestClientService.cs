@@ -5,7 +5,7 @@ using Grpc.Core;
 
 namespace ApmTestClient.Services
 {
-    public class ApmTestClientService : APMClient.APMClientBase
+    public partial class ApmTestClientService : APMClient.APMClientBase
     {
         // Core types
         private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
@@ -65,8 +65,16 @@ namespace ApmTestClient.Services
             return values.AsReadOnly();
         }
 
+        public override async Task<StopTracerReturn> StopTracer(StopTracerArgs request, ServerCallContext context)
+        {
+            await Tracer.Instance.ForceFlushAsync();
+            return new StopTracerReturn();
+        }
+
         public override Task<StartSpanReturn> StartSpan(StartSpanArgs request, ServerCallContext context)
         {
+            _logger.LogInformation("StartSpan: {Request}", request);
+
             var creationSettings = new SpanCreationSettings
                                    {
                                        FinishOnClose = false,
@@ -200,41 +208,13 @@ namespace ApmTestClient.Services
 
         public override async Task<FlushSpansReturn> FlushSpans(FlushSpansArgs request, ServerCallContext context)
         {
-            await Tracer.Instance.ForceFlushAsync();
-            Spans.Clear();
+            await FlushSpans();
             return new FlushSpansReturn();
         }
 
         public override async Task<FlushTraceStatsReturn> FlushTraceStats(FlushTraceStatsArgs request, ServerCallContext context)
         {
-            if (GetTracerManager is null)
-            {
-                throw new NullReferenceException("GetTracerManager is null");
-            }
-
-            if (Tracer.Instance is null)
-            {
-                throw new NullReferenceException("Tracer.Instance is null");
-            }
-
-            var tracerManager = GetTracerManager.GetValue(Tracer.Instance);
-            var agentWriter = GetAgentWriter.Invoke(tracerManager, null);
-            var statsAggregator = GetStatsAggregator.GetValue(agentWriter);
-
-            if (statsAggregator?.GetType() == StatsAggregatorType)
-            {
-                var disposeAsyncTask = StatsAggregatorDisposeAsync.Invoke(statsAggregator, null) as Task;
-                await disposeAsyncTask!;
-
-
-                // Invoke StatsAggregator.Flush()
-                // If StatsAggregator.DisposeAsync() was previously called during the lifetime of the application,
-                // then no stats will be flushed when StatsAggregator.DisposeAsync() returns.
-                // To be safe, perform an extra flush to ensure that we have flushed the stats
-                var flushTask = StatsAggregatorFlush.Invoke(statsAggregator, null) as Task;
-                await flushTask!;
-            }
-
+            await FlushTraceStats();
             return new FlushTraceStatsReturn();
         }
 

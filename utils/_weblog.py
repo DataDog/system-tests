@@ -152,13 +152,14 @@ class _Weblog:
             "text": None,
         }
 
+        timeout = kwargs.pop("timeout", 5)
         try:
             req = requests.Request(method, url, params=params, data=data, headers=headers, **kwargs)
             r = req.prepare()
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")
 
-            r = requests.Session().send(r, timeout=5, stream=stream, allow_redirects=allow_redirects)
+            r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
             response_data["status_code"] = r.status_code
             response_data["headers"] = r.headers
             response_data["text"] = r.text
