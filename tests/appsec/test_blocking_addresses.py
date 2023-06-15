@@ -2,25 +2,35 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, released, rfc, scenarios, weblog
+from utils import (
+    bug,
+    context,
+    coverage,
+    interfaces,
+    irrelevant,
+    missing_feature,
+    released,
+    rfc,
+    scenarios,
+    weblog,
+    flaky,
+)
 
 # Compatibility matrix for blocking across Java variants, to be reused for multiple test suites.
 # Body and path parameters not included, since they were added later.
-_released_java_blocking = released(
-    java={
-        "spring-boot": "0.110.0",
-        "spring-boot-jetty": "0.111.0",
-        "spring-boot-undertow": "0.111.0",
-        # Supported since 0.111.0 but bugged in <0.115.0.
-        "spring-boot-openliberty": "0.115.0",
-        "ratpack": "1.6.0",
-        "jersey-grizzly2": "1.7.0",
-        "resteasy-netty3": "1.7.0",
-        "vertx3": "1.7.0",
-        "vertx4": "1.7.0",
-        "*": "?",
-    }
-)
+_released_java_blocking = {
+    "spring-boot": "0.110.0",
+    "spring-boot-jetty": "0.111.0",
+    "spring-boot-undertow": "0.111.0",
+    # Supported since 0.111.0 but bugged in <0.115.0.
+    "spring-boot-openliberty": "0.115.0",
+    "ratpack": "1.6.0",
+    "jersey-grizzly2": "1.7.0",
+    "resteasy-netty3": "1.7.0",
+    "vertx3": "1.7.0",
+    "vertx4": "1.7.0",
+    "*": "?",
+}
 
 
 @released(
@@ -31,10 +41,10 @@ _released_java_blocking = released(
     nodejs="3.19.0",
     golang="1.51.0",
     ruby="1.0.0",
+    java=_released_java_blocking,
 )
 @coverage.basic
 @scenarios.appsec_blocking
-@_released_java_blocking
 @bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
@@ -210,8 +220,8 @@ def _assert_custom_event_tag_absence():
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.12.0",
+    java=_released_java_blocking,
 )
-@_released_java_blocking
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -237,6 +247,7 @@ class Test_Blocking_request_method:
         self.set_req1 = weblog.request("GET", path="/tag_value/clean_value_3876/200")
         self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
+    @flaky(context.library < "java@1.16.0")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -260,8 +271,8 @@ class Test_Blocking_request_method:
     php_appsec="0.7.0",
     python={"django-poc": "1.15", "flask-poc": "1.15", "*": "?"},
     ruby="1.0.0",
+    java=_released_java_blocking,
 )
-@_released_java_blocking
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -374,8 +385,8 @@ class Test_Blocking_request_path_params:
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
+    java=_released_java_blocking,
 )
-@_released_java_blocking
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -430,8 +441,8 @@ class Test_Blocking_request_query:
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
+    java=_released_java_blocking,
 )
-@_released_java_blocking
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
@@ -486,8 +497,8 @@ class Test_Blocking_request_headers:
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.0.0",
+    java=_released_java_blocking,
 )
-@_released_java_blocking
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
