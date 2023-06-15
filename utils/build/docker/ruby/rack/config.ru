@@ -138,6 +138,12 @@ app = proc do |env|
     end
 
     [ status_code, headers, ['Value tagged'] ]
+  elsif request.path.include?('/users')
+    user_id = request.params["user"]
+
+    Datadog::Kit::Identity.set_user(id: user_id)
+
+    [ 200, {'Content-Type' => 'text/plain'}, ['Hello, user!'] ]
   else
     [ 404, {'Content-Type' => 'text/plain'}, ['not found'] ]
   end

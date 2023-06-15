@@ -52,8 +52,6 @@ jobs:
         - library: golang
           weblog: gin
         - library: golang
-          weblog: gorilla
-        - library: golang
           weblog: net-http
         - library: golang
           weblog: uds-echo
@@ -341,6 +339,11 @@ jobs:
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh APPSEC_API_SECURITY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh SAMPLING
@@ -358,7 +361,7 @@ jobs:
         ./run.sh PROFILING --replay
         # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
         ./run.sh INTEGRATIONS --replay
-        ./run.sh APM_TRACING_E2E_OTEL --replay
+        # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay

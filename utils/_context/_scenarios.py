@@ -4,13 +4,13 @@ from pathlib import Path
 import shutil
 import time
 
+from pulumi import automation as auto
 import pytest
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 from utils.onboarding.pulumi_ssh import PulumiSSH
-from pulumi import automation as auto
 
 from utils._context.containers import (
     WeblogContainer,
@@ -24,6 +24,7 @@ from utils._context.containers import (
     RabbitMqContainer,
     MySqlContainer,
     OpenTelemetryCollectorContainer,
+    SqlServerContainer,
     create_network,
 )
 
@@ -33,10 +34,11 @@ update_environ_with_local_env()
 
 
 class _Scenario:
-    def __init__(self, name) -> None:
+    def __init__(self, name, doc) -> None:
         self.name = name
         self.terminal = None
         self.replay = False
+        self.doc = doc
 
     def create_log_subfolder(self, subfolder):
         if self.replay:
@@ -193,6 +195,7 @@ class _DockerScenario(_Scenario):
     def __init__(
         self,
         name,
+        doc,
         use_proxy=True,
         proxy_state=None,
         include_postgres_db=False,
@@ -201,8 +204,9 @@ class _DockerScenario(_Scenario):
         include_kafka=False,
         include_rabbitmq=False,
         include_mysql_db=False,
+        include_sqlserver=False,
     ) -> None:
-        super().__init__(name)
+        super().__init__(name, doc=doc)
 
         self.use_proxy = use_proxy
         self._required_containers = []
@@ -231,6 +235,9 @@ class _DockerScenario(_Scenario):
 
         if include_mysql_db:
             self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+
+        if include_sqlserver:
+            self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
     def configure(self, replay):
         super().configure(replay)
@@ -271,6 +278,7 @@ class EndToEndScenario(_DockerScenario):
     def __init__(
         self,
         name,
+        doc,
         weblog_env=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
@@ -287,9 +295,11 @@ class EndToEndScenario(_DockerScenario):
         include_kafka=False,
         include_rabbitmq=False,
         include_mysql_db=False,
+        include_sqlserver=False,
     ) -> None:
         super().__init__(
             name,
+            doc=doc,
             use_proxy=use_proxy,
             proxy_state=proxy_state,
             include_postgres_db=include_postgres_db,
@@ -298,6 +308,7 @@ class EndToEndScenario(_DockerScenario):
             include_kafka=include_kafka,
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
+            include_sqlserver=include_sqlserver,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -527,8 +538,8 @@ class EndToEndScenario(_DockerScenario):
 class OpenTelemetryScenario(_DockerScenario):
     """ Scenario for testing opentelemetry"""
 
-    def __init__(self, name, include_agent=True, include_collector=True, include_intake=True) -> None:
-        super().__init__(name, use_proxy=True)
+    def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
+        super().__init__(name, doc=doc, use_proxy=True)
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
             self._required_containers.append(self.agent_container)
@@ -640,10 +651,8 @@ class OpenTelemetryScenario(_DockerScenario):
 
 
 class PerformanceScenario(EndToEndScenario):
-    """ A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"""
-
-    def __init__(self, name) -> None:
-        super().__init__(name, appsec_enabled=self.appsec_enabled, use_proxy=False)
+    def __init__(self, name, doc) -> None:
+        super().__init__(name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy=False)
 
     @property
     def appsec_enabled(self):
@@ -673,8 +682,8 @@ class PerformanceScenario(EndToEndScenario):
 
 
 class OnBoardingScenario(_Scenario):
-    def __init__(self, name) -> None:
-        super().__init__(name)
+    def __init__(self, name, doc) -> None:
+        super().__init__(name, doc=doc)
         self.stack = None
         self.provision_vms = []
         self.provision_vm_names = []
@@ -734,15 +743,23 @@ class ParametricScenario(_Scenario):
 
 
 class scenarios:
-    empty_scenario = _Scenario("EMPTY_SCENARIO")
-    todo = _Scenario("TODO")  # scenario that skips tests not yest executed
-    test_the_test = TestTheTestScenario("TEST_THE_TEST")
+    todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
+    test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
 
-    default = EndToEndScenario("DEFAULT", include_postgres_db=True)
-    sleep = EndToEndScenario("SLEEP")
+    default = EndToEndScenario(
+        "DEFAULT",
+        include_postgres_db=True,
+        doc="Default scenario, spwan tracer and agent, and run most of exisiting tests",
+    )
+    sleep = EndToEndScenario(
+        "SLEEP",
+        doc="Fake scenario that spawn tracer and agentm then sleep indefinitly. Help you to manually test container",
+    )
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
-    performances = PerformanceScenario("PERFORMANCES")
+    performances = PerformanceScenario(
+        "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
+    )
 
     integrations = EndToEndScenario(
         "INTEGRATIONS",
@@ -753,21 +770,36 @@ class scenarios:
         include_kafka=True,
         include_rabbitmq=True,
         include_mysql_db=True,
+        include_sqlserver=True,
+        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
     )
 
-    profiling = EndToEndScenario("PROFILING", library_interface_timeout=160, agent_interface_timeout=160)
+    profiling = EndToEndScenario(
+        "PROFILING",
+        library_interface_timeout=160,
+        agent_interface_timeout=160,
+        doc="Test profiling feature. Not included in default scenario because is quite slow",
+    )
 
-    sampling = EndToEndScenario("SAMPLING", tracer_sampling_rate=0.5)
+    sampling = EndToEndScenario(
+        "SAMPLING",
+        tracer_sampling_rate=0.5,
+        doc="Test sampling mechanism. Not included in default scenario because is very slow, and flaky",
+    )
 
     trace_propagation_style_w3c = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={"DD_TRACE_PROPAGATION_STYLE_INJECT": "W3C", "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "W3C",},
+        doc="Test W3C trace style",
     )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
+        doc="Test DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED=false effect on tracers",
     )
+
     telemetry_app_started_products_disabled = EndToEndScenario(
         "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
         weblog_env={
@@ -775,37 +807,62 @@ class scenarios:
             "DD_PROFILING_ENABLED": "false",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
         },
+        doc="Disable all tracers products",
     )
+
     telemetry_message_batch_event_order = EndToEndScenario(
-        "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER", weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"}
+        "TELEMETRY_MESSAGE_BATCH_EVENT_ORDER",
+        weblog_env={"DD_FORCE_BATCHING_ENABLE": "true"},
+        doc="Test env var `DD_FORCE_BATCHING_ENABLE=false`",
     )
     telemetry_log_generation_disabled = EndToEndScenario(
-        "TELEMETRY_LOG_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
+        "TELEMETRY_LOG_GENERATION_DISABLED",
+        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
+        doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_DISABLED", weblog_env={"DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",},
+        "TELEMETRY_METRIC_GENERATION_DISABLED",
+        weblog_env={"DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",},
+        doc="Test env var `DD_TELEMETRY_METRICS_COLLECTION_ENABLED=false`",
     )
 
     # ASM scenarios
-    appsec_missing_rules = EndToEndScenario("APPSEC_MISSING_RULES", appsec_rules="/donotexists")
-    appsec_corrupted_rules = EndToEndScenario("APPSEC_CORRUPTED_RULES", appsec_rules="/appsec_corrupted_rules.yml")
-    appsec_custom_rules = EndToEndScenario("APPSEC_CUSTOM_RULES", appsec_rules="/appsec_custom_rules.json")
-    appsec_blocking = EndToEndScenario("APPSEC_BLOCKING", appsec_rules="/appsec_blocking_rule.json")
+    appsec_missing_rules = EndToEndScenario(
+        "APPSEC_MISSING_RULES", appsec_rules="/donotexists", doc="Test missing appsec rules file"
+    )
+    appsec_corrupted_rules = EndToEndScenario(
+        "APPSEC_CORRUPTED_RULES", appsec_rules="/appsec_corrupted_rules.yml", doc="Test corrupted appsec rules file"
+    )
+    appsec_custom_rules = EndToEndScenario(
+        "APPSEC_CUSTOM_RULES", appsec_rules="/appsec_custom_rules.json", doc="Test custom appsec rules file"
+    )
+    appsec_blocking = EndToEndScenario(
+        "APPSEC_BLOCKING", appsec_rules="/appsec_blocking_rule.json", doc="Misc tests for appsec blocking"
+    )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
-        "APPSEC_RULES_MONITORING_WITH_ERRORS", appsec_rules="/appsec_custom_rules_with_errors.json"
+        "APPSEC_RULES_MONITORING_WITH_ERRORS",
+        appsec_rules="/appsec_custom_rules_with_errors.json",
+        doc="Appsec rule file with some errors",
     )
     appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"}, appsec_enabled=False
+        "APPSEC_DISABLED", weblog_env={"DD_APPSEC_ENABLED": "false"}, appsec_enabled=False, doc="Disable appsec"
     )
-    appsec_low_waf_timeout = EndToEndScenario("APPSEC_LOW_WAF_TIMEOUT", weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"})
+    appsec_low_waf_timeout = EndToEndScenario(
+        "APPSEC_LOW_WAF_TIMEOUT", weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"}, doc="Appsec with a very low WAF timeout"
+    )
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
         weblog_env={
             "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key",
             "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
         },
+        doc="Test custom appsec obfuscation parameters",
     )
-    appsec_rate_limiter = EndToEndScenario("APPSEC_RATE_LIMITER", weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1"})
+    appsec_rate_limiter = EndToEndScenario(
+        "APPSEC_RATE_LIMITER",
+        weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1"},
+        doc="Tests with a low rate trace limit for Appsec",
+    )
 
     appsec_waf_telemetry = EndToEndScenario(
         "APPSEC_WAF_TELEMETRY",
@@ -816,21 +873,28 @@ class scenarios:
             "_DD_TELEMETRY_METRICS_ENABLED": "true",
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
         },
+        doc="Enable Telemetry feature for WAF",
     )
-    # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-    # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
-    # So, we set  DD_APPSEC_RULES to None to enable loading rules from remote config.
-    # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
+
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
-        proxy_state={"mock_remote_config_backend": "APPSEC_BLOCKING_FULL_DENYLIST"},
+        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST"},
         weblog_env={"DD_APPSEC_RULES": None},
+        doc="""
+            The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+            In this scenario, we use remote config. By the spec, whem remote config is available, rules file 
+            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the 
+            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
+            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
+            are always coming from remote config.
+        """,
     )
 
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
         proxy_state={"mock_remote_config_backend": "ASM"},
         weblog_env={"DD_APPSEC_RULES": None},
+        doc="",
     )
 
     appsec_runtime_activation = EndToEndScenario(
@@ -842,6 +906,21 @@ class scenarios:
             "DD_RC_TARGETS_KEY": "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c",
             "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
         },
+        doc="",
+    )
+
+    appsec_api_security = EndToEndScenario(
+        "APPSEC_API_SECURITY",
+        appsec_enabled=True,
+        weblog_env={
+            "_DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "true",
+            "_DD_API_SECURITY_INTERVAL_PER_ROUTE": "0.0",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        _DD_API_SECURITY_ENABLED is set to true.
+        """,
     )
 
     # Remote config scenarios
@@ -855,6 +934,7 @@ class scenarios:
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         library_interface_timeout=100,
+        doc="",
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -867,53 +947,63 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
         library_interface_timeout=100,
+        doc="",
     )
 
-    # The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-    # In this scenario, we use remote config. By the spec, whem remote config is available, rules file embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the data coming from remote config).
-    # So, we set  DD_APPSEC_RULES to None to enable loading rules from remote config.
-    # and it's okay not testing custom rule set for dev mode, as in this scenario, rules are always coming from remote config.
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         proxy_state={"mock_remote_config_backend": "ASM_DD"},
         weblog_env={"DD_APPSEC_RULES": None},
         library_interface_timeout=100,
+        doc="""
+            The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
+            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
+            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
+            are always coming from remote config.
+        """,
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
+        doc="",
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
+        doc="",
     )
 
     remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "LIVE_DEBUGGING_NOCACHE"},
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
         },
         library_interface_timeout=100,
+        doc="",
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_DD_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "ASM_DD_NOCACHE"},
         library_interface_timeout=100,
+        doc="",
     )
 
     # APM tracing end-to-end scenarios
-    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5)
-    apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", backend_interface_timeout=5)
+
+    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
+    apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
@@ -921,32 +1011,38 @@ class scenarios:
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
+        doc="",
     )
 
-    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False)
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False)
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", include_intake=False, doc="")
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, include_agent=False, doc="")
 
     library_conf_custom_headers_short = EndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2")
+        "LIBRARY_CONF_CUSTOM_HEADERS_SHORT", additional_trace_header_tags=("header-tag1", "header-tag2"), doc=""
     )
     library_conf_custom_headers_long = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADERS_LONG",
         additional_trace_header_tags=("header-tag1:custom.header-tag1", "header-tag2:custom.header-tag2"),
+        doc="",
     )
-    parametric = ParametricScenario("PARAMETRIC")
+    parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
     # Onboarding scenarios: name of scenario will be the sufix for yml provision file name (tests/onboarding/infra_provision)
-    onboarding_host = OnBoardingScenario("ONBOARDING_HOST")
-    onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER")
-    onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER")
-    onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL")
-    onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL")
-    onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL")
+    onboarding_host = OnBoardingScenario("ONBOARDING_HOST", doc="")
+    onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER", doc="")
+    onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER", doc="")
+    onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL", doc="")
+    onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL", doc="")
+    onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL", doc="")
 
 
-if __name__ == "__main__":
+def _main():
     for name in dir(scenarios):
         if not name.startswith("_"):
             scenario = getattr(scenarios, name)
-            print(scenario.name)
+            print(scenario.doc)
+
+
+if __name__ == "__main__":
+    _main()

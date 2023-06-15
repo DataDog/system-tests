@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -13,14 +14,13 @@ namespace weblog
         {
             routeBuilder.MapGet("/dbm", async context =>
             {
-                var queryString = "SELECT version()";
                 var integration = context.Request.Query["integration"];
 
                 if (integration == "npgsql") 
                 {
                     await using (var connection = new NpgsqlConnection(Constants.NpgSqlConnectionString))
                     {
-                        var command = new NpgsqlCommand(queryString, connection);
+                        var command = new NpgsqlCommand("SELECT version()", connection);
                         connection.Open();
                         command.ExecuteNonQuery();
                         connection.Close();
@@ -32,7 +32,7 @@ namespace weblog
                 {
                     await using (var connection = new MySqlConnection(Constants.MySqlConnectionString)) 
                     {
-                        var command = new MySqlCommand(queryString, connection);
+                        var command = new MySqlCommand("SELECT version()", connection);
                         connection.Open();
                         command.ExecuteNonQuery();
                         connection.Close();
@@ -40,6 +40,18 @@ namespace weblog
 
                     await context.Response.WriteAsync("MySql query executed.");
                 } 
+                else if (integration == "sqlclient") 
+                {
+                    await using (var connection = new SqlConnection(Constants.SqlClientConnectionString))
+                    {
+                        var command = new SqlCommand("SELECT @@version", connection);
+                        connection.Open();
+                        command.ExecuteNonQuery();
+                        connection.Close();
+                    }
+
+                    await context.Response.WriteAsync("SqlClient query executed.");
+                }
                 else
                 {
                     context.Response.StatusCode = 406;

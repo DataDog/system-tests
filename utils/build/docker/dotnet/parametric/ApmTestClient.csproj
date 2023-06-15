@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Datadog.Trace.Bundle" Version="2.31.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.52.0" />
+    <PackageReference Include="LucasP.DuckTyping" Version="0.1.0" />
   </ItemGroup>
 
 </Project>
