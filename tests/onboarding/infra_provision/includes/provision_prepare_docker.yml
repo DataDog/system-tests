@@ -15,6 +15,10 @@
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
         echo "DOCKER INSTALLED!"
+        #To run Docker without root privileges
+        #sudo groupadd docker
+        #sudo usermod -aG docker "ubuntu"
+        #echo "DOCKER USER ADDED"
     - os_type: linux
       os_distro: rpm
       command: |    
