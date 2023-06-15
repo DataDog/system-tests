@@ -876,7 +876,7 @@ class scenarios:
 
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
-        proxy_state={"mock_remote_config_backend": "APPSEC_BLOCKING_FULL_DENYLIST"},
+        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST"},
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
@@ -965,7 +965,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
         doc="",
@@ -973,7 +973,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
         doc="",
@@ -981,7 +981,7 @@ class scenarios:
 
     remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "LIVE_DEBUGGING_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "LIVE_DEBUGGING_NOCACHE"},
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
@@ -993,7 +993,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_DD_NO_CACHE"},
+        proxy_state={"mock_remote_config_backend": "ASM_DD_NOCACHE"},
         library_interface_timeout=100,
         doc="",
     )
