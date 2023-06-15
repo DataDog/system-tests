@@ -5,6 +5,8 @@ import logging
 import os
 from datetime import datetime
 
+from rc_mock import MOCKED_RESPONSES
+
 from mitmproxy import master, options
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError
@@ -30,40 +32,6 @@ class ObjectDumpEncoder(json.JSONEncoder):
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
-
-
-with open("utils/proxy/rc_mocked_responses_live_debugging.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_LIVE_DEBUGGING = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_features.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_FEATURES = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_activate_only.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_ACTIVATE_ONLY = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_dd.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_DD = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_data.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_DATA = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_data_full_denylist.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_DATA_BLOCKING_FULL_DENYLIST = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_live_debugging_nocache.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_features_nocache.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_FEATURES_NO_CACHE = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_dd_nocache.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE = json.load(f)
-
-with open("utils/proxy/rc_mocked_responses_asm_nocache.json", encoding="utf-8") as f:
-    RC_MOCKED_RESPONSES_ASM_NO_CACHE = json.load(f)
 
 
 class _RequestLogger:
@@ -199,28 +167,13 @@ class _RequestLogger:
             logger.exception("Fail to save data")
 
     def _modify_response(self, flow):
-        if self.state.get("mock_remote_config_backend") == "ASM_FEATURES":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_FEATURES)
-        elif self.state.get("mock_remote_config_backend") == "ASM_ACTIVATE_ONLY":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_ACTIVATE_ONLY)
-        elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING)
-        elif self.state.get("mock_remote_config_backend") == "ASM_DD":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD)
-        elif self.state.get("mock_remote_config_backend") == "ASM_DATA":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DATA)
-        elif self.state.get("mock_remote_config_backend") == "APPSEC_BLOCKING_FULL_DENYLIST":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DATA_BLOCKING_FULL_DENYLIST)
-        elif self.state.get("mock_remote_config_backend") == "ASM":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM)
-        elif self.state.get("mock_remote_config_backend") == "ASM_FEATURES_NO_CACHE":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_FEATURES_NO_CACHE)
-        elif self.state.get("mock_remote_config_backend") == "LIVE_DEBUGGING_NO_CACHE":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_LIVE_DEBUGGING_NO_CACHE)
-        elif self.state.get("mock_remote_config_backend") == "ASM_DD_NO_CACHE":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_DD_NO_CACHE)
-        elif self.state.get("mock_remote_config_backend") == "ASM_NO_CACHE":
-            self._modify_response_rc(flow, RC_MOCKED_RESPONSES_ASM_NO_CACHE)
+        rc_config = self.state.get("mock_remote_config_backend")
+        if rc_config is None:
+            return
+        mocked_responses = MOCKED_RESPONSES.get(rc_config)
+        if mocked_responses is None:
+            return
+        self._modify_response_rc(flow, mocked_responses)
 
     def _modify_response_rc(self, flow, mocked_responses):
         if not self.request_is_from_tracer(flow.request):
