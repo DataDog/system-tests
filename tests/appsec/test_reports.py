@@ -68,10 +68,8 @@ class Test_StatusCode:
     else "1.34.0"
 )
 @released(dotnet="1.30.0", java="0.98.1", nodejs="2.0.0", php_appsec="0.3.0", python=PYTHON_RELEASE_GA_1_1)
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-@flaky(context.library == "ruby" and context.weblog_variant in ("rails32", "rails40"))
 @coverage.good
 @missing_feature(
     True, reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV"
