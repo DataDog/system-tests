@@ -34,6 +34,7 @@ from tests.parametric.conftest import (
     java_library_factory,
     php_library_factory,
     ruby_library_factory,
+    cpp_library_factory,
     get_open_port,
     pytest_runtest_makereport,
     test_server_log_file,
@@ -79,6 +80,7 @@ def pytest_configure(config):
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 _libs = {
+    "cpp": cpp_library_factory,
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
     "java": java_library_factory,
@@ -89,7 +91,7 @@ _libs = {
     "ruby": ruby_library_factory,
 }
 _enabled_libs: List[Tuple[str, ClientLibraryServerFactory]] = []
-for _lang in os.getenv("CLIENTS_ENABLED", "dotnet,golang,java,nodejs,php,python,python_http,ruby").split(","):
+for _lang in os.getenv("CLIENTS_ENABLED", "cpp,dotnet,golang,java,nodejs,php,python,python_http,ruby").split(","):
     if _lang not in _libs:
         raise ValueError("Incorrect client %r specified, must be one of %r" % (_lang, ",".join(_libs.keys())))
     _enabled_libs.append((_lang, _libs[_lang]))
