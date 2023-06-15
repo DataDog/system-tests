@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature, bug
+from utils import released, coverage, interfaces, bug, scenarios, weblog, rfc, missing_feature
 from utils._context.core import context
 
 if context.library == "cpp":
@@ -53,12 +53,11 @@ JSON_CONTENT_TYPES = {
 
 @released(
     dotnet="2.27.0",
+    golang="1.50.0-rc.1",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.11.0",
-)
-@released(
     java={
         "spring-boot": "0.112.0",
         "uds-spring-boot": "0.112.0",
@@ -70,11 +69,10 @@ JSON_CONTENT_TYPES = {
         "jersey-grizzly2": "1.7.0",
         "resteasy-netty3": "1.7.0",
         "vertx3": "1.7.0",
+        "spring-boot-3-native": "?",  # GraalVM. Tracing support only
         "*": "?",
-    }
+    },
 )
-@released(golang="1.50.0-rc.1")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_Blocking:
@@ -113,7 +111,7 @@ class Test_Blocking:
                 return
 
             if "appsec.blocked" not in span["meta"]:
-                raise Exception("Can't find appsec.blocked in span's tags")
+                raise ValueError("Can't find appsec.blocked in span's tags")
 
             return True
 
@@ -201,7 +199,13 @@ class Test_Blocking:
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
 
-    @released(java="1.14.0", dotnet="?", golang="1.52.0", nodejs="4.1.0", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.library < "java@1.14.0")
+    @missing_feature(context.library < "nodejs@4.1.0")
+    @missing_feature(context.library < "golang@1.52.0")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="php")
+    @missing_feature(library="python")
+    @missing_feature(library="ruby")
     def test_json_template_v1(self):
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
@@ -211,7 +215,13 @@ class Test_Blocking:
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
 
-    @released(java="1.14.0", dotnet="?", golang="1.52.0", nodejs="4.1.0", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.library < "java@1.14.0")
+    @missing_feature(context.library < "nodejs@4.1.0")
+    @missing_feature(context.library < "golang@1.52.0")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="php")
+    @missing_feature(library="python")
+    @missing_feature(library="ruby")
     def test_html_template_v2(self):
         """HTML block template is v2 minified"""
         assert self.r_html_v2.status_code == 403
