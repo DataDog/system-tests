@@ -907,6 +907,20 @@ class scenarios:
         doc="",
     )
 
+    appsec_api_security = EndToEndScenario(
+        "APPSEC_API_SECURITY",
+        appsec_enabled=True,
+        weblog_env={
+            "_DD_API_SECURITY_ENABLED": "true",
+            "DD_TRACE_DEBUG": "true",
+            "_DD_API_SECURITY_INTERVAL_PER_ROUTE": "0.0",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        _DD_API_SECURITY_ENABLED is set to true.
+        """,
+    )
+
     # Remote config scenarios
     # library timeout is set to 100 seconds
     # default polling interval for tracers is very low (5 seconds)
