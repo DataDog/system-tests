@@ -19,7 +19,7 @@ def _query_for_trace_id(trace_id):
         return r.status_code
     except Exception as e:
         logger.error(f"Error received connecting to host: [{host}] ")
-        raise e
+        return -1
 
 
 def wait_backend_trace_id(trace_id, timeout: float = 5.0):
