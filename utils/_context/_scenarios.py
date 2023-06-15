@@ -1032,6 +1032,9 @@ class scenarios:
     onboarding_host = OnBoardingScenario("ONBOARDING_HOST", doc="")
     onboarding_host_container = OnBoardingScenario("ONBOARDING_HOST_CONTAINER", doc="")
     onboarding_container = OnBoardingScenario("ONBOARDING_CONTAINER", doc="")
+    onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL", doc="")
+    onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL", doc="")
+    onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL", doc="")
 
 
 def _main():
