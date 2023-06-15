@@ -211,7 +211,7 @@ def _validate_headers(headers, request_type):
     }
 
     # APM Python migrates Telemetry to V2
-    expected_headers["DD-Telemetry-API-Version"] = "v2" if expected_language == "python" else "v2"
+    expected_headers["DD-Telemetry-API-Version"] = "v2" if expected_language == "python" else "v1"
 
     expected_headers = {k.lower(): v for k, v in expected_headers.items()}
 
