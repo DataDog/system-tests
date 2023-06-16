@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released
+from utils import weblog, interfaces, scenarios, released, context
 from utils.tools import logger
 
 
@@ -18,16 +18,23 @@ class Test_DsmKafka:
         self.r = weblog.get("/dsm?integration=kafka")
 
     def test_dsm_kafka(self):
+        print(self.r)
+        print(self.r.content)
+        logger.info(f"exectute dsm tests {self.r}, {self.r.content}")
+        logger.info(f"exectute dsm tests {self.r.status_code}")
+        print(self.r.status_code)
         assert str(self.r.content, "UTF-8") == "ok"
 
+        consumer_hash = 5700134256996109392 if context.library == "nodejs" else 4463699290244539355
+        producer_hash = 13592025863925263556 if context.library == "nodejs" else 16645700936287432977
         DsmHelper.assert_checkpoint_presence(
-            hash_=4463699290244539355,
+            hash_=consumer_hash,
             parent_hash=0,
             tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=3735318893869752335,
-            parent_hash=4463699290244539355,
+            hash_=producer_hash,
+            parent_hash=consumer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
@@ -75,7 +82,7 @@ class DsmHelper:
         assert isinstance(tags, tuple)
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
-        
+
         for data in interfaces.agent.get_dsm_data():
             logger.info(data)
             for stats_bucket in data["request"]["content"]["Stats"]:

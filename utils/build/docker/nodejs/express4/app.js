@@ -135,36 +135,55 @@ app.get("/users", (req, res) => {
   }
 });
 
-app.get("/dsm", async (req, res) => {
+app.get("/dsm", (req, res) => {
   const kafka = new Kafka({
     clientId: 'my-app',
     brokers: ['kafka:9092'],
-  })
-
-  const producer = kafka.producer()
-
-  await producer.connect()
-  await producer.send({
-    topic: 'dsm-system-tests-queue',
-    messages: [
-      { value: 'hello world!' },
-    ],
-  })
-  await producer.disconnect()
-
-  const consumer = kafka.consumer({ groupId: 'testgroup1' })
-
-  await consumer.connect()
-  await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
-
-  await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      console.log({
-        value: message.value.toString(),
-      })
+    retry: {
+      initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+      retries: 20, // Number of retries before giving up
     },
   })
-  res.send('ok')
+  console.log("in endpoint")
+  const producer = kafka.producer()
+  const doKafkaOperations = async () => {
+    console.log("async func")
+    await producer.connect()
+    await producer.send({
+      topic: 'dsm-system-tests-queue',
+      messages: [
+        { value: 'hello world!' },
+      ],
+    })
+    await producer.disconnect()
+    console.log("produced")
+
+    const consumer = kafka.consumer({ groupId: 'testgroup2' })
+
+    await consumer.connect()
+    console.log("subscribing")
+    await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
+
+    console.log("consuming some payloads")
+    await consumer.run({
+      eachMessage: async ({topic, partition, message}) => {
+        console.log({
+          value: message.value.toString(),
+        });
+        await consumer.stop();
+        await consumer.disconnect();
+      },
+    })
+    console.log("consumed")
+  }
+  doKafkaOperations()
+      .then(() => {
+        res.send('ok');
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      });
 });
 
 require("./iast")(app, tracer);
@@ -173,7 +192,7 @@ app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint');
   var glob = require("glob")
   res.send("Loaded a dependency")
- }); 
+ });
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
