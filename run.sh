@@ -60,35 +60,35 @@ EOS
 }
 
 function error() {
-    echo "error:" "${@}" 1>&2
+    echo "error:" "$@" 1>&2
 }
 
 function warn() {
-    echo "warn:" "${@}" 1>&2
+    echo "warn:" "$@" 1>&2
 }
 
 function die() {
     local rc=1
 
-    if [[ ${1} =~ ^-?[0-9]+$ ]]; then
-        rc="${1}"
+    if [[ $1 =~ ^-?[0-9]+$ ]]; then
+        rc="$1"
         shift
     fi
 
-    error "${@}"
+    error "$@"
     exit "${rc}"
 }
 
 # read data starting from the provided section marker up to the next one or EOF
 function section() {
-    local section="${1}"
+    local section="$1"
     local source="${BASH_SOURCE[0]}"
 
     awk '/^__[A-Z0-9]+__$/{f=0} f{print} /^'"${section}"'$/{f=1}' "${source}"
 }
 
 function lookup_scenario_group() {
-    local group="${1}"
+    local group="$1"
 
     section __GROUPS__ | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [[print(t) for t in s] if isinstance(s, list) else print(s) for s in g]' "${group}"
 }
@@ -119,11 +119,11 @@ function activate_venv() {
 }
 
 function run_scenario() {
-    local mode="${1}"
+    local mode="$1"
     shift
-    local scenario="${1}"
+    local scenario="$1"
     shift
-    local pytest_args=("${@}")
+    local pytest_args=("$@")
 
     case "${mode}" in
         'docker')
@@ -170,7 +170,7 @@ function main() {
 
     # parse flags
     while [[ "$#" -gt 0 ]]; do
-        case "${1}" in
+        case "$1" in
             -h|--help)
                 help
                 exit
@@ -198,20 +198,20 @@ function main() {
                 ;;
             -*)
                 # unknown flag: be helpful
-                error "unknown flag: ${1}"
+                error "unknown flag: $1"
                 help
                 exit 64
                 ;;
             *)
                 # handle positional arguments
                 # deprecated but kept for backwards compatibility
-                if [[ "${1}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
+                if [[ "$1" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
                     # TODO: get group
-                    scenarios+=("${1}")
-                elif [[ "${1}" =~ ^[A-Z0-9_]+$ ]]; then
-                    scenarios+=("${1}")
+                    scenarios+=("$1")
+                elif [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
+                    scenarios+=("$1")
                 else
-                  error "invalid argument: ${1}"
+                  error "invalid argument: $1"
                   help
                   exit 64
                 fi
@@ -221,7 +221,7 @@ function main() {
     done
 
     # capture remainder of arguments to pass as-is for pytest
-    pytest_args+=("${@}")
+    pytest_args+=("$@")
 
     ## prepare commands
 
@@ -275,8 +275,8 @@ function main() {
     done
 }
 
-if [[ "${0}" == "${BASH_SOURCE[0]}" ]]; then
-    main "${@}"
+if [[ "$0" == "${BASH_SOURCE[0]}" ]]; then
+    main "$@"
 fi
 
 exit
