@@ -145,7 +145,7 @@ class Test_BlockingAddresses:
     def setup_response_status(self):
         self.rss_req = weblog.get(path="/status", params={"code": "418"})
 
-    @missing_feature(context.library == "dotnet", reason="only support blocking on 404 status at the moment")
+    @missing_feature(context.library < "dotnet@2.32.0")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
@@ -172,10 +172,10 @@ class Test_BlockingAddresses:
     def setup_response_header(self):
         self.rsh_req = weblog.get(path="/headers")
 
+    @missing_feature(context.library < "dotnet@2.32.0")
     @missing_feature(context.library == "java", reason="Happens on a subsequent WAF run")
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
-    @missing_feature(context.library == "dotnet", reason="Address not supported yet")
     @missing_feature(library="nodejs", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_response_header(self):
@@ -265,7 +265,7 @@ class Test_Blocking_request_method:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.32.0",
     golang="1.51.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
@@ -300,6 +300,7 @@ class Test_Blocking_request_uri:
     def setup_test_blocking_uri_raw(self):
         self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
 
+    @bug(library="dotnet", reason="dotnet may include scheme, domain and port in uri.raw")
     def test_test_blocking_uri_raw(self):
         interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
         assert self.rm_req_uri_raw.status_code == 403
@@ -618,7 +619,7 @@ class Test_Blocking_request_body:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.32.0",
     golang="?",
     java="?",
     nodejs="?",
@@ -655,7 +656,7 @@ class Test_Blocking_response_status:
 @coverage.good
 @released(
     cpp="?",
-    dotnet="?",
+    dotnet="2.32.0",
     golang="?",
     java="?",
     nodejs="?",
