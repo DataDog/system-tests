@@ -168,6 +168,14 @@ class _Scenario:
     def telemetry_heartbeat_interval(self):
         return 0
 
+    @property
+    def components(self):
+        return {}
+
+    @property
+    def parametrized_tests_metadata(self):
+        return {}
+
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
@@ -687,16 +695,72 @@ class OnBoardingScenario(_Scenario):
         self.stack = None
         self.provision_vms = []
         self.provision_vm_names = []
+        self.onboarding_components = {}
+        self.onboarding_tests_metadata = {}
 
     def configure(self, replay):
         super().configure(replay)
         assert "TEST_LIBRARY" in os.environ
+        assert "ONBOARDING_FILTER_ENV" in os.environ
+        assert "ONBOARDING_FILTER_WEBLOG" in os.environ
         self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
 
     @property
     def library(self):
         return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+
+    @property
+    def components(self):
+        return self.onboarding_components
+
+    @property
+    def parametrized_tests_metadata(self):
+        myTest = {"hola": "adios", "hello": "goodby"}
+        main_dic = {"midesctests": myTest}
+        return self.onboarding_tests_metadata
+
+    @property
+    def weblog_variant(self):
+        return os.getenv("ONBOARDING_FILTER_WEBLOG")
+
+    def fill_context(self):
+        # fix package name for nodejs -> js
+        if os.getenv("TEST_LIBRARY") == "nodejs":
+            package_lang = "datadog-apm-library-js"
+        else:
+            package_lang = f"datadog-apm-library-{os.getenv('TEST_LIBRARY')}"
+
+        dd_package_names = ["datadog-agent", "datadog-apm-inject", package_lang]
+
+        try:
+            for provision_vm in self.provision_vms:
+                # Manage common dd software components for the scenario
+                for dd_package_name in dd_package_names:
+                    # All the tested machines should have the same version of the DD components
+                    if dd_package_name in self.onboarding_components and self.onboarding_components[
+                        dd_package_name
+                    ] != provision_vm.get_component(dd_package_name):
+                        self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
+                        raise ValueError(
+                            f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
+                        )
+
+                    self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
+                # Manage specific information for each parametrized test
+                test_metadata = {
+                    "vm": provision_vm.ec2_data["name"],
+                    "vm_ip": provision_vm.ip,
+                    "vm_ami": provision_vm.ec2_data["ami_id"],
+                    "vm_distro": provision_vm.ec2_data["os_distro"],
+                    "docker": provision_vm.get_component("docker"),
+                    "lang_variant": provision_vm.language_variant_install_data["name"],
+                }
+                self.onboarding_tests_metadata[provision_vm.name] = test_metadata
+
+        except Exception as ex:
+            logger.error("Error filling the context components")
+            logger.exception(ex)
 
     def _start_pulumi(self):
         def pulumi_start_program():
@@ -722,6 +786,10 @@ class OnBoardingScenario(_Scenario):
 
     def _get_warmups(self):
         return [self._start_pulumi]
+
+    def post_setup(self):
+        """ Fill context with the installed components information and parametrized test metadata"""
+        self.fill_context()
 
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")

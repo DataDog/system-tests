@@ -47,7 +47,7 @@ variables:
     - echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> .env_ci
   after_script:
     - export $(cat .env_ci | egrep -v "(^#.*|^$)" | xargs) 
-   #Avoid pushing results to system-tests-dashboard until next iteration: - sh utils/scripts/push_reports_dashboard.sh
+    #- sh utils/scripts/push_reports_dashboard.sh
   artifacts:
       when: always
       paths:
@@ -111,6 +111,8 @@ onboarding_nodejs:
   parallel:
       matrix:
         - TEST_LIBRARY: [nodejs]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+          ONBOARDING_FILTER_ENV: [dev,prod]
           SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL] 
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
@@ -124,6 +126,8 @@ onboarding_java:
   parallel:
       matrix:
         - TEST_LIBRARY: [java]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,wildfly,test-app-java-buildpack,test-app-java-alpine]
+          ONBOARDING_FILTER_ENV: [dev,prod]
           SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL]
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
@@ -137,12 +141,13 @@ onboarding_python:
   parallel:
       matrix:
         - TEST_LIBRARY: [ python]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python]
+          ONBOARDING_FILTER_ENV: [dev,prod]
           SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL]
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
       - ./build.sh -i runner
-      #Disabled PRO until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
-      - ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
+      - ./run.sh $SCENARIO
 
 onboarding_dotnet:
   extends: .base_job_onboarding
@@ -151,6 +156,8 @@ onboarding_dotnet:
   parallel:
       matrix:
         - TEST_LIBRARY: [ dotnet]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,dotnet-core-simple-sample]
+          ONBOARDING_FILTER_ENV: [dev,prod]
           SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL]
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
