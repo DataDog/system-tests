@@ -462,6 +462,8 @@ class WeblogContainer(TestedContainer):
 
 class PostgresContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
+
         super().__init__(
             image_name="postgres:latest",
             name="postgres",
@@ -469,7 +471,7 @@ class PostgresContainer(TestedContainer):
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
-                "./utils/build/docker/postgres-init-db.sh": {
+                f"{self.host_project_dir}/utils/build/docker/postgres-init-db.sh": {
                     "bind": "/docker-entrypoint-initdb.d/init_db.sh",
                     "mode": "ro",
                 }
@@ -573,12 +575,19 @@ class SqlServerContainer(TestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
+
         super().__init__(
             image_name="otel/opentelemetry-collector-contrib:latest",
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={
+                f"{self.host_project_dir}/utils/build/docker/otelcol-config.yaml": {
+                    "bind": "/etc/otelcol-config.yml",
+                    "mode": "ro",
+                }
+            },
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
