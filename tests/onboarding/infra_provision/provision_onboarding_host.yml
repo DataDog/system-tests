@@ -188,18 +188,12 @@ language-variants:
       install: 
         - os_type: linux
           os_distro: deb
-          command: sudo apt-get -y install openjdk-11-jdk
+          command: sudo apt-get -y install openjdk-11-jdk-headless 
 
         - os_type: linux
           os_distro: rpm
           command: sudo amazon-linux-extras install java-openjdk11
-    - name: OpenJDK8
-      version: 8
-      install: 
-        - os_type: linux
-          os_distro: deb
-          command: sudo apt-get -y install openjdk-11-jdk-headless
-
+ 
   - nodejs:
     - name: node16
       version: 16
