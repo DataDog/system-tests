@@ -6,7 +6,7 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
     dotnet="2.30.0",
     golang="1.48.0",
     java="1.7.0",
-    nodejs="3.15.0",
+    nodejs="3.14.0",
     php="0.86.3",
     php_appsec="0.7.2",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
