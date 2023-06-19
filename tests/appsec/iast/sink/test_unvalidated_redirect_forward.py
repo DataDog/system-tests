@@ -34,7 +34,7 @@ def _expected_location():
         "*": "?",
     }
 )
-class TestUnvalidatedRedirect:
+class TestUnvalidatedForward:
     """Verify Unvalidated redirect forward detection."""
 
     sink_fixture_forward = SinkFixture(
