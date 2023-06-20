@@ -393,6 +393,7 @@ COPY --from=build /usr/local/bin/cpp-parametric-test /usr/local/bin/cpp-parametr
 
 
 _libs = {
+    "cpp": cpp_library_factory,
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
     "java": java_library_factory,
