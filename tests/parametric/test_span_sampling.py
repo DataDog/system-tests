@@ -275,6 +275,38 @@ class Test_Span_Sampling:
         context.library == "*",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
     )
+    @missing_feature(
+        library="golang",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
+    @missing_feature(
+        library="nodejs",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
+    @missing_feature(
+        library="python",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
+    @missing_feature(
+        library="python_http",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
+    @missing_feature(
+        library="php",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
+    @missing_feature(
+        library="ruby",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
+    @missing_feature(
+        library="java",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
+    @missing_feature(
+        library="dotnet",
+        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
