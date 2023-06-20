@@ -869,8 +869,6 @@ class scenarios:
         weblog_env={
             "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
             "DD_TELEMETRY_METRICS_ENABLED": "true",
-            # Python lib has different env var until we enable Telemetry Metrics by default
-            "_DD_TELEMETRY_METRICS_ENABLED": "true",
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
         },
         doc="Enable Telemetry feature for WAF",
