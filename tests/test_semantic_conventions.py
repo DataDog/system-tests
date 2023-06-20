@@ -65,6 +65,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "undertow-http.request": "undertow-http-server",
         "servlet.response": "java-web-servlet-response",
+        "servlet.forward": "java-web-servlet-dispatcher",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",
