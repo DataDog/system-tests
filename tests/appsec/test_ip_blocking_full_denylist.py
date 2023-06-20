@@ -31,6 +31,7 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 @irrelevant(
     context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
+@bug(library="java", reason="RC payload limit")
 @bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic

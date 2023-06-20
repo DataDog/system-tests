@@ -22,7 +22,7 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="?",
 )
-@missing_feature(library="java", reason="/users endpoint is not implemented on java weblog")
+@bug(library="java", reason="RC payload limit")
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
 class Test_UserBlocking_FullDenylist:
