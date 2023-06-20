@@ -17,6 +17,9 @@ ami:
   os_type: linux
   os_distro: rpm
 
+init-config:
+  install: !include tests/onboarding/infra_provision/includes/provision_init_config.yml
+  
 prepare-repos:
   install: !include tests/onboarding/infra_provision/includes/provision_prepare_repos.yml
 
@@ -34,6 +37,64 @@ agent:
 
         command: cat docker-compose-agent-prod.yml
 
+agent_auto_install:
+  - nodejs: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+            - name: copy-agent-docker-compose
+              local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
+        command: |
+          bash execute_install_script_dev.sh js --host-inject false --container-inject true --install-agent false
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - java: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+            - name: copy-agent-docker-compose
+              local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
+        command: |
+          bash execute_install_script_dev.sh java --host-inject false --container-inject true --install-agent false
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - python: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+            - name: copy-agent-docker-compose
+              local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
+        command: | 
+          bash execute_install_script_dev.sh python --host-inject false --container-inject true --install-agent false
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+  - dotnet: 
+    - env: dev
+      install:
+      - os_type: linux
+        copy_files:
+            - name: copy-auto-install-script
+              local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+            - name: copy-docker-config
+              local_path: tests/onboarding/autoinjection/docker/docker_config.yaml
+            - name: copy-agent-docker-compose
+              local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
+        command: |
+          bash execute_install_script_dev.sh dotnet --host-inject false --container-inject true --install-agent false
+          sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
+        
 autoinjection: 
   - java: 
     - env: dev

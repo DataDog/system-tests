@@ -211,24 +211,45 @@ def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
-        container_name="dotnet-test-client-%s" % container_id,
-        container_tag="dotnet6_0-test-client",
-        container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+        container_name=f"dotnet-test-client-{container_id}",
+        container_tag="dotnet7_0-test-client",
+        container_img="""
+FROM mcr.microsoft.com/dotnet/sdk:7.0
 WORKDIR /client
-COPY ["./ApmTestClient.csproj","./nuget.config","./*.nupkg", "./"]
+
+# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# restore nuget packages
+COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
-WORKDIR "/client/."
+
+# build and publish
+COPY . ./
+RUN dotnet publish --no-restore --configuration Release --output out
+WORKDIR /client/out
+
+# Set up automatic instrumentation (required for OpenTelemetry tests),
+# but don't enable it globally
+ENV CORECLR_ENABLE_PROFILING=0
+ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
+ENV CORECLR_PROFILER_PATH=/client/out/datadog/linux-x64/Datadog.Trace.ClrProfiler.Native.so
+ENV DD_DOTNET_TRACER_HOME=/client/out/datadog
+
+# disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
+ENV DD_TRACE_Grpc_ENABLED=false
+ENV DD_TRACE_AspNetCore_ENABLED=false
+ENV DD_TRACE_Process_ENABLED=false
+ENV DD_TRACE_OTEL_ENABLED=false
 """,
-        container_cmd=["dotnet", "run"],
+        container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=dotnet_absolute_appdir,
-        volumes=[(os.path.join(dotnet_absolute_appdir), "/client"),],
+        volumes=[],
         env=env,
         port=port,
     )
-    server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
+
     return server
 
 
@@ -448,7 +469,7 @@ class _TestAgentAPI:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
     def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
-        """Wait for `num` to be received from the test agent.
+        """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
 
@@ -468,6 +489,30 @@ class _TestAgentAPI:
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+
+    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
+        """Wait for `num` spans to be received from the test agent.
+
+        Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
+
+        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
+        """
+        num_received = None
+        for i in range(wait_loops):
+            try:
+                traces = self.traces(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                num_received = 0
+                for trace in traces:
+                    num_received += len(trace)
+                if num_received == num:
+                    if clear:
+                        self.clear()
+                    return sorted(traces, key=lambda trace: trace[0]["start"])
+            time.sleep(0.1)
+        raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
 
 @contextlib.contextmanager

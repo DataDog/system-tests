@@ -9,7 +9,7 @@ PARENT_DIR=$(dirname $PWD)
 DEFAULT_COUNT=auto
 
 # FIXME: all languages should be supported
-if [ "${CLIENTS_ENABLED}" ]; then
+if [ "${CLIENTS_ENABLED-}" ]; then
     for client in $(echo $CLIENTS_ENABLED | sed "s/,/ /g"); do
         # default to "1" for languages with concurrency issues
         if [[ "${client}" == "dotnet" || "${client}" == "go" ||"${client}" == "python_http" ]]; then

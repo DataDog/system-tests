@@ -4,7 +4,7 @@
 import json
 
 from tests.remote_config.test_remote_configuration import rc_check_request
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios, missing_feature
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8") as f:
@@ -99,19 +99,7 @@ class Test_AppSecIPBlockingFullDenylist:
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
 
-    @released(
-        java={
-            "spring-boot": "0.111.0",
-            "spring-boot-jetty": "0.111.0",
-            "spring-boot-undertow": "0.111.0",
-            "spring-boot-openliberty": "0.115.0",
-            "ratpack": "1.7.0",
-            "jersey-grizzly2": "1.7.0",
-            "resteasy-netty3": "1.7.0",
-            "vertx3": "1.7.0",
-            "*": "?",
-        }
-    )
+    @missing_feature(context.weblog_variant == "spring-boot" and context.library < "java@0.111.0")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

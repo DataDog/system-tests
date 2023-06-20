@@ -11,7 +11,8 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(nodejs={"express4": "4.1.0", "*": "?"})
 class TestInsecureCookie:
     """Test insecure cookie detection."""
 

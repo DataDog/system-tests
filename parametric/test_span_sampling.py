@@ -458,7 +458,7 @@ def test_root_span_selected_by_sss014(test_agent, test_library):
             with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                 pass
 
-    traces = test_agent.wait_for_num_traces(1, clear=True)
+    traces = test_agent.wait_for_num_spans(2, clear=True)
 
     parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
     child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
@@ -502,7 +502,7 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
             with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
                 pass
 
-    traces = test_agent.wait_for_num_traces(1, clear=True)
+    traces = test_agent.wait_for_num_spans(2, clear=True)
 
     parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
     child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))

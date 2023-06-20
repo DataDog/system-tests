@@ -27,7 +27,6 @@ VARIANT_COMPONENT_MAP = {
     "uwsgi-poc": "flask",
     "django-poc": "django",
     "gin": "gin-gonic/gin",
-    "gorilla": "gorilla/mux",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
     "sinatra": {"rack.request": "rack"},
@@ -66,6 +65,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "undertow-http.request": "undertow-http-server",
         "servlet.response": "java-web-servlet-response",
+        "servlet.forward": "java-web-servlet-dispatcher",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",

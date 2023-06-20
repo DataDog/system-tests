@@ -10,8 +10,32 @@ if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
 
+def _expected_location():
+    if context.library.library == "java":
+        if context.weblog_variant.startswith("spring-boot"):
+            return "com.datadoghq.system_tests.springboot.AppSecIast"
+        if context.weblog_variant == "resteasy-netty3":
+            return "com.datadoghq.resteasy.IastSinkResource"
+        if context.weblog_variant == "jersey-grizzly2":
+            return "com.datadoghq.jersey.IastSinkResource"
+    if context.library.library == "nodejs":
+        return "iast/index.js"
+
+
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", java="?", nodejs="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", nodejs="?")
+@released(
+    java={
+        "spring-boot": "?",
+        "spring-boot-jetty": "?",
+        "spring-boot-openliberty": "?",
+        "spring-boot-wildfly": "?",
+        "spring-boot-undertow": "?",
+        "resteasy-netty3": "?",
+        "jersey-grizzly2": "?",
+        "*": "?",
+    }
+)
 class TestUnvalidatedRedirect:
     """Verify Unvalidated redirect detection."""
 
@@ -21,7 +45,7 @@ class TestUnvalidatedRedirect:
         insecure_endpoint="/iast/unvalidated_redirect/test_insecure_header",
         secure_endpoint="/iast/unvalidated_redirect/test_secure_header",
         data={"location": "http://dummy.location.com"},
-        location_map={"java": {"spring-boot": "com.datadoghq.system_tests.springboot.AppSecIast"}},
+        location_map=_expected_location,
     )
     sink_fixture_redirect = SinkFixture(
         vulnerability_type="UNVALIDATED_REDIRECT",
@@ -29,7 +53,7 @@ class TestUnvalidatedRedirect:
         insecure_endpoint="/iast/unvalidated_redirect/test_insecure_redirect",
         secure_endpoint="/iast/unvalidated_redirect/test_secure_redirect",
         data={"location": "http://dummy.location.com"},
-        location_map={"java": {"spring-boot": "com.datadoghq.system_tests.springboot.AppSecIast"}},
+        location_map=_expected_location,
     )
 
     def setup_insecure_header(self):
