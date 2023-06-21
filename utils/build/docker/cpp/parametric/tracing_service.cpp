@@ -11,36 +11,83 @@ TracingService::TracingService(std::shared_ptr<datadog::tracing::CerrLogger> log
 TracingService::~TracingService() {}
 
 ::grpc::Status TracingService::StartSpan(::grpc::ServerContext* /* context */, const ::StartSpanArgs* request, ::StartSpanReturn* response) {
+  logger_->log_error("StartSpan:");
+  logger_->log_error("  name: " + request->name());
+  if (request->has_service() && !request->service().empty()) {
+    logger_->log_error("  service: " + request->service());
+  }
+  if (request->has_parent_id() && request->parent_id() != 0) {
+    logger_->log_error("  parent_id: " + std::to_string(request->parent_id()));
+  }
+  if (request->has_resource() && !request->resource().empty()) {
+    logger_->log_error("  resource: " + request->resource());
+  }
+  if (request->has_type() && !request->type().empty()) {
+    logger_->log_error("  type: " + request->type());
+  }
+  if (request->has_origin() && !request->origin().empty()) {
+    logger_->log_error("  origin: " + request->origin());
+  }
+  if (request->has_http_headers() && request->http_headers().http_headers_size() != 0) {
+    logger_->log_error("  http_headers:");
+    auto& headers = request->http_headers();
+    for (int i = 0; i < headers.http_headers_size(); i++) {
+      logger_->log_error("    " + headers.http_headers(i).key() + ":" + headers.http_headers(i).value());
+    }
+  }
+
   datadog::tracing::SpanConfig config;
   config.name = request->name();
-  if (request->has_service()) {
+  if (request->has_service() && !request->service().empty()) {
     config.service = request->service();
   }
-  if (request->has_resource()) {
+  if (request->has_resource() && !request->resource().empty()) {
     config.resource = request->resource();
   }
-  if (request->has_type()) {
+  if (request->has_type() && !request->type().empty()) {
     config.service_type = request->type();
   }
   // Origin can't be set directly, only via extraction
-  if (request->has_origin()) {
+  if (request->has_origin() && !request->origin().empty()) {
     logger_->log_error("StartSpanArgs origin, but this can only be set via the 'x-datadog-origin' header");
   }
 
-  auto span = tracer_->extract_or_create_span(DistributedHTTPHeadersReader(request->http_headers()), config);
-  if (!span) {
-    logger_->log_error("could not extract span from http_headers");
-    logger_->log_error(span.error());
-    return ::grpc::Status(::grpc::StatusCode::INTERNAL, "could not extract span from http_headers");
+  // Create span using either a provided parent id or via extraction
+  if (request->has_parent_id() && request->parent_id() != 0) {
+    auto span_id = request->parent_id();
+    auto found = active_spans_.find(span_id);
+    if (found == active_spans_.end()) {
+      logger_->log_error("StartSpan: span not found for id " + std::to_string(span_id));
+      return ::grpc::Status(::grpc::StatusCode::INTERNAL, std::string() + "no active span for id " + std::to_string(span_id));
+    }
+    auto& parent_span = found->second;
+    auto span = parent_span.create_child(config);
+
+    response->set_trace_id(span.trace_id().low);
+    response->set_span_id(span.id());
+    logger_->log_error("StartSpan response trace_id:" + std::to_string(span.trace_id().low) + " span_id:" + std::to_string(span.id()));
+    active_spans_.insert({span.id(), std::move(span)});
+  } else {
+    auto span = tracer_->extract_or_create_span(DistributedHTTPHeadersReader(request->http_headers()), config);
+    if (!span) {
+      logger_->log_error("could not extract span from http_headers");
+      logger_->log_error(span.error());
+      return ::grpc::Status(::grpc::StatusCode::INTERNAL, "could not extract span from http_headers");
+    }
+
+    response->set_trace_id(span->trace_id().low);
+    response->set_span_id(span->id());
+    logger_->log_error("StartSpan response trace_id:" + std::to_string(span->trace_id().low) + " span_id:" + std::to_string(span->id()));
+    active_spans_.insert({span->id(), std::move(*span)});
   }
 
-  active_spans_.insert({span->id(), std::move(*span)});
-  response->set_trace_id(span->trace_id().low);
-  response->set_span_id(span->id());
   return ::grpc::Status(::grpc::StatusCode::OK, "");
 }
 
 ::grpc::Status TracingService::FinishSpan(::grpc::ServerContext* /* context */, const ::FinishSpanArgs* request, ::FinishSpanReturn* /* response */) {
+  logger_->log_error("FinishSpan:");
+  logger_->log_error("  id: " + std::to_string(request->id()));
+
   auto span_id = request->id();
   auto found = active_spans_.find(span_id);
   if (found == active_spans_.end()) {
@@ -83,13 +130,13 @@ TracingService::~TracingService() {}
   }
   auto& span = found->second;
 
-  if (request->has_type()) {
+  if (request->has_type() && !request->type().empty()) {
     span.set_error_type(request->type());
   }
-  if (request->has_message()) {
+  if (request->has_message() && !request->message().empty()) {
     span.set_error_message(request->message());
   }
-  if (request->has_stack()) {
+  if (request->has_stack() && !request->stack().empty()) {
     span.set_error_stack(request->stack());
   }
 
