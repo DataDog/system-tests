@@ -234,6 +234,10 @@ class Test_Otel_Span_Methods:
         context.library == "python",
         reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
     )
+    @missing_feature(
+        context.library == "python_http",
+        reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
+    )
     def test_otel_set_span_status_ok(self, test_agent, test_library):
         """
             This test verifies that setting the status of a span
