@@ -4,6 +4,7 @@
 
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
+
 @released(cpp="?", golang="?", java="?", nodejs="5.0.0-pre", dotnet="", php="?", ruby="?")
 class Test_Login_Events:
     "Test login success/failure use cases"
@@ -26,18 +27,18 @@ class Test_Login_Events:
     USER = "test"
     UUID_USER = "testuuid"
     PASSWORD = "1234"
-    
-    BASIC_AUTH_USER_HEADER= "Basic dGVzdDoxMjM0"  # base64(test:1234)
-    BASIC_AUTH_USER_UUID_HEADER= "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+
+    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
+    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
 
     def setup_login_pii_success(self):
         self.library_name = context.library
         self.r_pii_success = []
-        
+
         if self.library_name == "nodejs":
             self.r_pii_success = [
                 weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
-                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
             ]
 
     def test_login_pii_success(self):
@@ -50,16 +51,18 @@ class Test_Login_Events:
                 assert meta["usr.id"] == " "
                 assert meta["manual.keep"] == "true"
 
-
     def setup_login_success(self):
         self.library_name = context.library
         self.r_success = []
 
         if self.library_name == "nodejs":
             self.r_success = [
-                weblog.post("/login?auth=local", params={"auth": "local"},
-                            data={"username": self.UUID_USER, "password": self.PASSWORD}),
-                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
+                weblog.post(
+                    "/login?auth=local",
+                    params={"auth": "local"},
+                    data={"username": self.UUID_USER, "password": self.PASSWORD},
+                ),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
             ]
 
     def test_login_success(self):
@@ -72,7 +75,6 @@ class Test_Login_Events:
                 assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
                 assert meta["manual.keep"] == "true"
 
-
     def setup_login_wrong_user_failure(self):
         self.library_name = context.library
         self.r_wrong_user_failure = []
@@ -80,7 +82,7 @@ class Test_Login_Events:
         if self.library_name == "nodejs":
             self.r_wrong_user_failure = [
                 weblog.post("/login?auth=local", data={"username": "invalidUser", "password": self.PASSWORD}),
-                weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="})
+                weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}),
             ]
 
     def test_login_wrong_user_failure(self):
@@ -88,7 +90,7 @@ class Test_Login_Events:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if hasattr(meta,"appsec.events.users.login.failure.usr.exists"): 
+                if hasattr(meta, "appsec.events.users.login.failure.usr.exists"):
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
@@ -102,7 +104,7 @@ class Test_Login_Events:
         if self.library_name == "nodejs":
             self.r_wrong_user_failure = [
                 weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
-                weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="})
+                weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}),
             ]
 
     def test_login_wrong_password_failure(self):
@@ -110,7 +112,7 @@ class Test_Login_Events:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if hasattr(meta,"appsec.events.users.login.failure.usr.exists"): 
+                if hasattr(meta, "appsec.events.users.login.failure.usr.exists"):
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
@@ -123,10 +125,14 @@ class Test_Login_Events:
 
         if self.library_name == "nodejs":
             self.r_sdk_success = [
-                weblog.post("/login?auth=local&sdk_event=success&sdk_user=sdkUser", 
-                            data={"username": self.USER, "password": self.PASSWORD}),
-                weblog.get("/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-                           headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+                weblog.post(
+                    "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+                    data={"username": self.USER, "password": self.PASSWORD},
+                ),
+                weblog.get(
+                    "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+                    headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+                ),
             ]
 
     def test_login_sdk_success(self):
@@ -145,10 +151,14 @@ class Test_Login_Events:
         self.r_sdk_failure = []
         if self.library_name == "nodejs":
             self.r_sdk_failure = [
-                weblog.post("/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true", 
-                            data={"username": "invalidUser", "password": self.PASSWORD}),
-                weblog.get("/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                           headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="})
+                weblog.post(
+                    "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                    data={"username": "invalidUser", "password": self.PASSWORD},
+                ),
+                weblog.get(
+                    "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                    headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
+                ),
             ]
 
     def test_login_sdk_failure(self):
