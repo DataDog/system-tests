@@ -4,62 +4,161 @@
 
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
-@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="5.0.0-pre" php="?", ruby="?")
-class Login_Events:
+@released(cpp="?", golang="?", java="?", nodejs="5.0.0-pre", dotnet="", php="?", ruby="?")
+class Test_Login_Events:
     "Test login success/failure use cases"
-    VALID_USER = "test"
-    VALID_USER_UUID = "591dc126-8431-4d0f-9509-b23318d3dce4"
+    # User entries in the internal DB:
+    # users = [
+    #     {
+    #         id: '1',
+    #         username: 'test',
+    #         password: '1234',
+    #         email: 'testuser@ddog.com'
+    #     },
+    #     {
+    #         id: '591dc126-8431-4d0f-9509-b23318d3dce4',
+    #         username: 'testuuid',
+    #         password: '1234',
+    #         email: 'testuseruuid@ddog.com'
+    #     }
+    # ]
 
-    def setup_login_pii_sucess(self):
-        self.requests = [
-            weblog.post("/login", params={"auth": "local"}, data={"username": "test", "password": "1234"}),
-            weblog.get("/login", params={"auth": "basic"}, headers={"Authorization": "Basic dGVzdDoxMjM0"})
-        ]
+    USER = "test"
+    UUID_USER = "testuuid"
+    PASSWORD = "1234"
+    
+    BASIC_AUTH_USER_HEADER= "Basic dGVzdDoxMjM0"  # base64(test:1234)
+    BASIC_AUTH_USER_UUID_HEADER= "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+
+    def setup_login_pii_success(self):
+        self.library_name = context.library
+        self.r_pii_success = []
+        
+        if self.library_name == "nodejs":
+            self.r_pii_success = [
+                weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+            ]
 
     def test_login_pii_success(self):
-        for r in self.requests:
+        for r in self.r_pii_success:
             assert r.status_code == 200
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                assert meta["appsec.events.event.track"] == "true"
-                assert meta["_dd.appsec.events.event.auto.mode"] == "safe"
+                assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["appsec.events.users.login.success.usr.id"] == ""
+                assert meta["usr.id"] == " "
                 assert meta["manual.keep"] == "true"
 
 
-    def setup_login_sucess(self):
-        self.requests = [
-            weblog.post("/login", params={"auth": "local"},
-                        data={"username": "591dc126-8431-4d0f-9509-b23318d3dce4", "password": "1234"}),
-            weblog.get("/login", params={"auth": "basic"}, headers={"Authorization": "Basic dGVzdDoxMjM0"})
-        ]
+    def setup_login_success(self):
+        self.library_name = context.library
+        self.r_success = []
+
+        if self.library_name == "nodejs":
+            self.r_success = [
+                weblog.post("/login?auth=local", params={"auth": "local"},
+                            data={"username": self.UUID_USER, "password": self.PASSWORD}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
+            ]
 
     def test_login_success(self):
-        for r in self.requests:
+        for r in self.r_success:
             assert r.status_code == 200
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                assert meta["appsec.events.event.track"] == "true"
-                assert meta["_dd.appsec.events.event.auto.mode"] == "safe"
+                assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["appsec.events.users.login.success.usr.id"] == ""
+                assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
                 assert meta["manual.keep"] == "true"
 
 
     def setup_login_wrong_user_failure(self):
-        self.requests = [
-            weblog.post("/login", params={"auth": "local"}, data={"username": "invalidUser", "password": "1234"}),
-            weblog.get("/login", params={"auth": "basic"}, headers={"Authorization": "Basic dGVzdDoxMjM1"})
-        ]
+        self.library_name = context.library
+        self.r_wrong_user_failure = []
+
+        if self.library_name == "nodejs":
+            self.r_wrong_user_failure = [
+                weblog.post("/login?auth=local", data={"username": "invalidUser", "password": self.PASSWORD}),
+                weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="})
+            ]
 
     def test_login_wrong_user_failure(self):
-        for r in self.requests:
+        for r in self.r_wrong_user_failure:
+            assert r.status_code == 401
+            for _, _, span in interfaces.library.get_spans(request=r):
+                meta = span.get("meta", {})
+                if hasattr(meta,"appsec.events.users.login.failure.usr.exists"): 
+                    assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+                assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
+                assert meta["appsec.events.users.login.failure.track"] == "true"
+                assert meta["manual.keep"] == "true"
+
+    def setup_login_wrong_password_failure(self):
+        self.library_name = context.library
+        self.r_wrong_user_failure = []
+
+        if self.library_name == "nodejs":
+            self.r_wrong_user_failure = [
+                weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
+                weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="})
+            ]
+
+    def test_login_wrong_password_failure(self):
+        for r in self.r_wrong_user_failure:
+            assert r.status_code == 401
+            for _, _, span in interfaces.library.get_spans(request=r):
+                meta = span.get("meta", {})
+                if hasattr(meta,"appsec.events.users.login.failure.usr.exists"): 
+                    assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+                assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
+                assert meta["appsec.events.users.login.failure.track"] == "true"
+                assert meta["manual.keep"] == "true"
+
+    def setup_login_sdk_success(self):
+        self.library_name = context.library
+        self.r_sdk_success = []
+
+        if self.library_name == "nodejs":
+            self.r_sdk_success = [
+                weblog.post("/login?auth=local&sdk_event=success&sdk_user=sdkUser", 
+                            data={"username": self.USER, "password": self.PASSWORD}),
+                weblog.get("/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+                           headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+            ]
+
+    def test_login_sdk_success(self):
+        for r in self.r_sdk_success:
             assert r.status_code == 200
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                assert meta["appsec.events.event.track"] == "true"
-                assert meta["_dd.appsec.events.event.auto.mode"] == "safe"
+                assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
+                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                assert meta["appsec.events.users.login.success.track"] == "true"
+                assert meta["usr.id"] == "sdkUser"
+                assert meta["manual.keep"] == "true"
+
+    def setup_login_sdk_failure(self):
+        self.library_name = context.library
+        self.r_sdk_failure = []
+        if self.library_name == "nodejs":
+            self.r_sdk_failure = [
+                weblog.post("/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true", 
+                            data={"username": "invalidUser", "password": self.PASSWORD}),
+                weblog.get("/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                           headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="})
+            ]
+
+    def test_login_sdk_failure(self):
+        for r in self.r_sdk_failure:
+            assert r.status_code == 401
+            for _, _, span in interfaces.library.get_spans(request=r):
+                meta = span.get("meta", {})
+                assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
+                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == ""
+                assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                 assert meta["manual.keep"] == "true"
