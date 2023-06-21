@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"time"
-	"os"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -42,7 +42,9 @@ func main() {
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
 		body, err := parseBody(r)
 		if err == nil {
-			appsec.MonitorParsedHTTPBody(r.Context(), body)
+			if err := appsec.MonitorParsedHTTPBody(r.Context(), body); err != nil {
+				return
+			}
 		}
 		w.Write([]byte("Hello, WAF!\n"))
 	})

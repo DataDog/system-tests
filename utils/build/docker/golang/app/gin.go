@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -27,7 +27,9 @@ func main() {
 	r.Any("/waf", func(ctx *gin.Context) {
 		body, err := parseBody(ctx.Request)
 		if err == nil {
-			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), body)
+			if err := appsec.MonitorParsedHTTPBody(ctx.Request.Context(), body); err != nil {
+				return
+			}
 		}
 		ctx.Writer.Write([]byte("Hello, WAF!\n"))
 	})
@@ -49,6 +51,11 @@ func main() {
 	})
 
 	r.Any("/tag_value/:tag/:status", func(ctx *gin.Context) {
+		if body, err := parseBody(ctx.Request); err == nil {
+			if err := appsec.MonitorParsedHTTPBody(ctx.Request.Context(), body); err != nil {
+				return
+			}
+		}
 		tag := ctx.Param("tag")
 		status, _ := strconv.Atoi(ctx.Param("status"))
 		span, _ := tracer.SpanFromContext(ctx.Request.Context())

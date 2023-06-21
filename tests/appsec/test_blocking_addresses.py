@@ -108,7 +108,6 @@ class Test_BlockingAddresses:
         self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
     @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
-    @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
 
@@ -549,7 +548,7 @@ class Test_Blocking_request_cookies:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="?",
+    golang="1.52.0",
     java="1.15.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
@@ -559,6 +558,7 @@ class Test_Blocking_request_cookies:
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
+@irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
 
@@ -593,6 +593,7 @@ class Test_Blocking_request_body:
         context.weblog_variant in ("jersey-grizzly2", "resteasy-netty3"),
         reason="Blocks on text/plain if parsed to a String",
     )
+    @irrelevant(context.library == "golang", reason="Blocks on text/plain if parsed to a String")
     def test_non_blocking_plain_text(self):
         # TODO: This test is pending a better definition of when text/plain is considered parsed body,
         # which depends on application logic.

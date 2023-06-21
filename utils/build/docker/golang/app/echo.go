@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
@@ -51,6 +51,11 @@ func main() {
 	})
 
 	r.Any("/tag_value/:tag/:status", func(c echo.Context) error {
+		if body, err := parseBody(c.Request()); err == nil {
+			if err := appsec.MonitorParsedHTTPBody(c.Request().Context(), body); err != nil {
+				return err
+			}
+		}
 		tag := c.Param("tag")
 		status, _ := strconv.Atoi(c.Param("status"))
 		span, _ := tracer.SpanFromContext(c.Request().Context())
@@ -169,7 +174,9 @@ func waf(c echo.Context) error {
 	req := c.Request()
 	body, err := parseBody(req)
 	if err == nil {
-		appsec.MonitorParsedHTTPBody(req.Context(), body)
+		if err := appsec.MonitorParsedHTTPBody(req.Context(), body); err != nil {
+			return err
+		}
 	}
 	return c.String(http.StatusOK, "Hello, WAF!\n")
 }
