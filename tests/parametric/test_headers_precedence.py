@@ -403,7 +403,7 @@ class Test_Headers_Precedence:
         context.library == "golang",
         reason="BUG: suite #4 is failing - if context is successfully retrieved from W3C propagator, datadog propagator is NOT.run, thus not retrieving / overwriting the headers",
     )
-    @missing_feature(context.library == "ruby", "Ruby doesn't support case-insensitive distributed headers")
+    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers

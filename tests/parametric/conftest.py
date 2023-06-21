@@ -707,6 +707,8 @@ def test_agent(
                     )
                 break
         else:
+            with open("test_agent_log_file.name") as f:
+                logger.error(f"Could not connect to test agent: {f.read()}")
             pytest.fail(
                 "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
             )

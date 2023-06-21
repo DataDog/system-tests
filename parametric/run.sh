@@ -8,7 +8,5 @@ ARGS=$*
 echo "Legacy way to run parametric test. Please use ./run.sh PARAMETRIC"
 cd ..
 export TEST_LIBRARY=$CLIENTS_ENABLED 
-echo "OJOOOOOO:::::: $(PWD)"
 ./build.sh -i runner
-echo "OJOOOOOO:::::: $(PWD)"
 ./run.sh PARAMETRIC  $@
