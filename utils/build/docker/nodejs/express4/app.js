@@ -1,7 +1,10 @@
 "use strict";
 
-const tracer = require("dd-trace").init({
-  debug: true
+const tracer = require('dd-trace').init({
+  debug: true,
+  appsec: {
+    enabled: true
+  }
 });
 
 const app = require("express")();
@@ -15,7 +18,7 @@ app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
 app.use(require("cookie-parser")());
 
-require('./auth')(app, passport)
+require('./auth')(app, passport, tracer)
 
 app.get("/", (req, res) => {
   console.log("Received a request");

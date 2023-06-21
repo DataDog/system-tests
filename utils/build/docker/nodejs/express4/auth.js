@@ -1,16 +1,24 @@
-const { LocalStrategy } = require('passport-local')
-const users = [{
-  _id: 1,
-  username: 'test',
-  password: '1234',
-  email: 'testuser@ddog.com'
-}]
+const LocalStrategy = require('passport-local').Strategy
+const BasicStrategy = require('passport-http').BasicStrategy
+const users = [
+  {
+    id: '1',
+    username: 'test',
+    password: '1234',
+    email: 'testuser@ddog.com'
+  },
+  {
+    id: '591dc126-8431-4d0f-9509-b23318d3dce4',
+    username: 'testuuid',
+    password: '1234',
+    email: 'testuseruuid@ddog.com'
+  }
+]
 
-module.exports = function (app, passport) {
+module.exports = function (app, passport, tracer) {
   passport.use(new LocalStrategy({ usernameField: 'username', passwordField: 'password' },
     (username, password, done) => {
       const user = users.find(user => (user.username === username) && (user.password === password))
-
       if (!user) {
         return done(null, false)
       } else {
@@ -19,31 +27,78 @@ module.exports = function (app, passport) {
     })
   )
 
+  passport.use(new BasicStrategy((username, password, done) => {
+    const user = users.find(user => (user.username === username) && (user.password === password))
+    if (!user) {
+      return done(null, false)
+    } else {
+      return done(null, user)
+    }
+  }
+  ))
+
+  function getStrategy (req, res, next) {
+    const auth = req.query && req.query.auth
+    if (auth === 'local') {
+      return passport.authenticate('local', { session: false }, function (err, user, info) {
+        const event = req.query.sdk_event
+        const userId = req.query.sdk_user || 'sdk_user'
+        const userMail = req.query.sdk_mail || 'system_tests_user@system_tests_user.com'
+        const exists = req.query.sdk_user_exists === 'true' || false
+
+        if (err) { return next(err)}
+        if (!user) {
+          if (event === 'failure') {
+            tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
+          }
+
+          res.sendStatus(401)
+        } else {
+          if (event === 'success') {
+            tracer.appsec.trackUserLoginSuccessEvent({
+              id: userId,
+              email: userMail,
+              name: "system_tests_user"
+            }, { metadata0: "value0", metadata1: "value1" })
+          }
+
+          res.sendStatus(200)
+        }
+      })(req, res, next)
+    } else {
+      return passport.authenticate('basic', { session: false }, function (err, user, info) {
+        const event = req.query.sdk_event
+        const userId = req.query.sdk_user || "sdk_user"
+        const userMail = req.query.sdk_mail || "system_tests_user@system_tests_user.com"
+
+        if (err) { return next(err)}
+        if (!user) {
+          if (event === 'failure') {
+            tracer.appsec.trackUserLoginFailureEvent(userId, true, { metadata0: "value0", metadata1: "value1" });
+          }
+
+          res.sendStatus(401)
+        } else {
+          if (event === 'success') {
+            tracer.appsec.trackUserLoginSuccessEvent({
+              id: userId,
+              email: userMail,
+              name: "system_tests_user"
+            }, { metadata0: "value0", metadata1: "value1" })
+          }
+
+          res.sendStatus(200)
+        }
+      })(req, res, next)
+    }
+  }
+
+
   app.use(passport.initialize())
-  app.post('/login',
-    passport.authenticate('local', { session: false }),
-    (req, res) => {
-      res.status(200)
+  app.all('/login',
+    getStrategy,
+    (req, res, next) => {
+      res.sendStatus(200)
     }
   )
-  app.post('/signup', (req, res) => {
-    const user = {}
-    user.username = req.body.username
-    user.password = req.body.password
-
-    if ((user.username && user.password) &&
-      !(users.some(item => item.username === user.username))) {
-      user._id = (() => {
-        const last = users.at(-1)
-        if (last && last._id) {
-          return last._id + 1
-        } else {
-          return 1
-        }
-      }) ()
-      res.status(200).json({ status: 'success', id: user._id, username: user.username })
-    } else {
-      res.status(200).json({ status: 'failure' })
-    }
-  })
 }
