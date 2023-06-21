@@ -673,63 +673,58 @@ def test_agent_container_name(test_id) -> str:
 def test_agent(
     docker_network: str, request, test_agent_container_name: str, test_agent_port, test_agent_log_file: TextIO,
 ):
-    retry = True
-    retry_num = 0
-    retry_num_max = 3
-    # Sometime the agent container doesn't start up. We implement a simple retry policy
-    while retry and retry_num < retry_num_max:
-        retry_num = retry_num + 1
-        retry = False
-        env = {}
-        if os.getenv("DEV_MODE") is not None:
-            env["SNAPSHOT_CI"] = "0"
-        # Not all clients (go for example) submit the tracer version
-        # go client doesn't submit content length header
-        env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
-        test_agent_external_port = get_open_port()
-        with docker_run(
-            image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
-            name=test_agent_container_name,
-            cmd=[],
-            env=env,
-            volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
-            ports=[(test_agent_external_port, test_agent_port)],
-            log_file=test_agent_log_file,
-            network_name=docker_network,
-        ):
-            client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port)
-            # Wait for the agent to start
-            for i in range(20):
-                try:
-                    resp = client.info()
-                except requests.exceptions.ConnectionError:
-                    time.sleep(0.1)
-                else:
-                    if resp["version"] != "test":
-                        pytest.fail(
-                            "Agent version %r is running instead of the test agent. Stop the agent on port %r and try again."
-                            % (resp["version"], test_agent_port)
-                        )
-                    break
-            else:
-                with open(test_agent_log_file.name) as f:
-                    logger.error(f"Could not connect to test agent: {f.read()}")
-                    retry = True
-                    continue
+    env = {}
+    if os.getenv("DEV_MODE") is not None:
+        env["SNAPSHOT_CI"] = "0"
 
-            # If the snapshot mark is on the test case then do a snapshot test
-            marks = [m for m in request.node.iter_markers(name="snapshot")]
-            assert len(marks) < 2, "Multiple snapshot marks detected"
-            if marks:
-                snap = marks[0]
-                assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
-                if "token" not in snap.kwargs:
-                    snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
-                with client.snapshot_context(**snap.kwargs):
-                    yield client
+    # Not all clients (go for example) submit the tracer version
+    # go client doesn't submit content length header
+    env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
 
+    test_agent_external_port = get_open_port()
+    with docker_run(
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+        name=test_agent_container_name,
+        cmd=[],
+        env=env,
+        volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
+        ports=[(test_agent_external_port, test_agent_port)],
+        log_file=test_agent_log_file,
+        network_name=docker_network,
+    ):
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port)
+        # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
+        for i in range(30):
+            try:
+                resp = client.info()
+            except requests.exceptions.ConnectionError:
+                time.sleep(0.5)
             else:
+                if resp["version"] != "test":
+                    pytest.fail(
+                        "Agent version %r is running instead of the test agent. Stop the agent on port %r and try again."
+                        % (resp["version"], test_agent_port)
+                    )
+                break
+        else:
+            with open(test_agent_log_file.name) as f:
+                logger.error(f"Could not connect to test agent: {f.read()}")
+            pytest.fail(
+                "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
+            )
+
+        # If the snapshot mark is on the test case then do a snapshot test
+        marks = [m for m in request.node.iter_markers(name="snapshot")]
+        assert len(marks) < 2, "Multiple snapshot marks detected"
+        if marks:
+            snap = marks[0]
+            assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
+            if "token" not in snap.kwargs:
+                snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+            with client.snapshot_context(**snap.kwargs):
                 yield client
+        else:
+            yield client
 
 
 @pytest.fixture
