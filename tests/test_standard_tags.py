@@ -31,6 +31,7 @@ class Test_StandardTagsMethod:
         self.trace_request = weblog.trace("/waf", data=None)
 
     @irrelevant(library="php", reason="Trace method does not reach php-land")
+    @bug(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
     def test_method_trace(self):
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 

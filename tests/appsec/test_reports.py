@@ -28,7 +28,8 @@ if context.library == "cpp":
 @released(golang={"gin": "1.37.0", "echo": "1.36.0", "*": "1.34.0"})
 @bug(library="python@1.1.0", reason="a PR was not included in the release")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StatusCode:
     """Appsec reports good status code"""
