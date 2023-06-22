@@ -104,6 +104,35 @@ elif [[ $SCENARIO == "APPSEC_IP_BLOCKING_MAXED" ]] || [[ $SCENARIO == "APPSEC_IP
     # Those scenario has been renamed. Keep the compatibility, waiting for other CI to update.
     pytest -p no:warnings -S APPSEC_BLOCKING_FULL_DENYLIST ${@:2};
 
+elif [[ $SCENARIO == "PARAMETRIC" ]]; then
+    DEFAULT_COUNT=auto
+    # FIXME: all languages should be supported
+    if [ "${TEST_LIBRARY-}" ]; then
+        for library in $(echo $TEST_LIBRARY | sed "s/,/ /g"); do
+            # default to "1" for languages with concurrency issues
+            if [[ "${library}" == "dotnet" || "${library}" == "go" ||"${library}" == "python_http" ]]; then
+                DEFAULT_COUNT=1
+                break
+            fi
+        done
+    else
+        # default to "1" for all languages since that includes problematic languages
+        DEFAULT_COUNT=1
+    fi
+
+    # TODO: default to "auto" when dotnet is fixed
+    PYTEST_WORKER_COUNT=${PYTEST_WORKER_COUNT:-$DEFAULT_COUNT}
+
+    PYTEST_ARGS="-n $PYTEST_WORKER_COUNT"
+
+    # FIXME: dotnet hangs when this plugin is enabled even when both "splits" and
+    # "group" are set to "1" which should do effectively nothing.
+    if [[ "${PYTEST_SPLITS:-}" && "${PYTEST_GROUP:-}" ]]; then
+        PYTEST_ARGS="${PYTEST_ARGS} --splits $PYTEST_SPLITS --group $PYTEST_GROUP"
+    fi
+
+    eval "pytest -p no:warnings ${PYTEST_ARGS} -S PARAMETRIC ${@:2}"
+
 elif [[ $SCENARIO =~ ^[A-Z0-9_]+$ ]]; then
     # If the first argument is a list of capital letters, then we consider it's a scenario name
     # and we add the -S option, telling pytest that's a scenario name
