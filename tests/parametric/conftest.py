@@ -693,12 +693,12 @@ def test_agent(
         network_name=docker_network,
     ):
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port)
-        # Wait for the agent to start
-        for i in range(20):
+        # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
+        for i in range(30):
             try:
                 resp = client.info()
             except requests.exceptions.ConnectionError:
-                time.sleep(0.1)
+                time.sleep(0.5)
             else:
                 if resp["version"] != "test":
                     pytest.fail(
@@ -707,6 +707,8 @@ def test_agent(
                     )
                 break
         else:
+            with open(test_agent_log_file.name) as f:
+                logger.error(f"Could not connect to test agent: {f.read()}")
             pytest.fail(
                 "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
             )
