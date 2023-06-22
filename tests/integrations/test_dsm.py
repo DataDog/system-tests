@@ -6,10 +6,9 @@ from utils import weblog, interfaces, scenarios, released, context
 from utils.tools import logger
 
 
-@released(cpp="?", golang="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", php="?", python="?", ruby="?", nodejs="?")
 @released(dotnet="2.29.0")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
-@released(nodejs="4.0.0-pre")
 @scenarios.integrations
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
@@ -79,7 +78,6 @@ class DsmHelper:
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
         
         for data in interfaces.agent.get_dsm_data():
-            logger.info(data)
             for stats_bucket in data["request"]["content"]["Stats"]:
                 for stats_point in stats_bucket["Stats"]:
                     observed_hash = stats_point["Hash"]
