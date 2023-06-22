@@ -8,10 +8,15 @@ const app = require("express")();
 const axios = require('axios');
 const fs = require('fs');
 
+const iast = require("./iast")
+
+iast.initData().catch(() => {})
+
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
 app.use(require("cookie-parser")());
+iast.initMiddlewares(app)
 
 app.get("/", (req, res) => {
   console.log("Received a request");
@@ -156,7 +161,7 @@ app.get('/read_file', (req, res) => {
   });
 });
 
-require("./iast")(app, tracer);
+iast.initRoutes(app, tracer);
 
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});

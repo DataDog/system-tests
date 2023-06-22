@@ -26,6 +26,7 @@ class SinkFixture:
         data,
         location_map=None,
         evidence_map=None,
+        request_kwargs=None,
     ):
         self.vulnerability_type = vulnerability_type
         self.http_method = http_method
@@ -34,12 +35,20 @@ class SinkFixture:
         self.data = data
         self.expected_location = _get_expectation(location_map)
         self.expected_evidence = _get_expectation(evidence_map)
+        self.request_kwargs = request_kwargs
         self.insecure_request = None
         self.secure_request = None
 
     def setup_insecure(self):
         if self.insecure_request is None:
-            self.insecure_request = weblog.request(method=self.http_method, path=self.insecure_endpoint, data=self.data)
+            if self.request_kwargs is None:
+                self.insecure_request = weblog.request(
+                    method=self.http_method, path=self.insecure_endpoint, data=self.data
+                )
+            else:
+                self.insecure_request = weblog.request(
+                    method=self.http_method, path=self.insecure_endpoint, **self.request_kwargs
+                )
 
     def test_insecure(self):
         interfaces.library.expect_iast_vulnerabilities(
@@ -52,7 +61,12 @@ class SinkFixture:
 
     def setup_secure(self):
         if self.secure_request is None:
-            self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
+            if self.request_kwargs is None:
+                self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
+            else:
+                self.secure_request = weblog.request(
+                    method=self.http_method, path=self.secure_endpoint, data=self.data, **self.request_kwargs
+                )
 
     def test_secure(self):
         interfaces.library.expect_no_vulnerabilities(self.secure_request)

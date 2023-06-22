@@ -14,9 +14,22 @@ function initData () {
     return client.query(query)
   })
 }
-function init (app, tracer) {  
-  initData().catch(() => {})
 
+function initMiddlewares (app) {
+  const hstsMissingInsecurePattern = /.*hsts-missing-header\/test_insecure$/gmi
+  const xcontenttypeMissingInsecurePattern = /.*xcontenttype-missing-header\/test_insecure$/gmi
+  app.use((req, res, next) => {
+    if (!req.url.match(hstsMissingInsecurePattern)) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000')
+    }
+    if (!req.url.match(xcontenttypeMissingInsecurePattern)) {
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+    }
+    next()
+  })
+}
+
+function initRoutes (app, tracer) {  
   app.get('/iast/insecure_hashing/deduplicate', (req, res) => {
     const span = tracer.scope().active();
     span.setTag('appsec.event"', true);
@@ -139,7 +152,6 @@ function init (app, tracer) {
     res.send('OK')
   });
 
-
   app.get('/iast/no-httponly-cookie/test_insecure', (req, res) => {
     res.cookie('no-httponly', 'cookie')
     res.send('OK')
@@ -157,7 +169,6 @@ function init (app, tracer) {
     res.cookie('httponlyempty2', '')
     res.send('OK')
   });
-
 
   app.get('/iast/no-samesite-cookie/test_insecure', (req, res) => {
     res.cookie('nosamesite', 'cookie')
@@ -195,8 +206,28 @@ function init (app, tracer) {
     res.redirect(req.body.location)
   });
 
+  app.get('/iast/hsts-missing-header/test_insecure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.end('<html><body><h1>Test</h1></html>')
+  });
+
+  app.get('/iast/hsts-missing-header/test_secure', (req, res) => {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.send('<html><body><h1>Test</h1></html>')
+  });
+
+  app.get('/iast/xcontenttype-missing-header/test_insecure', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.end('<html><body><h1>Test</h1></html>')
+  });
+
+  app.get('/iast/xcontenttype-missing-header/test_secure', (req, res) => {
+    res.send('<html><body><h1>Test</h1></html>')
+  });
+
   require('./sources')(app, tracer);
 
 }
 
-module.exports = init;
+module.exports = { initRoutes, initData, initMiddlewares };
