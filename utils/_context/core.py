@@ -78,9 +78,11 @@ class _Context:
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
             "scenario": self.scenario,
-            "components": self.components,
         }
+        # TODO all components inside of components node
+        results |= self.components
 
+        # If a test is parametrized, it could contain specific data for each test. This node will contain this data associated with test id
         if self.parametrized_tests_metadata:
             result["parametrized_tests_metadata"] = self.parametrized_tests_metadata
 

@@ -55,8 +55,8 @@ class _Scenario:
 
         return test_method
 
-    def configure(self, replay):
-        self.replay = replay
+    def configure(self, option):
+        self.replay = option.replay
         self.create_log_subfolder("")
 
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
@@ -64,7 +64,7 @@ class _Scenario:
 
         logger.addHandler(handler)
 
-        if replay:
+        if self.replay:
             from utils import weblog
 
             weblog.init_replay_mode(self.host_log_folder)
@@ -247,11 +247,11 @@ class _DockerScenario(_Scenario):
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
 
         for container in reversed(self._required_containers):
-            container.configure(replay)
+            container.configure(self.replay)
 
     def _get_warmups(self):
 
@@ -340,17 +340,17 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def configure(self, replay):
+    def configure(self, option):
         from utils import interfaces
 
-        super().configure(replay)
+        super().configure(option)
 
-        interfaces.agent.configure(replay)
-        interfaces.library.configure(replay)
-        interfaces.backend.configure(replay)
-        interfaces.library_stdout.configure(replay)
-        interfaces.library_dotnet_managed.configure(replay)
-        interfaces.agent_stdout.configure(replay)
+        interfaces.agent.configure(self.replay)
+        interfaces.library.configure(self.replay)
+        interfaces.backend.configure(self.replay)
+        interfaces.library_stdout.configure(self.replay)
+        interfaces.library_dotnet_managed.configure(self.replay)
+        interfaces.agent_stdout.configure(self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -560,8 +560,8 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_collector = include_collector
         self.include_intake = include_intake
 
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
@@ -698,17 +698,17 @@ class OnBoardingScenario(_Scenario):
         self.onboarding_components = {}
         self.onboarding_tests_metadata = {}
 
-    def configure(self, replay):
-        super().configure(replay)
-        assert "TEST_LIBRARY" in os.environ
-        assert "ONBOARDING_FILTER_ENV" in os.environ
-        assert "ONBOARDING_FILTER_WEBLOG" in os.environ
-        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
+    def configure(self, option):
+        super().configure(option)
+        self._library = LibraryVersion(option.obd_library, "0.0")
+        self._env = option.obd_env
+        self._weblog = option.obd_weblog
+        self.provision_vms = list(
+            ProvisionMatrix(
+                ProvisionFilter(self.name, language=option.obd_library, env=self._env, weblog=self._weblog)
+            ).get_infrastructure_provision()
+        )
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
-
-    @property
-    def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
 
     @property
     def components(self):
@@ -716,13 +716,7 @@ class OnBoardingScenario(_Scenario):
 
     @property
     def parametrized_tests_metadata(self):
-        myTest = {"hola": "adios", "hello": "goodby"}
-        main_dic = {"midesctests": myTest}
         return self.onboarding_tests_metadata
-
-    @property
-    def weblog_variant(self):
-        return os.getenv("ONBOARDING_FILTER_WEBLOG")
 
     def fill_context(self):
         # fix package name for nodejs -> js
@@ -801,8 +795,8 @@ class OnBoardingScenario(_Scenario):
 
 
 class ParametricScenario(_Scenario):
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
     @property
