@@ -151,7 +151,7 @@ class _RequestLogger:
             data = self._scrub(data)
 
             log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
-            log_filename = f"{log_foldename}/{message_count:03d}_{data['path'].replace('/', '_')}.json"
+            log_filename = f"{log_foldename}/{message_count:05d}_{data['path'].replace('/', '_')}.json"
 
             logger.info(f"    => Saving data as {log_filename}")
 
