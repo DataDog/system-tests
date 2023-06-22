@@ -116,6 +116,9 @@ def released(
     """Class decorator, allow to mark a test class with a version number of a component"""
 
     def wrapper(test_class):
+        if not inspect.isclass(test_class):
+            raise TypeError("@released must be used only on classes")
+
         def compute_requirement(tested_library, component_name, released_version, tested_version):
             if context.library != tested_library or released_version is None:
                 return None
