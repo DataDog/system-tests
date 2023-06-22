@@ -174,7 +174,8 @@ class Test_StandardTagsRoute:
 @released(dotnet="2.26.0", golang="1.46.0", java="0.114.0")
 @released(nodejs="3.6.0", php_appsec="0.4.4", python="1.5.0", ruby="1.10.1")
 @missing_feature(weblog_variant="akka-http", reason="No AppSec support")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="No AppSec support")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
