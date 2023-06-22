@@ -705,7 +705,7 @@ class OnBoardingScenario(_Scenario):
         self._weblog = option.obd_weblog
         self.provision_vms = list(
             ProvisionMatrix(
-                ProvisionFilter(self.name, language=option.obd_library, env=self._env, weblog=self._weblog)
+                ProvisionFilter(self.name, language=self._library.library, env=self._env, weblog=self._weblog)
             ).get_infrastructure_provision()
         )
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
@@ -728,10 +728,10 @@ class OnBoardingScenario(_Scenario):
 
     def fill_context(self):
         # fix package name for nodejs -> js
-        if os.getenv("TEST_LIBRARY") == "nodejs":
+        if self._library.library == "nodejs":
             package_lang = "datadog-apm-library-js"
         else:
-            package_lang = f"datadog-apm-library-{os.getenv('TEST_LIBRARY')}"
+            package_lang = f"datadog-apm-library-{self._library.library}"
 
         dd_package_names = ["agent", "datadog-apm-inject", package_lang]
 
