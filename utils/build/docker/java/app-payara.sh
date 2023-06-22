@@ -1,4 +1,3 @@
 #!/bin/sh
 set -eu
-cd /opt/payara
-exec /opt/payara/scripts/entrypoint.sh --deploymentDir /opt/payara/deployments
+exec java -Xmx362m -javaagent:/app/dd-java-agent.jar -jar /app/payara-micro.jar --deploy /app/app.war ${APP_EXTRA_ARGS:-}

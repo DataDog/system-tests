@@ -5,7 +5,7 @@
 # Copyright 2021 Datadog, Inc.
 
 set -eu
-set -x
+
 # set .env if exists. Allow users to keep their conf via env vars
 if [[ -f "./.env" ]]; then
     source ./.env
@@ -226,10 +226,10 @@ build() {
             # If anybody has an idea to achieve this in a cleanest way ...
 
             echo "Getting system test context and saving it in weblog image"
-            SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm --entrypoint cat system_tests/weblog SYSTEM_TESTS_LIBRARY_VERSION)
-            SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm --entrypoint /bin/sh system_tests/weblog -c "[ -f SYSTEM_TESTS_PHP_APPSEC_VERSION ] && cat SYSTEM_TESTS_PHP_APPSEC_VERSION || true")
-            SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm --entrypoint cat system_tests/weblog SYSTEM_TESTS_LIBDDWAF_VERSION)
-            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm --entrypoint cat system_tests/weblog SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
+            SYSTEM_TESTS_LIBRARY_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
+            SYSTEM_TESTS_PHP_APPSEC_VERSION=$(docker run --rm system_tests/weblog bash -c "touch SYSTEM_TESTS_PHP_APPSEC_VERSION && cat SYSTEM_TESTS_PHP_APPSEC_VERSION")
+            SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
+            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \

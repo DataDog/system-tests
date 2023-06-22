@@ -5,39 +5,31 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline -Ppayara
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven package -Ppayara
+RUN mvn -Dmaven.repo.local=/maven -Ppayara package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-FROM payara/server-full:latest
+ARG PAYARA_VERSION=5.2022.1
+RUN curl https://nexus.payara.fish/repository/payara-community/fish/payara/extras/payara-micro/${PAYARA_VERSION}/payara-micro-${PAYARA_VERSION}.jar -o /binaries/payara-micro.jar
+
+FROM eclipse-temurin:11-jre
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.war /opt/payara/deployments/app.war
+COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.war /app/app.war
 COPY --from=build /dd-tracer/dd-java-agent.jar .
+COPY --from=build /binaries/payara-micro.jar /app/payara-micro.jar
+
 COPY ./utils/build/docker/java/app-payara.sh /app/app.sh
-
-USER root
-
-# DEBUG
-#RUN sed -i -e 's~INFO~FINE~g' /opt/payara/appserver/glassfish/domains/domain1/config/logging.properties
-
-RUN set -eux;\
-    mkdir -p /app;\
-    chown -R payara /app;\
-    chmod a+rwx / /app
-USER payara
+RUN chmod +x /app/app.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
-ENV DD_DATA_STREAMS_ENABLED=true
+ENV APP_EXTRA_ARGS="--port 7777"
 
-# payara/micro uses an entry point and we need to unset it.
-# ENTRYPOINT []
-# but payara/server-full uses tini, which is fine.
-CMD ["/app/app.sh"]
+CMD [ "/app/app.sh" ]
