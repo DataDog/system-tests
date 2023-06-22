@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
@@ -15,4 +15,4 @@ echo "Configuration script executed from: ${PWD}"
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
 
-./app.sh
+exec ./app.sh
