@@ -718,6 +718,14 @@ class OnBoardingScenario(_Scenario):
     def parametrized_tests_metadata(self):
         return self.onboarding_tests_metadata
 
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog
+
     def fill_context(self):
         # fix package name for nodejs -> js
         if os.getenv("TEST_LIBRARY") == "nodejs":
@@ -725,7 +733,7 @@ class OnBoardingScenario(_Scenario):
         else:
             package_lang = f"datadog-apm-library-{os.getenv('TEST_LIBRARY')}"
 
-        dd_package_names = ["datadog-agent", "datadog-apm-inject", package_lang]
+        dd_package_names = ["agent", "datadog-apm-inject", package_lang]
 
         try:
             for provision_vm in self.provision_vms:

@@ -80,7 +80,7 @@ class _Context:
             "scenario": self.scenario,
         }
         # TODO all components inside of components node
-        results |= self.components
+        result |= self.components
 
         # If a test is parametrized, it could contain specific data for each test. This node will contain this data associated with test id
         if self.parametrized_tests_metadata:
