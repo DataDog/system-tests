@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released
+from utils import context, coverage, released, missing_feature
 from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
@@ -14,23 +14,25 @@ def _expected_location():
     if context.library.library == "java":
         if context.weblog_variant.startswith("spring-boot"):
             return "com.datadoghq.system_tests.springboot.AppSecIast"
-        if context.weblog_variant == "resteasy-netty3":
-            return "com.datadoghq.resteasy.IastSinkResource"
-        if context.weblog_variant == "jersey-grizzly2":
-            return "com.datadoghq.jersey.IastSinkResource"
+        if context.weblog_variant == "vertx3":
+            return "com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider"
+        if context.weblog_variant == "vertx4":
+            return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
 
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", nodejs="?")
 @released(
     java={
-        "spring-boot": "?",
-        "spring-boot-jetty": "?",
-        "spring-boot-openliberty": "?",
-        "spring-boot-wildfly": "?",
-        "spring-boot-undertow": "?",
-        "resteasy-netty3": "?",
-        "jersey-grizzly2": "?",
+        "spring-boot": "1.16.0",
+        "spring-boot-jetty": "1.16.0",
+        "spring-boot-openliberty": "1.16.0",
+        "spring-boot-wildfly": "1.16.0",
+        "spring-boot-undertow": "1.16.0",
+        "resteasy-netty3": "1.16.0",
+        "jersey-grizzly2": "1.16.0",
+        "vertx3": "1.16.0",
+        "vertx4": "1.17.0",
         "*": "?",
     }
 )
@@ -49,11 +51,15 @@ class TestUnvalidatedForward:
     def setup_insecure_forward(self):
         self.sink_fixture_forward.setup_insecure()
 
+    @missing_feature(library="java", weblog_variant="resteasy-netty3")
+    @missing_feature(library="java", weblog_variant="jersey-grizzly2")
     def test_insecure_forward(self):
         self.sink_fixture_forward.test_insecure()
 
     def setup_secure_forward(self):
         self.sink_fixture_forward.setup_secure()
 
+    @missing_feature(library="java", weblog_variant="resteasy-netty3")
+    @missing_feature(library="java", weblog_variant="jersey-grizzly2")
     def test_secure_forward(self):
         self.sink_fixture_forward.test_secure()

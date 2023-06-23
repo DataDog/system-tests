@@ -85,5 +85,34 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         router.get("/iast/weak_randomness/test_secure").handler(ctx ->
                 ctx.response().end(weakRandomness.secureRandom())
         );
+        router.post("/iast/unvalidated_redirect/test_insecure_forward").handler(ctx ->{
+                    final HttpServerRequest request = ctx.request();
+                    final String location = request.getParam("location");
+                    ctx.reroute(location);
+                }
+        );
+        router.post("/iast/unvalidated_redirect/test_secure_forward").handler(ctx ->
+                ctx.reroute("http://dummy.location.com")
+        );
+        router.post("/iast/unvalidated_redirect/test_insecure_header").handler(ctx ->
+                {
+                    final HttpServerRequest request = ctx.request();
+                    final String location = request.getParam("location");
+                    ctx.response().putHeader("Location", location).end();
+                }
+        );
+        router.post("/iast/unvalidated_redirect/test_secure_header").handler(ctx ->
+                ctx.response().putHeader("Location", "http://dummy.location.com").end()
+        );
+        router.post("/iast/unvalidated_redirect/test_insecure_redirect").handler(ctx ->
+                {
+                    final HttpServerRequest request = ctx.request();
+                    final String location = request.getParam("location");
+                    ctx.redirect(location);
+                }
+        );
+        router.post("/iast/unvalidated_redirect/test_secure_redirect").handler(ctx ->
+                ctx.redirect("http://dummy.location.com")
+        );
     }
 }
