@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
 
-@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="", php="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="?", php="?", ruby="?")
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
