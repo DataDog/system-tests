@@ -936,11 +936,10 @@ class scenarios:
     )
 
     appsec_auto_events_extended = EndToEndScenario(
-        "APPSEC_AUTO_EVENTS_EXTENDED", weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"
-        },
-        appsec_enabled=True, doc="Scenario for checking extended mode in automatic user events"
+        "APPSEC_AUTO_EVENTS_EXTENDED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        appsec_enabled=True,
+        doc="Scenario for checking extended mode in automatic user events",
     )
 
     # Remote config scenarios
