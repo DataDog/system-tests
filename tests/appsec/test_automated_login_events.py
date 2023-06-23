@@ -29,10 +29,10 @@ class Test_Login_Events:
     PASSWORD = "1234"
     INVALID_USER = "invalidUser"
 
-    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"                       # base64(test:1234)
-    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="          # base64(testuuid:1234)
-    BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="   # base64(invalidUser:1234)
-    BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="       # base64(test:12345)
+    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
+    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+    BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
+    BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
 
     def setup_login_pii_success(self):
         self.library_name = context.library
