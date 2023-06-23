@@ -13,6 +13,7 @@ pytestmark = pytest.mark.parametrize(
 )
 
 
+@pytest.mark.skip_library("cpp", "Not implemented")
 @pytest.mark.skip_library("dotnet", "Span names don't match expectations")
 @pytest.mark.skip_library("ruby", "Not implemented")
 @pytest.mark.skip_library("php", "Not implemented")
@@ -54,6 +55,7 @@ def test_otel_simple_trace(test_agent, test_library):
     assert child_span["name"] == "child"
 
 
+@pytest.mark.skip_library("cpp", "Not implemented")
 @pytest.mark.skip_library("dotnet", "Span names don't match expectations: 'ApmTestClient.internal' == 'test_span'")
 @pytest.mark.skip_library("php", "Not implemented")
 @pytest.mark.skip_library("ruby", "Not implemented")
