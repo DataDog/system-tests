@@ -5,6 +5,7 @@ const tracer = require("dd-trace").init({
 });
 
 const app = require("express")();
+const { Kafka } = require("kafkajs")
 const axios = require('axios');
 const fs = require('fs');
 
