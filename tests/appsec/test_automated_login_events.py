@@ -174,6 +174,7 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                 assert meta["manual.keep"] == "true"
 
+
 @scenarios.appsec_auto_events_extended
 @released(cpp="?", golang="?", java="?", nodejs="5.0.0-pre", dotnet="", php="?", ruby="?")
 class Test_Login_Events_Extended:
