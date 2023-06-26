@@ -87,6 +87,8 @@ jobs:
         - library: java
           weblog: spring-boot-undertow
         - library: java
+          weblog: spring-boot-payara
+        - library: java
           weblog: akka-http
         - library: nodejs
           weblog: express4
