@@ -60,11 +60,7 @@ class Test_Login_Events:
 
         if self.library_name == "nodejs":
             self.r_success = [
-                weblog.post(
-                    "/login?auth=local",
-                    params={"auth": "local"},
-                    data={"username": self.UUID_USER, "password": self.PASSWORD},
-                ),
+                weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
                 weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
             ]
 
@@ -93,7 +89,7 @@ class Test_Login_Events:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if hasattr(meta, "appsec.events.users.login.failure.usr.exists"):
+                if self.library_name != "nodejs":
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
                 assert meta["appsec.events.users.login.failure.usr.id"] == " "
@@ -116,7 +112,7 @@ class Test_Login_Events:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if hasattr(meta, "appsec.events.users.login.failure.usr.exists"):
+                if self.library_name != "nodejs":
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
                 assert meta["appsec.events.users.login.failure.usr.id"] == " "

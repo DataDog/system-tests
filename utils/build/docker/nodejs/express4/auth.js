@@ -1,5 +1,5 @@
-const LocalStrategy = require('passport-local').Strategy
-const BasicStrategy = require('passport-http').BasicStrategy
+const { LocalStrategy } = require('passport-local')
+const { BasicStrategy } = require('passport-http')
 
 const users = [
   {

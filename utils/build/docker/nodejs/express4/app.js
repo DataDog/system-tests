@@ -1,10 +1,7 @@
 "use strict";
 
 const tracer = require('dd-trace').init({
-  debug: true,
-  appsec: {
-    enabled: true
-  }
+  debug: true
 });
 
 const app = require("express")();
