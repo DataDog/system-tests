@@ -11,17 +11,20 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-
+from types import SimpleNamespace
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 
-_docs = {}
-_skip_reasons = {}
-_release_versions = {}
-_coverages = {}
-_rfcs = {}
+class ReportMetadata:
+    def __init__(self):
+        self._docs = {}
+        self._skip_reasons = {}
+        self._release_versions = {}
+        self._coverages = {}
+        self._rfcs = {}
 
+reportMetadata=ReportMetadata()
 
 def _JSON_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/report.json"
@@ -29,6 +32,9 @@ def _JSON_REPORT_FILE():
 
 def _XML_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/reportJunit.xml"
+
+def _JSON_METADATA_REPORT_FILE():
+    return f"{context.scenario.host_log_folder}/report_metadata.json"
 
 
 def pytest_addoption(parser):
@@ -74,23 +80,23 @@ def pytest_sessionstart(session):
 # called when each test item is collected
 def _collect_item_metadata(item):
 
-    _docs[item.nodeid] = item.obj.__doc__
-    _docs[item.parent.nodeid] = item.parent.obj.__doc__
+    reportMetadata._docs[item.nodeid] = item.obj.__doc__
+    reportMetadata._docs[item.parent.nodeid] = item.parent.obj.__doc__
 
-    _release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
+    reportMetadata._release_versions[item.parent.nodeid] = getattr(item.parent.obj, "__released__", None)
 
     if hasattr(item.parent.obj, "__coverage__"):
-        _coverages[item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
+        reportMetadata._coverages[item.parent.nodeid] = getattr(item.parent.obj, "__coverage__")
 
     if hasattr(item.parent.obj, "__rfc__"):
-        _rfcs[item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
+        reportMetadata._rfcs[item.parent.nodeid] = getattr(item.parent.obj, "__rfc__")
     if hasattr(item.obj, "__rfc__"):
-        _rfcs[item.nodeid] = getattr(item.obj, "__rfc__")
+        reportMetadata._rfcs[item.nodeid] = getattr(item.obj, "__rfc__")
 
     if hasattr(item.parent.parent, "obj"):
-        _docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
+        reportMetadata._docs[item.parent.parent.nodeid] = item.parent.parent.obj.__doc__
     else:
-        _docs[item.parent.parent.nodeid] = "Unexpected structure"
+        reportMetadata._docs[item.parent.parent.nodeid] = "Unexpected structure"
 
     markers = item.own_markers
 
@@ -103,7 +109,7 @@ def _collect_item_metadata(item):
         skip_reason = _get_skip_reason_from_marker(marker)
         if skip_reason:
             logger.debug(f"{item.nodeid} => {skip_reason} => skipped")
-            _skip_reasons[item.nodeid] = skip_reason
+            reportMetadata._skip_reasons[item.nodeid] = skip_reason
             break
 
 
@@ -230,7 +236,13 @@ def pytest_collection_finish(session):
     terminal.write("\n\n")
 
     context.scenario.post_setup()
-
+    
+    #Serialize metadata to json file to add later to report.json
+    json.dump(
+        reportMetadata.__dict__,
+        open(_JSON_METADATA_REPORT_FILE(), "w", encoding="utf-8"),
+        indent=2,
+    )
 
 def pytest_runtest_call(item):
     from utils import weblog
@@ -248,20 +260,20 @@ def pytest_json_modifyreport(json_report):
 
     try:
         logger.debug("Modifying JSON report")
-
+        metadata=json.load(open(_JSON_METADATA_REPORT_FILE()))
         # populate and adjust some data
         for test in json_report["tests"]:
-            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
+           test["skip_reason"] = metadata["_skip_reasons"].get(test["nodeid"])
 
         # add usefull data for reporting
-        json_report["docs"] = _docs
+        json_report["docs"] = metadata["_docs"]
         json_report["context"] = context.serialize()
-        json_report["release_versions"] = _release_versions
-        json_report["rfcs"] = _rfcs
-        json_report["coverages"] = _coverages
+        json_report["release_versions"] = metadata["_release_versions"]
+        json_report["rfcs"] = metadata["_rfcs"]
+        json_report["coverages"] = metadata["_coverages"]
 
         # clean useless and volumetric data
-        del json_report["collectors"]
+        json_report.pop("collectors", None)
 
         for test in json_report["tests"]:
             for k in ("setup", "call", "teardown", "keywords", "lineno"):
@@ -292,13 +304,13 @@ def _pytest_junit_modifyreport():
 
     with open(_JSON_REPORT_FILE(), encoding="utf-8") as f:
         json_report = json.load(f)
-        junit_modifyreport(
-            json_report,
-            _XML_REPORT_FILE(),
-            _skip_reasons,
-            _docs,
-            _rfcs,
-            _coverages,
-            _release_versions,
-            junit_properties=context.scenario.get_junit_properties(),
-        )
+      #  junit_modifyreport(
+      #      json_report,
+      #      _XML_REPORT_FILE(),
+      #      reportMetadata._skip_reasons,
+      #      reportMetadata._docs,
+      #      reportMetadata._rfcs,
+      #      reportMetadata._coverages,
+      #      reportMetadata._release_versions,
+      #      junit_properties=context.scenario.get_junit_properties(),
+      #  )
