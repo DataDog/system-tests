@@ -32,11 +32,12 @@ update_environ_with_local_env()
 
 
 class _Scenario:
-    def __init__(self, name, doc) -> None:
+    def __init__(self, name, doc, tracer_sampling_rate=None) -> None:
         self.name = name
         self.terminal = None
         self.replay = False
         self.doc = doc
+        self.tracer_sampling_rate = tracer_sampling_rate
 
     def create_log_subfolder(self, subfolder):
         if self.replay:
@@ -79,9 +80,12 @@ class _Scenario:
         self.print_info("Executing warmups...")
 
         try:
+            t0 = time.time()
             for warmup in self._get_warmups():
                 logger.info(f"Executing warmup {warmup}")
                 warmup()
+            t = time.time() - t0
+            logger.debug(f"Warmups ran in {t} seconds")
         except:
             self.collect_logs()
             self.close_targets()
@@ -137,10 +141,6 @@ class _Scenario:
     @property
     def php_appsec(self):
         return ""
-
-    @property
-    def tracer_sampling_rate(self):
-        return 0
 
     @property
     def appsec_rules_file(self):
@@ -210,6 +210,7 @@ class _DockerScenario(_Scenario):
         self,
         name,
         doc,
+        tracer_sampling_rate=None,
         use_proxy=True,
         proxy_state=None,
         include_postgres_db=False,
@@ -220,15 +221,17 @@ class _DockerScenario(_Scenario):
         include_mysql_db=False,
         include_sqlserver=False,
     ) -> None:
-        super().__init__(name, doc=doc)
+        super().__init__(name, doc=doc, tracer_sampling_rate=tracer_sampling_rate)
 
         self.use_proxy = use_proxy
+        self.proxy_state = proxy_state
         self._required_containers = []
 
+        self.proxy_container = None
         if self.use_proxy:
-            self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, proxy_state=proxy_state)
-            )  # we want the proxy being the first container to start
+            self.proxy_container = ProxyContainer(host_log_folder=self.host_log_folder, proxy_state=proxy_state)
+            # we want the proxy being the first container to start
+            self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
             self._required_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
@@ -299,11 +302,9 @@ class EndToEndScenario(_DockerScenario):
         appsec_rules=None,
         appsec_enabled=True,
         additional_trace_header_tags=(),
-        library_interface_timeout=None,
-        agent_interface_timeout=5,
+        post_setup_timeout=40,
         use_proxy=True,
         proxy_state=None,
-        backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -315,6 +316,7 @@ class EndToEndScenario(_DockerScenario):
         super().__init__(
             name,
             doc=doc,
+            tracer_sampling_rate=tracer_sampling_rate,
             use_proxy=use_proxy,
             proxy_state=proxy_state,
             include_postgres_db=include_postgres_db,
@@ -326,6 +328,7 @@ class EndToEndScenario(_DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
+        self.post_setup_timeout = post_setup_timeout
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
 
         self.weblog_container = WeblogContainer(
@@ -342,10 +345,7 @@ class EndToEndScenario(_DockerScenario):
 
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
-
-        self.agent_interface_timeout = agent_interface_timeout
-        self.backend_interface_timeout = backend_interface_timeout
-        self.library_interface_timeout = library_interface_timeout
+        self._observer = None
 
     def configure(self, option):
         from utils import interfaces
@@ -358,21 +358,6 @@ class EndToEndScenario(_DockerScenario):
         interfaces.library_stdout.configure(self.replay)
         interfaces.library_dotnet_managed.configure(self.replay)
         interfaces.agent_stdout.configure(self.replay)
-
-        if self.library_interface_timeout is None:
-            if self.weblog_container.library == "java":
-                self.library_interface_timeout = 25
-            elif self.weblog_container.library.library in ("golang",):
-                self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs",):
-                self.library_interface_timeout = 5
-            elif self.weblog_container.library.library in ("php",):
-                # possibly something weird on obfuscator, let increase the delay for now
-                self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("python",):
-                self.library_interface_timeout = 25
-            else:
-                self.library_interface_timeout = 40
 
     def print_test_context(self):
         from utils import weblog
@@ -443,14 +428,17 @@ class EndToEndScenario(_DockerScenario):
 
         if self.use_proxy:
             logger.debug("Wait for app readiness")
-
+            t0 = time.time()
             if not interfaces.library.ready.wait(40):
                 raise Exception("Library not ready")
-            logger.debug("Library ready")
+            t = time.time() - t0
+            logger.debug(f"Library ready in {t} seconds")
 
+            t0 = time.time()
             if not interfaces.agent.ready.wait(40):
                 raise Exception("Datadog agent not ready")
-            logger.debug("Agent ready")
+            t = time.time() - t0
+            logger.debug(f"Agent ready in {t} seconds")
 
     def post_setup(self):
         from utils import interfaces
@@ -459,35 +447,267 @@ class EndToEndScenario(_DockerScenario):
             interfaces.library.load_data_from_logs(f"{self.host_log_folder}/interfaces/library")
             interfaces.agent.load_data_from_logs(f"{self.host_log_folder}/interfaces/agent")
             interfaces.backend.load_data_from_logs(f"{self.host_log_folder}/interfaces/backend")
-
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-            self._wait_interface(interfaces.agent_stdout, 0)
-
-            return
-
-        if self.use_proxy:
-            self._wait_interface(interfaces.library, self.library_interface_timeout)
-            self.weblog_container.stop()
-            self._wait_interface(interfaces.agent, self.agent_interface_timeout)
-            self.agent_container.stop()
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
-
-            self.collect_logs()
-
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-            self._wait_interface(interfaces.agent_stdout, 0)
         else:
-            self.collect_logs()
+            self._wait()
+            self.terminal.write_sep("-", "Stopping weblog container (1s)")
+            self.terminal.flush()
+            self.weblog_container.stop(timeout=1)
+            self.terminal.write_sep("-", "Stopping agent container (1s)")
+            self.terminal.flush()
+            self.agent_container.stop(timeout=1)
+            if self.proxy_container:
+                self.terminal.write_sep("-", "Stopping proxy container (1s)")
+                self.terminal.flush()
+                self.agent_container.stop(timeout=1)
+            if self._observer:
+                self._observer.stop()
+
+        all_interfaces = (interfaces.library, interfaces.agent, interfaces.backend)
+        for iface in all_interfaces:
+            if iface.configured:
+                iface.stop()
+
+        self.collect_logs()
+
+        all_interfaces = (
+            interfaces.library_stdout,
+            interfaces.library_dotnet_managed,
+            interfaces.agent_stdout,
+            interfaces.open_telemetry,
+        )
+        for iface in all_interfaces:
+            if iface.configured:
+                iface.stop()
 
         self.close_targets()
 
-    def _wait_interface(self, interface, timeout):
-        self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
-        self.terminal.flush()
+    def _wait(self):
+        from utils import context
 
-        interface.wait(timeout)
+        self.terminal.write_sep("-", "Wait for setup to be ready")
+        start_time = time.time()
+        deadline = start_time + self.post_setup_timeout
+
+        if self.library.library == "php":
+            # php-fpm and apache has multiple workers with separate trace flushes
+            # so waiting for a single request is not enough, we'll wait for all known rids
+            self._wait_for_test_requests(deadline=deadline)
+
+        watermark_n = self._wait_for_request(deadline=deadline)
+        self._wait_for_request_in_agent(deadline=deadline)
+        self._wait_for_telemetry(skip_n=watermark_n, deadline=deadline)
+        self._wait_for_remote_config(deadline=deadline)
+        self._wait_for_conditions(start_time=start_time)
+
+        self.terminal.write_sep("-", "Setup ready")
+
+    def _wait_for_test_requests(self, deadline):
+        """
+        Wait to see all requests in weblog. This usually not needed, except
+        when the weblog is multi-process and/or has multiple flush queues.
+        """
+        from utils import interfaces, weblog
+
+        remaining_time = round(max(0, deadline - time.time()))
+        msg = f"Waiting for all traces, remaining time: {remaining_time}s"
+        logger.debug(msg)
+        print(msg, file=self.terminal)
+
+        all_rids = set(weblog.get_all_seen_rids())
+        logger.debug(f"Waiting for traces with rids: {all_rids}")
+        unseen_rids = all_rids
+        while True:
+            tracer_rids = set(interfaces.library.get_all_rids())
+            unseen_rids -= tracer_rids
+            if not unseen_rids:
+                return
+            if time.time() >= deadline:
+                break
+
+        msg = f"Wating for all traces exceeded the deadline, unseen rids: {unseen_rids}"
+        logger.warning(msg)
+        print(msg, file=self.terminal)
+
+    def _wait_for_request(self, deadline):
+        """
+        Do one request and wait until we receive its trace. We assume that by
+        that time, other traces will also have been received. We return the
+        number of messages received at that point to use it as a watermark for
+        other message types.
+        """
+        from utils import interfaces
+        from utils import weblog
+        from utils.interfaces._core import get_rid_from_span, get_rid_from_request
+
+        remaining_time = round(max(0, deadline - time.time()))
+        msg = f"Waiting for watermark trace, remaining time: {remaining_time}s"
+        logger.debug(msg)
+        print(msg, file=self.terminal)
+
+        watermark_rids = set()
+
+        while True:
+            if not watermark_rids or self.tracer_sampling_rate:
+                # If we're using sampling rate, our trace might be discarded, so
+                # in that case we make one request per interval.
+                watermark_request = weblog.get("/", post_setup=True)
+                watermark_rid = get_rid_from_request(watermark_request)
+                watermark_rids.add(watermark_rid)
+
+            messages = list(interfaces.library.get_data())
+            for n, msg in enumerate(messages):
+                if msg["path"] not in ("/v0.4/traces", "/v0.5/traces"):
+                    continue
+                traces = msg["request"]["content"]
+                for trace in traces:
+                    for span in trace:
+                        if get_rid_from_span(span) in watermark_rids:
+                            return n
+            if time.time() >= deadline:
+                break
+            time.sleep(0.1)
+
+        msg = "Waiting for watermark trace exceeded the deadline"
+        logger.warning(msg)
+        print(msg, file=self.terminal)
+
+    def _wait_for_request_in_agent(self, deadline):
+        """
+        Wait until the last request seen in the library is also seen in the agent.
+        """
+        from utils import interfaces
+        from utils.interfaces._core import get_rid_from_span
+
+        remaining_time = round(max(0, deadline - time.time()))
+        msg = f"Waiting for watermark trace in agent, remaining time: {remaining_time}s"
+        logger.debug(msg)
+        print(msg, file=self.terminal)
+
+        messages = list(interfaces.library.get_data(path_filters=["/v0.4/traces", "/v0.5/traces"]))
+        if not messages:
+            return
+
+        last_message = messages[-1]
+        rid = None
+        for trace in last_message["request"]["content"]:
+            for span in trace:
+                rid = get_rid_from_span(span)
+                if rid:
+                    break
+        if not rid:
+            logger.warning(f"Last library trace has no rid: {last_message['log_filename']}")
+            return
+        while True:
+            if list(interfaces.agent.get_spans(request=rid)):
+                return
+            if time.time() >= deadline:
+                break
+            time.sleep(0.1)
+
+        msg = "Waiting for trace in agent exceeded the deadline"
+        logger.warning(msg)
+        print(msg, file=self.terminal)
+
+    def _wait_for_telemetry(self, skip_n, deadline):
+        """
+        Wait until we receive two heartbeats after N messages. N should be the
+        number of messages received before the watermark request. This should be
+        enough to receive any relevant event triggered by previous requests.
+        """
+        from utils import interfaces
+
+        remaining_time = round(max(0, deadline - time.time()))
+        msg = f"Waiting for telemetry heartbeats, remaining time: {remaining_time}s"
+        logger.debug(msg)
+        print(msg, file=self.terminal)
+
+        # If we have not received at least one telemetry message by now (e.g. app-started), then telemetry
+        # is either disabled, not implemented, or not working at all. So we can stop waiting already.
+        # We test this only for app-heartbeat and app-started, rather than any telemetry message. This is a
+        # workaround to Ruby tracer (see # https://github.com/DataDog/system-tests/pull/1315), which is sending
+        # some telemetry messages, but not heartbeats.
+        messages = list(interfaces.library.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry"))
+        messages = [
+            m for m in messages if m["request"]["content"].get("request_type") in ("app-heartbeat", "app-started")
+        ]
+        if not messages:
+            msg = "No telemetry received at all"
+            logger.warning(msg)
+            print(msg, file=self.terminal)
+            return
+
+        while True:
+            messages = list(interfaces.library.get_data())
+            messages = messages[skip_n:]
+            heartbeats = 0
+            for msg in messages:
+                if msg["path"] != "/telemetry/proxy/api/v2/apmtelemetry":
+                    continue
+                if msg["request"]["content"]["request_type"] == "app-heartbeat":
+                    heartbeats += 1
+            if heartbeats >= 2:
+                return
+            if time.time() >= deadline:
+                break
+            time.sleep(0.1)
+
+        msg = "Waiting for telemetry exceeded the deadline"
+        logger.warning(msg)
+        print(msg, file=self.terminal)
+
+    def _wait_for_remote_config(self, deadline):
+        """
+        If we are using mocked remote config, wait until we received all the required responses plus 2.
+        """
+        if not self.use_proxy or not self.proxy_state:
+            return
+        rc_scenario = self.proxy_state.get("mock_remote_config_backend")
+        if not rc_scenario:
+            return
+
+        from utils.proxy.rc_mock import MOCKED_RESPONSES
+
+        mocked_responses = MOCKED_RESPONSES.get(rc_scenario)
+        if not mocked_responses:
+            return
+
+        from utils import interfaces
+
+        remaining_time = round(max(0, deadline - time.time()))
+        msg = f"Waiting for remote config, remaining time: {remaining_time}s"
+        logger.debug(msg)
+        print(msg, file=self.terminal)
+
+        n_requests = len(mocked_responses) + 2
+        while True:
+            actual_n_requests = len(list(interfaces.library.get_data(path_filters=r"/v\d+.\d+/config")))
+            if actual_n_requests >= n_requests:
+                return
+            if time.time() >= deadline:
+                break
+            time.sleep(0.1)
+
+        msg = "Waiting for remote config exceeded the deadline"
+        logger.warning(msg)
+        print(msg, file=self.terminal)
+
+    def _wait_for_conditions(self, start_time):
+        from utils import interfaces
+
+        deadline = start_time + 40
+        elapsed_time = time.time() - start_time
+        timeout = max(0, deadline - time.time())
+        msg = f"Waiting for additional wait conditions, remaining time: >={round(timeout)}s"
+        logger.debug(msg)
+        print(msg, file=self.terminal)
+
+        success = True
+        for iface in interfaces.all_interfaces:
+            success &= iface.wait(default_timeout=timeout, elapsed_time=elapsed_time)
+        if not success:
+            msg = "Wait conditions timed out"
+            logger.warning(msg)
+            print(msg, file=self.terminal)
 
     def close_targets(self):
         from utils import weblog
@@ -515,10 +735,6 @@ class EndToEndScenario(_DockerScenario):
     @property
     def php_appsec(self):
         return self.weblog_container.php_appsec
-
-    @property
-    def tracer_sampling_rate(self):
-        return self.weblog_container.tracer_sampling_rate
 
     @property
     def appsec_rules_file(self):
@@ -563,6 +779,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     def __init__(self, name, doc, include_agent=True, include_collector=True, include_intake=True) -> None:
         super().__init__(name, doc=doc, use_proxy=True)
+        self.post_setup_timeout = 5
         if include_agent:
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
             self._required_containers.append(self.agent_container)
@@ -645,14 +862,45 @@ class OpenTelemetryScenario(_DockerScenario):
         from utils import interfaces
 
         if self.use_proxy:
-            self._wait_interface(interfaces.open_telemetry, 5)
+            self._wait()
 
-            self.collect_logs()
+        all_interfaces = (interfaces.open_telemetry,)
+        for iface in all_interfaces:
+            if iface.configured:
+                iface.stop()
 
-            self._wait_interface(interfaces.library_stdout, 0)
-            self._wait_interface(interfaces.library_dotnet_managed, 0)
-        else:
-            self.collect_logs()
+        self.collect_logs()
+
+        all_interfaces = (
+            interfaces.library_stdout,
+            interfaces.library_dotnet_managed,
+            interfaces.agent_stdout,
+            interfaces.open_telemetry,
+        )
+        for iface in all_interfaces:
+            if iface.configured:
+                iface.stop()
+
+    def _wait(self):
+        deadline = time.time() + self.post_setup_timeout
+        self._wait_for_otel_request(deadline=deadline)
+
+    def _wait_for_otel_request(self, deadline):
+        from utils import interfaces
+        from utils import weblog
+
+        self.terminal.write_sep("-", "Wait for watermark trace")
+        self.terminal.flush()
+
+        watermark_request = weblog.get("/", post_setup=True)
+
+        while time.time() < deadline:
+            otel_trace_ids = list(interfaces.open_telemetry.get_otel_trace_id(request=watermark_request))
+            if otel_trace_ids:
+                return
+            time.sleep(0.1)
+
+        logger.warning("Waiting for watermark trace exceeded the deadline")
 
     def _wait_interface(self, interface, timeout):
         self.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -873,8 +1121,7 @@ class scenarios:
 
     profiling = EndToEndScenario(
         "PROFILING",
-        library_interface_timeout=160,
-        agent_interface_timeout=160,
+        post_setup_timeout=160,
         weblog_env={
             "DD_PROFILING_ENABLED": "true",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
@@ -888,6 +1135,10 @@ class scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
+        weblog_env={
+            # Reduce noise
+            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
+        },
         doc="Test sampling mechanism. Not included in default scenario because is very slow, and flaky",
     )
 
@@ -976,8 +1227,12 @@ class scenarios:
 
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST"},
-        weblog_env={"DD_APPSEC_RULES": None},
+        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST",},
+        weblog_env={
+            "DD_APPSEC_RULES": None,
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file 
@@ -991,7 +1246,11 @@ class scenarios:
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
         proxy_state={"mock_remote_config_backend": "ASM"},
-        weblog_env={"DD_APPSEC_RULES": None},
+        weblog_env={
+            "DD_APPSEC_RULES": None,
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
         doc="",
     )
 
@@ -1003,6 +1262,8 @@ class scenarios:
             "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
             "DD_RC_TARGETS_KEY": "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c",
             "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
         },
         doc="",
     )
@@ -1037,8 +1298,12 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES"},
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
@@ -1050,16 +1315,22 @@ class scenarios:
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         proxy_state={"mock_remote_config_backend": "ASM_DD"},
-        weblog_env={"DD_APPSEC_RULES": None},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_APPSEC_RULES": None,
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -1073,16 +1344,26 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
@@ -1093,29 +1374,34 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_DD_NOCACHE"},
-        library_interface_timeout=100,
+        weblog_env={
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIGURATION_POLL_INTERVAL_SECONDS": "1",
+        },
+        post_setup_timeout=100,
         doc="",
     )
 
     # APM tracing end-to-end scenarios
 
-    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
-    apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", backend_interface_timeout=5, doc="")
+    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", doc="", post_setup_timeout=5)
+    apm_tracing_e2e_otel = EndToEndScenario("APM_TRACING_E2E_OTEL", doc="", post_setup_timeout=5)
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
             "DD_SPAN_SAMPLING_RULES": '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]',
             "DD_TRACE_SAMPLE_RATE": "0",
         },
-        backend_interface_timeout=5,
         doc="",
     )
 
@@ -1150,7 +1436,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 
@@ -1163,7 +1449,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=100,
+        post_setup_timeout=100,
         doc="",
     )
 

@@ -305,6 +305,18 @@ class LibraryInterfaceValidator(InterfaceValidator):
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
+    def get_all_rids(self):
+        messages = list(self.get_data())
+        for n, msg in enumerate(messages):
+            if msg["path"] not in ("/v0.4/traces", "/v0.5/traces"):
+                continue
+            traces = msg["request"]["content"]
+            for trace in traces:
+                for span in trace:
+                    rid = get_rid_from_span(span)
+                    if rid:
+                        yield rid
+
 
 class _TraceIdUniquenessExceptions:
     def __init__(self) -> None:

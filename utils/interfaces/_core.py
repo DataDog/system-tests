@@ -31,8 +31,12 @@ class InterfaceValidator:
         self._ingested_files = set()
 
         self.replay = False
+        self.configured = False
+
+        self.wait_conditions = []
 
     def configure(self, replay):
+        self.configured = True
         self.replay = replay
 
     def __repr__(self):
@@ -41,8 +45,9 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self, timeout):
-        time.sleep(timeout)
+    def stop(self):
+        # sort data, as, file system observer may have sent them in the wrong order
+        self._data_list.sort(key=lambda data: data["log_filename"])
 
         for data in self._data_list:
             filename = data["log_filename"]
@@ -148,6 +153,39 @@ class InterfaceValidator:
 
         self._wait_for_function = None
 
+    def add_wait_condition(self, timeout, condition):
+        """
+        Sets up a wait condition that will be checked after setup.
+        """
+        self.wait_conditions.append(WaitCondition(timeout=timeout, condition=condition))
+
+    def wait(self, default_timeout, elapsed_time):
+        if not self.wait_conditions:
+            logger.debug(f"No wait conditions for {self.name}")
+            return True
+
+        timeout = max(c.timeout for c in self.wait_conditions)
+        timeout = max(timeout, default_timeout)
+        timeout = max(0, timeout - elapsed_time)
+
+        logger.debug(f"Waiting for {len(self.wait_conditions)} wait conditions for {timeout}s")
+        t0 = time.time()
+        while self.wait_conditions:
+            self.wait_conditions = [c for c in self.wait_conditions if not c.condition()]
+            if not self.wait_conditions:
+                break
+            if time.time() >= t0 + timeout:
+                logger.warning(f"Wait conditions timed out for {self.name}")
+                return False
+            time.sleep(0.10)
+        return True
+
+
+class WaitCondition:
+    def __init__(self, timeout, condition) -> None:
+        self.timeout = timeout
+        self.condition = condition
+
 
 class ValidationError(Exception):
     def __init__(self, *args: object, extra_info=None) -> None:
@@ -158,7 +196,8 @@ class ValidationError(Exception):
 def get_rid_from_request(request):
     if request is None:
         return None
-
+    if isinstance(request, str):
+        return request
     user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
     return user_agent[-36:]
 

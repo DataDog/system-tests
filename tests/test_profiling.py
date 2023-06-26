@@ -33,8 +33,16 @@ class Test_Profile:
 
         Test_Profile._is_set_up = True
 
+        requests = []
         for _ in range(100):
-            weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
+            r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
+            requests.append(r)
+
+        # Wait until the tracer uploads profiles. But avoid it if none of the requests was successful.
+        if any(r.status_code == 200 for r in requests):
+            interfaces.library.add_wait_condition(
+                timeout=160, condition=lambda: bool(list(interfaces.library.get_profiling_data()))
+            )
 
     def setup_library(self):
         self._common_setup()

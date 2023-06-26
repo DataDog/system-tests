@@ -73,9 +73,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
             except FileNotFoundError:
                 logger.error(f"File not found: {filename}")
 
-    def wait(self, timeout):
-        super().wait(timeout)
-
+    def stop(self):
+        super().stop()
         for log_line in self._read():
 
             parsed = {}
@@ -284,7 +283,7 @@ class Test:
         """Test example"""
         i = _LibraryStdout()
         i.configure(False)
-        i.wait(0)
+        i.stop()
         i.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
 
 

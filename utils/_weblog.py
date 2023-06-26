@@ -118,10 +118,14 @@ class _Weblog:
         port=None,
         allow_redirects=True,
         rid_in_user_agent=True,
+        post_setup=False,
         **kwargs,
     ):
 
-        if self.current_nodeid is None:
+        if not post_setup and self.current_nodeid is None:
+            # We generally only allow requests during the setup stage, to
+            # ensure they are associated with tests. However, we issue an
+            # additional watermark request in post_setup.
             raise ValueError("Weblog calls can only be done during setup")
 
         if self.replay:
@@ -171,7 +175,8 @@ class _Weblog:
         else:
             logger.debug(f"Request {rid}: {r.status_code}")
 
-        self.responses[self.current_nodeid].append(response_data)
+        if not post_setup:
+            self.responses[self.current_nodeid].append(response_data)
 
         return HttpResponse(response_data)
 
@@ -252,6 +257,17 @@ class _Weblog:
         self.responses[self.current_nodeid].append(response_data)
 
         return GrpcResponse(response_data)
+
+    def get_all_seen_rids(self):
+        for datas in self.responses.values():
+            for data in datas:
+                if data.get("status_code") is None:
+                    continue
+                headers = data["request"]["headers"]
+                ua = [v for k, v in headers.items() if k.lower() == "user-agent"][0]
+                if "rid/" not in ua:
+                    continue
+                yield ua[-36:]
 
 
 weblog = _Weblog()

@@ -15,28 +15,35 @@ class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
     def setup_dsm_kafka(self):
-        self.r = weblog.get("/dsm?integration=kafka")
-
-    def test_dsm_kafka(self):
-        assert self.r.text == "ok"
-
         # Hashes are created by applying the FNV-1 algorithm on
         # checkpoint strings (e.g. service:foo)
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            consumer_hash = 2931833227331067675
-            producer_hash = 271115008390912609
+            self.consumer_hash = 2931833227331067675
+            self.producer_hash = 271115008390912609
         else:
-            consumer_hash = 4463699290244539355
-            producer_hash = 3735318893869752335
+            self.consumer_hash = 4463699290244539355
+            self.producer_hash = 3735318893869752335
 
+        # Requests to this endpoint in Node sometimes timeout with the default.
+        request_timeout = 10
+
+        self.r = weblog.get("/dsm?integration=kafka", timeout=request_timeout)
+        if self.r.status_code == 200:
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(self.consumer_hash))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(self.producer_hash))
+
+    def test_dsm_kafka(self):
+        assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
+            hash_=self.consumer_hash,
+            parent_hash=0,
+            tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=consumer_hash,
+            hash_=self.producer_hash,
+            parent_hash=self.consumer_hash,
             tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
@@ -49,10 +56,11 @@ class Test_DsmHttp:
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
         # and will be instrumented as such
         self.r = weblog.get("/dsm?integration=kafka")
+        if self.r.status_code == 200:
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(3883033147046472598))
 
     def test_dsm_http(self):
-        assert self.r.text == "ok"
-
+        assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
             hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
         )
@@ -67,11 +75,13 @@ class Test_DsmRabbitmq:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
+        if self.r.status_code == 200:
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(6176024609184775446))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(1648106384315938543))
 
     @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
-        assert self.r.text == "ok"
-
+        assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
             hash_=6176024609184775446,
             parent_hash=0,
@@ -86,6 +96,9 @@ class Test_DsmRabbitmq:
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
+        if self.r.status_code == 200:
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(12547013883960139159))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(12449081340987959886))
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
     def test_dsm_rabbitmq_dotnet_legacy(self):
@@ -118,10 +131,14 @@ class Test_DsmRabbitmq_TopicExchange:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+        if self.r.status_code == 200:
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(18436203392999142109))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(11364757106893616177))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(15562446431583779))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(13344154764958581569))
 
     def test_dsm_rabbitmq(self):
-        assert self.r.text == "ok"
-
+        assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
             hash_=18436203392999142109,
             parent_hash=0,
@@ -155,10 +172,14 @@ class Test_DsmRabbitmq_FanoutExchange:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+        if self.r.status_code == 200:
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(877077567891168935))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(6900956252542091373))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(497609944035068818))
+            interfaces.library.add_wait_condition(40, lambda: DsmHelper.check_checkpoint_by_hash(15446107644012012909))
 
     def test_dsm_rabbitmq(self):
-        assert self.r.text == "ok"
-
+        assert (self.r.status_code, self.r.text) == (200, "ok")
         DsmHelper.assert_checkpoint_presence(
             hash_=877077567891168935,
             parent_hash=0,
@@ -206,3 +227,13 @@ class DsmHelper:
 
         logger.error("Checkpoint not found 🚨")
         raise ValueError("Checkpoint has not been found, please have a look in logs")
+
+    @staticmethod
+    def check_checkpoint_by_hash(hash_):
+        for data in interfaces.agent.get_dsm_data():
+            for stats_bucket in data["request"]["content"]["Stats"]:
+                for stats_point in stats_bucket["Stats"]:
+                    observed_hash = stats_point["Hash"]
+                    if observed_hash == hash_:
+                        return True
+        return False

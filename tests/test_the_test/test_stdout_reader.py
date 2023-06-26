@@ -18,7 +18,7 @@ class Test_Main:
         stdout = _LibraryStdout()
         stdout.configure(False)
 
-        stdout.wait(0)
+        stdout.stop()
 
         stdout.assert_absence(r"System\.Exception")
         stdout.assert_presence(r"some.*file")
