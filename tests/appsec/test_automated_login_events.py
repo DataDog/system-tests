@@ -60,7 +60,7 @@ class Test_Login_Events:
 
         if self.library_name == "nodejs":
             self.r_success = [
-                weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
+                weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD}),
                 weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
             ]
 
@@ -176,7 +176,7 @@ class Test_Login_Events:
 
 
 @scenarios.appsec_auto_events_extended
-@released(cpp="?", golang="?", java="?", nodejs="5.0.0-pre", dotnet="", php="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="?", php="?", ruby="?")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
     USER = "test"
@@ -192,11 +192,7 @@ class Test_Login_Events_Extended:
 
         if self.library_name == "nodejs":
             self.r_success = [
-                weblog.post(
-                    "/login?auth=local",
-                    params={"auth": "local"},
-                    data={"username": self.USER, "password": self.PASSWORD},
-                ),
+                weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
                 weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
             ]
 
@@ -228,7 +224,7 @@ class Test_Login_Events_Extended:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if hasattr(meta, "appsec.events.users.login.failure.usr.exists"):
+                if self.library_name != "nodejs":
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
@@ -251,7 +247,7 @@ class Test_Login_Events_Extended:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if hasattr(meta, "appsec.events.users.login.failure.usr.exists"):
+                if self.library_name != "nodejs":
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
