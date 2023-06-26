@@ -784,6 +784,11 @@ class scenarios:
         "PROFILING",
         library_interface_timeout=160,
         agent_interface_timeout=160,
+        weblog_env={
+            "DD_PROFILING_ENABLED": "true",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_PROFILING_START_DELAY": "1",
+        },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
     )
 

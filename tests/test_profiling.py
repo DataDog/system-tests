@@ -3,49 +3,53 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-from utils import weblog, context, interfaces, bug, scenarios, irrelevant
+import json
+import re
+from utils import weblog, interfaces, bug, scenarios, missing_feature
 
 
-TIMESTAMP_PATTERN = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z"
+TIMESTAMP_PATTERN = re.compile(r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d{3,6})?Z")
 
 
-@irrelevant(context.library != "cpp", reason="This can probably be added to other profilers")
+@bug(library="dotnet", reason="Need to understand how to activate profiling")
+@bug(library="golang", reason="Need to understand how to activate profiling")
+@bug(library="php", reason="Need to understand how to activate profiling")
+@bug(library="python", reason="Need to understand how to activate profiling")
+@bug(library="ruby", reason="Need to understand how to activate profiling")
+@missing_feature(weblog_variant="vertx3", reason="Endpoint not implemented")
+@missing_feature(weblog_variant="vertx4", reason="Endpoint not implemented")
+@missing_feature(weblog_variant="akka-http", reason="Endpoint not implemented")
 @scenarios.profiling
 class Test_Profile:
     """ Basic testing of profiling """
 
-    def setup_start_end(self):
-        # generate traffic
-        for lp in range(100):
+    def _common_setup(self):
+        if hasattr(self, "_is_set_up"):
+            return
+        self._is_set_up = True
+        for _ in range(100):
             self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
 
+    def setup_start_end(self):
+        self._common_setup()
+
     def test_start_end(self):
-        """ All profiling libraries payload have recording-start and recording-end fields"""
-        interfaces.library.profiling_assert_field("start", content_pattern=TIMESTAMP_PATTERN)
-        interfaces.library.profiling_assert_field("end", content_pattern=TIMESTAMP_PATTERN)
+        """ All profiling libraries payload have start and end fields"""
+        requests = list(interfaces.library.get_profiling_data())
+        assert len(requests) > 0, "No profiling requests"
+        requests = [r for r in requests if 'name="event"' in r["request"]["headers"].get("Content-Disposition", "")]
+        assert len(requests) > 0, "No profiling event requests"
+        for req in requests:
+            content = json.load(req["request"]["content"])
+            assert "start" in content, "No start field"
+            assert "end" in content, "No end field"
+            assert re.fullmatch(TIMESTAMP_PATTERN, content["start"])
+            assert re.fullmatch(TIMESTAMP_PATTERN, content["end"])
 
-    def test_native_library(self):
-        """ Language is set to native (though this is relevant only for ddprof)"""
-        interfaces.library.profiling_assert_field("language:native")
+    def setup_agent(self):
+        self._common_setup()
 
-
-@bug(library="cpp", reason="Need to understand how to activate profiling")
-@bug(library="dotnet", reason="Need to understand how to activate profiling")
-@bug(library="golang", reason="Need to understand how to activate profiling")
-@bug(library="java", reason="Need to understand how to activate profiling")
-@bug(library="php", reason="Need to understand how to activate profiling")
-@bug(library="python", reason="Need to understand how to activate profiling")
-@bug(library="ruby", reason="Need to understand how to activate profiling")
-@scenarios.profiling
-class Test_Basic:
-    """ Basic testing of profiling """
-
-    def test_library(self):
-        """ All profiling libraries payload have recording-start and recording-end fields"""
-        interfaces.library.profiling_assert_field("recording-start", content_pattern=TIMESTAMP_PATTERN)
-        interfaces.library.profiling_assert_field("recording-end", content_pattern=TIMESTAMP_PATTERN)
-
+    @missing_feature(reason="Test not implemented")
     def test_agent(self):
         """ All profiling agent payload have recording-start and recording-end fields"""
-        interfaces.agent.profiling_assert_field("recording-start", content_pattern=TIMESTAMP_PATTERN)
-        interfaces.agent.profiling_assert_field("recording-end", content_pattern=TIMESTAMP_PATTERN)
+        assert False

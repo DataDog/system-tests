@@ -25,7 +25,6 @@ from utils.interfaces._library.telemetry import (
 )
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 
@@ -354,11 +353,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         validator.final_check()
 
-    def add_profiling_validation(self, validator, success_by_default=True):
-        self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
-
-    def profiling_assert_field(self, field_name, content_pattern=None):
-        self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
+    def get_profiling_data(self):
+        yield from self.get_data(path_filters="/profiling/v1/input")
 
     def assert_trace_exists(self, request, span_type=None):
         for _, _, span in self.get_spans(request=request):
