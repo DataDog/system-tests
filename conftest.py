@@ -11,10 +11,10 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from types import SimpleNamespace
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+
 
 class ReportMetadata:
     def __init__(self):
@@ -24,7 +24,9 @@ class ReportMetadata:
         self._coverages = {}
         self._rfcs = {}
 
-reportMetadata=ReportMetadata()
+
+reportMetadata = ReportMetadata()
+
 
 def _JSON_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/report.json"
@@ -32,6 +34,7 @@ def _JSON_REPORT_FILE():
 
 def _XML_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/reportJunit.xml"
+
 
 def _JSON_METADATA_REPORT_FILE():
     return f"{context.scenario.host_log_folder}/report_metadata.json"
@@ -236,13 +239,12 @@ def pytest_collection_finish(session):
     terminal.write("\n\n")
 
     context.scenario.post_setup()
-    
-    #Serialize metadata to json file to add later to report.json
+
+    # Serialize metadata to json file to add later to report.json
     json.dump(
-        reportMetadata.__dict__,
-        open(_JSON_METADATA_REPORT_FILE(), "w", encoding="utf-8"),
-        indent=2,
+        reportMetadata.__dict__, open(_JSON_METADATA_REPORT_FILE(), "w", encoding="utf-8"), indent=2,
     )
+
 
 def pytest_runtest_call(item):
     from utils import weblog
@@ -260,10 +262,10 @@ def pytest_json_modifyreport(json_report):
 
     try:
         logger.debug("Modifying JSON report")
-        metadata=json.load(open(_JSON_METADATA_REPORT_FILE()))
+        metadata = json.load(open(_JSON_METADATA_REPORT_FILE()))
         # populate and adjust some data
         for test in json_report["tests"]:
-           test["skip_reason"] = metadata["_skip_reasons"].get(test["nodeid"])
+            test["skip_reason"] = metadata["_skip_reasons"].get(test["nodeid"])
 
         # add usefull data for reporting
         json_report["docs"] = metadata["_docs"]
@@ -301,16 +303,16 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def _pytest_junit_modifyreport():
-
+    metadata = json.load(open(_JSON_METADATA_REPORT_FILE()))
     with open(_JSON_REPORT_FILE(), encoding="utf-8") as f:
         json_report = json.load(f)
-      #  junit_modifyreport(
-      #      json_report,
-      #      _XML_REPORT_FILE(),
-      #      reportMetadata._skip_reasons,
-      #      reportMetadata._docs,
-      #      reportMetadata._rfcs,
-      #      reportMetadata._coverages,
-      #      reportMetadata._release_versions,
-      #      junit_properties=context.scenario.get_junit_properties(),
-      #  )
+        junit_modifyreport(
+            json_report,
+            _XML_REPORT_FILE(),
+            metadata["_skip_reasons"],
+            metadata["_docs"],
+            metadata["_rfcs"],
+            metadata["_coverages"],
+            metadata["_release_versions"],
+            junit_properties=context.scenario.get_junit_properties(),
+        )
