@@ -244,10 +244,11 @@ class Test_Telemetry:
 
         def validator(data):
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be used by this tracer")
+                raise ValueError("request_type app-dependencies-loaded should not be used by this tracer")
 
         self.validate_library_telemetry_data(validator)
 
+    @flaky(library="java", reason="It may be 4 seconds on java ?")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -258,14 +259,14 @@ class Test_Telemetry:
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
         if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
+            raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time != -1:
                 delta = curr_message_time - prev_message_time
                 if delta > timedelta(seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL):
-                    raise Exception(
+                    raise ValueError(
                         f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
                     )
             prev_message_time = curr_message_time
