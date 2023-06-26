@@ -138,7 +138,7 @@ build() {
               fi
 
               source venv/bin/activate
-              python -m pip install --upgrade pip
+              python3 -m pip install --upgrade pip
             fi
             pip install -r requirements.txt
 

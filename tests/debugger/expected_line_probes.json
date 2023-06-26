@@ -1,0 +1,6 @@
+[
+	"logProbe-installed",
+	"metricProbe-installed",
+	"spanProbe-installed",
+	"spanDecorationProbe-installed"
+  ]

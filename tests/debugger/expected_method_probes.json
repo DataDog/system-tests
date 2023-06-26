@@ -1,0 +1,10 @@
+[
+	"logProbe-received",
+	"logProbe-installed",
+	"metricProbe-received",
+	"metricProbe-installed",
+	"spanProbe-received",
+	"spanProbe-installed",
+	"spanDecorationProbe-received",
+	"spanDecorationProbe-installed"
+]
