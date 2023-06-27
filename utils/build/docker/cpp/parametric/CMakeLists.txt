@@ -25,9 +25,6 @@ include(FindProtobuf)
 
 # Project-level compile options
 add_compile_options(-Wall -Wextra -Werror)
-if (BUILD_COVERAGE)
-  add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)
-endif()
 
 # grpc client library
 add_library(grpc_apm_test_client)
@@ -38,7 +35,7 @@ protobuf_generate(TARGET grpc_apm_test_client LANGUAGE grpc GENERATE_EXTENSIONS 
 target_include_directories(grpc_apm_test_client PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(grpc_apm_test_client PUBLIC protobuf::libprotobuf grpc grpc++)
 
-# paramegtric test executable
+# parametric test executable
 add_executable(cpp-parametric-test)
 target_sources(cpp-parametric-test PRIVATE tracing_service.cpp main.cpp)
 target_include_directories(cpp-parametric-test PRIVATE ${dd-trace-cpp_SOURCE_DIR}/src)

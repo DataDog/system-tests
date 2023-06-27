@@ -1,5 +1,8 @@
 #pragma once
 
+#include <algorithm>
+#include <cctype>
+
 #include <datadog/dict_reader.h>
 #include <datadog/dict_writer.h>
 
@@ -13,7 +16,9 @@ public:
 
   datadog::tracing::Optional<datadog::tracing::StringView> lookup(datadog::tracing::StringView key) const override {
     for (int i = 0; i < headers_.http_headers_size(); i++) {
-      if (headers_.http_headers(i).key() == key) {
+      std::string lookup_key(headers_.http_headers(i).key());
+      std::transform(lookup_key.cbegin(), lookup_key.cend(), lookup_key.begin(), [](unsigned char c){ return std::tolower(c); });
+      if (lookup_key == key) {
         return headers_.http_headers(i).value();
       }
     }

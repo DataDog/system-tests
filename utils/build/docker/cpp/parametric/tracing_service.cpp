@@ -155,6 +155,11 @@ TracingService::~TracingService() {}
 
   auto headers_writer = DistributedHTTPHeadersWriter(response->mutable_http_headers());
   span.inject(headers_writer);
+  logger_->log_error("  http_headers:");
+  auto& headers = response->http_headers();
+  for (int i = 0; i < headers.http_headers_size(); i++) {
+    logger_->log_error("    " + headers.http_headers(i).key() + ":" + headers.http_headers(i).value());
+  }
 
   return ::grpc::Status(::grpc::StatusCode::OK, "");
 }
