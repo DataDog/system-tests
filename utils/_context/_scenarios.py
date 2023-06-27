@@ -788,6 +788,8 @@ class scenarios:
             "DD_PROFILING_ENABLED": "true",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_PROFILING_START_DELAY": "1",
+            # Reduce noise
+            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
         },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
     )
