@@ -22,6 +22,7 @@ def enable_b3() -> Any:
 
 
 @enable_b3()
+@pytest.mark.skip_library("cpp", "format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3_extract_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are extracted
@@ -40,6 +41,7 @@ def test_headers_b3_extract_valid(test_agent, test_library):
 
 
 @enable_b3()
+@pytest.mark.skip_library("cpp", "format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
 def test_headers_b3_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3 distributed tracing headers are not extracted.
     """
@@ -53,6 +55,7 @@ def test_headers_b3_extract_invalid(test_agent, test_library):
 
 
 @enable_b3()
+@pytest.mark.skip_library("cpp", "format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3_inject_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are injected properly.
@@ -74,6 +77,7 @@ def test_headers_b3_inject_valid(test_agent, test_library):
 
 
 @enable_b3()
+@pytest.mark.skip_library("cpp", "format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_propagate_valid(test_agent, test_library):
     """Ensure that b3 distributed tracing headers are extracted
@@ -98,6 +102,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
 
 
 @enable_b3()
+@pytest.mark.skip_library("cpp", "format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     """Ensure that invalid b3 distributed tracing headers are not extracted

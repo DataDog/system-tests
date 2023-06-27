@@ -52,6 +52,7 @@ def test_headers_b3multi_extract_valid(test_agent, test_library):
 
 
 @enable_b3multi()
+@pytest.mark.skip_library("cpp", "trace-id 0 not treated as invalid")
 def test_headers_b3multi_extract_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted.
     """
@@ -116,6 +117,7 @@ def test_headers_b3multi_propagate_valid(test_agent, test_library):
 
 
 @enable_b3multi()
+@pytest.mark.skip_library("cpp", "trace-id 0 not treated as invalid")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_b3multi_propagate_invalid(test_agent, test_library):
     """Ensure that invalid b3multi distributed tracing headers are not extracted
