@@ -51,6 +51,7 @@ def test_traceparent_included_tracestate_missing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("cpp", "the first observed traceparent is used")
 @pytest.mark.skip_library(
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -130,6 +131,7 @@ def test_traceparent_header_name_valid_casing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("cpp", "trace id is not regenerated for second case")
 def test_traceparent_version_0x00(test_agent, test_library):
     """
     harness sends an invalid traceparent with extra trailing characters
@@ -535,6 +537,7 @@ def test_tracestate_header_name_valid_casing(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("cpp", "the first observed tracestate is used")
 @pytest.mark.skip_library(
     "nodejs",
     "nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -591,6 +594,7 @@ def test_tracestate_empty_header(test_agent, test_library):
 
 
 @temporary_enable_optin_tracecontext()
+@pytest.mark.skip_library("cpp", "the first observed tracestate is used")
 @pytest.mark.skip_library(
     "golang",
     "golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",

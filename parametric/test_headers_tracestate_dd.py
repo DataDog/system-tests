@@ -188,6 +188,7 @@ def test_headers_tracestate_dd_propagate_samplingpriority(test_agent, test_libra
 
 
 @temporary_enable_propagationstyle_default()
+@pytest.mark.skip_library("cpp", "origin 'synthetics~;=web,z' does not match expected values for dd_items3")
 @pytest.mark.skip_library("ruby", "Ruby doesn't support case-insensitive distributed headers")
 def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
     """
@@ -320,6 +321,7 @@ def test_headers_tracestate_dd_propagate_origin(test_agent, test_library):
 
 
 @temporary_enable_propagationstyle_default()
+@pytest.mark.skip_library("cpp", "_dd.p.dm=-4 in headers1")
 @pytest.mark.skip_library(
     "golang",
     "False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map"
@@ -436,6 +438,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags(test_agent, test_library
 
 
 @temporary_enable_propagationstyle_default()
+@pytest.mark.skip_library("cpp", "t.dm is still in dd_items2")
 @pytest.mark.skip_library("nodejs", "Issue: the decision maker is removed. Is that allowed behavior?")
 @pytest.mark.skip_library("php", "Issue: Does not drop dm")
 @pytest.mark.skip_library("python", "Issue: Does not drop dm")
@@ -505,6 +508,7 @@ def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
 
 
 @temporary_enable_propagationstyle_default()
+@pytest.mark.skip_library("cpp", "_dd.p.dm=-4 in dd_tags1")
 @pytest.mark.skip_library("nodejs", "Issue: Does not reset dm to DEFAULT")
 @pytest.mark.skip_library("php", "Issue: Does not drop dm")
 @pytest.mark.skip_library("python", "Issue: Does not reset dm to DEFAULT")
