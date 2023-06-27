@@ -32,6 +32,8 @@ public class AppSecIast {
     private final SsrfExamples ssrfExamples;
     private final WeakRandomnessExamples weakRandomnessExamples;
 
+    private final XPathExamples xPathExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -40,6 +42,7 @@ public class AppSecIast {
         this.cryptoExamples = new CryptoExamples();
         this.ssrfExamples = new SsrfExamples();
         this.weakRandomnessExamples = new WeakRandomnessExamples();
+        this.xPathExamples = new XPathExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -256,6 +259,19 @@ public class AppSecIast {
     String noHttpOnlyCookieSecure(final HttpServletResponse response) {
         response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
         return "ok";
+    }
+
+    @PostMapping("/xpathi/test_insecure")
+    String insecureXPath(final ServletRequest request) {
+        final String expression = request.getParameter("expression");
+        xPathExamples.insecureXPath(expression);
+        return "XPath insecure";
+    }
+
+    @PostMapping("/xpathi/test_secure")
+    String secureXPath(final ServletRequest request) {
+        xPathExamples.secureXPath();
+        return "XPath secure";
     }
 
     /**

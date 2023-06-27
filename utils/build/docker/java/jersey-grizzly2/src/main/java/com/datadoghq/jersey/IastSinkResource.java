@@ -1,12 +1,6 @@
 package com.datadoghq.jersey;
 
-import com.datadoghq.system_tests.iast.utils.CmdExamples;
-import com.datadoghq.system_tests.iast.utils.CryptoExamples;
-import com.datadoghq.system_tests.iast.utils.LDAPExamples;
-import com.datadoghq.system_tests.iast.utils.PathExamples;
-import com.datadoghq.system_tests.iast.utils.SqlExamples;
-import com.datadoghq.system_tests.iast.utils.SsrfExamples;
-import com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples;
+import com.datadoghq.system_tests.iast.utils.*;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
@@ -33,6 +27,8 @@ public class IastSinkResource {
     private final PathExamples path = new PathExamples();
     private final SsrfExamples ssrf = new SsrfExamples();
     private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
+
+    private final XPathExamples xPathExamples = new XPathExamples();
 
     @GET
     @Path("/insecure_hashing/deduplicate")
@@ -187,6 +183,20 @@ public class IastSinkResource {
     @Path("/unvalidated_redirect/test_insecure_redirect")
     public Response insecureUnvalidatedRedirect(@FormParam("location") final String location) throws URISyntaxException {
         return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(location)).build();
+    }
+
+    @POST
+    @Path("/xpathi/test_secure")
+    public String secureXPath() {
+        xPathExamples.secureXPath();
+        return "Secure";
+    }
+
+    @POST
+    @Path("/xpathi/test_insecure")
+    public String insecureXPath(@FormParam("expression") final String expression) {
+        xPathExamples.insecureXPath(expression);
+        return "Insecure";
     }
 
     @GET

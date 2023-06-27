@@ -29,6 +29,8 @@ public class IastSinkResource {
     private final SsrfExamples ssrf = new SsrfExamples();
     private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
+    private final XPathExamples xPathExamples = new XPathExamples();
+
     @GET
     @Path("/insecure_hashing/deduplicate")
     public String removeDuplicates() {
@@ -182,6 +184,20 @@ public class IastSinkResource {
     @Path("/unvalidated_redirect/test_insecure_redirect")
     public Response insecureUnvalidatedRedirect(@FormParam("location") final String location) throws URISyntaxException {
         return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(location)).build();
+    }
+
+    @POST
+    @Path("/xpathi/test_secure")
+    public String secureXPath() {
+        xPathExamples.secureXPath();
+        return "Secure";
+    }
+
+    @POST
+    @Path("/xpathi/test_insecure")
+    public String insecureXPath(@FormParam("expression") final String expression) {
+        xPathExamples.insecureXPath(expression);
+        return "Insecure";
     }
 
     @GET
