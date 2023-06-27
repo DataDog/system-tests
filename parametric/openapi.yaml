@@ -1,0 +1,93 @@
+openapi: "3.1.0"
+info:
+  title: "APM library HTTP API"
+  description: |
+    This API allows remote usage of the APM libraries (ddtrace) for shared
+    testing purposes.
+  version: "1.0"
+paths:
+  /trace/span/{id}:
+    get:
+      summary: Get a span given its ID
+      description: |
+        Retrieves the span matching the span ID given. If no ID is given then
+        the active span is to be returned.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 18446744073709551615  # 2^64 - 1
+  /trace/span/start:
+    post:
+      parameters:
+        - name: name
+          required: true
+          schema:
+            type: string
+        - name: service
+          required: false
+          schema:
+            type: string
+        - name: parent_id
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 18446744073709551615  # 2^64 - 1
+        - name: resource
+          required: false
+          schema:
+            type: string
+        - name: type
+          required: false
+          schema:
+            type: string
+        - name: origin
+          required: false
+          schema:
+            type: string
+        - name: http_headers
+          description: |
+            HTTP headers that emulate a distributed tracing headers that would
+            be extracted prior/during the spans creation.
+          required: false
+          schema:
+            type: string
+  /trace/span/finish:
+    post:
+      summary: Finish the span given its ID.
+      parameters:
+        - name: id
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 18446744073709551615  # 2^64 - 1
+  /tracer/flush:
+    post:
+      summary: Flush the tracer of traces
+      description: |
+        Force the tracer to flush (completed) traces to the Agent.
+  /tracer/stop:
+    post:
+      summary: Stop the tracer
+      description: |
+        For libraries that support it, stop the tracer. This usually forces
+        all data to be flushed to the Agent.
+  /tracer/span_inject_headers/{id}:
+    post:
+      summary: Get the distributed tracing headers for a span.
+      description: |
+        Retrieves the http headers that would be injected into an http request
+        for a span.
+      parameters:
+        - name: span_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 18446744073709551615  # 2^64 - 1

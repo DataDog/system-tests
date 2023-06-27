@@ -1,5 +1,4 @@
 import os.path
-import re
 
 import pytest
 
@@ -9,6 +8,8 @@ from utils._context.core import context
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
 
+if context.weblog_variant in ("akka-http", "spring-boot-payara"):
+    pytestmark = pytest.mark.skip("missing feature: No AppSec support")
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -37,6 +38,7 @@ BLOCK_TEMPLATE_JSON_ANY = {
     # No trailing new line in dotnet
     BLOCK_TEMPLATE_JSON_V1.rstrip(),
     BLOCK_TEMPLATE_JSON_MIN_V1,
+    BLOCK_TEMPLATE_JSON_MIN_V1.rstrip(),
 }
 
 HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
@@ -51,12 +53,11 @@ JSON_CONTENT_TYPES = {
 
 @released(
     dotnet="2.27.0",
-    nodejs="?",
+    golang="1.50.0-rc.1",
+    nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
-    ruby="?",
-)
-@released(
+    ruby="1.11.0",
     java={
         "spring-boot": "0.112.0",
         "uds-spring-boot": "0.112.0",
@@ -68,12 +69,10 @@ JSON_CONTENT_TYPES = {
         "jersey-grizzly2": "1.7.0",
         "resteasy-netty3": "1.7.0",
         "vertx3": "1.7.0",
+        "spring-boot-3-native": "?",  # GraalVM. Tracing support only
         "*": "?",
-    }
+    },
 )
-@released(golang="1.50.0-rc.1")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_Blocking:
@@ -86,6 +85,7 @@ class Test_Blocking:
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library == "python", reason="Bug, minify and remove new line characters")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
@@ -96,7 +96,7 @@ class Test_Blocking:
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
     def test_blocking_appsec_blocked_tag(self):
-        """Tag ddappsec.blocked is set when blocking"""
+        """Tag appsec.blocked is set when blocking"""
         assert self.r_abt.status_code == 403
 
         interfaces.library.assert_waf_attack(
@@ -111,7 +111,7 @@ class Test_Blocking:
                 return
 
             if "appsec.blocked" not in span["meta"]:
-                raise Exception("Can't find appsec.blocked in span's tags")
+                raise ValueError("Can't find appsec.blocked in span's tags")
 
             return True
 
@@ -121,6 +121,7 @@ class Test_Blocking:
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
@@ -134,6 +135,7 @@ class Test_Blocking:
         )
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
@@ -148,7 +150,9 @@ class Test_Blocking:
     @missing_feature(context.library == "php", reason="Support for partial html not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
     @missing_feature(context.library == "python", reason="Support for partial html not implemented")
+    @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -165,6 +169,7 @@ class Test_Blocking:
         )
 
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
+    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
@@ -182,6 +187,8 @@ class Test_Blocking:
 
     @missing_feature(context.library == "php", reason="Support for quality not implemented")
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
+    @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
+    @missing_feature(context.library == "ruby", reason="Support for quality not implemented")
     @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
@@ -192,19 +199,31 @@ class Test_Blocking:
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
 
-    @released(java="1.14.0", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.library < "java@1.14.0")
+    @missing_feature(context.library < "nodejs@4.1.0")
+    @missing_feature(context.library < "golang@1.52.0")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="php")
+    @missing_feature(library="python")
+    @missing_feature(library="ruby")
     def test_json_template_v1(self):
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
         assert self.r_json_v1.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_json_v1.text == BLOCK_TEMPLATE_JSON_MIN_V1
+        assert self.r_json_v1.text.rstrip() == BLOCK_TEMPLATE_JSON_MIN_V1.rstrip()
 
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
 
-    @released(java="1.14.0", dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(context.library < "java@1.14.0")
+    @missing_feature(context.library < "nodejs@4.1.0")
+    @missing_feature(context.library < "golang@1.52.0")
+    @missing_feature(library="dotnet")
+    @missing_feature(library="php")
+    @missing_feature(library="python")
+    @missing_feature(library="ruby")
     def test_html_template_v2(self):
-        """HTML block template is v1 minified"""
+        """HTML block template is v2 minified"""
         assert self.r_html_v2.status_code == 403
         assert self.r_html_v2.headers.get("content-type", "") in HTML_CONTENT_TYPES
         assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
@@ -214,7 +233,6 @@ class Test_Blocking:
     "https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Custom-Blocking-Response-via-Remote-Config"
 )
 @released(java="1.11.0", dotnet="?", golang="?", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @coverage.basic
 @scenarios.appsec_blocking

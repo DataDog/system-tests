@@ -2,6 +2,7 @@ import base64
 import contextlib
 import dataclasses
 import os
+import json
 import shutil
 import socket
 import subprocess
@@ -84,9 +85,15 @@ def library_env() -> Dict[str, str]:
 ClientLibraryServerFactory = Callable[[Dict[str, str]], APMLibraryTestServer]
 
 
+def _get_base_directory():
+    """Workaround until the parametric tests are fully migrated"""
+    current_directory = os.getcwd()
+    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
+
+
 def python_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
-    python_absolute_appdir = os.path.join(os.getcwd(), python_appdir)
+    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
@@ -113,7 +120,7 @@ RUN python3.9 -m pip install %s
 
 def python_http_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     python_appdir = os.path.join("utils", "build", "docker", "python_http", "parametric")
-    python_absolute_appdir = os.path.join(os.getcwd(), python_appdir)
+    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     # By default run parametric tests against the development branch
     python_package = os.getenv("PYTHON_DDTRACE_PACKAGE", "ddtrace")
     return APMLibraryTestServer(
@@ -139,8 +146,9 @@ RUN python3.9 -m pip install %s
 
 
 def node_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
-    nodejs_absolute_appdir = os.path.join(os.getcwd(), nodejs_appdir)
+    nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     node_module = os.getenv("NODEJS_DDTRACE_MODULE", "dd-trace")
     return APMLibraryTestServer(
         lang="nodejs",
@@ -162,7 +170,7 @@ RUN npm install {node_module}
         container_build_context=nodejs_absolute_appdir,
         volumes=[
             (
-                os.path.join(os.getcwd(), "utils", "parametric", "protos", "apm_test_client.proto"),
+                os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
                 "/client/apm_test_client.proto",
             ),
         ],
@@ -174,7 +182,7 @@ RUN npm install {node_module}
 def golang_library_factory(env: Dict[str, str], container_id: str, port: str):
 
     golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
-    golang_absolute_appdir = os.path.join(os.getcwd(), golang_appdir)
+    golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
 
     return APMLibraryTestServer(
         lang="golang",
@@ -200,34 +208,55 @@ RUN go install
 
 def dotnet_library_factory(env: Dict[str, str], container_id: str, port: str):
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
-    dotnet_absolute_appdir = os.path.join(os.getcwd(), dotnet_appdir)
+    dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     server = APMLibraryTestServer(
         lang="dotnet",
         protocol="grpc",
-        container_name="dotnet-test-client-%s" % container_id,
-        container_tag="dotnet6_0-test-client",
-        container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+        container_name=f"dotnet-test-client-{container_id}",
+        container_tag="dotnet7_0-test-client",
+        container_img="""
+FROM mcr.microsoft.com/dotnet/sdk:7.0
 WORKDIR /client
-COPY ["./ApmTestClient.csproj","./nuget.config","./*.nupkg", "./"]
+
+# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# restore nuget packages
+COPY ["./ApmTestClient.csproj", "./nuget.config", "./*.nupkg", "./"]
 RUN dotnet restore "./ApmTestClient.csproj"
-COPY . .
-WORKDIR "/client/."
+
+# build and publish
+COPY . ./
+RUN dotnet publish --no-restore --configuration Release --output out
+WORKDIR /client/out
+
+# Set up automatic instrumentation (required for OpenTelemetry tests),
+# but don't enable it globally
+ENV CORECLR_ENABLE_PROFILING=0
+ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
+ENV CORECLR_PROFILER_PATH=/client/out/datadog/linux-x64/Datadog.Trace.ClrProfiler.Native.so
+ENV DD_DOTNET_TRACER_HOME=/client/out/datadog
+
+# disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
+ENV DD_TRACE_Grpc_ENABLED=false
+ENV DD_TRACE_AspNetCore_ENABLED=false
+ENV DD_TRACE_Process_ENABLED=false
+ENV DD_TRACE_OTEL_ENABLED=false
 """,
-        container_cmd=["dotnet", "run"],
+        container_cmd=["./ApmTestClient"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=dotnet_absolute_appdir,
-        volumes=[(os.path.join(dotnet_absolute_appdir), "/client"),],
+        volumes=[],
         env=env,
         port=port,
     )
-    server.env["ASPNETCORE_URLS"] = "http://localhost:%s" % server.port
+
     return server
 
 
 def java_library_factory(env: Dict[str, str], container_id: str, port: str):
     java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
-    java_absolute_appdir = os.path.join(os.getcwd(), java_appdir)
+    java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
@@ -240,7 +269,7 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
         container_tag="java8-test-client",
         container_img=f"""
 # FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
-FROM maven:3-jdk-8
+FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
 # COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
 # COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
@@ -248,14 +277,14 @@ RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/Dat
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
-COPY {java_reldir}/run.sh .
 COPY {protofile} src/main/proto/
 COPY binaries /binaries
 RUN bash build.sh
+COPY {java_reldir}/run.sh .
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
-        container_build_context=os.getcwd(),
+        container_build_context=_get_base_directory(),
         volumes=[],
         env=env,
         port=port,
@@ -264,7 +293,7 @@ RUN bash build.sh
 
 def php_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
     php_appdir = os.path.join("utils", "build", "docker", "php", "parametric")
-    php_absolute_appdir = os.path.join(os.getcwd(), php_appdir)
+    php_absolute_appdir = os.path.join(_get_base_directory(), php_appdir)
     php_reldir = php_appdir.replace("\\", "/")
     env = env.copy()
     # env["DD_TRACE_AGENT_DEBUG_VERBOSE_CURL"] = "1"
@@ -287,7 +316,7 @@ RUN composer install
 """,
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
-        container_build_context=os.getcwd(),
+        container_build_context=_get_base_directory(),
         volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
         env=env,
         port=port,
@@ -297,12 +326,12 @@ RUN composer install
 def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
 
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
-    ruby_absolute_appdir = os.path.join(os.getcwd(), ruby_appdir)
+    ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
 
     ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
 
     shutil.copyfile(
-        os.path.join("utils", "parametric", "protos", "apm_test_client.proto"),
+        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
         os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
     )
     return APMLibraryTestServer(
@@ -392,6 +421,18 @@ class _TestAgentAPI:
             self.clear()
         return resp.json()
 
+    def set_remote_config(self, path, payload):
+        resp = self._session.post(
+            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,}
+        )
+        assert resp.status_code == 202
+
+    def telemetry(self, clear=False, **kwargs):
+        resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
+        if clear:
+            self.clear()
+        return resp.json()
+
     def tracestats(self, **kwargs):
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
         return resp.json()
@@ -441,7 +482,7 @@ class _TestAgentAPI:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
     def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
-        """Wait for `num` to be received from the test agent.
+        """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
 
@@ -461,6 +502,83 @@ class _TestAgentAPI:
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError("Number (%r) of traces not available from test agent, got %r" % (num, num_received))
+
+    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 20) -> List[Trace]:
+        """Wait for `num` spans to be received from the test agent.
+
+        Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
+
+        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
+        """
+        num_received = None
+        for i in range(wait_loops):
+            try:
+                traces = self.traces(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                num_received = 0
+                for trace in traces:
+                    num_received += len(trace)
+                if num_received == num:
+                    if clear:
+                        self.clear()
+                    return sorted(traces, key=lambda trace: trace[0]["start"])
+            time.sleep(0.1)
+        raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
+
+    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
+        """Wait for a given telemetry event type to be available in the test agent. Returns all events
+        that were received by the test agent.
+        """
+        for i in range(wait_loops):
+            try:
+                events = self.telemetry(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                for event in events:
+                    if event["request_type"] == "message-batch":
+                        for message in event["payload"]:
+                            if message["request_type"] == event_name:
+                                if clear:
+                                    self.clear()
+                                return event["payload"]
+                    elif event["request_type"] == event_name:
+                        if clear:
+                            self.clear()
+                        return event
+            time.sleep(0.01)
+        raise AssertionError("Telemetry event %r not found" % event_name)
+
+    def wait_for_apply_status(
+        self, product: str, state: Literal[0, 1, 2, 3] = 2, clear: bool = False, wait_loops: int = 200
+    ):
+        """
+        UNKNOWN = 0
+        UNACKNOWLEDGED = 1
+        ACKNOWLEDGED = 2
+        ERROR = 3
+        """
+        for i in range(wait_loops):
+            try:
+                reqs = self.requests()
+                # TODO: need testagent endpoint for remoteconfig requests
+                rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+                for r in rc_reqs:
+                    r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                for req in rc_reqs:
+                    for cfg_state in req["body"]["client"]["state"]["config_states"]:
+                        if cfg_state["product"] == product and cfg_state["apply_state"] == state:
+                            if clear:
+                                self.clear()
+                            return cfg_state
+            time.sleep(0.01)
+        raise AssertionError("No RemoteConfig apply status found")
+
 
 
 @contextlib.contextmanager
@@ -641,12 +759,12 @@ def test_agent(
         network_name=docker_network,
     ):
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port)
-        # Wait for the agent to start
-        for i in range(20):
+        # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
+        for i in range(30):
             try:
                 resp = client.info()
             except requests.exceptions.ConnectionError:
-                time.sleep(0.1)
+                time.sleep(0.5)
             else:
                 if resp["version"] != "test":
                     pytest.fail(
@@ -655,6 +773,8 @@ def test_agent(
                     )
                 break
         else:
+            with open(test_agent_log_file.name) as f:
+                logger.error(f"Could not connect to test agent: {f.read()}")
             pytest.fail(
                 "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
             )
@@ -728,6 +848,10 @@ def test_server(
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
     }
+    test_server_env = {}
+    for k, v in apm_test_server.env.items():
+        if v is not None:
+            test_server_env[k] = v
     env.update(apm_test_server.env)
 
     with docker_run(

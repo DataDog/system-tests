@@ -1,20 +1,19 @@
 package com.datadoghq.resteasy;
 
-import com.datadoghq.system_tests.iast.utils.CryptoExamples;
-import com.datadoghq.system_tests.iast.utils.SqlExamples;
-import com.datadoghq.system_tests.iast.utils.PathExamples;
-import com.datadoghq.system_tests.iast.utils.LDAPExamples;
-import com.datadoghq.system_tests.iast.utils.CmdExamples;
-import com.datadoghq.system_tests.iast.utils.SsrfExamples;
+import com.datadoghq.system_tests.iast.utils.*;
 
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import static com.datadoghq.resteasy.Main.DATA_SOURCE;
 import static com.datadoghq.resteasy.Main.LDAP_CONTEXT;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @Path("/iast")
 @Produces(MediaType.TEXT_PLAIN)
@@ -28,6 +27,7 @@ public class IastSinkResource {
     private final CmdExamples cmd = new CmdExamples();
     private final PathExamples path = new PathExamples();
     private final SsrfExamples ssrf = new SsrfExamples();
+    private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
     @GET
     @Path("/insecure_hashing/deduplicate")
@@ -146,5 +146,41 @@ public class IastSinkResource {
     @Path("/ssrf/test_insecure")
     public String insecureSsrf(@FormParam("url") final String url) {
         return this.ssrf.insecureUrl(url);
+    }
+
+    @GET
+    @Path("/weak_randomness/test_insecure")
+    public String weakRandom() {
+        return this.weakRandomness.weakRandom();
+    }
+
+    @GET
+    @Path("/weak_randomness/test_secure")
+    public String secureRandom() {
+        return this.weakRandomness.secureRandom();
+    }
+
+    @GET
+    @Path("/unvalidated_redirect/test_secure_header")
+    public Response secureUnvalidatedRedirectHeader() {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).header("Location", "http://dummy.location.com").build();
+    }
+
+    @POST
+    @Path("/unvalidated_redirect/test_insecure_header")
+    public Response insecureUnvalidatedRedirectHeader(@FormParam("location") final String location) {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).header("Location", location).build();
+    }
+
+    @GET
+    @Path("/unvalidated_redirect/test_secure_redirect")
+    public Response secureUnvalidatedRedirect() throws URISyntaxException {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI("http://dummy.location.com")).build();
+    }
+
+    @POST
+    @Path("/unvalidated_redirect/test_insecure_redirect")
+    public Response insecureUnvalidatedRedirect(@FormParam("location") final String location) throws URISyntaxException {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(location)).build();
     }
 }

@@ -21,8 +21,6 @@ jobs:
         include:
           - library: golang
             weblog-variant: net-http
-          - library: golang
-            weblog-variant: gorilla
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ matrix.library }}

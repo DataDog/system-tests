@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.iast.utils.*;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,8 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.util.Hashtable;
 
 @RestController
@@ -25,6 +30,8 @@ public class AppSecIast {
     private final CryptoExamples cryptoExamples;
     private volatile LDAPExamples ldapExamples;
     private final SsrfExamples ssrfExamples;
+    private final WeakRandomnessExamples weakRandomnessExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -32,6 +39,7 @@ public class AppSecIast {
         this.pathExamples = new PathExamples();
         this.cryptoExamples = new CryptoExamples();
         this.ssrfExamples = new SsrfExamples();
+        this.weakRandomnessExamples = new WeakRandomnessExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -78,6 +86,45 @@ public class AppSecIast {
             span.setTag("appsec.event", true);
         }
         return cryptoExamples.insecureCipher(superSecretAccessKey);
+    }
+
+    @PostMapping("/unvalidated_redirect/test_secure_header")
+    public String secureHeader(HttpServletResponse response) {
+        response.setHeader("location", "http://dummy.location.com");
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_insecure_header")
+    public String insecureHeader(final ServletRequest request, final HttpServletResponse response) {
+        final String location = request.getParameter("location");
+        response.setHeader("location", location);
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_secure_redirect")
+    public String secureRedirect(HttpServletResponse response) throws IOException {
+        response.sendRedirect("http://dummy.location.com");
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_insecure_redirect")
+    public String insecureRedirect(final ServletRequest request, final HttpServletResponse response) throws IOException {
+        final String location = request.getParameter("location");
+        response.sendRedirect(location);
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_secure_forward")
+    public String secureForward(HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("http://dummy.location.com").forward(request, response);
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_insecure_forward")
+    public String insecureForward(final ServletRequest request, final HttpServletResponse response) throws IOException, ServletException {
+        final String location = request.getParameter("location");
+        request.getRequestDispatcher(location).forward(request, response);
+        return "redirect";
     }
 
     @PostMapping("/sqli/test_insecure")
@@ -147,6 +194,16 @@ public class AppSecIast {
     String insecureSsrf(final ServletRequest request) {
         final String url = request.getParameter("url");
         return ssrfExamples.insecureUrl(url);
+    }
+
+    @GetMapping("/weak_randomness/test_insecure")
+    String insecureRandom() {
+        return weakRandomnessExamples.weakRandom();
+    }
+
+    @GetMapping("/weak_randomness/test_secure")
+    String secureRandom() {
+        return weakRandomnessExamples.secureRandom();
     }
 
     /**

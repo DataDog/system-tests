@@ -188,5 +188,13 @@ class Test_Skips:
         assert Test_NotReleased.executed, "missing feature execute the test"
 
 
+def test_released_only_on_class():
+    with pytest.raises(TypeError):
+
+        @released()
+        def test_xx():
+            pass
+
+
 if __name__ == "__main__":
     sys.exit("Usage: pytest utils/test_the_test.py")

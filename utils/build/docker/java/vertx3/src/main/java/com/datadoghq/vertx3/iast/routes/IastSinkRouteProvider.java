@@ -29,6 +29,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         final PathExamples path = new PathExamples();
         final SqlExamples sql = new SqlExamples(dataSource);
         final SsrfExamples ssrf = new SsrfExamples();
+        final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
         router.route("/iast/*").handler(BodyHandler.create());
 
@@ -81,6 +82,31 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         });
         router.post("/iast/ssrf/test_insecure").handler(ctx ->
                 ctx.response().end(ssrf.insecureUrl(ctx.request().getParam("url")))
+        );
+        router.get("/iast/weak_randomness/test_insecure").handler(ctx ->
+                ctx.response().end(weakRandomness.weakRandom())
+        );
+        router.get("/iast/weak_randomness/test_secure").handler(ctx ->
+                ctx.response().end(weakRandomness.secureRandom())
+        );
+        router.post("/iast/unvalidated_redirect/test_insecure_forward").handler(ctx ->{
+                    final HttpServerRequest request = ctx.request();
+                    final String location = request.getParam("location");
+                    ctx.reroute(location);
+        }
+        );
+        router.post("/iast/unvalidated_redirect/test_secure_forward").handler(ctx ->
+                ctx.reroute("http://dummy.location.com")
+        );
+        router.post("/iast/unvalidated_redirect/test_insecure_header").handler(ctx ->
+                {
+                    final HttpServerRequest request = ctx.request();
+                    final String location = request.getParam("location");
+                    ctx.response().putHeader("Location", location).end();
+                }
+        );
+        router.post("/iast/unvalidated_redirect/test_secure_header").handler(ctx ->
+                ctx.response().putHeader("Location", "http://dummy.location.com").end()
         );
     }
 }
