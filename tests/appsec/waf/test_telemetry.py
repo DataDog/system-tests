@@ -29,8 +29,7 @@ def _setup(self):
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
-@released(python="?", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+@released(python="1.14.0", cpp="?", golang="?", java="1.12.0", dotnet="?", nodejs="?", php="?", ruby="?")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @scenarios.appsec_waf_telemetry
 class Test_TelemetryMetrics:
@@ -64,7 +63,7 @@ class Test_TelemetryMetrics:
         valid_tag_prefixes = mandatory_tag_prefixes
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
-        if context.library == "python":
+        if context.library == "python" and context.weblog_variant != "uwsgi-poc":
             assert len(series) == 2
         else:
             assert len(series) == 1
@@ -210,6 +209,10 @@ def _validate_headers(headers, request_type):
         "DD-Client-Library-Language": expected_language,
         "DD-Client-Library-Version": "",
     }
+
+    # APM Python migrates Telemetry to V2
+    expected_headers["DD-Telemetry-API-Version"] = "v2" if expected_language == "python" else "v1"
+
     expected_headers = {k.lower(): v for k, v in expected_headers.items()}
 
     seen_headers = set()

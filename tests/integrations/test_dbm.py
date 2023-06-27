@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, context, missing_feature, released, scenarios
 
 
-@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="2.26.0", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", php="?", ruby="?")
 @missing_feature(
     context.library in ["python"] and context.weblog_variant != "flask-poc", reason="Missing on weblog",
 )
@@ -24,8 +24,9 @@ class Test_Dbm:
             ]
         elif self.library_name == "dotnet":
             self.requests = [
+                weblog.get("/dbm", params={"integration": "npgsql"}, timeout=20),
                 weblog.get("/dbm", params={"integration": "mysql"}),
-                weblog.get("/dbm", params={"integration": "npgsql"}),
+                weblog.get("/dbm", params={"integration": "sqlclient"}),
             ]
         elif self.library_name == "php":
             self.requests = [
@@ -35,7 +36,7 @@ class Test_Dbm:
 
     def test_trace_payload(self):
         for r in self.requests:
-            assert r.status_code == 200
+            assert r.status_code == 200, f"{r.request.url} is not successful"
             for _, _, span in interfaces.library.get_spans(request=r):
                 if span.get("span_type") != "sql":
                     return

@@ -127,7 +127,10 @@
             ],
             "regex": "en-us|krypton"
           },
-          "operator": "match_regex"
+          "operator": "match_regex",
+          "options": {
+            "case_sensitive": true
+          }
         }
       ],
       "transformers": [],
@@ -375,6 +378,32 @@
               "/finger_print"
             ]
           }
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-011",
+      "name": "Test block on uri that should not block",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000011",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "^/waf/uri_raw_should_not_include_scheme_domain_and_port$"
+          },
+          "operator": "match_regex"
         }
       ],
       "transformers": [],

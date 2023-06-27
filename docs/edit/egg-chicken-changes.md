@@ -20,6 +20,18 @@ Totally acceptable, if you accept the risk to do another PR on your repo.
 
 You have to run system-tests locally. But you will reduces the risk of rework on your repo, and you keep your `main` branch clean.
 
+## The good way (when you don't need to modify the test)
+
+Use the [`-F` option](../execute/force-execute.md):
+
+1. Do your PR in your repo
+2. Modify your CI to include the test you want to activate:
+    * `./run.sh MY_SCENARIO -F tests/feature.py::Test_Feature`
+3. Iterate on your PR, merge it
+4. :warning: Add a PR in system-tests repo, otherwise we may change the test, and break your CI without noticing it.
+
+And so time to time, removes all the `-F` in your CI.
+
 ## The good way
 
 1. Do a PR in system-tests (it fails)

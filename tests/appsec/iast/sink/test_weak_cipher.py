@@ -17,6 +17,7 @@ if context.library == "cpp":
         "spring-boot": "0.108.0",
         "spring-boot-jetty": "0.108.0",
         "spring-boot-openliberty": "0.108.0",
+        "spring-boot-payara": "0.108.0",
         "spring-boot-wildfly": "0.108.0",
         "spring-boot-udertow": "0.108.0",
         "resteasy-netty3": "1.11.0",
@@ -26,7 +27,6 @@ if context.library == "cpp":
         "*": "?",
     },
 )
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakCipher:
     """Verify weak cipher detection."""
@@ -56,8 +56,9 @@ class TestWeakCipher:
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
-    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
@@ -65,8 +66,9 @@ class TestWeakCipher:
     def setup_telemetry_metric_executed_sink(self):
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
-    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
+    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

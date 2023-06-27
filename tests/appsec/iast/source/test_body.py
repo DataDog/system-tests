@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released
+from utils import context, coverage, released, missing_feature
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -17,6 +17,7 @@ if context.library == "cpp":
         "spring-boot": "1.7.0",
         "spring-boot-jetty": "1.7.0",
         "spring-boot-openliberty": "1.7.0",
+        "spring-boot-payara": "1.7.0",
         "spring-boot-wildfly": "1.7.0",
         "spring-boot-undertow": "1.7.0",
         "vertx3": "1.12.0",
@@ -46,13 +47,17 @@ class TestRequestBody:
     def setup_telemetry_metric_instrumented_source(self):
         self.source_fixture.setup_telemetry_metric_instrumented_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_source(self):
         self.source_fixture.test_telemetry_metric_instrumented_source()
 
     def setup_telemetry_metric_executed_source(self):
         self.source_fixture.setup_telemetry_metric_executed_source()
 
-    @released(dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?")
+    @missing_feature(library="java", reason="Not implemented yet")
+    @missing_feature(library="nodejs", reason="Not implemented yet")
+    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         self.source_fixture.test_telemetry_metric_executed_source()

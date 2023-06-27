@@ -12,7 +12,6 @@ from utils import weblog, interfaces, context, missing_feature
 @missing_feature(weblog_variant="vertx3", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="vertx4", reason="Need to build endpoint on weblog")
 @missing_feature(weblog_variant="akka-http", reason="Need to build endpoint on weblog")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Sqli:
     """Verify the /rasp/sqli endpoint is setup"""

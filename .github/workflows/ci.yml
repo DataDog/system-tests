@@ -3,11 +3,12 @@ on:
   workflow_dispatch: {}
   schedule:
   - cron: 00 02 * * 2-6
-  
+
   pull_request:
     branches:
     - '**'
     types:
+    - opened
     - synchronize
     - labeled
     - unlabeled
@@ -22,20 +23,28 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  lint_and_test:
+  lint:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Run lints
       uses: ./.github/actions/lint_code
-    - run: ./build.sh -i runner
-    - run: ./run.sh TEST_THE_TEST
 
-  test-the-tests-main:
+  test_the_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - run: ./run.sh TEST_THE_TEST
+
+  main:
     runs-on: ubuntu-latest
     needs:
-    - lint_and_test
+    - lint
+    - test_the_test
     strategy:
       matrix:
         variant:
@@ -51,8 +60,6 @@ jobs:
           weblog: echo
         - library: golang
           weblog: gin
-        - library: golang
-          weblog: gorilla
         - library: golang
           weblog: net-http
         - library: golang
@@ -79,6 +86,8 @@ jobs:
           weblog: spring-boot-wildfly
         - library: java
           weblog: spring-boot-undertow
+        - library: java
+          weblog: spring-boot-payara
         - library: java
           weblog: akka-http
         - library: nodejs
@@ -183,10 +192,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Setup python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
     - name: Pull images
       uses: ./.github/actions/pull_images
     - name: Load WAF rules
@@ -206,9 +213,11 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-    - name: Build
+    - name: Build agent
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
+    - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT
@@ -217,11 +226,6 @@ jobs:
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run CGROUP scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh CGROUP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
@@ -234,6 +238,13 @@ jobs:
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APM_TRACING_E2E_OTEL scenario
+      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
+      run: ./run.sh APM_TRACING_E2E_OTEL
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
@@ -319,14 +330,9 @@ jobs:
       run: ./run.sh APPSEC_RATE_LIMITER
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_IP_BLOCKING scenario
+    - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh APPSEC_IP_BLOCKING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_IP_BLOCKING_MAXED scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh APPSEC_IP_BLOCKING_MAXED
+      run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_REQUEST_BLOCKING scenario
@@ -344,6 +350,11 @@ jobs:
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh APPSEC_API_SECURITY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh SAMPLING
@@ -359,9 +370,9 @@ jobs:
       run: |
         ./run.sh DEFAULT --replay
         ./run.sh PROFILING --replay
-        ./run.sh CGROUP --replay
         # ./run.sh TRACE_PROPAGATION_STYLE_W3C  # not working on python
         ./run.sh INTEGRATIONS --replay
+        # ./run.sh APM_TRACING_E2E_OTEL --replay  # relies on backend
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT --replay
         ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_LONG --replay
         ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES --replay
@@ -379,8 +390,7 @@ jobs:
         ./run.sh APPSEC_LOW_WAF_TIMEOUT --replay
         ./run.sh APPSEC_CUSTOM_OBFUSCATION --replay
         ./run.sh APPSEC_RATE_LIMITER --replay
-        ./run.sh APPSEC_IP_BLOCKING --replay
-        ./run.sh APPSEC_IP_BLOCKING_MAXED --replay
+        ./run.sh APPSEC_BLOCKING_FULL_DENYLIST --replay
         ./run.sh APPSEC_REQUEST_BLOCKING --replay
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
@@ -388,6 +398,8 @@ jobs:
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Compress logs
       id: compress_logs
       if: always() && steps.build.outcome == 'success'
@@ -407,17 +419,16 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
 
-  test-the-tests-graalvm:
+  graalvm:
     runs-on:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
     needs:
-    - lint_and_test
+    - lint
+    - test_the_test
     strategy:
       matrix:
         variant:
-        - library: java
-          weblog: spring-boot-native
         - library: java
           weblog: spring-boot-3-native
         version:
@@ -430,10 +441,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Setup python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
     - name: Pull images
       uses: ./.github/actions/pull_images
     - name: Load WAF rules
@@ -453,9 +462,11 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-    - name: Build
+    - name: Build agent
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
+    - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success'
       run: ./run.sh DEFAULT
@@ -464,11 +475,6 @@ jobs:
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run CGROUP scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh CGROUP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
@@ -481,6 +487,13 @@ jobs:
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APM_TRACING_E2E_OTEL scenario
+      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario')
+      run: ./run.sh APM_TRACING_E2E_OTEL
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADERS_SHORT scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADERS_SHORT
@@ -564,11 +577,6 @@ jobs:
     - name: Run APPSEC_RATE_LIMITER scenario
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: ./run.sh APPSEC_RATE_LIMITER
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_IP_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
-      run: ./run.sh APPSEC_IP_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
@@ -624,26 +632,49 @@ jobs:
       if: ${{ always() }}
       run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
 
-  test-the-tests-open-telemetry:
+  open-telemetry:
     runs-on: ubuntu-latest
     if: github.event.action != 'opened' && contains(github.event.pull_request.labels.*.name, 'opentelemetry')
     needs:
-    - lint_and_test
+    - lint
+    - test_the_test
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Setup python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
       run: docker pull mitmproxy/mitmproxy
-    - name: Build
+    - name: Build agent
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
+    - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i weblog
     - name: Run OTEL_TRACING_E2E scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh OTEL_TRACING_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run OTEL_METRIC_E2E scenario
+      if: always() && steps.build.outcome == 'success'
+      run: ./run.sh OTEL_METRIC_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run OTEL_LOG_E2E scenario
+      if: always() && steps.build.outcome == 'success'
+      run: ./run.sh OTEL_LOG_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -662,11 +693,11 @@ jobs:
         name: logs_java-otel_spring-boot-native_prod
         path: artifact.tar.gz
 
-  post_test-the-tests:
+  update-CI-visibility:
     runs-on: ubuntu-latest
     needs:
-    - test-the-tests-main
-    - test-the-tests-graalvm
+    - main
+    - graalvm
     if: always() && github.ref == 'refs/heads/main'
     steps:
     - name: Checkout
@@ -681,7 +712,8 @@ jobs:
     runs-on: ubuntu-latest
     if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
     needs:
-    - lint_and_test
+    - lint
+    - test_the_test
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
@@ -702,17 +734,18 @@ jobs:
     runs-on: ubuntu-latest
     if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
     needs:
-    - lint_and_test
+    - lint
+    - test_the_test
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Setup python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
     - name: Build
-      run: ./build.sh golang
+      run: |
+        ./build.sh -i agent
+        ./build.sh golang -i weblog
     - name: Run
       run: ./tests/fuzzer/run.sh

@@ -46,6 +46,9 @@ class InterfaceValidator:
         time.sleep(timeout)
         self.accept_data = not stop_accepting_data
 
+        # sort data, as, file system observer may have sent them in the wrong order
+        self._data_list.sort(key=lambda data: data["log_filename"])
+
     def ingest_file(self, src_path):
         # if not self.accept_data:
         #     return

@@ -4,13 +4,13 @@ import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
-import com.datastax.oss.driver.api.core.CqlSession;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.trace.api.Trace;
+import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
@@ -32,22 +32,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import org.apache.http.impl.client.CloseableHttpClient;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
@@ -57,7 +58,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,8 +84,25 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
-    @GetMapping("/waf/**")
+    @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
+    ResponseEntity<String> tagValue(@PathVariable final String value, @PathVariable final int code) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        return ResponseEntity.status(code).body("Value tagged");
+    }
+
+    @PostMapping(value = "/tag_value/{value}/{code}", headers = "accept=*",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String value, @PathVariable final int code, @RequestParam MultiValueMap<String, String> body) {
+        return tagValue(value, code);
+    }
+
+    @RequestMapping("/waf/**")
     String waf() {
+        return "Hello World!";
+    }
+
+    @RequestMapping("/waf/{param}")
+    String wafWithParams(@PathVariable("param") String param) {
         return "Hello World!";
     }
 
@@ -458,6 +475,18 @@ public class App {
         return "Loaded Dependency\n".concat(klass.toString());
     }
 
+    @RequestMapping("/read_file")
+    public ResponseEntity<String> readFile(@RequestParam String file) {
+        String content;
+        try {
+            content = new Scanner(new File(file)).useDelimiter("\\Z").next();
+        }
+        catch (FileNotFoundException ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(content, HttpStatus.OK);
+    }
 
     @Bean
     @ConditionalOnProperty(
@@ -475,6 +504,16 @@ public class App {
         matchIfMissing = true)
     WebLogInterface localInterface() throws IOException {
         return new WebLogInterface();
+    }
+
+    private void setRootSpanTag(final String key, final String value) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) span).getLocalRootSpan();
+            if (rootSpan != null) {
+                rootSpan.setTag(key, value);
+            }
+        }
     }
 
     public static void main(String[] args) {

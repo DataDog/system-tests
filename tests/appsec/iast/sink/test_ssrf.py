@@ -12,11 +12,12 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", java="1.14.0", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
-@missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(context.weblog_variant == "ratpack", reason="No endpoint implemented")
+@missing_feature(context.weblog_variant == "akka-http", reason="No endpoint implemented")
+@missing_feature(context.weblog_variant == "vertx4", reason="No endpoint implemented")
 class TestSSRF:
-    """Test command injection detection."""
+    """Test ssrf detection."""
 
     sink_fixture = SinkFixture(
         vulnerability_type="SSRF",
@@ -24,7 +25,7 @@ class TestSSRF:
         insecure_endpoint="/iast/ssrf/test_insecure",
         secure_endpoint="/iast/ssrf/test_secure",
         data={"url": "https://www.datadoghq.com"},
-        location_map={"java": "com.datadoghq.system_tests.iast.utils.SsrfExamples", "nodejs": "iast.js",},
+        location_map={"java": "com.datadoghq.system_tests.iast.utils.SsrfExamples", "nodejs": "iast/index.js",},
     )
 
     def setup_insecure(self):
@@ -43,19 +44,11 @@ class TestSSRF:
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
-    @released(dotnet="?", golang="?", java="1.14.0", nodejs="?", php_appsec="?", python="?", ruby="?")
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "ratpack", reason="No endpoint implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
     def setup_telemetry_metric_executed_sink(self):
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
-    @released(dotnet="?", golang="?", java="1.13.0", nodejs="?", php_appsec="?", python="?", ruby="?")
-    @missing_feature(context.weblog_variant == "spring-boot-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-    @missing_feature(context.weblog_variant == "ratpack", reason="No endpoint implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

@@ -36,12 +36,14 @@ def pytest_addoption(parser):
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
     parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
+    parser.addoption(
+        "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
+    )
 
 
 def pytest_configure(config):
 
     # First of all, we must get the current scenario
-
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
             context.scenario = getattr(scenarios, name)
@@ -151,6 +153,12 @@ def pytest_collection_modifyitems(session, config, items):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
             _collect_item_metadata(item)
+
+            for forced in config.option.force_execute:
+                if item.nodeid.startswith(forced):
+                    logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
+                    item.own_markers = [m for m in item.own_markers if m.name not in ("skip", "skipif")]
+
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)

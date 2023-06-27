@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -88,20 +90,12 @@ public class AppSecIast {
 
     @PostMapping("/unvalidated_redirect/test_secure_header")
     public String secureHeader(HttpServletResponse response) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         response.setHeader("location", "http://dummy.location.com");
         return "redirect";
     }
 
     @PostMapping("/unvalidated_redirect/test_insecure_header")
     public String insecureHeader(final ServletRequest request, final HttpServletResponse response) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String location = request.getParameter("location");
         response.setHeader("location", location);
         return "redirect";
@@ -109,22 +103,27 @@ public class AppSecIast {
 
     @PostMapping("/unvalidated_redirect/test_secure_redirect")
     public String secureRedirect(HttpServletResponse response) throws IOException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         response.sendRedirect("http://dummy.location.com");
         return "redirect";
     }
 
     @PostMapping("/unvalidated_redirect/test_insecure_redirect")
     public String insecureRedirect(final ServletRequest request, final HttpServletResponse response) throws IOException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String location = request.getParameter("location");
         response.sendRedirect(location);
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_secure_forward")
+    public String secureForward(HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("http://dummy.location.com").forward(request, response);
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_insecure_forward")
+    public String insecureForward(final ServletRequest request, final HttpServletResponse response) throws IOException, ServletException {
+        final String location = request.getParameter("location");
+        request.getRequestDispatcher(location).forward(request, response);
         return "redirect";
     }
 

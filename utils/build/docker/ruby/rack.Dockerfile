@@ -1,6 +1,13 @@
-FROM ghcr.io/datadog/system-tests-apps-ruby/rack:latest
+FROM ghcr.io/datadog/dd-trace-rb/ruby:3.0.3-dd
 
+RUN apt-get update && apt-get install -y nodejs npm
+RUN mkdir -p /app
+
+WORKDIR /app
+
+COPY utils/build/docker/ruby/rack/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
+
 RUN /binaries/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS=user-agent

@@ -1,11 +1,11 @@
 package com.datadoghq.jersey;
 
 import com.datadoghq.system_tests.iast.utils.*;
+import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import jakarta.json.JsonValue;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.PathSegment;
@@ -14,40 +14,16 @@ import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.naming.NamingException;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Cookie;
-
-import static com.datadoghq.jersey.Main.DATA_SOURCE;
-import static com.datadoghq.jersey.Main.LDAP_CONTEXT;
-
 
 @SuppressWarnings("Convert2MethodRef")
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
-    String superSecretAccessKey = "insecure";
-
-    private final CryptoExamples crypto = new CryptoExamples();
-    private final SqlExamples sql = new SqlExamples(DATA_SOURCE) ;
-    private final LDAPExamples ldap = new LDAPExamples(LDAP_CONTEXT);
-    private final CmdExamples cmd = new CmdExamples();
-    private final PathExamples path = new PathExamples();
-    private final SsrfExamples ssrf = new SsrfExamples();
-    private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
 
     @GET
     public String hello() {
@@ -72,9 +48,43 @@ public class MyResource {
     }
 
     @GET
+    @Path("/tag_value/{value}/{code}")
+    public Response tagValue(@PathParam("value") String value, @PathParam("code") int code) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        return Response.status(code)
+                .header("content-type", "text/plain")
+                .entity("Value tagged").build();
+    }
+
+    @OPTIONS
+    @Path("/tag_value/{value}/{code}")
+    public Response tagValueOptions(@PathParam("value") String value, @PathParam("code") int code) {
+        return tagValue(value, code);
+    }
+
+    @POST
+    @Path("/tag_value/{value}/{code}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response tagValuePost(@PathParam("value") String value, @PathParam("code") int code, MultivaluedMap<String, String> form) {
+        return tagValue(value, code);
+    }
+
+    @GET
     @Path("/params/{params: .*}")
-    public String waf(@PathParam("params") List<PathSegment> params) {
+    public String params(@PathParam("params") List<PathSegment> params) {
         return params.toString();
+    }
+
+    @GET
+    @Path("/waf/{params: .*}")
+    public String wafParams(@PathParam("params") List<PathSegment> params) {
+        return params.toString();
+    }
+
+    @GET
+    @Path("/waf")
+    public String waf() {
+        return "Hello world!";
     }
 
     @POST
@@ -96,6 +106,20 @@ public class MyResource {
     @Consumes(MediaType.APPLICATION_XML)
     public String postWafXml(XmlObject object) {
         return object.toString();
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public String postWafBin(byte[] data) {
+        return "Hello world!";
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes(MediaType.TEXT_PLAIN)
+    public String postWafString(String data) {
+        return data;
     }
 
     @GET
@@ -160,7 +184,7 @@ public class MyResource {
 
     @GET
     @Path("/make_distant_call")
-    DistantCallResponse make_distant_call(@QueryParam("url") String url) throws Exception {
+    public DistantCallResponse make_distant_call(@QueryParam("url") String url) throws Exception {
         URL urlObject = new URL(url);
 
         HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
@@ -203,181 +227,13 @@ public class MyResource {
         public HashMap<String, String> response_headers;
     }
 
-    @GET
-    @Path("/iast/insecure_hashing/deduplicate")
-    public String removeDuplicates() throws NoSuchAlgorithmException {
-        return crypto.removeDuplicates(superSecretAccessKey);
-    }
-
-    @GET
-    @Path("/iast/insecure_hashing/multiple_hash")
-    public String multipleInsecureHash() throws NoSuchAlgorithmException {
-        return crypto.multipleInsecureHash(superSecretAccessKey);
-    }
-
-    @GET
-    @Path("/iast/insecure_hashing/test_secure_algorithm")
-    public String secureHashing() throws NoSuchAlgorithmException {
+    private void setRootSpanTag(final String key, final String value) {
         final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
+        if (span instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) span).getLocalRootSpan();
+            if (rootSpan != null) {
+                rootSpan.setTag(key, value);
+            }
         }
-        return crypto.secureHashing(superSecretAccessKey);
-    }
-
-    @GET
-    @Path("/iast/insecure_hashing/test_md5_algorithm")
-    public String insecureMd5Hashing() throws NoSuchAlgorithmException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return crypto.insecureMd5Hashing(superSecretAccessKey);
-    }
-
-    @GET
-    @Path("/iast/insecure_cipher/test_secure_algorithm")
-    public String secureCipher() throws NoSuchAlgorithmException, NoSuchPaddingException,
-        IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return crypto.secureCipher(superSecretAccessKey);
-    }
-
-    @GET
-    @Path("/iast/insecure_cipher/test_insecure_algorithm")
-    public String insecureCipher() throws NoSuchAlgorithmException, NoSuchPaddingException,
-        IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return crypto.insecureCipher(superSecretAccessKey);
-    }
-
-    @POST
-    @Path("/iast/sqli/test_insecure")
-    public Object insecureSql(@FormParam("username") String username, @FormParam("password") String password) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return sql.insecureSql(username, password);
-    }
-
-    @POST
-    @Path("/iast/sqli/test_secure")
-    public Object secureSql(@FormParam("username") String username, @FormParam("password") String password) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return sql.secureSql(username, password);
-    }
-
-    @POST
-    @Path("/iast/cmdi/test_insecure")
-    public String insecureCmd(@FormParam("cmd") final String cmd) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return this.cmd.insecureCmd(cmd);
-    }
-
-    @POST
-    @Path("/iast/ldapi/test_insecure")
-    public String insecureLDAP(@FormParam("username") final String username, @FormParam("password") final String password) throws NamingException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return ldap.injection(username, password);
-    }
-
-    @POST
-    @Path("/iast/ldapi/test_secure")
-    public String secureLDAP() throws NamingException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return ldap.secure();
-    }
-
-    @POST
-    @Path("/iast/path_traversal/test_insecure")
-    public String insecurePathTraversal(@FormParam("path") final String path) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-        return this.path.insecurePathTraversal(path);
-    }
-
-    @POST
-    @Path("/iast/ssrf/test_insecure")
-    public String insecureSsrf(@FormParam("url") final String url) {
-        return this.ssrf.insecureUrl(url);
-    }
-
-    @GET
-    @Path("/iast/weak_randomness/test_insecure")
-    public String weakRandom() {
-        return this.weakRandomness.weakRandom();
-    }
-
-    @GET
-    @Path("/iast/weak_randomness/test_secure")
-    public String secureRandom() {
-        return this.weakRandomness.secureRandom();
-    }
-
-    @POST
-    @Path("/iast/source/parameter/test")
-    public String sourceParameter(@FormParam("table") final String source) {
-        sql.insecureSql(source, (statement, sql) -> statement.executeQuery(sql));
-        return String.format("Request Parameters => source: %s", source);
-    }
-
-    @GET
-    @Path("/iast/source/header/test")
-    public String sourceHeaders(@HeaderParam("table") String header) {
-        sql.insecureSql(header, (statement, sql) -> statement.executeQuery(sql));
-        return String.format("Request Headers => %s", header);
-    }
-
-    @GET
-    @Path("/iast/source/cookievalue/test")
-    public String sourceCookieValue(@CookieParam("table") final String value) {
-        sql.insecureSql(value, (statement, sql) -> statement.executeQuery(sql));
-        return String.format("Request Cookies => %s", value);
-    }
-
-    @GET
-    @Path("/iast/source/cookiename/test")
-    public String sourceCookieName(@Context final HttpHeaders headers) {
-        Collection<Cookie> cookies = headers.getCookies().values();
-        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("user"), Cookie::getName);
-        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
-        return String.format("Request Cookies => %s", cookies);
-    }
-
-    @POST
-    @Path("/iast/source/body/test")
-    public String sourceBody(TestBean testBean) {
-        System.out.println("Inside body test testbean: " + testBean);
-        String value = testBean.getValue();
-        sql.insecureSql(value, (statement, sql) -> statement.executeQuery(sql));
-        return String.format("@RequestBody to Test bean -> value:%", value);
-    }
-
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private <E> String find(final Collection<E> list,
-                            final Predicate<E> matcher,
-                            final Function<E, String> provider) {
-        return provider.apply(list.stream().filter(matcher).findFirst().get());
     }
 }
