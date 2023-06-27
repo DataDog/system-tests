@@ -10,7 +10,7 @@ runs:
         docker pull postgres:latest
     - name: Pull images needed for all scenarios
       shell: bash
-      if: (!contains(github.event.pull_request.labels.*.name, 'run-default-scenario'))
+      if: (contains(github.event.pull_request.labels.*.name, 'run-all-scenarios'))
       run: |
         docker pull mongo:latest
         docker pull bitnami/kafka:3.1
