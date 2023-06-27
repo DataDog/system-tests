@@ -1047,7 +1047,7 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
-            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1"
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=30,
         doc="",
@@ -1060,11 +1060,12 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
-            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1"
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         library_interface_timeout=30,
         doc="",
     )
+
 
 def _main():
     for name in dir(scenarios):

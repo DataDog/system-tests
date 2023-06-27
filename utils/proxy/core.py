@@ -195,7 +195,11 @@ class _RequestLogger:
                 response = {}  # default content when there isn't an RC update
             else:
                 if "PROBE" in self.state.get("mock_remote_config_backend"):
-                    response = rc_debugger.create_rcm_probe_response(request_content["client"]["client_tracer"]["language"], mocked_responses[self.config_request_count[runtime_id]], self.config_request_count[runtime_id])
+                    response = rc_debugger.create_rcm_probe_response(
+                        request_content["client"]["client_tracer"]["language"],
+                        mocked_responses[self.config_request_count[runtime_id]],
+                        self.config_request_count[runtime_id],
+                    )
                 else:
                     response = mocked_responses[self.config_request_count[runtime_id]]
 
