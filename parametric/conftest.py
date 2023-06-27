@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import dataclasses
+import json
 import os
 import shutil
 import socket
@@ -505,6 +506,35 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("Telemetry event %r not found" % event_name)
 
+    def wait_for_apply_status(
+        self, product: str, state: Literal[0, 1, 2, 3] = 2, clear: bool = False, wait_loops: int = 200
+    ):
+        """
+        UNKNOWN = 0
+        UNACKNOWLEDGED = 1
+        ACKNOWLEDGED = 2
+        ERROR = 3
+        """
+        for i in range(wait_loops):
+            try:
+                reqs = self.requests()
+                # TODO: need testagent endpoint for remoteconfig requests
+                rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+                for r in rc_reqs:
+                    r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
+                print(rc_reqs)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                for req in rc_reqs:
+                    for cfg_state in req["body"]["client"]["state"]["config_states"]:
+                        if cfg_state["product"] == product and cfg_state["apply_state"] == state:
+                            if clear:
+                                self.clear()
+                            return cfg_state
+            time.sleep(0.01)
+        raise AssertionError("No RemoteConfig apply status found")
+
 
 @contextlib.contextmanager
 def docker_run(
@@ -674,7 +704,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.9.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
         name=test_agent_container_name,
         cmd=[],
         env=env,
