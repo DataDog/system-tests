@@ -21,22 +21,17 @@ from utils import (
 from utils.tools import logger
 
 METHOD_PROBES = [
-	"logProbe-received",
-	"logProbe-installed",
-	"metricProbe-received",
-	"metricProbe-installed",
-	"spanProbe-received",
-	"spanProbe-installed",
-	"spanDecorationProbe-received",
-	"spanDecorationProbe-installed"
+    "logProbe-received",
+    "logProbe-installed",
+    "metricProbe-received",
+    "metricProbe-installed",
+    "spanProbe-received",
+    "spanProbe-installed",
+    "spanDecorationProbe-received",
+    "spanDecorationProbe-installed",
 ]
 
-LINE_PROBES = [
-	"logProbe-installed",
-	"metricProbe-installed",
-	"spanProbe-installed",
-	"spanDecorationProbe-installed"
-]
+LINE_PROBES = ["logProbe-installed", "metricProbe-installed", "spanProbe-installed", "spanDecorationProbe-installed"]
 
 
 def check_probe_statuses(expected_data):
