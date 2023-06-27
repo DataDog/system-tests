@@ -68,7 +68,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
-    @missing_feature(context.library == "golang", reason="fix not merged yet see PR #1969")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
@@ -127,11 +126,6 @@ class Test_128_Bit_Traceids:
     @missing_feature(context.library == "php", reason="Issue: Traces not available from test agent")
     @missing_feature(context.library == "python_http", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
-    @missing_feature(
-        context.library == "golang",
-        "XXXX tag would be discarded by the length rule;"
-        "16-character invalid tag would have propagation error = malformed",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false",}],
