@@ -20,11 +20,23 @@ from utils import (
 )
 from utils.tools import logger
 
-with open("tests/debugger/expected_method_probes.json", "r", encoding="utf-8") as f:
-    METHOD_PROBES = json.load(f)
+METHOD_PROBES = [
+	"logProbe-received",
+	"logProbe-installed",
+	"metricProbe-received",
+	"metricProbe-installed",
+	"spanProbe-received",
+	"spanProbe-installed",
+	"spanDecorationProbe-received",
+	"spanDecorationProbe-installed"
+]
 
-with open("tests/debugger/expected_line_probes.json", "r", encoding="utf-8") as f:
-    LINE_PROBES = json.load(f)
+LINE_PROBES = [
+	"logProbe-installed",
+	"metricProbe-installed",
+	"spanProbe-installed",
+	"spanDecorationProbe-installed"
+]
 
 
 def check_probe_statuses(expected_data):
