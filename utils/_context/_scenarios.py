@@ -6,7 +6,7 @@ import time
 
 from pulumi import automation as auto
 import pytest
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
@@ -404,15 +404,21 @@ class EndToEndScenario(_DockerScenario):
                 super().__init__()
                 self.interface = interface
 
-            def on_modified(self, event):
+            def _ingest(self, event):
                 if event.is_directory:
                     return
 
                 self.interface.ingest_file(event.src_path)
 
-        observer = Observer()
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library", recursive=True)
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent", recursive=True)
+            on_modified = _ingest
+            on_created = _ingest
+
+        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
+        # limits on Linux) -> using the good old bare polling system
+        observer = PollingObserver()
+
+        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
+        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
 
         observer.start()
 

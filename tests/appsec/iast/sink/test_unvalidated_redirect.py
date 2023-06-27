@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released
+from utils import context, coverage, released, irrelevant
 from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
@@ -18,6 +18,10 @@ def _expected_location():
             return "com.datadoghq.resteasy.IastSinkResource"
         if context.weblog_variant == "jersey-grizzly2":
             return "com.datadoghq.jersey.IastSinkResource"
+        if context.weblog_variant == "vertx3":
+            return "com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider"
+        if context.weblog_variant == "vertx4":
+            return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
     if context.library.library == "nodejs":
         return "iast/index.js"
 
@@ -26,13 +30,15 @@ def _expected_location():
 @released(dotnet="?", golang="?", php_appsec="?", ruby="?", python="?", nodejs="?")
 @released(
     java={
-        "spring-boot": "?",
-        "spring-boot-jetty": "?",
-        "spring-boot-openliberty": "?",
-        "spring-boot-wildfly": "?",
-        "spring-boot-undertow": "?",
-        "resteasy-netty3": "?",
-        "jersey-grizzly2": "?",
+        "spring-boot": "1.16.0",
+        "spring-boot-jetty": "1.17.0",
+        "spring-boot-openliberty": "1.16.0",
+        "spring-boot-wildfly": "1.16.0",
+        "spring-boot-undertow": "1.16.0",
+        "resteasy-netty3": "1.16.0",
+        "jersey-grizzly2": "1.16.0",
+        "vertx3": "1.16.0",
+        "vertx4": "1.17.0",
         "*": "?",
     }
 )
@@ -71,11 +77,13 @@ class TestUnvalidatedRedirect:
     def setup_insecure_redirect(self):
         self.sink_fixture_redirect.setup_insecure()
 
+    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     def test_insecure_redirect(self):
         self.sink_fixture_redirect.test_insecure()
 
     def setup_secure_redirect(self):
         self.sink_fixture_redirect.setup_secure()
 
+    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     def test_secure_redirect(self):
         self.sink_fixture_redirect.test_secure()

@@ -17,6 +17,7 @@ if context.library == "cpp":
         "spring-boot": "0.108.0",
         "spring-boot-jetty": "0.108.0",
         "spring-boot-openliberty": "0.108.0",
+        "spring-boot-payara": "0.108.0",
         "spring-boot-wildfly": "0.108.0",
         "spring-boot-udertow": "0.108.0",
         "resteasy-netty3": "1.11.0",
