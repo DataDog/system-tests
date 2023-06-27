@@ -287,3 +287,22 @@ The following query parameters are optional:
 
 This endpoint is used for the OTel API tests (`test_otel.py`). In the body of the endpoint, multiple properties are set on the span to verify that the API works correctly.
 To read more about the specific values being used, check `test_otel.py` for up-to-date information.
+
+## GET /debugger
+These endpoints are used for the Live Debugger tests in `test_debugger.py`. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+
+### GET /debugger/log
+This endpoint will be used to validate the log probe. 
+
+### GET /debugger/metric
+This endpoint will be used to validate the metric probe.
+
+### GET /debugger/span
+This endpoint will be used to validate the span probe.
+
+### GET /debugger/span-decoration
+This endpoint will be used to validate the span decoration probe.
+
+The following query parameters are required for each endpoint:
+- `arg`: This is a parameter that can take any string as an argument.
+- `intArg`: This is a parameter that can take any integer as an argument.
