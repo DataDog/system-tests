@@ -26,19 +26,19 @@ with open("tests/debugger/expected_method_probes.json", 'r', encoding="utf-8") a
 with open("tests/debugger/expected_line_probes.json", 'r', encoding="utf-8") as f:
     LINE_PROBES = json.load(f)
 
-def test_probe_statuses(expected_data):
-    test_info_endpoint()
+def check_probe_statuses(expected_data):
+    check_info_endpoint()
 
     agent_logs = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
-    test_logs(agent_logs, expected_data)
+    check_logs(agent_logs, expected_data)
 
     request_number = 0
     for agent_log in agent_logs:
         if request_number < len(expected_data):
-            test_probe_status(agent_log, expected_data[request_number])
+            check_probe_status(agent_log, expected_data[request_number])
             request_number += 1
 
-def test_info_endpoint():
+def check_info_endpoint():
     """ Check that agent exposes /v0.7/config endpoint """
     for data in interfaces.library.get_data("/info"):
         for endpoint in data["response"]["content"]["endpoints"]:
@@ -47,13 +47,13 @@ def test_info_endpoint():
 
     raise ValueError("Agent did not provide /v0.7/config endpoint")
 
-def test_logs(logs, data):
+def check_logs(logs, data):
     assert logs, "Probe statuses were not recieved"
 
     if len(data) > len (logs):
         raise ValueError("Received less probe statuses than expected")
 
-def test_probe_status(log, expectedProbeId):
+def check_probe_status(log, expectedProbeId):
     actualProbeId = log["request"]["content"][0]["debugger"]["diagnostics"]["probeId"]
 
     if expectedProbeId != actualProbeId:
@@ -69,10 +69,10 @@ def test_probe_status(log, expectedProbeId):
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
-        test_probe_statuses(METHOD_PROBES)
+        check_probe_statuses(METHOD_PROBES)
 
 @released(dotnet="2.15.0")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
-        test_probe_statuses(LINE_PROBES)
+        check_probe_statuses(LINE_PROBES)
