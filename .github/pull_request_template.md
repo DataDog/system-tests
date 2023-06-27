@@ -8,7 +8,7 @@
 
 ## Reviewer checklist
 
-* [ ] If this PR modifies anything else than strictly the default scenario, then add the `run-all-scenarios` label ([more info](https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/2866381467/CI+Workflow+Github+Actions)).
+* [ ] If this PR modifies anything else than strictly the default scenario, then add the `run-all-scenarios` label ([more info](https://github.com/DataDog/system-tests/blob/main/docs/CI/system-tests-ci.md)). 
 * [ ] CI is green
    * [ ] If not, failing jobs are not related to this change (and you are 100% sure about this statement)
 
