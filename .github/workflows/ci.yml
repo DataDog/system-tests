@@ -87,6 +87,8 @@ jobs:
         - library: java
           weblog: spring-boot-undertow
         - library: java
+          weblog: spring-boot-payara
+        - library: java
           weblog: akka-http
         - library: nodejs
           weblog: express4
@@ -739,8 +741,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel
+    - name: Install runner
+      uses: ./.github/actions/install_runner
     - name: Build
       run: |
         ./build.sh -i agent
