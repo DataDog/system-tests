@@ -1050,6 +1050,7 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1"
         },
         library_interface_timeout=30,
+        doc="",
     )
 
     debugger_line_probes_status = EndToEndScenario(
@@ -1062,6 +1063,7 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1"
         },
         library_interface_timeout=30,
+        doc="",
     )
 
 def _main():
