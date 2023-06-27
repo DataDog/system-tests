@@ -54,15 +54,20 @@ module.exports = function (app, passport, tracer) {
 
       res.sendStatus(401)
     } else if (event === 'success') {
-        tracer.appsec.trackUserLoginSuccessEvent({
-          id: userId,
-          email: userMail,
-          name: "system_tests_user"
-        }, { metadata0: "value0", metadata1: "value1" })
+        tracer.appsec.trackUserLoginSuccessEvent(
+          {
+            id: userId,
+            email: userMail,
+            name: "system_tests_user"
+          },
+          {
+            metadata0: "value0",
+            metadata1: "value1"
+          }
+        )
       }
 
       res.sendStatus(200)
-    }
   }
 
   function getStrategy (req, res, next) {
