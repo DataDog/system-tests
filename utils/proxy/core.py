@@ -3,6 +3,7 @@ from collections import defaultdict
 import json
 import logging
 import os
+import rc_debugger
 from datetime import datetime
 
 from rc_mock import MOCKED_RESPONSES
