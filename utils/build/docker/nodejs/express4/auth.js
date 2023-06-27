@@ -53,8 +53,7 @@ module.exports = function (app, passport, tracer) {
       }
 
       res.sendStatus(401)
-    } else {
-      if (event === 'success') {
+    } else if (event === 'success') {
         tracer.appsec.trackUserLoginSuccessEvent({
           id: userId,
           email: userMail,
