@@ -82,14 +82,14 @@ def check_probe_status(log, expectedProbeId):
         raise ValueError("Received probe status " + actualStatus + ", but expected for " + expectedStatus)
 
 
-@released(dotnet="2.15.0")
+@released(cpp="?", golang="?", dotnet="2.32.0", java="?", php_appsec="?", python="?", ruby="?", nodejs="?")
 @scenarios.debugger_method_probes_status
 class Test_Debugger_Method_Probe_Statuses:
     def test_method_probe_status(self):
         check_probe_statuses(METHOD_PROBES)
 
 
-@released(dotnet="2.15.0")
+@released(cpp="?", golang="?", dotnet="2.32.0", java="?", php_appsec="?", python="?", ruby="?", nodejs="?")
 @scenarios.debugger_line_probes_status
 class Test_Debugger_Line_Probe_Statuses:
     def test_line_probe_status(self):
