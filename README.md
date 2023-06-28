@@ -4,7 +4,7 @@ Workbench designed to run advanced tests (integration, smoke, functionnal, fuzzi
 
 ## Requirements
 
-`bash`, `docker` and `python3.9`. More infos in the [documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/requirements.md)
+`bash`, `docker` and `python3.9`. More infos in the [documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/requirements.md)
 
 ## How to use
 
@@ -29,9 +29,9 @@ flowchart TD
 
 Understand the parts of the tests at the [architectural overview](https://github.com/DataDog/system-tests/blob/main/docs/architecture/overview.md).
 
-More details in [build documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md) and [run documentation](https://github.com/DataDog/system-tests/blob/master/docs/execute/run.md).
+More details in [build documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md) and [run documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md).
 
 ![Output on success](./utils/assets/output.png?raw=true)
 
-**[Complete documentation](https://github.com/DataDog/system-tests/blob/master/docs)**
+**[Complete documentation](https://github.com/DataDog/system-tests/blob/main/docs)**
 
