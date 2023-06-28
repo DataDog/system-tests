@@ -26,6 +26,9 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
 @missing_feature(
     library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
 )
+@missing_feature(
+    library="ruby", reason="Ruby supported denylists of 2500 entries but it fails to block this those 15000"
+)
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
 class Test_UserBlocking_FullDenylist:
