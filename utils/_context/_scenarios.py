@@ -593,7 +593,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
                 self.interface.ingest_file(event.src_path)
 
-        observer = Observer()
+        observer = PollingObserver()
         observer.schedule(
             Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
         )
