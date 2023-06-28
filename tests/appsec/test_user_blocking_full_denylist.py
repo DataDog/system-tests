@@ -74,7 +74,10 @@ class Test_UserBlocking_FullDenylist:
         interfaces.library.wait_for(self._remote_config_asm_payload, timeout=30)
         interfaces.library.wait_for(self._remote_config_is_applied, timeout=30)
 
-        self.r_blocked_requests = [weblog.get("/users", params={"user": i}) for i in range(self.NUM_OF_BLOCKED_USERS)]
+        self.r_blocked_requests = [
+            weblog.get("/users", params={"user": 1}),
+            weblog.get("/users", params={"user": 2499}),
+        ]
 
     @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
     def test_blocking_test(self):

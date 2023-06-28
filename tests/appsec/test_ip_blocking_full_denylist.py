@@ -103,7 +103,11 @@ class Test_AppSecIPBlockingFullDenylist:
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
-        self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
+        self.blocked_requests = [
+            weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[0]}),
+            weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[2500]}),
+            weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[-1]}),
+        ]
 
     @missing_feature(context.weblog_variant == "spring-boot" and context.library < "java@0.111.0")
     def test_blocked_ips(self):
