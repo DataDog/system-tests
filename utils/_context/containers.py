@@ -515,8 +515,11 @@ class SqlServerContainer(TestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+        image = os.environ.get(
+            "OTEL_COLLECTOR_IMAGE", "registry.ddbuild.io/ci/opentelemetry-collector-contrib:ci-image-2"
+        )
         super().__init__(
-            image_name="otel/opentelemetry-collector-contrib:latest",
+            image_name=image,
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
