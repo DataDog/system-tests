@@ -2,11 +2,11 @@
 Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
 """
 import json
-import random
 from typing import Any
 from typing import Dict
+from typing import List
 
-from utils import missing_feature, context, scenarios
+from utils import scenarios
 
 import pytest
 
@@ -14,12 +14,18 @@ import pytest
 parametrize = pytest.mark.parametrize
 
 
-base_env = {
+DEFAULT_SAMPLE_RATE = 1.0
+
+
+DEFAULT_SERVICE = "test_service"
+DEFAULT_ENV = "test_env"
+DEFAULT_ENVVARS = {
+    "DD_SERVICE": DEFAULT_SERVICE,
+    "DD_ENV": DEFAULT_ENV,
+    # Decrease the heartbeat/poll intervals to speed up the tests
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
-
-DEFAULT_SAMPLE_RATE = 1.0
 
 
 def send_and_wait_trace(test_library, test_agent, **span_kwargs):
@@ -30,38 +36,46 @@ def send_and_wait_trace(test_library, test_agent, **span_kwargs):
     return traces[0]
 
 
-def set_and_wait_rc(test_agent, config: Dict[str, Any]):
-    cfg = {
-        # v1 dynamic config
-        "tracing_sampling_rate": None,
-        "log_injection_enabled": None,
-        "tracing_header_tags": None,
-        # v2 dynamic config
-        "runtime_metrics_enabled": None,
-        "tracing_debug": None,
-        "tracing_service_mapping": None,
-        "tracing_sampling_rules": None,
-        "span_sampling_rules": None,
-        "data_streams_enabled": None,
-    }
-    for k, v in config.items():
-        cfg[k] = v
-
-    cfg_id = "%032x" % random.getrandbits(128)
-    test_agent.set_remote_config(
-        path="datadog/2/APM_TRACING/%s/config" % cfg_id,
-        payload={
-            # These values don't matter, can be anything
-            "action": "enable",
-            "service_target": {"service": "myservice", "env": "dev"},
-            "lib_config": cfg,
+def _default_config(service, env) -> Dict[str, Any]:
+    return {
+        "action": "enable",
+        "service_target": {"service": service, "env": env},
+        "lib_config": {
+            # v1 dynamic config
+            "tracing_sampling_rate": None,
+            "log_injection_enabled": None,
+            "tracing_header_tags": None,
+            # v2 dynamic config
+            "runtime_metrics_enabled": None,
+            "tracing_debug": None,
+            "tracing_service_mapping": None,
+            "tracing_sampling_rules": None,
+            "span_sampling_rules": None,
+            "data_streams_enabled": None,
         },
+    }
+
+
+def _set_rc(test_agent, config: Dict[str, Any]) -> None:
+    cfg_id = hash(json.dumps(config))
+    test_agent.set_remote_config(
+        path="datadog/2/APM_TRACING/%s/config" % cfg_id, payload=config,
     )
+
+
+def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
+    rc_config = _default_config(DEFAULT_SERVICE, DEFAULT_ENV)
+    for k, v in config_overrides.items():
+        rc_config["lib_config"][k] = v
+
+    _set_rc(test_agent, rc_config)
+
+    # Wait for both the telemetry event and the RC apply status.
     test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
     return test_agent.wait_for_apply_status("APM_TRACING", clear=True, state=2)
 
 
-def assert_sampling_rate(span: Dict, rate: float):
+def assert_sampling_rate(trace: List[Dict], rate: float):
     """Asserts that a span returned from the test agent is consistent with the given sample rate.
 
     It is assumed that the span is the root span of the trace.
@@ -69,8 +83,8 @@ def assert_sampling_rate(span: Dict, rate: float):
     # TODO: find the right heuristics to assert the sample rate
     # if "_dd.agent_psr" in span["metrics"]:
     #     assert span["metrics"]["_dd.agent_psr"] == rate
-    if "_dd.rule_psr" in span["metrics"]:
-        assert span["metrics"]["_dd.rule_psr"] == pytest.approx(rate)
+    if "_dd.rule_psr" in trace[0]["metrics"]:
+        assert trace[0]["metrics"]["_dd.rule_psr"] == pytest.approx(rate)
 
 
 ENV_SAMPLING_RULE_RATE = 0.55
@@ -91,7 +105,7 @@ class TestDynamicConfig:
         events = test_agent.wait_for_telemetry_event("app-started")
         assert len(events) > 0
 
-    @parametrize("library_env", [{**base_env}])
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_apply_status(self, library_env, test_agent, test_library):
         """Create a default RC record and ensure the apply_status is correctly set.
 
@@ -103,7 +117,37 @@ class TestDynamicConfig:
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
 
-    @parametrize("library_env", [{**base_env}])
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                # Override service and env
+                "DD_SERVICE": s,
+                "DD_ENV": e,
+            }
+            for (s, e) in [
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"]),
+                (DEFAULT_ENVVARS["DD_SERVICE"], DEFAULT_ENVVARS["DD_ENV"] + "-override"),
+                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"] + "-override"),
+            ]
+        ],
+    )
+    def test_not_match_service_target(self, library_env, test_agent, test_library):
+        """Test that the library reports an erroneous apply_status when the service targeting is not correct.
+
+        This can occur if the library requests Remote Configuration with an initial service + env pair and then
+        one or both of the values changes.
+
+        We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ from the service
+        target in the RC record.
+        """
+        _set_rc(test_agent, _default_config(DEFAULT_SERVICE, DEFAULT_ENV))
+        cfg_state = test_agent.wait_for_apply_status("APM_TRACING", state=3)
+        assert cfg_state["apply_state"] == 3
+        assert cfg_state["apply_error"] != ""
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_trace_sampling_rate_override_default(self, test_agent, test_library):
         """The RC sampling rate should override the default sampling rate.
 
@@ -111,20 +155,20 @@ class TestDynamicConfig:
         """
         # Create an initial trace to assert the default sampling settings.
         trace = send_and_wait_trace(test_library, test_agent, name="test")
-        assert_sampling_rate(trace[0], DEFAULT_SAMPLE_RATE)
+        assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config={"tracing_sampling_rate": 0.5})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
-        assert_sampling_rate(trace[0], 0.5)
+        assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
-        set_and_wait_rc(test_agent, config={"tracing_sampling_rate": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
-        assert_sampling_rate(trace[0], DEFAULT_SAMPLE_RATE)
+        assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": r, **base_env,} for r in ["0.1", "1.0"]])
+    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]])
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
@@ -138,31 +182,31 @@ class TestDynamicConfig:
 
         # Create an initial trace to assert the default sampling settings.
         trace = send_and_wait_trace(test_library, test_agent, name="test")
-        assert_sampling_rate(trace[0], initial_sample_rate)
+        assert_sampling_rate(trace, initial_sample_rate)
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config={"tracing_sampling_rate": 0.5})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
-        assert_sampling_rate(trace[0], 0.5)
+        assert_sampling_rate(trace, 0.5)
 
         # Create another remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config={"tracing_sampling_rate": 0.6})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.6})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
-        assert_sampling_rate(trace[0], 0.6)
+        assert_sampling_rate(trace, 0.6)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config={"tracing_sampling_rate": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
-        assert_sampling_rate(trace[0], initial_sample_rate)
+        assert_sampling_rate(trace, initial_sample_rate)
 
     @parametrize(
         "library_env",
         [
             {
+                **DEFAULT_ENVVARS,
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": ENV_SAMPLING_RULE_RATE, "name": "env_name"}]),
-                **base_env,
             }
         ],
     )
@@ -173,44 +217,50 @@ class TestDynamicConfig:
 
         # Create an initial trace to assert that the rule is correctly applied.
         trace = send_and_wait_trace(test_library, test_agent, name="env_name")
-        assert_sampling_rate(trace[0], ENV_SAMPLING_RULE_RATE)
+        assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
 
         # Create a remote config entry with a different sample rate. This rate should not
         # apply to env_service spans but should apply to all others.
-        set_and_wait_rc(test_agent, config={"tracing_sampling_rate": RC_SAMPLING_RULE_RATE})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": RC_SAMPLING_RULE_RATE})
 
         trace = send_and_wait_trace(test_library, test_agent, name="env_name", service="")
-        assert_sampling_rate(trace[0], ENV_SAMPLING_RULE_RATE)
+        assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
-        assert_sampling_rate(trace[0], RC_SAMPLING_RULE_RATE)
+        assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config={"tracing_sampling_rate": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="env_name")
-        assert_sampling_rate(trace[0], ENV_SAMPLING_RULE_RATE)
+        assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
-        assert_sampling_rate(trace[0], DEFAULT_SAMPLE_RATE)
+        assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
     @parametrize(
         "library_env",
         [
-            {"DD_TRACE_LOGS_INJECTION": "true", **base_env,},
-            {"DD_TRACE_LOGS_INJECTION": "false", **base_env,},
-            {**base_env,},
+            {"DD_TRACE_LOGS_INJECTION": "true", **DEFAULT_ENVVARS,},
+            {"DD_TRACE_LOGS_INJECTION": "false", **DEFAULT_ENVVARS,},
+            {**DEFAULT_ENVVARS,},
         ],
     )
     def test_log_injection_enabled(self, library_env, test_agent, test_library):
-        cfg_state = set_and_wait_rc(test_agent, config={"tracing_sample_rate": None})
+        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
     @pytest.mark.skip(reason="TODO: enable once the http request support is added")
     @parametrize(
         "library_env",
-        [{**base_env, "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env, X-Test-Header-2:test_header_env2"},],
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env, X-Test-Header-2:test_header_env2",
+            },
+        ],
     )
     def test_tracing_header_tags(self, library_env, test_agent, test_library):
         cfg_state = set_and_wait_rc(
-            test_agent, config={"tracing_header_tags": [{"header": "X-Test-Header", "tag_name": "test_header",}]}
+            test_agent,
+            config_overrides={"tracing_header_tags": [{"header": "X-Test-Header", "tag_name": "test_header",}]},
         )
         assert cfg_state["apply_state"] == 2
 
@@ -222,3 +272,4 @@ class TestDynamicConfig:
 
 
 # TODO test case for new version of config, ensure it doesn't break libraries
+# TODO: test no config change = no telemetry event
