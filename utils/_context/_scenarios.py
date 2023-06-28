@@ -6,8 +6,6 @@ import time
 
 from pulumi import automation as auto
 import pytest
-from watchdog.observers.polling import PollingObserver
-from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
 from utils.onboarding.pulumi_ssh import PulumiSSH
@@ -210,6 +208,7 @@ class _DockerScenario(_Scenario):
 
         self.use_proxy = use_proxy
         self._required_containers = []
+        self._watchdog_thread = None
 
         if self.use_proxy:
             self._required_containers.append(
@@ -245,6 +244,45 @@ class _DockerScenario(_Scenario):
         for container in reversed(self._required_containers):
             container.configure(replay)
 
+    def _start_interface_watchdog(self, watches=[]):
+        if not watches:
+            return
+
+        from threading import Thread
+
+        # Lots of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher limits on Linux). Using a very simple poller instead.
+
+        def create_watchdog(parent):
+            def watchdog():
+                logger.debug("Started interface watchdog")
+                while parent._watchdog_thread:
+                    time.sleep(0.1)
+                    for iface, dir_path in watches:
+                        pending_files = []
+                        for root, _, files in os.walk(dir_path):
+                            for file in files:
+                                if not file.endswith(".tmp"):
+                                    continue
+                                pending_files.append(os.path.join(root, file))
+                        for file in sorted(pending_files):
+                            try:
+                                iface.ingest_file(file)
+                            except Exception:
+                                logger.exception(f"Exception while ingesting {file}")
+                logger.debug("Stopped interface watchdog")
+
+            return watchdog
+
+        self._watchdog_thread = Thread(target=create_watchdog(self), daemon=True)
+        self._watchdog_thread.start()
+        # TODO: Shutdown watchdog after post_setup is finished
+
+    def _stop_interface_watchdog(self):
+        thread = self._watchdog_thread
+        self._watchdog_thread = None
+        if thread:
+            thread.join()
+
     def _get_warmups(self):
 
         warmups = super()._get_warmups()
@@ -262,6 +300,7 @@ class _DockerScenario(_Scenario):
                 container.remove()
             except:
                 logger.exception(f"Failed to remove container {container}")
+        self._stop_interface_watchdog()
 
     def collect_logs(self):
 
@@ -391,28 +430,12 @@ class EndToEndScenario(_DockerScenario):
     def _start_interface_watchdog(self):
         from utils import interfaces
 
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def _ingest(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
-            on_modified = _ingest
-            on_created = _ingest
-
-        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
-        # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver()
-
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
-
-        observer.start()
+        super()._start_interface_watchdog(
+            watches=[
+                (interfaces.library, f"{self.host_log_folder}/interfaces/library"),
+                (interfaces.agent, f"{self.host_log_folder}/interfaces/agent"),
+            ]
+        )
 
     def _get_warmups(self):
         warmups = super()._get_warmups()
@@ -582,23 +605,9 @@ class OpenTelemetryScenario(_DockerScenario):
     def _start_interface_watchdog(self):
         from utils import interfaces
 
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def on_modified(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
-        observer = Observer()
-        observer.schedule(
-            Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
+        super()._start_interface_watchdog(
+            watches=[(interfaces.open_telemetry, f"{self.host_log_folder}/interfaces/open_telemetry"),]
         )
-
-        observer.start()
 
     def _get_warmups(self):
         warmups = super()._get_warmups()

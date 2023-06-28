@@ -153,6 +153,9 @@ class _RequestLogger:
             log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
             log_filename = f"{log_foldename}/{message_count:05d}_{data['path'].replace('/', '_')}.json"
 
+            # Save the file with a .tmp suffix to later be removed by the runner on ingestion.
+            tmp_filename = log_filename + ".tmp"
+
             logger.info(f"    => Saving data as {log_filename}")
 
             data["log_filename"] = log_filename
@@ -160,7 +163,7 @@ class _RequestLogger:
             def opener(path, flags):
                 return os.open(path, flags, 0o777)
 
-            with open(log_filename, "w", encoding="utf-8", opener=opener) as f:
+            with open(tmp_filename, "w", encoding="utf-8", opener=opener) as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
         except:

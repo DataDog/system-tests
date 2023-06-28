@@ -6,6 +6,8 @@
 
 import threading
 import json
+import os
+import os.path
 import re
 import time
 
@@ -27,9 +29,6 @@ class InterfaceValidator:
 
         self._lock = threading.RLock()
         self._data_list = []
-        self._ingested_files = set()
-
-        self.accept_data = True
 
         self.replay = False
 
@@ -42,38 +41,47 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self, timeout, stop_accepting_data=True):
+    def wait(self, timeout):
         time.sleep(timeout)
-        self.accept_data = not stop_accepting_data
 
         # sort data, as, file system observer may have sent them in the wrong order
         self._data_list.sort(key=lambda data: data["log_filename"])
 
     def ingest_file(self, src_path):
-        # if not self.accept_data:
-        #     return
+        """
+        Ingest a file, previously written by the proxy.
+        """
+        logger.debug(f"Called ingest_file({src_path})")
+
+        if not src_path.endswith(".tmp"):
+            # Only files with .tmp suffix are pending ingestion.
+            # Others are already processed.
+            return
+
+        dst_path = src_path.replace(".tmp", "")
 
         with self._lock:
-            if src_path in self._ingested_files:
-                return
-
             logger.debug(f"Ingesting {src_path}")
 
             with open(src_path, "r", encoding="utf-8") as f:
                 try:
                     data = json.load(f)
                 except json.decoder.JSONDecodeError:
+                    # The file probably did not finish being written. Ingestion will be triggered again and we should be able to parse it next time.
                     logger.exception(f"Error while decoding message {src_path}")
-                    # the file may not be finished
                     return
 
             deserialize(data, self.name)
 
-            with open(src_path, "w", encoding="utf-8") as f:
+            with open(dst_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             self._data_list.append(data)
-            self._ingested_files.add(src_path)
+
+            # Remove original temporary file (only once it has been successfully written to its final destination.
+            os.remove(src_path)
+
+            logger.debug(f"Ingested {src_path} successfully")
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
@@ -84,6 +92,11 @@ class InterfaceValidator:
 
         for filename in sorted(listdir(folder_path)):
             file_path = join(folder_path, filename)
+
+            if filename.endswith(".tmp"):
+                logger.warning(f"File not ingested: {file_path}")
+                continue
+
             if isfile(file_path):
 
                 with open(file_path, "r", encoding="utf-8") as f:
