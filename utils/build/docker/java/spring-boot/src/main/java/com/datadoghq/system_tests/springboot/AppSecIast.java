@@ -206,6 +206,58 @@ public class AppSecIast {
         return weakRandomnessExamples.secureRandom();
     }
 
+    @GetMapping("/insecure-cookie/test_empty_cookie")
+    String insecureCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/insecure-cookie/test_insecure")
+    String insecureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/insecure-cookie/test_secure")
+    String secureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_insecure")
+    String noSameSiteCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;Secure");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_empty_cookie")
+    String noSameSiteCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_secure")
+    String noSameSiteCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie-cookie/test_empty_cookie")
+    String noHttpOnlyCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/no-httponly-cookie/test_insecure")
+    String noHttpOnlyCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie/test_secure")
+    String noHttpOnlyCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily
      *
