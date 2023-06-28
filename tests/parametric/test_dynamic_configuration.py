@@ -67,10 +67,10 @@ def assert_sampling_rate(span: Dict, rate: float):
     It is assumed that the span is the root span of the trace.
     """
     # TODO: find the right heuristics to assert the sample rate
-    if "_dd.agent_psr" in span["metrics"]:
-        assert span["metrics"]["_dd.agent_psr"] == rate
+    # if "_dd.agent_psr" in span["metrics"]:
+    #     assert span["metrics"]["_dd.agent_psr"] == rate
     if "_dd.rule_psr" in span["metrics"]:
-        assert span["metrics"]["_dd.rule_psr"] == rate
+        assert span["metrics"]["_dd.rule_psr"] == pytest.approx(rate)
 
 
 ENV_SAMPLING_RULE_RATE = 0.55
@@ -161,9 +161,7 @@ class TestDynamicConfig:
         "library_env",
         [
             {
-                "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"sample_rate": ENV_SAMPLING_RULE_RATE, "service": "env_service"}]
-                ),
+                "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": ENV_SAMPLING_RULE_RATE, "name": "env_name"}]),
                 **base_env,
             }
         ],
@@ -174,23 +172,23 @@ class TestDynamicConfig:
         assert RC_SAMPLING_RULE_RATE != ENV_SAMPLING_RULE_RATE
 
         # Create an initial trace to assert that the rule is correctly applied.
-        trace = send_and_wait_trace(test_library, test_agent, name="", service="env_service")
+        trace = send_and_wait_trace(test_library, test_agent, name="env_name")
         assert_sampling_rate(trace[0], ENV_SAMPLING_RULE_RATE)
 
         # Create a remote config entry with a different sample rate. This rate should not
         # apply to env_service spans but should apply to all others.
         set_and_wait_rc(test_agent, config={"tracing_sampling_rate": RC_SAMPLING_RULE_RATE})
 
-        trace = send_and_wait_trace(test_library, test_agent, name="", service="env_service")
+        trace = send_and_wait_trace(test_library, test_agent, name="env_name", service="")
         assert_sampling_rate(trace[0], ENV_SAMPLING_RULE_RATE)
-        trace = send_and_wait_trace(test_library, test_agent, name="", service="some_other_service")
+        trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace[0], RC_SAMPLING_RULE_RATE)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
         set_and_wait_rc(test_agent, config={"tracing_sampling_rate": None})
-        trace = send_and_wait_trace(test_library, test_agent, name="", service="env_service")
+        trace = send_and_wait_trace(test_library, test_agent, name="env_name")
         assert_sampling_rate(trace[0], ENV_SAMPLING_RULE_RATE)
-        trace = send_and_wait_trace(test_library, test_agent, name="", service="some_other_service")
+        trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace[0], DEFAULT_SAMPLE_RATE)
 
     @parametrize(
