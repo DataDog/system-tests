@@ -2,14 +2,28 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from random import randint
+from collections import defaultdict
+from random import randint, seed
 
 from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenarios
+from utils.tools import logger
+
 
 USER_REJECT = -1
 AUTO_REJECT = 0
 AUTO_KEEP = 1
 USER_KEEP = 2
+
+
+def _spans_with_parent(traces, parent_ids):
+    if not isinstance(traces, list):
+        logger.error("Traces should be an array")
+        yield from []  # do notfail here, it's schema's job
+    else:
+        for trace in traces:
+            for span in trace:
+                if span.get("parent_id") in parent_ids:
+                    yield span
 
 
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
@@ -122,9 +136,36 @@ class Test_SamplingDecisions:
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
-        interfaces.library.assert_sampling_decisions_added(self.traces)
+
+        traces = {trace["parent_id"]: trace for trace in self.traces}
+        spans = []
+
+        def validator(data):
+            for span in _spans_with_parent(data["request"]["content"], traces.keys()):
+
+                expected_trace_id = traces[span["parent_id"]]["trace_id"]
+                spans.append(span)
+
+                assert span["trace_id"] == expected_trace_id, (
+                    f"Message: {data['log_filename']}: If parent_id matches, "
+                    f"trace_id should match too expected trace_id {expected_trace_id} "
+                    f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
+                )
+
+                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+
+                assert sampling_priority is not None, (
+                    f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
+                )
+
+        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+
+        if len(spans) != len(traces):
+            raise ValueError("Didn't see all requests")
 
     def setup_sampling_determinism(self):
+        seed(0)  # stay deterministic
+
         self.traces_determinism = [
             {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)
         ]
@@ -149,4 +190,31 @@ class Test_SamplingDecisions:
     @bug(library="php", reason="APMRP-258")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
-        interfaces.library.assert_deterministic_sampling_decisions(self.traces_determinism)
+
+        traces = {trace["parent_id"]: trace for trace in self.traces_determinism}
+        sampling_decisions_per_trace_id = defaultdict(list)
+
+        def validator(data):
+            for span in _spans_with_parent(data["request"]["content"], traces.keys()):
+                expected_trace_id = traces[(span["parent_id"])]["trace_id"]
+                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+
+                assert span["trace_id"] == expected_trace_id, (
+                    f"Message: {data['log_filename']}: If parent_id matches, "
+                    f"trace_id should match too expected trace_id {expected_trace_id} "
+                    f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
+                )
+
+                assert (
+                    sampling_priority is not None
+                ), f"Message: {data['log_filename']}: sampling priority should be set"
+
+        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+
+        for trace_id, decisions in sampling_decisions_per_trace_id.items():
+            if len(decisions) < 2:
+                continue
+
+            if not all((d == decisions[0] for d in decisions)):
+                raise ValueError(f"Sampling decisions are not deterministic for trace_id {trace_id}: {decisions}")
