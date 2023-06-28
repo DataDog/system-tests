@@ -15,6 +15,24 @@ AUTO_KEEP = 1
 USER_KEEP = 2
 
 
+def get_sampling_decision(sampling_rate, trace_id, meta):
+    """Algorithm described in the priority sampling RFC
+    https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md"""
+    MAX_TRACE_ID = 2 ** 64
+    KNUTH_FACTOR = 1111111111111111111
+    AUTO_REJECT = 0
+    AUTO_KEEP = 1
+    MANUAL_KEEP = 2
+    MANUAL_REJECT = -1
+
+    if meta.get("appsec.event", None) == "true" or meta.get("_dd.appsec.event_rules.errors", None) is not None:
+        return (MANUAL_KEEP,)
+
+    if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
+        return (AUTO_KEEP, MANUAL_KEEP)
+    return (AUTO_REJECT, MANUAL_REJECT)
+
+
 def _spans_with_parent(traces, parent_ids):
     if not isinstance(traces, list):
         logger.error("Traces should be an array")
@@ -119,7 +137,25 @@ class Test_SamplingDecisions:
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        interfaces.library.assert_sampling_decision_respected(context.tracer_sampling_rate)
+        def validator(data, root_span):
+            sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
+            if sampling_priority is None:
+                raise ValueError(
+                    f"Message: {data['log_filename']}:"
+                    "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
+                )
+            if sampling_priority not in (
+                expected := get_sampling_decision(
+                    context.tracer_sampling_rate, root_span["trace_id"], root_span["meta"]
+                )
+            ):
+                raise ValueError(
+                    f"Trace id {root_span['trace_id']} "
+                    f"sampling priority is {sampling_priority}, should be {expected}"
+                )
+
+        for data, span in interfaces.library.get_root_spans():
+            validator(data, span)
 
     def setup_sampling_decision_added(self):
 
