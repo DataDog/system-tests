@@ -7,10 +7,6 @@ from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersM
 
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
-@bug(
-    context.library <= "ruby@1.10.1",
-    reason="Mishandling DD_INSTRUMENTATION_TELEMETRY_ENABLED activation. Fixed in https://github.com/DataDog/dd-trace-rb/pull/2710.",
-)
 @missing_feature(library="cpp")
 @missing_feature(library="php")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
