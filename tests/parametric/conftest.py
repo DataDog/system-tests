@@ -552,7 +552,7 @@ class _TestAgentAPI:
         raise AssertionError("Telemetry event %r not found" % event_name)
 
     def wait_for_apply_status(
-        self, product: str, state: Literal[0, 1, 2, 3] = 2, clear: bool = False, wait_loops: int = 200
+        self, product: str, state: Literal[0, 1, 2, 3] = 2, clear: bool = False, wait_loops: int = 100
     ):
         """
         UNKNOWN = 0
@@ -560,6 +560,7 @@ class _TestAgentAPI:
         ACKNOWLEDGED = 2
         ERROR = 3
         """
+        rc_reqs = []
         for i in range(wait_loops):
             try:
                 reqs = self.requests()
@@ -577,8 +578,7 @@ class _TestAgentAPI:
                                 self.clear()
                             return cfg_state
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig apply status found")
-
+        raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
 
 @contextlib.contextmanager
