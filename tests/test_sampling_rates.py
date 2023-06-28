@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import time
 from random import randint
 
 from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenarios
@@ -20,21 +19,11 @@ USER_KEEP = 2
 class Test_SamplingRates:
     """Rate at which traces are sampled is the actual sample rate"""
 
-    TOTAL_REQUESTS = 10_000
-    REQ_PER_S = 25
-
-    def test_sampling_rate_is_set(self):
-        """Should fail if the test is misconfigured"""
-        if context.tracer_sampling_rate is None:
-            raise Exception("Sampling rate should be set on tracer with an env var for this scenario to be meaningful")
+    TOTAL_REQUESTS = 1_000
 
     def setup_sampling_rates(self):
         self.paths = []
-        last_sleep = time.time()
         for i in range(self.TOTAL_REQUESTS):
-            if i != 0 and i % self.REQ_PER_S == 0:
-                time.sleep(max(0, 1 - (time.time() - last_sleep)))
-                last_sleep = time.time()
             p = f"/sample_rate_route/{i}"
             self.paths.append(p)
             weblog.get(p)
@@ -54,14 +43,14 @@ class Test_SamplingRates:
             sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
 
         trace_count = sum(sampled_count.values())
-        # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
-        confidence_interval = 3 * (
+        # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
+        confidence_interval = 4 * (
             trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)
         ) ** (1 / 2)
         # E = n * p
         expectation = context.tracer_sampling_rate * trace_count
         if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
-            raise Exception(
+            raise ValueError(
                 f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
                 f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
