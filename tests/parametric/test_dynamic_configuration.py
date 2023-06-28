@@ -64,6 +64,10 @@ def _set_rc(test_agent, config: Dict[str, Any]) -> None:
 
 
 def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
+    """Helper to create an RC configuration with the given settings and wait for it to be applied.
+
+    It is assumed that the configuration is successfully applied.
+    """
     rc_config = _default_config(DEFAULT_SERVICE, DEFAULT_ENV)
     for k, v in config_overrides.items():
         rc_config["lib_config"][k] = v
@@ -76,15 +80,16 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
 
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
-    """Asserts that a span returned from the test agent is consistent with the given sample rate.
+    """Asserts that a trace returned from the test agent is consistent with the given sample rate.
 
-    It is assumed that the span is the root span of the trace.
+    This function assumes that all traces are sent to the agent regardless of sample rate.
+
+    For the day when that is not the case, we likely need to generate enough traces to
+        1) Validate the sample rate is effective (approx sample_rate% of traces should be received)
+        2) The `_dd.rule_psr` metric is set to the correct value.
     """
-    # TODO: find the right heuristics to assert the sample rate
-    # if "_dd.agent_psr" in span["metrics"]:
-    #     assert span["metrics"]["_dd.agent_psr"] == rate
-    if "_dd.rule_psr" in trace[0]["metrics"]:
-        assert trace[0]["metrics"]["_dd.rule_psr"] == pytest.approx(rate)
+    # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
+    assert trace[0]["metrics"]["_dd.rule_psr"] == pytest.approx(rate)
 
 
 ENV_SAMPLING_RULE_RATE = 0.55
