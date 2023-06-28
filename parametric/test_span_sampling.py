@@ -298,6 +298,7 @@ def test_keep_span_with_stats_computation_sss010(test_agent, test_library):
     assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
 
+@pytest.mark.skip_library("cpp", "manual.drop span tag is not applied")
 @pytest.mark.skip_library("golang", "The Go tracer does not have a way to modulate trace sampling once started")
 @pytest.mark.skip_library("php", "manual.drop and manual.keep span tags are not implemented.")
 @pytest.mark.skip_library("ruby", "Issue: does not respect manual.drop or manual.keep span tags")
@@ -519,6 +520,7 @@ def test_child_span_selected_by_sss015(test_agent, test_library):
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
 
+@pytest.mark.skip_library("cpp", "span dropping policy not implemented")
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("php", "The PHP tracer always sends the full trace to the agent.")
@@ -572,6 +574,7 @@ def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_act
     assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
 
+@pytest.mark.skip_library("cpp", "span dropping policy not implemented")
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("php", "The PHP tracer always sends the full trace to the agent.")
@@ -626,6 +629,7 @@ def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_act
     assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
 
+@pytest.mark.skip_library("cpp", "span dropping policy not implemented")
 @pytest.mark.skip_library("dotnet", "The .NET tracer sends the full trace to the agent anyways.")
 @pytest.mark.skip_library("nodejs", "Not implemented")
 @pytest.mark.skip_library("php", "The PHP tracer always sends the full trace to the agent.")

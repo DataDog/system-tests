@@ -4,6 +4,7 @@ from utils.parametric.spec.trace import find_span_in_traces
 
 
 @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",}])
+@pytest.mark.skip_library("cpp", "partial flushing not implemented")
 @pytest.mark.skip_library("java", "java uses '>' so it needs one more span to force a partial flush")
 @pytest.mark.skip_library("ruby", "no way to configure partial flushing")
 @pytest.mark.skip_library("golang", "partial flushing not implemented")
@@ -24,6 +25,7 @@ def test_partial_flushing_one_span(test_agent, test_library):
 
 
 @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5",}])
+@pytest.mark.skip_library("cpp", "partial flushing not implemented")
 @pytest.mark.skip_library(
     "dotnet", "due to the way the child span is made it's not part of the spanContext so a flush still happens here"
 )
