@@ -63,6 +63,7 @@ class InterfaceValidator:
                 try:
                     data = json.load(f)
                 except json.decoder.JSONDecodeError:
+                    logger.exception(f"Error while decoding message {src_path}")
                     # the file may not be finished
                     return
 
@@ -87,6 +88,13 @@ class InterfaceValidator:
 
                 with open(file_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
+
+                # Apply the same deserialization process as in ingestion, since
+                # there may be a race condition where additional messages are written
+                # post-setup without prior normalization.
+                # XXX: A more robust solution would be moving the serialization process
+                # to the proxy, to avoid the need to rewrite request files in the first place.
+                deserialize(data, self.name)
 
                 self._data_list.append(data)
                 logger.info(f"{self.name} interface gets {file_path}")
