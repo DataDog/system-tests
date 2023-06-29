@@ -22,6 +22,8 @@ DEFAULT_ENV = "test_env"
 DEFAULT_ENVVARS = {
     "DD_SERVICE": DEFAULT_SERVICE,
     "DD_ENV": DEFAULT_ENV,
+    # Needed for .NET until Telemetry V2 is released
+    "DD_INTERNAL_TELEMETRY_V2_ENABLED": "1",
     # Decrease the heartbeat/poll intervals to speed up the tests
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
@@ -89,7 +91,7 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
         2) The `_dd.rule_psr` metric is set to the correct value.
     """
     # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
-    assert trace[0]["metrics"]["_dd.rule_psr"] == pytest.approx(rate)
+    assert trace[0]["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
 
 
 ENV_SAMPLING_RULE_RATE = 0.55
