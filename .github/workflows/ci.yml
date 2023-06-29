@@ -374,12 +374,12 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
