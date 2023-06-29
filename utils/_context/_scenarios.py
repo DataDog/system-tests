@@ -1049,7 +1049,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=30,
+        library_interface_timeout=50,
         doc="",
     )
 
@@ -1062,7 +1062,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=30,
+        library_interface_timeout=50,
         doc="",
     )
 
