@@ -54,7 +54,12 @@ def check_probe_status(expected_id, agent_logs):
                 return
             else:
                 raise ValueError(
-                    "Received probe " + expected_id + " with status " + actual_status + ", but expected for "+ expected_status
+                    "Received probe "
+                    + expected_id
+                    + " with status "
+                    + actual_status
+                    + ", but expected for "
+                    + expected_status
                 )
 
     raise ValueError("Probe " + expected_id + " was not received")
