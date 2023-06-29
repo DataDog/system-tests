@@ -66,6 +66,7 @@ jobs:
 
   auto-lib-injection-tests:
     runs-on: ubuntu-latest
+    if: ${{ false }}  #disable until fix: https://datadoghq.atlassian.net/browse/AIT-7722
     permissions:
       contents: read
       packages: write
