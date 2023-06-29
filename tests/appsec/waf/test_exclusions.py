@@ -8,7 +8,7 @@ if context.weblog_variant == "akka-http":
 @released(
     java="1.6.0",
     dotnet="2.26.0",
-    golang="1.52.0",
+    golang="1.53.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
     python={"django-poc": "1.12", "flask-poc": "1.12", "*": "?"},
