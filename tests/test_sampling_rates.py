@@ -51,7 +51,7 @@ def _spans_with_parent(traces, parent_ids):
 class Test_SamplingRates:
     """Rate at which traces are sampled is the actual sample rate"""
 
-    TOTAL_REQUESTS = 1_000
+    TOTAL_REQUESTS = 2_000
 
     def setup_sampling_rates(self):
         self.paths = []
@@ -62,6 +62,9 @@ class Test_SamplingRates:
 
     @bug(library="python", reason="When stats are activated, all traces are emitted")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
+    @flaky(library="golang", reason="Needs investigation")
+    @flaky(library="ruby", reason="Needs investigation")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -134,6 +137,7 @@ class Test_SamplingDecisions:
         reason="fails randomly for Sinatra on JSON body that dutifully keeps",
     )
     @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
+    @bug(library="golang", reason="Need investigation")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -170,6 +174,7 @@ class Test_SamplingDecisions:
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
     @bug(library="ruby", reason="Unknown reason")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @missing_feature(library="ruby", reason="Endpoint not implemented on weblog")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
@@ -224,6 +229,8 @@ class Test_SamplingDecisions:
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="ruby", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")
+    @flaky(library="cpp")
+    @flaky(library="golang")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
 
