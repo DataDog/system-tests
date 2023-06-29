@@ -399,12 +399,13 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
-
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
-    with open(log_path, "w") as f:
+    with open(log_path, "w+") as f:
         yield f
-
+        f.seek(0)
+        request.node._report_sections.append(
+            ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
 
 class _TestAgentAPI:
     def __init__(self, base_url: str, pytest_request: None):
@@ -675,9 +676,10 @@ def test_agent_port() -> str:
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
-    with open(log_path, "w") as f:
+    with open(log_path, "w+") as f:
         yield f
-
+        f.seek(0)
+        request.node._report_sections.append(("teardown", f"Test Agent Output", "".join(f.readlines())))
 
 @pytest.fixture
 def test_agent_container_name(test_id) -> str:
