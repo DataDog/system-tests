@@ -315,10 +315,8 @@ function check-for-no-pod-metadata() {
     has_enabled_key=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq 'has("admission.datadoghq.com/enabled")')
     if [[ $has_enabled_key != "false" ]]; then
         echo "[Test] label 'admission.datadoghq.com/enabled' was unexpectedly applied to the pod!"
-        print-debug-info || true
         exit 1
     fi
-    print-debug-info || true
 }
 
 # check-for-no-pod-metadata ensures that admission is disabled on the targeted pod.
@@ -359,13 +357,11 @@ function test-for-traces() {
     echo "[Test] ${traces}"
     if [[ ${#traces} -lt 3 ]] ; then
         echoerr "No traces reported - ${traces}"
-        print-debug-info || true
         exit 1
     else
         count=`jq '. | length' <<< "${traces}"`
         echo "Received ${count} traces so far"
     fi
-    print-debug-info || true
     echo "[Test] test-for-traces completed successfully"
 }
 

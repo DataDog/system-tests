@@ -57,7 +57,7 @@ jobs:
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@main
+        uses: DataDog/system-tests/lib-injection/runner@robertomonteromiguel/test_lib_injection
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
@@ -98,9 +98,9 @@ jobs:
     steps:
       - name: lib-injection test runner
         id: lib-injection-test-runner
-        uses: DataDog/system-tests/lib-injection/runner@main
+        uses: DataDog/system-tests/lib-injection/runner@robertomonteromiguel/test_lib_injection
         with:
           docker-registry: ghcr.io
           docker-registry-username: ${{ github.actor }}
           docker-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          test-script: ./lib-injection/run-auto-lib-injection.sh || ./lib-injection/execFunction.sh print-debug-info-auto
+          test-script: ./lib-injection/run-auto-lib-injection.sh
