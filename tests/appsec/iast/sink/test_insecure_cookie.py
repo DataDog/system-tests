@@ -14,7 +14,6 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
 @released(nodejs={"express4": "4.1.0", "*": "?"})
 @released(java={"akka-http": "?", "*": "1.18.0"})
-
 class TestInsecureCookie:
     """Test insecure cookie detection."""
 
