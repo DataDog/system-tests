@@ -365,6 +365,16 @@ jobs:
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
+      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
+      if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
+      run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success' && !contains(github.event.pull_request.labels.*.name, 'run-default-scenario') 
       run: |
@@ -396,6 +406,8 @@ jobs:
         ./run.sh APPSEC_WAF_TELEMETRY --replay
         # ./run.sh SAMPLING --replay  # currently not working on replay mode
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
+        ./run.sh DEBUGGER_METHOD_PROBES_STATUS --replay
+        ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
