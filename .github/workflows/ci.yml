@@ -43,7 +43,7 @@ jobs:
       - run: ./run.sh TEST_THE_TEST
 
   scenarios:
-    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@cbeauchesne/better-sampling-test
+    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
 
   main:
     runs-on: ubuntu-latest
