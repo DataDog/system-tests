@@ -4,11 +4,9 @@ from pathlib import Path
 import shutil
 import time
 
-from pulumi import automation as auto
 import pytest
 from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
-from utils.onboarding.pulumi_ssh import PulumiSSH
 
 from utils._context.containers import (
     WeblogContainer,
@@ -714,6 +712,9 @@ class OnBoardingScenario(_Scenario):
         return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
 
     def _start_pulumi(self):
+        from pulumi import automation as auto
+        from utils.onboarding.pulumi_ssh import PulumiSSH
+
         def pulumi_start_program():
             # Static loading of keypairs for ec2 machines
             PulumiSSH.load()
