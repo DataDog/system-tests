@@ -1,13 +1,6 @@
 import os
 from utils.tools import logger
-import pulumi
-import pulumi_aws as aws
-from pulumi import Output
-import pulumi_command as command
-from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
-from utils.onboarding.pulumi_ssh import PulumiSSH
 import json
-
 
 class TestedVirtualMachine:
     def __init__(
@@ -46,6 +39,13 @@ class TestedVirtualMachine:
         self.aws_infra_config = AWSInfraConfig()
 
     def start(self):
+        import pulumi
+        import pulumi_aws as aws
+        from pulumi import Output
+        import pulumi_command as command
+        from utils.onboarding.pulumi_ssh import PulumiSSH
+        from utils.onboarding.pulumi_utils import remote_install, pulumi_logger, remote_docker_login
+
         logger.info("start...")
         self.configure()
         # Startup VM and prepare connection
