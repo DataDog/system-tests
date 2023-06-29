@@ -157,6 +157,7 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                 assert meta["manual.keep"] == "true"
 
+
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
