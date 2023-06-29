@@ -406,6 +406,8 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
         f.seek(0)
         request.node._report_sections.append(
             ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
+        )
+
 
 class _TestAgentAPI:
     def __init__(self, base_url: str, pytest_request: None):
@@ -680,6 +682,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
         yield f
         f.seek(0)
         request.node._report_sections.append(("teardown", f"Test Agent Output", "".join(f.readlines())))
+
 
 @pytest.fixture
 def test_agent_container_name(test_id) -> str:
