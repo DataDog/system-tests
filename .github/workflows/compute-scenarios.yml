@@ -10,6 +10,9 @@ on:
       run_open_telemetry:
         description: "Shall we run open-telemetry scenarios"
         value: ${{ jobs.main.outputs.run_open_telemetry }}
+      run_sampling:
+        description: "Shall we run sampling scenarios"
+        value: ${{ jobs.main.outputs.run_sampling }}
 
 jobs:
   main:
@@ -18,6 +21,7 @@ jobs:
     outputs:
       run_all: ${{ steps.compute_run_all.outputs.result }}
       run_open_telemetry: ${{ steps.compute_open_telemetry.outputs.result }}
+      run_sampling: ${{ steps.compute_sampling.outputs.result }}
     steps:
       - name: Compute run_all
         id: compute_run_all
@@ -40,8 +44,22 @@ jobs:
       - name: Compute run_open_telemetry
         id: compute_open_telemetry
         run: |
-
           if [ "${{ contains(github.event.pull_request.labels.*.name, 'run-open-telemetry-scenarios') }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Result: $GITHUB_OUTPUT"
+
+      - name: Compute run_sampling
+        id: compute_sampling
+        run: |
+          if [ "${{ steps.compute_run_all.outputs.result }}" == "true" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'run-sampling-scenario') }}" == "true" ]; then
             echo "result=true" >> $GITHUB_OUTPUT
 
           else
@@ -54,3 +72,4 @@ jobs:
         run: |
           echo "Run all: -> ${{ steps.compute_run_all.outputs.result }}"
           echo "Run open telemetry: -> ${{ steps.compute_open_telemetry.outputs.result }}"
+          echo "Run sampling: -> ${{ steps.compute_sampling.outputs.result }}"
