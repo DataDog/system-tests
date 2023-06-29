@@ -367,14 +367,14 @@ function test-for-traces() {
 
 # print-debug-info prints and zip debug information
 function print-debug-info() {
-    if [[ $MODE == "manual" ]]; then print-debug-info-manual; else print-debug-info-auto; fi
+    if [[ $MODE == manual* ]]; then print-debug-info-manual; else print-debug-info-auto; fi
 }
 
 # print-debug-info-auto prints and zip debug information for auto library injection tests
 function print-debug-info-auto() {
     log_dir=${BASE_DIR}/../logs_lib-injection
     mkdir -p ${log_dir}/pod
-    echo "[debug] Generating debug log files... (${log_dir})"
+    echo "[debug] Generating debug log files (auto lib injection)... (${log_dir})"
     echo "[debug] Export: Current cluster status"
     kubectl get pods > "${log_dir}/cluster_pods.log"
     kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
@@ -398,7 +398,7 @@ function print-debug-info-auto() {
 function print-debug-info-manual() {
     log_dir=${BASE_DIR}/../logs_lib-injection
     mkdir -p ${log_dir}/pod
-    echo "[debug] Generating debug log files... (${log_dir})"
+    echo "[debug] Generating debug log files (manual lib injection)... (${log_dir})"
     echo "[debug] Export: Current cluster status"
     kubectl get pods > "${log_dir}/cluster_pods.log"
     kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
