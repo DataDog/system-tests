@@ -80,6 +80,8 @@ class Test_Login_Events:
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
                 if context.library != "nodejs":
+                    # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                    # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
                 assert meta["appsec.events.users.login.failure.usr.id"] == " "
@@ -99,6 +101,8 @@ class Test_Login_Events:
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
                 if context.library != "nodejs":
+                    # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                    # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
                 assert meta["appsec.events.users.login.failure.usr.id"] == " "
@@ -153,7 +157,8 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                 assert meta["manual.keep"] == "true"
 
-
+@rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
+@coverage.good
 @scenarios.appsec_auto_events_extended
 @released(cpp="?", golang="?", java="?", nodejs="?", dotnet="?", php="?", ruby="?")
 class Test_Login_Events_Extended:
@@ -166,14 +171,10 @@ class Test_Login_Events_Extended:
     BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
 
     def setup_login_success(self):
-        self.library_name = context.library
-        self.r_success = []
-
-        if self.library_name == "nodejs":
-            self.r_success = [
-                weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
-                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
-            ]
+        self.r_success = [
+            weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
+            weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
+        ]
 
     def test_login_success(self):
         for r in self.r_success:
@@ -189,21 +190,19 @@ class Test_Login_Events_Extended:
                 assert meta["manual.keep"] == "true"
 
     def setup_login_wrong_user_failure(self):
-        self.library_name = context.library
-        self.r_wrong_user_failure = []
-
-        if self.library_name == "nodejs":
-            self.r_wrong_user_failure = [
-                weblog.post("/login?auth=local", data={"username": "invalidUser", "password": self.PASSWORD}),
-                weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}),
-            ]
+        self.r_wrong_user_failure = [
+            weblog.post("/login?auth=local", data={"username": "invalidUser", "password": self.PASSWORD}),
+            weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}),
+        ]
 
     def test_login_wrong_user_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if self.library_name != "nodejs":
+                if context.library != "nodejs":
+                    # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                    # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
@@ -212,21 +211,19 @@ class Test_Login_Events_Extended:
                 assert meta["manual.keep"] == "true"
 
     def setup_login_wrong_password_failure(self):
-        self.library_name = context.library
-        self.r_wrong_user_failure = []
-
-        if self.library_name == "nodejs":
-            self.r_wrong_user_failure = [
-                weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
-                weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="}),
-            ]
+        self.r_wrong_user_failure = [
+            weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
+            weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="}),
+        ]
 
     def test_login_wrong_password_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if self.library_name != "nodejs":
+                if context.library != "nodejs":
+                    # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                    # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
@@ -235,20 +232,16 @@ class Test_Login_Events_Extended:
                 assert meta["manual.keep"] == "true"
 
     def setup_login_sdk_success(self):
-        self.library_name = context.library
-        self.r_sdk_success = []
-
-        if self.library_name == "nodejs":
-            self.r_sdk_success = [
-                weblog.post(
-                    "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-                    data={"username": self.USER, "password": self.PASSWORD},
-                ),
-                weblog.get(
-                    "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-                    headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
-                ),
-            ]
+        self.r_sdk_success = [
+            weblog.post(
+                "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+                data={"username": self.USER, "password": self.PASSWORD},
+            ),
+            weblog.get(
+                "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+                headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+            ),
+        ]
 
     def test_login_sdk_success(self):
         for r in self.r_sdk_success:
@@ -262,19 +255,16 @@ class Test_Login_Events_Extended:
                 assert meta["manual.keep"] == "true"
 
     def setup_login_sdk_failure(self):
-        self.library_name = context.library
-        self.r_sdk_failure = []
-        if self.library_name == "nodejs":
-            self.r_sdk_failure = [
-                weblog.post(
-                    "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                    data={"username": "invalidUser", "password": self.PASSWORD},
-                ),
-                weblog.get(
-                    "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                    headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
-                ),
-            ]
+        self.r_sdk_failure = [
+            weblog.post(
+                "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                data={"username": "invalidUser", "password": self.PASSWORD},
+            ),
+            weblog.get(
+                "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
+            ),
+        ]
 
     def test_login_sdk_failure(self):
         for r in self.r_sdk_failure:
