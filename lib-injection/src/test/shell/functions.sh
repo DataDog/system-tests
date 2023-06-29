@@ -401,7 +401,7 @@ function print-debug-info-manual() {
     echo "[debug] Generating debug log files (manual lib injection)... (${log_dir})"
     echo "[debug] Export: Current cluster status"
     kubectl get pods > "${log_dir}/cluster_pods.log"
-    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
+    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log" || true
 
     echo "[debug] Export: Describe my-app status"
     kubectl describe pod my-app > "${log_dir}/my-app_describe.log"
