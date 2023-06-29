@@ -7,7 +7,7 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
-@released(cpp="?", golang="?", java="?", nodejs="", dotnet="?", php="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="?", dotnet="?", php="?", python="?", ruby="?")
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
