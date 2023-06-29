@@ -21,6 +21,9 @@ if context.library == "cpp":
         "spring-boot-payara": "1.18.0",
         "spring-boot-wildfly": "1.18.0",
         "spring-boot-undertow": "1.18.0",
+        "resteasy-netty3": "1.18.0",
+        "vertx3": "1.18.0",
+        "akka-http": "1.18.0",
         "*": "?",
     }
 )

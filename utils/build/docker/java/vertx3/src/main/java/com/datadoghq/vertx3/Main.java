@@ -147,6 +147,8 @@ public class Main {
                             .trackCustomEvent(event_name, METADATA);
                     ctx.response().end("ok");
                 });
+        router
+
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
 
