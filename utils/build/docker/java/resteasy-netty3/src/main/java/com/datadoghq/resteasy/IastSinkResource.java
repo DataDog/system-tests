@@ -189,6 +189,7 @@ public class IastSinkResource {
     public Response insecureCookieEmptyCookie() {
         return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
     }
+
     @GET
     @Path("/insecure-cookie/test_insecure")
     public Response  insecureCookie() {
