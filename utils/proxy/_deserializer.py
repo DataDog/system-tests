@@ -4,6 +4,8 @@
 
 import json
 import ast
+import logging
+
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
 from google.protobuf.json_format import MessageToDict
@@ -19,8 +21,10 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from utils.interfaces._decoders.protobuf_schemas import TracePayload
-from utils.tools import logger
+from _decoders.protobuf_schemas import TracePayload
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_header_value(name, headers):
