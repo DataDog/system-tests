@@ -30,10 +30,8 @@ class Test_Tracecontext_Span:
         assert span.get("traceID") == self.trace_id
         assert span.get("parentID") == self.span_id
 
-        trace = interfaces.backend.assert_library_traces_exist(self.req)
-
         # Assert the spans received from the backend
-        spans = interfaces.backend.assert_single_spans_exist(self.req)
+        spans = interfaces.backend.assert_library_traces_exist(self.req)
         assert 1 == len(spans), _assert_msg(1, len(spans))
 
         span = spans[0]
