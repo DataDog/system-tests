@@ -363,6 +363,11 @@ jobs:
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh SAMPLING
@@ -402,6 +407,7 @@ jobs:
         ./run.sh APPSEC_REQUEST_BLOCKING --replay
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
+        ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
         # ./run.sh SAMPLING --replay  # currently not working on replay mode
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
       env:
@@ -596,6 +602,11 @@ jobs:
     - name: Run APPSEC_WAF_TELEMETRY scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh APPSEC_WAF_TELEMETRY
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
