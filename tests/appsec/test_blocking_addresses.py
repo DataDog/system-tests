@@ -60,6 +60,7 @@ class Test_BlockingAddresses:
     def setup_block_user(self):
         self.block_user_req = weblog.get("/users", params={"user": "blockedUser"})
 
+    @missing_feature(library="java", reason="Missing /users endpoint")
     def test_block_user(self):
         """can block the request from the user"""
 
