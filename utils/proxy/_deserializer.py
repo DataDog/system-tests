@@ -3,8 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
-import ast
 import logging
+import traceback
 
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
@@ -82,18 +82,12 @@ def _decode_v_0_5_traces(content):
     return result
 
 
-def deserialize_http_message(path, message, data, interface, key):
-    if not isinstance(data, (str, bytes)):
-        return data
-
+def deserialize_http_message(path, message, content: bytes, interface, key):
     def json_load():
-        if len(data) == 0:
+        if not content:
             return None
 
-        elif message.get("length") == 0:
-            return None
-
-        return json.loads(data)
+        return json.loads(content)
 
     content_type = get_header_value("content-type", message["headers"])
     content_type = None if content_type is None else content_type.lower()
@@ -102,13 +96,22 @@ def deserialize_http_message(path, message, data, interface, key):
         return json_load()
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
-        return json_load()
+        if key == "response" and message["status_code"] == 404:
+            return content.decode(encoding="utf-8")
+        else:
+            return json_load()
 
-    if interface == "library" and key == "response" and path == "/info":
-        return json_load()
+    if interface == "library" and path == "/info":
+        if key == "response":
+            return json_load()
+        else:
+            if not content:
+                return None
+            else:
+                return content
 
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack"):
-        result = msgpack.unpackb(data, unicode_errors="replace", strict_map_key=False)
+        result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
         if interface == "library":
             if path == "/v0.4/traces":
@@ -124,7 +127,7 @@ def deserialize_http_message(path, message, data, interface, key):
 
     if content_type == "application/x-protobuf":
         # Raw data can be either a str like "b'\n\x\...'" or bytes
-        content = eval(data) if isinstance(data, str) else data
+        content = eval(content) if isinstance(content, str) else content
         assert isinstance(content, bytes)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
@@ -142,12 +145,12 @@ def deserialize_http_message(path, message, data, interface, key):
         if path == "/api/v0.2/traces":
             return MessageToDict(TracePayload.FromString(content))
 
-    if content_type == "application/x-www-form-urlencoded" and data == b"[]" and path == "/v0.4/traces":
+    if content_type == "application/x-www-form-urlencoded" and content == b"[]" and path == "/v0.4/traces":
         return []
 
     if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
-        for part in MultipartDecoder(data, content_type).parts:
+        for part in MultipartDecoder(content, content_type).parts:
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
             item = {"headers": headers}
             try:
@@ -159,7 +162,7 @@ def deserialize_http_message(path, message, data, interface, key):
 
         return decoded
 
-    return data
+    return content
 
 
 def _convert_bytes_values(item):
@@ -174,15 +177,14 @@ def _convert_bytes_values(item):
             _convert_bytes_values(value)
 
 
-def deserialize(data, interface):
-    for key in ("request", "response"):
-        if key in data:
-            try:
-                content = ast.literal_eval(data[key]["content"])
-                decoded = deserialize_http_message(data["path"], data[key], content, interface, key)
-                data[key]["content"] = decoded
-            except Exception:
-                logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
+def deserialize(data, key, content, interface):
+
+    try:
+        data[key]["content"] = deserialize_http_message(data["path"], data[key], content, interface, key)
+    except:
+        logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
+        data[key]["raw_content"] = str(content)
+        data[key]["traceback"] = str(traceback.format_exc())
 
 
 # if __name__ == "__main__":
