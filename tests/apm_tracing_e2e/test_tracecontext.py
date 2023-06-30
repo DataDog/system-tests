@@ -14,7 +14,7 @@ class Test_Tracecontext_Span:
         self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
 
     def test_tracecontext_span(self):
-        # Assert the span sent by the agent.
+        # Assert the weblog server span was sent by the agent.
         spans = _get_spans_submitted(self.req)
         assert 1 == len(spans), _assert_msg(1, len(spans), "Agent did not submit the spans we want!")
 
@@ -22,15 +22,18 @@ class Test_Tracecontext_Span:
         trace_id = span.get("traceID")
         span_id = span.get("parentID")
 
-        # Assert the spans received from the backend
+        # Assert all spans in the distributed trace were received from the backend
         traces = interfaces.backend.assert_library_traces_exist(self.req)
         trace = traces[0]
         spans = trace.get("spans")
-        assert 1 == len(spans), _assert_msg(1, len(spans))
+        assert 3 == len(spans), _assert_msg(3, len(spans))
 
         span = spans[0]
         assert span.get("traceID") == trace_id
         assert span.get("parentID") == span_id
+
+        assert spans[1].get("traceID") == trace_id
+        assert spans[2].get("traceID") == trace_id
 
         # Assert the information in the outbound http client request
         interfaces.library.assert_trace_exists(self.req)
