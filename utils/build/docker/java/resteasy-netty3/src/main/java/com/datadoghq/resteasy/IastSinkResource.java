@@ -183,6 +183,7 @@ public class IastSinkResource {
     public Response insecureUnvalidatedRedirect(@FormParam("location") final String location) throws URISyntaxException {
         return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(location)).build();
     }
+
     @GET
     @Path("/insecure-cookie/test_empty_cookie")
     public Response insecureCookieEmptyCookie() {
