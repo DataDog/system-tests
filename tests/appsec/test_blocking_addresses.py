@@ -49,6 +49,8 @@ _released_java_blocking = {
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 class Test_BlockingAddresses:
+    """Test the addresses supported for blocking"""
+
     def setup_block_ip(self):
         self.block_ip_req = weblog.get(headers={"X-Forwarded-For": "1.1.1.1"})
 
@@ -65,8 +67,6 @@ class Test_BlockingAddresses:
         """can block the request from the user"""
 
         assert self.block_user_req.status_code == 403
-
-    """Test the addresses supported for blocking"""
 
     def setup_request_method(self):
         self.rm_req = weblog.request("OPTIONS")

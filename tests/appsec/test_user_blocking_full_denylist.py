@@ -75,7 +75,7 @@ class Test_UserBlocking_FullDenylist:
         interfaces.library.wait_for(self._remote_config_is_applied, timeout=30)
 
         self.r_blocked_requests = [
-            weblog.get("/users", params={"user": 1}),
+            weblog.get("/users", params={"user": 0}),
             weblog.get("/users", params={"user": 2499}),
         ]
 
