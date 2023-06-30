@@ -166,7 +166,7 @@ class _RequestLogger:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
         except:
-            logger.exception("Unexpcted error")
+            logger.exception("Unexpected error")
 
     def _modify_response(self, flow):
         rc_config = self.state.get("mock_remote_config_backend")
