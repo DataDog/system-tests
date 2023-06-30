@@ -148,7 +148,6 @@ public class Main {
                     ctx.response().end("ok");
                 });
 
-
         iastRouteProviders().forEach(provider -> provider.accept(router));
 
         server.requestHandler(router::accept).listen(7777);
