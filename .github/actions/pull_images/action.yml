@@ -11,7 +11,7 @@ runs:
     - name: Pull images needed for default scenario
       shell: bash
       run: |
-        docker pull mitmproxy/mitmproxy
+        docker pull datadog/system-tests:proxy-v0
         docker pull postgres:latest
     - name: Pull images needed for all scenarios
       shell: bash

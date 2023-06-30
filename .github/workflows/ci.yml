@@ -654,7 +654,7 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
-      run: docker pull mitmproxy/mitmproxy
+      run: docker pull datadog/system-tests:proxy-v0
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
     - name: Build weblog
@@ -724,6 +724,7 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - scenarios
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
@@ -746,6 +747,7 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - scenarios
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:

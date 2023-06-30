@@ -246,6 +246,9 @@ build() {
                 -t system_tests/weblog \
                 .
 
+        elif [[ $IMAGE_NAME == proxy ]]; then
+            docker build -f utils/build/docker/proxy.Dockerfile -t datadog/system-tests:proxy-v0 .
+
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
