@@ -724,6 +724,7 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - scenarios
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
@@ -746,6 +747,7 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - scenarios
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
