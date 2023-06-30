@@ -114,7 +114,7 @@ autoinjection:
             yumdownloader datadog-apm-inject
             rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
             echo "Package signature verified!"
-
+ 
     - env: prod
       install: 
         - os_type: linux
