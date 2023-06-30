@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eu
 
 ATTEMPT=${SYSTEM_TEST_BUILD_ATTEMPTS:=1}
