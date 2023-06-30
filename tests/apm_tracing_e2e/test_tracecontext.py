@@ -39,3 +39,11 @@ class Test_Tracecontext_Span:
         span = spans[0]
         assert span.get("traceID") == self.trace_id
         assert span.get("parentID") == self.span_id
+
+        # Assert the information in the outbound http client request
+        interfaces.library.assert_trace_exists(self.req)
+
+        assert self.req.status_code == 200
+        assert self.req.json() is not None
+        data = self.req.json()
+        assert "traceparent" in data["request_headers"]
