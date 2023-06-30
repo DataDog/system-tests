@@ -64,19 +64,18 @@ class Test_Partial_Flushing:
     @bug(context.library == "dotnet", reason="test hangs")
     def test_partial_flushing_disabled(self, test_agent, test_library):
         """
-            Create a trace with a root span and two children. Finish both children, and ensure
+            Create a trace with a root span and one child. Finish the child, and ensure
             partial flushing does NOT trigger, since it's explicitly disabled.
         """
         with test_library:
             with test_library.start_span(name="root") as parent_span:
-                with test_library.start_span(name="child1", parent_id=parent_span.span_id) as child_span:
-                    with test_library.start_span(name="child2", parent_id=child_span.span_id):
-                        pass
-                    try:
-                        partial_traces = test_agent.wait_for_num_traces(1, clear=True)
-                        assert partial_traces is None
-                    except ValueError:
-                        pass  # We expect there won't be a flush, so catch this exception
+                with test_library.start_span(name="child1", parent_id=parent_span.span_id):
+                    pass
+                try:
+                    partial_traces = test_agent.wait_for_num_traces(1, clear=True)
+                    assert partial_traces is None
+                except ValueError:
+                    pass  # We expect there won't be a flush, so catch this exception
         traces = test_agent.wait_for_num_traces(1, clear=True)
         root_span = find_span_in_traces(traces, Span(name="root"))
         assert len(traces) == 1
