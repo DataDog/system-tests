@@ -5,7 +5,6 @@
 from collections import namedtuple
 import json
 import threading
-from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
@@ -14,18 +13,12 @@ from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.appsec_iast import _AppSecIastValidator
 from utils.interfaces._library.appsec_iast import _AppSecIastSourceValidator
 from utils.interfaces._library.miscs import _SpanTagValidator
-from utils.interfaces._library.sampling import (
-    _TracesSamplingDecisionValidator,
-    _AddSamplingDecisionValidator,
-    _DistributedTracesDeterministicSamplingDecisionValidator,
-)
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._schemas_validators import SchemaValidator
 
 
@@ -193,14 +186,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
         validator = SchemaValidator("library", allowed_errors)
         self.validate(validator, success_by_default=True)
 
-    def assert_sampling_decision_respected(self, sampling_rate):
-        # TODO : move this in test class
-
-        validator = _TracesSamplingDecisionValidator(sampling_rate)
-
-        for data, span in self.get_root_spans():
-            validator(data, span)
-
     def assert_all_traces_requests_forwarded(self, paths):
         # TODO : move this in test class
         paths = set(paths)
@@ -235,18 +220,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
                     raise Exception(f"Found duplicated trace id {trace_id} in {log_filename} and {trace_ids[trace_id]}")
 
                 trace_ids[trace_id] = log_filename
-
-    def assert_sampling_decisions_added(self, traces):
-        # TODO: move this into test class
-        validator = _AddSamplingDecisionValidator(traces)
-        self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
-        validator.final_check()
-
-    def assert_deterministic_sampling_decisions(self, traces):
-        # TODO: move this into test class
-        validator = _DistributedTracesDeterministicSamplingDecisionValidator(traces)
-        self.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
-        validator.final_check()
 
     def assert_no_appsec_event(self, request):
         for data, _, _, appsec_data in self.get_appsec_events(request=request):
@@ -354,11 +327,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         validator.final_check()
 
-    def add_profiling_validation(self, validator, success_by_default=True):
-        self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
-
-    def profiling_assert_field(self, field_name, content_pattern=None):
-        self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
+    def get_profiling_data(self):
+        yield from self.get_data(path_filters="/profiling/v1/input")
 
     def assert_trace_exists(self, request, span_type=None):
         for _, _, span in self.get_spans(request=request):

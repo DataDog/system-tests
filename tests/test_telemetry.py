@@ -249,6 +249,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
 
     @flaky(library="java", reason="It may be 4 seconds on java ?")
+    @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -258,17 +259,18 @@ class Test_Telemetry:
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise ValueError("No telemetry data to validate on")
+        assert len(telemetry_data) > 0, "No telemetry messages"
 
-        for data in telemetry_data:
+        heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
+        assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
+
+        for data in heartbeats:
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time != -1:
                 delta = curr_message_time - prev_message_time
-                if delta > timedelta(seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL):
-                    raise ValueError(
-                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
-                    )
+                assert delta <= timedelta(
+                    seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL
+                ), f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
             prev_message_time = curr_message_time
 
     def setup_app_dependencies_loaded(self):
