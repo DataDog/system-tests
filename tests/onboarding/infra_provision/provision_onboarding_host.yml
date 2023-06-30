@@ -60,7 +60,7 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh java --host-inject true --container-inject false 
+        command: bash execute_install_script_dev.sh java --inject-mode host 
     - env: prod
       install:
       - os_type: linux
@@ -73,7 +73,7 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh python --host-inject true --container-inject false 
+        command: bash execute_install_script_dev.sh python --inject-mode host 
     - env: prod
       install:
       - os_type: linux
@@ -87,7 +87,7 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh dotnet --host-inject true --container-inject false 
+        command: bash execute_install_script_dev.sh dotnet --inject-mode host 
     - env: prod
       install:
       - os_type: linux
