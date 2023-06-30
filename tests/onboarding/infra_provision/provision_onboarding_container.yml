@@ -50,7 +50,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          bash execute_install_script_dev.sh js --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh js --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
@@ -75,7 +75,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          bash execute_install_script_dev.sh java --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh java --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
@@ -100,7 +100,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: | 
-          bash execute_install_script_dev.sh python --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh python --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
@@ -125,7 +125,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          bash execute_install_script_dev.sh dotnet --host-inject false --container-inject true --install-agent false
+          bash execute_install_script_dev.sh dotnet --inject-mode docker --install-agent false
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     - env: prod
       install:
