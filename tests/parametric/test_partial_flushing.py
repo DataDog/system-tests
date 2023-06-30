@@ -42,19 +42,7 @@ class Test_Partial_Flushing:
             Create a trace with a root span and a single child. Finish the child, and ensure
             partial flushing does NOT trigger, since the partial flushing limit is set to 5.
         """
-        with test_library:
-            with test_library.start_span(name="root") as parent_span:
-                with test_library.start_span(name="child1", parent_id=parent_span.span_id):
-                    pass
-                try:
-                    partial_traces = test_agent.wait_for_num_traces(1, clear=True)
-                    assert partial_traces is None
-                except ValueError:
-                    pass  # We expect there won't be a flush, so catch this exception
-        traces = test_agent.wait_for_num_traces(1, clear=True)
-        root_span = find_span_in_traces(traces, Span(name="root"))
-        assert len(traces) == 1
-        assert root_span["name"] == "root"
+        no_partial_flush_test(self, test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}])
     @missing_feature(context.library == "java", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
@@ -67,16 +55,24 @@ class Test_Partial_Flushing:
             Create a trace with a root span and one child. Finish the child, and ensure
             partial flushing does NOT trigger, since it's explicitly disabled.
         """
-        with test_library:
-            with test_library.start_span(name="root") as parent_span:
-                with test_library.start_span(name="child1", parent_id=parent_span.span_id):
-                    pass
-                try:
-                    partial_traces = test_agent.wait_for_num_traces(1, clear=True)
-                    assert partial_traces is None
-                except ValueError:
-                    pass  # We expect there won't be a flush, so catch this exception
-        traces = test_agent.wait_for_num_traces(1, clear=True)
-        root_span = find_span_in_traces(traces, Span(name="root"))
-        assert len(traces) == 1
-        assert root_span["name"] == "root"
+        no_partial_flush_test(self, test_agent, test_library)
+
+
+def no_partial_flush_test(self, test_agent, test_library):
+    """
+        Create a trace with a root span and one child. Finish the child, and ensure
+        partial flushing does NOT trigger.
+    """
+    with test_library:
+        with test_library.start_span(name="root") as parent_span:
+            with test_library.start_span(name="child1", parent_id=parent_span.span_id):
+                pass
+            try:
+                partial_traces = test_agent.wait_for_num_traces(1, clear=True)
+                assert partial_traces is None
+            except ValueError:
+                pass  # We expect there won't be a flush, so catch this exception
+    traces = test_agent.wait_for_num_traces(1, clear=True)
+    root_span = find_span_in_traces(traces, Span(name="root"))
+    assert len(traces) == 1
+    assert root_span["name"] == "root"
