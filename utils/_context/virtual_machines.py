@@ -2,6 +2,7 @@ import os
 from utils.tools import logger
 import json
 
+
 class TestedVirtualMachine:
     def __init__(
         self,
