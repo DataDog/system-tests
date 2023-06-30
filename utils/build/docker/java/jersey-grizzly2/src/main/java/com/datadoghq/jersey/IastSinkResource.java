@@ -230,6 +230,7 @@ public class IastSinkResource {
     public Response  noHttpOnlyCookieEmptyCookie() {
         return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
     }
+
     @GET
     @Path("/no-httponly-cookie/test_insecure")
     public Response  noHttpOnlyCookieInsecure() {
