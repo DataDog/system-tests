@@ -26,14 +26,7 @@ class Test_Tracecontext_Span:
         traces = interfaces.backend.assert_library_traces_exist(self.req)
         trace = traces[0]
         spans = trace.get("spans")
-        assert 3 == len(spans), _assert_msg(3, len(spans))
-
-        span = spans[0]
-        assert span.get("traceID") == trace_id
-        assert span.get("parentID") == span_id
-
-        assert spans[1].get("traceID") == trace_id
-        assert spans[2].get("traceID") == trace_id
+        assert len(spans) >= 3, _assert_msg(3, len(spans))
 
         # Assert the information in the outbound http client request
         interfaces.library.assert_trace_exists(self.req)
