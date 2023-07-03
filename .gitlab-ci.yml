@@ -136,8 +136,8 @@ onboarding_java:
  #         ONBOARDING_FILTER_WEBLOG: [test-app-java,wildfly,test-app-java-buildpack,test-app-java-alpine]
  #         SCENARIO: [ONBOARDING_HOST_CONTAINER, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL]
         - ONBOARDING_FILTER_ENV: [dev]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [ONBOARDING_CONTAINER, ONBOARDING_CONTAINER_AUTO_INSTALL, test-app-java-buildpack,test-app-java-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-buildpack,test-app-java-alpine]
+          SCENARIO: [ONBOARDING_CONTAINER, ONBOARDING_CONTAINER_AUTO_INSTALL]
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
       - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
