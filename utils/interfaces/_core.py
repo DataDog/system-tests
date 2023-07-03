@@ -9,8 +9,9 @@ import json
 import re
 import time
 
+import pytest
+
 from utils.tools import logger
-from ._deserializer import deserialize
 
 
 class InterfaceValidator:
@@ -49,9 +50,17 @@ class InterfaceValidator:
         # sort data, as, file system observer may have sent them in the wrong order
         self._data_list.sort(key=lambda data: data["log_filename"])
 
+        for data in self._data_list:
+            filename = data["log_filename"]
+            if "content" not in data["request"]:
+                traceback = data["request"].get("traceback", "no traceback")
+                pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
+
+            if data["response"] and "content" not in data["response"]:
+                traceback = data["response"].get("traceback", "no traceback")
+                pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
+
     def ingest_file(self, src_path):
-        # if not self.accept_data:
-        #     return
 
         with self._lock:
             if src_path in self._ingested_files:
@@ -65,11 +74,6 @@ class InterfaceValidator:
                 except json.decoder.JSONDecodeError:
                     # the file may not be finished
                     return
-
-            deserialize(data, self.name)
-
-            with open(src_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
             self._data_list.append(data)
             self._ingested_files.add(src_path)
@@ -146,13 +150,6 @@ class InterfaceValidator:
             logger.error(f"Wait for {wait_for_function} finished in error")
 
         self._wait_for_function = None
-
-
-class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, bytes):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
 
 
 class ValidationError(Exception):
