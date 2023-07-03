@@ -48,7 +48,6 @@ variables:
   after_script:
     - export $(cat .env_ci | egrep -v "(^#.*|^$)" | xargs) 
     - sh utils/scripts/push_reports_dashboard.sh
-    - sh utils/scripts/push_reports_dashboard.sh
   artifacts:
       when: always
       paths:
