@@ -12,8 +12,7 @@ if context.library == "cpp":
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?", java="?")
-@missing_feature(weblog_variant="ratpatck", reason="Sources not supported yet")
-@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@released(java={"ratpack": "?", "spring-boot-3-native":"?", "*": "1.18.0"})
 class TestXPathInjection:
     """Test xpath injection detection."""
 
