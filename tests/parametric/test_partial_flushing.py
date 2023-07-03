@@ -7,6 +7,7 @@ from utils import missing_feature, context, scenarios
 @scenarios.parametric
 class Test_Partial_Flushing:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",}])
+    @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
         context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
     )
@@ -28,6 +29,7 @@ class Test_Partial_Flushing:
         assert root_span["name"] == "root"
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5",}])
+    @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
         context.library == "dotnet",
         reason="due to the way the child span is made it's not part of the spanContext so a flush still happens here",
