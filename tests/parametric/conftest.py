@@ -22,6 +22,7 @@ from utils.parametric._library_client import APMLibrary
 
 from utils import context
 from utils.tools import logger
+import json
 
 
 @pytest.fixture
@@ -267,12 +268,9 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
         container_name="java-test-client-%s" % container_id,
         container_tag="java8-test-client",
         container_img=f"""
-# FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
-# COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
-# COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/download/v1.12.1/dd-java-agent-1.12.1.jar
+RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
@@ -398,7 +396,9 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
-    with tempfile.NamedTemporaryFile(mode="w+") as f:
+    log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    with open(log_path, "w+") as f:
         yield f
         f.seek(0)
         request.node._report_sections.append(
@@ -407,26 +407,39 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, pytest_request: None):
         self._base_url = base_url
         self._session = requests.Session()
+        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
+        os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
+
+    def _write_log(self, type, json_trace):
+        with open(self.log_path, "a") as log:
+            log.write(f"\n{type}>>>>\n")
+            log.write(json.dumps(json_trace))
 
     def traces(self, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
-        return resp.json()
+        json = resp.json()
+        self._write_log("traces", json)
+        return json
 
     def tracestats(self, **kwargs):
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
-        return resp.json()
+        json = resp.json()
+        self._write_log("tracestats", json)
+        return json
 
     def requests(self, **kwargs) -> List[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
-        return resp.json()
+        json = resp.json()
+        self._write_log("requests", json)
+        return json
 
     def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
@@ -447,7 +460,9 @@ class _TestAgentAPI:
 
     def info(self, **kwargs):
         resp = self._session.get(self._url("/info"), **kwargs)
-        return resp.json()
+        json = resp.json()
+        self._write_log("info", json)
+        return json
 
     @contextlib.contextmanager
     def snapshot_context(self, token, ignores=None):
@@ -658,7 +673,9 @@ def test_agent_port() -> str:
 
 @pytest.fixture
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
-    with tempfile.NamedTemporaryFile(mode="w+") as f:
+    log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    with open(log_path, "w+") as f:
         yield f
         f.seek(0)
         request.node._report_sections.append(("teardown", f"Test Agent Output", "".join(f.readlines())))
@@ -692,7 +709,7 @@ def test_agent(
         log_file=test_agent_log_file,
         network_name=docker_network,
     ):
-        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port)
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
         # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
         for i in range(30):
             try:

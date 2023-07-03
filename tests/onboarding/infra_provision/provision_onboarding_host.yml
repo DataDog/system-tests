@@ -47,11 +47,19 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+<<<<<<< HEAD
         command: bash execute_install_script_dev.sh js --inject-mode host 
     - env: prod
       install:
       - os_type: linux
         command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+=======
+        command: bash execute_install_script_dev.sh js --host-inject true --container-inject false 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+>>>>>>> main
 
   - java: 
     - env: dev
@@ -60,8 +68,12 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+<<<<<<< HEAD
         command: bash execute_install_script_dev.sh java --inject-mode host 
 
+=======
+        command: bash execute_install_script_dev.sh java --host-inject true --container-inject false 
+>>>>>>> main
     - env: prod
       install:
       - os_type: linux
@@ -74,7 +86,11 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+<<<<<<< HEAD
         command: bash execute_install_script_dev.sh python --inject-mode host 
+=======
+        command: bash execute_install_script_dev.sh python --host-inject true --container-inject false 
+>>>>>>> main
     - env: prod
       install:
       - os_type: linux
@@ -88,12 +104,19 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
+<<<<<<< HEAD
         command: bash execute_install_script_dev.sh dotnet --inject-mode host 
+=======
+        command: bash execute_install_script_dev.sh dotnet --host-inject true --container-inject false 
+>>>>>>> main
     - env: prod
       install:
       - os_type: linux
         command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=dotnet DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 
 autoinjection:
 #Copy tests/onboarding/autoinjection/host_config.yaml to /etc/datadog-agent/inject/host_config.yaml to enable debug (Disabled for timing reasons)

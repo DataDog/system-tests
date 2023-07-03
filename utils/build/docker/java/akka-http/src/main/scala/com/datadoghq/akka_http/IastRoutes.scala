@@ -21,6 +21,7 @@ object IastRoutes {
   private val ldap = new LDAPExamples(ldapContext)
   private val path_ = new PathExamples()
   private val sql = new SqlExamples(dataSource)
+  private val xpath = new XPathExamples()
 
   val route: Route = pathPrefix("iast") {
     pathPrefix("insecure_hashing") {
@@ -82,6 +83,20 @@ object IastRoutes {
           }
         }
       } ~
+      pathPrefix("xpathi") {
+              post {
+                path("test_insecure") {
+                  paramOrFormField("expression") { expression =>
+                    xpath.insecureXPath(expression)
+                    complete(StatusCodes.OK, "Insecure")
+                  }
+                } ~
+                  path("test_secure") {
+                    xpath.secureXPath()
+                    complete(StatusCodes.OK, "Secure")
+                  }
+              }
+            } ~
       path("path_traversal" / "test_insecure") {
         post {
           paramOrFormField("path") { pathParam =>

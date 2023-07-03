@@ -287,3 +287,15 @@ The following query parameters are optional:
 
 This endpoint is used for the OTel API tests (`test_otel.py`). In the body of the endpoint, multiple properties are set on the span to verify that the API works correctly.
 To read more about the specific values being used, check `test_otel.py` for up-to-date information.
+
+## \[GET,POST\] /login
+This endpoint is used to authenticate a user.
+Body fields accepted in POST method:
+- `username`: the login name for the user.
+- `password`: password for the user.
+It also supports HTTP authentication by using GET method and the authorization header.
+Additionally both methods support the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_event`: login event type: `success` or `failure`.
+- `sdk_user`: user id to be used in the sdk call.
+- `sdk_mail`: user's mail to be used in the sdk call.
+- `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.

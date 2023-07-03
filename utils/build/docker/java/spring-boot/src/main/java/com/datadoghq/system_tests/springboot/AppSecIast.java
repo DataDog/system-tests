@@ -32,6 +32,8 @@ public class AppSecIast {
     private final SsrfExamples ssrfExamples;
     private final WeakRandomnessExamples weakRandomnessExamples;
 
+    private final XPathExamples xPathExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -40,6 +42,7 @@ public class AppSecIast {
         this.cryptoExamples = new CryptoExamples();
         this.ssrfExamples = new SsrfExamples();
         this.weakRandomnessExamples = new WeakRandomnessExamples();
+        this.xPathExamples = new XPathExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -204,6 +207,71 @@ public class AppSecIast {
     @GetMapping("/weak_randomness/test_secure")
     String secureRandom() {
         return weakRandomnessExamples.secureRandom();
+    }
+
+    @GetMapping("/insecure-cookie/test_empty_cookie")
+    String insecureCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/insecure-cookie/test_insecure")
+    String insecureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/insecure-cookie/test_secure")
+    String secureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_insecure")
+    String noSameSiteCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;Secure");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_empty_cookie")
+    String noSameSiteCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_secure")
+    String noSameSiteCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie-cookie/test_empty_cookie")
+    String noHttpOnlyCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/no-httponly-cookie/test_insecure")
+    String noHttpOnlyCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie/test_secure")
+    String noHttpOnlyCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @PostMapping("/xpathi/test_insecure")
+    String insecureXPath(final ServletRequest request) {
+        final String expression = request.getParameter("expression");
+        xPathExamples.insecureXPath(expression);
+        return "XPath insecure";
+    }
+
+    @PostMapping("/xpathi/test_secure")
+    String secureXPath(final ServletRequest request) {
+        xPathExamples.secureXPath();
+        return "XPath secure";
     }
 
     /**
