@@ -6,11 +6,14 @@ import pytest
 from utils import context, coverage, released, missing_feature
 from ..iast_fixtures import SinkFixture
 
+if context.library == "cpp":
+    pytestmark = pytest.mark.skip("not relevant")
+
 
 @coverage.basic
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", java="?")
 class TestXPathInjection:
-    """Test command injection detection."""
+    """Test xpath injection detection."""
 
     sink_fixture = SinkFixture(
         vulnerability_type="XPATH_INJECTION",
