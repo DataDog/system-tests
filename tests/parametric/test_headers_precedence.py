@@ -36,8 +36,6 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "python_http", reason="New 'datadog' default hasn't been implemented yet")
     def test_headers_precedence_propagationstyle_default(self, test_agent, test_library):
         with test_library:
             # 1) No headers
