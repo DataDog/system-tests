@@ -61,6 +61,7 @@ agent_auto_install:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
         command: bash execute_install_script_dev.sh java --inject-mode host 
+
     - env: prod
       install:
       - os_type: linux

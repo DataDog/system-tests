@@ -11,8 +11,8 @@ ami:
   os_type: linux
   os_distro: deb
 
-- name: amazon-linux-x86
-  ami_id: ami-0dfcb1ef8550277af
+- name: amazon-linux-2023-x86
+  ami_id: ami-06b09bfacae1453cb
   user: ec2-user
   os_type: linux
   os_distro: rpm
@@ -341,7 +341,7 @@ language-variants:
 
         - os_type: linux
           os_distro: rpm
-          command: sudo amazon-linux-extras install java-openjdk11
+          command: sudo dnf -y install java-11-amazon-corretto-devel
 
 
 weblogs:
@@ -366,6 +366,47 @@ weblogs:
               local_path: test-app-java.tar
 
           command: sh test-app-java_docker_compose_run.sh
+
+    - name: test-app-java-alpine
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_docker_compose_run.sh
+
+            - name: copy-docker-file
+              local_path: tests/onboarding/weblog/java/test-app-java/Dockerfile.alpine
+              remote_path: Dockerfile
+
+            - name: copy-entrypoint-docker
+              local_path: tests/onboarding/weblog/java/test-app-java/docker_entrypoint_docker.sh
+
+            - name: copy-docker-compose-file
+              local_path: tests/onboarding/weblog/java/test-app-java/docker-compose.yml
+
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_compose_run.sh
+
+    - name: test-app-java-buildpack
+      supported-language-versions:
+        - 11
+      install: 
+        - os_type: linux
+          local-command: tar cvf test-app-java.tar -C lib-injection/build/docker/java/dd-lib-java-init-test-app .
+          copy_files:
+            - name: copy-run-weblog-script
+              local_path: tests/onboarding/weblog/java/test-app-java/test-app-java_docker_compose_run_buildpack.sh
+            - name: copy-docker-compose-file
+              local_path: tests/onboarding/weblog/java/test-app-java/docker-compose.yml
+            - name: copy-java-app
+              local_path: test-app-java.tar
+
+          command: sh test-app-java_docker_compose_run_buildpack.sh
   - nodejs: 
     - name: test-app-nodejs
       install: 
