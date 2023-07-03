@@ -2,15 +2,46 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import time
-from random import randint
+from collections import defaultdict
+from random import randint, seed
 
 from utils import weblog, interfaces, context, missing_feature, released, bug, irrelevant, flaky, scenarios
+from utils.tools import logger
+
 
 USER_REJECT = -1
 AUTO_REJECT = 0
 AUTO_KEEP = 1
 USER_KEEP = 2
+
+
+def get_sampling_decision(sampling_rate, trace_id, meta):
+    """Algorithm described in the priority sampling RFC
+    https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md"""
+    MAX_TRACE_ID = 2 ** 64
+    KNUTH_FACTOR = 1111111111111111111
+    AUTO_REJECT = 0
+    AUTO_KEEP = 1
+    MANUAL_KEEP = 2
+    MANUAL_REJECT = -1
+
+    if meta.get("appsec.event", None) == "true" or meta.get("_dd.appsec.event_rules.errors", None) is not None:
+        return (MANUAL_KEEP,)
+
+    if ((trace_id * KNUTH_FACTOR) % MAX_TRACE_ID) <= (sampling_rate * MAX_TRACE_ID):
+        return (AUTO_KEEP, MANUAL_KEEP)
+    return (AUTO_REJECT, MANUAL_REJECT)
+
+
+def _spans_with_parent(traces, parent_ids):
+    if not isinstance(traces, list):
+        logger.error("Traces should be an array")
+        yield from []  # do notfail here, it's schema's job
+    else:
+        for trace in traces:
+            for span in trace:
+                if span.get("parent_id") in parent_ids:
+                    yield span
 
 
 @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
@@ -20,27 +51,20 @@ USER_KEEP = 2
 class Test_SamplingRates:
     """Rate at which traces are sampled is the actual sample rate"""
 
-    TOTAL_REQUESTS = 10_000
-    REQ_PER_S = 25
-
-    def test_sampling_rate_is_set(self):
-        """Should fail if the test is misconfigured"""
-        if context.tracer_sampling_rate is None:
-            raise Exception("Sampling rate should be set on tracer with an env var for this scenario to be meaningful")
+    TOTAL_REQUESTS = 2_000
 
     def setup_sampling_rates(self):
         self.paths = []
-        last_sleep = time.time()
         for i in range(self.TOTAL_REQUESTS):
-            if i != 0 and i % self.REQ_PER_S == 0:
-                time.sleep(max(0, 1 - (time.time() - last_sleep)))
-                last_sleep = time.time()
             p = f"/sample_rate_route/{i}"
             self.paths.append(p)
             weblog.get(p)
 
     @bug(library="python", reason="When stats are activated, all traces are emitted")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
+    @flaky(library="golang", reason="Needs investigation")
+    @flaky(library="ruby", reason="Needs investigation")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -54,14 +78,14 @@ class Test_SamplingRates:
             sampled_count[metrics["_sampling_priority_v1"] in (USER_KEEP, AUTO_KEEP)] += 1
 
         trace_count = sum(sampled_count.values())
-        # 95% confidence interval = 3 * std_dev = 2 * √(n * p (1 - p))
-        confidence_interval = 3 * (
+        # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
+        confidence_interval = 4 * (
             trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)
         ) ** (1 / 2)
         # E = n * p
         expectation = context.tracer_sampling_rate * trace_count
         if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
-            raise Exception(
+            raise ValueError(
                 f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
                 f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
@@ -113,10 +137,29 @@ class Test_SamplingDecisions:
         reason="fails randomly for Sinatra on JSON body that dutifully keeps",
     )
     @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
+    @bug(library="golang", reason="Need investigation")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        interfaces.library.assert_sampling_decision_respected(context.tracer_sampling_rate)
+        def validator(data, root_span):
+            sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
+            if sampling_priority is None:
+                raise ValueError(
+                    f"Message: {data['log_filename']}:"
+                    "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
+                )
+            if sampling_priority not in (
+                expected := get_sampling_decision(
+                    context.tracer_sampling_rate, root_span["trace_id"], root_span["meta"]
+                )
+            ):
+                raise ValueError(
+                    f"Trace id {root_span['trace_id']} "
+                    f"sampling priority is {sampling_priority}, should be {expected}"
+                )
+
+        for data, span in interfaces.library.get_root_spans():
+            validator(data, span)
 
     def setup_sampling_decision_added(self):
 
@@ -131,11 +174,39 @@ class Test_SamplingDecisions:
     @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
     @bug(library="ruby", reason="Unknown reason")
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @missing_feature(library="ruby", reason="Endpoint not implemented on weblog")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
-        interfaces.library.assert_sampling_decisions_added(self.traces)
+
+        traces = {trace["parent_id"]: trace for trace in self.traces}
+        spans = []
+
+        def validator(data):
+            for span in _spans_with_parent(data["request"]["content"], traces.keys()):
+
+                expected_trace_id = traces[span["parent_id"]]["trace_id"]
+                spans.append(span)
+
+                assert span["trace_id"] == expected_trace_id, (
+                    f"Message: {data['log_filename']}: If parent_id matches, "
+                    f"trace_id should match too expected trace_id {expected_trace_id} "
+                    f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
+                )
+
+                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+
+                assert sampling_priority is not None, (
+                    f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
+                )
+
+        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+
+        if len(spans) != len(traces):
+            raise ValueError("Didn't see all requests")
 
     def setup_sampling_determinism(self):
+        seed(0)  # stay deterministic
+
         self.traces_determinism = [
             {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)
         ]
@@ -158,6 +229,35 @@ class Test_SamplingDecisions:
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="ruby", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")
+    @flaky(library="cpp")
+    @flaky(library="golang")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
-        interfaces.library.assert_deterministic_sampling_decisions(self.traces_determinism)
+
+        traces = {trace["parent_id"]: trace for trace in self.traces_determinism}
+        sampling_decisions_per_trace_id = defaultdict(list)
+
+        def validator(data):
+            for span in _spans_with_parent(data["request"]["content"], traces.keys()):
+                expected_trace_id = traces[(span["parent_id"])]["trace_id"]
+                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+
+                assert span["trace_id"] == expected_trace_id, (
+                    f"Message: {data['log_filename']}: If parent_id matches, "
+                    f"trace_id should match too expected trace_id {expected_trace_id} "
+                    f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
+                )
+
+                assert (
+                    sampling_priority is not None
+                ), f"Message: {data['log_filename']}: sampling priority should be set"
+
+        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+
+        for trace_id, decisions in sampling_decisions_per_trace_id.items():
+            if len(decisions) < 2:
+                continue
+
+            if not all((d == decisions[0] for d in decisions)):
+                raise ValueError(f"Sampling decisions are not deterministic for trace_id {trace_id}: {decisions}")

@@ -585,16 +585,21 @@ class OpenTelemetryScenario(_DockerScenario):
                 super().__init__()
                 self.interface = interface
 
-            def on_modified(self, event):
+            def _ingest(self, event):
                 if event.is_directory:
                     return
 
                 self.interface.ingest_file(event.src_path)
 
-        observer = Observer()
+            on_modified = _ingest
+            on_created = _ingest
+
+        observer = PollingObserver()
         observer.schedule(
             Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
         )
+        if self.include_agent:
+            observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
 
         observer.start()
 
@@ -933,6 +938,13 @@ class scenarios:
         Scenario for API Security feature, testing schema types sent into span tags if
         _DD_API_SECURITY_ENABLED is set to true.
         """,
+    )
+
+    appsec_auto_events_extended = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_EXTENDED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        appsec_enabled=True,
+        doc="Scenario for checking extended mode in automatic user events",
     )
 
     # Remote config scenarios

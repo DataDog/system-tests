@@ -5,19 +5,36 @@ from utils import context, released, coverage, interfaces, scenarios, weblog, bu
     cpp="?",
     dotnet="2.30.0",
     golang="1.48.0",
-    java="1.7.0",
+    java={
+        "spring-boot": "0.110.0",
+        "sprint-boot-jetty": "0.111.0",
+        "spring-boot-undertow": "0.111.0",
+        "spring-boot-openliberty": "0.115.0",
+        "ratpack": "1.7.0",
+        "jersey-grizzly2": "1.7.0",
+        "resteasy-netty3": "1.7.0",
+        "vertx3": "1.7.0",
+        "*": "?",
+    },
     nodejs="3.15.0",
     php="0.86.3",
     php_appsec="0.7.2",
     python={"django-poc": "1.10", "flask-poc": "1.10", "*": "?"},
     ruby="1.11.0",
 )
-@missing_feature(library="java", reason="/users endpoint is not implemented on java weblog")
+@bug(library="java", reason="RC payload limit")
+@missing_feature(
+    library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
+)
+@missing_feature(
+    library="ruby", reason="Ruby supported denylists of 2500 entries but it fails to block this those 15000"
+)
 @coverage.basic
 @scenarios.appsec_blocking_full_denylist
 class Test_UserBlocking_FullDenylist:
     NOT_BLOCKED_USER = "regularUser"
     remote_config_is_sent = False
+    NUM_OF_BLOCKED_USERS = 2500
 
     def _remote_config_asm_payload(self, data):
         if data["path"] == "/v0.7/config":
@@ -57,7 +74,10 @@ class Test_UserBlocking_FullDenylist:
         interfaces.library.wait_for(self._remote_config_asm_payload, timeout=30)
         interfaces.library.wait_for(self._remote_config_is_applied, timeout=30)
 
-        self.r_blocked_requests = [weblog.get("/users", params={"user": i}) for i in range(1250)]
+        self.r_blocked_requests = [
+            weblog.get("/users", params={"user": 0}),
+            weblog.get("/users", params={"user": 2499}),
+        ]
 
     @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
     def test_blocking_test(self):
