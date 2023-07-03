@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", java="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?", java="?")
 class TestXPathInjection:
     """Test xpath injection detection."""
 
