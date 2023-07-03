@@ -72,7 +72,6 @@ class Test_Otel_Span_Methods:
         reason="Span names don't match expectations: 'ApmTestClient.internal' == 'operation'",
     )
     @missing_feature(context.library == "nodejs", reason="Empty string attribute value are not supported")
-    @missing_feature(context.library == "java", reason="Empty string attribute value are not supported")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_set_attributes_different_types(self, test_agent, test_library):
@@ -113,6 +112,13 @@ class Test_Otel_Span_Methods:
             assert root_span["meta"]["array_val_str"] == "[val1 val2]"
             assert root_span["meta"]["array_val_int"] == "[10 20]"
             assert root_span["meta"]["array_val_double"] == "[10.1 20.2]"
+        elif root_span["meta"]["language"] == "jvm":
+            assert root_span["meta"]["bool_val"] == "true"
+            assert root_span["meta"]["array_val_bool"] == "[true, false]"
+            assert root_span["meta"]["array_val_str"] == "[val1, val2]"
+            assert root_span["meta"]["d_bool_val"] == "false"
+            assert root_span["meta"]["array_val_int"] == "[10, 20]"
+            assert root_span["meta"]["array_val_double"] == "[10.1, 20.2]"
         else:
             assert root_span["meta"]["bool_val"] == "True"
             assert root_span["meta"]["array_val_bool"] == "[True, False]"
