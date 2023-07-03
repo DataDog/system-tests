@@ -61,7 +61,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
    
   - java: 
@@ -87,7 +87,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=java DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=java DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - python: 
     - env: dev
@@ -112,7 +112,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=python DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=python DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
   - dotnet: 
     - env: dev
@@ -137,7 +137,7 @@ agent_auto_install:
             - name: copy-agent-docker-compose
               local_path: tests/onboarding/autoinjection/docker/docker-compose-agent-prod.yml
         command: |
-          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=dotnet DD_APM_HOST_INJECTION_ENABLED=false DD_APM_DOCKER_INJECTION_ENABLED=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+          DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=dotnet DD_APM_INSTRUMENTATION_ENABLED=docker bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
           sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
         
 autoinjection: 
