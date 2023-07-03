@@ -1,25 +1,8 @@
-FROM python:3.9
-
-# print versions
-RUN python --version && curl --version
-
-# install hello world app
-RUN pip install django pycryptodome gunicorn gevent requests
-
-RUN mkdir app
-RUN django-admin startproject django_app app
-WORKDIR /app
-RUN python3 manage.py startapp app
-
-RUN sed -i "1s/^/from django.urls import include\n/" django_app/urls.py
-RUN sed -i "s/admin\///g" django_app/urls.py
-RUN sed -i "s/admin.site.urls/include(\"app.urls\")/g" django_app/urls.py
-RUN sed -i "s/ALLOWED_HOSTS\s=\s\[\]/ALLOWED_HOSTS = \[\"0.0.0.0\",\"weblog\"\,\"localhost\"\]/g" django_app/settings.py
+FROM datadog/system-tests:django-poc.base-v0
 
 COPY utils/build/docker/python/django/app.sh /app/app.sh
 COPY utils/build/docker/python/django/django.app.urls.py /app/app/urls.py
 COPY utils/build/docker/python/iast.py /app/iast.py
-
 
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
