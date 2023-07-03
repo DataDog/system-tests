@@ -190,7 +190,9 @@ class Test_Headers_Tracestate_DD:
         assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library == "cpp", reason="origin 'synthetics~;=web,z' does not match expected values for dd_items3")
+    @missing_feature(
+        context.library == "cpp", reason="origin 'synthetics~;=web,z' does not match expected values for dd_items3"
+    )
     @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
         """
