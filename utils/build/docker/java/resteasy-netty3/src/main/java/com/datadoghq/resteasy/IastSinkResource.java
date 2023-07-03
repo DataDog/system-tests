@@ -183,4 +183,57 @@ public class IastSinkResource {
     public Response insecureUnvalidatedRedirect(@FormParam("location") final String location) throws URISyntaxException {
         return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(location)).build();
     }
+
+    @GET
+    @Path("/insecure-cookie/test_empty_cookie")
+    public Response insecureCookieEmptyCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
+    }
+
+    @GET
+    @Path("/insecure-cookie/test_insecure")
+    public Response  insecureCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/insecure-cookie/test_secure")
+    public Response  secureCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/no-samesite-cookie/test_insecure")
+    public Response  noSameSiteCookieInsecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;Secure").build();
+    }
+
+    @GET
+    @Path("/no-samesite-cookie/test_empty_cookie")
+    public Response  noSameSiteCookieEmptyCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
+    }
+
+    @GET
+    @Path("/no-samesite-cookie/test_secure")
+    public Response  noSameSiteCookieSecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/no-httponly-cookie-cookie/test_empty_cookie")
+    public Response  noHttpOnlyCookieEmptyCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
+    }
+    @GET
+    @Path("/no-httponly-cookie/test_insecure")
+    public Response  noHttpOnlyCookieInsecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/no-httponly-cookie/test_secure")
+    public Response  noHttpOnlyCookieSecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+    }
 }
