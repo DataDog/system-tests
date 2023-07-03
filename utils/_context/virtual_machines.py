@@ -1,5 +1,6 @@
 import os
 from utils.tools import logger
+import json
 
 
 class TestedVirtualMachine:
@@ -31,23 +32,8 @@ class TestedVirtualMachine:
         self.prepare_docker_install = prepare_docker_install
         self.installation_check_data = installation_check_data
         self.provision_scenario = provision_scenario
-        self.name = (
-            self.ec2_data["name"]
-            + "__agent-"
-            + (
-                self.agent_install_data["env"]
-                if "env" in self.agent_install_data
-                else "auto-install-" + self.autoinjection_install_data["env"]
-            )
-            + "__autoinjection-"
-            + self.language
-            + "-"
-            + self.autoinjection_install_data["env"]
-            + "__lang-variant-"
-            + self.language_variant_install_data["name"]
-            + "__weblog-"
-            + self.weblog_install_data["name"]
-        )
+        self.name = self.ec2_data["name"] + "__lang-variant-" + self.language_variant_install_data["name"]
+        self.components = None
 
     def configure(self):
         self.datadog_config = DataDogConfig()
@@ -160,6 +146,7 @@ class TestedVirtualMachine:
             autoinjection_installer,
             logger_name="pulumi_installed_versions",
             scenario_name=self.provision_scenario,
+            output_callback=lambda command_output: self.set_components(command_output),
         )
 
         # Install language variants (not mandatory)
@@ -188,6 +175,18 @@ class TestedVirtualMachine:
 
     def set_ip(self, instance_ip):
         self.ip = instance_ip
+
+    def set_components(self, components_json):
+        """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
+        self.components = json.loads(components_json.replace("'", '"'))
+
+    def get_component(self, component_name):
+        raw_version = self.components[component_name]
+        # Workaround clean "Epoch" from debian packages.
+        # The format is: [epoch:]upstream_version[-debian_revision]
+        if ":" in raw_version:
+            raw_version = raw_version.split(":")[1]
+        return raw_version.strip()
 
 
 class AWSInfraConfig:

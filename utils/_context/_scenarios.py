@@ -53,8 +53,8 @@ class _Scenario:
 
         return test_method
 
-    def configure(self, replay):
-        self.replay = replay
+    def configure(self, option):
+        self.replay = option.replay
         self.create_log_subfolder("")
 
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
@@ -62,7 +62,7 @@ class _Scenario:
 
         logger.addHandler(handler)
 
-        if replay:
+        if self.replay:
             from utils import weblog
 
             weblog.init_replay_mode(self.host_log_folder)
@@ -166,6 +166,14 @@ class _Scenario:
     def telemetry_heartbeat_interval(self):
         return 0
 
+    @property
+    def components(self):
+        return {}
+
+    @property
+    def parametrized_tests_metadata(self):
+        return {}
+
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
@@ -237,11 +245,11 @@ class _DockerScenario(_Scenario):
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
 
         for container in reversed(self._required_containers):
-            container.configure(replay)
+            container.configure(self.replay)
 
     def _get_warmups(self):
 
@@ -330,17 +338,17 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def configure(self, replay):
+    def configure(self, option):
         from utils import interfaces
 
-        super().configure(replay)
+        super().configure(option)
 
-        interfaces.agent.configure(replay)
-        interfaces.library.configure(replay)
-        interfaces.backend.configure(replay)
-        interfaces.library_stdout.configure(replay)
-        interfaces.library_dotnet_managed.configure(replay)
-        interfaces.agent_stdout.configure(replay)
+        interfaces.agent.configure(self.replay)
+        interfaces.library.configure(self.replay)
+        interfaces.backend.configure(self.replay)
+        interfaces.library_stdout.configure(self.replay)
+        interfaces.library_dotnet_managed.configure(self.replay)
+        interfaces.agent_stdout.configure(self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -556,8 +564,8 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_collector = include_collector
         self.include_intake = include_intake
 
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
@@ -696,16 +704,74 @@ class OnBoardingScenario(_Scenario):
         self.stack = None
         self.provision_vms = []
         self.provision_vm_names = []
+        self.onboarding_components = {}
+        self.onboarding_tests_metadata = {}
 
-    def configure(self, replay):
-        super().configure(replay)
-        assert "TEST_LIBRARY" in os.environ
-        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
+    def configure(self, option):
+        super().configure(option)
+        self._library = LibraryVersion(option.obd_library, "0.0")
+        self._env = option.obd_env
+        self._weblog = option.obd_weblog
+        self.provision_vms = list(
+            ProvisionMatrix(
+                ProvisionFilter(self.name, language=self._library.library, env=self._env, weblog=self._weblog)
+            ).get_infrastructure_provision()
+        )
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
 
     @property
+    def components(self):
+        return self.onboarding_components
+
+    @property
+    def parametrized_tests_metadata(self):
+        return self.onboarding_tests_metadata
+
+    @property
     def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog
+
+    def fill_context(self):
+        # fix package name for nodejs -> js
+        if self._library.library == "nodejs":
+            package_lang = "datadog-apm-library-js"
+        else:
+            package_lang = f"datadog-apm-library-{self._library.library}"
+
+        dd_package_names = ["agent", "datadog-apm-inject", package_lang]
+
+        try:
+            for provision_vm in self.provision_vms:
+                # Manage common dd software components for the scenario
+                for dd_package_name in dd_package_names:
+                    # All the tested machines should have the same version of the DD components
+                    if dd_package_name in self.onboarding_components and self.onboarding_components[
+                        dd_package_name
+                    ] != provision_vm.get_component(dd_package_name):
+                        self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
+                        raise ValueError(
+                            f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
+                        )
+
+                    self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
+                # Manage specific information for each parametrized test
+                test_metadata = {
+                    "vm": provision_vm.ec2_data["name"],
+                    "vm_ip": provision_vm.ip,
+                    "vm_ami": provision_vm.ec2_data["ami_id"],
+                    "vm_distro": provision_vm.ec2_data["os_distro"],
+                    "docker": provision_vm.get_component("docker"),
+                    "lang_variant": provision_vm.language_variant_install_data["name"],
+                }
+                self.onboarding_tests_metadata[provision_vm.name] = test_metadata
+
+        except Exception as ex:
+            logger.error("Error filling the context components")
+            logger.exception(ex)
 
     def _start_pulumi(self):
         from pulumi import automation as auto
@@ -735,6 +801,10 @@ class OnBoardingScenario(_Scenario):
     def _get_warmups(self):
         return [self._start_pulumi]
 
+    def post_setup(self):
+        """ Fill context with the installed components information and parametrized test metadata"""
+        self.fill_context()
+
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
         self.close_targets()
@@ -745,8 +815,8 @@ class OnBoardingScenario(_Scenario):
 
 
 class ParametricScenario(_Scenario):
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
     @property

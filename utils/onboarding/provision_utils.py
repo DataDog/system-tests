@@ -12,7 +12,7 @@ class ProvisionMatrix:
         self.provision_parser = ProvisionParser(provision_filter)
 
     def get_infrastructure_provision(self):
-        if not os.getenv("TEST_LIBRARY"):
+        if not self.provision_filter.language or not self.provision_filter.env or not self.provision_filter.weblog:
             return None
         for ec2_data in self.provision_parser.ec2_instances_data():
             # for every different agent instalation
@@ -246,7 +246,7 @@ class ProvisionParser:
 class ProvisionFilter:
     def __init__(self, provision_scenario, language=None, env=None, os_distro=None, weblog=None):
         self.provision_scenario = provision_scenario
-        self.language = os.getenv("TEST_LIBRARY")
-        self.env = os.getenv("ONBOARDING_FILTER_ENV")
+        self.language = language
+        self.env = env
         self.os_distro = os.getenv("ONBOARDING_FILTER_OS_DISTRO")
-        self.weblog = os.getenv("ONBOARDING_FILTER_WEBLOG")
+        self.weblog = weblog

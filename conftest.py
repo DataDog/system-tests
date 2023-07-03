@@ -39,6 +39,10 @@ def pytest_addoption(parser):
     parser.addoption(
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
+    # Onboarding scenarios mandatory parameters
+    parser.addoption("--obd-weblog", type=str, action="store", help="Set onboarding weblog")
+    parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
+    parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
 
 
 def pytest_configure(config):
@@ -52,10 +56,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    # collect only : we collect tests. As now, it only works with replay mode
-    # on collectonly mode, the configuration step is exactly the step on replay mode
-    # so let's tell the scenario we are in replay mode
-    context.scenario.configure(config.option.replay or config.option.collectonly)
+    context.scenario.configure(config.option)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = _JSON_REPORT_FILE()
