@@ -1,3 +1,5 @@
+import json
+
 from utils import weblog, interfaces, context
 from utils.tools import logging
 
@@ -14,6 +16,32 @@ def _get_expectation(d):
         if isinstance(expected, dict):
             expected = expected.get(context.weblog_variant)
         return expected
+
+
+def _get_span_meta(request):
+    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No root span found"
+    span = spans[0]
+    meta = span.get("meta", {})
+    return meta
+
+
+def get_iast_event(request):
+    meta = _get_span_meta(request=request)
+    assert "_dd.iast.json" in meta, "No _dd.iast.json tag in span"
+    return json.loads(meta["_dd.iast.json"])
+
+
+def assert_single_iast_vulnerability(request, vulnerability_type=None, expected_location=None, expected_evidence=None):
+    iast = get_iast_event(request=request)
+    assert len(iast["vulnerabilities"]) == 1, "Expected one vulnerability"
+    vuln = iast["vulnerabilities"][0]
+    if vulnerability_type:
+        assert vuln["type"] == vulnerability_type
+    if expected_location:
+        assert vuln.get("location", {}).get("path", "") == expected_location
+    if expected_evidence:
+        assert vuln.get("evidence", {}).get("value") == expected_evidence
 
 
 class SinkFixture:
@@ -42,12 +70,11 @@ class SinkFixture:
             self.insecure_request = weblog.request(method=self.http_method, path=self.insecure_endpoint, data=self.data)
 
     def test_insecure(self):
-        interfaces.library.expect_iast_vulnerabilities(
-            self.insecure_request,
-            vulnerability_count=1,
+        assert_single_iast_vulnerability(
+            request=self.insecure_request,
             vulnerability_type=self.vulnerability_type,
-            location_path=self.expected_location,
-            evidence=self.expected_evidence,
+            expected_location=self.expected_location,
+            expected_evidence=self.expected_evidence,
         )
 
     def setup_secure(self):
@@ -55,7 +82,8 @@ class SinkFixture:
             self.secure_request = weblog.request(method=self.http_method, path=self.secure_endpoint, data=self.data)
 
     def test_secure(self):
-        interfaces.library.expect_no_vulnerabilities(self.secure_request)
+        meta = _get_span_meta(request=self.secure_request)
+        assert not "_dd.iast.json" in meta, "Unexpected vulnerabilities reported"
 
     def setup_telemetry_metric_instrumented_sink(self):
         self.setup_insecure()
@@ -117,9 +145,22 @@ class SourceFixture:
             self.request = weblog.request(method=self.http_method, path=self.endpoint, **self.request_kwargs)
 
     def test(self):
-        interfaces.library.expect_iast_sources(
-            self.request, source_count=1, origin=self.source_type, name=self.source_name, value=self.source_value,
-        )
+        iast = get_iast_event(request=self.request)
+        sources = iast["sources"]
+        assert sources, "No source reported"
+        if self.source_type:
+            assert self.source_type in {s.get("origin") for s in sources}
+            sources = [s for s in sources if s["origin"] == self.source_type]
+        if self.source_name:
+            assert self.source_name in {s.get("name") for s in sources}
+            sources = [s for s in sources if s["name"] == self.source_name]
+        if self.source_value:
+            assert self.source_value in {s.get("value") for s in sources}
+            sources = [s for s in sources if s["value"] == self.source_value]
+        assert (
+            sources
+        ), f"No source found with origin={self.source_type}, name={self.source_name}, value={self.source_value}"
+        assert len(sources) == 1, "Expected a single source with the matching criteria"
 
     def setup_telemetry_metric_instrumented_source(self):
         self.setup()
