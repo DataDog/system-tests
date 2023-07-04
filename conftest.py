@@ -11,8 +11,6 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from pathlib import Path
-import random
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -187,7 +185,6 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session):
-
     from utils import weblog
 
     if session.config.option.collectonly:
@@ -302,6 +299,7 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
+
     context.scenario.pytest_sessionfinish(session)
     if session.config.option.collectonly or session.config.option.replay:
         return
