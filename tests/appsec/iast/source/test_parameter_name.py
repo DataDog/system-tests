@@ -11,21 +11,18 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
-        "spring-boot": "1.5.0",
-        "spring-boot-jetty": "1.5.0",
-        "spring-boot-openliberty": "1.5.0",
-        "spring-boot-payara": "1.5.0",
-        "spring-boot-wildfly": "1.5.0",
-        "spring-boot-undertow": "1.5.0",
+        "jersey-grizzly2": "1.15.0",
         "vertx3": "1.12.0",
+        "vertx4": "1.12.0",
         "akka-http": "1.12.0",
-        "*": "?",
+        "ratpack": "?",
+        "*": "1.5.0",
     }
 )
-@released(nodejs="?")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestParameterName:
     """Verify that request parameters are tainted"""
 
@@ -41,7 +38,8 @@ class TestParameterName:
     def setup_source_post_reported(self):
         self.source_post_fixture.setup()
 
-    @missing_feature(context.weblog_variant == "express4", reason="Tainted as request body")
+    @missing_feature(weblog_variant="express4", reason="Tainted as request body")
+    @bug(weblog_variant="resteasy-netty3", reason="Not reported")
     def test_source_post_reported(self):
         self.source_post_fixture.test()
 
@@ -57,7 +55,10 @@ class TestParameterName:
     def setup_source_get_reported(self):
         self.source_get_fixture.setup()
 
-    @missing_feature(context.library.library == "java", reason="Pending to add GET test")
+    @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
+    @bug(weblog_variant="resteasy-netty3", reason="Not reported")
+    @bug(weblog_variant="vertx3", reason="Not reported")
+    @bug(weblog_variant="vertx4", reason="Not reported")
     def test_source_get_reported(self):
         self.source_get_fixture.test()
 

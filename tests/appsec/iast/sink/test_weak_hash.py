@@ -28,24 +28,9 @@ def _expected_location():
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="1.6.0", ruby="?")
+@released(dotnet="?", golang="?", java="0.108.0", php_appsec="?", python="1.6.0", ruby="?")
 @released(nodejs={"express4": "3.11.0", "*": "?"})
-@released(
-    java={
-        "spring-boot": "0.108.0",
-        "spring-boot-jetty": "0.108.0",
-        "spring-boot-openliberty": "0.108.0",
-        "spring-boot-payara": "0.108.0",
-        "spring-boot-wildfly": "0.108.0",
-        "spring-boot-undertow": "0.108.0",
-        "resteasy-netty3": "1.11.0",
-        "jersey-grizzly2": "1.11.0",
-        "vertx3": "1.12.0",
-        "akka-http": "1.12.0",
-        "*": "?",
-    }
-)
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakHash:
     """Verify weak hash detection."""
 
@@ -74,7 +59,7 @@ class TestWeakHash:
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
 
-    @missing_feature(context.weblog_variant == "spring-boot-openliberty")
+    @missing_feature(weblog_variant="spring-boot-openliberty")
     @missing_feature(library="python", reason="Need to be implement duplicates vulnerability hashes")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
@@ -90,7 +75,7 @@ class TestWeakHash:
     def setup_insecure_hash_multiple(self):
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
-    @bug(context.weblog_variant == "spring-boot-openliberty")
+    @bug(weblog_variant="spring-boot-openliberty")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
         assert_iast_vulnerability(
@@ -106,7 +91,6 @@ class TestWeakHash:
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -116,6 +100,5 @@ class TestWeakHash:
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

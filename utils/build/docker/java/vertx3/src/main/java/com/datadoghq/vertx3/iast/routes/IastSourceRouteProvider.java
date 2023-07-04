@@ -31,13 +31,13 @@ public class IastSourceRouteProvider implements Consumer<Router> {
 
         router.route("/iast/source/*").handler(BodyHandler.create());
 
-        router.post("/iast/source/parameter/test").handler(ctx -> {
+        router.route("/iast/source/parameter/test").handler(ctx -> {
             final HttpServerRequest request = ctx.request();
             final String table = request.getParam("table");
             sql.insecureSql(table, (statement, query) -> statement.executeQuery(query));
             ctx.response().end(String.format("Request Parameters => source: %s", table));
         });
-        router.post("/iast/source/parametername/test").handler(ctx -> {
+        router.route("/iast/source/parametername/test").handler(ctx -> {
             final HttpServerRequest request = ctx.request();
             List<String> parameterNames = new ArrayList<>(request.params().names());
             final String table = parameterNames.get(0);

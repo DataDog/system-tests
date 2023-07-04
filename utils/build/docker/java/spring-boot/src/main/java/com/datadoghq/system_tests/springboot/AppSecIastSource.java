@@ -34,7 +34,7 @@ public class AppSecIastSource {
         return String.format("Request Parameters => source: %s", table);
     }
 
-    @PostMapping("/parametername/test")
+    @RequestMapping("/parametername/test")
     String sourceParameterName(final ServletRequest request) {
         List<String> parameterNames = Collections.list(request.getParameterNames());
         final String table = parameterNames.get(0);
