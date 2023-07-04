@@ -39,6 +39,7 @@ jobs:
             - java
             - nodejs
             - ruby
+            - cpp
           fail-fast: false
         env:
           TEST_LIBRARY: ${{ matrix.client }}
