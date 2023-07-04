@@ -32,37 +32,6 @@ def create_network():
     _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
-class _HealthCheck:
-    def __init__(self, url, retries, interval=1, start_period=0):
-        self.url = url
-        self.retries = retries
-        self.interval = interval
-        self.start_period = start_period
-
-    def __call__(self):
-        if self.start_period:
-            time.sleep(self.start_period)
-
-        for i in range(self.retries + 1):
-            try:
-                r = requests.get(self.url, timeout=1)
-                logger.debug(f"Healthcheck #{i} on {self.url}: {r}")
-                if r.status_code == 200:
-                    return
-            except Exception as e:
-                logger.debug(f"Healthcheck #{i} on {self.url}: {e}")
-
-            time.sleep(self.interval)
-
-        pytest.exit(f"{self.url} never answered to healthcheck request", 1)
-
-    def __str__(self):
-        return (
-            f"Healthcheck({repr(self.url)}, retries={self.retries}, "
-            f"interval={self.interval}, start_period={self.start_period})"
-        )
-
-
 class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
