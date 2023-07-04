@@ -30,8 +30,6 @@ class InterfaceValidator:
         self._data_list = []
         self._ingested_files = set()
 
-        self.accept_data = True
-
         self.replay = False
 
     def configure(self, replay):
@@ -43,9 +41,8 @@ class InterfaceValidator:
     def __str__(self):
         return f"{self.name} interface"
 
-    def wait(self, timeout, stop_accepting_data=True):
+    def wait(self, timeout):
         time.sleep(timeout)
-        self.accept_data = not stop_accepting_data
 
         # sort data, as, file system observer may have sent them in the wrong order
         self._data_list.sort(key=lambda data: data["log_filename"])
