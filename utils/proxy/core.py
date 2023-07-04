@@ -3,6 +3,7 @@ from collections import defaultdict
 import json
 import logging
 import os
+import rc_debugger
 from datetime import datetime
 
 from mitmproxy import master, options
@@ -187,17 +188,29 @@ class _RequestLogger:
             c["endpoints"].append("/v0.7/config")
             flow.response.content = json.dumps(c).encode()
         elif flow.request.path == "/v0.7/config" and str(flow.response.status_code) == "404":
-            runtime_id = json.loads(flow.request.content)["client"]["client_tracer"]["runtime_id"]
+            request_content = json.loads(flow.request.content)
+
+            runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
             logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
             logger.info(f"    => Overwriting /v0.7/config response #{self.config_request_count[runtime_id] + 1}")
 
             if self.config_request_count[runtime_id] + 1 > len(mocked_responses):
-                content = b"{}"  # default content when there isn't an RC update
+                response = {}  # default content when there isn't an RC update
             else:
-                content = json.dumps(mocked_responses[self.config_request_count[runtime_id]]).encode()
+                if self.state.get("mock_remote_config_backend") in (
+                    "DEBUGGER_LINE_PROBES_STATUS",
+                    "DEBUGGER_METHOD_PROBES_STATUS",
+                ):
+                    response = rc_debugger.create_rcm_probe_response(
+                        request_content["client"]["client_tracer"]["language"],
+                        mocked_responses[self.config_request_count[runtime_id]],
+                        self.config_request_count[runtime_id],
+                    )
+                else:
+                    response = mocked_responses[self.config_request_count[runtime_id]]
 
             flow.response.status_code = 200
-            flow.response.content = content
+            flow.response.content = json.dumps(response).encode()
 
             self.config_request_count[runtime_id] += 1
 
