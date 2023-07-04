@@ -6,13 +6,13 @@ import xml.etree.ElementTree as ET
 from operator import attrgetter
 
 from utils.tools import logger
+import json
 
 
-def junit_modifyreport(
-    json_report, junit_report_path, _skip_reasons, _docs, _rfcs, _coverages, _release_versions, junit_properties
-):
+def junit_modifyreport(json_report_path, junit_report_path, junit_properties):
     """Add extra information to auto generated JUnit xml file"""
 
+    json_report = json.load(open(json_report_path))
     # Open XML Junit report
     junit_report = ET.parse(junit_report_path)
     # get root element
@@ -32,25 +32,25 @@ def junit_modifyreport(
 
         # Get doc/description for the test
         test_doc = None
-        if nodeid in _docs:
-            test_doc = _docs[nodeid]
+        if nodeid in json_report["docs"]:
+            test_doc = json_report["docs"][nodeid]
 
         # Get rfc for the test
         test_rfc = None
-        if search_class in _rfcs:
-            test_rfc = _rfcs[search_class]
+        if search_class in json_report["rfcs"]:
+            test_rfc = json_report["rfcs"][search_class]
 
         # Get coverage for the test
         test_coverage = None
-        if search_class in _coverages:
-            test_coverage = _coverages[search_class]
+        if search_class in json_report["coverages"]:
+            test_coverage = json_report["coverages"][search_class]
 
         # Get release versions for the test
         test_release = None
-        if search_class in _release_versions:
-            test_release = _release_versions[search_class]
+        if search_class in json_report["release_versions"]:
+            test_release = json_report["release_versions"][search_class]
 
-        skip_reason = _skip_reasons.get(nodeid)
+        skip_reason = test["skip_reason"]
         error_trace = ""
 
         _create_testcase_results(

@@ -11,16 +11,11 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-
+from pathlib import Path
+import random
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
-
-_docs = {}
-_skip_reasons = {}
-_release_versions = {}
-_coverages = {}
-_rfcs = {}
 
 
 def _JSON_REPORT_FILE():
@@ -46,7 +41,6 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-
     # First of all, we must get the current scenario
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
@@ -74,6 +68,12 @@ def pytest_sessionstart(session):
 
 # called when each test item is collected
 def _collect_item_metadata(item):
+
+    _docs = {}
+    _skip_reasons = {}
+    _release_versions = {}
+    _coverages = {}
+    _rfcs = {}
 
     _docs[item.nodeid] = item.obj.__doc__
     _docs[item.parent.nodeid] = item.parent.obj.__doc__
@@ -106,6 +106,13 @@ def _collect_item_metadata(item):
             logger.debug(f"{item.nodeid} => {skip_reason} => skipped")
             _skip_reasons[item.nodeid] = skip_reason
             break
+    return {
+        "docs": _docs,
+        "skip_reasons": _skip_reasons,
+        "release_versions": _release_versions,
+        "coverages": _coverages,
+        "rfcs": _rfcs,
+    }
 
 
 def _get_skip_reason_from_marker(marker):
@@ -153,7 +160,6 @@ def pytest_collection_modifyitems(session, config, items):
         ):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
-            _collect_item_metadata(item)
 
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
@@ -181,6 +187,7 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session):
+
     from utils import weblog
 
     if session.config.option.collectonly:
@@ -245,6 +252,14 @@ def pytest_runtest_call(item):
                 logger.info("weblog GRPC request")
 
 
+@pytest.hookimpl(optionalhook=True)
+def pytest_json_runtest_metadata(item, call):
+    if call.when != "call":
+        return {}
+
+    return _collect_item_metadata(item)
+
+
 def pytest_json_modifyreport(json_report):
 
     try:
@@ -252,54 +267,51 @@ def pytest_json_modifyreport(json_report):
 
         # populate and adjust some data
         for test in json_report["tests"]:
-            test["skip_reason"] = _skip_reasons.get(test["nodeid"])
+            test["skip_reason"] = (
+                test["metadata"]["skip_reasons"][test["nodeid"]]
+                if test["nodeid"] in test["metadata"]["skip_reasons"]
+                else ""
+            )
 
         # add usefull data for reporting
-        json_report["docs"] = _docs
+        json_report["docs"] = {}
         json_report["context"] = context.serialize()
-        json_report["release_versions"] = _release_versions
-        json_report["rfcs"] = _rfcs
-        json_report["coverages"] = _coverages
+        json_report["release_versions"] = {}
+        json_report["rfcs"] = {}
+        json_report["coverages"] = {}
 
         # clean useless and volumetric data
-        del json_report["collectors"]
+        json_report.pop("collectors", None)
 
         for test in json_report["tests"]:
-            for k in ("setup", "call", "teardown", "keywords", "lineno"):
+            json_report["docs"] = json_report["docs"] | test["metadata"]["docs"]
+            json_report["release_versions"] = json_report["release_versions"] | test["metadata"]["release_versions"]
+            json_report["rfcs"] = json_report["rfcs"] | test["metadata"]["rfcs"]
+            json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
+
+            for k in ("setup", "call", "teardown", "keywords", "lineno", "metadata"):
                 if k in test:
                     del test[k]
 
         logger.debug("Modifying JSON report finished")
+
     except:
         logger.error("Fail to modify json report", exc_info=True)
 
 
 def pytest_sessionfinish(session, exitstatus):
-
     context.scenario.pytest_sessionfinish(session)
     if session.config.option.collectonly or session.config.option.replay:
         return
 
-    json.dump(
-        {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
-        open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
-        indent=2,
-    )
+    # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute, it will run in the master thread after all other processes have finished testing
+    if not hasattr(session.config, "workerinput"):
+        json.dump(
+            {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()},
+            open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8"),
+            indent=2,
+        )
 
-    _pytest_junit_modifyreport()
-
-
-def _pytest_junit_modifyreport():
-
-    with open(_JSON_REPORT_FILE(), encoding="utf-8") as f:
-        json_report = json.load(f)
         junit_modifyreport(
-            json_report,
-            _XML_REPORT_FILE(),
-            _skip_reasons,
-            _docs,
-            _rfcs,
-            _coverages,
-            _release_versions,
-            junit_properties=context.scenario.get_junit_properties(),
+            _JSON_REPORT_FILE(), _XML_REPORT_FILE(), junit_properties=context.scenario.get_junit_properties(),
         )
