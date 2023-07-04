@@ -87,18 +87,10 @@ function die() {
     exit "${rc}"
 }
 
-# read data starting from the provided section marker up to the next one or EOF
-function section() {
-    local section="$1"
-    local source="${BASH_SOURCE[0]}"
-
-    awk '/^__[A-Z0-9]+__$/{f=0} f{print} /^'"${section}"'$/{f=1}' "${source}"
-}
-
 function lookup_scenario_group() {
     local group="$1"
 
-    section __GROUPS__ | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [[print(t) for t in s] if isinstance(s, list) else print(s) for s in g]' "${group}"
+    cat < scenario_groups.yml | python -c 'import yaml; import sys; key = sys.argv[1]; data = sys.stdin.read(); g = yaml.safe_load(data)[key]; [[print(t) for t in s] if isinstance(s, list) else print(s) for s in g]' "${group}"
 }
 
 function upcase() {
@@ -320,70 +312,3 @@ if [[ "$0" == "${BASH_SOURCE[0]}" ]]; then
 fi
 
 exit
-
-__GROUPS__
-# Scenarios covering AppSec
-APPSEC_SCENARIOS: &appsec_scenarios
-  - APPSEC_MISSING_RULES
-  - APPSEC_CORRUPTED_RULES
-  - APPSEC_CUSTOM_RULES
-  - APPSEC_BLOCKING
-  - APPSEC_RULES_MONITORING_WITH_ERRORS
-  - APPSEC_DISABLED
-  - APPSEC_CUSTOM_OBFUSCATION
-  - APPSEC_RATE_LIMITER
-  - APPSEC_WAF_TELEMETRY
-  - APPSEC_BLOCKING_FULL_DENYLIST
-  - APPSEC_REQUEST_BLOCKING
-  - APPSEC_RUNTIME_ACTIVATION
-
-# Scenarios covering Remote Configuration
-REMOTE_CONFIG_SCENARIOS: &remote_config_scenarios
-  - REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
-  - REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
-  - REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
-  - REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
-  - REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
-  - REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
-
-# Scenarios covering Telemetry
-TELEMETRY_SCENARIOS: &telemetry_scenarios
-  - TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
-  - TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
-  - TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
-  - TELEMETRY_LOG_GENERATION_DISABLED
-  - TELEMETRY_METRIC_GENERATION_DISABLED
-
-# Scenarios to run before a tracer release, basically, all stable scenarios
-TRACER_RELEASE_SCENARIOS:
-  - DEFAULT
-  - TRACE_PROPAGATION_STYLE_W3C
-  - PROFILING
-  - LIBRARY_CONF_CUSTOM_HEADERS_SHORT
-  - LIBRARY_CONF_CUSTOM_HEADERS_LONG
-  - INTEGRATIONS
-  - APM_TRACING_E2E_SINGLE_SPAN
-  - APM_TRACING_E2E
-  - APM_TRACING_E2E_OTEL
-  - *appsec_scenarios
-  - *remote_config_scenarios
-  - *telemetry_scenarios
-
-# Scenarios to run on tracers PR.
-# Those scenarios are the one that offer the best probability-to-catch-bug/time-to-run ratio
-TRACER_ESSENTIAL_SCENARIOS:
-  - DEFAULT
-  - APPSEC_BLOCKING
-  - REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
-  - TELEMETRY_MESSAGE_BATCH_EVENT_ORDER
-  - INTEGRATIONS
-
-# ?
-ONBOARDING_SCENARIOS:
-  - ONBOARDING_HOST
-  - ONBOARDING_HOST_CONTAINER
-  - ONBOARDING_CONTAINER
-
-DEBUGGER_SCENARIOS:
-  - DEBUGGER_METHOD_PROBES_STATUS
-  - DEBUGGER_LINE_PROBES_STATUS

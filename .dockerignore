@@ -5,3 +5,4 @@ vendor
 logs*
 shell.nix
 __pycache__
+scenario_groups.yml
