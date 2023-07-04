@@ -8,6 +8,7 @@ import os
 import random
 import string
 import urllib
+import re
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -70,8 +71,7 @@ class _Weblog:
         if "WEBLOG_HOST" in os.environ:
             self.domain = os.environ["WEBLOG_HOST"]
         elif "DOCKER_HOST" in os.environ:
-            self.domain = os.environ["DOCKER_HOST"]
-            self.domain = self.domain.replace("ssh://docker@", "")
+            self.domain = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
         else:
             self.domain = "localhost"
 

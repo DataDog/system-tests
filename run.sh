@@ -142,7 +142,7 @@ function run_scenario() {
                 -v "${PWD}/${log_dir}":"/app/${log_dir}" \
                 -e WEBLOG_HOST=weblog \
                 -e WEBLOG_PORT=7777 \
-                -e AGENT_HOST=agent \
+                -e WEBLOG_GRPC_PORT=7778 \
                 -e HOST_PROJECT_DIR="${PWD}" \
                 --name system-tests-runner \
                 system_tests/runner \

@@ -272,26 +272,13 @@ class AgentContainer(TestedContainer):
             environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
             environment["DD_PROXY_HTTP"] = "http://proxy:8126"
 
-        if "AGENT_PORT" in os.environ:
-            agent_port = int(os.environ["AGENT_PORT"])
-        else:
-            agent_port = self.agent_port
-
-        if "AGENT_HOST" in os.environ:
-            agent_host = os.environ["AGENT_HOST"]
-        elif "DOCKER_HOST" in os.environ:
-            agent_host = os.environ["DOCKER_HOST"]
-            agent_host = agent_host.replace("ssh://docker@", "")
-        else:
-            agent_host = "localhost"
-
         super().__init__(
             image_name="system_tests/agent",
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
-            healthcheck={"test": f"curl --fail http://{agent_host}:{agent_port}/info", "retries": 60},
-            ports={self.agent_port: f"{agent_port}/tcp"},
+            healthcheck={"test": f"curl --fail http://localhost:{self.agent_port}/info", "retries": 60},
+            ports={self.agent_port: f"{self.agent_port}/tcp"},
         )
 
         self.agent_version = None
@@ -341,7 +328,7 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail {weblog._get_url('/')}", "retries": 60},
+            healthcheck={"test": f"curl --fail localhost:{weblog.port}", "retries": 60},
             ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
         )
 
