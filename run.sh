@@ -310,13 +310,6 @@ function main() {
         fi
     fi
 
-    echo "Run plan:"
-    echo "  mode: ${run_mode}"
-    echo "  scenarios:"
-    for scenario in "${scenarios[@]}"; do
-        echo "    - ${scenario}"
-    done
-
     for scenario in "${scenarios[@]}"; do
         run_scenario "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
