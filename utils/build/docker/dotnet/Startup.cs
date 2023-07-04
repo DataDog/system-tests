@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Datadog.Trace;
+using Microsoft.AspNetCore.Identity;
+using weblog.IdentityStores;
 using weblog.ModelBinders;
 
 namespace weblog
@@ -16,6 +18,20 @@ namespace weblog
             {
                 options.ModelBinderProviders.Insert(0, new ModelBinderSwitcherProvider());
             }).AddXmlSerializerFormatters();
+           
+           var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>(
+               o =>
+               {
+                   o.Password.RequireDigit = false;
+                   o.Password.RequiredLength = 4;
+                   o.Password.RequireLowercase = false;
+                   o.Password.RequiredUniqueChars = 0;
+                   o.Password.RequireUppercase = false;
+                   o.Password.RequireNonAlphanumeric = false;
+               });
+
+               identityBuilder.AddUserStore<UserStoreMemory>();
+               identityBuilder.AddRoleStore<RoleStore>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -28,6 +44,8 @@ namespace weblog
             Sql.Setup();
 
             app.UseRouting();
+            app.UseAuthorization();
+            app.UseAuthentication();
             app.UseEndpoints(routeBuilder =>
             {
                 EndpointRegistry.RegisterAll(routeBuilder);
