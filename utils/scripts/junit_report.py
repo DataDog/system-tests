@@ -32,25 +32,26 @@ def junit_modifyreport(json_report_path, junit_report_path, junit_properties):
 
         # Get doc/description for the test
         test_doc = None
-        if nodeid in json_report["docs"]:
+        if "docs" in json_report and nodeid in json_report["docs"]:
             test_doc = json_report["docs"][nodeid]
 
         # Get rfc for the test
         test_rfc = None
-        if search_class in json_report["rfcs"]:
+        if "rfcs" in json_report and search_class in json_report["rfcs"]:
             test_rfc = json_report["rfcs"][search_class]
 
         # Get coverage for the test
         test_coverage = None
-        if search_class in json_report["coverages"]:
+        if "coverages" in json_report and search_class in json_report["coverages"]:
             test_coverage = json_report["coverages"][search_class]
 
         # Get release versions for the test
         test_release = None
-        if search_class in json_report["release_versions"]:
+        if "release_versions" in json_report and search_class in json_report["release_versions"]:
             test_release = json_report["release_versions"][search_class]
 
-        skip_reason = test["skip_reason"]
+        if "skip_reason" in test:
+            skip_reason = test["skip_reason"]
         error_trace = ""
 
         _create_testcase_results(
