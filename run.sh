@@ -36,6 +36,9 @@ OPTIONS
       Add all scenarios in GROUPED_SCENARIOS group to the list of scenarios to
       run. Case insensitive.
 
+    -l, --library LIBRARY
+      Inform test suite that test pertains to LIBRARY.
+
     --
       Ignore flags after this separator. All subsequent arguments are passed
       as-is to pytest.
@@ -164,7 +167,14 @@ function run_scenario() {
 function main() {
     local docker="${DOCKER_MODE:-0}"
     local scenarios=()
+    local libraries=()
     local pytest_args=()
+    local pytest_numprocesses='auto'
+
+    ## handle environment variables
+
+    # split TEST_LIBRARY on ','
+    IFS=',' read -r -a libraries <<< "${TEST_LIBRARY:-}"
 
     ## parse command arguments
 
@@ -179,18 +189,36 @@ function main() {
                 docker=1
                 ;;
             -G|--scenario-group)
+                if [[ "$#" -eq 1 ]]; then
+                  error "missing argument value for: $1"
+                  help
+                  exit 64
+                fi
                 # TODO: get group
                 # upcase via ${2^^} is unsupported on bash 3.x
-                mapfile -t group <<< "$(lookup_scenario_group "$(echo "${2}" | upcase)")"
+                mapfile -t group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)")"
                 scenarios+=("${group[@]}")
                 shift
                 ;;
             -S|--scenario)
+                if [[ "$#" -eq 1 ]]; then
+                  error "missing argument value for: $1"
+                  help
+                  exit 64
+                fi
                 # upcase via ${2^^} is unsupported on bash 3.x
-                scenarios+=("$(echo "${2}" | upcase)")
+                scenarios+=("$(echo "$2" | upcase)")
                 shift
                 ;;
-
+            -l|--library)
+                if [[ "$#" -eq 1 ]]; then
+                  error "missing argument value for: $1"
+                  help
+                  exit 64
+                fi
+                libraries+=("$2")
+                shift
+                ;;
             --)
                 # ignore and stop flag processing to force remainder to be captured as is
                 shift
@@ -246,6 +274,25 @@ function main() {
     # TODO: upgrade the dependencies to the latest version of pulumi once the protobuf bug is fixed
     # In the meantime remove the warning from the output
     pytest_args+=( '-p' 'no:warnings' )
+
+    # evaluate max pytest number of process
+    for scenario in "${scenarios[@]}"; do
+        if [[ "${scenario}" != "PARAMETRIC" ]]; then
+            pytest_numprocesses=1
+        fi
+
+        for library in "${libraries[@]}"; do
+            case "${library}" in
+                dotnet|go|python_http)
+                    pytest_numprocesses=1
+                    ;;
+            esac
+        done
+    done
+
+    if [[ "${pytest_numprocesses}" -ne 1 ]]; then
+        pytest_args+=( '-n' "${pytest_numprocesses}" )
+    fi
 
     ## run tests
 
@@ -343,3 +390,7 @@ ONBOARDING_SCENARIOS:
   - ONBOARDING_HOST
   - ONBOARDING_HOST_CONTAINER
   - ONBOARDING_CONTAINER
+
+DEBUGGER_SCENARIOS:
+  - DEBUGGER_METHOD_PROBES_STATUS
+  - DEBUGGER_LINE_PROBES_STATUS

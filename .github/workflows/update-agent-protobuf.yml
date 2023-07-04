@@ -26,7 +26,7 @@ jobs:
           repository: 'DataDog/datadog-agent'
           path: 'binaries/datadog-agent'
       - name: Generate descriptor
-        run: protoc --include_imports -Ibinaries/datadog-agent/pkg/trace/pb -I$GOPATH/src -I=$GOPATH/src/github.com/gogo/protobuf/protobuf -o utils/interfaces/_decoders/trace_payload.descriptor agent_payload.proto
+        run: protoc --include_imports -Ibinaries/datadog-agent/pkg/trace/pb -I$GOPATH/src -I=$GOPATH/src/github.com/gogo/protobuf/protobuf -o utils/proxy/_decoders/trace_payload.descriptor agent_payload.proto
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with: 

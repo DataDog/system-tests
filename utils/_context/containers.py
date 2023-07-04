@@ -1,4 +1,5 @@
 import os
+import stat
 import json
 from pathlib import Path
 import time
@@ -271,7 +272,7 @@ class ProxyContainer(TestedContainer):
         self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
 
         super().__init__(
-            image_name="system_tests/proxy",
+            image_name="datadog/system-tests:proxy-v0",
             name="proxy",
             host_log_folder=host_log_folder,
             environment={
@@ -576,7 +577,7 @@ class SqlServerContainer(TestedContainer):
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
-
+        self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
         super().__init__(
             image_name="otel/opentelemetry-collector-contrib:latest",
             name="collector",
@@ -606,3 +607,13 @@ class OpenTelemetryCollectorContainer(TestedContainer):
                 logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
             time.sleep(1)
         pytest.exit("localhost:13133 never answered to healthcheck request", 1)
+
+    def start(self) -> Container:
+        # _otel_config_host_path is mounted in the container, and depending on umask,
+        # it might have no read permissions for other users, which is required within
+        # the container. So set them here.
+        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        new_mode = prev_mode | stat.S_IROTH
+        if prev_mode != new_mode:
+            os.chmod(self._otel_config_host_path, new_mode)
+        return super().start()

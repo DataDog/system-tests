@@ -127,15 +127,53 @@ function init (app, tracer) {
   });
 
   app.get('/iast/insecure-cookie/test_secure', (req, res) => {
-    res.setHeader('set-cookie', 'secure=cookie; Secure')
-    res.cookie('secure2', 'value', { secure: true })
+    res.setHeader('set-cookie', 'secure=cookie; Secure; HttpOnly; SameSite=Strict')
+    res.cookie('secure2', 'value', { secure: true, httpOnly: true, sameSite: true })
     res.send('OK')
   });
 
   app.get('/iast/insecure-cookie/test_empty_cookie', (req, res) => {
     res.clearCookie('insecure')
     res.setHeader('set-cookie', 'empty=')
-    res.cookie('secure2', '')
+    res.cookie('secure3', '')
+    res.send('OK')
+  });
+
+
+  app.get('/iast/no-httponly-cookie/test_insecure', (req, res) => {
+    res.cookie('no-httponly', 'cookie')
+    res.send('OK')
+  });
+
+  app.get('/iast/no-httponly-cookie/test_secure', (req, res) => {
+    res.setHeader('set-cookie', 'httponly=cookie; Secure;HttpOnly;SameSite=Strict;')
+    res.cookie('httponly2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  });
+
+  app.get('/iast/no-httponly-cookie/test_empty_cookie', (req, res) => {
+    res.clearCookie('insecure')
+    res.setHeader('set-cookie', 'httponlyempty=')
+    res.cookie('httponlyempty2', '')
+    res.send('OK')
+  });
+
+
+  app.get('/iast/no-samesite-cookie/test_insecure', (req, res) => {
+    res.cookie('nosamesite', 'cookie')
+    res.send('OK')
+  });
+
+  app.get('/iast/no-samesite-cookie/test_secure', (req, res) => {
+    res.setHeader('set-cookie', 'samesite=cookie; Secure; HttpOnly; SameSite=Strict')
+    res.cookie('samesite2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  });
+
+  app.get('/iast/no-samesite-cookie/test_empty_cookie', (req, res) => {
+    res.clearCookie('insecure')
+    res.setHeader('set-cookie', 'samesiteempty=')
+    res.cookie('samesiteempty2', '')
     res.send('OK')
   });
 

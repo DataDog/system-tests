@@ -4,7 +4,7 @@
 import json
 
 from tests.remote_config.test_remote_configuration import rc_check_request
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, irrelevant, scenarios, missing_feature
 from utils.tools import logger
 
 with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json", encoding="utf-8") as f:
@@ -31,6 +31,13 @@ with open("tests/appsec/rc_expected_requests_block_full_denylist_asm_data.json",
 @irrelevant(
     context.appsec_rules_file is not None, reason="No Remote Config sub with custom rules file",
 )
+@missing_feature(
+    library="python", reason="Python supported denylists of 2500 entries but it fails to block this those 15000"
+)
+@missing_feature(
+    library="ruby", reason="Ruby supported denylists of 2500 entries but it fails to block this those 15000"
+)
+@bug(library="java", reason="RC payload limit")
 @bug(context.weblog_variant == "uds-echo")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
 @coverage.basic
@@ -69,9 +76,9 @@ class Test_AppSecIPBlockingFullDenylist:
     def setup_blocked_ips(self):
         NOT_BLOCKED_IP = "42.42.42.3"
 
-        # Generate the list of 10 * 125 = 1250 blocked ips that are found in the rc_mocked_responses_asm_data_full_denylist.json
+        # Generate the list of 100 * 125 = 12500 blocked ips that are found in the rc_mocked_responses_asm_data_full_denylist.json
         # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
-        BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(10) for b in range(125)]
+        BLOCKED_IPS = [f"12.8.{a}.{b}" for a in range(100) for b in range(125)]
 
         def remote_config_asm_payload(data):
             if data["path"] == "/v0.7/config":
@@ -96,21 +103,13 @@ class Test_AppSecIPBlockingFullDenylist:
         interfaces.library.wait_for(remote_config_is_applied, timeout=30)
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
-        self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in BLOCKED_IPS]
+        self.blocked_requests = [
+            weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[0]}),
+            weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[2500]}),
+            weblog.get(headers={"X-Forwarded-For": BLOCKED_IPS[-1]}),
+        ]
 
-    @released(
-        java={
-            "spring-boot": "0.111.0",
-            "spring-boot-jetty": "0.111.0",
-            "spring-boot-undertow": "0.111.0",
-            "spring-boot-openliberty": "0.115.0",
-            "ratpack": "1.7.0",
-            "jersey-grizzly2": "1.7.0",
-            "resteasy-netty3": "1.7.0",
-            "vertx3": "1.7.0",
-            "*": "?",
-        }
-    )
+    @missing_feature(context.weblog_variant == "spring-boot" and context.library < "java@0.111.0")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

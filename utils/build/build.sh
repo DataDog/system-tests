@@ -79,7 +79,7 @@ print_usage() {
     echo -e "  Print default weblog for Python:"
     echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
     echo
-    echo -e "More info at https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md"
+    echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
 }
 
@@ -160,7 +160,7 @@ build() {
                 --load \
                 --progress=plain \
                 -f utils/build/docker/proxy.Dockerfile \
-                -t system_tests/proxy \
+                -t datadog/system-tests:proxy-v0 \
                 $EXTRA_DOCKER_ARGS \
                 .
 
@@ -179,6 +179,7 @@ build() {
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
+		--pull \
                 --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
                 $EXTRA_DOCKER_ARGS \
                 .
@@ -220,6 +221,7 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
+		--pull \
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \

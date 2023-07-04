@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -30,6 +32,8 @@ public class AppSecIast {
     private final SsrfExamples ssrfExamples;
     private final WeakRandomnessExamples weakRandomnessExamples;
 
+    private final XPathExamples xPathExamples;
+
 
     public AppSecIast(final DataSource dataSource) {
         this.sqlExamples = new SqlExamples(dataSource);
@@ -38,6 +42,7 @@ public class AppSecIast {
         this.cryptoExamples = new CryptoExamples();
         this.ssrfExamples = new SsrfExamples();
         this.weakRandomnessExamples = new WeakRandomnessExamples();
+        this.xPathExamples = new XPathExamples();
     }
 
     @RequestMapping("/insecure_hashing/deduplicate")
@@ -88,20 +93,12 @@ public class AppSecIast {
 
     @PostMapping("/unvalidated_redirect/test_secure_header")
     public String secureHeader(HttpServletResponse response) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         response.setHeader("location", "http://dummy.location.com");
         return "redirect";
     }
 
     @PostMapping("/unvalidated_redirect/test_insecure_header")
     public String insecureHeader(final ServletRequest request, final HttpServletResponse response) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String location = request.getParameter("location");
         response.setHeader("location", location);
         return "redirect";
@@ -109,22 +106,27 @@ public class AppSecIast {
 
     @PostMapping("/unvalidated_redirect/test_secure_redirect")
     public String secureRedirect(HttpServletResponse response) throws IOException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         response.sendRedirect("http://dummy.location.com");
         return "redirect";
     }
 
     @PostMapping("/unvalidated_redirect/test_insecure_redirect")
     public String insecureRedirect(final ServletRequest request, final HttpServletResponse response) throws IOException {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String location = request.getParameter("location");
         response.sendRedirect(location);
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_secure_forward")
+    public String secureForward(HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("http://dummy.location.com").forward(request, response);
+        return "redirect";
+    }
+
+    @PostMapping("/unvalidated_redirect/test_insecure_forward")
+    public String insecureForward(final ServletRequest request, final HttpServletResponse response) throws IOException, ServletException {
+        final String location = request.getParameter("location");
+        request.getRequestDispatcher(location).forward(request, response);
         return "redirect";
     }
 
@@ -205,6 +207,71 @@ public class AppSecIast {
     @GetMapping("/weak_randomness/test_secure")
     String secureRandom() {
         return weakRandomnessExamples.secureRandom();
+    }
+
+    @GetMapping("/insecure-cookie/test_empty_cookie")
+    String insecureCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/insecure-cookie/test_insecure")
+    String insecureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/insecure-cookie/test_secure")
+    String secureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_insecure")
+    String noSameSiteCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly=true;Secure");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_empty_cookie")
+    String noSameSiteCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+
+    @GetMapping("/no-samesite-cookie/test_secure")
+    String noSameSiteCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie-cookie/test_empty_cookie")
+    String noHttpOnlyCookieEmptyCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "");
+        return "ok";
+    }
+    @GetMapping("/no-httponly-cookie/test_insecure")
+    String noHttpOnlyCookieInsecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
+        return "ok";
+    }
+
+    @GetMapping("/no-httponly-cookie/test_secure")
+    String noHttpOnlyCookieSecure(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict");
+        return "ok";
+    }
+
+    @PostMapping("/xpathi/test_insecure")
+    String insecureXPath(final ServletRequest request) {
+        final String expression = request.getParameter("expression");
+        xPathExamples.insecureXPath(expression);
+        return "XPath insecure";
+    }
+
+    @PostMapping("/xpathi/test_secure")
+    String secureXPath(final ServletRequest request) {
+        xPathExamples.secureXPath();
+        return "XPath secure";
     }
 
     /**

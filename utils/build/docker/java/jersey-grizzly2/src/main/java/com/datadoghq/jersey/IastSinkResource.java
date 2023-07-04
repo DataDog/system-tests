@@ -1,20 +1,18 @@
 package com.datadoghq.jersey;
 
-import com.datadoghq.system_tests.iast.utils.CmdExamples;
-import com.datadoghq.system_tests.iast.utils.CryptoExamples;
-import com.datadoghq.system_tests.iast.utils.LDAPExamples;
-import com.datadoghq.system_tests.iast.utils.PathExamples;
-import com.datadoghq.system_tests.iast.utils.SqlExamples;
-import com.datadoghq.system_tests.iast.utils.SsrfExamples;
-import com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples;
+import com.datadoghq.system_tests.iast.utils.*;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import static com.datadoghq.jersey.Main.DATA_SOURCE;
 import static com.datadoghq.jersey.Main.LDAP_CONTEXT;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @Path("/iast")
 @Produces(MediaType.TEXT_PLAIN)
@@ -29,6 +27,8 @@ public class IastSinkResource {
     private final PathExamples path = new PathExamples();
     private final SsrfExamples ssrf = new SsrfExamples();
     private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
+
+    private final XPathExamples xPathExamples = new XPathExamples();
 
     @GET
     @Path("/insecure_hashing/deduplicate")
@@ -160,4 +160,97 @@ public class IastSinkResource {
     public String secureRandom() {
         return this.weakRandomness.secureRandom();
     }
+
+    @GET
+    @Path("/unvalidated_redirect/test_secure_header")
+    public Response secureUnvalidatedRedirectHeader() {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).header("Location", "http://dummy.location.com").build();
+    }
+
+    @POST
+    @Path("/unvalidated_redirect/test_insecure_header")
+    public Response insecureUnvalidatedRedirectHeader(@FormParam("location") final String location) {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).header("Location", location).build();
+    }
+
+    @GET
+    @Path("/unvalidated_redirect/test_secure_redirect")
+    public Response secureUnvalidatedRedirect() throws URISyntaxException {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI("http://dummy.location.com")).build();
+    }
+
+    @POST
+    @Path("/unvalidated_redirect/test_insecure_redirect")
+    public Response insecureUnvalidatedRedirect(@FormParam("location") final String location) throws URISyntaxException {
+        return Response.status(Response.Status.TEMPORARY_REDIRECT).location(new URI(location)).build();
+    }
+
+    @POST
+    @Path("/xpathi/test_secure")
+    public String secureXPath() {
+        xPathExamples.secureXPath();
+        return "Secure";
+    }
+
+    @POST
+    @Path("/xpathi/test_insecure")
+    public String insecureXPath(@FormParam("expression") final String expression) {
+        xPathExamples.insecureXPath(expression);
+        return "Insecure";
+    }
+
+    @GET
+    @Path("/insecure-cookie/test_empty_cookie")
+    public Response insecureCookieEmptyCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
+    }
+
+    @GET
+    @Path("/insecure-cookie/test_insecure")
+    public Response  insecureCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/insecure-cookie/test_secure")
+    public Response  secureCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/no-samesite-cookie/test_insecure")
+    public Response  noSameSiteCookieInsecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly=true;Secure").build();
+    }
+
+    @GET
+    @Path("/no-samesite-cookie/test_empty_cookie")
+    public Response  noSameSiteCookieEmptyCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
+    }
+
+    @GET
+    @Path("/no-samesite-cookie/test_secure")
+    public Response  noSameSiteCookieSecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/no-httponly-cookie-cookie/test_empty_cookie")
+    public Response  noHttpOnlyCookieEmptyCookie() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
+    }
+
+    @GET
+    @Path("/no-httponly-cookie/test_insecure")
+    public Response  noHttpOnlyCookieInsecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;SameSite=Strict").build();
+    }
+
+    @GET
+    @Path("/no-httponly-cookie/test_secure")
+    public Response  noHttpOnlyCookieSecure() {
+        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").build();
+    }
+
 }
