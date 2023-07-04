@@ -254,7 +254,7 @@ def pytest_runtest_call(item):
 
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item, call):
-    if call.when != "call":
+    if call.when != "setup":
         return {}
 
     return _collect_item_metadata(item)
@@ -267,11 +267,12 @@ def pytest_json_modifyreport(json_report):
 
         # populate and adjust some data
         for test in json_report["tests"]:
-            test["skip_reason"] = (
-                test["metadata"]["skip_reasons"][test["nodeid"]]
-                if test["nodeid"] in test["metadata"]["skip_reasons"]
-                else ""
-            )
+            if "metadata" in test:
+                test["skip_reason"] = (
+                    test["metadata"]["skip_reasons"][test["nodeid"]]
+                    if test["nodeid"] in test["metadata"]["skip_reasons"]
+                    else ""
+                )
 
         # add usefull data for reporting
         json_report["docs"] = {}
@@ -284,10 +285,11 @@ def pytest_json_modifyreport(json_report):
         json_report.pop("collectors", None)
 
         for test in json_report["tests"]:
-            json_report["docs"] = json_report["docs"] | test["metadata"]["docs"]
-            json_report["release_versions"] = json_report["release_versions"] | test["metadata"]["release_versions"]
-            json_report["rfcs"] = json_report["rfcs"] | test["metadata"]["rfcs"]
-            json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
+            if "metadata" in test:
+                json_report["docs"] = json_report["docs"] | test["metadata"]["docs"]
+                json_report["release_versions"] = json_report["release_versions"] | test["metadata"]["release_versions"]
+                json_report["rfcs"] = json_report["rfcs"] | test["metadata"]["rfcs"]
+                json_report["coverages"] = json_report["coverages"] | test["metadata"]["coverages"]
 
             for k in ("setup", "call", "teardown", "keywords", "lineno", "metadata"):
                 if k in test:
