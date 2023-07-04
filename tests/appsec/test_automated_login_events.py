@@ -36,7 +36,7 @@ class Test_Login_Events:
     BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
     BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
 
-    MANUAL_KEEP = 2
+    MANUAL_KEEP_SAMPLING_PRIORITY = 2
 
     def setup_login_pii_success(self):
         self.r_pii_success = [
@@ -60,7 +60,10 @@ class Test_Login_Events:
 
     def setup_login_success(self):
         self.r_success = [
-            weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
+            weblog.post(
+                "/login?auth=local",
+                data={"username": self.UUID_USER, "password": self.PASSWORD},
+            ),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
         ]
 
@@ -168,11 +171,11 @@ class Test_Login_Events:
                 self.assert_priority(span, meta)
 
     def assert_priority(self, span, meta):
-        assert (
-            "manual.keep" in meta
-            and meta["manual.keep"] == "true"
-            or span["metrics"]["_sampling_priority_v1"] == self.MANUAL_KEEP
-        )
+        if span["metrics"].get("_sampling_priority_v1") != self.MANUAL_KEEP_SAMPLING_PRIORITY:
+            assert "manual.keep" in meta, "manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP"
+            assert (
+                meta["manual.keep"] == "true"
+            ), 'meta.manual.keep should be "true" when _sampling_priority_v1 is not MANUAL_KEEP'
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
