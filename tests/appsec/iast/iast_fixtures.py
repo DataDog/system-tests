@@ -32,16 +32,22 @@ def get_iast_event(request):
     return json.loads(meta["_dd.iast.json"])
 
 
-def assert_single_iast_vulnerability(request, vulnerability_type=None, expected_location=None, expected_evidence=None):
+def assert_iast_vulnerability(
+    request, vulnerability_count=1, vulnerability_type=None, expected_location=None, expected_evidence=None
+):
     iast = get_iast_event(request=request)
-    assert len(iast["vulnerabilities"]) == 1, "Expected one vulnerability"
-    vuln = iast["vulnerabilities"][0]
+    assert iast["vulnerabilities"], "Expected at least one vulnerability"
+    vulns = iast["vulnerabilities"]
     if vulnerability_type:
-        assert vuln["type"] == vulnerability_type
+        vulns = [v for v in vulns if v["type"] == vulnerability_type]
+        assert vulns, f"No vulnerability of type {vulnerability_type}"
     if expected_location:
-        assert vuln.get("location", {}).get("path", "") == expected_location
+        vulns = [v for v in vulns if v.get("location", {}).get("path", "") == expected_location]
+        assert vulns, f"No vulnerability with location {expected_location}"
     if expected_evidence:
-        assert vuln.get("evidence", {}).get("value") == expected_evidence
+        vulns = [v for v in vulns if v.get("evidence", {}).get("value", "") == expected_evidence]
+        assert vulns, f"No vulnerability with evidence value {expected_evidence}"
+    assert len(vulns) == vulnerability_count
 
 
 class SinkFixture:
@@ -70,8 +76,9 @@ class SinkFixture:
             self.insecure_request = weblog.request(method=self.http_method, path=self.insecure_endpoint, data=self.data)
 
     def test_insecure(self):
-        assert_single_iast_vulnerability(
+        assert_iast_vulnerability(
             request=self.insecure_request,
+            vulnerability_count=1,
             vulnerability_type=self.vulnerability_type,
             expected_location=self.expected_location,
             expected_evidence=self.expected_evidence,
