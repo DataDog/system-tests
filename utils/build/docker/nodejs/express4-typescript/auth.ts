@@ -1,5 +1,7 @@
 'use strict'
 
+import type { Express, Request, Response, NextFunction } from "express";
+import type { Tracer } from "dd-trace";
 const { Strategy: LocalStrategy } = require('passport-local')
 const { BasicStrategy } = require('passport-http')
 
@@ -18,9 +20,9 @@ const users = [
   }
 ]
 
-module.exports = function (app, passport, tracer) {
+module.exports = function (app: Express, passport: any, tracer: Tracer) {
   passport.use(new LocalStrategy({ usernameField: 'username', passwordField: 'password' },
-    (username, password, done) => {
+    (username: string, password: string, done: any) => {
       const user = users.find(user => (user.username === username) && (user.password === password))
       if (!user) {
         return done(null, false)
@@ -30,7 +32,7 @@ module.exports = function (app, passport, tracer) {
     })
   )
 
-  passport.use(new BasicStrategy((username, password, done) => {
+  passport.use(new BasicStrategy((username: string, password: string, done: any) => {
     const user = users.find(user => (user.username === username) && (user.password === password))
     if (!user) {
       return done(null, false)
@@ -40,10 +42,10 @@ module.exports = function (app, passport, tracer) {
   }
   ))
 
-  function handleAuthentication (req, res, err, user, info) {
+  function handleAuthentication (req: Request, res: Response, next: NextFunction, err: any, user: any, info: any) {
     const event = req.query.sdk_event
-    const userId = req.query.sdk_user || 'sdk_user'
-    const userMail = req.query.sdk_mail || 'system_tests_user@system_tests_user.com'
+    const userId: string = req.query.sdk_user as string || 'sdk_user'
+    const userMail = req.query.sdk_mail as  string || 'system_tests_user@system_tests_user.com'
     const exists = req.query.sdk_user_exists === 'true'
 
     if (err) { return next(err)}
@@ -65,20 +67,22 @@ module.exports = function (app, passport, tracer) {
             metadata1: "value1"
           }
         )
-      }
 
-      res.sendStatus(200)
+        res.sendStatus(200)
+      } else {
+        res.sendStatus(200)
+      }
   }
 
-  function getStrategy (req, res, next) {
+  function getStrategy (req: Request, res: Response, next: NextFunction) {
     const auth = req.query && req.query.auth
     if (auth === 'local') {
-      return passport.authenticate('local', { session: false }, function (err, user, info) {
-        handleAuthentication(req, res, err, user, info)
+      return passport.authenticate('local', { session: false }, function (err: any, user: any, info: any) {
+        handleAuthentication(req, res, next, err, user, info)
       })(req, res, next)
     } else {
-      return passport.authenticate('basic', { session: false }, function (err, user, info) {
-        handleAuthentication(req, res, err, user, info)
+      return passport.authenticate('basic', { session: false }, function (err: any, user: any, info: any) {
+        handleAuthentication(req, res, next, err, user, info)
       })(req, res, next)
     }
   }
@@ -87,7 +91,7 @@ module.exports = function (app, passport, tracer) {
   app.use(passport.initialize())
   app.all('/login',
     getStrategy,
-    (req, res, next) => {
+    (req: Request, res: Response, next: NextFunction) => {
       res.sendStatus(200)
     }
   )
