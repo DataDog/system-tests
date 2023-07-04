@@ -8,6 +8,11 @@ set -e
 set -u
 set -o pipefail
 
+function hint() {
+    local program="${BASH_SOURCE[0]##*/}"
+    echo "see ${program} ++help for documentation"
+}
+
 function help() {
     local program="${BASH_SOURCE[0]##*/}"
     cat <<EOS
@@ -15,31 +20,31 @@ NAME
     ${program} - run system tests test suite
 
 SYNOPSIS
-    ${program} -h
+    ${program} +h
 
-    ${program} [-d] [-S scenario...] [-G scenario group...] [--] [pytest arguments]
+    ${program} [+d] [+S scenario...] [+G scenario group...] [++] [pytest arguments]
 
-    ${program} [-d] SCENARIO [pytest arguments]
+    ${program} [+d] SCENARIO [pytest arguments]
 
-    ${program} [-d] GROUPED_SCENARIOS [pytest arguments]
+    ${program} [+d] GROUPED_SCENARIOS [pytest arguments]
 
 OPTIONS
     Using option flags is the recommended way to use ${program}.
 
-    -d, --docker
+    +d, ++docker
       Run tests in a Docker container. The runner image must be built beforehand.
 
-    -S, --scenario SCENARIO
+    +S, ++scenario SCENARIO
       Add scenario SCENARIO to the list of scenarios to run. Case-insensitive.
 
-    -G, --scenario-group GROUPED_SCENARIOS
+    +G, ++scenario-group GROUPED_SCENARIOS
       Add all scenarios in GROUPED_SCENARIOS group to the list of scenarios to
       run. Case insensitive.
 
-    -l, --library LIBRARY
+    +l, ++library LIBRARY
       Inform test suite that test pertains to LIBRARY.
 
-    --
+    ++
       Ignore flags after this separator. All subsequent arguments are passed
       as-is to pytest.
 
@@ -177,67 +182,66 @@ function main() {
     # parse flags
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
-            -h|--help)
+            +h|++help)
                 help
                 exit
                 ;;
-            -d|--docker)
+            +d|++docker)
                 docker=1
                 ;;
-            -G|--scenario-group)
+            +G|++scenario-group)
                 if [[ "$#" -eq 1 ]]; then
                   error "missing argument value for: $1"
                   help
                   exit 64
                 fi
-                # TODO: get group
                 # upcase via ${2^^} is unsupported on bash 3.x
                 mapfile -t group <<< "$(lookup_scenario_group "$(echo "$2" | upcase)")"
                 scenarios+=("${group[@]}")
                 shift
                 ;;
-            -S|--scenario)
+            +S|++scenario|-S|--scenario)
+                # this also catches '-S' even though it's a pytest flag because
+                # there may be special treatment for specific scenarios
                 if [[ "$#" -eq 1 ]]; then
                   error "missing argument value for: $1"
-                  help
+                  hint
                   exit 64
                 fi
                 # upcase via ${2^^} is unsupported on bash 3.x
                 scenarios+=("$(echo "$2" | upcase)")
                 shift
                 ;;
-            -l|--library)
+            +l|++library)
                 if [[ "$#" -eq 1 ]]; then
                   error "missing argument value for: $1"
-                  help
+                  hint
                   exit 64
                 fi
                 libraries+=("$2")
                 shift
                 ;;
-            --)
+            ++)
                 # ignore and stop flag processing to force remainder to be captured as is
                 shift
                 break
                 ;;
-            -*)
+            +*)
                 # unknown flag: be helpful
                 error "unknown flag: $1"
-                help
+                hint
                 exit 64
                 ;;
             *)
                 # handle positional arguments
-                # deprecated but kept for backwards compatibility
                 if [[ "$1" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                    # TODO: get group
-                    scenarios+=("$1")
+                    mapfile -t group <<< "$(lookup_scenario_group "$1")"
+                    scenarios+=("${group[@]}")
                 elif [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
                     scenarios+=("$1")
                 else
-                  error "invalid argument: $1"
-                  help
-                  exit 64
+                    # pass any unmatched arguments to pytest
+                    pytest_args+=("$1")
                 fi
                 ;;
         esac
