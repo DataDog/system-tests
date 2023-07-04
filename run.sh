@@ -282,9 +282,13 @@ function main() {
         done
     done
 
-    if [[ "${pytest_numprocesses}" -ne 1 ]]; then
-        pytest_args+=( '-n' "${pytest_numprocesses}" )
-    fi
+    case "${pytest_numprocesses}" in
+        0|1)
+            ;;
+        *)
+            pytest_args+=( '-n' "${pytest_numprocesses}" )
+            ;;
+    esac
 
     ## run tests
 
