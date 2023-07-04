@@ -142,7 +142,7 @@ TracingService::~TracingService() {}
 }
 
 ::grpc::Status TracingService::InjectHeaders(::grpc::ServerContext* /* context */, const ::InjectHeadersArgs* request, ::InjectHeadersReturn* response) {
-  std::cout << "InjectHeaders" << std::endl;
+  logger_->log_info("InjectHeaders");
   auto span_id = request->span_id();
   auto found = active_spans_.find(span_id);
   if (found == active_spans_.end()) {
