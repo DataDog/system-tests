@@ -46,7 +46,7 @@ class TestedContainer:
         **kwargs,
     ) -> None:
         self.name = name
-        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
+        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", os.getcwd())
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
@@ -167,7 +167,7 @@ class TestedContainer:
         if "volumes" not in self.kwargs:
             return
 
-        host_pwd = os.getcwd()
+        host_pwd = self.host_project_dir
 
         result = {}
         for k, v in self.kwargs["volumes"].items():
@@ -238,8 +238,6 @@ class ImageInfo:
 
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, proxy_state) -> None:
-        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
-
         super().__init__(
             image_name="datadog/system-tests:proxy-v0",
             name="proxy",
@@ -252,10 +250,7 @@ class ProxyContainer(TestedContainer):
             },
             working_dir="/app",
             volumes={
-                f"{self.host_project_dir}/{host_log_folder}/interfaces/": {
-                    "bind": f"/app/{host_log_folder}/interfaces",
-                    "mode": "rw",
-                },
+                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
             },
             ports={"11111/tcp": ("127.0.0.1", 11111)},
             command="python utils/proxy/core.py",
@@ -337,19 +332,12 @@ class WeblogContainer(TestedContainer):
 
         from utils import weblog
 
-        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
-
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={
-                f"{self.host_project_dir}/{host_log_folder}/docker/weblog/logs/": {
-                    "bind": "/var/log/system-tests",
-                    "mode": "rw",
-                },
-            },
+            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
@@ -432,8 +420,6 @@ class WeblogContainer(TestedContainer):
 
 class PostgresContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
-
         super().__init__(
             image_name="postgres:latest",
             name="postgres",
@@ -441,7 +427,7 @@ class PostgresContainer(TestedContainer):
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
-                f"{self.host_project_dir}/utils/build/docker/postgres-init-db.sh": {
+                f"./utils/build/docker/postgres-init-db.sh": {
                     "bind": "/docker-entrypoint-initdb.d/init_db.sh",
                     "mode": "ro",
                 }
@@ -545,19 +531,13 @@ class SqlServerContainer(TestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", ".")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
         super().__init__(
             image_name="otel/opentelemetry-collector-contrib:latest",
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={
-                f"{self.host_project_dir}/utils/build/docker/otelcol-config.yaml": {
-                    "bind": "/etc/otelcol-config.yml",
-                    "mode": "ro",
-                }
-            },
+            volumes={f"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
