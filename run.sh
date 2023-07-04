@@ -104,10 +104,6 @@ function downcase() {
     tr '[:upper:]' '[:lower:]'
 }
 
-function list_scenarios() {
-    grep -R '^@scenarios\.' tests | sed -e 's/.*@scenarios\.//' | sort | uniq | upcase
-}
-
 function clean_pycache() {
     find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
 }
