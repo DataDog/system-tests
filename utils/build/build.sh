@@ -77,7 +77,7 @@ print_usage() {
     echo -e "  Print default weblog for Python:"
     echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
     echo
-    echo -e "More info at https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md"
+    echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
 }
 
@@ -245,6 +245,9 @@ build() {
                 -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
                 -t system_tests/weblog \
                 .
+
+        elif [[ $IMAGE_NAME == proxy ]]; then
+            docker build -f utils/build/docker/proxy.Dockerfile -t datadog/system-tests:proxy-v0 .
 
         else
             echo "Don't know how to build $IMAGE_NAME"

@@ -48,6 +48,10 @@ agent_auto_install:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
         command: bash execute_install_script_dev.sh js --host-inject true --container-inject false 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
   - java: 
     - env: dev
@@ -57,6 +61,11 @@ agent_auto_install:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
         command: bash execute_install_script_dev.sh java --host-inject true --container-inject false 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=java DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
   - python: 
     - env: dev
       install:
@@ -65,6 +74,12 @@ agent_auto_install:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
         command: bash execute_install_script_dev.sh python --host-inject true --container-inject false 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=python DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+
+
   - dotnet: 
     - env: dev
       install:
@@ -73,6 +88,10 @@ agent_auto_install:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
         command: bash execute_install_script_dev.sh dotnet --host-inject true --container-inject false 
+    - env: prod
+      install:
+      - os_type: linux
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=dotnet DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
 autoinjection:
   - java: 
@@ -188,18 +207,12 @@ language-variants:
       install: 
         - os_type: linux
           os_distro: deb
-          command: sudo apt-get -y install openjdk-11-jdk
+          command: sudo apt-get -y install openjdk-11-jdk-headless 
 
         - os_type: linux
           os_distro: rpm
           command: sudo amazon-linux-extras install java-openjdk11
-    - name: OpenJDK8
-      version: 8
-      install: 
-        - os_type: linux
-          os_distro: deb
-          command: sudo apt-get -y install openjdk-11-jdk-headless
-
+ 
   - nodejs:
     - name: node16
       version: 16
