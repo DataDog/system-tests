@@ -57,7 +57,7 @@ TracingService::~TracingService() {}
     auto found = active_spans_.find(span_id);
     if (found == active_spans_.end()) {
       logger_->log_info("StartSpan: span not found for id " + std::to_string(span_id));
-      return ::grpc::Status(::grpc::StatusCode::INTERNAL, std::string() + "no active span for id " + std::to_string(span_id));
+      return ::grpc::Status(::grpc::StatusCode::INTERNAL, "no active span for id " + std::to_string(span_id));
     }
     auto& parent_span = found->second;
     auto span = parent_span.create_child(config);
@@ -90,7 +90,7 @@ TracingService::~TracingService() {}
   auto found = active_spans_.find(span_id);
   if (found == active_spans_.end()) {
     logger_->log_info("TracingService::FinishSpan: span not found for id " + std::to_string(span_id));
-    return ::grpc::Status(::grpc::StatusCode::INTERNAL, std::string() + "no active span for id " + std::to_string(span_id));
+    return ::grpc::Status(::grpc::StatusCode::INTERNAL, "no active span for id " + std::to_string(span_id));
   }
 
   // spans finish when they are destroyed
@@ -104,7 +104,7 @@ TracingService::~TracingService() {}
   auto found = active_spans_.find(span_id);
   if (found == active_spans_.end()) {
     logger_->log_info("TracingService::SpanSetMeta: span not found for id " + std::to_string(span_id));
-    return ::grpc::Status(::grpc::StatusCode::INTERNAL, std::string() + "no active span for id " + std::to_string(span_id));
+    return ::grpc::Status(::grpc::StatusCode::INTERNAL, "no active span for id " + std::to_string(span_id));
   }
   auto& span = found->second;
 
@@ -124,7 +124,7 @@ TracingService::~TracingService() {}
   auto found = active_spans_.find(span_id);
   if (found == active_spans_.end()) {
     logger_->log_info("TracingService::SpanSetError: span not found for id " + std::to_string(span_id));
-    return ::grpc::Status(::grpc::StatusCode::INTERNAL, std::string() + "no active span for id " + std::to_string(span_id));
+    return ::grpc::Status(::grpc::StatusCode::INTERNAL, "no active span for id " + std::to_string(span_id));
   }
   auto& span = found->second;
 
@@ -147,7 +147,7 @@ TracingService::~TracingService() {}
   auto found = active_spans_.find(span_id);
   if (found == active_spans_.end()) {
     logger_->log_info("TracingService::InjectHeaders: span not found for id " + std::to_string(span_id));
-    return ::grpc::Status(::grpc::StatusCode::INTERNAL, std::string() + "no active span for id " + std::to_string(span_id));
+    return ::grpc::Status(::grpc::StatusCode::INTERNAL, "no active span for id " + std::to_string(span_id));
   }
   const auto& span = found->second;
 
