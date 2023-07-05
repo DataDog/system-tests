@@ -60,10 +60,7 @@ class Test_Login_Events:
 
     def setup_login_success(self):
         self.r_success = [
-            weblog.post(
-                "/login?auth=local",
-                data={"username": self.UUID_USER, "password": self.PASSWORD},
-            ),
+            weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
         ]
 
