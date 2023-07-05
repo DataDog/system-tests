@@ -11,7 +11,7 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
 @released(
     java={
         "spring-boot": "1.5.0",
@@ -26,6 +26,11 @@ if context.library == "cpp":
     }
 )
 @released(nodejs="?")
+@released(python={
+    "flask-poc": "?",
+    "uwsgi-poc": "?",
+    "django-poc": "1.17.0",
+})
 class TestParameterName:
     """Verify that request parameters are tainted"""
 
@@ -42,6 +47,7 @@ class TestParameterName:
         self.source_post_fixture.setup()
 
     @missing_feature(context.weblog_variant == "express4", reason="Tainted as request body")
+    @bug(context.library == "python", reason="Python frameworks need a header, if not, 415 status code")
     def test_source_post_reported(self):
         self.source_post_fixture.test()
 

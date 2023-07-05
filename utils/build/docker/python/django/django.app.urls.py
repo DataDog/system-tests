@@ -147,6 +147,78 @@ def view_sqli_secure(request):
     return HttpResponse("OK")
 
 
+def _sink_point(table="user", id="1"):
+    sql = "SELECT * FROM " + table + " WHERE id = '" + id+ "'"
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+
+
+@csrf_exempt
+def view_iast_source_body(request):
+    # TODO: migrate to a django rest framework view with request.data
+    import json
+    table = json.loads(request.body).get("name")
+    user = json.loads(request.body).get("value")
+    _sink_point(table=table, id=user)
+    return HttpResponse("OK")
+
+
+def view_iast_source_cookie_name(request):
+    param = [key for key in request.COOKIES.keys() if key == "user"]
+    _sink_point(id=param[0])
+    return HttpResponse("OK")
+
+
+def view_iast_source_cookie_value(request):
+    table = request.COOKIES.get("table")
+    _sink_point(table=table)
+    return HttpResponse("OK")
+
+
+def view_iast_source_header_name(request):
+    param = [key for key in request.headers.keys() if key == "User"]
+    # param = [key for key in request.META.keys() if key == "HTTP_USER"]
+    _sink_point(id=param[0])
+    return HttpResponse("OK")
+
+
+def view_iast_source_header_value(request):
+    # table = request.headers.get("Table")
+    table = request.META.get("HTTP_TABLE")
+    print("request.headers!!!!!!!!!!!!!!!!!!")
+    print(request.headers)
+    print("request.META!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(request.META)
+    _sink_point(table=table)
+    return HttpResponse("OK")
+
+
+def view_iast_source_parametername(request):
+    if request.method == "GET":
+        param = [key for key in request.GET.keys() if key == "user"]
+        _sink_point(id=param[0])
+    elif request.method == "POST":
+        param = [key for key in request.POST.keys() if key == "user"]
+        _sink_point(id=param[0])
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_source_parameter(request):
+    if request.method == "GET":
+        table = request.GET.get("table")
+        print("request.GET!!!!!!!!!!!!")
+        print(request.GET)
+        _sink_point(table=table[0])
+    elif request.method == "POST":
+        print("request.POST!!!!!!!!!!!!")
+        print(request.POST)
+        table = request.POST.get("table")
+        _sink_point(table=table[0])
+
+    return HttpResponse("OK")
+
+
 def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
@@ -244,6 +316,13 @@ urlpatterns = [
     path("iast/insecure_cipher/test_secure_algorithm", view_weak_cipher_secure),
     path("iast/sqli/test_secure", view_sqli_secure),
     path("iast/sqli/test_insecure", view_sqli_insecure),
+    path("iast/source/body/test", view_iast_source_body),
+    path("iast/source/cookiename/test", view_iast_source_cookie_name),
+    path("iast/source/cookievalue/test", view_iast_source_cookie_value),
+    path("iast/source/headername/test", view_iast_source_header_name),
+    path("iast/source/header/test", view_iast_source_header_value),
+    path("iast/source/parametername/test", view_iast_source_parametername),
+    path("iast/source/parameter/test", view_iast_source_parameter),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),

@@ -11,7 +11,12 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", ruby="?")
+@released(python={
+    "flask-poc": "?",
+    "uwsgi-poc": "?",
+    "django-poc": "?",
+})
 @released(
     java={
         "spring-boot": "1.7.0",
