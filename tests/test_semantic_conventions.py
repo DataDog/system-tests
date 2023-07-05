@@ -75,6 +75,13 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
     },
+    "spring-boot-payara": {
+        "servlet.request": "java-web-servlet",
+        "hsqldb.query": "java-jdbc-statement",
+        "servlet.forward": "java-web-servlet-dispatcher",
+        "spring.handler": "spring-web-controller",
+        "servlet.response": "java-web-servlet-response",
+    },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
     "akka-http": "akka-http-server",
     "rails": {

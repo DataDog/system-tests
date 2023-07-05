@@ -10,8 +10,7 @@ Group=MY_USER
 
 Type=simple
 
-Environment=DD_CONFIG_SOURCES=BASIC
-Environment=DD_INJECT_DEBUG=TRUE
+Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
 Environment=PYTHONUNBUFFERED=1
 Environment=DJANGO_SETTINGS_MODULE=django_app
 WorkingDirectory=/home/MY_USER

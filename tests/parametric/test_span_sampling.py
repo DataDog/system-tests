@@ -200,11 +200,11 @@ class Test_Span_Sampling:
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
         # generate three traces before requesting them to avoid timing issues
         with test_library:
-            for i in range(3):
+            for i in range(6):
                 with test_library.start_span(name="web.request", service="webserver"):
                     pass
 
-        traces = test_agent.wait_for_num_traces(3, clear=True)
+        traces = test_agent.wait_for_num_traces(6, clear=True)
 
         # expect first and second traces sampled
         span = find_span_in_traces(traces[:1], Span(name="web.request", service="webserver"))
@@ -216,9 +216,11 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
-
-        # expect third trace unsampled because of rate limiters
-        span = find_span_in_traces(traces[2:], Span(name="web.request", service="webserver"))
+        # Some issues related with timming. It's difficult to be so accurate and it can cause flakiness
+        # For example code in the Java tracer starts the clock as soon as the limiter is created.
+        # This means that even though all traces happen within ~59 ms, they could straddle two token buckets and hence all be allowed to pass
+        # Given 6 traces, at least the last two traces are unsampled because of rate limiters
+        span = find_span_in_traces(traces[5:6], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -271,6 +273,7 @@ class Test_Span_Sampling:
         assert len(sampled) in range(30, 70)
         assert len(unsampled) in range(30, 70)
 
+    @missing_feature(context.library == "cpp", reason="span is marked -1 / drop")
     @missing_feature(
         context.library == "*",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
@@ -331,6 +334,7 @@ class Test_Span_Sampling:
         # the below does not apply to all agent APIs
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
+    @missing_feature(context.library == "cpp", reason="manual.drop span tag is not applied")
     @missing_feature(
         context.library == "golang", reason="The Go tracer does not have a way to modulate trace sampling once started"
     )
@@ -427,37 +431,38 @@ class Test_Span_Sampling:
         """
         # generate spans before requesting them to avoid timing issues
         with test_library:
-            for i in range(2):
+            for i in range(4):
                 with test_library.start_span(name="web.request", service="webserver"):
                     pass
-            for i in range(3):
+            for i in range(6):
                 with test_library.start_span(name="web.request2", service="webserver2"):
                     pass
 
-        traces = test_agent.wait_for_num_traces(5, clear=True)
-
+        traces = test_agent.wait_for_num_traces(10, clear=True)
+        # Some issues related with timming. It's difficult to be so accurate and it can cause flakiness
+        # We check at least last trace is unsampled
         span = find_span_in_traces(traces[:1], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
 
-        span = find_span_in_traces(traces[1:2], Span(name="web.request", service="webserver"))
+        span = find_span_in_traces(traces[3:4], Span(name="web.request", service="webserver"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-        # for trace in traces[2:4]:
-        span = find_span_in_traces(traces[2:3], Span(name="web.request2", service="webserver2"))
-        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
-
-        span = find_span_in_traces(traces[3:4], Span(name="web.request2", service="webserver2"))
-        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
-
+        # for trace in traces[4:10]:
         span = find_span_in_traces(traces[4:5], Span(name="web.request2", service="webserver2"))
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
+
+        span = find_span_in_traces(traces[5:6], Span(name="web.request2", service="webserver2"))
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+        assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 2
+
+        span = find_span_in_traces(traces[8:9], Span(name="web.request2", service="webserver2"))
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -553,6 +558,7 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
@@ -610,6 +616,7 @@ class Test_Span_Sampling:
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
@@ -668,6 +675,7 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")

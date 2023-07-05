@@ -209,7 +209,6 @@ Before run the onboarding test you should configure:
 
 Before execute the "onboarding" tests you must configure some environment variables:
 
-- **TEST_LIBRARY:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
 - **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet id.
 - **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id. 
 - **DD_API_KEY_ONBOARDING:** Datadog API key.
@@ -228,9 +227,22 @@ Opcionally you can set extra parameters to filter the type of tests that you wil
 
 ### Run script
 
-The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios. The currently supported scenarios are the following:
+The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios. 
+The currently supported scenarios are the following:
 
-- './run.sh ONBOARDING_HOST'
-- './run.sh ONBOARDING_HOST_CONTAINER'
-- './run.sh ONBOARDING_CONTAINER'
+- ONBOARDING_HOST
+- ONBOARDING_HOST_CONTAINER
+- ONBOARDING_CONTAINER
+- ONBOARDING_HOST_AUTO_INSTALL
+- ONBOARDING_HOST_CONTAINER_AUTO_INSTALL
+- ONBOARDING_CONTAINER_AUTO_INSTALL
 
+The 'onboarding' tests scenarios requiered three mandatory parameters:
+
+- **--obd-library**: Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
+- **--obd-env**: Configure origin of the software: dev (beta software) or prod (releases)
+- **--obd-weblog**: Configure weblog to tests 
+
+The following line shows an example of command line to run the tests:
+
+- './run.sh ONBOARDING_HOST --obd-weblog test-app-nodejs --obd-env dev --obd-library nodejs'
