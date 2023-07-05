@@ -27,7 +27,7 @@ public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserC
         {
             new("test")
             {
-                Id = "1",
+                Id = "social-security-id",
                 PasswordHash = "AQAAAAEAACcQAAAAEPvdMCIo7ko3lR7fYZRTQc8jRwb5ziO3FtWS7Z/qfGSNMMIykHRHQNQh0IDBuqANJw==",
                 Email = "testuser@ddog.com",
                 NormalizedEmail = "TESTUSER@DDOG.COM",

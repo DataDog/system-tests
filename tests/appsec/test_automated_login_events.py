@@ -13,7 +13,7 @@ class Test_Login_Events:
     # User entries in the internal DB:
     # users = [
     #     {
-    #         id: '1',
+    #         id: 'social-security-id',
     #         username: 'test',
     #         password: '1234',
     #         email: 'testuser@ddog.com'
