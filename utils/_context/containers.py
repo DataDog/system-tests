@@ -245,6 +245,7 @@ class ProxyContainer(TestedContainer):
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY"),
+                "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "HOST_LOG_FOLDER": host_log_folder,
                 "PROXY_STATE": json.dumps(proxy_state or {}),
             },
