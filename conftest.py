@@ -268,7 +268,7 @@ def pytest_json_modifyreport(json_report):
                 test["skip_reason"] = (
                     test["metadata"]["skip_reasons"][test["nodeid"]]
                     if test["nodeid"] in test["metadata"]["skip_reasons"]
-                    else ""
+                    else None
                 )
 
         # add usefull data for reporting
