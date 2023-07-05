@@ -1,7 +1,6 @@
 ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
 
-# We create mirrorlist.main to work with both old and new agent images.
 RUN set -eux;\
     apt-get update;\
     apt-get --no-install-recommends -y install ca-certificates --option=Dpkg::Options::=--force-confdef;\
