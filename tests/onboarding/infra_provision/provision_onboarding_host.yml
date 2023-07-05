@@ -47,12 +47,11 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh js --host-inject true --container-inject false 
+        command: bash execute_install_script_dev.sh js --inject-mode host 
     - env: prod
       install:
       - os_type: linux
-        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=js DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
   - java: 
     - env: dev
       install:
@@ -60,11 +59,12 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh java --host-inject true --container-inject false 
+        command: bash execute_install_script_dev.sh java --inject-mode host 
+
     - env: prod
       install:
       - os_type: linux
-        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=java DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=java DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
   - python: 
     - env: dev
@@ -73,11 +73,11 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh python --host-inject true --container-inject false 
+        command: bash execute_install_script_dev.sh python --inject-mode host 
     - env: prod
       install:
       - os_type: linux
-        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=python DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=python DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
 
   - dotnet: 
@@ -87,18 +87,19 @@ agent_auto_install:
         copy_files:
             - name: copy-auto-install-script
               local_path: tests/onboarding/autoinjection/repositories/autoinstall/execute_install_script_dev.sh
-        command: bash execute_install_script_dev.sh dotnet --host-inject true --container-inject false 
+        command: bash execute_install_script_dev.sh dotnet --inject-mode host 
     - env: prod
       install:
       - os_type: linux
-        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=dotnet DD_APM_HOST_INJECTION_ENABLED=true DD_APM_DOCKER_INJECTION_ENABLED=false bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+        command:  DD_AGENT_DIST_CHANNEL=stable DD_AGENT_MAJOR_VERSION=7 DD_APM_LIBRARIES=dotnet DD_APM_INSTRUMENTATION_ENABLED=host bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
 autoinjection:
+#Copy tests/onboarding/autoinjection/host_config.yaml to /etc/datadog-agent/inject/host_config.yaml to enable debug (Disabled for timing reasons)
   - java: 
     - env: dev
       install: 
         - os_type: linux
-          os_distro: deb
+          os_distro: deb  
           command: |
             sudo apt install -y -t beta datadog-apm-inject datadog-apm-library-java
             dd-host-install
@@ -112,7 +113,7 @@ autoinjection:
             yumdownloader datadog-apm-inject
             rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
             echo "Package signature verified!"
-
+ 
     - env: prod
       install: 
         - os_type: linux
