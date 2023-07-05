@@ -10,8 +10,6 @@ from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
-from utils.interfaces._library.appsec_iast import _AppSecIastValidator
-from utils.interfaces._library.appsec_iast import _AppSecIastSourceValidator
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
@@ -64,7 +62,7 @@ class LibraryInterfaceValidator(InterfaceValidator):
         if rid:
             logger.debug(f"Try to found spans related to request {rid}")
 
-        for data, trace in self.get_traces():
+        for data, trace in self.get_traces(request=request):
             for span in trace:
                 if rid is None:
                     yield data, trace, span
@@ -72,8 +70,8 @@ class LibraryInterfaceValidator(InterfaceValidator):
                     logger.debug(f"A span is found in {data['log_filename']}")
                     yield data, trace, span
 
-    def get_root_spans(self):
-        for data, _, span in self.get_spans():
+    def get_root_spans(self, request=None):
+        for data, _, span in self.get_spans(request=request):
             if span.get("parent_id") in (0, None):
                 yield data, span
 
@@ -122,18 +120,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
                                 yield data, event
                                 break
-
-    def get_iast_events(self, request=None):
-        def vulnerability_dict(vulDict):
-            return namedtuple("X", vulDict.keys())(*vulDict.values())
-
-        for data, _, span in self.get_spans(request):
-            if "_dd.iast.json" in span.get("meta", {}):
-                if request:  # do not spam log if all data are sent to the validator
-                    logger.debug(f"Try to find relevant iast data in {data['log_filename']}; span #{span['span_id']}")
-
-                appsec_iast_data = json.loads(span["meta"]["_dd.iast.json"], object_hook=vulnerability_dict)
-                yield data, span, appsec_iast_data
 
     def get_telemetry_data(self):
         yield from self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry")
@@ -279,43 +265,6 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
         if not success:
             raise Exception("Can't find anything to validate this test")
-
-    def expect_iast_sources(self, request, name=None, origin=None, value=None, source_count=None):
-        validator = _AppSecIastSourceValidator(name=name, origin=origin, value=value, source_count=source_count)
-
-        for _, _, iast_data in self.get_iast_events(request=request):
-            if validator(sources=iast_data.sources):
-                return
-
-        raise Exception("No data validates this tests")
-
-    def expect_iast_vulnerabilities(
-        self,
-        request,
-        vulnerability_type=None,
-        location_path=None,
-        location_line=None,
-        evidence=None,
-        vulnerability_count=None,
-    ):
-        validator = _AppSecIastValidator(
-            vulnerability_type=vulnerability_type,
-            location_path=location_path,
-            location_line=location_line,
-            evidence=evidence,
-            vulnerability_count=vulnerability_count,
-        )
-
-        for _, _, iast_data in self.get_iast_events(request=request):
-            if validator(vulnerabilities=iast_data.vulnerabilities):
-                return
-
-        raise Exception("No data validates this tests")
-
-    def expect_no_vulnerabilities(self, request):
-        for data, _, iast_data in self.get_iast_events(request=request):
-            logger.error(json.dumps(iast_data, indent=2))
-            raise Exception(f"Found IAST event in {data['log_filename']}")
 
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
