@@ -50,6 +50,7 @@ class Test_Login_Events:
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
                 if context.library == "nodejs":
+                    # nodejs is sending empty events this way for now as it cant send empty strings, needs a whitespace
                     assert meta["usr.id"] == " "
                 else:
                     assert "usr.id" not in meta
@@ -91,6 +92,7 @@ class Test_Login_Events:
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
                     assert "appsec.events.users.login.failure.usr.id" not in meta
                 else:
+                    # nodejs is sending empty events this way for now as it cant send empty strings, needs a whitespace
                     assert meta["appsec.events.users.login.failure.usr.id"] == " "
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
@@ -114,6 +116,7 @@ class Test_Login_Events:
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                     assert "appsec.events.users.login.failure.usr.id" not in meta
                 else:
+                    # nodejs is sending empty events this way for now as it cant send empty strings, needs a whitespace
                     assert meta["appsec.events.users.login.failure.usr.id"] == " "
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
