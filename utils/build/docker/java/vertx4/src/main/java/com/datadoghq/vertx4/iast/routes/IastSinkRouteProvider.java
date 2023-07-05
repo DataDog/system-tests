@@ -29,6 +29,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         final PathExamples path = new PathExamples();
         final SqlExamples sql = new SqlExamples(dataSource);
         final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
+        final XPathExamples xpath = new XPathExamples();
 
         router.route("/iast/*").handler(BodyHandler.create());
 
@@ -114,5 +115,43 @@ public class IastSinkRouteProvider implements Consumer<Router> {
         router.post("/iast/unvalidated_redirect/test_secure_redirect").handler(ctx ->
                 ctx.redirect("http://dummy.location.com")
         );
+        router.post("/iast/xpathi/test_insecure").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            final String expression = request.getParam("expression");
+            xpath.insecureXPath(expression);
+            ctx.response().end("Insecure");
+        });
+        router.post("/iast/xpathi/test_secure").handler(ctx -> {
+            xpath.secureXPath();
+            ctx.response().end("Secure");
+        });
+        router.get("/iast/insecure-cookie/test_empty_cookie").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "").end()
+        );
+        router.get("/iast/insecure-cookie/test_insecure").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "user-id=7;HttpOnly=true;SameSite=Strict").end()
+        );
+        router.get("/iast/insecure-cookie/test_secure").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").end()
+        );
+        router.get("/iast/no-samesite-cookie/test_insecure").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true").end()
+        );
+        router.get("/iast/no-samesite-cookie/test_empty_cookie").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "").end()
+        );
+        router.get("/iast/no-samesite-cookie/test_secure").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").end()
+        );
+        router.get("/iast/no-httponly-cookie/test_empty_cookie").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "").end()
+        );
+        router.get("/iast/no-httponly-cookie/test_insecure").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;SameSite=Strict").end()
+        );
+        router.get("/iast/no-httponly-cookie/test_secure").handler(ctx ->
+                ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly=true;SameSite=Strict").end()
+        );
+
     }
 }

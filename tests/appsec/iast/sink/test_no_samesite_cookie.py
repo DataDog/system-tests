@@ -11,7 +11,8 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
 class TestNoSamesiteCookie:
     """Test No SameSite cookie detection."""
 
@@ -55,6 +56,7 @@ class TestNoSamesiteCookie:
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
+    @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -62,5 +64,6 @@ class TestNoSamesiteCookie:
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
+    @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

@@ -52,6 +52,23 @@ _released_java_blocking = {
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
 
+    def setup_block_ip(self):
+        self.block_ip_req = weblog.get(headers={"X-Forwarded-For": "1.1.1.1"})
+
+    def test_block_ip(self):
+        """can block the request forwarded for the ip"""
+
+        assert self.block_ip_req.status_code == 403
+
+    def setup_block_user(self):
+        self.block_user_req = weblog.get("/users", params={"user": "blockedUser"})
+
+    @missing_feature(library="java", reason="Missing /users endpoint")
+    def test_block_user(self):
+        """can block the request from the user"""
+
+        assert self.block_user_req.status_code == 403
+
     def setup_request_method(self):
         self.rm_req = weblog.request("OPTIONS")
 

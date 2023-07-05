@@ -7,21 +7,15 @@ from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersM
 
 @released(python="1.7.0", dotnet="2.12.0", java="0.108.1", nodejs="3.2.0", ruby="1.4.0", golang="1.49.0")
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
-@bug(
-    context.library <= "ruby@1.10.1",
-    reason="Mishandling DD_INSTRUMENTATION_TELEMETRY_ENABLED activation. Fixed in https://github.com/DataDog/dd-trace-rb/pull/2710.",
-)
 @missing_feature(library="cpp")
 @missing_feature(library="php")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
     # containers for telemetry request to check consistency between library payloads and agent payloads
     library_requests = {}
     agent_requests = {}
-
-    app_started_count = 0
 
     def validate_library_telemetry_data(self, validator, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data())
@@ -148,24 +142,22 @@ class Test_Telemetry:
             if diff > 1:
                 raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
-    def test_app_started(self):
-        """Request type app-started is sent on startup at least once"""
+    @bug(library="ruby", reason="app-started not sent")
+    def test_app_started_sent_exactly_once(self):
+        """Request type app-started is sent exactly once"""
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
+        assert len(app_started) == 1
 
-        def validator(data):
-            return data["request"]["content"].get("request_type") == "app-started"
-
-        self.validate_library_telemetry_data(validator)
-
-    def test_app_started_sent_only_once(self):
-        """Request type app-started is not sent twice"""
-
-        def validator(data):
-            if data["request"]["content"].get("request_type") == "app-started":
-                self.app_started_count += 1
-                assert self.app_started_count < 2, "request_type/app-started has been sent too many times"
-
-        self.validate_library_telemetry_data(validator)
+    @bug(library="ruby", reason="app-started not sent")
+    @bug(library="python", reason="app-started not sent first")
+    def test_app_started_is_first_message(self):
+        """Request type app-started is the first telemetry message"""
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        assert len(telemetry_data) > 0, "No telemetry messages"
+        assert (
+            telemetry_data[0]["request"]["content"].get("request_type") == "app-started"
+        ), "app-started was not the first message"
 
     @bug(
         library="java",
@@ -249,6 +241,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
 
     @flaky(library="java", reason="It may be 4 seconds on java ?")
+    @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -258,17 +251,19 @@ class Test_Telemetry:
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise ValueError("No telemetry data to validate on")
+        assert len(telemetry_data) > 0, "No telemetry messages"
 
-        for data in telemetry_data:
+        heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
+        assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
+
+        for data in heartbeats:
             curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
             if prev_message_time != -1:
                 delta = curr_message_time - prev_message_time
-                if delta > timedelta(seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL):
-                    raise ValueError(
-                        f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
-                    )
+                assert delta <= timedelta(
+                    seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL
+                ), f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
+                assert delta >= timedelta(seconds=TELEMETRY_HEARTBEAT_INTERVAL * 0.75), "Heartbeat sent too fast"
             prev_message_time = curr_message_time
 
     def setup_app_dependencies_loaded(self):
@@ -470,7 +465,7 @@ class Test_Telemetry:
 @bug(context.uds_mode and context.library < "nodejs@3.7.0")
 @missing_feature(library="cpp")
 @missing_feature(library="php")
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 @irrelevant(library="golang", reason="products info is always in app-started for golang")
 class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""

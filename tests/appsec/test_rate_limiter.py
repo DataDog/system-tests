@@ -6,7 +6,7 @@ import datetime
 import time
 
 import pytest
-from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenarios, missing_feature
+from utils import weblog, context, coverage, interfaces, released, rfc, bug, scenarios, missing_feature, flaky
 from utils.tools import logger
 
 if context.library == "cpp":
@@ -50,6 +50,7 @@ class Test_Main:
         logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
 
     @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @flaky(context.weblog_variant in ("rails51", "rails70"), reason="APPSEC-10303")
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
@@ -70,5 +71,5 @@ class Test_Main:
 
         message = f"Sent 50 requests in 10 s. Expecting to see less than 10 events but saw {trace_count} events"
 
-        # very permissive test. We expect 10 traces, allow from 1 to 20.
+        # very permissive test. We expect 10 traces, allow from 1 to 30.
         assert 1 <= trace_count <= 30, message

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import pytest
 from utils import weblog, interfaces, context, bug, missing_feature, coverage, released
-from ..iast_fixtures import SinkFixture
+from ..iast_fixtures import SinkFixture, get_iast_event, assert_iast_vulnerability
 
 if context.library == "cpp":
     pytestmark = pytest.mark.skip("not relevant")
@@ -79,13 +79,12 @@ class TestWeakHash:
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
-
-        interfaces.library.expect_iast_vulnerabilities(
-            self.r_insecure_hash_remove_duplicates,
+        assert_iast_vulnerability(
+            request=self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,
             vulnerability_type="WEAK_HASH",
-            location_path=self.sink_fixture.expected_location,
-            evidence=self.sink_fixture.expected_evidence,
+            expected_location=self.sink_fixture.expected_location,
+            expected_evidence=self.sink_fixture.expected_evidence,
         )
 
     def setup_insecure_hash_multiple(self):
@@ -94,12 +93,11 @@ class TestWeakHash:
     @bug(context.weblog_variant == "spring-boot-openliberty")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
-
-        interfaces.library.expect_iast_vulnerabilities(
-            self.r_insecure_hash_multiple,
+        assert_iast_vulnerability(
+            request=self.r_insecure_hash_multiple,
             vulnerability_count=2,
             vulnerability_type="WEAK_HASH",
-            location_path=self.sink_fixture.expected_location,
+            expected_location=self.sink_fixture.expected_location,
         )
 
     def setup_telemetry_metric_instrumented_sink(self):

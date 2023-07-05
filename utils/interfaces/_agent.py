@@ -12,7 +12,6 @@ import threading
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span
 from utils.interfaces._schemas_validators import SchemaValidator
-from utils.interfaces._profiling import _ProfilingFieldValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
@@ -65,11 +64,8 @@ class AgentInterfaceValidator(InterfaceValidator):
         validator = SchemaValidator("agent", allowed_errors)
         self.validate(validator, success_by_default=True)
 
-    def add_profiling_validation(self, validator, success_by_default=False):
-        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
-
-    def profiling_assert_field(self, field_name, content_pattern=None):
-        self.add_profiling_validation(_ProfilingFieldValidator(field_name, content_pattern), success_by_default=True)
+    def get_profiling_data(self):
+        yield from self.get_data(path_filters="/api/v2/profile")
 
     def validate_appsec(self, request, validator):
         for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
