@@ -1,7 +1,6 @@
 ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
 
-# Old agents (e.g. 7.43.0) have /etc/apt/mirrorlist rather than /etc/apt/mirrorlist.main.
 # We create mirrorlist.main to work with both old and new agent images.
 RUN set -eux;\
     apt-get update;\
