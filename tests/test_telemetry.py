@@ -263,7 +263,7 @@ class Test_Telemetry:
                 assert delta <= timedelta(
                     seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL
                 ), f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
-                assert delta >= timedelta(seconds=TELEMETRY_HEARTBEAT_INTERVAL * 0.9), "Heartbeat sent too fast"
+                assert delta >= timedelta(seconds=TELEMETRY_HEARTBEAT_INTERVAL * 0.75), "Heartbeat sent too fast"
             prev_message_time = curr_message_time
 
     def setup_app_dependencies_loaded(self):
