@@ -6,7 +6,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 
-from utils import scenarios
+from utils import context, missing_feature, scenarios
 
 import pytest
 
@@ -140,6 +140,7 @@ class TestDynamicConfig:
             ]
         ],
     )
+    @missing_feature(context.library in ["java", "dotnet"], reason="Not implemented yet")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_status when the service targeting is not correct.
 
@@ -251,31 +252,67 @@ class TestDynamicConfig:
         ],
     )
     def test_log_injection_enabled(self, library_env, test_agent, test_library):
+        """Ensure that the log injection setting can be set.
+
+        There is no way (at the time of writing) to check the logs produced by the library.
+        """
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
-    @pytest.mark.skip(reason="TODO: enable once the http request support is added")
     @parametrize(
         "library_env",
         [
             {
                 **DEFAULT_ENVVARS,
-                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env, X-Test-Header-2:test_header_env2",
+                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2",
             },
         ],
     )
     def test_tracing_header_tags(self, library_env, test_agent, test_library):
+        """Ensure the tracing header tags can be set."""
+
+        # Test without RC.
+        test_library.http_client_request(
+            method="GET",
+            url="http://example.com",
+            headers=[
+                ("X-Test-Header", "test-value"),
+                ("X-Test-Header-2", "test-value-2"),
+            ],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
+
+        # Set and test with RC.
         cfg_state = set_and_wait_rc(
             test_agent,
             config_overrides={"tracing_header_tags": [{"header": "X-Test-Header", "tag_name": "test_header",}]},
         )
         assert cfg_state["apply_state"] == 2
-
-        trace = do_http_request(
-            test_library, headers={"X-Test-Header": "test-value", "X-Test-Header-2": "test-value-2"}
+        test_library.http_client_request(
+            method="GET",
+            url="http://example.com",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2")],
         )
-        assert trace[0]["meta"]["test_header"] == "test-value"
-        assert trace[0]["meta"]["test_header_env2"] == "test-value-2"
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header"] == "test-value"
+        assert "test_header_env2" not in trace[0][0]["meta"]
+
+        # Unset RC.
+        cfg_state = set_and_wait_rc(
+            test_agent,
+            config_overrides={"tracing_header_tags": None}
+        )
+        assert cfg_state["apply_state"] == 2
+        test_library.http_client_request(
+            method="GET",
+            url="http://example.com",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2")],
+        )
+        trace = test_agent.wait_for_num_traces(num=1, clear=True)
+        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
 
 
 # TODO test case for new version of config, ensure it doesn't break libraries

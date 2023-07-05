@@ -3,7 +3,6 @@ from typing import Dict
 from typing import Union
 import os
 import opentelemetry
-from opentelemetry.trace import set_tracer_provider
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace.span import StatusCode
 from opentelemetry.trace.span import Span as OtelSpan
@@ -24,6 +23,9 @@ from ddtrace.propagation.http import HTTPPropagator
 import grpc
 
 from .protos import apm_test_client_pb2, apm_test_client_pb2_grpc
+
+
+ddtrace.patch(requests=True)
 
 
 class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
@@ -109,6 +111,22 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
         if len(stats_proc):
             stats_proc[0].periodic()
         return apm_test_client_pb2.FlushTraceStatsReturn()
+
+    def HTTPClientRequest(self, request, context):
+        import requests
+
+        headers = {
+            h.key: h.value for h in request.headers.http_headers
+        }
+        req = requests.request(
+            method=request.method,
+            url=request.url,
+            headers=headers,
+            data=request.body
+        )
+        return apm_test_client_pb2.HTTPRequestReturn(
+            status_code=str(req.status_code),
+        )
 
     def StopTracer(self, request, context):
         return apm_test_client_pb2.StopTracerReturn()
