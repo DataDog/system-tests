@@ -6,11 +6,14 @@ const tracer = require('dd-trace').init({ debug: true });
 
 const app = require('express')();
 const axios = require('axios');
+const passport = require('passport')
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
+
+require('./auth')(app, passport, tracer)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
