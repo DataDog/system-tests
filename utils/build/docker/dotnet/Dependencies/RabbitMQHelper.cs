@@ -85,7 +85,7 @@ public class RabbitMQHelper : IDisposable
 
     public void DirectPublish(string routingKey, string message)
     {
-        _model.BasicPublish(
+        _channel.BasicPublish(
             $"",
             routingKey,
             null,
