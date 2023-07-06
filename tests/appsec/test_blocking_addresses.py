@@ -570,7 +570,7 @@ class Test_Blocking_request_cookies:
 @released(
     cpp="?",
     dotnet="2.29.0",
-    golang="1.52.0",
+    golang="1.53.0",
     java="1.15.0",
     nodejs="3.19.0",
     php_appsec="0.7.0",
