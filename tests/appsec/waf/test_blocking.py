@@ -234,6 +234,7 @@ class Test_Blocking:
 )
 @released(java="1.11.0", dotnet="?", golang="1.53.0", nodejs="?", php_appsec="0.7.0", python="?", ruby="?")
 @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@bug(context.weblog_variant == "uds-echo")
 @coverage.basic
 @scenarios.appsec_blocking
 class Test_CustomBlockingResponse:
