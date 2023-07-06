@@ -57,10 +57,12 @@ public class RabbitmqConnector {
                 try {
                     Channel channel = createChannel();
                     channel.exchangeDeclare(DIRECT_EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
+                    channel.queueDeclare(QUEUE, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
+                    channel.queueBind(QUEUE, DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY);
                     channel.basicPublish(DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY, null, message.getBytes("UTF-8"));
-                    System.out.println("Published " + message);
+                    System.out.println("[rabbitmq] Published " + message);
                 } catch (Exception e) {
-                    System.out.println("Unable to produce message");
+                    System.out.println("[rabbitmq] Unable to produce message");
                     e.printStackTrace();
                 }
             }
@@ -78,7 +80,7 @@ public class RabbitmqConnector {
 									   byte[] body) throws IOException{
 
 				String message = new String(body, "UTF-8");
-				System.out.println(" [x] Received '" + message + "'");
+				System.out.println("[rabbitmq] Received '" + message + "'");
 
 				long deliveryTag = envelope.getDeliveryTag();
 				try {
@@ -90,6 +92,7 @@ public class RabbitmqConnector {
 	}
 
     public void startConsumingMessages() throws Exception {
+        System.out.println("[rabbitmq] Start consuming messages");
         Thread thread = new Thread("RabbitmqConsume") {
             public void run() {
                 try {
@@ -98,11 +101,12 @@ public class RabbitmqConnector {
                     channel.exchangeDeclare(DIRECT_EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
                     channel.queueDeclare(QUEUE, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
                     channel.queueBind(QUEUE, DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY);
+                    System.out.println("[rabbitmq] Start consume-side bindings");
 
                     final Consumer consumer = createConsumer(channel, ThreadLocalRandom.current().nextInt(0, 200));
                     channel.basicConsume(QUEUE, /*autoAck=*/false, consumer);
                 } catch (Exception e) {
-                    System.out.println("Unable to consume message");
+                    System.out.println("[rabbitmq] Unable to consume message");
                     e.printStackTrace();
                 }
             }

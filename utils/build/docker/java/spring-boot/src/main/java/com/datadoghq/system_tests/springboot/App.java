@@ -277,14 +277,14 @@ public class App {
             try {
                 kafka.startProducingMessage("hello world!");
             } catch (Exception e) {
-                System.out.println("Failed to start producing message...");
+                System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
                 kafka.startConsumingMessages();
             } catch (Exception e) {
-                System.out.println("Failed to start consuming message...");
+                System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
                 return "failed to start consuming message";
             }
@@ -293,9 +293,16 @@ public class App {
             try {
                 rabbitmq.startProducingMessage("hello world!");
             } catch (Exception e) {
-                System.out.println("Failed to start producing message...");
+                System.out.println("[rabbitmq] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
+            }
+            try {
+                rabbitmq.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
             }
         } else {
             return "unknown integration: " + integration;

@@ -66,6 +66,43 @@ class Test_DsmRabbitmq:
             tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
+        DsmHelper.assert_checkpoint_presence(
+            hash_=1648106384315938543,
+            parent_hash=6176024609184775446,
+            tags=('direction:in', 'topic:systemTestRabbitmqQueue', 'type:rabbitmq'),
+        )
+
+
+@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?", java="?")
+@released(dotnet="2.29.0")
+@scenarios.integrations
+class Test_DsmRabbitmq_Dotnet:
+    """ Verify DSM stats points for RabbitMQ, specifically for Dotnet """
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq")
+
+    def test_dsm_rabbitmq(self):
+        assert self.r.text == "ok"
+
+        # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
+        # the other tracer libraries, which causes the resulting hash to be different.
+        DsmHelper.assert_checkpoint_presence(
+            hash_=12547013883960139159,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestDirectExchange", "has_routing_key:True", "type:rabbitmq"),
+        )
+
+        # There seems to be a bug in dotnet currently where the queue is not passed, causing DSM to default to setting
+        # the routing key as the topic.
+        # See https://github.com/DataDog/dd-trace-dotnet/blob/6aab5e1b02bec9c9b68a33cd06cc9e7a774f14de/tracer/src/Datadog.Trace/ClrProfiler/AutoInstrumentation/RabbitMQ/RabbitMQIntegration.cs#L144
+        # where `queue` is not passed
+        DsmHelper.assert_checkpoint_presence(
+            hash_=12449081340987959886,
+            parent_hash=12547013883960139159,
+            tags=('direction:in', 'topic:testRoutingKey', 'type:rabbitmq'),
+        )
+
 
 class DsmHelper:
     @staticmethod

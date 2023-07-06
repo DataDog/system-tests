@@ -6,6 +6,7 @@ using System;
 using System.Net;
 using System.Globalization;
 using System.Threading;
+using RabbitMQ.Client;
 
 namespace weblog
 {
@@ -18,8 +19,14 @@ namespace weblog
                 var integration = context.Request.Query["integration"];
                 Console.WriteLine("Hello World! Received dsm call with integration " + integration);
                 if ("kafka".Equals(integration)) {
-                    Thread producerThread = new Thread(Producer.DoWork);
-                    Thread consumerThread = new Thread(Consumer.DoWork);
+                    Thread producerThread = new Thread(KafkaProducer.DoWork);
+                    Thread consumerThread = new Thread(KafkaConsumer.DoWork);
+                    producerThread.Start();
+                    consumerThread.Start();
+                    await context.Response.WriteAsync("ok");
+                } else if ("rabbitmq".Equals(integration)) {
+                    Thread producerThread = new Thread(RabbitMQProducer.DoWork);
+                    Thread consumerThread = new Thread(RabbitMQConsumer.DoWork);
                     producerThread.Start();
                     consumerThread.Start();
                     await context.Response.WriteAsync("ok");
@@ -30,7 +37,7 @@ namespace weblog
         }
     }
 
-    class Producer {
+    class KafkaProducer {
         public static void DoWork() {
             KafkaHelper.CreateTopics("kafka:9092", new List<string>{"dsm-system-tests-queue"});
             using (var producer = KafkaHelper.GetProducer("kafka:9092")) {
@@ -46,7 +53,7 @@ namespace weblog
         }
     }
 
-    class Consumer {
+    class KafkaConsumer {
         public static void DoWork() {
             KafkaHelper.CreateTopics("kafka:9092", new List<string>{"dsm-system-tests-queue"});
             using (var consumer = KafkaHelper.GetConsumer("kafka:9092", "testgroup1")) {
@@ -65,6 +72,32 @@ namespace weblog
                     }
                 }
             }
+        }
+    }
+
+    class RabbitMQProducer {
+        public static void DoWork() {
+            var helper = new RabbitMQHelper();
+            helper.ExchangeDeclare("systemTestDirectExchange", ExchangeType.Direct);
+            helper.CreateQueue("systemTestRabbitmqQueue");
+            helper.QueueBind("systemTestRabbitmqQueue", "systemTestDirectExchange", "testRoutingKey");
+
+            helper.ExchangePublish("systemTestDirectExchange", "testRoutingKey", "hello world");
+            Console.WriteLine("[rabbitmq] Finish work");
+        }
+    }
+
+    class RabbitMQConsumer {
+        public static void DoWork() {
+            var helper = new RabbitMQHelper();
+            helper.ExchangeDeclare("systemTestDirectExchange", ExchangeType.Direct);
+            helper.CreateQueue("systemTestRabbitmqQueue");
+            helper.QueueBind("systemTestRabbitmqQueue", "systemTestDirectExchange", "testRoutingKey");
+
+            helper.AddListener("systemTestRabbitmqQueue", message =>
+            {
+                Console.WriteLine("[rabbitmq] Consumed message");
+            });
         }
     }
 }
