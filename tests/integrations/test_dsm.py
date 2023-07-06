@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released
+from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
 from utils.tools import logger
 
 
@@ -48,8 +48,9 @@ class Test_DsmHttp:
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
+@released(dotnet="2.29.0")
 @scenarios.integrations
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
@@ -57,6 +58,7 @@ class Test_DsmRabbitmq:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq")
 
+    @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -72,16 +74,7 @@ class Test_DsmRabbitmq:
             tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
         )
 
-
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?", java="?")
-@released(dotnet="2.29.0")
-@scenarios.integrations
-class Test_DsmRabbitmq_Dotnet:
-    """ Verify DSM stats points for RabbitMQ, specifically for Dotnet """
-
-    def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq")
-
+    @irrelevant(context.library != "dotnet", reason="legacy dotnet behavior")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
