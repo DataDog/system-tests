@@ -11,8 +11,9 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?")
+@released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
 @released(nodejs={"express4": "4.1.0", "*": "?"})
+@released(java={"akka-http": "?", "ratpack": "?", "spring-boot-3-native": "?", "*": "1.18.0"})
 class TestInsecureCookie:
     """Test insecure cookie detection."""
 
@@ -56,6 +57,7 @@ class TestInsecureCookie:
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
+    @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -63,5 +65,6 @@ class TestInsecureCookie:
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
+    @missing_feature(library="java", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()

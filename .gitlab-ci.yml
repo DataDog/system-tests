@@ -1,18 +1,3 @@
-.base_job:
-  image: tiangolo/docker-with-compose
-  needs: []
-  before_script:
-    - apk add bash jq git unzip curl
-    - pip install pyyaml awscli
-    - aws --version && docker --version && docker-compose --version
-    - export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd_api_key --with-decryption --query "Parameter.Value" --out text)
-    - export GL_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gl_token --with-decryption --query "Parameter.Value" --out text)
-    - export CIRCLECI_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.circleci_token --with-decryption --query "Parameter.Value" --out text)
-variables:
-    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
-    TEST: 1
-
 .base_job_onboarding:
   only:
       - web
@@ -47,7 +32,7 @@ variables:
     - echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> .env_ci
   after_script:
     - export $(cat .env_ci | egrep -v "(^#.*|^$)" | xargs) 
-   #Avoid pushing results to system-tests-dashboard until next iteration: - sh utils/scripts/push_reports_dashboard.sh
+    - sh utils/scripts/push_reports_dashboard.sh
   artifacts:
       when: always
       paths:
@@ -58,101 +43,74 @@ variables:
         - logs_onboarding_host_container_auto_install/
         - logs_onboarding_container_auto_install/
 
-cross-components:
-  extends: .base_job
-  stage: test
-  tags: ["runner:docker"]
-  only:
-    - schedules
-  parallel:
-    matrix:
-      - TEST_LIBRARY: php
-        WEBLOG_VARIANT: apache-mod-8.0
-  script:
-    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
-    - ./build.sh
-    - ./run.sh
-    - ./run.sh SAMPLING
-  artifacts:
-    when: always
-    paths:
-      - binaries/
-      - logs/
-      - logs_sampling_rate/
-
-cross-component-agent:
-  extends: .base_job
-  stage: test
-  tags: ["runner:docker"]
-  only:
-    - schedules
-  parallel:
-    matrix:
-      - TEST_LIBRARY: php
-        WEBLOG_VARIANT: apache-mod-8.0
-  script:
-    - ./utils/scripts/load-binary.sh agent
-    - ./utils/scripts/load-binary.sh $TEST_LIBRARY
-    - ./build.sh
-    - ./run.sh
-    - ./run.sh SAMPLING
-  artifacts:
-    when: always
-    paths:
-      - binaries/
-      - logs/
-      - logs_sampling_rate/
-
-
 onboarding_nodejs:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
+  variables:
+    TEST_LIBRARY: "nodejs"
   parallel:
       matrix:
-        - TEST_LIBRARY: [nodejs]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL] 
+        - ONBOARDING_FILTER_ENV: [dev]
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL] 
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
+      - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO
+      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
       
 onboarding_java:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
+  variables:
+    TEST_LIBRARY: "java"
   parallel:
       matrix:
-        - TEST_LIBRARY: [java]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL]
+        - ONBOARDING_FILTER_ENV: [dev]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,wildfly]
+          SCENARIO: [ONBOARDING_HOST, ONBOARDING_HOST_AUTO_INSTALL]
+        - ONBOARDING_FILTER_ENV: [dev]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-buildpack,test-app-java-alpine]
+          SCENARIO: [ONBOARDING_CONTAINER, ONBOARDING_CONTAINER_AUTO_INSTALL]
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
+      - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO
+      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
 onboarding_python:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
+  variables:
+    TEST_LIBRARY: "python"
   parallel:
       matrix:
-        - TEST_LIBRARY: [ python]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL]
+        - ONBOARDING_FILTER_ENV: [dev]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python]
+          SCENARIO: [ONBOARDING_HOST, ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL]
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
+      - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      #Disabled PRO until fix ISSUE https://datadoghq.atlassian.net/browse/AIT-7405 released
-      - ONBOARDING_FILTER_ENV=dev ./run.sh $SCENARIO
+      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}
 
 onboarding_dotnet:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
+  variables:
+    TEST_LIBRARY: "dotnet"
   parallel:
       matrix:
-        - TEST_LIBRARY: [ dotnet]
-          SCENARIO: [ONBOARDING_HOST,ONBOARDING_HOST_CONTAINER,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL, ONBOARDING_HOST_CONTAINER_AUTO_INSTALL, ONBOARDING_CONTAINER_AUTO_INSTALL]
+        - ONBOARDING_FILTER_ENV: [dev]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]     
+          SCENARIO: [ONBOARDING_HOST,ONBOARDING_CONTAINER, ONBOARDING_HOST_AUTO_INSTALL,ONBOARDING_CONTAINER_AUTO_INSTALL]
+
   script:
       - echo "SCENARIO=${SCENARIO}" >> .env_ci && echo "TEST_LIBRARY=${TEST_LIBRARY}" >> .env_ci
+      - echo "ENV=${ONBOARDING_FILTER_ENV}" >> .env_ci && echo "WEBLOG=${ONBOARDING_FILTER_WEBLOG}" >> .env_ci
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO
+      - ./run.sh $SCENARIO --obd-weblog ${ONBOARDING_FILTER_WEBLOG} --obd-env ${ONBOARDING_FILTER_ENV} --obd-library ${TEST_LIBRARY}

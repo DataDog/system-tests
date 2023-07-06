@@ -94,6 +94,7 @@ We can find some environment variables that we need to define previously:
 * **deploy-operator:** Deploys Datadog operator in the case that we are using Admission Controller. It uses common/operator-helm-values.yaml or common/operator-helm-values-uds.yaml to configure Admission Controller.
 * **deploy-test-agent:** Deploys Datadog Agent in Kubernetes cluster, using configuration file: test/resources/dd-apm-test-agent-config.yaml.
 * **deploy-app:** Deploys sample application/weblog in Kubernetes cluster, using template file: lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml.
+* **print-debug-info:** prints and log debug information for kubernertes cluster and library injection tests
 
 ## How to run the lib-injection tests in CI
 
@@ -159,8 +160,8 @@ When we have the environment ready, we have to execute this logic:
 * Create the Kubernetes cluster
 
 ```sh
-./lib-injection/run.sh build-and-push-init-image
-./lib-injection/run.sh build-and-push-test-app-image
+./lib-injection/execFunction.sh build-and-push-init-image
+./lib-injection/execFunction.sh build-and-push-test-app-image
 ./lib-injection/build.sh
 ```
 
@@ -175,6 +176,14 @@ When we have the environment ready, we have to execute this logic:
 ```sh
 TEST_CASE=<TestCaseN>  # define the test case
 ./lib-injection/run-auto-lib-injection.sh
+```
+
+## How to debug your kubernetes environment
+
+After running the tests you can always run the following command to export all the information from the kubernetes cluster to the logs folder:
+
+```sh
+./lib-injection/execFunction.sh print-debug-info
 ```
 
 ## How to create init images in your tracer repository
