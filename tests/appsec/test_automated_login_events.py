@@ -248,12 +248,12 @@ class Test_Login_Events_Extended:
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                     assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
                     assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
+                    assert meta["appsec.events.users.login.failure.username"] == "test"
                 else:
                     assert meta["appsec.events.users.login.failure.usr.id"] == "test"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["appsec.events.users.login.failure.username"] == "test"
 
                 assert_priority(span, meta)
 
