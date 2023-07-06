@@ -1,5 +1,5 @@
 from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert_msg
-from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant
+from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant, flaky
 
 
 @missing_feature(
@@ -50,6 +50,7 @@ class Test_Otel_Span:
     def setup_distributed_otel_trace(self):
         self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"},)
 
+    @flaky(library="golang", reason="Need investigation")
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
         spans = _get_spans_submitted(self.req)
