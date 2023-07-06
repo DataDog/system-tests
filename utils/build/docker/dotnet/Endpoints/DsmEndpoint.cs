@@ -30,6 +30,12 @@ namespace weblog
                     producerThread.Start();
                     consumerThread.Start();
                     await context.Response.WriteAsync("ok");
+                } else if ("rabbitmq_fanout_exchange".Equals(integration)) {
+                    Thread producerThread = new Thread(RabbitMQProducerFanoutExchange.DoWork);
+                    Thread consumerThread = new Thread(RabbitMQConsumerFanoutExchange.DoWork);
+                    producerThread.Start();
+                    consumerThread.Start();
+                    await context.Response.WriteAsync("ok");
                 } else {
                     await context.Response.WriteAsync("unknown integration: " + integration);
                 }
@@ -97,6 +103,48 @@ namespace weblog
             helper.AddListener("systemTestRabbitmqQueue", message =>
             {
                 Console.WriteLine("[rabbitmq] Consumed message");
+            });
+        }
+    }
+
+    class RabbitMQProducerFanoutExchange {
+        public static void DoWork() {
+            var helper = new RabbitMQHelper();
+            helper.ExchangeDeclare("systemTestFanoutExchange", ExchangeType.Fanout);
+            helper.CreateQueue("systemTestRabbitmqFanoutQueue1");
+            helper.CreateQueue("systemTestRabbitmqFanoutQueue2");
+            helper.CreateQueue("systemTestRabbitmqFanoutQueue3");
+            helper.QueueBind("systemTestRabbitmqFanoutQueue1", "systemTestFanoutExchange", "");
+            helper.QueueBind("systemTestRabbitmqFanoutQueue2", "systemTestFanoutExchange", "");
+            helper.QueueBind("systemTestRabbitmqFanoutQueue3", "systemTestFanoutExchange", "");
+
+            helper.ExchangePublish("systemTestFanoutExchange", "", "hello world, fanout exchange!");
+            Console.WriteLine("[rabbitmq_fanout] Produced message");
+        }
+    }
+
+    class RabbitMQConsumerFanoutExchange {
+        public static void DoWork() {
+            var helper = new RabbitMQHelper();
+            helper.ExchangeDeclare("systemTestFanoutExchange", ExchangeType.Fanout);
+            helper.CreateQueue("systemTestRabbitmqFanoutQueue1");
+            helper.CreateQueue("systemTestRabbitmqFanoutQueue2");
+            helper.CreateQueue("systemTestRabbitmqFanoutQueue3");
+            helper.QueueBind("systemTestRabbitmqFanoutQueue1", "systemTestFanoutExchange", "");
+            helper.QueueBind("systemTestRabbitmqFanoutQueue2", "systemTestFanoutExchange", "");
+            helper.QueueBind("systemTestRabbitmqFanoutQueue3", "systemTestFanoutExchange", "");
+
+            helper.AddListener("systemTestRabbitmqFanoutQueue1", message =>
+            {
+                Console.WriteLine("[rabbitmq_fanout] Consumed message: " + message);
+            });
+            helper.AddListener("systemTestRabbitmqFanoutQueue2", message =>
+            {
+                Console.WriteLine("[rabbitmq_fanout] Consumed message: " + message);
+            });
+            helper.AddListener("systemTestRabbitmqFanoutQueue3", message =>
+            {
+                Console.WriteLine("[rabbitmq_fanout] Consumed message: " + message);
             });
         }
     }

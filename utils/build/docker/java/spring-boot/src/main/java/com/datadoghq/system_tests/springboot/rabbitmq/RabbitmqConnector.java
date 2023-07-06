@@ -25,13 +25,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class RabbitmqConnector {
+public abstract class RabbitmqConnector {
 	private static final String DIRECT_EXCHANGE_NAME = "systemTestDirectExchange";
 	private static final String DIRECT_ROUTING_KEY = "systemTestDirectRoutingKey";
 	private static final String QUEUE = "systemTestRabbitmqQueue";
 
-
-    private static Channel createChannel() throws Exception {
+    protected static Channel createChannel() throws Exception {
                 ConnectionFactory connectionFactory = new ConnectionFactory();
                 connectionFactory.setHost("rabbitmq");
                 connectionFactory.setPort(5672);
@@ -51,26 +50,7 @@ public class RabbitmqConnector {
                 return connection.createChannel();
     }
 
-    public void startProducingMessage(String message) throws Exception {
-        Thread thread = new Thread("RabbitmqProduce") {
-            public void run() {
-                try {
-                    Channel channel = createChannel();
-                    channel.exchangeDeclare(DIRECT_EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
-                    channel.queueDeclare(QUEUE, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
-                    channel.queueBind(QUEUE, DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY);
-                    channel.basicPublish(DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY, null, message.getBytes("UTF-8"));
-                    System.out.println("[rabbitmq] Published " + message);
-                } catch (Exception e) {
-                    System.out.println("[rabbitmq] Unable to produce message");
-                    e.printStackTrace();
-                }
-            }
-        };
-        thread.start();
-    }
-
-	public static Consumer createConsumer(Channel channel, int failAfter) throws Exception {
+	protected static Consumer createConsumer(Channel channel, int failAfter) throws Exception {
 		return new DefaultConsumer(channel) {
 
 			@Override
@@ -90,6 +70,25 @@ public class RabbitmqConnector {
 			}
 		};
 	}
+
+    public void startProducingMessage(String message) throws Exception {
+        Thread thread = new Thread("RabbitmqProduce") {
+            public void run() {
+                try {
+                    Channel channel = createChannel();
+                    channel.exchangeDeclare(DIRECT_EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
+                    channel.queueDeclare(QUEUE, /*durable=*/true, /*exclusive=*/false, /*autoDelete=*/false, /*arguments=*/null);
+                    channel.queueBind(QUEUE, DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY);
+                    channel.basicPublish(DIRECT_EXCHANGE_NAME, DIRECT_ROUTING_KEY, null, message.getBytes("UTF-8"));
+                    System.out.println("[rabbitmq] Published " + message);
+                } catch (Exception e) {
+                    System.out.println("[rabbitmq] Unable to produce message");
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
+    }
 
     public void startConsumingMessages() throws Exception {
         System.out.println("[rabbitmq] Start consuming messages");

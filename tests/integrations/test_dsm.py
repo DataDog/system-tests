@@ -97,6 +97,80 @@ class Test_DsmRabbitmq:
         )
 
 
+@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
+@scenarios.integrations
+class Test_DsmRabbitmq_TopicExchange:
+    """ Verify DSM stats points for RabbitMQ Topic Exchange"""
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+
+    def test_dsm_rabbitmq(self):
+        assert self.r.text == "ok"
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=18436203392999142109,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=11364757106893616177,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=15562446431583779,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=13344154764958581569,
+            parent_hash=18436203392999142109,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
+        )
+
+
+@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(java={"spring-boot": "1.13.0", "*": "?"})
+@scenarios.integrations
+class Test_DsmRabbitmq_FanoutExchange:
+    """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
+
+    def setup_dsm_rabbitmq(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+
+    def test_dsm_rabbitmq(self):
+        assert self.r.text == "ok"
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=877077567891168935,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=6900956252542091373,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=497609944035068818,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=15446107644012012909,
+            parent_hash=877077567891168935,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
+        )
+
+
 class DsmHelper:
     @staticmethod
     def assert_checkpoint_presence(hash_, parent_hash, tags):
