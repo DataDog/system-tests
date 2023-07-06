@@ -18,14 +18,7 @@ public class RabbitMQHelper : IDisposable
         while (connection == null || channel == null)
         {
             try
-            {/*
-                var factory = new ConnectionFactory()
-                {
-                    HostName = "rabbitmq",
-                    Port = 5672,
-                    UserName = "guest",
-                    Password = "guest"
-                };*/
+            {
                 ConnectionFactory factory = new ConnectionFactory();
                 factory.UserName = "guest";
                 factory.Password = "guest";
