@@ -69,7 +69,7 @@ class Test_DsmRabbitmq:
         DsmHelper.assert_checkpoint_presence(
             hash_=1648106384315938543,
             parent_hash=6176024609184775446,
-            tags=('direction:in', 'topic:systemTestRabbitmqQueue', 'type:rabbitmq'),
+            tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
         )
 
 
@@ -100,7 +100,7 @@ class Test_DsmRabbitmq_Dotnet:
         DsmHelper.assert_checkpoint_presence(
             hash_=12449081340987959886,
             parent_hash=12547013883960139159,
-            tags=('direction:in', 'topic:testRoutingKey', 'type:rabbitmq'),
+            tags=("direction:in", "topic:testRoutingKey", "type:rabbitmq"),
         )
 
 
