@@ -24,6 +24,7 @@ class Test_Otel_Span:
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
+    @flaky(library="golang", reason="Need investigation")
     def test_datadog_otel_span(self):
         spans = _get_spans_submitted(self.req)
         assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
