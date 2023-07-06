@@ -23,6 +23,7 @@ from utils.parametric._library_client import APMLibrary
 from utils import context
 from utils.tools import logger
 import json
+from pathlib import Path
 
 
 @pytest.fixture
@@ -405,11 +406,23 @@ _libs = {
 
 def get_open_port():
     # Not very nice and also not 100% correct but it works for now.
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("", 0))
-    s.listen(1)
-    port = s.getsockname()[1]
-    s.close()
+    # There are random issue related with: port is already allocated (we can find when we use multiple pytests workers)
+    # Create a lock file to no reuse the ports
+    searchForPort = True
+    port = -1
+    while searchForPort:
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("", 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+        lock_file_path = f"{context.scenario.host_log_folder}/.lock_ports/.{port}"
+        os.makedirs(os.path.dirname(lock_file_path), exist_ok=True)
+        if not os.path.isfile(lock_file_path):
+            # Ok, the port have not been used before
+            Path(lock_file_path).touch()
+            searchForPort = False
+        s.close()
     return port
 
 
@@ -587,8 +600,10 @@ def docker_run(
         _cmd.extend(["-e", "%s=%s" % (k, v)])
     for k, v in volumes:
         _cmd.extend(["-v", "%s:%s" % (k, v)])
+    # Random issues related with: Address family not supported by protocol"
+    # see https://www.redelijkheid.com/blog/2021/4/14/docker-images-not-starting and https://stackoverflow.com/questions/67173756/socket-address-family-not-supported-by-protocol
     for k, v in ports:
-        _cmd.extend(["-p", "%s:%s" % (k, v)])
+        _cmd.extend(["-p", "0.0.0.0:%s:%s" % (k, v)])
     _cmd += [image]
     _cmd.extend(cmd)
 
