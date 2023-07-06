@@ -204,7 +204,7 @@ class Test_Login_Events_Extended:
                 meta = span.get("meta", {})
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["usr.id"] == "1"
+                assert meta["usr.id"] == "social-security-id"
                 assert meta["usr.email"] == "testuser@ddog.com"
                 assert meta["usr.username"] == "test"
                 assert meta["usr.login"] == "test"
