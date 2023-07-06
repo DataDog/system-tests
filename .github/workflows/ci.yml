@@ -221,6 +221,8 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+    - name: Build proxy
+      run: ./build.sh -i proxy
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
@@ -489,6 +491,8 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ matrix.variant.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+    - name: Build proxy
+      run: ./build.sh -i proxy
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
@@ -678,6 +682,8 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
       run: docker pull datadog/system-tests:proxy-v0
+    - name: Build proxy
+      run: ./build.sh -i proxy
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
     - name: Build weblog
