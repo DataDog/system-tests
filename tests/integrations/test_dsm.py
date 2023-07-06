@@ -21,8 +21,8 @@ class Test_DsmKafka:
         assert self.r.text == "ok"
 
         if context.library == "nodejs":
-            consumer_hash = 5700134256996109392 
-            producer_hash = 13592025863925263556
+            consumer_hash = 2931833227331067675 
+            producer_hash = 8618469865309575104
         else:
             consumer_hash = 4463699290244539355
             producer_hash = 16645700936287432977
@@ -35,7 +35,7 @@ class Test_DsmKafka:
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash,
             parent_hash=consumer_hash,
-            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
+            tags=("direction:in", "group:testgroup2", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
