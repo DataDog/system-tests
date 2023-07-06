@@ -83,7 +83,7 @@ namespace weblog
             helper.QueueBind("systemTestRabbitmqQueue", "systemTestDirectExchange", "testRoutingKey");
 
             helper.ExchangePublish("systemTestDirectExchange", "testRoutingKey", "hello world");
-            Console.WriteLine("[rabbitmq] Finish work");
+            Console.WriteLine("[rabbitmq] Produced message");
         }
     }
 
