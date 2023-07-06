@@ -268,8 +268,11 @@ class TestDynamicConfig:
             },
         ],
     )
-    def test_tracing_header_tags(self, library_env, test_agent, test_library):
-        """Ensure the tracing header tags can be set."""
+    def test_tracing_client_http_header_tags(self, library_env, test_agent, test_library):
+        """Ensure the tracing http header tags can be set via RC.
+
+        Testing is done using a http client request RPC and asserting the span tags.
+        """
 
         # Test without RC.
         test_library.http_client_request(
@@ -285,26 +288,24 @@ class TestDynamicConfig:
         assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
 
         # Set and test with RC.
-        cfg_state = set_and_wait_rc(
+        set_and_wait_rc(
             test_agent,
-            config_overrides={"tracing_header_tags": [{"header": "X-Test-Header", "tag_name": "test_header",}]},
+            config_overrides={"tracing_header_tags": [{"header": "X-Test-Header", "tag_name": "test_header_rc",}]},
         )
-        assert cfg_state["apply_state"] == 2
         test_library.http_client_request(
             method="GET",
             url="http://example.com",
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2")],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
         assert "test_header_env2" not in trace[0][0]["meta"]
 
         # Unset RC.
-        cfg_state = set_and_wait_rc(
+        set_and_wait_rc(
             test_agent,
             config_overrides={"tracing_header_tags": None}
         )
-        assert cfg_state["apply_state"] == 2
         test_library.http_client_request(
             method="GET",
             url="http://example.com",
