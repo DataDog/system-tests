@@ -44,7 +44,7 @@ class Test_Login_Events:
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
         ]
 
-    @bug(context.library <= "nodejs@4.4.0", reason="usr.id present in meta")
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_pii_success(self):
         for r in self.r_pii_success:
             assert r.status_code == 200
@@ -77,7 +77,7 @@ class Test_Login_Events:
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
         ]
 
-    @bug(context.library <= "nodejs@4.4.0", reason="usr.id present in meta")
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_user_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
@@ -99,7 +99,7 @@ class Test_Login_Events:
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}),
         ]
 
-    @bug(context.library <= "nodejs@4.4.0", reason="usr.id present in meta")
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_password_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
