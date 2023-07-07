@@ -154,7 +154,7 @@ app.get("/dsm", (req, res) => {
     })
     await producer.disconnect()
 
-    const consumer = kafka.consumer({ groupId: 'testgroup2' })
+    const consumer = kafka.consumer({ groupId: 'testgroup1' })
 
     await consumer.connect()
     await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })

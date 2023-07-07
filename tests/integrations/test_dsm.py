@@ -25,7 +25,7 @@ class Test_DsmKafka:
             producer_hash = 8618469865309575104
         else:
             consumer_hash = 4463699290244539355
-            producer_hash = 16645700936287432977
+            producer_hash = 3735318893869752335
 
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=0, tags=("direction:out", "topic:dsm-system-tests-queue", "type:kafka"),
@@ -33,7 +33,7 @@ class Test_DsmKafka:
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash,
             parent_hash=consumer_hash,
-            tags=("direction:in", "group:testgroup2", "topic:dsm-system-tests-queue", "type:kafka"),
+            tags=("direction:in", "group:testgroup1", "topic:dsm-system-tests-queue", "type:kafka"),
         )
 
 
