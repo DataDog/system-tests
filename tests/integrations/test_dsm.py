@@ -5,7 +5,6 @@
 from utils import weblog, interfaces, scenarios, released, context
 from utils.tools import logger
 
-
 @released(cpp="?", golang="?", php="?", python="?", ruby="?")
 @released(dotnet="2.29.0")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
