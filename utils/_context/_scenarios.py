@@ -183,8 +183,16 @@ class _Scenario:
 
 class TestTheTestScenario(_Scenario):
     @property
-    def host_log_folder(self):
-        return "logs"
+    def agent_version(self):
+        return "0.77.0"
+
+    @property
+    def components(self):
+        return {"mock_comp1": "mock_comp1_value"}
+
+    @property
+    def parametrized_tests_metadata(self):
+        return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
 
     @property
     def library(self):
@@ -827,6 +835,7 @@ class ParametricScenario(_Scenario):
 class scenarios:
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
+    mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
     default = EndToEndScenario(
         "DEFAULT",

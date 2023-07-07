@@ -1,29 +1,27 @@
+from collections import defaultdict
 import requests
 
 page = 1
 
-data = []
+data = defaultdict(list)
 
-for page in range(1, 5):
+for page in range(1, 7):
     r = requests.get(
         "https://api.github.com/repos/DataDog/system-tests/pulls",
         params={"state": "closed", "per_page": 100, "page": page},
         timeout=10,
     )
 
-    data += [pr for pr in r.json() if pr["merged_at"]]
+    for pr in r.json():
+        if pr["merged_at"]:
+            data[pr["merged_at"][:7]].append(pr)
 
-data.sort(key=lambda pr: pr["merged_at"], reverse=True)
+for month in sorted(data, reverse=True):
+    prs = data[month]
 
-month = None
+    print(f"\n\n### {month} ({len(prs)} PR merged)\n")
+    for pr in prs:
 
-for pr in data:
-
-    pr["merged_at"] = pr["merged_at"][:10]
-    pr["author"] = pr["user"]["login"]
-
-    if month != pr["merged_at"][:7]:
-        month = pr["merged_at"][:7]
-        print(f"\n\n### {month}\n")
-
-    print("* {merged_at} [{title}]({html_url}) by @{author}".format(**pr))
+        pr["merged_at"] = pr["merged_at"][:10]
+        pr["author"] = pr["user"]["login"]
+        print("* {merged_at} [{title}]({html_url}) by @{author}".format(**pr))

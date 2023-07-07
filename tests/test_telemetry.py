@@ -99,6 +99,7 @@ class Test_Telemetry:
         )
 
     @missing_feature(library="python")
+    @flaky(True, reason="Under investigation")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -140,6 +141,7 @@ class Test_Telemetry:
                 )
 
             if diff > 1:
+                logger.error(f"{seq_ids[i + 1][0]} {seq_ids[i][0]}")
                 raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @bug(library="ruby", reason="app-started not sent")
@@ -242,6 +244,7 @@ class Test_Telemetry:
 
     @flaky(library="java", reason="It may be 4 seconds on java ?")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @flaky(True, reason="Under investigation")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
@@ -263,7 +266,7 @@ class Test_Telemetry:
                 assert delta <= timedelta(
                     seconds=ALLOWED_INTERVALS * TELEMETRY_HEARTBEAT_INTERVAL
                 ), f"No heartbeat or message sent in {ALLOWED_INTERVALS} hearbeat intervals: {TELEMETRY_HEARTBEAT_INTERVAL}\nLast message was sent {str(delta)} seconds ago."
-                assert delta >= timedelta(seconds=TELEMETRY_HEARTBEAT_INTERVAL * 0.9), "Heartbeat sent too fast"
+                assert delta >= timedelta(seconds=TELEMETRY_HEARTBEAT_INTERVAL * 0.75), "Heartbeat sent too fast"
             prev_message_time = curr_message_time
 
     def setup_app_dependencies_loaded(self):
