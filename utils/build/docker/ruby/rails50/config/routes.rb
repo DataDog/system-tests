@@ -29,6 +29,9 @@ Rails.application.routes.draw do
 
   devise_for :users
   %i(get post).each do |request_method|
-    send(request_method, '/login' => 'system_test#login')
+    # We have to provide format: false to make sure the Test_DiscoveryScan test do not break
+    # https://github.com/DataDog/system-tests/blob/6873c9577ddc15693a98f9683075a1b9d4e587f0/tests/appsec/waf/test_rules.py#L374
+    # The test hits '/login.pwd' and expects a 404. By default rails parse format by default and consider the route to exists. We want want onlt '/login' to exists
+    send(request_method, '/login' => 'system_test#login', format: false)
   end
 end
