@@ -42,7 +42,11 @@
         - logs_onboarding_host_auto_install/
         - logs_onboarding_host_container_auto_install/
         - logs_onboarding_container_auto_install/
-
+variables:
+    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
+    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
+    TEST: 1
+    
 onboarding_nodejs:
   extends: .base_job_onboarding
   only:
