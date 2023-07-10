@@ -16,6 +16,7 @@ class Test_Tracer:
 
     parametrize = pytest.mark.parametrize
 
+    @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
     @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
     def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
         """Do a simple trace to ensure that the test client is working properly."""

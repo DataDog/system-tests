@@ -268,12 +268,9 @@ def java_library_factory(env: Dict[str, str], container_id: str, port: str):
         container_name="java-test-client-%s" % container_id,
         container_tag="java8-test-client",
         container_img=f"""
-# FROM ghcr.io/datadog/dd-trace-java/dd-trace-java:latest as apm_library_latest
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
-# COPY --from=apm_library_latest /dd-java-agent.jar ./tracer/
-# COPY --from=apm_library_latest /LIBRARY_VERSION ./tracer/
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/download/v1.12.1/dd-java-agent-1.12.1.jar
+RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
@@ -360,7 +357,41 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
     )
 
 
+def cpp_library_factory(env: Dict[str, str], container_id: str, port: str) -> APMLibraryTestServer:
+    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
+    cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
+
+    shutil.copyfile(
+        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
+        os.path.join(cpp_absolute_appdir, "apm_test_client.proto"),
+    )
+    return APMLibraryTestServer(
+        lang="cpp",
+        protocol="grpc",
+        container_name="cpp-test-client-%s" % container_id,
+        container_tag="cpp-test-client",
+        container_img=f"""
+FROM datadog/docker-library:dd-trace-cpp-ci AS build
+RUN apt-get update && apt-get -y install pkg-config protobuf-compiler-grpc libgrpc++-dev libabsl-dev
+WORKDIR /cpp-parametric-test
+ADD CMakeLists.txt developer_noise.cpp developer_noise.h distributed_headers_dicts.h main.cpp scheduler.h tracing_service.cpp tracing_service.h /cpp-parametric-test/
+ADD apm_test_client.proto /cpp-parametric-test/test_proto3_optional/
+RUN mkdir .build && cd .build && cmake .. && cmake --build . -j $(nproc) && cmake --install .
+
+FROM ubuntu:22.04
+RUN apt-get update && apt-get -y install libgrpc++1 libprotobuf23
+COPY --from=build /usr/local/bin/cpp-parametric-test /usr/local/bin/cpp-parametric-test
+            """,
+        container_cmd=["cpp-parametric-test"],
+        container_build_dir=cpp_absolute_appdir,
+        container_build_context=cpp_absolute_appdir,
+        env=env,
+        port=port,
+    )
+
+
 _libs = {
+    "cpp": cpp_library_factory,
     "dotnet": dotnet_library_factory,
     "golang": golang_library_factory,
     "java": java_library_factory,

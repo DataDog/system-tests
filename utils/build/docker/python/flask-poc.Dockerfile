@@ -1,11 +1,4 @@
-FROM python:3.9
-
-# print versions
-RUN python --version && curl --version
-
-# install hello world app
-# Tracer does not support flask 2.3.0 or higher, pin the flask version for now
-RUN pip install flask==2.2.4 gunicorn gevent requests pycryptodome psycopg2
+FROM datadog/system-tests:flask-poc.base-v0
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
@@ -23,6 +16,5 @@ ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV FLASK_APP=app.py
 CMD ./app.sh
 
-# docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .
+# docker build -f utils/build/docker/python/flask-poc.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
-

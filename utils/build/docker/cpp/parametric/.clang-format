@@ -1,0 +1,6 @@
+---
+Language: Cpp
+ColumnLimit: 180
+DerivePointerAlignment: false
+PointerAlignment: Left
+---

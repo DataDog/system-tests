@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -17,6 +17,7 @@ pytestmark = pytest.mark.parametrize(
 
 @scenarios.parametric
 class Test_Otel_Span_With_W3c:
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
         reason="Span names don't match expectations: 'ApmTestClient.internal' == 'operation'",
@@ -45,7 +46,7 @@ class Test_Otel_Span_With_W3c:
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration_ns
 
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):

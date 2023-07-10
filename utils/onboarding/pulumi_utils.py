@@ -29,6 +29,7 @@ def remote_install(
     dd_api_key=None,
     dd_site=None,
     scenario_name=None,
+    output_callback=None,
 ):
     # Do we need to add env variables?
     if install_info is None:
@@ -91,6 +92,8 @@ def remote_install(
         Output.all(connection.host, cmd_exec_install.stdout).apply(
             lambda args: pulumi_logger(scenario_name, args[0]).info(args[1])
         )
+    if output_callback:
+        cmd_exec_install.stdout.apply(output_callback)
 
     return cmd_exec_install
 
