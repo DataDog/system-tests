@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, released, context
+from utils import weblog, interfaces, scenarios, released, irrelevant, context, bug
 from utils.tools import logger
 
 
