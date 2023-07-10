@@ -193,7 +193,7 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
 
 app.get('/read_file', (req: Request, res: Response) => {
   const path = req.query['file'];
-  fs.readFile(path, (err: Error, data: string) => {
+  fs.readFile(path, (err: Error, data: Buffer) => {
     if (err) {
       console.error(err);
       res.status(500).send("ko");
