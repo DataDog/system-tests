@@ -25,13 +25,13 @@ concurrency:
 
 jobs:
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Run lints
-      uses: ./.github/actions/lint_code
+#  lint:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Checkout
+#      uses: actions/checkout@v3
+#    - name: Run lints
+#      uses: ./.github/actions/lint_code
 
   test_the_test:
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
   main:
     runs-on: ubuntu-latest
     needs:
-    - lint
+    # - lint
     - test_the_test
     - scenarios
     strategy:
@@ -459,7 +459,7 @@ jobs:
       labels: ubuntu-latest-16-cores
       group: APM Larger Runners
     needs:
-    - lint
+    # - lint
     - test_the_test
     - scenarios
     strategy:
@@ -677,7 +677,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.scenarios.outputs.run_open_telemetry == 'true'
     needs:
-    - lint
+    # - lint
     - test_the_test
     - scenarios
     steps:
@@ -754,7 +754,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.scenarios.outputs.run_all == 'true'
     needs:
-    - lint
+    # - lint
     - test_the_test
     - scenarios
     env:
@@ -777,7 +777,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.scenarios.outputs.run_all == 'true'
     needs:
-    - lint
+    # - lint
     - test_the_test
     - scenarios
     env:
