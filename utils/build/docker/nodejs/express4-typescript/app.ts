@@ -158,10 +158,7 @@ app.get("/dsm", (req: Request, res: Response) => {
     await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
 
     await consumer.run({
-      eachMessage: async ({topic, partition, message}) => {
-        console.log({
-          value: message.value.toString(),
-        });
+      eachMessage: async ({topic, partition, message} : {topic: string, partition: string, message: JSON}) => {
         await consumer.stop();
         await consumer.disconnect();
       },

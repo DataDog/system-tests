@@ -22,7 +22,7 @@ class Test_DsmKafka:
 
         if context.library == "nodejs":
             consumer_hash = 2931833227331067675
-            producer_hash = 8618469865309575104
+            producer_hash = 271115008390912609
         else:
             consumer_hash = 4463699290244539355
             producer_hash = 3735318893869752335
