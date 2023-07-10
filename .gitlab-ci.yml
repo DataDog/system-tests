@@ -50,7 +50,7 @@ variables:
 onboarding_nodejs:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
@@ -67,7 +67,7 @@ onboarding_nodejs:
 onboarding_java:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
   variables:
     TEST_LIBRARY: "java"
   parallel:
@@ -87,7 +87,7 @@ onboarding_java:
 onboarding_python:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
   variables:
     TEST_LIBRARY: "python"
   parallel:
@@ -104,7 +104,7 @@ onboarding_python:
 onboarding_dotnet:
   extends: .base_job_onboarding
   only:
-    - web
+    - schedules
   variables:
     TEST_LIBRARY: "dotnet"
   parallel:
