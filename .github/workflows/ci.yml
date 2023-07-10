@@ -204,6 +204,15 @@ jobs:
       uses: ./.github/actions/pull_images
       with:
         pull-all: ${{ needs.scenarios.outputs.run_all == 'true' }}
+    - name: Build python's weblog base images
+      if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
+      run: |
+        docker build --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
+        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v0 .
+        docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set

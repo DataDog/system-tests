@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, released, scenarios, coverage, rfc
+from utils import weblog, interfaces, context, missing_feature, released, scenarios, coverage, rfc, bug
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
@@ -44,17 +44,13 @@ class Test_Login_Events:
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
         ]
 
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_pii_success(self):
         for r in self.r_pii_success:
             assert r.status_code == 200
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
-                if context.library == "nodejs":
-                    # nodejs is sending empty events this way for now as it cant send empty strings, needs a whitespace
-                    assert meta["usr.id"] == " "
-                else:
-                    assert "usr.id" not in meta
-
+                assert "usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 self.assert_priority(span, meta)
@@ -81,6 +77,7 @@ class Test_Login_Events:
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
         ]
 
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_user_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
@@ -90,11 +87,8 @@ class Test_Login_Events:
                     # Currently in nodejs there is no way to check if the user exists upon authentication failure so
                     # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
-                    assert "appsec.events.users.login.failure.usr.id" not in meta
-                else:
-                    # nodejs is sending empty events this way for now as it cant send empty strings, needs a whitespace
-                    assert meta["appsec.events.users.login.failure.usr.id"] == " "
 
+                assert "appsec.events.users.login.failure.usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
                 self.assert_priority(span, meta)
@@ -105,6 +99,7 @@ class Test_Login_Events:
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}),
         ]
 
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_password_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
@@ -114,11 +109,8 @@ class Test_Login_Events:
                     # Currently in nodejs there is no way to check if the user exists upon authentication failure so
                     # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                    assert "appsec.events.users.login.failure.usr.id" not in meta
-                else:
-                    # nodejs is sending empty events this way for now as it cant send empty strings, needs a whitespace
-                    assert meta["appsec.events.users.login.failure.usr.id"] == " "
 
+                assert "appsec.events.users.login.failure.usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
                 self.assert_priority(span, meta)
@@ -204,7 +196,7 @@ class Test_Login_Events_Extended:
                 meta = span.get("meta", {})
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["usr.id"] == "1"
+                assert meta["usr.id"] == "social-security-id"
                 assert meta["usr.email"] == "testuser@ddog.com"
                 assert meta["usr.username"] == "test"
                 assert meta["usr.login"] == "test"

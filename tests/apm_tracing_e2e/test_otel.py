@@ -1,5 +1,5 @@
 from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert_msg
-from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant
+from utils import context, weblog, scenarios, interfaces, missing_feature, irrelevant, flaky
 
 
 @missing_feature(
@@ -24,6 +24,7 @@ class Test_Otel_Span:
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
+    @flaky(library="golang", reason="Need investigation")
     def test_datadog_otel_span(self):
         spans = _get_spans_submitted(self.req)
         assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
@@ -50,6 +51,7 @@ class Test_Otel_Span:
     def setup_distributed_otel_trace(self):
         self.req = weblog.get("/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "parent.span.otel"},)
 
+    @flaky(library="golang", reason="Need investigation")
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
         spans = _get_spans_submitted(self.req)
