@@ -4,13 +4,11 @@ from pathlib import Path
 import shutil
 import time
 
-from pulumi import automation as auto
 import pytest
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from utils._context.library_version import LibraryVersion, Version
 from utils.onboarding.provision_utils import ProvisionMatrix, ProvisionFilter
-from utils.onboarding.pulumi_ssh import PulumiSSH
 
 from utils._context.containers import (
     WeblogContainer,
@@ -55,8 +53,8 @@ class _Scenario:
 
         return test_method
 
-    def configure(self, replay):
-        self.replay = replay
+    def configure(self, option):
+        self.replay = option.replay
         self.create_log_subfolder("")
 
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
@@ -64,7 +62,7 @@ class _Scenario:
 
         logger.addHandler(handler)
 
-        if replay:
+        if self.replay:
             from utils import weblog
 
             weblog.init_replay_mode(self.host_log_folder)
@@ -168,6 +166,14 @@ class _Scenario:
     def telemetry_heartbeat_interval(self):
         return 0
 
+    @property
+    def components(self):
+        return {}
+
+    @property
+    def parametrized_tests_metadata(self):
+        return {}
+
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
@@ -177,8 +183,16 @@ class _Scenario:
 
 class TestTheTestScenario(_Scenario):
     @property
-    def host_log_folder(self):
-        return "logs"
+    def agent_version(self):
+        return "0.77.0"
+
+    @property
+    def components(self):
+        return {"mock_comp1": "mock_comp1_value"}
+
+    @property
+    def parametrized_tests_metadata(self):
+        return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
 
     @property
     def library(self):
@@ -239,11 +253,11 @@ class _DockerScenario(_Scenario):
         if include_sqlserver:
             self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
 
         for container in reversed(self._required_containers):
-            container.configure(replay)
+            container.configure(self.replay)
 
     def _get_warmups(self):
 
@@ -332,17 +346,17 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def configure(self, replay):
+    def configure(self, option):
         from utils import interfaces
 
-        super().configure(replay)
+        super().configure(option)
 
-        interfaces.agent.configure(replay)
-        interfaces.library.configure(replay)
-        interfaces.backend.configure(replay)
-        interfaces.library_stdout.configure(replay)
-        interfaces.library_dotnet_managed.configure(replay)
-        interfaces.agent_stdout.configure(replay)
+        interfaces.agent.configure(self.replay)
+        interfaces.library.configure(self.replay)
+        interfaces.backend.configure(self.replay)
+        interfaces.library_stdout.configure(self.replay)
+        interfaces.library_dotnet_managed.configure(self.replay)
+        interfaces.agent_stdout.configure(self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -396,15 +410,21 @@ class EndToEndScenario(_DockerScenario):
                 super().__init__()
                 self.interface = interface
 
-            def on_modified(self, event):
+            def _ingest(self, event):
                 if event.is_directory:
                     return
 
                 self.interface.ingest_file(event.src_path)
 
-        observer = Observer()
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library", recursive=True)
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent", recursive=True)
+            on_modified = _ingest
+            on_created = _ingest
+
+        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
+        # limits on Linux) -> using the good old bare polling system
+        observer = PollingObserver()
+
+        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
+        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
 
         observer.start()
 
@@ -552,8 +572,8 @@ class OpenTelemetryScenario(_DockerScenario):
         self.include_collector = include_collector
         self.include_intake = include_intake
 
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
@@ -581,16 +601,21 @@ class OpenTelemetryScenario(_DockerScenario):
                 super().__init__()
                 self.interface = interface
 
-            def on_modified(self, event):
+            def _ingest(self, event):
                 if event.is_directory:
                     return
 
                 self.interface.ingest_file(event.src_path)
 
-        observer = Observer()
+            on_modified = _ingest
+            on_created = _ingest
+
+        observer = PollingObserver()
         observer.schedule(
             Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
         )
+        if self.include_agent:
+            observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
 
         observer.start()
 
@@ -687,18 +712,79 @@ class OnBoardingScenario(_Scenario):
         self.stack = None
         self.provision_vms = []
         self.provision_vm_names = []
+        self.onboarding_components = {}
+        self.onboarding_tests_metadata = {}
 
-    def configure(self, replay):
-        super().configure(replay)
-        assert "TEST_LIBRARY" in os.environ
-        self.provision_vms = list(ProvisionMatrix(ProvisionFilter(self.name)).get_infrastructure_provision())
+    def configure(self, option):
+        super().configure(option)
+        self._library = LibraryVersion(option.obd_library, "0.0")
+        self._env = option.obd_env
+        self._weblog = option.obd_weblog
+        self.provision_vms = list(
+            ProvisionMatrix(
+                ProvisionFilter(self.name, language=self._library.library, env=self._env, weblog=self._weblog)
+            ).get_infrastructure_provision()
+        )
         self.provision_vm_names = [vm.name for vm in self.provision_vms]
 
     @property
+    def components(self):
+        return self.onboarding_components
+
+    @property
+    def parametrized_tests_metadata(self):
+        return self.onboarding_tests_metadata
+
+    @property
     def library(self):
-        return LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog
+
+    def fill_context(self):
+        # fix package name for nodejs -> js
+        if self._library.library == "nodejs":
+            package_lang = "datadog-apm-library-js"
+        else:
+            package_lang = f"datadog-apm-library-{self._library.library}"
+
+        dd_package_names = ["agent", "datadog-apm-inject", package_lang]
+
+        try:
+            for provision_vm in self.provision_vms:
+                # Manage common dd software components for the scenario
+                for dd_package_name in dd_package_names:
+                    # All the tested machines should have the same version of the DD components
+                    if dd_package_name in self.onboarding_components and self.onboarding_components[
+                        dd_package_name
+                    ] != provision_vm.get_component(dd_package_name):
+                        self.onboarding_components["NO_VALID_ONBOARDING_COMPONENTS"] = "ERROR"
+                        raise ValueError(
+                            f"TEST_NO_VALID: All the tested machines should have the same version of the DD components. Package: [{dd_package_name}] Versions: [{self.onboarding_components[dd_package_name]}]-[{provision_vm.get_component(dd_package_name)}]"
+                        )
+
+                    self.onboarding_components[dd_package_name] = provision_vm.get_component(dd_package_name)
+                # Manage specific information for each parametrized test
+                test_metadata = {
+                    "vm": provision_vm.ec2_data["name"],
+                    "vm_ip": provision_vm.ip,
+                    "vm_ami": provision_vm.ec2_data["ami_id"],
+                    "vm_distro": provision_vm.ec2_data["os_distro"],
+                    "docker": provision_vm.get_component("docker"),
+                    "lang_variant": provision_vm.language_variant_install_data["name"],
+                }
+                self.onboarding_tests_metadata[provision_vm.name] = test_metadata
+
+        except Exception as ex:
+            logger.error("Error filling the context components")
+            logger.exception(ex)
 
     def _start_pulumi(self):
+        from pulumi import automation as auto
+        from utils.onboarding.pulumi_ssh import PulumiSSH
+
         def pulumi_start_program():
             # Static loading of keypairs for ec2 machines
             PulumiSSH.load()
@@ -723,6 +809,10 @@ class OnBoardingScenario(_Scenario):
     def _get_warmups(self):
         return [self._start_pulumi]
 
+    def post_setup(self):
+        """ Fill context with the installed components information and parametrized test metadata"""
+        self.fill_context()
+
     def pytest_sessionfinish(self, session):
         logger.info(f"Closing onboarding scenario")
         self.close_targets()
@@ -733,8 +823,8 @@ class OnBoardingScenario(_Scenario):
 
 
 class ParametricScenario(_Scenario):
-    def configure(self, replay):
-        super().configure(replay)
+    def configure(self, option):
+        super().configure(option)
         assert "TEST_LIBRARY" in os.environ
 
     @property
@@ -745,6 +835,7 @@ class ParametricScenario(_Scenario):
 class scenarios:
     todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
+    mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
     default = EndToEndScenario(
         "DEFAULT",
@@ -778,6 +869,13 @@ class scenarios:
         "PROFILING",
         library_interface_timeout=160,
         agent_interface_timeout=160,
+        weblog_env={
+            "DD_PROFILING_ENABLED": "true",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_PROFILING_START_DELAY": "1",
+            # Reduce noise
+            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
+        },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
     )
 
@@ -921,6 +1019,13 @@ class scenarios:
         """,
     )
 
+    appsec_auto_events_extended = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_EXTENDED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        appsec_enabled=True,
+        doc="Scenario for checking extended mode in automatic user events",
+    )
+
     # Remote config scenarios
     # library timeout is set to 100 seconds
     # default polling interval for tracers is very low (5 seconds)
@@ -1033,6 +1138,32 @@ class scenarios:
     onboarding_host_auto_install = OnBoardingScenario("ONBOARDING_HOST_AUTO_INSTALL", doc="")
     onboarding_host_container_auto_install = OnBoardingScenario("ONBOARDING_HOST_CONTAINER_AUTO_INSTALL", doc="")
     onboarding_container_auto_install = OnBoardingScenario("ONBOARDING_CONTAINER_AUTO_INSTALL", doc="")
+
+    debugger_method_probes_status = EndToEndScenario(
+        "DEBUGGER_METHOD_PROBES_STATUS",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_STATUS"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
+        library_interface_timeout=50,
+        doc="",
+    )
+
+    debugger_line_probes_status = EndToEndScenario(
+        "DEBUGGER_LINE_PROBES_STATUS",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_STATUS"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
+        library_interface_timeout=50,
+        doc="",
+    )
 
 
 def _main():

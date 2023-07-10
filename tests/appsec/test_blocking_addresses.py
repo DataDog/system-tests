@@ -47,9 +47,27 @@ _released_java_blocking = {
 @scenarios.appsec_blocking
 @bug(context.library < "java@0.111.0", reason="Missing handler for default block action")
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 class Test_BlockingAddresses:
     """Test the addresses supported for blocking"""
+
+    def setup_block_ip(self):
+        self.block_ip_req = weblog.get(headers={"X-Forwarded-For": "1.1.1.1"})
+
+    def test_block_ip(self):
+        """can block the request forwarded for the ip"""
+
+        assert self.block_ip_req.status_code == 403
+
+    def setup_block_user(self):
+        self.block_user_req = weblog.get("/users", params={"user": "blockedUser"})
+
+    @missing_feature(library="java", reason="Missing /users endpoint")
+    def test_block_user(self):
+        """can block the request from the user"""
+
+        assert self.block_user_req.status_code == 403
 
     def setup_request_method(self):
         self.rm_req = weblog.request("OPTIONS")
@@ -335,6 +353,7 @@ class Test_Blocking_request_uri:
     ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
@@ -389,6 +408,7 @@ class Test_Blocking_request_path_params:
     java=_released_java_blocking,
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_query:
@@ -445,6 +465,7 @@ class Test_Blocking_request_query:
     java=_released_java_blocking,
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_headers:
@@ -501,6 +522,7 @@ class Test_Blocking_request_headers:
     java=_released_java_blocking,
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
 class Test_Blocking_request_cookies:
@@ -557,6 +579,7 @@ class Test_Blocking_request_cookies:
     ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="Php does not accept url encoded entries without key")
 class Test_Blocking_request_body:
@@ -628,6 +651,7 @@ class Test_Blocking_request_body:
     ruby="1.10.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_status:
@@ -665,6 +689,7 @@ class Test_Blocking_response_status:
     ruby="1.0.0",
 )
 @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-payara", reason="Missing support")
 @missing_feature(weblog_variant="akka-http", reason="Missing support")
 @irrelevant(library="php", reason="On php it is not possible change the status code once its header is sent")
 class Test_Blocking_response_headers:

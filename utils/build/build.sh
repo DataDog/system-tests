@@ -77,7 +77,7 @@ print_usage() {
     echo -e "  Print default weblog for Python:"
     echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
     echo
-    echo -e "More info at https://github.com/DataDog/system-tests/blob/master/docs/execute/build.md"
+    echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
 }
 
@@ -157,6 +157,7 @@ build() {
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
+		--pull \
                 --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
                 $EXTRA_DOCKER_ARGS \
                 .
@@ -198,6 +199,7 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
                 -t system_tests/weblog \
+		--pull \
                 $CACHE_TO \
                 $CACHE_FROM \
                 $EXTRA_DOCKER_ARGS \
@@ -245,6 +247,9 @@ build() {
                 -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
                 -t system_tests/weblog \
                 .
+
+        elif [[ $IMAGE_NAME == proxy ]]; then
+            docker build -f utils/build/docker/proxy.Dockerfile -t datadog/system-tests:proxy-v0 .
 
         else
             echo "Don't know how to build $IMAGE_NAME"

@@ -3,13 +3,15 @@ from collections import defaultdict
 import json
 import logging
 import os
+import rc_debugger
 from datetime import datetime
-
-from rc_mock import MOCKED_RESPONSES
 
 from mitmproxy import master, options
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError
+
+from rc_mock import MOCKED_RESPONSES
+from _deserializer import deserialize
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
@@ -104,67 +106,68 @@ class _RequestLogger:
 
     def response(self, flow):
 
-        logger.info(f"    => Response {flow.response.status_code}")
-        self._modify_response(flow)
-
-        request_content = str(flow.request.content)
-        response_content = str(flow.response.content)
-
-        if "?" in flow.request.path:
-            path, query = flow.request.path.split("?", 1)
-        else:
-            path, query = flow.request.path, ""
-
-        data = {
-            "path": path,
-            "query": query,
-            "host": flow.request.host,
-            "port": flow.request.port,
-            "request": {
-                "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
-                "content": request_content,
-                "headers": list(flow.request.headers.items()),
-                "length": len(flow.request.content) if flow.request.content else 0,
-            },
-            "response": {
-                "status_code": flow.response.status_code,
-                "content": response_content,
-                "headers": list(flow.response.headers.items()),
-                "length": len(flow.response.content) if flow.response.content else 0,
-            },
-        }
-
-        if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
-            data["response"] = None
-
-        if flow.request.headers.get("dd-protocol") == "otlp":
-            interface = "open_telemetry"
-        elif self.request_is_from_tracer(flow.request):
-            interface = "library"
-        else:
-            interface = "agent"
-
-        message_count = messages_counts[interface]
-        messages_counts[interface] += 1
-
         try:
-            data = self._scrub(data)
+            logger.info(f"    => Response {flow.response.status_code}")
 
+            self._modify_response(flow)
+
+            # get the interface name
+            if flow.request.headers.get("dd-protocol") == "otlp":
+                interface = "open_telemetry"
+            elif self.request_is_from_tracer(flow.request):
+                interface = "library"
+            else:
+                interface = "agent"
+
+            # extract url info
+            if "?" in flow.request.path:
+                path, query = flow.request.path.split("?", 1)
+            else:
+                path, query = flow.request.path, ""
+
+            # get destination
+            message_count = messages_counts[interface]
+            messages_counts[interface] += 1
             log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
-            log_filename = f"{log_foldename}/{message_count:03d}_{data['path'].replace('/', '_')}.json"
+            log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
+
+            data = {
+                "log_filename": log_filename,
+                "path": path,
+                "query": query,
+                "host": flow.request.host,
+                "port": flow.request.port,
+                "request": {
+                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
+                    "headers": list(flow.request.headers.items()),
+                    "length": len(flow.request.content) if flow.request.content else 0,
+                },
+                "response": {
+                    "status_code": flow.response.status_code,
+                    "headers": list(flow.response.headers.items()),
+                    "length": len(flow.response.content) if flow.response.content else 0,
+                },
+            }
+
+            deserialize(data, key="request", content=flow.request.content, interface=interface)
+
+            if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
+                data["response"] = None
+            else:
+                deserialize(data, key="response", content=flow.response.content, interface=interface)
+
+            try:
+                data = self._scrub(data)
+            except:
+                logger.exception("Fail to scrub data")
 
             logger.info(f"    => Saving data as {log_filename}")
 
-            data["log_filename"] = log_filename
-
-            def opener(path, flags):
-                return os.open(path, flags, 0o777)
-
-            with open(log_filename, "w", encoding="utf-8", opener=opener) as f:
+            with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
         except:
-            logger.exception("Fail to save data")
+            logger.exception("Unexpected error")
 
     def _modify_response(self, flow):
         rc_config = self.state.get("mock_remote_config_backend")
@@ -185,17 +188,29 @@ class _RequestLogger:
             c["endpoints"].append("/v0.7/config")
             flow.response.content = json.dumps(c).encode()
         elif flow.request.path == "/v0.7/config" and str(flow.response.status_code) == "404":
-            runtime_id = json.loads(flow.request.content)["client"]["client_tracer"]["runtime_id"]
+            request_content = json.loads(flow.request.content)
+
+            runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
             logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
             logger.info(f"    => Overwriting /v0.7/config response #{self.config_request_count[runtime_id] + 1}")
 
             if self.config_request_count[runtime_id] + 1 > len(mocked_responses):
-                content = b"{}"  # default content when there isn't an RC update
+                response = {}  # default content when there isn't an RC update
             else:
-                content = json.dumps(mocked_responses[self.config_request_count[runtime_id]]).encode()
+                if self.state.get("mock_remote_config_backend") in (
+                    "DEBUGGER_LINE_PROBES_STATUS",
+                    "DEBUGGER_METHOD_PROBES_STATUS",
+                ):
+                    response = rc_debugger.create_rcm_probe_response(
+                        request_content["client"]["client_tracer"]["language"],
+                        mocked_responses[self.config_request_count[runtime_id]],
+                        self.config_request_count[runtime_id],
+                    )
+                else:
+                    response = mocked_responses[self.config_request_count[runtime_id]]
 
             flow.response.status_code = 200
-            flow.response.content = content
+            flow.response.content = json.dumps(response).encode()
 
             self.config_request_count[runtime_id] += 1
 

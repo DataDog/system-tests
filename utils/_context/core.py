@@ -60,6 +60,14 @@ class _Context:
     def telemetry_heartbeat_interval(self):
         return self.scenario.telemetry_heartbeat_interval
 
+    @property
+    def components(self):
+        return self.scenario.components
+
+    @property
+    def parametrized_tests_metadata(self):
+        return self.scenario.parametrized_tests_metadata
+
     def serialize(self):
         result = {
             "agent": str(self.agent_version),
@@ -71,6 +79,12 @@ class _Context:
             "uds_socket": self.uds_socket,
             "scenario": self.scenario,
         }
+        # TODO all components inside of components node
+        result |= self.components
+
+        # If a test is parametrized, it could contain specific data for each test. This node will contain this data associated with test id
+        if self.parametrized_tests_metadata:
+            result["parametrized_tests_metadata"] = self.parametrized_tests_metadata
 
         if self.library == "php":
             result["php_appsec"] = self.php_appsec

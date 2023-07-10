@@ -1,12 +1,14 @@
 "use strict";
 
-const tracer = require("dd-trace").init({
+const tracer = require('dd-trace').init({
   debug: true
 });
 
 const app = require("express")();
 const axios = require('axios');
 const fs = require('fs');
+const passport = require('passport')
+
 
 const iast = require("./iast")
 
@@ -17,6 +19,8 @@ app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
 app.use(require("cookie-parser")());
 iast.initMiddlewares(app)
+
+require('./auth')(app, passport, tracer)
 
 app.get("/", (req, res) => {
   console.log("Received a request");
