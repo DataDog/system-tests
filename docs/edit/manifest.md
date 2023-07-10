@@ -30,7 +30,7 @@ Cost :
 
 ## Implementation
 
-- Manifests files will be inside `utils/manifest/`, one per term, named with the argument name used in decorators (`utils/manifest/golang.yml`, `utils/manifest/agent.yml`...)
+- Manifests files will be inside `utils/manifest/`, one per team (each tracer, agent, ASM rules file, any php extension...), named with the argument name used in decorators (`utils/manifest/golang.yml`, `utils/manifest/agent.yml`...)
 - Each team will have ownership of its manifest file
 - pytest will load those files, and decorate tests node during collection
 - Manifest file will be validated using JSON schema in system tests CI
