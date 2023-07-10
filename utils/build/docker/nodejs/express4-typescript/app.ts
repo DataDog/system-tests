@@ -158,7 +158,7 @@ app.get("/dsm", (req: Request, res: Response) => {
     await consumer.subscribe({ topic: 'dsm-system-tests-queue', fromBeginning: true })
 
     await consumer.run({
-      eachMessage: async ({topic, partition, message} : {topic: string, partition: string, message: JSON}) => {
+      eachMessage: async () => {
         await consumer.stop();
         await consumer.disconnect();
       },
@@ -168,7 +168,7 @@ app.get("/dsm", (req: Request, res: Response) => {
       .then(() => {
         res.send('ok');
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         console.error(error);
         res.status(500).send('Internal Server Error');
       });
