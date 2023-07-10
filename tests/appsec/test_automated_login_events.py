@@ -8,7 +8,10 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="?", python="?", ruby="?")
-@missing_feature(weblog_variant="rails32", reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes")
+@missing_feature(
+    weblog_variant="rails32",
+    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
+)
 @missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
 @missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
 @missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
@@ -53,7 +56,6 @@ class Test_Login_Events:
                 weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
             ]
 
-
     @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_pii_success(self):
         for r in self.r_pii_success:
@@ -68,12 +70,14 @@ class Test_Login_Events:
     def setup_login_success(self):
         if context.library == "ruby":
             self.r_success = [
-                weblog.post("/login?auth=local", data={"user[username]": self.UUID_USER, "user[password]": self.PASSWORD},),
+                weblog.post(
+                    "/login?auth=local", data={"user[username]": self.UUID_USER, "user[password]": self.PASSWORD}
+                ),
                 weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
             ]
         else:
             self.r_success = [
-                weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
+                weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD}),
                 weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
             ]
 
@@ -90,7 +94,9 @@ class Test_Login_Events:
     def setup_login_wrong_user_failure(self):
         if context.library == "ruby":
             self.r_wrong_user_failure = [
-                weblog.post("/login?auth=local", data={"user[username]": self.INVALID_USER, "user[password]": self.PASSWORD}),
+                weblog.post(
+                    "/login?auth=local", data={"user[username]": self.INVALID_USER, "user[password]": self.PASSWORD}
+                ),
                 weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
             ]
         else:
