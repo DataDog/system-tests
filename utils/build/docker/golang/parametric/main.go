@@ -18,10 +18,11 @@ import (
 
 type apmClientServer struct {
 	UnimplementedAPMClientServer
-	spans     map[uint64]tracer.Span
-	otelSpans map[uint64]otel_trace.Span
-	tp        *ddotel.TracerProvider
-	tracer    otel_trace.Tracer
+	spans         map[uint64]tracer.Span
+	otelSpans     map[uint64]otel_trace.Span
+	tp            *ddotel.TracerProvider
+	tracer        otel_trace.Tracer
+	tracerStarted bool
 }
 
 func newServer() *apmClientServer {
@@ -31,7 +32,6 @@ func newServer() *apmClientServer {
 	}
 	s.tp = ddotel.NewTracerProvider()
 	otel.SetTracerProvider(s.tp)
-	s.tracer = s.tp.Tracer("")
 	return s
 }
 
