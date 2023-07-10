@@ -115,18 +115,9 @@ class APMClientServicer(apm_test_client_pb2_grpc.APMClientServicer):
     def HTTPClientRequest(self, request, context):
         import requests
 
-        headers = {
-            h.key: h.value for h in request.headers.http_headers
-        }
-        req = requests.request(
-            method=request.method,
-            url=request.url,
-            headers=headers,
-            data=request.body
-        )
-        return apm_test_client_pb2.HTTPRequestReturn(
-            status_code=str(req.status_code),
-        )
+        headers = {h.key: h.value for h in request.headers.http_headers}
+        req = requests.request(method=request.method, url=request.url, headers=headers, data=request.body)
+        return apm_test_client_pb2.HTTPRequestReturn(status_code=str(req.status_code),)
 
     def StopTracer(self, request, context):
         return apm_test_client_pb2.StopTracerReturn()

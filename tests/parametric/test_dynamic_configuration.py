@@ -278,10 +278,7 @@ class TestDynamicConfig:
         test_library.http_client_request(
             method="GET",
             url="http://example.com",
-            headers=[
-                ("X-Test-Header", "test-value"),
-                ("X-Test-Header-2", "test-value-2"),
-            ],
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
@@ -302,10 +299,7 @@ class TestDynamicConfig:
         assert "test_header_env2" not in trace[0][0]["meta"]
 
         # Unset RC.
-        set_and_wait_rc(
-            test_agent,
-            config_overrides={"tracing_header_tags": None}
-        )
+        set_and_wait_rc(test_agent, config_overrides={"tracing_header_tags": None})
         test_library.http_client_request(
             method="GET",
             url="http://example.com",
