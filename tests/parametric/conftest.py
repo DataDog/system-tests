@@ -19,11 +19,10 @@ from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary
-from utils.parametric.tcp_ports import FreePort
 from utils import context
 from utils.tools import logger
 import json
-from pathlib import Path
+import random
 
 
 @pytest.fixture
@@ -404,8 +403,20 @@ _libs = {
 }
 
 
-def get_open_port():
-    return FreePort()
+def get_open_port(port_min=1024, max_port=65535):
+    max_retries = 10
+    port = random.randint(port_min, (max_port - max_retries))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    retries = 0
+    while port <= max_port and retries < max_retries:
+        try:
+            sock.bind(("", port))
+            sock.close()
+            return port
+        except OSError:
+            retries += 1
+            port += 1
+    raise IOError("no free ports")
 
 
 @pytest.fixture
@@ -414,8 +425,7 @@ def apm_test_server(request, library_env, test_id):
     # in pytest.
     apm_test_library = _libs[context.scenario.library.library]
     freeport = get_open_port()
-    yield apm_test_library(library_env, test_id, freeport.port)
-    freeport.release()  # Now the port is in use, unlock port process (see more about fasteners)
+    yield apm_test_library(library_env, test_id, freeport)
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -737,12 +747,11 @@ def test_agent(
         cmd=[],
         env=env,
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
-        ports=[(test_agent_external_port.port, test_agent_port)],
+        ports=[(test_agent_external_port, test_agent_port)],
         log_file=test_agent_log_file,
         network_name=docker_network,
     ):
-        test_agent_external_port.release()  # Now the port is in use, unlock port process (see more about fasteners)
-        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port.port, pytest_request=request)
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
         # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
         for i in range(30):
             try:
