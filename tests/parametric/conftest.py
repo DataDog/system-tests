@@ -326,7 +326,7 @@ def ruby_library_factory(env: Dict[str, str], container_id: str, port: str) -> A
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
 
-    ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "")
+    ddtrace_sha = os.getenv("RUBY_DDTRACE_SHA", "6c8686c53385f005ed229ce569789366c9672f56")
 
     shutil.copyfile(
         os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
@@ -465,6 +465,8 @@ class _TestAgentAPI:
         return json
 
     def set_remote_config(self, path, payload):
+        print("rc payload")
+        print(payload)
         resp = self._session.post(
             self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,}
         )
@@ -622,7 +624,7 @@ class _TestAgentAPI:
             else:
                 for req in rc_reqs:
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
-                        if cfg_state["product"] == product and cfg_state["apply_state"] == state:
+                        if cfg_state["product"] == [product] and cfg_state["apply_state"] == state:
                             if clear:
                                 self.clear()
                             return cfg_state
