@@ -281,6 +281,11 @@ class TestDynamicConfig:
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
+
+        print('trace')
+        print(trace)
+        print('trace[0][0]["meta"]')
+        print(trace[0][0]["meta"])
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
         assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
 
