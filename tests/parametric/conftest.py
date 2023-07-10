@@ -787,6 +787,11 @@ def test_agent_container_name(test_id) -> str:
 
 
 @pytest.fixture
+def test_agent_hostname(test_agent_container_name: str) -> str:
+    return test_agent_container_name
+
+
+@pytest.fixture
 def test_agent(
     docker_network: str, request, test_agent_container_name: str, test_agent_port, test_agent_log_file: TextIO,
 ):

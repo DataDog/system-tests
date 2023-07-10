@@ -264,50 +264,74 @@ class TestDynamicConfig:
         [
             {
                 **DEFAULT_ENVVARS,
-                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2",
+                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2,Content-Length:content_length_env",
             },
         ],
     )
-    def test_tracing_client_http_header_tags(self, library_env, test_agent, test_library):
+    def test_tracing_client_http_header_tags(
+        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port
+    ):
         """Ensure the tracing http header tags can be set via RC.
 
         Testing is done using a http client request RPC and asserting the span tags.
+
+        Requests are made to the test agent.
         """
 
         # Test without RC.
         test_library.http_client_request(
             method="GET",
-            url="http://example.com",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"),],
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[
+                ("X-Test-Header", "test-value"),
+                ("X-Test-Header-2", "test-value-2"),
+                ("Content-Length", "content_length_env"),
+            ],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
         assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
+        assert trace[0][0]["meta"]["content_length_env"] == "35"
 
         # Set and test with RC.
         set_and_wait_rc(
             test_agent,
-            config_overrides={"tracing_header_tags": [{"header": "X-Test-Header", "tag_name": "test_header_rc",}]},
+            config_overrides={
+                "tracing_header_tags": [
+                    {"header": "X-Test-Header", "tag_name": "test_header_rc",},
+                    {"header": "X-Test-Header-2", "tag_name": "test_header_rc2",},
+                    {"header": "Content-Length", "tag_name": "",},
+                ]
+            },
         )
         test_library.http_client_request(
             method="GET",
-            url="http://example.com",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2")],
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
+        assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
+        assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
+        assert trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
+        assert "test_header_env" not in trace[0][0]["meta"]
         assert "test_header_env2" not in trace[0][0]["meta"]
 
         # Unset RC.
         set_and_wait_rc(test_agent, config_overrides={"tracing_header_tags": None})
         test_library.http_client_request(
             method="GET",
-            url="http://example.com",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2")],
+            url=f"http://{test_agent_hostname}:{test_agent_port}",
+            headers=[
+                ("X-Test-Header", "test-value"),
+                ("X-Test-Header-2", "test-value-2"),
+                ("Content-Length", "content_length_env"),
+            ],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
         assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
+        assert trace[0][0]["meta"]["content_length_env"] == "35"
 
 
 # TODO test case for new version of config, ensure it doesn't break libraries
