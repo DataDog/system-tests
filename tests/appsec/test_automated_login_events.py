@@ -36,8 +36,6 @@ class Test_Login_Events:
     BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
     BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
 
-    MANUAL_KEEP_SAMPLING_PRIORITY = 2
-
     def setup_login_pii_success(self):
         self.r_pii_success = [
             weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
@@ -53,7 +51,7 @@ class Test_Login_Events:
                 assert "usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.success.track"] == "true"
-                self.assert_priority(span, meta)
+                assert_priority(span, meta)
 
     def setup_login_success(self):
         self.r_success = [
@@ -69,7 +67,7 @@ class Test_Login_Events:
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-                self.assert_priority(span, meta)
+                assert_priority(span, meta)
 
     def setup_login_wrong_user_failure(self):
         self.r_wrong_user_failure = [
@@ -91,7 +89,7 @@ class Test_Login_Events:
                 assert "appsec.events.users.login.failure.usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                self.assert_priority(span, meta)
+                assert_priority(span, meta)
 
     def setup_login_wrong_password_failure(self):
         self.r_wrong_user_failure = [
@@ -113,7 +111,7 @@ class Test_Login_Events:
                 assert "appsec.events.users.login.failure.usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                self.assert_priority(span, meta)
+                assert_priority(span, meta)
 
     def setup_login_sdk_success(self):
         self.r_sdk_success = [
@@ -136,7 +134,7 @@ class Test_Login_Events:
                 assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 assert meta["usr.id"] == "sdkUser"
-                self.assert_priority(span, meta)
+                assert_priority(span, meta)
 
     def setup_login_sdk_failure(self):
         self.r_sdk_failure = [
@@ -160,20 +158,13 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.track"] == "true"
                 assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                self.assert_priority(span, meta)
-
-    def assert_priority(self, span, meta):
-        if span["metrics"].get("_sampling_priority_v1") != self.MANUAL_KEEP_SAMPLING_PRIORITY:
-            assert "manual.keep" in meta, "manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP"
-            assert (
-                meta["manual.keep"] == "true"
-            ), 'meta.manual.keep should be "true" when _sampling_priority_v1 is not MANUAL_KEEP'
+                assert_priority(span, meta)
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
-@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="?", python="?", ruby="?")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
     USER = "test"
@@ -198,9 +189,14 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 assert meta["usr.id"] == "social-security-id"
                 assert meta["usr.email"] == "testuser@ddog.com"
-                assert meta["usr.username"] == "test"
-                assert meta["usr.login"] == "test"
-                assert meta["manual.keep"] == "true"
+                if context.library != "dotnet":
+                    assert meta["usr.username"] == "test"
+                    assert meta["usr.login"] == "test"
+                else:
+                    # theres no login field in dotnet
+                    # usr.name was in the sdk before so it was kept as is
+                    assert meta["usr.name"] == "test"
+                assert_priority(span, meta)
 
     def setup_login_wrong_user_failure(self):
         self.r_wrong_user_failure = [
@@ -220,8 +216,12 @@ class Test_Login_Events_Extended:
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
-                assert meta["manual.keep"] == "true"
+                if context.library != "dotnet":
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+                else:
+                    # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
+                    assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                assert_priority(span, meta)
 
     def setup_login_wrong_password_failure(self):
         self.r_wrong_user_failure = [
@@ -238,11 +238,16 @@ class Test_Login_Events_Extended:
                     # Currently in nodejs there is no way to check if the user exists upon authentication failure so
                     # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+                    assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
+                    assert meta["appsec.events.users.login.failure.username"] == "test"
+                else:
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "test"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == "test"
-                assert meta["manual.keep"] == "true"
+
+                assert_priority(span, meta)
 
     def setup_login_sdk_success(self):
         self.r_sdk_success = [
@@ -265,7 +270,7 @@ class Test_Login_Events_Extended:
                 assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 assert meta["usr.id"] == "sdkUser"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
     def setup_login_sdk_failure(self):
         self.r_sdk_failure = [
@@ -289,4 +294,13 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.failure.track"] == "true"
                 assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
+
+
+def assert_priority(span, meta):
+    MANUAL_KEEP_SAMPLING_PRIORITY = 2
+    if span["metrics"].get("_sampling_priority_v1") != MANUAL_KEEP_SAMPLING_PRIORITY:
+        assert "manual.keep" in meta, "manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP"
+        assert (
+            meta["manual.keep"] == "true"
+        ), 'meta.manual.keep should be "true" when _sampling_priority_v1 is not MANUAL_KEEP'

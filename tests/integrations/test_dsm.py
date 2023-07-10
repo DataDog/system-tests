@@ -75,8 +75,11 @@ class Test_DsmRabbitmq:
             tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
         )
 
+    def setup_dsm_rabbitmq_dotnet_legacy(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq")
+
     @irrelevant(context.library != "dotnet", reason="legacy dotnet behavior")
-    def test_dsm_rabbitmq(self):
+    def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 
         # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
@@ -135,7 +138,7 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
