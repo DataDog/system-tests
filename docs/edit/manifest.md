@@ -38,7 +38,7 @@ Cost :
 
 ## Supported features
 
-Will suport:
+Will support:
 
 - declaring a skip reason (bug, flaky, irrelevant, missing_feature) for entire file
 - declaring released version (or a skip reason) for a class
@@ -47,6 +47,8 @@ Will suport:
 
 Won't support:
 
+- any complex logic
+  _ because there is not limit on the complexity. We need to draw a line based on the ratio format simplicity / number of occurrences. The cutoff point is only test classes, declaring version for weblog variants, or skip reason for the entire class.
 - declaring metadata (bug, flaky, irrelevant) for test methods
   - because their namings are not stable, it would lead to frequent modifications of manifest files, spaming every team
   - because conflict mostly happen at class level
