@@ -25,9 +25,16 @@ Rails.application.routes.draw do
   get 'user_login_failure_event' => 'system_test#user_login_failure_event'
   get 'custom_event' => 'system_test#custom_event'
 
- %i(get post).each do |request_method|
+  %i(get post).each do |request_method|
     send(request_method, '/tag_value/:key/:status_code' => 'system_test#tag_value')
   end
+
   match '/tag_value/:key/:status_code' => 'system_test#tag_value', via: :options
+
   get '/users' => 'system_test#users'
+
+  devise_for :users
+  %i(get post).each do |request_method|
+    send(request_method, '/login' => 'system_test#login')
+  end
 end

@@ -38,6 +38,7 @@ group :development do
 end
 
 gem 'pry'
+gem 'devise'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
 gem 'mini_racer', '~> 0.4.0', platforms: :ruby
 gem 'puma', '5.0.2'

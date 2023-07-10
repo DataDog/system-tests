@@ -24,4 +24,9 @@ Rails.application.routes.draw do
   end
   match '/tag_value/:key/:status_code' => 'system_test#tag_value', via: :options
   get '/users' => 'system_test#users'
+
+  devise_for :users
+  %i(get post).each do |request_method|
+    send(request_method, '/login' => 'system_test#login')
+  end
 end
