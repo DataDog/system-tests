@@ -621,11 +621,7 @@ def docker_run(
         subprocess.run(
             _cmd, stdout=log_file, stderr=log_file, check=True,
         )
-        # Remove ports lock file
-        for k, v in ports:
-            lock_file_path = f"{context.scenario.host_log_folder}/.lock_ports/.{k}"
-            if os.path.exists(lock_file_path):
-                os.remove(lock_file_path)
+
 
 
 @pytest.fixture(scope="session")
