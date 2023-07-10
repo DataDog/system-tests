@@ -8,6 +8,11 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="?", python="?", ruby="?")
+@missing_feature(weblog_variant="rails32", reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes")
+@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
+@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
@@ -37,10 +42,17 @@ class Test_Login_Events:
     BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
 
     def setup_login_pii_success(self):
-        self.r_pii_success = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
-            weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
-        ]
+        if context.library == "ruby":
+            self.r_pii_success = [
+                weblog.post("/login?auth=local", data={"user[username]": self.USER, "user[password]": self.PASSWORD}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
+            ]
+        else:
+            self.r_pii_success = [
+                weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
+            ]
+
 
     @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_pii_success(self):
@@ -54,10 +66,16 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_success(self):
-        self.r_success = [
-            weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
-            weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
-        ]
+        if context.library == "ruby":
+            self.r_success = [
+                weblog.post("/login?auth=local", data={"user[username]": self.UUID_USER, "user[password]": self.PASSWORD},),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
+            ]
+        else:
+            self.r_success = [
+                weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
+            ]
 
     def test_login_success(self):
         for r in self.r_success:
@@ -70,10 +88,16 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_wrong_user_failure(self):
-        self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.INVALID_USER, "password": self.PASSWORD}),
-            weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
-        ]
+        if context.library == "ruby":
+            self.r_wrong_user_failure = [
+                weblog.post("/login?auth=local", data={"user[username]": self.INVALID_USER, "user[password]": self.PASSWORD}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
+            ]
+        else:
+            self.r_wrong_user_failure = [
+                weblog.post("/login?auth=local", data={"username": self.INVALID_USER, "password": self.PASSWORD}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
+            ]
 
     @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_user_failure(self):
@@ -92,10 +116,16 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_wrong_password_failure(self):
-        self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
-            weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}),
-        ]
+        if context.library == "ruby":
+            self.r_wrong_user_failure = [
+                weblog.post("/login?auth=local", data={"user[username]": self.USER, "user[password]": "12345"}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}),
+            ]
+        else:
+            self.r_wrong_user_failure = [
+                weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
+                weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}),
+            ]
 
     @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_password_failure(self):
@@ -114,16 +144,28 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_sdk_success(self):
-        self.r_sdk_success = [
-            weblog.post(
-                "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-                data={"username": self.USER, "password": self.PASSWORD},
-            ),
-            weblog.get(
-                "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-                headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
-            ),
-        ]
+        if context.library == "ruby":
+            self.r_sdk_success = [
+                weblog.post(
+                    "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+                    data={"user[username]": self.USER, "user[password]": self.PASSWORD},
+                ),
+                weblog.get(
+                    "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+                    headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+                ),
+            ]
+        else:
+            self.r_sdk_success = [
+                weblog.post(
+                    "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+                    data={"username": self.USER, "password": self.PASSWORD},
+                ),
+                weblog.get(
+                    "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+                    headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+                ),
+            ]
 
     def test_login_sdk_success(self):
         for r in self.r_sdk_success:
@@ -137,16 +179,28 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_sdk_failure(self):
-        self.r_sdk_failure = [
-            weblog.post(
-                "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                data={"username": self.INVALID_USER, "password": self.PASSWORD},
-            ),
-            weblog.get(
-                "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
-            ),
-        ]
+        if context.library == "ruby":
+            self.r_sdk_failure = [
+                weblog.post(
+                    "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                    data={"user[username]": self.INVALID_USER, "user[password]": self.PASSWORD},
+                ),
+                weblog.get(
+                    "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                    headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
+                ),
+            ]
+        else:
+            self.r_sdk_failure = [
+                weblog.post(
+                    "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                    data={"username": self.INVALID_USER, "password": self.PASSWORD},
+                ),
+                weblog.get(
+                    "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                    headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
+                ),
+            ]
 
     def test_login_sdk_failure(self):
         for r in self.r_sdk_failure:
