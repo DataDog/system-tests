@@ -62,7 +62,7 @@ typed-ast==1.5.4
 typing_extensions==4.3.0
 urllib3==1.26.12
 Werkzeug==2.0.1
-
+fasteners==0.18
 -r utils/build/docker/python_http/parametric/requirements.txt
 dictdiffer==0.9.0
 

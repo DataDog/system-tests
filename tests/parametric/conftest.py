@@ -19,7 +19,7 @@ from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary
-
+from utils.parametric.tcp_ports import FreePort
 from utils import context
 from utils.tools import logger
 import json
@@ -405,25 +405,7 @@ _libs = {
 
 
 def get_open_port():
-    # Not very nice and also not 100% correct but it works for now.
-    # There are random issue related with: port is already allocated (we can find when we use multiple pytests workers)
-    # Create a lock file to no reuse the ports
-    searchForPort = True
-    port = -1
-    while searchForPort:
-
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(("", 0))
-        s.listen(1)
-        port = s.getsockname()[1]
-        lock_file_path = f"{context.scenario.host_log_folder}/.lock_ports/.{port}"
-        os.makedirs(os.path.dirname(lock_file_path), exist_ok=True)
-        if not os.path.isfile(lock_file_path):
-            # Ok, the port have not been used before
-            Path(lock_file_path).touch()
-            searchForPort = False
-        s.close()
-    return port
+    return FreePort()
 
 
 @pytest.fixture
@@ -431,8 +413,9 @@ def apm_test_server(request, library_env, test_id):
     # Have to do this funky request.param stuff as this is the recommended way to do parametrized fixtures
     # in pytest.
     apm_test_library = _libs[context.scenario.library.library]
-
-    yield apm_test_library(library_env, test_id, get_open_port())
+    freeport = get_open_port()
+    yield apm_test_library(library_env, test_id, freeport.port)
+    freeport.release()  # Now the port is in use, unlock port process (see more about fasteners)
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -759,11 +742,12 @@ def test_agent(
         cmd=[],
         env=env,
         volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
-        ports=[(test_agent_external_port, test_agent_port)],
+        ports=[(test_agent_external_port.port, test_agent_port)],
         log_file=test_agent_log_file,
         network_name=docker_network,
     ):
-        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
+        test_agent_external_port.release()  # Now the port is in use, unlock port process (see more about fasteners)
+        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port.port, pytest_request=request)
         # Wait for the agent to start (we also depend of the network speed to pull images fro registry)
         for i in range(30):
             try:
