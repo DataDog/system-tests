@@ -623,7 +623,6 @@ def docker_run(
         )
 
 
-
 @pytest.fixture(scope="session")
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
