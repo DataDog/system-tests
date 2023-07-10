@@ -2,6 +2,8 @@ import psycopg2
 import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace import patch
+patch(kafka=True)
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import (
@@ -12,6 +14,9 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+from threading import Thread
+import threading
+from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -151,6 +156,44 @@ def dbm():
             cursor.executemany("select %s", (("blah",), ("moo",)))
             return Response("OK")
         return Response(f"Cursor method is not supported: {operation}", 406)
+
+    return Response(f"Integration is not supported: {integration}", 406)
+
+
+@app.route("/dsm")
+def dsm():
+    topic = "dsm-system-tests-queue"
+    consumer_group = "testgroup1"
+    def produce():
+        producer = Producer({
+            'bootstrap.servers': 'kafka:9092',
+            'client.id': "python-producer"
+        })
+        message = b"Hello, Kafka!"
+        producer.produce(topic, value=message)
+
+    def consume():
+        consumer = Consumer(
+            {
+                'bootstrap.servers': 'kafka:9092',
+                'group.id': consumer_group,
+                'enable.auto.commit': True,
+                'auto.offset.reset': 'earliest',
+            })
+
+        consumer.subscribe([topic])
+        msg = consumer.poll()
+        if msg is None:
+            print("[kafka] Consumed message but got nothing")
+        if msg.error():
+            print("[kafka] Consumed message but got error " + msg.error())
+        consumer.close();
+
+    integration = flask_request.args.get("integration")
+    if integration == "kafka":
+        produce_thread = threading.Thread(target=produce, args=())
+        consume_thread = threading.Thread(target=consume, args=())
+        return Response("OK")
 
     return Response(f"Integration is not supported: {integration}", 406)
 
