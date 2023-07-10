@@ -596,7 +596,7 @@ def docker_run(
     # Random issues related with: Address family not supported by protocol"
     # see https://www.redelijkheid.com/blog/2021/4/14/docker-images-not-starting and https://stackoverflow.com/questions/67173756/socket-address-family-not-supported-by-protocol
     for k, v in ports:
-        _cmd.extend(["-p", "%s:%s" % (k, v)]) #_cmd.extend(["-p", "0.0.0.0:%s:%s" % (k, v)])
+        _cmd.extend(["-p", "%s:%s" % (k, v)])  # _cmd.extend(["-p", "0.0.0.0:%s:%s" % (k, v)])
     _cmd += [image]
     _cmd.extend(cmd)
 
