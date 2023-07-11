@@ -62,6 +62,7 @@ class TestParameterValue:
     def setup_source_get_reported(self):
         self.source_get_fixture.setup()
 
+    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     def test_source_get_reported(self):
         self.source_get_fixture.test()
 

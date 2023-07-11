@@ -27,7 +27,14 @@ public class IastSourceResource {
 
     @POST
     @Path("/parameter/test")
-    public String sourceParameter(@FormParam("table") final String source) {
+    public String sourceParameterPost(@FormParam("table") final String source) {
+        sql.insecureSql(source, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Parameters => source: %s", source);
+    }
+
+    @GET
+    @Path("/parameter/test")
+    public String sourceParameterGet(@QueryParam("table") final String source) {
         sql.insecureSql(source, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Parameters => source: %s", source);
     }
