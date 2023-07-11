@@ -10,10 +10,14 @@ require 'apm_test_client_services_pb'
 Datadog.configure do |c|
   c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
+  c.tracing.instrument :http
 end
+
+puts Datadog.configuration.to_h
 
 # Ensure output is always flushed, to prevent a forced shutdown from losing all logs.
 STDOUT.sync = true
+puts 'Loading server classes...'
 
 class ServerImpl < APMClient::Service
   def start_span(start_span_args, _call)
@@ -89,6 +93,36 @@ class ServerImpl < APMClient::Service
     SpanSetErrorReturn.new
   end
 
+  # HTTPRequestArgs.new.headers.http_headers
+  def http_client_request(httprequest_args, _call)
+    pp httprequest_args.to_h
+    URI::HTTP
+    url = URI(httprequest_args.url)
+    # httprequest_args.body # TODO: fix me
+    headers = httprequest_args.headers.http_headers.map{|x|[x.key, x.value] }.to_h
+
+    puts '1'
+    STDOUT.flush
+
+
+    method = httprequest_args.to_h[:method]
+    request_class = Net::HTTP.const_get(method.capitalize)
+    request = request_class.new(url, headers).tap { |r| r.body = httprequest_args.body }
+
+    response = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
+      http.request(request)
+    end
+
+    HTTPRequestReturn.new(status_code: response.code)
+  end
+
+  # alias httpclient_request httpclient_request
+
+  def htt_pserver_request
+    HTTPRequestArgs
+    HTTPRequestReturn.new
+  end
+
   def inject_headers(inject_headers_args, _call)
     find_span(inject_headers_args.span_id)
 
@@ -111,10 +145,31 @@ class ServerImpl < APMClient::Service
     FlushTraceStatsReturn.new
   end
 
+  # TODO: Implement these OTel methods
+  # :otel_start_span, ::OtelStartSpanArgs, ::OtelStartSpanReturn
+  # :otel_end_span, ::OtelEndSpanArgs, ::OtelEndSpanReturn
+  # :otel_is_recording, ::OtelIsRecordingArgs, ::OtelIsRecordingReturn
+  # :otel_span_context, ::OtelSpanContextArgs, ::OtelSpanContextReturn
+  # :otel_set_status, ::OtelSetStatusArgs, ::OtelSetStatusReturn
+  # :otel_set_name, ::OtelSetNameArgs, ::OtelSetNameReturn
+  # :otel_set_attributes, ::OtelSetAttributesArgs, ::OtelSetAttributesReturn
+  # :otel_flush_spans, ::OtelFlushSpansArgs, ::OtelFlushSpansReturn
+  # :otel_flush_trace_stats, ::OtelFlushTraceStatsArgs, ::OtelFlushTraceStatsReturn
+
   def stop_tracer(stop_tracer_args, _call)
     Datadog.shutdown!
     StopTracerReturn.new
   end
+
+
+
+
+
+
+
+
+
+
 
   # The Ruby tracer holds spans on a per-Fiber basis.
   # To allow for `#start_span`/`#finish_span` pairs to work seemly,
@@ -147,7 +202,11 @@ class ServerImpl < APMClient::Service
     define_method(m) do |*args|
       @request_queue.push ["wrapped_#{m}", args]
       res = @return_queue.pop
-      raise res if res.is_a?(Exception)
+
+      if res.is_a?(Exception)
+        res.message << ": #{res.backtrace}"
+        raise res
+      end
 
       res
     end
@@ -162,6 +221,8 @@ class ServerImpl < APMClient::Service
     span
   end
 end
+
+STDOUT.flush
 
 port = ENV.fetch('APM_TEST_CLIENT_SERVER_PORT', 50051)
 endpoint = "0.0.0.0:#{port}"
@@ -184,6 +245,7 @@ Thread.new do
 end if ENV['DEBUG'] == '1'
 
 puts 'Running gRPC server...'
+STDOUT.flush
 s.handle(ServerImpl.new())
 
 # Runs the server with SIGHUP, SIGINT and SIGQUIT signal handlers to

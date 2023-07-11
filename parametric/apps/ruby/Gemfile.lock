@@ -1,0 +1,32 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ddtrace (1.10.0)
+      debase-ruby_core_source (>= 0.10.16, <= 3.2.0)
+      libdatadog (~> 2.0.0.1.0)
+      libddwaf (~> 1.6.2.0.0)
+      msgpack
+    debase-ruby_core_source (3.2.0)
+    ffi (1.15.5)
+    google-protobuf (3.22.2-x86_64-darwin)
+    googleapis-common-protos-types (1.5.0)
+      google-protobuf (~> 3.14)
+    grpc (1.52.0-x86_64-darwin)
+      google-protobuf (~> 3.21)
+      googleapis-common-protos-types (~> 1.0)
+    grpc-tools (1.52.0)
+    libdatadog (2.0.0.1.0)
+    libddwaf (1.6.2.0.0-x86_64-darwin)
+      ffi (~> 1.0)
+    msgpack (1.6.1)
+
+PLATFORMS
+  x86_64-darwin-22
+
+DEPENDENCIES
+  ddtrace
+  grpc
+  grpc-tools
+
+BUNDLED WITH
+   2.4.8

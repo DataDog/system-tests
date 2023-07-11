@@ -357,6 +357,8 @@ class APMLibraryClientGRPC:
         for key, value in headers:
             hs.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
+        print("url!!!")
+        print(url)
         self._client.HTTPClientRequest(pb.HTTPRequestArgs(method=method, url=url, headers=hs, body=body,))
 
     def otel_end_span(self, span_id: int, timestamp: int):
