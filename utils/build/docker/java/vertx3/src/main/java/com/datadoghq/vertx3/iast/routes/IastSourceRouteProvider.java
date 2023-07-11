@@ -31,13 +31,26 @@ public class IastSourceRouteProvider implements Consumer<Router> {
 
         router.route("/iast/source/*").handler(BodyHandler.create());
 
-        router.route("/iast/source/parameter/test").handler(ctx -> {
+        router.get("/iast/source/parameter/test").handler(ctx -> {
             final HttpServerRequest request = ctx.request();
             final String table = request.getParam("table");
             sql.insecureSql(table, (statement, query) -> statement.executeQuery(query));
             ctx.response().end(String.format("Request Parameters => source: %s", table));
         });
-        router.route("/iast/source/parametername/test").handler(ctx -> {
+        router.post("/iast/source/parameter/test").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            final String table = request.getParam("table");
+            sql.insecureSql(table, (statement, query) -> statement.executeQuery(query));
+            ctx.response().end(String.format("Request Parameters => source: %s", table));
+        });
+        router.get("/iast/source/parametername/test").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            List<String> parameterNames = new ArrayList<>(request.params().names());
+            final String table = parameterNames.get(0);
+            sql.insecureSql(table, (statement, query) -> statement.executeQuery(query));
+            ctx.response().end(String.format("Request Parameter Names => %s", parameterNames));
+        });
+        router.post("/iast/source/parametername/test").handler(ctx -> {
             final HttpServerRequest request = ctx.request();
             List<String> parameterNames = new ArrayList<>(request.params().names());
             final String table = parameterNames.get(0);

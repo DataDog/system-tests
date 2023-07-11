@@ -57,8 +57,6 @@ class TestParameterName:
 
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
-    @bug(weblog_variant="vertx3", reason="Not reported")
-    @bug(weblog_variant="vertx4", reason="Not reported")
     def test_source_get_reported(self):
         self.source_get_fixture.test()
 
