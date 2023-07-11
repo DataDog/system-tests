@@ -26,22 +26,35 @@ public class AppSecIastSource {
         this.sql = new SqlExamples(dataSource);
     }
 
-
-    @PostMapping("/parameter/test")
-    String sourceParameter(final ServletRequest request) {
+    @GetMapping("/parameter/test")
+    String sourceParameterGet(final ServletRequest request) {
         final String table = request.getParameter("table");
         sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Parameters => source: %s", table);
     }
 
-    @RequestMapping("/parametername/test")
-    String sourceParameterName(final ServletRequest request) {
+    @PostMapping("/parameter/test")
+    String sourceParameterPost(final ServletRequest request) {
+        final String table = request.getParameter("table");
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Parameters => source: %s", table);
+    }
+
+    @GetMapping("/parametername/test")
+    String sourceParameterNameGet(final ServletRequest request) {
         List<String> parameterNames = Collections.list(request.getParameterNames());
         final String table = parameterNames.get(0);
         sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Parameter Names => %s", parameterNames);
     }
 
+    @PostMapping("/parametername/test")
+    String sourceParameterNamePost(final ServletRequest request) {
+        List<String> parameterNames = Collections.list(request.getParameterNames());
+        final String table = parameterNames.get(0);
+        sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
+        return String.format("Request Parameter Names => %s", parameterNames);
+    }
     @GetMapping("/headername/test")
     String sourceHeaderName(final HttpServletRequest request) {
         List<String> headerNames = Collections.list(request.getHeaderNames());
