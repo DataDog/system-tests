@@ -99,7 +99,7 @@ class Test_Telemetry:
         )
 
     @missing_feature(library="python")
-    @flaky(True, reason="Under investigation")
+    # @flaky(True, reason="Under investigation")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -244,7 +244,7 @@ class Test_Telemetry:
 
     @flaky(library="java", reason="It may be 4 seconds on java ?")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(True, reason="Under investigation")
+    # @flaky(True, reason="Under investigation")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
