@@ -12,6 +12,7 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
+from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -152,6 +153,12 @@ def dbm():
             return Response("OK")
         return Response(f"Cursor method is not supported: {operation}", 406)
 
+    return Response(f"Integration is not supported: {integration}", 406)
+
+
+@app.route("/dsm")
+def dsm():
+    integration = flask_request.args.get("integration")
     return Response(f"Integration is not supported: {integration}", 406)
 
 

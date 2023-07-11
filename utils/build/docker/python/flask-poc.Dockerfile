@@ -1,4 +1,4 @@
-FROM datadog/system-tests:flask-poc.base-v0
+FROM datadog/system-tests:flask-poc.base-v1
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py

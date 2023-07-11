@@ -6,8 +6,9 @@ from utils import weblog, interfaces, scenarios, released, irrelevant, context, 
 from utils.tools import logger
 
 
-@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", nodejs="?", php="?", ruby="?")
 @released(dotnet="2.29.0")
+@released(python="1.15.1")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
 @scenarios.integrations
 class Test_DsmKafka:
