@@ -10,6 +10,6 @@ RUN python --version && curl --version
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
 RUN pip install flask==2.2.4 gunicorn gevent requests pycryptodome psycopg2-binary confluent-kafka==2.1.1 protobuf
 
-# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v0 .
-# docker push datadog/system-tests:flask-poc.base-v0
+# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v1
+# docker push datadog/system-tests:flask-poc.base-v1
 

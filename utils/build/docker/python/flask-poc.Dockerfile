@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64/v8 datadog/system-tests:flask-poc.base-v0
+FROM --platform=linux/arm64/v8 datadog/system-tests:flask-poc.base-v1
 #FROM --platform=linux/arm64/v8 hokitam/flaskpoc
 
 COPY utils/build/docker/python/flask /app
