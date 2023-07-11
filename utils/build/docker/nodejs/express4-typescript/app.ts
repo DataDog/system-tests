@@ -191,19 +191,6 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
   res.status(parseInt(req.params.status) || 200).send('Value tagged');
 });
 
-app.get('/read_file', (req: Request, res: Response) => {
-  const path = req.query['file'];
-  fs.readFile(path, (err: Error, data: Buffer) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send("ko");
-    }
-    res.send(data);
-  });
-});
-
-require("./iast")(app, tracer);
-
 app.listen(7777, '0.0.0.0', () => {
   tracer.trace('init.service', () => {});
   console.log('listening');
