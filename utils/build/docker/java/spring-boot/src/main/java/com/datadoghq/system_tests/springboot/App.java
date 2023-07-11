@@ -3,7 +3,9 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
-import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
+import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
@@ -277,25 +279,64 @@ public class App {
             try {
                 kafka.startProducingMessage("hello world!");
             } catch (Exception e) {
-                System.out.println("Failed to start producing message...");
+                System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
                 kafka.startConsumingMessages();
             } catch (Exception e) {
-                System.out.println("Failed to start consuming message...");
+                System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
                 return "failed to start consuming message";
             }
         } else if ("rabbitmq".equals(integration)) {
-            RabbitmqConnector rabbitmq = new RabbitmqConnector();
+            RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange();
             try {
-                rabbitmq.startProducingMessage("hello world!");
+                rabbitmq.startProducingMessages();
             } catch (Exception e) {
-                System.out.println("Failed to start producing message...");
+                System.out.println("[rabbitmq] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
+            }
+            try {
+                rabbitmq.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        } else if ("rabbitmq_topic_exchange".equals(integration)) {
+            RabbitmqConnectorForTopicExchange rabbitmq = new RabbitmqConnectorForTopicExchange();
+            try {
+                rabbitmq.startProducingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_topic] Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                rabbitmq.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_topic] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
+            }
+        } else if ("rabbitmq_fanout_exchange".equals(integration)) {
+            RabbitmqConnectorForFanoutExchange rabbitmq = new RabbitmqConnectorForFanoutExchange();
+            try {
+                rabbitmq.startProducingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_fanout] Failed to start producing message...");
+                e.printStackTrace();
+                return "failed to start producing message";
+            }
+            try {
+                rabbitmq.startConsumingMessages();
+            } catch (Exception e) {
+                System.out.println("[rabbitmq_fanout] Failed to start consuming message...");
+                e.printStackTrace();
+                return "failed to start consuming message";
             }
         } else {
             return "unknown integration: " + integration;
