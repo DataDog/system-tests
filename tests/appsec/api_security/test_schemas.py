@@ -188,14 +188,7 @@ class Test_Schema_Reponse_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @released(
-    cpp="?",
-    dotnet="?",
-    golang="?",
-    java="?",
-    nodejs="?",
-    php_appsec="?",
-    python="?",
-    ruby="?",
+    cpp="?", dotnet="?", golang="?", java="?", nodejs="?", php_appsec="?", python="?", ruby="?",
 )
 @coverage.not_implemented
 @scenarios.appsec_api_security
