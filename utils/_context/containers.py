@@ -1,4 +1,5 @@
 import os
+import re
 import stat
 import json
 from pathlib import Path
@@ -520,6 +521,14 @@ class SqlServerContainer(TestedContainer):
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
+
+        if "DOCKER_HOST" in os.environ:
+            self._otel_host = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
+        else:
+            self._otel_host = "localhost"
+
+        self._otel_port = 13133
+
         super().__init__(
             image_name="otel/opentelemetry-collector-contrib:latest",
             name="collector",
@@ -536,14 +545,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         for i in range(61):
             try:
-                r = requests.get("http://localhost:13133", timeout=1)
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {r}")
+                r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
+                logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
                 if r.status_code == 200:
                     return
             except Exception as e:
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
+                logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
             time.sleep(1)
-        pytest.exit("localhost:13133 never answered to healthcheck request", 1)
+        pytest.exit(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request", 1)
 
     def start(self) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,
