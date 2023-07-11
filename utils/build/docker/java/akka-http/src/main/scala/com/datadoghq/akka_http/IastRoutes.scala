@@ -117,11 +117,20 @@ object IastRoutes {
       } ~
       pathPrefix("source") {
         path("parameter" / "test") {
-          formField("table") { table =>
-            sql.insecureSql(table,
-              (statement: Statement, query) => statement.executeQuery(query))
-            complete(StatusCodes.OK, s"Request Parameters => source: $table");
-          }
+          post {
+            formField("table") { table =>
+              sql.insecureSql(table,
+                (statement: Statement, query) => statement.executeQuery(query))
+              complete(StatusCodes.OK, s"Request Parameters => source: $table");
+            }
+          } ~
+            get {
+              paramOrFormField("table") { table =>
+                sql.insecureSql(table,
+                  (statement: Statement, query) => statement.executeQuery(query))
+                complete(StatusCodes.OK, s"Request Parameters => source: $table");
+              }
+            }
         } ~
           path("parametername" / "test") {
             post {
