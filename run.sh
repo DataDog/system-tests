@@ -113,13 +113,11 @@ elif [[ $SCENARIO == "PARAMETRIC" ]]; then
     DEFAULT_COUNT=auto
     # FIXME: all languages should be supported
     if [ "${TEST_LIBRARY-}" ]; then
-        for library in $(echo $TEST_LIBRARY | sed "s/,/ /g"); do
-            # default to "1" for languages with concurrency issues
-            if [[ "${library}" == "dotnet" || "${library}" == "go" ||"${library}" == "python_http" ]]; then
-                DEFAULT_COUNT=1
-                break
-            fi
-        done
+        # default to "1" for languages with concurrency issues
+        if [[ "${TEST_LIBRARY}" == "dotnet" || "${TEST_LIBRARY}" == "go" ||"${TEST_LIBRARY}" == "python_http" ]]; then
+            DEFAULT_COUNT=1
+            break
+        fi
     else
         # default to "1" for all languages since that includes problematic languages
         DEFAULT_COUNT=1
