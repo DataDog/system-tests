@@ -20,6 +20,10 @@ class Test_DsmKafka:
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
+        # Hashes are created by applying the FNV-1 algorithm on 
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
             consumer_hash = 2931833227331067675
             producer_hash = 271115008390912609
