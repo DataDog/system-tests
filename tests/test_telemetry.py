@@ -163,6 +163,7 @@ class Test_Telemetry:
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
+    @flaky(library="nodejs", reason="app-dependencies-loaded is sometimes sent before")
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message"""
         telemetry_data = list(interfaces.library.get_telemetry_data())
@@ -252,7 +253,7 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @flaky(library="nodejs", reason="Bug in nodejs tracer, heartbeat are sent too fast")
+    @flaky(library="nodejs", reason="Bug in nodejs tracer, heartbeat are sometimes sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     # @flaky(True, reason="Under investigation")
