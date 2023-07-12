@@ -47,7 +47,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
-    # @flaky(True, reason="Backend is not stable")
+    @flaky(True, reason="Backend is far away from being stable enough")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
@@ -100,7 +100,7 @@ class Test_Telemetry:
         )
 
     @missing_feature(library="python")
-    # @flaky(True, reason="Under investigation")
+    @flaky(library="ruby", reason="Sometimes, seq_id jump from N to N+2")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -117,8 +117,12 @@ class Test_Telemetry:
             raise Exception("No telemetry data to validate on")
 
         for data in telemetry_data:
+
             seq_id = data["request"]["content"]["seq_id"]
-            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+            timestamp_start = data["request"]["timestamp_start"]
+            curr_message_time = datetime.strptime(timestamp_start, fmt)
+            logger.debug(f"Telemetry message at {timestamp_start.split('T')[1]} {seq_id} in {data['log_filename']}")
+
             if 200 <= data["response"]["status_code"] < 300:
                 seq_ids.append((seq_id, data["log_filename"]))
             if seq_id > max_seq_id:

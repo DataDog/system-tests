@@ -1,4 +1,4 @@
-from utils import interfaces, released, rfc, weblog, scenarios, context, bug, missing_feature
+from utils import interfaces, released, rfc, weblog, scenarios, context, bug, missing_feature, flaky
 from utils.tools import logger
 import pytest
 
@@ -37,6 +37,7 @@ class Test_TelemetryMetrics:
 
     setup_all_telemetry_requests_are_successful = _setup
 
+    @flaky(True, reason="Backend is far away from being stable enough")
     def test_all_telemetry_requests_are_successful(self):
         """Tests that all telemetry requests succeed."""
         for data in interfaces.library.get_telemetry_data():
