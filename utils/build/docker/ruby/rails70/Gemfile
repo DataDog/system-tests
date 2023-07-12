@@ -71,5 +71,7 @@ group :test do
   gem "webdrivers"
 end
 
+gem 'devise'
+
 gem 'pry'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'

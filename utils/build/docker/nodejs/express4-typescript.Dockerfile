@@ -14,6 +14,8 @@ WORKDIR /usr/app
 
 EXPOSE 7777
 
+ENV DD_DATA_STREAMS_ENABLED=true
+
 # docker startup
 RUN echo '#!/bin/bash\nnode dist/app.js' > app.sh
 RUN chmod +x app.sh

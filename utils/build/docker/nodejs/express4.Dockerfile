@@ -21,6 +21,8 @@ ENV PGDATABASE=system_tests
 ENV PGHOST=postgres
 ENV PGPORT=5433
 
+ENV DD_DATA_STREAMS_ENABLED=true
+
 # docker startup
 RUN echo '#!/bin/bash\nnode app.js' > app.sh
 RUN chmod +x app.sh

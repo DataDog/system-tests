@@ -14,20 +14,16 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
-        "spring-boot": "1.7.0",
-        "spring-boot-jetty": "1.7.0",
-        "spring-boot-openliberty": "1.7.0",
-        "spring-boot-payara": "1.7.0",
-        "spring-boot-wildfly": "1.7.0",
-        "spring-boot-undertow": "1.7.0",
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "vertx4": "1.12.0",
         "akka-http": "1.12.0",
-        "*": "?",
+        "ratpack": "?",
+        "*": "1.7.0",
     }
 )
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestLDAPInjection:
     """Test LDAP injection detection."""
 
@@ -56,7 +52,6 @@ class TestLDAPInjection:
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.test_telemetry_metric_instrumented_sink()
 
@@ -64,6 +59,5 @@ class TestLDAPInjection:
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_telemetry_metric_executed_sink(self):
         self.sink_fixture.test_telemetry_metric_executed_sink()
