@@ -243,7 +243,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-
     @flaky(library="nodejs", reason="Bug in nodejs tracer, heartbeat are sent too fast")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
