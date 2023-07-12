@@ -253,6 +253,7 @@ class ProxyContainer(TestedContainer):
             working_dir="/app",
             volumes={
                 f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
             ports={"11111/tcp": ("127.0.0.1", 11111)},
             command="python utils/proxy/core.py",
