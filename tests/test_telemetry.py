@@ -53,7 +53,7 @@ class Test_Telemetry:
 
         def validator(data):
             response_code = data["response"]["status_code"]
-            assert 200 <= response_code < 300, f"Got response code {response_code}"
+            assert 200 <= response_code < 300, f"Got response code {response_code} in {data['log_filename']}"
 
         self.validate_agent_telemetry_data(validator)
         self.validate_library_telemetry_data(validator)
