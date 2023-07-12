@@ -163,14 +163,14 @@ class Test_Telemetry:
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
-    @flaky(library="nodejs", reason="app-dependencies-loaded is sometimes sent before")
+    @flaky(library="nodejs", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message"""
         telemetry_data = list(interfaces.library.get_telemetry_data())
         assert len(telemetry_data) > 0, "No telemetry messages"
-        assert (
-            telemetry_data[0]["request"]["content"].get("request_type") == "app-started"
-        ), "app-started was not the first message"
+
+        first_message = telemetry_data[0]["request"]["content"]
+        assert first_message.get("request_type") == "app-started", "app-started was not the first message"
 
     @bug(
         library="java",
