@@ -68,9 +68,11 @@ module.exports = function (app, passport, tracer) {
             metadata1: "value1"
           }
         )
-      }
 
-      res.sendStatus(200)
+        res.sendStatus(200)
+      } else {
+        res.sendStatus(200)
+      }
   }
 
   function getStrategy (req, res, next) {
