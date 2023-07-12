@@ -70,7 +70,7 @@ tests/:
         django: v1.2
         flask: v1.3
         uwsgi: bug (jira ticket) # For a weblog, skip it with bug, or flaky
-        "*": "?" # All other weblogs: not yet available
+        "*": missing_feature # All other weblogs: not yet available
 ```
 
 ## Format [WIP]
@@ -87,8 +87,8 @@ tests/:
     "folder_content": {
       "type": "object",
       "patternProperties": {
-        ".*/": { "$ref": "#/$defs/folder_content" },
-        "test_.*\\.py": { "$ref": "#/$defs/file_content" }
+        ".+/": { "$ref": "#/$defs/folder_content" },
+        "test_.+\\.py": { "$ref": "#/$defs/file_content" }
       }
     },
 
@@ -97,13 +97,15 @@ tests/:
         {
           "type": "object",
           "patternProperties": {
-            "Test_.*": {
+            "Test_.+": {
+              "$comment": "It can be a version number, a skip reason, or an object with weblog variant as keys",
               "oneOf": [
                 { "$ref": "#/$defs/version" },
                 {
                   "type": "object",
+                  "$comment": "Keys are weblog variant names, values are version, or a skip reason",
                   "patternProperties": {
-                    ".*": { "$ref": "#/$defs/class_content" }
+                    ".+": { "$ref": "#/$defs/class_content" }
                   }
                 }
               ]
@@ -123,11 +125,11 @@ tests/:
       ]
     },
 
-    "version": { "type": "string", "pattern": "(v.*|\\?)" },
+    "version": { "type": "string", "pattern": "v.+" },
 
     "skipped_declaration": {
       "type": "string",
-      "pattern": "^(bug|flaky|irrelevant) \\(.*\\)$"
+      "pattern": "^(bug|flaky|irrelevant|missing_feature)( \\(.+\\))?$"
     }
   }
 }
