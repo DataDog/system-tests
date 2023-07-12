@@ -321,7 +321,9 @@ class Test_Headers_Tracestate_DD:
         assert "o:tracing2.0" in dd_items6
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library == "cpp", reason="_dd.p.dm is reset to DEFAULT because we made the sampling decision")
+    @missing_feature(
+        context.library == "cpp", reason="_dd.p.dm is reset to DEFAULT because we made the sampling decision"
+    )
     @missing_feature(
         context.library == "golang",
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
