@@ -819,9 +819,9 @@ def test_agent(
     if os.getenv("DEV_MODE") is not None:
         env["SNAPSHOT_CI"] = "0"
 
-    # Not all clients (go for example) submit the tracer version
-    # go client doesn't submit content length header
-    env["DISABLED_CHECKS"] = "meta_tracer_version_header,trace_content_length"
+    # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
+    # (trace_content_length) go client doesn't submit content length header
+    env["ENABLED_CHECKS"] = "trace_count_header"
 
     test_agent_external_port = get_open_port()
     with docker_run(
