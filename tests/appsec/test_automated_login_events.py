@@ -2,18 +2,26 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, released, scenarios, coverage, rfc
+from utils import weblog, interfaces, context, missing_feature, released, scenarios, coverage, rfc, bug
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
-@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="?", python="?", ruby="?")
+@missing_feature(
+    weblog_variant="rails32",
+    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
+)
+@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
+@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
     # users = [
     #     {
-    #         id: '1',
+    #         id: 'social-security-id',
     #         username: 'test',
     #         password: '1234',
     #         email: 'testuser@ddog.com'
@@ -25,6 +33,16 @@ class Test_Login_Events:
     #         email: 'testuseruuid@ddog.com'
     #     }
     # ]
+
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
 
     USER = "test"
     UUID_USER = "testuuid"
@@ -38,23 +56,26 @@ class Test_Login_Events:
 
     def setup_login_pii_success(self):
         self.r_pii_success = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
         ]
 
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_pii_success(self):
         for r in self.r_pii_success:
             assert r.status_code == 200
             for _, _, span in interfaces.library.get_spans(request=r):
                 meta = span.get("meta", {})
+                assert "usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["usr.id"] == " "
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
     def setup_login_success(self):
         self.r_success = [
-            weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
+            weblog.post(
+                "/login?auth=local", data={self.username_key: self.UUID_USER, self.password_key: self.PASSWORD}
+            ),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
         ]
 
@@ -66,14 +87,18 @@ class Test_Login_Events:
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
     def setup_login_wrong_user_failure(self):
+
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.INVALID_USER, "password": self.PASSWORD}),
+            weblog.post(
+                "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
+            ),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
         ]
 
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_user_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
@@ -84,17 +109,19 @@ class Test_Login_Events:
                     # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
-                assert meta["appsec.events.users.login.failure.usr.id"] == " "
+                assert "appsec.events.users.login.failure.usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
     def setup_login_wrong_password_failure(self):
+
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}),
         ]
 
+    @bug(context.library == "nodejs", reason="usr.id present in meta")
     def test_login_wrong_password_failure(self):
         for r in self.r_wrong_user_failure:
             assert r.status_code == 401
@@ -105,16 +132,17 @@ class Test_Login_Events:
                     # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
-                assert meta["appsec.events.users.login.failure.usr.id"] == " "
+                assert "appsec.events.users.login.failure.usr.id" not in meta
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
     def setup_login_sdk_success(self):
+
         self.r_sdk_success = [
             weblog.post(
                 "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-                data={"username": self.USER, "password": self.PASSWORD},
+                data={self.username_key: self.USER, self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
@@ -131,13 +159,13 @@ class Test_Login_Events:
                 assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 assert meta["usr.id"] == "sdkUser"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
     def setup_login_sdk_failure(self):
         self.r_sdk_failure = [
             weblog.post(
                 "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                data={"username": self.INVALID_USER, "password": self.PASSWORD},
+                data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
@@ -155,15 +183,26 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.track"] == "true"
                 assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @scenarios.appsec_auto_events_extended
-@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="?", python="?", ruby="?")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
+
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
+
     USER = "test"
     UUID_USER = "testuuid"
     PASSWORD = "1234"
@@ -173,7 +212,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_success(self):
         self.r_success = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
         ]
 
@@ -184,15 +223,20 @@ class Test_Login_Events_Extended:
                 meta = span.get("meta", {})
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["usr.id"] == "1"
+                assert meta["usr.id"] == "social-security-id"
                 assert meta["usr.email"] == "testuser@ddog.com"
-                assert meta["usr.username"] == "test"
-                assert meta["usr.login"] == "test"
-                assert meta["manual.keep"] == "true"
+                if context.library != "dotnet":
+                    assert meta["usr.username"] == "test"
+                    assert meta["usr.login"] == "test"
+                else:
+                    # theres no login field in dotnet
+                    # usr.name was in the sdk before so it was kept as is
+                    assert meta["usr.name"] == "test"
+                assert_priority(span, meta)
 
     def setup_login_wrong_user_failure(self):
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": "invalidUser", "password": self.PASSWORD}),
+            weblog.post("/login?auth=local", data={self.username_key: "invalidUser", self.password_key: self.PASSWORD}),
             weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}),
         ]
 
@@ -208,12 +252,16 @@ class Test_Login_Events_Extended:
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
-                assert meta["manual.keep"] == "true"
+                if context.library != "dotnet":
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+                else:
+                    # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
+                    assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                assert_priority(span, meta)
 
     def setup_login_wrong_password_failure(self):
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, "password": "12345"}),
             weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="}),
         ]
 
@@ -226,17 +274,22 @@ class Test_Login_Events_Extended:
                     # Currently in nodejs there is no way to check if the user exists upon authentication failure so
                     # this assertion is disabled for this library.
                     assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+                    assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
+                    assert meta["appsec.events.users.login.failure.username"] == "test"
+                else:
+                    assert meta["appsec.events.users.login.failure.usr.id"] == "test"
 
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
                 assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.id"] == "test"
-                assert meta["manual.keep"] == "true"
+
+                assert_priority(span, meta)
 
     def setup_login_sdk_success(self):
         self.r_sdk_success = [
             weblog.post(
                 "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-                data={"username": self.USER, "password": self.PASSWORD},
+                data={self.username_key: self.USER, self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
@@ -253,13 +306,13 @@ class Test_Login_Events_Extended:
                 assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
                 assert meta["appsec.events.users.login.success.track"] == "true"
                 assert meta["usr.id"] == "sdkUser"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
 
     def setup_login_sdk_failure(self):
         self.r_sdk_failure = [
             weblog.post(
                 "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                data={"username": "invalidUser", "password": self.PASSWORD},
+                data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
@@ -277,4 +330,13 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.failure.track"] == "true"
                 assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-                assert meta["manual.keep"] == "true"
+                assert_priority(span, meta)
+
+
+def assert_priority(span, meta):
+    MANUAL_KEEP_SAMPLING_PRIORITY = 2
+    if span["metrics"].get("_sampling_priority_v1") != MANUAL_KEEP_SAMPLING_PRIORITY:
+        assert "manual.keep" in meta, "manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP"
+        assert (
+            meta["manual.keep"] == "true"
+        ), 'meta.manual.keep should be "true" when _sampling_priority_v1 is not MANUAL_KEEP'

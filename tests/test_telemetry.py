@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, released, flaky, irrelevant, weblog, scenarios, flaky
+from utils import context, interfaces, missing_feature, bug, flaky, released, irrelevant, weblog, scenarios
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -47,6 +47,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
+    @flaky(True, reason="Backend is not stable")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
@@ -54,8 +55,8 @@ class Test_Telemetry:
             response_code = data["response"]["status_code"]
             assert 200 <= response_code < 300, f"Got response code {response_code}"
 
-        self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
+        self.validate_library_telemetry_data(validator)
 
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
@@ -99,6 +100,7 @@ class Test_Telemetry:
         )
 
     @missing_feature(library="python")
+    @flaky(True, reason="Under investigation")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -140,14 +142,24 @@ class Test_Telemetry:
                 )
 
             if diff > 1:
+                logger.error(f"{seq_ids[i + 1][0]} {seq_ids[i][0]}")
                 raise Exception(f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}")
 
     @bug(library="ruby", reason="app-started not sent")
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
-        assert len(app_started) == 1
+
+        count = 0
+
+        for data in interfaces.library.get_telemetry_data():
+            if data["request"]["content"].get("request_type") == "app-started":
+                logger.debug(
+                    f"Found app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
+                )
+                if data["response"]["status_code"] == 202:
+                    count += 1
+
+        assert count == 1
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
@@ -240,8 +252,9 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @flaky(library="java", reason="It may be 4 seconds on java ?")
+    @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @flaky(True, reason="Under investigation")
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 

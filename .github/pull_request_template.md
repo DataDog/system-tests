@@ -6,12 +6,6 @@
 
 <!-- What inspired you to submit this pull request? -->
 
-## Reviewer checklist
-
-* [ ] If this PR modifies anything else than strictly the default scenario, then add the `run-all-scenarios` label ([more info](https://github.com/DataDog/system-tests/blob/main/docs/CI/system-tests-ci.md)). 
-* [ ] CI is green
-   * [ ] If not, failing jobs are not related to this change (and you are 100% sure about this statement)
-
 ## Workflow
 
 1. ⚠️⚠️ Create your PR as draft
@@ -20,3 +14,12 @@
 4. Mark it as ready for review
 
 Once your PR is reviewed, you can merge it! :heart:
+
+## Reviewer checklist
+
+* [ ] If this PR modifies anything else than strictly the default scenario, then add the `run-all-scenarios` label ([more info](https://github.com/DataDog/system-tests/blob/main/docs/CI/system-tests-ci.md)). 
+* [ ] CI is green
+   * [ ] If not, failing jobs are not related to this change (and you are 100% sure about this statement)
+* if any of `build-some-image` label is present
+  1. is the image labl have been updated ? 
+  2. just before merging, locally build and push the image to hub.docker.com
