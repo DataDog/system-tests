@@ -123,7 +123,7 @@ tests/:
       ]
     },
 
-    "version": { " type": "string", "pattern": "(v.*|\\?)" },
+    "version": { "type": "string", "pattern": "(v.*|\\?)" },
 
     "skipped_declaration": {
       "type": "string",
