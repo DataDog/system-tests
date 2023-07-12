@@ -148,9 +148,18 @@ class Test_Telemetry:
     @bug(library="ruby", reason="app-started not sent")
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
-        assert len(app_started) == 1
+
+        count = 0
+
+        for data in interfaces.library.get_telemetry_data():
+            if data["request"]["content"].get("request_type") == "app-started":
+                logger.debug(
+                    f"Found app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
+                )
+                if data["response"]["status_code"] == 202:
+                    count += 1
+
+        assert count == 1
 
     @bug(library="ruby", reason="app-started not sent")
     @bug(library="python", reason="app-started not sent first")
