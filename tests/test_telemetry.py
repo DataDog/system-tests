@@ -244,6 +244,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
 
     @flaky(library="java", reason="It may be 4 seconds on java ?")
+    @flaky(library="nodejs", reason="Bug in nodejs tracer, heartbeat are sent too fast")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     # @flaky(True, reason="Under investigation")
     def test_app_heartbeat(self):
