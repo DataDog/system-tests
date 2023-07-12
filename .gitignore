@@ -6,6 +6,7 @@ binaries/*
 !binaries/README.md
 
 venv
+venv.
 /vendor/python
 
 .python-version

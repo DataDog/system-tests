@@ -273,6 +273,7 @@ class Test_Span_Sampling:
         assert len(sampled) in range(30, 70)
         assert len(unsampled) in range(30, 70)
 
+    @missing_feature(context.library == "cpp", reason="span is marked -1 / drop")
     @missing_feature(
         context.library == "*",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
@@ -333,6 +334,7 @@ class Test_Span_Sampling:
         # the below does not apply to all agent APIs
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
+    @missing_feature(context.library == "cpp", reason="manual.drop span tag is not applied")
     @missing_feature(
         context.library == "golang", reason="The Go tracer does not have a way to modulate trace sampling once started"
     )
@@ -556,6 +558,7 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
@@ -613,6 +616,7 @@ class Test_Span_Sampling:
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
@@ -671,6 +675,7 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
+    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")

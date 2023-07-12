@@ -1,4 +1,5 @@
 import os
+import stat
 import json
 from pathlib import Path
 import time
@@ -237,7 +238,7 @@ class ImageInfo:
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, proxy_state) -> None:
         super().__init__(
-            image_name="mitmproxy/mitmproxy",
+            image_name="datadog/system-tests:proxy-v0",
             name="proxy",
             host_log_folder=host_log_folder,
             environment={
@@ -515,15 +516,14 @@ class SqlServerContainer(TestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        image = os.environ.get(
-            "OTEL_COLLECTOR_IMAGE", "registry.ddbuild.io/ci/opentelemetry-collector-contrib:ci-image-2"
-        )
+        image = os.environ.get("OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
+        self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
         super().__init__(
             image_name=image,
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
@@ -542,3 +542,13 @@ class OpenTelemetryCollectorContainer(TestedContainer):
                 logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
             time.sleep(1)
         pytest.exit("localhost:13133 never answered to healthcheck request", 1)
+
+    def start(self) -> Container:
+        # _otel_config_host_path is mounted in the container, and depending on umask,
+        # it might have no read permissions for other users, which is required within
+        # the container. So set them here.
+        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        new_mode = prev_mode | stat.S_IROTH
+        if prev_mode != new_mode:
+            os.chmod(self._otel_config_host_path, new_mode)
+        return super().start()

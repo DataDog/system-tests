@@ -4,7 +4,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.otel_trace import OtelSpan
-from utils import missing_feature, context, scenarios
+from utils import missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -16,6 +16,7 @@ pytestmark = pytest.mark.parametrize(
 
 @scenarios.parametric
 class Test_Otel_Tracer:
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library == "dotnet", reason="Span names don't match expectations")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
@@ -56,6 +57,7 @@ class Test_Otel_Tracer:
         child_span = find_span(trace_one, OtelSpan(name="child"))
         assert child_span["name"] == "child"
 
+    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
         reason="Span names don't match expectations: 'ApmTestClient.internal' == 'test_span'",

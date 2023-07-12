@@ -2,7 +2,6 @@ ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
 
 RUN set -eux;\
-    echo "deb mirror+file:/etc/apt/mirrorlist.main jammy main" > /etc/apt/sources.list;\
     apt-get update;\
     apt-get --no-install-recommends -y install ca-certificates --option=Dpkg::Options::=--force-confdef;\
     rm -rf /var/lib/apt/lists/*;

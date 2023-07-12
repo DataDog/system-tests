@@ -204,6 +204,15 @@ jobs:
       uses: ./.github/actions/pull_images
       with:
         pull-all: ${{ needs.scenarios.outputs.run_all == 'true' }}
+    - name: Build python's weblog base images
+      if: matrix.variant.library == 'python' && contains(github.event.pull_request.labels.*.name, 'build-python-base-images')
+      run: |
+        docker build --progress=plain -f utils/build/docker/python/django-poc.base.Dockerfile -t datadog/system-tests:django-poc.base-v0 .
+        docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v0 .
+        docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v0 .
+    - name: Build proxy image
+      if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
+      run: ./build.sh -i proxy
     - name: Load WAF rules
       if: ${{ matrix.version == 'dev' }}
       run: ./utils/scripts/load-binary.sh waf_rule_set
@@ -363,14 +372,29 @@ jobs:
       run: ./run.sh APPSEC_API_SECURITY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run SAMPLING scenario
+    - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run SAMPLING scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_sampling == 'true'
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_METHOD_PROBES_STATUS scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh DEBUGGER_METHOD_PROBES_STATUS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_LINE_PROBES_STATUS scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh DEBUGGER_LINE_PROBES_STATUS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run all scenarios in replay mode
@@ -402,8 +426,11 @@ jobs:
         ./run.sh APPSEC_REQUEST_BLOCKING --replay
         ./run.sh APPSEC_RUNTIME_ACTIVATION --replay
         ./run.sh APPSEC_WAF_TELEMETRY --replay
+        ./run.sh APPSEC_AUTO_EVENTS_EXTENDED --replay
         # ./run.sh SAMPLING --replay  # currently not working on replay mode
         ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED --replay
+        ./run.sh DEBUGGER_METHOD_PROBES_STATUS --replay
+        ./run.sh DEBUGGER_LINE_PROBES_STATUS --replay
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -598,8 +625,13 @@ jobs:
       run: ./run.sh APPSEC_WAF_TELEMETRY
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run SAMPLING scenario
+    - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
       if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run SAMPLING scenario
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_sampling == 'true'
       run: ./run.sh SAMPLING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -654,7 +686,7 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
-      run: docker pull mitmproxy/mitmproxy
+      run: docker pull datadog/system-tests:proxy-v0
     - name: Build agent
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh java_otel -i agent
     - name: Build weblog
@@ -724,6 +756,7 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - scenarios
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
@@ -746,6 +779,7 @@ jobs:
     needs:
     - lint
     - test_the_test
+    - scenarios
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:

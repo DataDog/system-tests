@@ -54,6 +54,7 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
+    @missing_feature(context.library == "cpp", reason="trace-id 0 not treated as invalid")
     def test_headers_b3multi_extract_invalid(self, test_agent, test_library):
         """Ensure that invalid b3multi distributed tracing headers are not extracted.
         """
@@ -115,6 +116,7 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
+    @missing_feature(context.library == "cpp", reason="trace-id 0 not treated as invalid")
     @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_b3multi_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid b3multi distributed tracing headers are not extracted
