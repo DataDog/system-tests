@@ -40,13 +40,16 @@ module.exports = function (app, passport, tracer) {
   }
   ))
 
-  function handleAuthentication (req, res, err, user, info) {
+  function handleAuthentication (req, res, next, err, user, info) {
     const event = req.query.sdk_event
     const userId = req.query.sdk_user || 'sdk_user'
     const userMail = req.query.sdk_mail || 'system_tests_user@system_tests_user.com'
     const exists = req.query.sdk_user_exists === 'true'
 
-    if (err) { return next(err)}
+    if (err) {
+      console.error('unexpected login error', err)
+      return next(err)
+    }
     if (!user) {
       if (event === 'failure') {
         tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
@@ -74,11 +77,11 @@ module.exports = function (app, passport, tracer) {
     const auth = req.query && req.query.auth
     if (auth === 'local') {
       return passport.authenticate('local', { session: false }, function (err, user, info) {
-        handleAuthentication(req, res, err, user, info)
+        handleAuthentication(req, res, next, err, user, info)
       })(req, res, next)
     } else {
       return passport.authenticate('basic', { session: false }, function (err, user, info) {
-        handleAuthentication(req, res, err, user, info)
+        handleAuthentication(req, res, next, err, user, info)
       })(req, res, next)
     }
   }
