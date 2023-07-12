@@ -16,6 +16,9 @@ import (
 )
 
 func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
+	if s.tracer == nil {
+		s.tracer = s.tp.Tracer("")
+	}
 	var pCtx = context.Background()
 	var ddOpts []tracer.StartSpanOption
 	if pid := args.GetParentId(); pid != 0 {
