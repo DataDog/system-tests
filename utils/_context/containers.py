@@ -240,7 +240,7 @@ class ImageInfo:
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, proxy_state) -> None:
         super().__init__(
-            image_name="datadog/system-tests:proxy-v0",
+            image_name="datadog/system-tests:proxy-v1",
             name="proxy",
             host_log_folder=host_log_folder,
             environment={
