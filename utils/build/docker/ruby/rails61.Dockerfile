@@ -11,6 +11,8 @@ RUN yarn install --check-files
 
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
-RUN echo "#!/bin/bash\nbundle exec rails db:create db:migrate db:seed\nbundle exec puma -b tcp://0.0.0.0 -p 7777 -w 1" > app.sh
+RUN bundle exec rails db:create db:migrate db:seed
+
+RUN echo "#!/bin/bash\nbundle exec puma -b tcp://0.0.0.0 -p 7777 -w 1" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
