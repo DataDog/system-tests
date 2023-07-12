@@ -14,21 +14,17 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
-        "spring-boot": "1.1.0",
-        "spring-boot-jetty": "1.1.0",
-        "spring-boot-openliberty": "1.1.0",
-        "spring-boot-payara": "1.1.0",
-        "spring-boot-wildfly": "1.1.0",
-        "spring-boot-undertow": "1.1.0",
         "resteasy-netty3": "1.11.0",
         "jersey-grizzly2": "1.11.0",
         "vertx3": "1.12.0",
+        "vertx4": "1.12.0",
         "akka-http": "1.12.0",
-        "*": "?",
+        "ratpack": "?",
+        "*": "1.1.0",
     }
 )
 @released(nodejs={"express4": "3.11.0", "*": "?"})
-@missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestCommandInjection:
     """Test command injection detection."""
 
@@ -57,7 +53,6 @@ class TestCommandInjection:
     def setup_telemetry_metric_instrumented_sink(self):
         self.sink_fixture.setup_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
@@ -66,7 +61,6 @@ class TestCommandInjection:
     def setup_telemetry_metric_executed_sink(self):
         self.sink_fixture.setup_telemetry_metric_executed_sink()
 
-    @missing_feature(context.weblog_variant == "spring-boot-3-native", reason="GraalVM. Tracing support only")
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
