@@ -47,6 +47,7 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
+    @flaky(True, reason="Backend is not stable")
     def test_status_ok(self):
         """Test that telemetry requests are successful"""
 
@@ -54,8 +55,8 @@ class Test_Telemetry:
             response_code = data["response"]["status_code"]
             assert 200 <= response_code < 300, f"Got response code {response_code}"
 
-        self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
+        self.validate_library_telemetry_data(validator)
 
     @bug(
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",

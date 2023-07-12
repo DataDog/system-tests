@@ -11,7 +11,8 @@ if context.library == "cpp":
 
 
 @coverage.basic
-@released(dotnet="?", java="?", golang="?", php_appsec="?", python="?", ruby="?", nodejs="?")
+@released(dotnet="?", golang="?", java="1.15.0", php_appsec="?", python="?", ruby="?", nodejs="?")
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestWeakRandomness:
     """Test weak randomness detection."""
 

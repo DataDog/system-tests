@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import pytest
-from utils import context, coverage, released, bug
+from utils import context, coverage, released, bug, missing_feature
 from ..iast_fixtures import SourceFixture
 
 if context.library == "cpp":
@@ -14,17 +14,15 @@ if context.library == "cpp":
 @released(dotnet="?", golang="?", nodejs="?", php_appsec="?", python="?", ruby="?")
 @released(
     java={
-        "spring-boot": "1.5.0",
-        "spring-boot-jetty": "1.5.0",
-        "spring-boot-openliberty": "1.5.0",
-        "spring-boot-payara": "1.5.0",
-        "spring-boot-wildfly": "1.5.0",
-        "spring-boot-undertow": "1.5.0",
+        "resteasy-netty3": "?",
         "vertx3": "1.12.0",
+        "vertx4": "1.12.0",
         "akka-http": "1.12.0",
-        "*": "?",
+        "ratpack": "?",
+        "*": "1.5.0",
     }
 )
+@missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
 class TestCookieName:
     """Verify that request cookies are tainted"""
 
