@@ -8,6 +8,14 @@ from utils import weblog, interfaces, context, missing_feature, released, scenar
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @coverage.good
 @released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.32.0", php="?", python="?", ruby="?")
+@missing_feature(
+    weblog_variant="rails32",
+    reason="Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes",
+)
+@missing_feature(weblog_variant="rack", reason="We do not support authentication framework for rack")
+@missing_feature(weblog_variant="sinatra12", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra14", reason="We do not support authentication framework for sinatra")
+@missing_feature(weblog_variant="sinatra20", reason="We do not support authentication framework for sinatra")
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
@@ -26,6 +34,16 @@ class Test_Login_Events:
     #     }
     # ]
 
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
+
     USER = "test"
     UUID_USER = "testuuid"
     PASSWORD = "1234"
@@ -38,7 +56,7 @@ class Test_Login_Events:
 
     def setup_login_pii_success(self):
         self.r_pii_success = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
         ]
 
@@ -55,7 +73,9 @@ class Test_Login_Events:
 
     def setup_login_success(self):
         self.r_success = [
-            weblog.post("/login?auth=local", data={"username": self.UUID_USER, "password": self.PASSWORD},),
+            weblog.post(
+                "/login?auth=local", data={self.username_key: self.UUID_USER, self.password_key: self.PASSWORD}
+            ),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER}),
         ]
 
@@ -70,8 +90,11 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_wrong_user_failure(self):
+
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.INVALID_USER, "password": self.PASSWORD}),
+            weblog.post(
+                "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
+            ),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}),
         ]
 
@@ -92,8 +115,9 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_wrong_password_failure(self):
+
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}),
         ]
 
@@ -114,10 +138,11 @@ class Test_Login_Events:
                 assert_priority(span, meta)
 
     def setup_login_sdk_success(self):
+
         self.r_sdk_success = [
             weblog.post(
                 "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-                data={"username": self.USER, "password": self.PASSWORD},
+                data={self.username_key: self.USER, self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
@@ -140,7 +165,7 @@ class Test_Login_Events:
         self.r_sdk_failure = [
             weblog.post(
                 "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                data={"username": self.INVALID_USER, "password": self.PASSWORD},
+                data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
@@ -167,6 +192,17 @@ class Test_Login_Events:
 @released(cpp="?", golang="?", java="?", nodejs="4.4.0", dotnet="2.33.0", php="?", python="?", ruby="?")
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
+
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
+
     USER = "test"
     UUID_USER = "testuuid"
     PASSWORD = "1234"
@@ -176,7 +212,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_success(self):
         self.r_success = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": self.PASSWORD}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}),
             weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER}),
         ]
 
@@ -200,7 +236,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_wrong_user_failure(self):
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": "invalidUser", "password": self.PASSWORD}),
+            weblog.post("/login?auth=local", data={self.username_key: "invalidUser", self.password_key: self.PASSWORD}),
             weblog.get("/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}),
         ]
 
@@ -225,7 +261,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_wrong_password_failure(self):
         self.r_wrong_user_failure = [
-            weblog.post("/login?auth=local", data={"username": self.USER, "password": "12345"}),
+            weblog.post("/login?auth=local", data={self.username_key: self.USER, "password": "12345"}),
             weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="}),
         ]
 
@@ -253,7 +289,7 @@ class Test_Login_Events_Extended:
         self.r_sdk_success = [
             weblog.post(
                 "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-                data={"username": self.USER, "password": self.PASSWORD},
+                data={self.username_key: self.USER, self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
@@ -276,7 +312,7 @@ class Test_Login_Events_Extended:
         self.r_sdk_failure = [
             weblog.post(
                 "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                data={"username": "invalidUser", "password": self.PASSWORD},
+                data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
             ),
             weblog.get(
                 "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",

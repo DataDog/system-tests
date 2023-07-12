@@ -12,6 +12,8 @@ RUN /binaries/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
+RUN bundle exec rake db:create db:migrate db:seed
+
 RUN echo "#!/bin/bash\nbundle exec thin start -p 7777" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
