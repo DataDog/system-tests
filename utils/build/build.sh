@@ -123,8 +123,6 @@ build() {
     *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
     esac
 
-    echo "DOCKER_PLATFORM_ARGS: $DOCKER_PLATFORM_ARGS"
-
     # Build images
     for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
     do

@@ -1,5 +1,4 @@
-FROM --platform=linux/arm64/v8 datadog/system-tests:flask-poc.base-v1
-#FROM --platform=linux/arm64/v8 hokitam/flaskpoc
+FROM datadog/system-tests:flask-poc.base-v1
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
@@ -10,6 +9,7 @@ RUN /binaries/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
+ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
 # FIXME: Ensure gevent patching occurs before ddtrace

@@ -2,8 +2,8 @@ import psycopg2
 import requests
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace import patch
-patch(kafka=True)
+import ddtrace
+ddtrace.patch_all()
 from flask import Flask, Response
 from flask import request as flask_request
 from iast import (
@@ -17,6 +17,7 @@ from iast import (
 from threading import Thread
 import threading
 from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
+import os
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -164,13 +165,22 @@ def dbm():
 def dsm():
     topic = "dsm-system-tests-queue"
     consumer_group = "testgroup1"
+
+    def delivery_report(err, msg):
+        if err is not None:
+            print(f"[kafka] Message delivery failed: {err}")
+        else:
+            print(f"[kafka] Message delivered to {msg.topic()} [{msg.partition()}]")
+
     def produce():
         producer = Producer({
             'bootstrap.servers': 'kafka:9092',
             'client.id': "python-producer"
         })
         message = b"Hello, Kafka!"
-        producer.produce(topic, value=message)
+        producer.produce(topic, value=message, callback=delivery_report)
+        producer.flush()
+        print("[kafka] Produced and flushed message")
 
     def consume():
         consumer = Consumer(
@@ -182,18 +192,34 @@ def dsm():
             })
 
         consumer.subscribe([topic])
-        msg = consumer.poll()
-        if msg is None:
-            print("[kafka] Consumed message but got nothing")
-        if msg.error():
-            print("[kafka] Consumed message but got error " + msg.error())
-        consumer.close();
+
+        msg_received = False
+        while not msg_received:
+            msg = consumer.poll(10)
+            if msg is None:
+                print("[kafka] Consumed message but got nothing")
+            elif msg.error():
+                print("[kafka] Consumed message but got error " + msg.error())
+            else:
+                print("[kafka] Consumed message: ")
+                print(f"[kafka] from topic {msg.topic()}, partition {msg.partition()}, offset {msg.offset()}, key {str(msg.key())}")
+                print(f"[kafka] value {msg.value()}")
+                msg_received = True
+        consumer.close()
 
     integration = flask_request.args.get("integration")
+    print(f"[kafka] Got request with integration: {integration}")
     if integration == "kafka":
+        print("DD_DATA_STREAMS_ENABLED")
+        print(os.environ['DD_DATA_STREAMS_ENABLED'])
         produce_thread = threading.Thread(target=produce, args=())
         consume_thread = threading.Thread(target=consume, args=())
-        return Response("OK")
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        print("[kafka] returning response")
+        return Response("ok")
 
     return Response(f"Integration is not supported: {integration}", 406)
 
