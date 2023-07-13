@@ -272,15 +272,17 @@ function main() {
         if [[ "${scenario}" != "PARAMETRIC" ]]; then
             pytest_numprocesses=1
         fi
-
-        for library in "${libraries[@]}"; do
-            case "${library}" in
-                dotnet|go|python_http)
-                    pytest_numprocesses=1
-                    ;;
-            esac
-        done
     done
+
+    if [[ "${#libraries[@]}" -gt 0 ]]; then
+      for library in "${libraries[@]}"; do
+          case "${library}" in
+              dotnet|go|python_http)
+                  pytest_numprocesses=1
+                  ;;
+          esac
+      done
+    fi
 
     case "${pytest_numprocesses}" in
         0|1)
