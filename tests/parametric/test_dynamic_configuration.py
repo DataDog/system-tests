@@ -140,7 +140,7 @@ class TestDynamicConfig:
             ]
         ],
     )
-    @missing_feature(context.library in ["java", "dotnet", "ruby"], reason="Not implemented yet")
+    @missing_feature(context.library in ["java", "dotnet", "ruby", "nodejs"], reason="Not implemented yet")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_status when the service targeting is not correct.
 
@@ -285,7 +285,7 @@ class TestDynamicConfig:
             headers=[
                 ("X-Test-Header", "test-value"),
                 ("X-Test-Header-2", "test-value-2"),
-                ("Content-Length", "content_length_env"),
+                ("Content-Length", "35"),
             ],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
@@ -325,7 +325,7 @@ class TestDynamicConfig:
             headers=[
                 ("X-Test-Header", "test-value"),
                 ("X-Test-Header-2", "test-value-2"),
-                ("Content-Length", "content_length_env"),
+                ("Content-Length", "35"),
             ],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
