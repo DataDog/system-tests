@@ -39,6 +39,7 @@ gem 'spring',        group: :development
 # gem 'debugger', group: [:development, :test]
 
 gem 'pry'
+gem 'devise'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
 gem 'msgpack', '~> 1.3.3' # Ruby < 2.4
 gem 'mini_racer', '~> 0.4.0', platforms: :ruby
