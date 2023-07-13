@@ -187,7 +187,7 @@ class _RequestLogger:
             c = json.loads(flow.response.content)
             c["endpoints"].append("/v0.7/config")
             flow.response.content = json.dumps(c).encode()
-        elif flow.request.path == "/v0.7/config" and str(flow.response.status_code) == "404":
+        elif flow.request.path == "/v0.7/config":
             request_content = json.loads(flow.request.content)
 
             runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
