@@ -183,11 +183,14 @@ class _RequestLogger:
             return  # modify only tracer/agent flow
 
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
-            logger.info("    => Overwriting /info response to include /v0.7/config")
             c = json.loads(flow.response.content)
-            c["endpoints"].append("/v0.7/config")
-            flow.response.content = json.dumps(c).encode()
-        elif flow.request.path == "/v0.7/config" and str(flow.response.status_code) == "404":
+
+            if "/v0.7/config" not in c["endpoints"]:
+                logger.info("    => Overwriting /info response to include /v0.7/config")
+                c["endpoints"].append("/v0.7/config")
+                flow.response.content = json.dumps(c).encode()
+
+        elif flow.request.path == "/v0.7/config":
             request_content = json.loads(flow.request.content)
 
             runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
