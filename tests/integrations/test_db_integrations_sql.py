@@ -48,8 +48,8 @@ def integration_db(request):
     condition=context.library != "java" and context.weblog_variant != "integrations-db",
     reason="Endpoint is not implemented on weblog",
 )
-@scenarios.integrations_db
-class Test_Db_Integrations:
+@scenarios.integrations_db_sql
+class Test_Db_Integrations_sql:
     """ Verify basic DB operations over different databases """
 
     # Weblog should support multiple datasources and the endpoint accepts parameters: service as DB identifier (mysql,postgre..) and 'operation' as db operation

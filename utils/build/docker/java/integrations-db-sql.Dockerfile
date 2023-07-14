@@ -4,10 +4,10 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
 
-COPY ./utils/build/docker/java/integrations-db/pom.xml .
+COPY ./utils/build/docker/java/integrations-db-sql/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
-COPY ./utils/build/docker/java/integrations-db/src ./src
+COPY ./utils/build/docker/java/integrations-db-sql/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
@@ -23,7 +23,7 @@ COPY --from=build /app/target /app/target
 COPY --from=build /app/src /app/src
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
-COPY ./utils/build/docker/java/app-integrations-db.sh /app/app.sh
+COPY ./utils/build/docker/java/app-integrations-db-sql.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'

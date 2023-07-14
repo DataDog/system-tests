@@ -865,8 +865,8 @@ class scenarios:
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
     )
 
-    integrations_db = EndToEndScenario(
-        "INTEGRATIONS_DB",
+    integrations_db_sql = EndToEndScenario(
+        "INTEGRATIONS_DB_SQL",
         weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
         include_postgres_db=True,
         include_cassandra_db=False,
