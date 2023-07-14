@@ -919,8 +919,8 @@ class scenarios:
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_COLLECTION_ENABLED": "false",},
-        doc="Test env var `DD_TELEMETRY_METRICS_COLLECTION_ENABLED=false`",
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
+        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
     )
 
     # ASM scenarios
