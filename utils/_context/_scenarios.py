@@ -865,6 +865,19 @@ class scenarios:
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of thoise database with tracers",
     )
 
+    integrations_db = EndToEndScenario(
+        "INTEGRATIONS_DB",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "full"},
+        include_postgres_db=True,
+        include_cassandra_db=False,
+        include_mongo_db=False,
+        include_kafka=False,
+        include_rabbitmq=False,
+        include_mysql_db=True,
+        include_sqlserver=True,
+        doc="Test the intgrations of thoise database with tracers",
+    )
+
     profiling = EndToEndScenario(
         "PROFILING",
         library_interface_timeout=160,
