@@ -5,6 +5,7 @@
 from collections import namedtuple
 import json
 import threading
+import copy
 
 from utils.tools import logger
 from utils.interfaces._core import InterfaceValidator, get_rid_from_request, get_rid_from_span, get_rid_from_user_agent
@@ -123,6 +124,19 @@ class LibraryInterfaceValidator(InterfaceValidator):
 
     def get_telemetry_data(self):
         yield from self.get_data(path_filters="/telemetry/proxy/api/v2/apmtelemetry")
+
+    def get_flattened_telemetry_data(self):
+        for data in self.get_telemetry_data():
+            if data["request"]["content"].get("request_type") == "message-batch":
+                for batchPayload in data["request"]["content"]["payload"]:
+                    # create a fresh copy of the request for each payload in the
+                    # message batch, as though they were all sent independently
+                    copied = copy.deepcopy(data)
+                    copied["request"]["content"]["request_type"] = batchPayload.get("request_type")
+                    copied["request"]["content"]["payload"] = batchPayload.get("payload")
+                    yield copied
+            else:
+                yield data
 
     ############################################################
 
