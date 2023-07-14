@@ -530,9 +530,10 @@ class SqlServerContainer(TestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
         super().__init__(
-            image_name="otel/opentelemetry-collector-contrib:latest",
+            image_name=image,
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
