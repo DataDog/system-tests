@@ -8,7 +8,6 @@ import pytest
 import requests
 from utils import context
 
-# integration_db_data = [ {'service':'mysql','db_type':'mysql','db_instance':'world',"db_user": "mysqldb","peer_hostname": "mysqldb","db_password": "mysqldb","request":{}}]
 integration_db_data = [
     {
         "service": "mysql",
@@ -26,6 +25,15 @@ integration_db_data = [
         "db_user": "system_tests_user",
         "peer_hostname": "postgres",
         "db_password": "system_tests",
+        "request": {},
+    },
+    {
+        "service": "sqlserver",
+        "db_type": "sqlserver",
+        "db_instance": "master",
+        "db_user": "SA",
+        "peer_hostname": "mssql",
+        "db_password": "yourStrong(!)Password",
         "request": {},
     },
 ]

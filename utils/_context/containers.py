@@ -502,7 +502,7 @@ class MySqlContainer(TestedContainer):
         )
 
 
-class SqlServerContainer(TestedContainer):
+class SqlServerContainer_NOTSUPPORT_M1(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="mcr.microsoft.com/mssql/server:latest",
@@ -511,6 +511,20 @@ class SqlServerContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
+        )
+
+
+class SqlServerContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        self.data_mssql = f"./{host_log_folder}/data-mssql"
+        super().__init__(
+            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            name="mssql",
+            environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
+            allow_old_container=True,
+            host_log_folder=host_log_folder,
+            ports={"1433/tcp": ("127.0.0.1", 1433)},
+            volumes={self.data_mssql: {"bind": "/var/opt/mssql/data"}},
         )
 
 
