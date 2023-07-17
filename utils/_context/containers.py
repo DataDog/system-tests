@@ -503,29 +503,9 @@ class MySqlContainer(TestedContainer):
         )
 
 
-class SqlServerContainer_NOTSUPPORT_M1(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="mcr.microsoft.com/mssql/server:latest",
-            name="sqlserver",
-            environment={"SA_PASSWORD": "Strong!Passw0rd", "ACCEPT_EULA": "Y",},
-            allow_old_container=True,
-            host_log_folder=host_log_folder,
-            ports={"1433/tcp": ("127.0.0.1", 1433)},
-        )
-
-
 class SqlServerContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
-        isExist = os.path.exists(self.data_mssql)
-        if not isExist:
-            # Create a new directory because it does not exist
-            os.makedirs(self.data_mssql)
-            os.chmod(self.data_mssql, 0o777)
-            print("The new directory is created!")
-
-        # self.data_mssql = f"~/data-mssql"
         super().__init__(
             image_name="mcr.microsoft.com/azure-sql-edge:latest",
             name="mssql",
@@ -533,7 +513,7 @@ class SqlServerContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
-            # volumes={self.data_mssql: {"bind": "/var/opt/mssql/data"}},
+            volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
         )
 
 
