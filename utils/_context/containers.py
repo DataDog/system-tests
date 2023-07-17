@@ -517,7 +517,7 @@ class SqlServerContainer_NOTSUPPORT_M1(TestedContainer):
 class SqlServerContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         # self.data_mssql = f"./{host_log_folder}/data-mssql"
-        self.data_mssql = f"/tmp/data-mssql"
+        self.data_mssql = f"~/data-mssql"
         super().__init__(
             image_name="mcr.microsoft.com/azure-sql-edge:latest",
             name="mssql",
