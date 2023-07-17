@@ -524,10 +524,6 @@ class SqlServerContainer(TestedContainer):
             os.makedirs(self.data_mssql)
             os.chmod(self.data_mssql, 0o777)
             print("The new directory is created!")
-            # Changing the owner id and group id of the file
-            uid = 10001
-            gid = 0
-            shutil.chown(self.data_mssql, user=uid, group=gid)
 
         # self.data_mssql = f"~/data-mssql"
         super().__init__(
@@ -537,7 +533,7 @@ class SqlServerContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
-            volumes={self.data_mssql: {"bind": "/var/opt/mssql/data"}},
+            # volumes={self.data_mssql: {"bind": "/var/opt/mssql/data"}},
         )
 
 
