@@ -13,6 +13,7 @@ import requests
 
 from utils._context.library_version import LibraryVersion, Version
 from utils.tools import logger
+import shutil
 
 
 @lru_cache
@@ -523,6 +524,10 @@ class SqlServerContainer(TestedContainer):
             os.makedirs(self.data_mssql)
             os.chmod(self.data_mssql, 0o777)
             print("The new directory is created!")
+            # Changing the owner id and group id of the file
+            uid = 10001
+            gid = 0
+            shutil.chown(self.data_mssql, user=uid, group=gid)
 
         # self.data_mssql = f"~/data-mssql"
         super().__init__(
