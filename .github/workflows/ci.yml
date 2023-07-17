@@ -689,7 +689,7 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Pull mitmproxy image
-      run: docker pull datadog/system-tests:proxy-v1
+      run: docker pull datadog/system-tests:proxy-v1 || true
     - name: Build proxy image
       if: contains(github.event.pull_request.labels.*.name, 'build-proxy-image')
       run: ./build.sh -i proxy
