@@ -516,8 +516,15 @@ class SqlServerContainer_NOTSUPPORT_M1(TestedContainer):
 
 class SqlServerContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        # self.data_mssql = f"./{host_log_folder}/data-mssql"
-        self.data_mssql = f"~/data-mssql"
+        self.data_mssql = f"./{host_log_folder}/data-mssql"
+        isExist = os.path.exists(self.data_mssql)
+        if not isExist:
+            # Create a new directory because it does not exist
+            os.makedirs(self.data_mssql)
+            os.chmod(self.data_mssql, 0o777)
+            print("The new directory is created!")
+
+        # self.data_mssql = f"~/data-mssql"
         super().__init__(
             image_name="mcr.microsoft.com/azure-sql-edge:latest",
             name="mssql",
