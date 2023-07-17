@@ -513,7 +513,7 @@ class SqlServerContainer(TestedContainer):
             allow_old_container=True,
             host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
-            volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
+            #  volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
         )
 
 
