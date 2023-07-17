@@ -18,7 +18,7 @@ readonly ALIAS_CACHE_FROM="R" #read cache
 readonly ALIAS_CACHE_TO="W" #write cache
 
 readonly DEFAULT_TEST_LIBRARY=nodejs
-readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent,proxy
+readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
 readonly DEFAULT_DOCKER_MODE=0
 
 # Define default weblog variants.
