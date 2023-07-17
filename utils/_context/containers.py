@@ -417,7 +417,7 @@ class PostgresContainer(TestedContainer):
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
-                f"./utils/build/docker/postgres-init-db.sh": {
+                "./utils/build/docker/postgres-init-db.sh": {
                     "bind": "/docker-entrypoint-initdb.d/init_db.sh",
                     "mode": "ro",
                 }
