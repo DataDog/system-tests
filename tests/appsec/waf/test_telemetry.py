@@ -58,7 +58,7 @@ class Test_TelemetryMetrics:
 
     setup_metric_waf_init = _setup
 
-    @flaky(library="python", reason="On django, sometimes only one serie is sent")
+    @flaky(context.weblog == "django-poc", reason="On django, sometimes only one serie is sent")
     def test_metric_waf_init(self):
         """Test waf.init metric."""
         expected_metric_name = "waf.init"
