@@ -221,7 +221,7 @@ elif [ "$TARGET" = "cpp" ]; then
     # Not handled for now
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
-    echo "datadog/agent-dev:master-py3@sha256:a50aee313c362a30429fc6948aeb1f63925fd43ba7c67fe9fb68a3a83c694040" > agent-image
+    echo "datadog/agent-dev:master-py3" > agent-image
     echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
