@@ -805,7 +805,7 @@ jobs:
         if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v3
         with:
-          name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_graalvm
+          name: logs_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}_integrations-db-sql
           path: artifact.tar.gz
       - name: Upload results CI Visibility
         if: steps.build.outcome == 'success'
