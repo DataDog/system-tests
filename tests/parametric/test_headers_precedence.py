@@ -32,7 +32,6 @@ def enable_datadog_tracecontext() -> Any:
 
 @scenarios.parametric
 class Test_Headers_Precedence:
-    @missing_feature(context.library == "cpp", reason="traceparent is injected in headers1")
     @missing_feature(context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
