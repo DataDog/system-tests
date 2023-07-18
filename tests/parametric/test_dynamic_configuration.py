@@ -282,11 +282,7 @@ class TestDynamicConfig:
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[
-                ("X-Test-Header", "test-value"),
-                ("X-Test-Header-2", "test-value-2"),
-                ("Content-Length", "35"),
-            ],
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
@@ -322,11 +318,7 @@ class TestDynamicConfig:
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[
-                ("X-Test-Header", "test-value"),
-                ("X-Test-Header-2", "test-value-2"),
-                ("Content-Length", "35"),
-            ],
+            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
