@@ -33,7 +33,6 @@ def enable_datadog_tracecontext() -> Any:
 @scenarios.parametric
 class Test_Headers_Precedence:
     @missing_feature(context.library == "dotnet", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
     @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
@@ -373,10 +372,6 @@ class Test_Headers_Precedence:
 
     @enable_datadog_tracecontext()
     @missing_feature(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
-    @missing_feature(
-        context.library == "golang",
-        reason="BUG: suite #4 is failing - if context is successfully retrieved from W3C propagator, datadog propagator is NOT.run, thus not retrieving / overwriting the headers",
-    )
     @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
