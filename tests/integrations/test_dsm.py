@@ -94,14 +94,15 @@ class Test_DsmRabbitmq:
         # See https://github.com/DataDog/dd-trace-dotnet/blob/6aab5e1b02bec9c9b68a33cd06cc9e7a774f14de/tracer/src/Datadog.Trace/ClrProfiler/AutoInstrumentation/RabbitMQ/RabbitMQIntegration.cs#L144
         # where `queue` is not passed
         DsmHelper.assert_checkpoint_presence(
-            hash_=12449081340987959886,
+            hash_=120859962014608248,
             parent_hash=12547013883960139159,
-            tags=("direction:in", "topic:testRoutingKey", "type:rabbitmq"),
+            tags=("direction:in", "topic:systemTestRabbitmqQueue", "type:rabbitmq"),
         )
 
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
+@released(dotnet="2.29.0")
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
@@ -109,6 +110,7 @@ class Test_DsmRabbitmq_TopicExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
 
+    @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -136,9 +138,43 @@ class Test_DsmRabbitmq_TopicExchange:
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
         )
 
+    def setup_dsm_rabbitmq_dotnet_legacy(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
 
-@released(cpp="?", dotnet="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
+    @irrelevant(context.library != "dotnet", reason="legacy dotnet behavior")
+    def test_dsm_rabbitmq_dotnet_legacy(self):
+        assert self.r.text == "ok"
+
+        # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
+        # the other tracer libraries, which causes the resulting hash to be different.
+        DsmHelper.assert_checkpoint_presence(
+            hash_=378300129197643016,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:True", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=9354355895797419296,
+            parent_hash=378300129197643016,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=1004586362767825494,
+            parent_hash=378300129197643016,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=11960982753020577776,
+            parent_hash=378300129197643016,
+            tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
+        )
+
+
+@released(cpp="?", golang="?", nodejs="?", php="?", python="?", ruby="?")
 @released(java={"spring-boot": "1.13.0", "*": "?"})
+@released(dotnet="2.29.0")
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
@@ -146,6 +182,7 @@ class Test_DsmRabbitmq_FanoutExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
 
+    @bug(library="dotnet", reason="bug in dotnet behavior")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -173,6 +210,38 @@ class Test_DsmRabbitmq_FanoutExchange:
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
         )
 
+    def setup_dsm_rabbitmq_dotnet_legacy(self):
+        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+
+    @irrelevant(context.library != "dotnet", reason="legacy dotnet behavior")
+    def test_dsm_rabbitmq_dotnet_legacy(self):
+        assert self.r.text == "ok"
+
+        # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
+        # the other tracer libraries, which causes the resulting hash to be different.
+        DsmHelper.assert_checkpoint_presence(
+            hash_=3170684449488615704,
+            parent_hash=0,
+            tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:False", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=16576682041580465041,
+            parent_hash=3170684449488615704,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=11429030658285204218,
+            parent_hash=3170684449488615704,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
+        )
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=6675089359340834961,
+            parent_hash=3170684449488615704,
+            tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
+        )
 
 class DsmHelper:
     @staticmethod
