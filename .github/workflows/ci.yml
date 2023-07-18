@@ -241,7 +241,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -256,7 +256,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -509,7 +509,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_profiling == 'true'
       run: ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -524,7 +524,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_all == 'true'
+      if: always() && steps.build.outcome == 'success' && needs.scenarios.outputs.run_open_telemetry == 'true'
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}

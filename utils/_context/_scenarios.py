@@ -278,6 +278,7 @@ class _DockerScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
     def collect_logs(self):
+        """ Get stdout/stderr for all docker containers """
 
         for container in self._required_containers:
             try:
@@ -467,7 +468,9 @@ class EndToEndScenario(_DockerScenario):
 
         if self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self.weblog_container.stop()
             self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            self.agent_container.stop()
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
             self.collect_logs()
