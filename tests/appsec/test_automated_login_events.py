@@ -69,7 +69,7 @@ class Test_Login_Events:
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert_priority(span, meta)
 
-    def setup_login_pii_succes_basic(self):
+    def setup_login_pii_success_basic(self):
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
     @bug(context.library == "nodejs", reason="usr.id present in meta")
