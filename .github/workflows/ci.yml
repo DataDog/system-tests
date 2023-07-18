@@ -52,6 +52,7 @@ jobs:
     - test_the_test
     - scenarios
     uses: datadog/system-tests/.github/workflows/parametric.yml@cbeauchesne/merge-parametric-ci
+    secrets: inherit
 
   experimental:
     if: needs.scenarios.outputs.run_libinjection == 'true'
@@ -60,6 +61,7 @@ jobs:
     - test_the_test
     - scenarios
     uses: datadog/system-tests/.github/workflows/experimental.yml@cbeauchesne/merge-parametric-ci
+    secrets: inherit
 
   main:
     runs-on: ubuntu-latest
