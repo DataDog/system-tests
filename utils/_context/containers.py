@@ -537,14 +537,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         for i in range(61):
             try:
-                r = requests.get("http://localhost:13133", timeout=1)
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {r}")
+                r = requests.get("http://0.0.0.0:13133", timeout=1)
+                logger.debug(f"Healthcheck #{i} on 0.0.0.0:13133: {r}")
                 if r.status_code == 200:
                     return
             except Exception as e:
-                logger.debug(f"Healthcheck #{i} on localhost:13133: {e}")
+                logger.debug(f"Healthcheck #{i} on 0.0.0.0:13133: {e}")
             time.sleep(1)
-        pytest.exit("localhost:13133 never answered to healthcheck request", 1)
+        pytest.exit("0.0.0.0:13133 never answered to healthcheck request", 1)
 
     def start(self) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,
