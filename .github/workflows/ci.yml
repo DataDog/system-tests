@@ -43,13 +43,23 @@ jobs:
       - run: ./run.sh TEST_THE_TEST
 
   scenarios:
-    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@${{ github.ref_name }}
+    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@cbeauchesne/merge-parametric-ci
 
   parametric:
+    if: needs.scenarios.outputs.run_parametric == 'true'
     needs:
     - lint
     - test_the_test
-    uses: datadog/system-tests/.github/workflows/parametric.yml@${{ github.ref_name }}
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/parametric.yml@cbeauchesne/merge-parametric-ci
+
+  experimental:
+    if: needs.scenarios.outputs.run_libinjection == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/experimental.yml@cbeauchesne/merge-parametric-ci
 
   main:
     runs-on: ubuntu-latest
