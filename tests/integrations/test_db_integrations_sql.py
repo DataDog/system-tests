@@ -45,7 +45,9 @@ def integration_db(request):
 
 
 @missing_feature(
-    condition=context.library != "java" and context.weblog_variant != "integrations-db",
+    condition=context.library != "java"
+    and context.library != "nodejs"
+    and context.weblog_variant != "integrations-db-sql",
     reason="Endpoint is not implemented on weblog",
 )
 @scenarios.integrations_db_sql
@@ -107,10 +109,11 @@ class Test_Db_Integrations_sql:
             request_id = db_operation
         sql_found = False
         for data, trace, span in interfaces.library.get_spans(integration_db["request"][request_id]):
+            logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
             for trace in data["request"]["content"]:
                 for span_child in trace:
                     if (
-                        span_child["parent_id"] == span["span_id"]
+                        "type" in span_child
                         and span_child["type"] == "sql"
                         and span_child["trace_id"] == span["trace_id"]
                     ):

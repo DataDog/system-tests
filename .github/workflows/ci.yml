@@ -746,6 +746,8 @@ jobs:
         variant:
         - library: java
           weblog: integrations-db-sql
+        - library: nodejs
+          weblog: integrations-db-sql
         version:
         - prod
         - dev
