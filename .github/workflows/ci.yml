@@ -43,7 +43,13 @@ jobs:
       - run: ./run.sh TEST_THE_TEST
 
   scenarios:
-    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
+    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@${{ github.ref_name }}
+
+  parametric:
+    needs:
+    - lint
+    - test_the_test
+    uses: datadog/system-tests/.github/workflows/parametric.yml@${{ github.ref_name }}
 
   main:
     runs-on: ubuntu-latest
