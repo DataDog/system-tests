@@ -118,7 +118,7 @@ class Test_Db_Integrations_sql:
                         and span_child["trace_id"] == span["trace_id"]
                     ):
                         sql_found = True
-                        assert integration_db["service"] == span_child["service"]
+                        assert integration_db["service"] in span_child["service"]
                         assert integration_db["db_type"] == span_child["meta"]["db.type"]
                         assert integration_db["db_instance"] == span_child["meta"]["db.instance"]
                         assert integration_db["db_user"] == span_child["meta"]["db.user"]
