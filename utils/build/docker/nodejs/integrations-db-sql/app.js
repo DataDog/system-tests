@@ -7,6 +7,7 @@ const tracer = require('dd-trace').init({
 const app = require("express")();
 const pgsql = require('./postgres');
 const mysql = require('./mysql');
+const mssql = require('./mssql');
 
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));
@@ -28,6 +29,8 @@ app.get('/db', (req, res) => {
     pgsql.doOperation(req.query.operation)
   }else  if (req.query.service == "mysql") {
     mysql.doOperation(req.query.operation)
+  }else  if (req.query.service == "sqlserver") {
+    mssql.doOperation(req.query.operation)
   }
 
 });
@@ -38,5 +41,6 @@ app.listen(7777, '0.0.0.0', () => {
   console.log('listening');
   pgsql.init();
   mysql.init();
+  mssql.init();
 });
 
