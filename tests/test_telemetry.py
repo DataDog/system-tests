@@ -18,7 +18,7 @@ class Test_Telemetry:
     agent_requests = {}
 
     def validate_library_telemetry_data(self, validator, success_by_default=False):
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0:
             if not success_by_default:
@@ -112,7 +112,7 @@ class Test_Telemetry:
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
@@ -155,7 +155,7 @@ class Test_Telemetry:
 
         count = 0
 
-        for data in interfaces.library.get_flattened_telemetry_data():
+        for data in interfaces.library.get_telemetry_data():
             if data["request"]["content"].get("request_type") == "app-started":
                 logger.debug(
                     f"Found app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
@@ -170,7 +170,7 @@ class Test_Telemetry:
     @flaky(library="nodejs", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or in the first batch"""
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
         if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
             for payload in telemetry_data[0]["request"]["content"]["payload"]:
@@ -280,7 +280,7 @@ class Test_Telemetry:
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
-        telemetry_data = list(interfaces.library.get_flattened_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data())
         assert len(telemetry_data) > 0, "No telemetry messages"
 
         heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
@@ -368,7 +368,7 @@ class Test_Telemetry:
         seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
         seen_defined_dependencies = test_defined_dependencies[context.library.library]
 
-        for data in interfaces.library.get_flattened_telemetry_data():
+        for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") == "app-started":
                 if "dependencies" in content["payload"]:
@@ -472,7 +472,7 @@ class Test_Telemetry:
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
-        telemetry_data = list(interfaces.library.get_flattened_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data())
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
@@ -510,7 +510,7 @@ class Test_ProductsDisabled:
     @scenarios.telemetry_app_started_products_disabled
     def test_app_started_product_disabled(self):
 
-        telemetry_data = list(interfaces.library.get_flattened_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data())
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
@@ -533,7 +533,7 @@ class Test_DependencyEnable:
     def test_app_dependency_loaded_not_sent_dependency_collection_disabled(self):
         """app-dependencies-loaded request should not be sent if DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED is false"""
 
-        for data in interfaces.library.get_flattened_telemetry_data():
+        for data in interfaces.library.get_telemetry_data():
             if data["request"]["content"].get("request_type") == "app-dependencies-loaded":
                 raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
 
@@ -552,7 +552,7 @@ class Test_ForceBatchingEnabled:
     def test_message_batch_event_order(self):
         """Test that the events in message-batch are in chronological order"""
         event_list = []
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 
@@ -570,7 +570,7 @@ class Test_Log_Generation:
 
     def test_log_generation_disabled(self):
 
-        telemetry_data = list(interfaces.library.get_flattened_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data())
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
@@ -587,7 +587,7 @@ class Test_Metric_Generation:
 
     def test_metric_generation_disabled(self):
 
-        telemetry_data = list(interfaces.library.get_flattened_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data())
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
