@@ -25,12 +25,16 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 class Test_Profile:
     """ Basic testing of profiling """
 
-    def _common_setup(self):
-        if hasattr(self, "_is_set_up"):
+    @staticmethod
+    def _common_setup():
+
+        if hasattr(Test_Profile, "_is_set_up"):
             return
-        self._is_set_up = True
+
+        Test_Profile._is_set_up = True
+
         for _ in range(100):
-            self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
+            weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
 
     def setup_library(self):
         self._common_setup()

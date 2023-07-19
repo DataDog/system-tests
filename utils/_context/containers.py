@@ -188,6 +188,9 @@ class TestedContainer:
         with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
             f.write(self._container.logs(stdout=False, stderr=True))
 
+    def stop(self):
+        self._container.stop()
+
     def remove(self):
 
         if not self._container:
