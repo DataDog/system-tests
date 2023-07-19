@@ -217,29 +217,6 @@ public partial class ApmTestClientService
 
         SetTag(activity, request.Attributes);
 
-        //foreach ((string key, ListVal values) in request.Attributes.KeyVals)
-        //{
-        //    var valuesList = values.Val.ToList();
-        //    if (valuesList.Count == 1)
-        //    {
-        //        var value = GetValue(valuesList[0]);
-        //        if (value is not null)
-        //        {
-        //            activity.SetTag(key, value);
-        //        }
-        //    }
-        //    else if (valuesList.Count > 1)
-        //    {
-        //        var toAdd = new List<object>();
-        //        foreach(var value in valuesList)
-        //        {
-        //            var valueToAdd = GetValue(value) ?? throw new InvalidOperationException("Null value in attribute array");
-        //            toAdd.Add(valueToAdd);
-        //        }
-        //        activity.SetTag(key, toAdd);
-        //    }
-        //}
-
         _logger.LogInformation("OtelSetAttributesReturn");
         return Task.FromResult(new OtelSetAttributesReturn());
     }
