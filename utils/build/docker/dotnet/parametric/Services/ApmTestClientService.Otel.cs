@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using ApmTestClient.DuckTypes;
 using Datadog.Trace.DuckTyping;
@@ -67,7 +66,12 @@ public partial class ApmTestClientService
                 "Provide one or the other, but not both.");
         }
 
-        var startTime = request.HasTimestamp ? DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp) : default;
+        DateTimeOffset startTime = default;
+        if (request.HasTimestamp)
+        {
+            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(request.Timestamp);
+        }
+
         var parentContext = localParentContext ?? remoteParentContext ?? default;
 
         var activity = ApmTestClientActivitySource.StartActivity(
@@ -84,6 +88,12 @@ public partial class ApmTestClientService
         }
 
         activity.ActivityTraceFlags = ActivityTraceFlags.Recorded;
+
+        // add necessary tags to the activity
+        if (request.Attributes != null)
+        {
+            SetTag(activity, request.Attributes);
+        }
 
         _logger.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
 
@@ -110,13 +120,14 @@ public partial class ApmTestClientService
         _logger.LogInformation("OtelEndSpan: {Request}", request);
 
         var activity = FindActivity(request.Id);
-        activity.Stop();
 
         if (request.HasTimestamp)
         {
-            DateTimeOffset timestamp = DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp);
-            activity.SetEndTime(timestamp.DateTime);
+            DateTimeOffset timestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(request.Timestamp);
+            activity.SetEndTime(timestamp.UtcDateTime);
         }
+
+        activity.Stop();
 
         _logger.LogInformation("OtelEndSpanReturn");
         return Task.FromResult(new OtelEndSpanReturn());
@@ -185,42 +196,78 @@ public partial class ApmTestClientService
         return Task.FromResult(new OtelSetNameReturn());
     }
 
+    private static object? GetValue(AttrVal value)
+    {
+        return value.ValCase switch
+        {
+            AttrVal.ValOneofCase.BoolVal => value.BoolVal,
+            AttrVal.ValOneofCase.StringVal => value.StringVal,
+            AttrVal.ValOneofCase.DoubleVal => value.DoubleVal,
+            AttrVal.ValOneofCase.IntegerVal => value.IntegerVal,
+            AttrVal.ValOneofCase.None => null,
+            _ => throw new ArgumentOutOfRangeException("Enum value out of range"),
+        };
+    }
+
     public override Task<OtelSetAttributesReturn> OtelSetAttributes(OtelSetAttributesArgs request, ServerCallContext context)
     {
         _logger.LogInformation("OtelSetAttributes: {Request}", request);
 
         var activity = FindActivity(request.SpanId);
 
-        foreach ((string key, ListVal values) in request.Attributes.KeyVals)
-        {
-            // tags only support one value, so we only use the first one
-            if (values.Val.FirstOrDefault() is { } value)
-            {
-                switch (value.ValCase)
-                {
-                    case AttrVal.ValOneofCase.None:
-                        // no value to set
-                        break;
-                    case AttrVal.ValOneofCase.BoolVal:
-                        activity.SetTag(key, value.BoolVal);
-                        break;
-                    case AttrVal.ValOneofCase.StringVal:
-                        activity.SetTag(key, value.StringVal);
-                        break;
-                    case AttrVal.ValOneofCase.DoubleVal:
-                        activity.SetTag(key, value.DoubleVal);
-                        break;
-                    case AttrVal.ValOneofCase.IntegerVal:
-                        activity.SetTag(key, value.IntegerVal);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Enum value out of range: OtelSetAttributesArgs.Attributes.KeyVals[\"{key}\"][0] = {value.ValCase}.");
-                }
-            }
-        }
+        SetTag(activity, request.Attributes);
+
+        //foreach ((string key, ListVal values) in request.Attributes.KeyVals)
+        //{
+        //    var valuesList = values.Val.ToList();
+        //    if (valuesList.Count == 1)
+        //    {
+        //        var value = GetValue(valuesList[0]);
+        //        if (value is not null)
+        //        {
+        //            activity.SetTag(key, value);
+        //        }
+        //    }
+        //    else if (valuesList.Count > 1)
+        //    {
+        //        var toAdd = new List<object>();
+        //        foreach(var value in valuesList)
+        //        {
+        //            var valueToAdd = GetValue(value) ?? throw new InvalidOperationException("Null value in attribute array");
+        //            toAdd.Add(valueToAdd);
+        //        }
+        //        activity.SetTag(key, toAdd);
+        //    }
+        //}
 
         _logger.LogInformation("OtelSetAttributesReturn");
         return Task.FromResult(new OtelSetAttributesReturn());
+    }
+
+    private void SetTag(Activity activity, Attributes attributes)
+    {
+        foreach ((string key, ListVal values) in attributes.KeyVals)
+        {
+            var valuesList = values.Val.ToList();
+            if (valuesList.Count == 1)
+            {
+                var value = GetValue(valuesList[0]);
+                if (value is not null)
+                {
+                    activity.SetTag(key, value);
+                }
+            }
+            else if (valuesList.Count > 1)
+            {
+                var toAdd = new List<object>();
+                foreach (var value in valuesList)
+                {
+                    var valueToAdd = GetValue(value) ?? throw new InvalidOperationException("Null value in attribute array");
+                    toAdd.Add(valueToAdd);
+                }
+                activity.SetTag(key, toAdd);
+            }
+        }
     }
 
     public override async Task<OtelFlushSpansReturn> OtelFlushSpans(OtelFlushSpansArgs request, ServerCallContext context)
