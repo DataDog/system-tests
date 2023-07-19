@@ -45,6 +45,24 @@ jobs:
   scenarios:
     uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
 
+  parametric:
+    if: needs.scenarios.outputs.run_parametric == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/parametric.yml@main
+    secrets: inherit
+
+  experimental:
+    if: needs.scenarios.outputs.run_libinjection == 'true'
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    uses: datadog/system-tests/.github/workflows/experimental.yml@main
+    secrets: inherit
+
   main:
     runs-on: ubuntu-latest
     needs:
