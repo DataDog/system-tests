@@ -210,7 +210,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
-        reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message."
+        reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
     )
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
@@ -236,7 +236,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(
         context.library == "dotnet",
-        reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed."
+        reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
     )
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
