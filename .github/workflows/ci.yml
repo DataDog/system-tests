@@ -43,7 +43,7 @@ jobs:
       - run: ./run.sh TEST_THE_TEST
 
   scenarios:
-    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@cbeauchesne/merge-parametric-ci
+    uses: datadog/system-tests/.github/workflows/compute-scenarios.yml@main
 
   parametric:
     if: needs.scenarios.outputs.run_parametric == 'true'
@@ -51,7 +51,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/parametric.yml@cbeauchesne/merge-parametric-ci
+    uses: datadog/system-tests/.github/workflows/parametric.yml@main
     secrets: inherit
 
   experimental:
@@ -60,7 +60,7 @@ jobs:
     - lint
     - test_the_test
     - scenarios
-    uses: datadog/system-tests/.github/workflows/experimental.yml@cbeauchesne/merge-parametric-ci
+    uses: datadog/system-tests/.github/workflows/experimental.yml@main
     secrets: inherit
 
   main:
