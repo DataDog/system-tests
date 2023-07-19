@@ -140,10 +140,10 @@ function run_scenario() {
                 -v "${PWD}"/.env:/app/.env \
                 -v /var/run/docker.sock:/var/run/docker.sock \
                 -v "${PWD}/${log_dir}":"/app/${log_dir}" \
-                -e WEBLOG_HOST=weblog \
-                -e WEBLOG_PORT=7777 \
-                -e WEBLOG_GRPC_PORT=7778 \
-                -e HOST_PROJECT_DIR="${PWD}" \
+                -e SYSTEM_TESTS_WEBLOG_HOST=weblog \
+                -e SYSTEM_TESTS_WEBLOG_PORT=7777 \
+                -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778 \
+                -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}" \
                 --name system-tests-runner \
                 system_tests/runner \
                 venv/bin/pytest -S "${scenario}" "${pytest_args[@]}"

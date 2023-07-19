@@ -47,7 +47,7 @@ class TestedContainer:
         **kwargs,
     ) -> None:
         self.name = name
-        self.host_project_dir = os.environ.get("HOST_PROJECT_DIR", os.getcwd())
+        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
@@ -247,7 +247,7 @@ class ProxyContainer(TestedContainer):
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
-                "HOST_LOG_FOLDER": host_log_folder,
+                "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "PROXY_STATE": json.dumps(proxy_state or {}),
             },
             working_dir="/app",

@@ -58,18 +58,18 @@ class HttpResponse:
 
 class _Weblog:
     def __init__(self):
-        if "WEBLOG_PORT" in os.environ:
-            self.port = int(os.environ["WEBLOG_PORT"])
+        if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:
+            self.port = int(os.environ["SYSTEM_TESTS_WEBLOG_PORT"])
         else:
             self.port = 7777
 
-        if "WEBLOG_GRPC_PORT" in os.environ:
-            self._grpc_port = int(os.environ["WEBLOG_GRPC_PORT"])
+        if "SYSTEM_TESTS_WEBLOG_GRPC_PORT" in os.environ:
+            self._grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
         else:
             self._grpc_port = 7778
 
-        if "WEBLOG_HOST" in os.environ:
-            self.domain = os.environ["WEBLOG_HOST"]
+        if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
+            self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
         elif "DOCKER_HOST" in os.environ:
             self.domain = re.sub(r"^ssh://([^@]+@|)", "", os.environ["DOCKER_HOST"])
         else:
