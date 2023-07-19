@@ -36,32 +36,30 @@ LINE_PROBES = ["logProbe-installed", "metricProbe-installed", "spanProbe-install
 def check_probe_statuses(expected_data):
     check_info_endpoint()
 
-    probe_id_map = get_probe_if_map()
+    probe_status_map = get_probe_status_map()
     for expected_probe in expected_data:
-        check_probe_status(expected_probe, probe_id_map)
+        check_probe_status(expected_probe, probe_status_map)
 
 
-def get_probe_if_map():
+def get_probe_status_map():
     agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
     hash = {}
 
     for request in agent_logs_endpoint_requests:
         for content in request["request"]["content"]:
             probe_id = content["debugger"]["diagnostics"]["probeId"]
-            if probe_id not in hash:
-                hash[probe_id] = content
-            elif content["timestamp"] > hash[probe_id]["timestamp"]:
-                hash[probe_id] = content
+            hash[probe_id] = content["debugger"]["diagnostics"]
+
     return hash
 
 
-def check_probe_status(expected_id, probe_id_map):
+def check_probe_status(expected_id, probe_status_map):
     expected_status = expected_id.split("-")[1].upper()
 
-    if expected_id not in probe_id_map:
+    if expected_id not in probe_status_map:
         raise ValueError("Probe " + expected_id + " was not received.")
 
-    actual_status = probe_id_map[expected_id]["debugger"]["diagnostics"]["status"]
+    actual_status = probe_status_map[expected_id]["status"]
     if actual_status != expected_status:
         raise ValueError(
             "Received probe " + expected_id + " with status " + actual_status + ", but expected for " + expected_status
