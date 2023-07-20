@@ -101,10 +101,6 @@ function downcase() {
     tr '[:upper:]' '[:lower:]'
 }
 
-function clean_pycache() {
-    find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
-}
-
 function is_using_nix() {
     [[ -n "${IN_NIX_SHELL:-}" ]]
 }
@@ -298,9 +294,6 @@ function main() {
         run_mode='docker'
     else
         run_mode='direct'
-
-        # cleanups
-        clean_pycache
 
         # ensure environment
         if ! is_using_nix; then
