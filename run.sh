@@ -102,7 +102,7 @@ function downcase() {
 }
 
 function clean_pycache() {
-    find utils tests -type d -name '__pycache__'  -prune -exec rm -rf {} +
+    find utils tests -type d -name '__pycache__' -exec rm -rf {} +
 }
 
 function is_using_nix() {
