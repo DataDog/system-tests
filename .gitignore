@@ -46,3 +46,6 @@ reportJunit.xml
 
 # Node.js
 node_modules/
+
+# vim
+/*.vim

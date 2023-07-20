@@ -42,7 +42,7 @@ class _RequestLogger:
         self.dd_application_key = os.environ.get("DD_APPLICATION_KEY")
         self.dd_app_key = os.environ.get("DD_APP_KEY")
         self.state = json.loads(os.environ.get("PROXY_STATE", "{}"))
-        self.host_log_folder = os.environ.get("HOST_LOG_FOLDER", "logs")
+        self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
 
         # for config backend mock
         self.config_request_count = defaultdict(int)
