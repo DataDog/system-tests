@@ -539,7 +539,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={f"./utils/build/docker/otelcol-config.yaml": {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
