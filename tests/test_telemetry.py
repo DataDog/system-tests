@@ -18,7 +18,7 @@ class Test_Telemetry:
     agent_requests = {}
 
     def validate_library_telemetry_data(self, validator, success_by_default=False):
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0:
             if not success_by_default:
@@ -112,7 +112,7 @@ class Test_Telemetry:
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
             raise Exception("No telemetry data to validate on")
 
@@ -169,12 +169,18 @@ class Test_Telemetry:
     @bug(library="python", reason="app-started not sent first")
     @flaky(library="nodejs", reason="APPSEC-10465")
     def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message"""
-        telemetry_data = list(interfaces.library.get_telemetry_data())
+        """Request type app-started is the first telemetry message or in the first batch"""
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
+        if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
+            for payload in telemetry_data[0]["request"]["content"]["payload"]:
+                if payload.get("request_type") == "app-started":
+                    return
 
-        first_message = telemetry_data[0]["request"]["content"]
-        assert first_message.get("request_type") == "app-started", "app-started was not the first message"
+            raise Exception("app-started was not in the first message-batch")
+        else:
+            first_message = telemetry_data[0]["request"]["content"]
+            assert first_message.get("request_type") == "app-started", "app-started was not the first message"
 
     @bug(
         library="java",
@@ -257,9 +263,9 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    # @flaky(library="nodejs", reason="Heartbeats are sometimes sent too fast")
     # @flaky(library="dotnet", reason="Heartbeats are sometimes sent too slowly")
     # @flaky(library="python", reason="Heartbeats are sometimes sent too slowly")
+    @flaky(library="nodejs", reason="AIT-7943")
     @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     def test_app_heartbeat(self):
@@ -546,7 +552,7 @@ class Test_ForceBatchingEnabled:
     def test_message_batch_event_order(self):
         """Test that the events in message-batch are in chronological order"""
         event_list = []
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
             event_list.append(content.get("request_type"))
 

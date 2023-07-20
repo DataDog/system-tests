@@ -31,3 +31,13 @@ The `scenarios` singleton is available under `utils` module. It exposes decorato
 class Test_Something:
     ...
 ```
+
+## Scenarios
+
+### End to end scenarios
+
+Based on class `EndToEndScenario`, they spwan a weblog (HTTP app shipping a tracer), an agent, a proxy between tracer-agent-backend, and run a set of high level functionnal tests. The `DEFAULT` scenario is the main scenario of system tests, and is in this family.
+
+### Parametric scenario
+
+Parametric scenario build and spawn a tracer with a simple GRPC interface. It's not really unit tests (still black-box testing), neither functionnal tests (only tracers are tested), they are convenient to tests different parameter set for tracers. More detailled documentation ca be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).

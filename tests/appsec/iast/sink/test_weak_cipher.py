@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import pytest
-from utils import context, missing_feature, coverage, released
+from utils import context, missing_feature, coverage, released, flaky
 from ..iast_fixtures import SinkFixture
 
 if context.library == "cpp":
@@ -35,6 +35,7 @@ class TestWeakCipher:
     def setup_secure(self):
         self.sink_fixture.setup_secure()
 
+    @flaky(library="python", reason="PATH_TRAVERSAL on Crypto.Cipher.AES is reported, approx 10%")
     def test_secure(self):
         self.sink_fixture.test_secure()
 

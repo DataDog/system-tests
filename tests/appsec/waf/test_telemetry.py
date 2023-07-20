@@ -52,7 +52,7 @@ class Test_TelemetryMetrics:
     @bug(context.library < "java@1.13.0", reason="Missing two headers")
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             request_type = data["request"]["content"].get("request_type")
             _validate_headers(data["request"]["headers"], request_type)
 

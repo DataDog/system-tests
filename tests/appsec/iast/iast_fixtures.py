@@ -90,7 +90,8 @@ class SinkFixture:
 
     def test_secure(self):
         meta = _get_span_meta(request=self.secure_request)
-        assert not "_dd.iast.json" in meta, "Unexpected vulnerabilities reported"
+        iast_json = meta.get("_dd.iast.json")
+        assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
 
     def setup_telemetry_metric_instrumented_sink(self):
         self.setup_insecure()
