@@ -16,6 +16,7 @@ from utils import (
     rfc,
     bug,
     irrelevant,
+    weblog,
 )
 from utils.tools import logger
 
@@ -138,8 +139,8 @@ def dict_is_included(sub_dict: dict, main_dict: dict):
 
 
 def dict_is_in_array(needle: dict, haystack: list, allow_additional_fields=True):
-    """ 
-    returns true is needle is contained in haystack. 
+    """
+    returns true is needle is contained in haystack.
     If allow_additional_field is true, needle can contains less field than the one in haystack
     """
 
@@ -278,6 +279,48 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
                 self.request_number += 1
 
             return False
+
+        interfaces.library.validate_remote_configuration(validator=validate)
+
+
+@released(cpp="?",
+          dotnet="2.33.0",
+          golang="?",
+          java="?",
+          php_appsec="?",
+          python="?",
+          ruby="?",
+          nodejs="?")
+@coverage.basic
+@scenarios.remote_config_mocked_backend_asm_features
+class Test_RemoteConfigurationExtraServices():
+    """Tests that """
+
+    def setup_tracer_extra_services(self):
+        self.r_outgoing = weblog.get("/createextraservice/?serviceName=extraVegetables")
+
+    def test_tracer_extra_services(self):
+        """ test """
+
+        def validate(data):
+            """ Helper to validate config request content """
+            client_tracer = data["request"]["content"]["client"]["client_tracer"]
+
+            if not ("extra_services" in client_tracer):
+                raise ValidationError(
+                    "client_tracer should contain extra_services",
+                    extra_info={"client_tracer": client_tracer},
+                )
+
+            extra_services = client_tracer["extra_services"]
+
+            if extra_services is None or len(extra_services) != 1 or extra_services[0] != "extraVegetables":
+                raise ValidationError(
+                    "extra_services should be reported",
+                    extra_info={"extra_services": extra_services},
+                )
+
+            return True
 
         interfaces.library.validate_remote_configuration(validator=validate)
 
